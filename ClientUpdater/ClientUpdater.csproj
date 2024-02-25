@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Title>CnCNet.ClientUpdater</Title>
     <Description>CnCNet Client Updater Library</Description>
     <Company>CnCNet</Company>
-    <Product></Product>
+    <Product>CnCNet.ClientUpdater</Product>
     <Copyright>Copyright © CnCNet 2023</Copyright>
     <Trademark></Trademark>
     <AssemblyName>ClientUpdater</AssemblyName>
@@ -26,7 +26,6 @@
     <PackageProjectUrl>https://github.com/CnCNet/cncnet-client-updater</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression></PackageLicenseExpression>
-    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <EnablePackageValidation>true</EnablePackageValidation>
     <AnalysisMode Condition="'$(Configuration)' == 'Debug'">All</AnalysisMode>
     <EnforceCodeStyleInBuild Condition="'$(Configuration)' == 'Debug'">true</EnforceCodeStyleInBuild>
@@ -34,17 +33,23 @@
     <AnalysisModeDocumentation Condition="'$(Configuration)' != 'Debug'">None</AnalysisModeDocumentation>
     <AnalysisModeNaming Condition="'$(Configuration)' != 'Debug'">None</AnalysisModeNaming>
     <AnalysisModeStyle Condition="'$(Configuration)' != 'Debug'">None</AnalysisModeStyle>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Polyfill" Version="2.2.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

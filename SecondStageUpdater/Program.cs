@@ -23,26 +23,27 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Rampastring.Tools;
 
 internal sealed class Program
 {
     private const int MutexTimeoutInSeconds = 30;
-    private const int MaxCopyAttempts = 5;
-    private const int CopyRetryWaitMilliseconds = 500;
 
-    private static readonly object ConsoleMessageLock = new();
+    private static ConsoleColor defaultColor;
+    private static bool hasHandle;
+    private static Mutex clientMutex;
 
-    private static async Task Main(string[] args)
+    // e.g. args = ["clientogl.dll", "\"C:\\Game\\\""];
+    private static void Main(string[] args)
     {
+        defaultColor = Console.ForegroundColor;
+
         try
         {
             Write("CnCNet Client Second-Stage Updater", true, ConsoleColor.Green);
             Write(string.Empty);
 
-            // e.g. clientogl.dll "C:\Game\"
-            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase)).Exists)
+            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null)).Exists)
             {
                 Write("Invalid arguments given!", true, ConsoleColor.Red);
                 Write("Usage: <client_executable_name> <base_directory>");
@@ -51,8 +52,8 @@ internal sealed class Program
             }
             else
             {
-                FileInfo clientExecutable = SafePath.GetFile(args[0]);
-                DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase));
+                string clientExecutable = args[0];
+                DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null));
                 DirectoryInfo resourceDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Resources");
                 FileInfo logFile = SafePath.GetFile(SafePath.CombineFilePath(baseDirectory.FullName, "Client", "SecondStageUpdater.log"));
 
@@ -64,14 +65,12 @@ internal sealed class Program
                 Logger.WriteToConsole = false;
                 Logger.Log("CnCNet Client Second-Stage Updater");
                 Logger.Log("Version: " + Assembly.GetAssembly(typeof(Program)).GetName().Version);
-
                 Write("Base directory: " + baseDirectory.FullName);
-                Write($"Waiting for the client ({clientExecutable.Name}) to exit..");
+                Write($"Waiting for the client ({clientExecutable}) to exit..");
 
                 string clientMutexId = FormattableString.Invariant($"Global{Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9")}");
 
-                Mutex clientMutex = new(false, clientMutexId, out _);
-                bool hasHandle;
+                clientMutex = new(false, clientMutexId, out _);
 
                 try
                 {
@@ -84,15 +83,12 @@ internal sealed class Program
 
                 if (!hasHandle)
                 {
-                    Write($"Timeout while waiting for the client ({clientExecutable.Name}) to exit!", true, ConsoleColor.Red);
+                    Write($"Timeout while waiting for the client ({clientExecutable}) to exit!", true, ConsoleColor.Red);
                     Exit(false);
                 }
 
-                clientMutex.ReleaseMutex();
-                clientMutex.Dispose();
-
                 // This is occasionally necessary to prevent DLLs from being locked at the time that this update is attempting to overwrite them
-                await Task.Delay(1000).ConfigureAwait(false);
+                Thread.Sleep(1000);
 
                 DirectoryInfo updaterDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Updater");
 
@@ -111,41 +107,42 @@ internal sealed class Program
 
                 Write($"{nameof(SecondStageUpdater)}: {relativeExecutableFile}");
 
-                var copyTasks = new List<Task>();
-                var failedFiles = new List<FileInfo>();
+                AssemblyName[] assemblies = Assembly.LoadFrom(executableFile.FullName).GetReferencedAssemblies();
 
                 foreach (FileInfo fileInfo in files)
                 {
                     FileInfo relativeFileInfo = SafePath.GetFile(fileInfo.FullName[updaterDirectory.FullName.Length..]);
-                    AssemblyName[] assemblies = Assembly.LoadFrom(executableFile.FullName).GetReferencedAssemblies();
 
-                    if (relativeFileInfo.ToString()[..^relativeFileInfo.Extension.Length].Equals(relativeExecutableFile.ToString()[..^relativeExecutableFile.Extension.Length], StringComparison.OrdinalIgnoreCase)
-                        || relativeFileInfo.ToString()[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
+                    if (relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(relativeExecutableFile.FullName[..^relativeExecutableFile.Extension.Length], StringComparison.OrdinalIgnoreCase)
+                        || relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
                     {
                         Write($"Skipping {nameof(SecondStageUpdater)} file {relativeFileInfo}");
                     }
-                    else if (assemblies.Any(q => relativeFileInfo.ToString()[..^relativeFileInfo.Extension.Length].Equals(q.Name, StringComparison.OrdinalIgnoreCase))
-                        || assemblies.Any(q => relativeFileInfo.ToString()[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
+                    else if (assemblies.Any(q => relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(q.Name, StringComparison.OrdinalIgnoreCase))
+                        || assemblies.Any(q => relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
                     {
                         Write($"Skipping {nameof(SecondStageUpdater)} dependency {relativeFileInfo}");
                     }
-                    else if (relativeFileInfo.ToString().Equals(versionFileName, StringComparison.OrdinalIgnoreCase))
+                    else if (relativeFileInfo.FullName.Equals(versionFileName, StringComparison.OrdinalIgnoreCase))
                     {
                         Write($"Skipping {relativeFileInfo}");
                     }
                     else
                     {
-                        copyTasks.Add(CopyFileTaskAsync(baseDirectory, fileInfo, relativeFileInfo, failedFiles));
+                        try
+                        {
+                            FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileInfo.FullName);
+
+                            Write($"Updating {relativeFileInfo}");
+                            fileInfo.CopyTo(copiedFile.FullName, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Write($"Updating file failed! Returned error message: {ex}", true, ConsoleColor.Yellow);
+                            Write("If the problem persists, try to move the content of the \"Updater\" directory to the main directory manually or contact the staff for support.");
+                            Exit(false);
+                        }
                     }
-                }
-
-                await Task.WhenAll(copyTasks.ToArray()).ConfigureAwait(false);
-
-                if (failedFiles.Any())
-                {
-                    Write("Updating file(s) failed!", true, ConsoleColor.Yellow);
-                    Write("If the problem persists, try to move the content of the \"Updater\" directory to the main directory manually or contact the staff for support.");
-                    Exit(false);
                 }
 
                 FileInfo versionFile = SafePath.GetFile(updaterDirectory.FullName, versionFileName);
@@ -166,10 +163,10 @@ internal sealed class Program
                 {
                     Write("Checking ClientDefinitions.ini for launcher executable filename.");
 
-                    string[] lines = await File.ReadAllLinesAsync(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini")).ConfigureAwait(false);
+                    string[] lines = File.ReadAllLines(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini"));
                     string launcherPropertyName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LauncherExe" : "UnixLauncherExe";
-                    string line = lines.Single(q => q.Trim().StartsWith(launcherPropertyName, StringComparison.OrdinalIgnoreCase) && q.Contains('=', StringComparison.OrdinalIgnoreCase));
-                    int commentStart = line.IndexOf(';', StringComparison.OrdinalIgnoreCase);
+                    string line = lines.Single(q => q.Trim().StartsWith(launcherPropertyName, StringComparison.OrdinalIgnoreCase) && q.Contains("=", StringComparison.OrdinalIgnoreCase));
+                    int commentStart = line.IndexOf(";", StringComparison.OrdinalIgnoreCase);
 
                     if (commentStart >= 0)
                         line = line[..commentStart];
@@ -181,18 +178,23 @@ internal sealed class Program
                     Write($"Failed to read ClientDefinitions.ini: {ex}", true, ConsoleColor.Yellow);
                 }
 
+                FileInfo architectureLauncherExeFile = SafePath.GetFile(resourceDirectory.FullName, "Launcher", FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(launcherExe)}-{RuntimeInformation.OSArchitecture}{Path.GetExtension(launcherExe)}"));
                 FileInfo launcherExeFile = SafePath.GetFile(baseDirectory.FullName, launcherExe);
+
+                if (architectureLauncherExeFile.Exists)
+                {
+                    architectureLauncherExeFile.CopyTo(launcherExeFile.FullName, true);
+                    launcherExeFile.Refresh();
+                }
 
                 if (launcherExeFile.Exists)
                 {
                     Write("Launcher executable found: " + launcherExe, true, ConsoleColor.Green);
 
-#pragma warning disable SA1312 // Variable names should begin with lower-case letter
                     using var _ = Process.Start(new ProcessStartInfo
                     {
                         FileName = launcherExeFile.FullName
                     });
-#pragma warning restore SA1312 // Variable names should begin with lower-case letter
                 }
                 else
                 {
@@ -213,90 +215,26 @@ internal sealed class Program
         }
     }
 
-    /// <summary>
-    /// This attempts to copy a file for the update with the ability to retry up to <see cref="MaxCopyAttempts"/> times.
-    /// There are instances where DLLs or other files may be locked and are unable to be overwritten by the update.
-    ///
-    /// TODO:
-    /// Make a backup of all files that are attempted. When we check for any failed files outside this function, restore all backups
-    /// if any failures occurred. This will prevent the user from being in a partially updated state.
-    ///
-    /// </summary>
-    /// <param name="baseDirectory">The absolute path of the game installation.</param>
-    /// <param name="sourceFileInfo">The file to be copied.</param>
-    /// <param name="relativeFileInfo">The relative file info for the destination of the file to be copied.</param>
-    /// <param name="failedFiles">If the copy fails too many times, the file should be added to this list.</param>
-    /// <returns>A Task.</returns>
-    private static async Task CopyFileTaskAsync(DirectoryInfo baseDirectory, FileInfo sourceFileInfo, FileInfo relativeFileInfo, List<FileInfo> failedFiles)
-    {
-        for (int attempt = 1; ; attempt++)
-        {
-            try
-            {
-                FileInfo destinationFile = SafePath.GetFile(baseDirectory.FullName, relativeFileInfo.ToString());
-                FileStream sourceFileStream = sourceFileInfo.Open(new FileStreamOptions
-                {
-                    Access = FileAccess.Read,
-                    Mode = FileMode.Open,
-                    Options = FileOptions.Asynchronous,
-                    Share = FileShare.None
-                });
-                await using (sourceFileStream.ConfigureAwait(false))
-                {
-                    FileStream destinationFileStream = destinationFile.Open(new FileStreamOptions
-                    {
-                        Access = FileAccess.Write,
-                        Mode = FileMode.Create,
-                        Options = FileOptions.Asynchronous,
-                        Share = FileShare.None
-                    });
-                    await using (destinationFileStream.ConfigureAwait(false))
-                    {
-                        await sourceFileStream.CopyToAsync(destinationFileStream).ConfigureAwait(false);
-                    }
-                }
-
-                Write($"Updated {relativeFileInfo}");
-
-                // File was succesfully copied. Return from the function.
-                return;
-            }
-            catch (IOException ex)
-            {
-                if (attempt >= MaxCopyAttempts)
-                {
-                    // We tried too many times and need to bail.
-                    failedFiles.Add(sourceFileInfo);
-                    Write($"Updating file failed too many times! Returned error message: {ex}", true, ConsoleColor.Yellow);
-                    return;
-                }
-
-                // We failed to copy the file, but can try again.
-                Write($"Updating file attempt {attempt} failed! Returned error message: {ex.Message}", true, ConsoleColor.Yellow);
-                await Task.Delay(CopyRetryWaitMilliseconds).ConfigureAwait(false);
-            }
-        }
-    }
-
     private static void Exit(bool success)
     {
-        if (success)
-            return;
+        if (hasHandle)
+        {
+            clientMutex.ReleaseMutex();
+            clientMutex.Dispose();
+        }
 
-        Write("Press any key to exit.", false);
-        Console.ReadKey();
-        Environment.Exit(1);
+        if (!success)
+        {
+            Write("Press any key to exit.");
+            Console.ReadKey();
+            Environment.Exit(1);
+        }
     }
 
     private static void Write(string text, bool logToFile = true, ConsoleColor? color = null)
     {
-        // This is necessary, because console is written to from the copy file task
-        lock (ConsoleMessageLock)
-        {
-            Console.ForegroundColor = color ?? Console.ForegroundColor;
-            Console.WriteLine(text);
-            Console.ResetColor();
-        }
+        Console.ForegroundColor = color ?? defaultColor;
+        Console.WriteLine(text);
 
         if (logToFile)
             Logger.Log(text);

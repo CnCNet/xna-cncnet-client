@@ -1,0 +1,9 @@
+branches:
+  master:
+    regex: ^master$
+    
+    mode: ContinuousDelivery
+    increment: Patch
+    is-mainline: true
+    source-branches: [ 'master' ]
+    tag: ''

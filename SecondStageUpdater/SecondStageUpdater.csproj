@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <Title></Title>
+    <Title>CnCNet.SecondStageUpdater</Title>
     <Description>CnCNet Client Second-Stage Updater</Description>
     <Company>CnCNet</Company>
-    <Product></Product>
+    <Product>CnCNet.SecondStageUpdater</Product>
     <Copyright>Copyright © CnCNet 2023</Copyright>
     <Trademark></Trademark>
     <AssemblyName>SecondStageUpdater</AssemblyName>
@@ -15,18 +15,23 @@
     <AnalysisLevel>latest-all</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Platforms>AnyCPU</Platforms>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <UseAppHost>false</UseAppHost>
-    <Version>1.0.1.1</Version>
-    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
-    <FileVersion>$(PackageVersion)</FileVersion>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Polyfill" Version="2.2.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 </Project>

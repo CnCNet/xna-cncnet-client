@@ -25,7 +25,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Handlers;
 using System.Reflection;
+#if !NETFRAMEWORK
 using System.Runtime.InteropServices;
+#endif
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -136,6 +138,14 @@ public static class Updater
     private static readonly List<UpdaterFileInfo> ServerFileInfos = new();
     private static readonly List<UpdaterFileInfo> LocalFileInfos = new();
 
+#if NETFRAMEWORK
+    private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
+    {
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+    });
+
+    private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
+#else
     private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new SocketsHttpHandler
     {
         PooledConnectionLifetime = TimeSpan.FromMinutes(15),
@@ -146,6 +156,7 @@ public static class Updater
     {
         DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
     };
+#endif
 
     // Current update / download related.
     private static bool terminateUpdate;
@@ -553,7 +564,7 @@ public static class Updater
 
         foreach (string line in lines)
         {
-            if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith(";", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith(';'))
                 continue;
 
             string[] array = line.Split(new char[] { ',' });
@@ -601,19 +612,13 @@ public static class Updater
                     {
                         Logger.Log("Updater: Trying to connect to update mirror " + updateMirrors[currentUpdateMirrorIndex].URL);
 
-                        var fileStream = new FileStream(downloadFile.FullName, new FileStreamOptions
-                        {
-                            Access = FileAccess.Write,
-                            Mode = FileMode.Create,
-                            Options = FileOptions.Asynchronous,
-                            Share = FileShare.None
-                        });
+                        FileStream fileStream = new FileStream(downloadFile.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
-                        await using (fileStream.ConfigureAwait(false))
+                        using (fileStream)
                         {
                             Stream stream = await SharedHttpClient.GetStreamAsync(updateMirrors[currentUpdateMirrorIndex].URL + VERSION_FILE).ConfigureAwait(false);
 
-                            await using (stream.ConfigureAwait(false))
+                            using (stream)
                             {
                                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                             }
@@ -764,19 +769,15 @@ public static class Updater
         Logger.Log("Updater: Downloading updateexec.");
         try
         {
-            var fileStream = new FileStream(SafePath.CombineFilePath(GamePath, "updateexec"), new FileStreamOptions
-            {
-                Access = FileAccess.Write,
-                Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous,
-                Share = FileShare.None
-            });
+            string downloadFile = SafePath.CombineFilePath(GamePath, "updateexec");
+            
+            FileStream fileStream = new FileStream(downloadFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
-            await using (fileStream.ConfigureAwait(false))
+            using (fileStream)
             {
                 Stream stream = await SharedHttpClient.GetStreamAsync(updateMirrors[currentUpdateMirrorIndex].URL + "updateexec").ConfigureAwait(false);
 
-                await using (stream.ConfigureAwait(false))
+                using (stream)
                 {
                     await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                 }
@@ -800,19 +801,15 @@ public static class Updater
         Logger.Log("Updater: Downloading preupdateexec.");
         try
         {
-            var fileStream = new FileStream(SafePath.CombineFilePath(GamePath, "preupdateexec"), new FileStreamOptions
-            {
-                Access = FileAccess.Write,
-                Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous,
-                Share = FileShare.None
-            });
+            string downloadFile = SafePath.CombineFilePath(GamePath, "preupdateexec");
+            
+            FileStream fileStream = new FileStream(downloadFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
-            await using (fileStream.ConfigureAwait(false))
+            using (fileStream)
             {
                 Stream stream = await SharedHttpClient.GetStreamAsync(updateMirrors[currentUpdateMirrorIndex].URL + "preupdateexec").ConfigureAwait(false);
 
-                await using (stream.ConfigureAwait(false))
+                using (stream)
                 {
                     await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                 }
@@ -1187,7 +1184,7 @@ public static class Updater
                             return;
                         }
 
-                        if (errorMessage == null)
+                        if (errorMessage is null)
                         {
                             totalDownloadedKbs += info.Archived ? info.ArchiveSize : info.Size;
                             break;
@@ -1200,10 +1197,7 @@ public static class Updater
                             Logger.Log("Updater: Too many retries for downloading file " +
                                 (info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename) + ". Update halted.");
 
-                            string extraMsg = string.Empty;
-
-                            if (errorMessage != null)
-                                extraMsg = Environment.NewLine + Environment.NewLine + "Download error message: " + errorMessage;
+                            string extraMsg = Environment.NewLine + Environment.NewLine + "Download error message: " + errorMessage;
 
                             throw new("Too many retries for downloading file " +
                                       (info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename) + extraMsg);
@@ -1225,12 +1219,18 @@ public static class Updater
                     Logger.Log("Updater: Cleaning up.");
 
                     DirectoryInfo updaterDirectoryInfo = SafePath.GetDirectory(GamePath, "Updater");
+                    FileInfo versionFile = SafePath.GetFile(GamePath, VERSION_FILE);
                     FileInfo versionFileTemp = SafePath.GetFile(GamePath, FormattableString.Invariant($"{VERSION_FILE}_u"));
 
                     if (updaterDirectoryInfo.Exists)
+                    {
                         versionFileTemp.MoveTo(SafePath.CombineFilePath(updaterDirectoryInfo.FullName, VERSION_FILE));
+                    }
                     else
-                        versionFileTemp.MoveTo(SafePath.CombineFilePath(GamePath, VERSION_FILE), true);
+                    {
+                        SafePath.DeleteFileIfExists(versionFile.FullName);
+                        versionFileTemp.MoveTo(versionFile.FullName);
+                    }
 
                     FileInfo themeFileInfo = SafePath.GetFile(GamePath, "Theme_c.ini");
 
@@ -1265,7 +1265,8 @@ public static class Updater
 
                                 Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
 
-                                updaterFile.MoveTo(updaterFileResource.FullName, true);
+                                SafePath.DeleteFileIfExists(updaterFileResource.FullName);
+                                updaterFile.MoveTo(updaterFileResource.FullName);
                             }
 
                             AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterResource.FullName).GetReferencedAssemblies();
@@ -1281,12 +1282,22 @@ public static class Updater
 
                                 Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
 
-                                updaterFile.MoveTo(updaterFileResource.FullName, true);
+                                SafePath.DeleteFileIfExists(updaterFileResource.FullName);
+                                updaterFile.MoveTo(updaterFileResource.FullName);
                             }
                         }
 
                         Logger.Log("Updater: Launching second-stage updater executable " + secondStageUpdaterResource.FullName + ".");
 
+#if NETFRAMEWORK
+                        // e.g. C:\Game\Resources\SecondStageUpdater.exe clientogl.dll "C:\Game\"
+                        using var _ = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = secondStageUpdaterResource.FullName,
+                            Arguments = CallingExecutableFileName + " \"" + GamePath + "\"",
+                            UseShellExecute = false
+                        });
+#else
                         // e.g. dotnet "C:\Game\Resources\SecondStageUpdater.dll" clientogl.dll "C:\Game\"
                         using var _ = Process.Start(new ProcessStartInfo
                         {
@@ -1294,6 +1305,7 @@ public static class Updater
                             Arguments = "\"" + secondStageUpdaterResource.FullName + "\" " + CallingExecutableFileName + " \"" + GamePath + "\"",
                             UseShellExecute = true
                         });
+#endif
 
                         Restart?.Invoke(null, EventArgs.Empty);
                     }
@@ -1337,7 +1349,7 @@ public static class Updater
         UpdateDownloadProgress(0);
 
         string filename = fileInfo.Filename;
-        string prefixPath = "Updater";
+        const string prefixPath = "Updater";
         FileInfo decompressedFile = SafePath.GetFile(GamePath, prefixPath, filename);
 
         try
@@ -1346,7 +1358,7 @@ public static class Updater
             int currentUpdateMirrorId = Updater.currentUpdateMirrorIndex;
             string extraExtension = fileInfo.Archived ? ARCHIVE_FILE_EXTENSION : string.Empty;
             string fileRelativePath = SafePath.CombineFilePath(prefixPath, FormattableString.Invariant($"{filename}{extraExtension}"));
-            uriString = (updateMirrors[currentUpdateMirrorId].URL + filename + extraExtension).Replace(@"\", "/", StringComparison.OrdinalIgnoreCase);
+            uriString = (updateMirrors[currentUpdateMirrorId].URL + filename + extraExtension).Replace('\\', '/');
             FileInfo downloadFile = SafePath.GetFile(GamePath, fileRelativePath);
             CreatePath(SafePath.CombineFilePath(GamePath, filename));
             CreatePath(downloadFile.FullName);
@@ -1359,19 +1371,12 @@ public static class Updater
             else
             {
                 Logger.Log("Updater: Downloading file " + filename + extraExtension);
-                var fileStream = new FileStream(downloadFile.FullName, new FileStreamOptions
-                {
-                    Access = FileAccess.Write,
-                    Mode = FileMode.Create,
-                    Options = FileOptions.Asynchronous,
-                    Share = FileShare.None
-                });
 
-                await using (fileStream.ConfigureAwait(false))
+                FileStream fileStream = new FileStream(downloadFile.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+                using (fileStream)
                 {
                     Stream stream = await SharedHttpClient.GetStreamAsync(new Uri(uriString)).ConfigureAwait(false);
-
-                    await using (stream.ConfigureAwait(false))
+                    using (stream)
                     {
                         await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                     }
@@ -1400,6 +1405,7 @@ public static class Updater
                         return errorMsg;
                     }
                 }
+#if !NETFRAMEWORK
 
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && downloadFile.Extension.Equals(".sh", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1407,8 +1413,11 @@ public static class Updater
 
                     downloadFile.UnixFileMode |= UnixFileMode.UserExecute;
 
+                    downloadFile.Refresh();
+
                     Logger.Log($"Updater: File {downloadFile.Name} execute permission added. Current permission flags: " + downloadFile.UnixFileMode);
                 }
+#endif
             }
 
             string fileIdentifier = CheckFileIdentifiers(filename, SafePath.CombineFilePath(prefixPath, filename), fileInfo.Identifier);

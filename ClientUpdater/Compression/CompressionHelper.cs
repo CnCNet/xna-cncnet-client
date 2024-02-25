@@ -34,25 +34,13 @@ public static class CompressionHelper
     public static async ValueTask CompressFileAsync(string inputFilename, string outputFilename, CancellationToken cancellationToken = default)
     {
         var encoder = new Encoder(cancellationToken);
-        var inputStream = new FileStream(inputFilename, new FileStreamOptions
-        {
-            Access = FileAccess.Read,
-            Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
-            Share = FileShare.None
-        });
+        var inputStream = new FileStream(inputFilename, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-        await using (inputStream.ConfigureAwait(false))
+        using (inputStream)
         {
-            var outputStream = new FileStream(outputFilename, new FileStreamOptions
-            {
-                Access = FileAccess.Write,
-                Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous,
-                Share = FileShare.None
-            });
+            var outputStream = new FileStream(outputFilename, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
-            await using (outputStream.ConfigureAwait(false))
+            using (outputStream)
             {
                 encoder.WriteCoderProperties(outputStream);
                 await outputStream.WriteAsync(BitConverter.GetBytes(inputStream.Length).AsMemory(0, 8), cancellationToken).ConfigureAwait(false);
@@ -69,25 +57,14 @@ public static class CompressionHelper
     public static async ValueTask DecompressFileAsync(string inputFilename, string outputFilename, CancellationToken cancellationToken = default)
     {
         var decoder = new Decoder(cancellationToken);
-        var inputStream = new FileStream(inputFilename, new FileStreamOptions
-        {
-            Access = FileAccess.Read,
-            Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
-            Share = FileShare.None
-        });
 
-        await using (inputStream.ConfigureAwait(false))
-        {
-            var outputStream = new FileStream(outputFilename, new FileStreamOptions
-            {
-                Access = FileAccess.Write,
-                Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous,
-                Share = FileShare.None
-            });
+        var inputStream = new FileStream(inputFilename, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-            await using (outputStream.ConfigureAwait(false))
+        using (inputStream)
+        {
+            var outputStream = new FileStream(outputFilename, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+
+            using (outputStream)
             {
                 byte[] properties = new byte[5];
                 byte[] fileLengthArray = new byte[sizeof(long)];
