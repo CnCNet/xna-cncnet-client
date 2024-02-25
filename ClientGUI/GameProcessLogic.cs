@@ -79,6 +79,7 @@ namespace ClientGUI
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
+                QResProcess.StartInfo.UseShellExecute = false;
 
                 if (!string.IsNullOrEmpty(extraCommandLine))
                     QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + "-SPAWN " + extraCommandLine;
@@ -119,6 +120,7 @@ namespace ClientGUI
                 var gameProcess = new Process();
                 gameProcess.StartInfo.FileName = gameFileInfo.FullName;
                 gameProcess.StartInfo.Arguments = arguments;
+                gameProcess.StartInfo.UseShellExecute = false;
 
                 gameProcess.EnableRaisingEvents = true;
                 gameProcess.Exited += Process_Exited;
@@ -144,7 +146,7 @@ namespace ClientGUI
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
                 {
-                    gameProcess.ProcessorAffinity = 2;
+                    gameProcess.ProcessorAffinity = (IntPtr)2;
                 }
             }
 

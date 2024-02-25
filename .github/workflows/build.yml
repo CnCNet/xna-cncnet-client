@@ -21,7 +21,7 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '7.x.x'
+        dotnet-version: '8.x.x'
 
     - name: Build ${{matrix.Game}}
       run: ./BuildScripts/Build-${{matrix.Game}}.ps1
