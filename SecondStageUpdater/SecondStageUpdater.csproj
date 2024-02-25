@@ -6,7 +6,7 @@
     <Description>CnCNet Client Second-Stage Updater</Description>
     <Company>CnCNet</Company>
     <Product>CnCNet.SecondStageUpdater</Product>
-    <Copyright>Copyright © CnCNet 2023</Copyright>
+    <Copyright>Copyright © CnCNet 2022-2024</Copyright>
     <Trademark></Trademark>
     <AssemblyName>SecondStageUpdater</AssemblyName>
     <RootNamespace>SecondStageUpdater</RootNamespace>
