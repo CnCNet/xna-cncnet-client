@@ -111,29 +111,30 @@ internal sealed class Program
 
                 foreach (FileInfo fileInfo in files)
                 {
-                    FileInfo relativeFileInfo = SafePath.GetFile(fileInfo.FullName[updaterDirectory.FullName.Length..]);
+                    string relativeFileName = fileInfo.FullName[updaterDirectory.FullName.Length..];
+                    string fileExtension = fileInfo.Extension;
 
-                    if (relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(relativeExecutableFile.FullName[..^relativeExecutableFile.Extension.Length], StringComparison.OrdinalIgnoreCase)
-                        || relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
+                    if (relativeFileName[..^fileExtension.Length].Equals(relativeExecutableFile.FullName[..^relativeExecutableFile.Extension.Length], StringComparison.OrdinalIgnoreCase)
+                        || relativeFileName[..^fileExtension.Length].Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
                     {
-                        Write($"Skipping {nameof(SecondStageUpdater)} file {relativeFileInfo}");
+                        Write($"Skipping {nameof(SecondStageUpdater)} file {relativeFileName}");
                     }
-                    else if (assemblies.Any(q => relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(q.Name, StringComparison.OrdinalIgnoreCase))
-                        || assemblies.Any(q => relativeFileInfo.FullName[..^relativeFileInfo.Extension.Length].Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
+                    else if (assemblies.Any(q => relativeFileName[..^fileExtension.Length].Equals(q.Name, StringComparison.OrdinalIgnoreCase))
+                        || assemblies.Any(q => relativeFileName[..^fileExtension.Length].Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
                     {
-                        Write($"Skipping {nameof(SecondStageUpdater)} dependency {relativeFileInfo}");
+                        Write($"Skipping {nameof(SecondStageUpdater)} dependency {relativeFileName}");
                     }
-                    else if (relativeFileInfo.FullName.Equals(versionFileName, StringComparison.OrdinalIgnoreCase))
+                    else if (relativeFileName.Equals(versionFileName, StringComparison.OrdinalIgnoreCase))
                     {
-                        Write($"Skipping {relativeFileInfo}");
+                        Write($"Skipping {relativeFileName}");
                     }
                     else
                     {
                         try
                         {
-                            FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileInfo.FullName);
+                            FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileName);
 
-                            Write($"Updating {relativeFileInfo}");
+                            Write($"Updating {relativeFileName}");
                             fileInfo.CopyTo(copiedFile.FullName, true);
                         }
                         catch (Exception ex)
