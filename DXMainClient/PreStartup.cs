@@ -72,7 +72,13 @@ namespace DTAClient
                 CheckPermissions();
 
             if (clientLogFile.Exists)
-                File.Move(clientLogFile.FullName, SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log").FullName, true);
+            {
+                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
+                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
+                if (clientPrevLogFile.Exists)
+                    File.Delete(clientPrevLogFile.FullName);
+                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
+            }
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -188,10 +194,33 @@ namespace DTAClient
             }
 
 #if WINFORMS
+#if NET6_0_OR_GREATER
+            // .NET 6.0 brings a source generator ApplicationConfiguration which is not available in previous .NET versions
+            // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
             ApplicationConfiguration.Initialize();
+#else
+            global::System.Windows.Forms.Application.EnableVisualStyles();
+            global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+#endif
 #endif
 
-            new Startup().Execute();
+            Startup startup = new();
+#if DEBUG
+            startup.Execute();
+#else
+            try
+            {
+                startup.Execute();
+            }
+            catch (Exception ex)
+            {
+                // ProgramConstants.DisplayErrorAction might have been overriden by XNA messagebox, which might be unable to display an error message.
+                // Fallback to MessageBox.
+                ProgramConstants.DisplayErrorAction = ProgramConstants.DefaultDisplayErrorAction;
+                HandleException(startup, ex);
+            }
+#endif
+
         }
 
         public static void LogException(Exception ex, bool innerException = false)

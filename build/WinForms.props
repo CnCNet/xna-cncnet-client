@@ -1,7 +1,10 @@
 <Project>
-  <PropertyGroup>
-    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net7.0-windows</TargetFramework>
-    <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
-    <UseWindowsForms Condition="'$(Engine)' != 'UniversalGL'">true</UseWindowsForms>
+  <PropertyGroup Condition="'$(Engine)' != 'UniversalGL'">
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Engine)' == 'UniversalGL'">
+    <TargetFramework>net8.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
   </PropertyGroup>
 </Project>
