@@ -296,7 +296,7 @@ namespace DTAClient.Domain.Multiplayer
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
 
                 FileInfo mapFile = SafePath.GetFile(BaseFilePath);
-                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.ToString()).Parent.ToString()[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
 
                 Briefing = section.GetStringValue("Briefing", string.Empty)
                     .FromIniString()

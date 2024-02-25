@@ -4,21 +4,21 @@
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 $ProjectPath = Join-Path $RepoRoot DXMainClient DXMainClient.csproj
 $CompiledRoot = Join-Path $RepoRoot Compiled
-$EngineMap = @{
+$EngineSubFolderMap = @{
   'UniversalGL' = 'UniversalGL'
   'WindowsDX'   = 'Windows'
   'WindowsGL'   = 'OpenGL'
   'WindowsXNA'  = 'XNA'
 }
+$FrameworkBinariesFolderMap = @{
+  'net48'          = 'Binaries'
+  'net8.0'         = 'BinariesNET8'
+  'net8.0-windows' = 'BinariesNET8'
+}
 
 function Build-Project($Configuration, $Game, $Engine, $Framework) {
-  $Output = Join-Path $CompiledRoot $Game $Output Resources Binaries ($EngineMap[$Engine])
-  if ($Engine -EQ 'WindowsXNA') {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output --arch=x86
-  }
-  else {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output
-  }
+  $Output = Join-Path $CompiledRoot $Game $Output Resources ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
+  dotnet publish $ProjectPath -c $Configuration -p:GAME=$Game -p:ENGINE=$Engine -f $Framework -o $Output -p:SatelliteResourceLanguages=en -p:AssemblyVersion=$AssemblySemVer -p:FileVersion=$AssemblySemFileVer -p:InformationalVersion=$InformationalVersion $($Engine -EQ 'WindowsXNA' ? '--arch=x86' : '')
   if ($LASTEXITCODE) {
     throw "Build failed for $Game $Engine $Framework $Configuration"
   }

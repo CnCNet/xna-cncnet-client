@@ -4,7 +4,7 @@
     <Description>CnCNet Client Core Library</Description>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2022</Copyright>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
     <Trademark>CnCNet</Trademark>
     <Version>2.0.0.3</Version>
     <FileVersion>2.0.0.3</FileVersion>
@@ -50,9 +50,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.8" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.8" Condition="'$(Configuration.Contains(Debug))'" />
+    <!-- TODO: update version after this package targets .NET 8. -->
+    <PackageReference Include="Rampastring.Tools" Version="2.0.6-local-397fda5" />
+    <!-- TODO: update version after this package targets .NET 8. -->
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.20-local-2c977ab" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.20-local-2c977ab" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>

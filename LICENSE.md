@@ -1,5 +1,5 @@
 CnCNet Client
-Copyright (C) 2022 CnCNet, Rampastring
+Copyright (C) 2022-2024 CnCNet, Rampastring
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 This software includes Rampastring.Tools and Rampastring.XNAUI. Their license follows:
 
-Copyright (c) 2022 Rami "Rampastring" Pasanen
+Copyright (c) 2016-2023 Rami "Rampastring" Pasanen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -31,7 +31,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The repository contains compiled MonoGame binaries to make the build process easier. MonoGame's license follows:
 
-﻿Microsoft Public License (Ms-PL)
+Microsoft Public License (Ms-PL)
 MonoGame - Copyright © 2009-2018 The MonoGame Team
 
 All rights reserved.
