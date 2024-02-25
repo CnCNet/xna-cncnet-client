@@ -6,7 +6,7 @@ permissions:
 jobs:
   calculate-version:
     name: Calculate Version
-    runs-on: windows-latest
+    runs-on: windows-2022
     outputs:
       AssemblySemVer: ${{ steps.gitversion.outputs.AssemblySemVer }}
       AssemblySemFileVer: ${{ steps.gitversion.outputs.AssemblySemFileVer }}
@@ -17,19 +17,19 @@ jobs:
       Sha: ${{ steps.gitversion.outputs.Sha }}
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@main
+      uses: gittools/actions/gitversion/setup@v0
       with:
         versionSpec: '5.x'
     - name: Determine Version
       id: gitversion
-      uses: gittools/actions/gitversion/execute@main
+      uses: gittools/actions/gitversion/execute@v0
   pack-updater:
     name: Pack ClientUpdater
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: calculate-version
     env:
       AssemblySemVer: ${{ needs.calculate-version.outputs.AssemblySemVer }}
@@ -41,24 +41,24 @@ jobs:
       PlatformTarget: ''
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       with:
         ref: ${{ env.Sha }}
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@main
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x.x'
     - name: Pack
       run: dotnet pack ClientUpdater\ClientUpdater.csproj -p:AssemblyVersion=${{env.AssemblySemVer}} -p:FileVersion=${{env.AssemblySemFileVer}} -p:InformationalVersion=${{env.InformationalVersion}} -p:PackageVersion=${{env.NuGetVersionV2}}
     - name: Upload Artifacts
-      uses: actions/upload-artifact@main
+      uses: actions/upload-artifact@v4
       with:
         name: ClientUpdater
         path: ClientUpdater\bin\*\*.*nupkg
         if-no-files-found: error
   publish-secondstageupdater:
     name: Publish SecondStageUpdater
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: calculate-version
     env:
       AssemblySemVer: ${{ needs.calculate-version.outputs.AssemblySemVer }}
@@ -73,11 +73,11 @@ jobs:
         framework: [net8.0, net48]
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       with:
         ref: ${{ env.Sha }}
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@main
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x.x'
     - name: Publish
@@ -85,7 +85,7 @@ jobs:
     - name: Zip
       run: 7z a -r "${{ format('SecondStageUpdater-v{0}-{1}.zip', env.SemVer, matrix.framework) }}" "./SecondStageUpdater/bin/Release/${{ matrix.framework }}/publish/*.*" "-x!*.xml"
     - name: Upload Artifacts
-      uses: actions/upload-artifact@main
+      uses: actions/upload-artifact@v4
       with:
         name: SecondStageUpdater-${{ matrix.framework }}
         path: ./*.zip
@@ -97,14 +97,14 @@ jobs:
       PreReleaseTag: ${{ needs.calculate-version.outputs.PreReleaseTag }}
       SemVer: ${{ needs.calculate-version.outputs.SemVer }}
       Sha: ${{ needs.calculate-version.outputs.Sha }}
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       with:
         ref: ${{ env.Sha }}
     - name: Download Artifacts
-      uses: actions/download-artifact@main
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
         merge-multiple: true
