@@ -43,17 +43,26 @@ internal sealed class Program
             Write("CnCNet Client Second-Stage Updater", true, ConsoleColor.Green);
             Write(string.Empty);
 
-            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null)).Exists)
+            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]))
             {
                 Write("Invalid arguments given!", true, ConsoleColor.Red);
                 Write("Usage: <client_executable_name> <base_directory>");
                 Write(string.Empty);
                 Exit(false);
             }
+
+            DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null));
+
+            if (!baseDirectory.Exists)
+            {
+                Write("Base directory does not exist!", true, ConsoleColor.Red);
+                Write(baseDirectory.FullName);
+                Write(string.Empty);
+                Exit(false);
+            }
             else
             {
                 string clientExecutable = args[0];
-                DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null));
                 DirectoryInfo resourceDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Resources");
                 FileInfo logFile = SafePath.GetFile(SafePath.CombineFilePath(baseDirectory.FullName, "Client", "SecondStageUpdater.log"));
 
@@ -68,6 +77,7 @@ internal sealed class Program
                 Write("Base directory: " + baseDirectory.FullName);
                 Write($"Waiting for the client ({clientExecutable}) to exit..");
 
+                // note: the GUID should be consistent with the one in xna-cncnet-client/DXMainClient/Program.cs
                 string clientMutexId = FormattableString.Invariant($"Global{Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9")}");
 
                 clientMutex = new(false, clientMutexId, out _);
