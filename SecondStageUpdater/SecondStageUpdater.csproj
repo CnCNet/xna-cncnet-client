@@ -25,10 +25,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Polyfill" Version="2.2.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
