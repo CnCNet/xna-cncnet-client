@@ -5,47 +5,113 @@ permissions:
   contents: write
   packages: write
 jobs:
-  publish:
-    runs-on: windows-latest
+  calculate-version:
+    name: Calculate Version
+    runs-on: windows-2022
+    outputs:
+      AssemblySemVer: ${{ steps.gitversion.outputs.AssemblySemVer }}
+      AssemblySemFileVer: ${{ steps.gitversion.outputs.AssemblySemFileVer }}
+      InformationalVersion: ${{ steps.gitversion.outputs.InformationalVersion }}
+      NuGetVersionV2: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
+      SemVer: ${{ steps.gitversion.outputs.SemVer }}
+      PreReleaseTag: ${{ steps.gitversion.outputs.PreReleaseTag }}
+      Sha: ${{ steps.gitversion.outputs.Sha }}
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
-    - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@main
-      with:
-        dotnet-version: '7.x.x'
-
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@main
+      uses: gittools/actions/gitversion/setup@v0
       with:
         versionSpec: '5.x'
-
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@main
-
-    - name: Publish
-      run: dotnet publish SecondStageUpdater/SecondStageUpdater.csproj --configuration Release -p:DebugType=embedded -p:AssemblyVersion=$env:GitVersion_AssemblySemVer -p:FileVersion=$env:GitVersion_AssemblySemFileVer -p:InformationalVersion=$env:GitVersion_InformationalVersion
-
-    - name: Zip
-      run: 7z a -r ${{ format('SecondStageUpdater-v{0}.zip', env.GitVersion_SemVer) }} ./SecondStageUpdater/bin/Release/net7.0/publish/*.*
-
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0
+  pack-updater:
+    name: Pack ClientUpdater
+    runs-on: windows-2022
+    needs: calculate-version
+    env:
+      AssemblySemVer: ${{ needs.calculate-version.outputs.AssemblySemVer }}
+      AssemblySemFileVer: ${{ needs.calculate-version.outputs.AssemblySemFileVer }}
+      InformationalVersion: ${{ needs.calculate-version.outputs.InformationalVersion }}
+      NuGetVersionV2: ${{ needs.calculate-version.outputs.NuGetVersionV2 }}
+      SemVer: ${{ needs.calculate-version.outputs.SemVer }}
+      Sha: ${{ needs.calculate-version.outputs.Sha }}
+      PlatformTarget: ''
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.Sha }}
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.x.x'
     - name: Pack
-      run: dotnet pack ClientUpdater\ClientUpdater.csproj --configuration Release -p:AssemblyVersion=$env:GitVersion_AssemblySemVer -p:FileVersion=$env:GitVersion_AssemblySemFileVer -p:InformationalVersion=$env:GitVersion_InformationalVersion -p:PackageVersion=$env:GitVersion_NuGetVersionV2
-
-    - name: Prerelease
-      if: ${{ env.GitVersion_PreReleaseTag != '' }}
-      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} (@(get-item *.zip) + @(get-item ClientUpdater\bin\Release\*.*nupkg)) --generate-notes --target ${{ github.sha }} --prerelease
-      env:
-        GH_TOKEN: ${{ github.token }}
-
+      run: dotnet pack ClientUpdater\ClientUpdater.csproj -p:AssemblyVersion=${{env.AssemblySemVer}} -p:FileVersion=${{env.AssemblySemFileVer}} -p:InformationalVersion=${{env.InformationalVersion}} -p:PackageVersion=${{env.NuGetVersionV2}}
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClientUpdater
+        path: ClientUpdater\bin\*\*.*nupkg
+        if-no-files-found: error
+  publish-secondstageupdater:
+    name: Publish SecondStageUpdater
+    runs-on: windows-2022
+    needs: calculate-version
+    env:
+      AssemblySemVer: ${{ needs.calculate-version.outputs.AssemblySemVer }}
+      AssemblySemFileVer: ${{ needs.calculate-version.outputs.AssemblySemFileVer }}
+      InformationalVersion: ${{ needs.calculate-version.outputs.InformationalVersion }}
+      NuGetVersionV2: ${{ needs.calculate-version.outputs.NuGetVersionV2 }}
+      SemVer: ${{ needs.calculate-version.outputs.SemVer }}
+      Sha: ${{ needs.calculate-version.outputs.Sha }}
+      PlatformTarget: ''
+    strategy:
+      matrix:
+        framework: [net8.0, net48]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.Sha }}
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.x.x'
+    - name: Publish
+      run: dotnet publish SecondStageUpdater/SecondStageUpdater.csproj -c Release -p:DebugType=embedded -f ${{ matrix.framework }} -p:AssemblyVersion=${{env.AssemblySemVer}} -p:FileVersion=${{env.AssemblySemFileVer}} -p:InformationalVersion=${{env.InformationalVersion}}
+    - name: Zip
+      run: 7z a -r "${{ format('SecondStageUpdater-v{0}-{1}.zip', env.SemVer, matrix.framework) }}" "./SecondStageUpdater/bin/Release/${{ matrix.framework }}/publish/*.*" "-x!*.xml"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SecondStageUpdater-${{ matrix.framework }}
+        path: ./*.zip
+        if-no-files-found: error
+  release:
+    name: Release
+    needs: [calculate-version, pack-updater, publish-secondstageupdater]
+    env:
+      PreReleaseTag: ${{ needs.calculate-version.outputs.PreReleaseTag }}
+      SemVer: ${{ needs.calculate-version.outputs.SemVer }}
+      Sha: ${{ needs.calculate-version.outputs.Sha }}
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.Sha }}
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
     - name: Release
-      if: ${{ env.GitVersion_PreReleaseTag == '' }}
-      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} (@(get-item *.zip) + @(get-item ClientUpdater\bin\Release\*.*nupkg)) --generate-notes --target ${{ github.sha }}
+      run: gh release create v${{ env.SemVer }} @((Get-Item artifacts\*.zip) + (Get-Item artifacts\*\*.*nupkg)) --generate-notes --target ${{ env.Sha }} ${{ env.PreReleaseTag != '' && '--prerelease' || '' }}
       env:
         GH_TOKEN: ${{ github.token }}
-
     - name: Push
-      run: dotnet nuget push ClientUpdater\bin\Release\*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ format('https://nuget.pkg.github.com/{0}/index.json', github.repository_owner) }}
+      run: dotnet nuget push @(Get-Item artifacts\*\*.nupkg) --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ format('https://nuget.pkg.github.com/{0}/index.json', github.repository_owner) }}
