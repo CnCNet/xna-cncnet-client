@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using ClientCore;
+using ClientCore.Extensions;
+using ClientCore.Statistics;
+using ClientGUI;
+using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Microsoft.Xna.Framework;
-using ClientCore;
-using System.IO;
-using Rampastring.Tools;
-using ClientCore.Statistics;
-using DTAClient.DXGUI.Generic;
-using DTAClient.Domain.Multiplayer;
-using ClientGUI;
-using System.Text;
-using DTAClient.Domain;
-using Microsoft.Xna.Framework.Graphics;
-using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -35,9 +35,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chatBoxCommands = new List<ChatBoxCommand>
             {
                 new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)".L10N("Client:Main:ChatboxCommandHideMapsHelp"), true,
-                    s => HideMapList()),
+                    s => ChangeControls(false)),
                 new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
-                    s => ShowMapList()),
+                    s => ChangeControls(true)),
                 new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), true,
                     s => SetFrameSendRate(s)),
                 new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), true,
@@ -613,9 +613,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;
 
+            ChangeControls(IsHost);
+
             if (IsHost)
             {
-                ShowMapList();
                 BtnSaveLoadGameOptions?.Enable();
 
                 btnLockGame.Text = "Lock Game".L10N("Client:Main:ButtonLockGame");
@@ -639,7 +640,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                HideMapList();
                 BtnSaveLoadGameOptions?.Disable();
 
                 btnLockGame.Enabled = false;
@@ -668,61 +668,64 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void HideMapList()
+
+        private const string HostSuffix = "_Host";
+        private const string PlayerSuffix = "_Player";
+
+        /// <summary>
+        /// Change MapList and other controls visibility. <br/>
+        /// And apply some controls properties.
+        /// </summary>
+        /// <param name="isHost">Visibility</param>
+        private void ChangeControls(bool isHost)
         {
-            lbChatMessages.Name = "lbChatMessages_Player";
-            tbChatInput.Name = "tbChatInput_Player";
-            MapPreviewBox.Name = "MapPreviewBox";
-            lblMapName.Name = "lblMapName";
-            lblMapAuthor.Name = "lblMapAuthor";
-            lblGameMode.Name = "lblGameMode";
-            lblMapSize.Name = "lblMapSize";
+            string sourceSuffix; // The name of the target control may have a suffix. e.g. lbChatMessages_Player
+            string targetSuffix; // Change the name of the control to match the new suffix.
+            List<XNAControl> controlsToUpdate = new();
+            if (isHost)
+            {
+                sourceSuffix = PlayerSuffix;
+                targetSuffix = HostSuffix;
 
-            ReadINIForControl(btnPickRandomMap);
-            ReadINIForControl(lbChatMessages);
-            ReadINIForControl(tbChatInput);
-            ReadINIForControl(lbGameModeMapList);
-            ReadINIForControl(lblMapName);
-            ReadINIForControl(lblMapAuthor);
-            ReadINIForControl(lblGameMode);
-            ReadINIForControl(lblMapSize);
-            ReadINIForControl(btnMapSortAlphabetically);
+                ddGameModeMapFilter.Enable();
+                lblGameModeSelect.Enable();
+                lbGameModeMapList.Enable();
+                tbMapSearch.Enable();
+                btnPickRandomMap.Enable();
+                btnMapSortAlphabetically.Enable();
+            }
+            else
+            {
+                sourceSuffix = HostSuffix;
+                targetSuffix = PlayerSuffix;
 
-            ddGameModeMapFilter.Disable();
-            lblGameModeSelect.Disable();
-            lbGameModeMapList.Disable();
-            tbMapSearch.Disable();
-            btnPickRandomMap.Disable();
-            btnMapSortAlphabetically.Disable();
+                ddGameModeMapFilter.Disable();
+                lblGameModeSelect.Disable();
+                lbGameModeMapList.Disable();
+                tbMapSearch.Disable();
+                btnPickRandomMap.Disable();
+                btnMapSortAlphabetically.Disable();
+            }
+
+            foreach (string targetName in ConfigIni.GetSections().Where(s => s.EndsWith(targetSuffix)))
+            {
+                // Get name without suffix.
+                string nameWithoutSuffix = targetName.Replace(targetSuffix, string.Empty);
+
+                // When no control is found without a suffix. Try using a name with a suffix.
+                var control = FindChild<XNAControl>(nameWithoutSuffix, true)
+                    ?? FindChild<XNAControl>(nameWithoutSuffix + sourceSuffix, true);
+
+                if (control != null)
+                {
+                    control.Name = targetName;
+                    controlsToUpdate.Add(control);
+                }
+            }
+
+            controlsToUpdate.ForEach(ReadINIForControl);
         }
 
-        private void ShowMapList()
-        {
-            lbChatMessages.Name = "lbChatMessages_Host";
-            tbChatInput.Name = "tbChatInput_Host";
-            MapPreviewBox.Name = "MapPreviewBox";
-            lblMapName.Name = "lblMapName";
-            lblMapAuthor.Name = "lblMapAuthor";
-            lblGameMode.Name = "lblGameMode";
-            lblMapSize.Name = "lblMapSize";
-
-            ddGameModeMapFilter.Enable();
-            lblGameModeSelect.Enable();
-            lbGameModeMapList.Enable();
-            tbMapSearch.Enable();
-            btnPickRandomMap.Enable();
-            btnMapSortAlphabetically.Enable();
-
-            ReadINIForControl(btnPickRandomMap);
-            ReadINIForControl(lbChatMessages);
-            ReadINIForControl(tbChatInput);
-            ReadINIForControl(lbGameModeMapList);
-            ReadINIForControl(lblMapName);
-            ReadINIForControl(lblMapAuthor);
-            ReadINIForControl(lblGameMode);
-            ReadINIForControl(lblMapSize);
-            ReadINIForControl(btnMapSortAlphabetically);
-        }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
         {
