@@ -1,10 +1,13 @@
 # Migrating from older versions - INI configuration
 
-Migrating to client version [2.11.0.0][client].
+Migrating to client version [2.11.0.0][client] from pre-2.8.0.0.
 
-This guide uses [YR mod base][mod_base] (commit `34efc04`) configuration
-as an example. The majority of changes also applies to non-YR client
-configurations.
+This guide uses [YR mod base][mod_base] configuration as an example by
+migrating from commit
+[`6ce7db7`](https://github.com/Starkku/cncnet-client-mod-base/commit/6ce7db7fd753df329fb435c3aa5ba90505e5f3a2)
+to
+[`34efc04`](https://github.com/Starkku/cncnet-client-mod-base/commit/34efc0454c64e4af28e8177e63f3d9546cbbc6fb).
+The majority of changes also applies to non-YR client configurations.
 
 It is **highly recommended** to make a complete backup of your game/mod
 before starting.
@@ -13,9 +16,9 @@ before starting.
 
 The way the client is launched on Unix systems has changed.
 
-1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be
+1. Add `[Settings]->UnixLauncherExe=YRLauncher.sh` (script file name can be
    anything)
-2. Create `Launcher.sh` in game directory:
+2. Create `YRLauncher.sh` in game directory:
 
 ```sh
 #!/bin/sh
@@ -586,27 +589,20 @@ the example one below. Remove `CheckBoxes`,`DropDowns` and`Labels` entries;
 if you have custom game options, see section
 [Port custom game options](#port-custom-game-options) on how to port them.
 
-<details>
-<summary>Click to show file content</summary>
-
 ```ini
 [INISystem]
 BasedOn=GameLobbyBase.ini
 
 [SkirmishLobby]
 $BaseSection=GameLobbyBase
-PlayerNameWidth=120
 
 [GameOptionsPanel]
-$Width=337
 $CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
 
 [cmbGameSpeedCapSkirmish]
 $BaseSection=cmbGameSpeedCap
 Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
 ```
-
-</details>
 
 ## Edit `MultiplayerGameLobby.ini`
 
@@ -705,7 +701,7 @@ Items=Fastest (60 FPS),Faster (45 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FP
 
 </details>
 
-## Edit `CnCNetGameLobby.ini`
+## Create `CnCNetGameLobby.ini`
 
 This file extends the multiplayer game lobby with CnCNet-specific controls,
 like the change tunnel button. **Remove (or port) previous content
@@ -726,7 +722,7 @@ $X=getX(btnLeaveGame) - getWidth($Self) - LOBBY_PANEL_SPACING
 $Y=getY(btnLeaveGame)
 ```
 
-## Edit `LANGameLobby.ini`
+## Create `LANGameLobby.ini`
 
 This stub file can extend the multiplayer lobby with LAN-specifc controls.
 **Remove (or port) previous content of this file.**
@@ -736,21 +732,6 @@ This stub file can extend the multiplayer lobby with LAN-specifc controls.
 BasedOn=MultiplayerGameLobby.ini
 ```
 
-## Edit `CnCNetLobby.ini`
-
-Two new buttons have been added to the CnCNet lobby: one for sorting game room
-list by name, and one for opening advanced filtering options panel.
-
-Add these sections:
-
-```ini
-[btnGameSortAlpha]
-Location=12,12
-
-[btnGameFilterOptions]
-Location=43,12
-```
-
 ## Edit `GameOptions.ini`
 
 After adding all game lobby options to `GameLobbyBase.ini`, remove them here.
@@ -758,7 +739,7 @@ Remove `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections, too.
 
 ## Edit `GenericWindow.ini`
 
-Replace `[SkirmishLobby]` with this:
+Replace `[SkirmishLobby]` and `[MultiplayerGameLobby]` with this:
 
 ```ini
 [GameLobbyBase]
@@ -820,7 +801,42 @@ Location=176,110
 
 New checkboxes have been added in the options window.
 
-1. **OPTIONAL** Add sections:
+1. Add sections:
+
+```ini
+[lblPlayerName]
+Location=12,195
+
+[tbPlayerName]
+Location=113,193
+
+[lblNotice]
+Location=12,220
+
+[btnConfigureHotkeys]
+Location=12,290
+
+[chkDisablePrivateMessagePopup]
+Location=12,138
+Text=Disable private message pop-ups
+
+[chkAllowGameInvitesFromFriendsOnly]
+Location=276,68
+Text=Only receive game invitations@from friends
+
+[lblAllPrivateMessagesFrom]
+Location=276,138
+
+[ddAllowPrivateMessagesFrom]
+Location=470,137
+
+[gameListPanel]
+Location=0,200
+
+[btnForceUpdate]
+```
+
+2. **OPTIONAL** Add sections:
 
 ```ini
 [DisplayOptionsPanelExtraControls]
@@ -837,7 +853,7 @@ SettingSection=Video
 SettingKey=UseDDWrapperForMapEditor
 ```
 
-2. **OPTIONAL (YR+Phobos)** Add sections:
+3. **OPTIONAL (YR+Phobos)** Add sections:
 
 ```ini
 [GameOptionsPanelExtraControls]
@@ -871,39 +887,6 @@ ToolTip=If enabled, shows a preview image of the building when placing it.
 DefaultValue=false
 SettingSection=Phobos
 SettingKey=ShowBuildingPlacementPreview
-```
-
-3. Add sections:
-
-```ini
-[lblPlayerName]
-Location=12,195
-
-[tbPlayerName]
-Location=113,193
-
-[lblNotice]
-Location=12,220
-
-[btnConfigureHotkeys]
-Location=12,290
-
-[chkDisablePrivateMessagePopup]
-Location=12,138
-Text=Disable private message pop-ups
-
-[chkAllowGameInvitesFromFriendsOnly]
-Location=276,68
-Text=Only receive game invitations@from friends
-
-[lblAllPrivateMessagesFrom]
-Location=276,138
-
-[ddAllowPrivateMessagesFrom]
-Location=470,137
-
-[gameListPanel]
-Location=0,200
 ```
 
 ## Create new `PlayerExtraOptionsPanel.ini`
@@ -955,11 +938,13 @@ migration (beyond INI changes) to client version [2.11.0.0][client].
 
 ### Update client binary files
 
-1. Replace contents of `Resources/Binaries` with new files. This directory
+1. Replace `clientdx.exe`, `clientogl.exe` and `clientxna.exe` in `Resources`
+   with new files. Compiled `.pdb` and `.config` files are optional.
+2. Replace contents of `Resources/Binaries` with new files. This directory
    contains the .NET Framework 4.8 version of the client.
-2. Copy contents of downloaded `BinariesNET8` into a new directory
+3. **OPTIONAL** Copy contents of downloaded `BinariesNET8` into a new directory
    `Resources/BinariesNET8`. This directory contains the .NET 8 version
-   of the client.
+   of the client that enabled experimental cross-platform Unix support.
 
 ### Update the client launcher
 
