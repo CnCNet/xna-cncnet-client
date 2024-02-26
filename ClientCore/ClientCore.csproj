@@ -50,12 +50,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- TODO: update version after this package targets .NET 8. -->
-    <PackageReference Include="Rampastring.Tools" Version="2.0.6-local-397fda5" />
-    <!-- TODO: update version after this package targets .NET 8. -->
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.20-local-2c977ab" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.20-local-2c977ab" Condition="'$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageReference Include="Rampastring.Tools" Version="2.0.6" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.20" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.20" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
