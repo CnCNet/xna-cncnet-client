@@ -1621,7 +1621,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             
             // Write the supplemental map files to the INI (eventual spawnmap.ini)
-            mapIni.SetStringValue("Basic", "SupplementalFiles", string.Join(',', supplementalFileNames));
+            mapIni.SetStringValue("Basic", "SupplementalFiles", string.Join(",", supplementalFileNames));
         }
 
         /// <summary>

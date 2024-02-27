@@ -26,7 +26,13 @@ namespace DTAClient.Domain
                 .FromIniString()
                 .L10N($"INI:Missions:{sectionName}:LongDescription");
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
-            RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
+            RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon),
+#if YR || ARES
+                true  // In case of YR this toggles Ra2Mode instead which should not be default
+#else
+                false
+#endif
+            );
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);
             BuildOffAlly = iniFile.GetBooleanValue(sectionName, nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = iniFile.GetBooleanValue(sectionName, nameof(PlayerAlwaysOnNormalDifficulty), false);

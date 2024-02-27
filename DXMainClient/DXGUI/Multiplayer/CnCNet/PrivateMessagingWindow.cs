@@ -314,7 +314,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUser != null)
             {
-                joinMessage = new ChatMessage(string.Format("{0} is now offline.".L10N("Client:Main:PlayerOffline"), e.User.Name));
+                joinMessage = new ChatMessage(string.Format("{0} is now online.".L10N("Client:Main:PlayerOnline"), e.User.Name));
                 pmUser.Messages.Add(joinMessage);
             }
 

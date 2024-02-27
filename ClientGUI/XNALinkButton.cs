@@ -10,6 +10,7 @@ namespace ClientGUI
         public XNALinkButton(WindowManager windowManager) : base(windowManager) { }
 
         public string URL { get; set; }
+        public string UnixURL { get; set; }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
@@ -19,12 +20,23 @@ namespace ClientGUI
                 return;
             }
 
+            if (key == "UnixURL")
+            {
+                UnixURL = value;
+                return;
+            }
+
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public override void OnLeftClick()
         {
-            ProcessLauncher.StartShellProcess(URL);
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+            if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
+                ProcessLauncher.StartShellProcess(UnixURL);
+            else if (!string.IsNullOrEmpty(URL))
+                ProcessLauncher.StartShellProcess(URL);
 
             base.OnLeftClick();
         }
