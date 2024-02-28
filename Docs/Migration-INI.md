@@ -8,6 +8,8 @@ It is **highly recommended** to make a complete backup of your game/mod before s
 
 ## Edit `ClientDefinitions.ini`
 
+The way the client is launched on Unix systems has changed.
+
 1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be anything)
 2. Create `Launcher.sh` in root directory:
 
@@ -29,6 +31,9 @@ ForbiddenFiles=
 
 ## Edit `SkirmishLobby.ini`
 
+Skirmish game lobby used to be based on multiplayer game lobby. Now, skirmish and multiplayer lobbies share a new base layout instead.
+Map list (`lbMapList`) has been moved to the base layout. Game speed dropdown (`cmbGameSpeedCapSkirmish`) has been moved here from `GameOptions.ini`.
+
 1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`
 2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
 3. Remove `[lbMapList]` section
@@ -46,8 +51,10 @@ Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),
 ## Add `GameLobbyBase.ini`
 
 This file is the base layout of all game lobbies (skirmish, LAN, CnCNet). **Game options have been moved from `GameOptions.ini` to this file**.
-To add controls in the game options panel, add `$CC-GO` prefixed list entries in `[GameOptionsPanel]`, then create their own sections.
 See example configuration below.
+
+<details>
+<summary>Click to show file content</summary>
 
 ```ini
 [INISystem]
@@ -541,11 +548,53 @@ DistanceFromRightBorder=-8
 DistanceFromBottomBorder=-8
 ```
 
+</details>
+
+### Port custom game options
+
+If your game/mod has custom game options, you have to port them yourself. To add controls in the game options panel, add `$CC-GO` prefixed list entries in `[GameOptionsPanel]`, then create their own sections. In example:
+
+Before in `GameOptions.ini`:
+
+```ini
+[MultiplayerGameLobby]
+CheckBoxes=chkNewOption...
+
+[SkirmishLobby]
+CheckBoxes=chkNewOption...
+
+[chkNewOption]
+Text=My New Option
+CustomIniPath=INI\Game Options\MyNewOption.ini
+ToolTip=Enable this new option.
+Checked=False
+Location=1126,79
+```
+
+After in `GameLobbyBase.ini`:
+
+```ini
+[GameOptionsPanel]
+$CC-GONEW=chkNewOption:GameLobbyCheckBox
+
+[chkNewOption]
+Text=My New Option
+CustomIniPath=INI/Game Options/MyNewOption.ini
+ToolTip=Enable this new option.
+Checked=False
+Location=1126,79 ; $X and $Y are recommended instead
+```
+
 ## Edit `GameOptions.ini`
 
-After adding all game lobby options to `GameLobbyBase.ini`, remove them here.
+After adding all game lobby options to `GameLobbyBase.ini`, remove them here, as well as `SkirmishGameLobby` and `MultiplayerGameLobby` sections.
 
 ## Rename/Remove old `MultiplayerGameLobby.ini` and create new `MultiplayerGameLobby.ini`
+
+This file extends the game lobby base with multiplayer-specific controls, such as the chat box and lock and ready buttons.
+
+<details>
+<summary>Click to show file content</summary>
 
 ```ini
 [INISystem]
@@ -629,7 +678,11 @@ $BaseSection=cmbGameSpeedCap
 Items=Fastest (60 FPS),Faster (45 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
 ```
 
+</details>
+
 ## Create `CnCNetGameLobby.ini`
+
+This file extends the multiplayer game lobby with CnCNet-specific controls, like the change tunnel button.
 
 ```ini
 [INISystem]
@@ -648,12 +701,16 @@ $Y=getY(btnLeaveGame)
 
 ## Create `LANGameLobby.ini`
 
+This stub file can extend the multiplayer lobby with LAN-specifc controls.
+
 ```ini
 [INISystem]
 BasedOn=MultiplayerGameLobby.ini
 ```
 
 ## Edit `CnCNetLobby.ini`
+
+Two new buttons have been added to the CnCNet lobby: one for sorting game room list by name, and one for opening advanced filtering options panel.
 
 Add these sections:
 
@@ -678,7 +735,7 @@ Size=1230,750
 
 ## Edit `GlobalThemeSettings.ini`
 
-Add this section (**Without this section, the client will crash with new `GameLobbyBase.ini`**):
+This file now also contains the `ParserConstants` section, which lists user-defined constants used for positioning controls within panels and windows. **Without this section, the client will crash with new `GameLobbyBase.ini` layout**. Add the following:
 
 ```ini
 [ParserConstants]
@@ -709,6 +766,8 @@ GAME_OPTION_DD_HEIGHT=22
 
 ## Create `ManualUpdateQueryWindow.ini`
 
+It is now possible to force a manual query for game/mod updates, which displays a new window.
+
 ```ini
 [INISystem]
 BasedOn=GenericWindow.ini
@@ -718,6 +777,8 @@ Location=176,110
 ```
 
 ## Edit `OptionsWindow.ini`
+
+New checkboxes have been added in the options window.
 
 1. **OPTIONAL** Add sections:
 
@@ -806,6 +867,8 @@ Location=0,200
 ```
 
 ## Create new `PlayerExtraOptionsPanel.ini`
+
+A new panel that allows for convenient match setup has been added in the game lobby.
 
 ```ini
 [btnClose]
