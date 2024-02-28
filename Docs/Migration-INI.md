@@ -1,18 +1,23 @@
 # Migrating from older versions - INI configuration
+
 This guide uses [YR mod base](https://github.com/Starkku/cncnet-client-mod-base) configuration as an example. The majority of changes also applies to to non-YR client configurations.
 
 It is **highly recommended** to make a complete backup of your mod before starting.
 
 ## Edit `ClientDefinitions.ini`
+
 1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be anything)
 2. Create `Launcher.sh` in root directory:
+
 ```sh
 #!/bin/sh
 
 cd "$(dirname "$0")"
 dotnet Resources/Binaries/UniversalGL/clientogl.dll "$@"
 ```
+
 3. Add these entries in `[Settings]` (fill with your required/forbidden mod files):
+
 ```ini
 ; Comma-separated list of files required to run the game / mod that are not included in the installation.
 RequiredFiles=
@@ -21,10 +26,12 @@ ForbiddenFiles=
 ```
 
 ## Edit `SkirmishLobby.ini`
-1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`.
+
+1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`
 2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
 3. Remove `[lbMapList]` section
 4. Add these two sections:
+
 ```ini
 [GameOptionsPanel]
 $CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
@@ -45,16 +52,16 @@ See example configuration below.
 BasedOn=GenericWindow.ini
 
 [GameLobbyBase]
-PlayerOptionLocationX=12	    ; def=25
-PlayerOptionLocationY=25	    ; def=24
-PlayerOptionVerticalMargin=9	; def=12
-PlayerOptionHorizontalMargin=5	; def=3
+PlayerOptionLocationX=12        ; def=25
+PlayerOptionLocationY=25        ; def=24
+PlayerOptionVerticalMargin=9    ; def=12
+PlayerOptionHorizontalMargin=5  ; def=3
 PlayerOptionCaptionLocationY=6  ; def=6
 PlayerNameWidth=127             ; def=136
-SideWidth=120	                ; def=91
-ColorWidth=80	                ; def=79
-StartWidth=50	                ; def=49
-TeamWidth=50	                ; def=46
+SideWidth=120                   ; def=91
+ColorWidth=80                   ; def=79
+StartWidth=50                   ; def=49
+TeamWidth=50                    ; def=46
 
 ; controls
 $CC00=btnLaunchGame:GameLaunchButton
@@ -208,7 +215,7 @@ $Y=getY(btnLaunchGame)
 [PlayerOptionsPanel]
 $X=getX(MapPreviewBox)
 $Y=EMPTY_SPACE_TOP
-$Width=getWidth($ParentControl) - (getX($Self) + (getWidth(GameOptionsPanel) + LOBBY_EMPTY_SPACE_SIDES + LOBBY_PANEL_SPACING)
+$Width=getWidth($ParentControl) - (getX($Self) + (getWidth(GameOptionsPanel) + LOBBY_EMPTY_SPACE_SIDES + LOBBY_PANEL_SPACING))
 $Height=getHeight(GameOptionsPanel)
 SolidColorBackgroundTexture=0,0,0,128
 
@@ -533,9 +540,11 @@ DistanceFromBottomBorder=-8
 ```
 
 ## Edit `GameOptions.ini`
+
 After adding all game lobby options to `GameLobbyBase.ini`, remove them here.
 
 ## Rename/Remove old `MultiplayerGameLobby.ini` and create new `MultiplayerGameLobby.ini`
+
 ```ini
 [INISystem]
 BasedOn=GameLobbyBase.ini
@@ -582,7 +591,7 @@ $Height=getBottom(MapPreviewBox) - (getBottom(btnPickRandomMap) + LOBBY_PANEL_SP
 [lbChatMessages_Player]
 $BaseSection=lbChatMessagesBase
 $Y=EMPTY_SPACE_TOP
-$Height=getBottom(MapPreviewBox) - (getY($Self)
+$Height=getBottom(MapPreviewBox) - getY($Self)
 
 [tbChatInputBase]
 Suggestion=Type here to chat...
@@ -619,6 +628,7 @@ Items=Fastest (60 FPS),Faster (45 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FP
 ```
 
 ## Create `CnCNetGameLobby.ini`
+
 ```ini
 [INISystem]
 BasedOn=MultiplayerGameLobby.ini
@@ -635,13 +645,16 @@ $Y=getY(btnLeaveGame)
 ```
 
 ## Create `LANGameLobby.ini`
+
 ```ini
 [INISystem]
 BasedOn=MultiplayerGameLobby.ini
 ```
 
 ## Edit `CnCNetLobby.ini`
+
 Add these sections:
+
 ```ini
 [btnGameSortAlpha]
 Location=12,12
@@ -651,7 +664,9 @@ Location=43,12
 ```
 
 ## Edit `GenericWindow.ini`
+
 Replace `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections with this:
+
 ```ini
 [GameLobbyBase]
 BackgroundTexture=gamelobbybg.png
@@ -660,7 +675,9 @@ Size=1230,750
 ```
 
 ## Edit `GlobalThemeSettings.ini`
+
 Add this section (**Without this section, the client will crash with new `GameLobbyBase.ini`**):
+
 ```ini
 [ParserConstants]
 DEFAULT_LBL_HEIGHT=12
@@ -689,6 +706,7 @@ GAME_OPTION_DD_HEIGHT=22
 ```
 
 ## Create `ManualUpdateQueryWindow.ini`
+
 ```ini
 [INISystem]
 BasedOn=GenericWindow.ini
@@ -698,7 +716,9 @@ Location=176,110
 ```
 
 ## Edit `OptionsWindow.ini`
+
 1. **OPTIONAL** Add sections:
+
 ```ini
 [DisplayOptionsPanelExtraControls]
 0=chkMEDDraw:FileSettingCheckBox
@@ -715,6 +735,7 @@ SettingKey=UseDDWrapperForMapEditor
 ```
 
 2. **OPTIONAL (YR)** Add sections:
+
 ```ini
 [GameOptionsPanelExtraControls]
 ; Enable if using Phobos
@@ -750,6 +771,7 @@ SettingKey=ShowBuildingPlacementPreview
 ```
 
 3. Add sections:
+
 ```ini
 [lblPlayerName]
 Location=12,195
@@ -782,6 +804,7 @@ Location=0,200
 ```
 
 ## Create new `PlayerExtraOptionsPanel.ini`
+
 ```ini
 [btnClose]
 Location=220,0
@@ -829,17 +852,22 @@ For completion's sake, below are additional steps required for a complete migrat
 2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.).
 3. Remove `Resources/clientdx.exe`, `Resources/clientxna.exe` and `Resources/clientogl.exe`. In their place create these scripts (replace `YRLanucher.exe` inside with your main client executable name):
 `Resources/clientdx.bat`:
-```
+
+```sh
 cd ..
 YRLauncher.exe -DX
 ```
+
 `Resources/clientogl.bat`:
-```
+
+```sh
 cd ..
 YRLauncher.exe -OGL
 ```
+
 `Resources/clientxna.bat`:
-```
+
+```sh
 cd ..
 YRLauncher.exe -XNA
 ```
@@ -847,6 +875,7 @@ YRLauncher.exe -XNA
 ### Add new assets
 
 Every file here can be either in `Resources` or in theme directories:
+
 - `favActive.png` and `favInactive.png`, 21x21 pixels
 - `optionsButton.png`, `optionsButton_c.png`, `optionsButtonActive.png`, `optionsButtonActive_c.png`, `optionsButtonClose.png` and `optionsButtonClose_c.png`, 18x18 pixels
 - `questionMark.png` and `questionMark_c.png`, 18x18 pixels
