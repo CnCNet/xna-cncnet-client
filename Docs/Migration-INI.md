@@ -1,8 +1,10 @@
 # Migrating from older versions - INI configuration
 
-This guide uses [YR mod base](https://github.com/Starkku/cncnet-client-mod-base) configuration as an example. The majority of changes also applies to to non-YR client configurations.
+Migrating to client version [2.7][client].
 
-It is **highly recommended** to make a complete backup of your mod before starting.
+This guide uses [YR mod base][mod_base] (commit `34efc04`) configuration as an example. The majority of changes also applies to non-YR client configurations.
+
+It is **highly recommended** to make a complete backup of your game/mod before starting.
 
 ## Edit `ClientDefinitions.ini`
 
@@ -16,7 +18,7 @@ cd "$(dirname "$0")"
 dotnet Resources/Binaries/UniversalGL/clientogl.dll "$@"
 ```
 
-3. Add these entries in `[Settings]` (fill with your required/forbidden mod files):
+3. **OPTIONAL** Add these entries in `[Settings]` (fill with your required/forbidden mod files):
 
 ```ini
 ; Comma-separated list of files required to run the game / mod that are not included in the installation.
@@ -844,40 +846,25 @@ Location=12,189
 
 ## Appendix
 
-For completion's sake, below are additional steps required for a complete migration (beyond INIs).
+For completion's sake, below are additional steps required for a complete migration (beyond INIs) to client version [2.7][client].
 
 ### Replace binary files
 
 1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files.
-2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.).
-3. Remove `Resources/clientdx.exe`, `Resources/clientxna.exe` and `Resources/clientogl.exe`. In their place create these scripts (replace `YRLanucher.exe` inside with your main client executable name):
-`Resources/clientdx.bat`:
-
-```sh
-cd ..
-YRLauncher.exe -DX
-```
-
-`Resources/clientogl.bat`:
-
-```sh
-cd ..
-YRLauncher.exe -OGL
-```
-
-`Resources/clientxna.bat`:
-
-```sh
-cd ..
-YRLauncher.exe -XNA
-```
+2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with
+version [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
 
 ### Add new assets
 
-Every file here can be either in `Resources` or in theme directories:
+Every file here can be placed either in `Resources` or in theme directories:
 
 - `favActive.png` and `favInactive.png`, 21x21 pixels
 - `optionsButton.png`, `optionsButton_c.png`, `optionsButtonActive.png`, `optionsButtonActive_c.png`, `optionsButtonClose.png` and `optionsButtonClose_c.png`, 18x18 pixels
 - `questionMark.png` and `questionMark_c.png`, 18x18 pixels
 - `sortAlphaAsc.png`, `sortAlphaDesc.png` and `sortAlphaNone.png`, 21x21 pixels
 - `statusAI.png`, `statusClear.png`, `statusEmpty.png`, `statusError.png`, `statusInProgress.png`, `statusOk.png`, `statusUnavailable.png`, `statusWarning.png`, 21x21 pixels
+
+You can find example assets in the [YR mod base][mod_base].
+
+[client]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.7
+[mod_base]: https://github.com/Starkku/cncnet-client-mod-base
