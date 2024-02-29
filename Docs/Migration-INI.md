@@ -18,6 +18,7 @@ The way the client is launched on Unix systems has changed.
 
 cd "$(dirname "$0")"
 dotnet Resources/Binaries/UniversalGL/clientogl.dll "$@"
+# dotnet Resources/BinariesNET8/UniversalGL/clientogl.dll "$@" # if you want to use .NET 8
 ```
 
 3. **OPTIONAL** Add these entries in `[Settings]` (fill with your required/forbidden mod files):
@@ -565,7 +566,7 @@ CheckBoxes=chkNewOption...
 
 [chkNewOption]
 Text=My New Option
-CustomIniPath=INI\Game Options\MyNewOption.ini
+CustomIniPath=INI/Game Options/MyNewOption.ini
 ToolTip=Enable this new option.
 Checked=False
 Location=1126,79
@@ -913,8 +914,9 @@ For completion's sake, below are additional steps required for a complete migrat
 
 ### Replace binary files
 
-1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files.
-2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with
+1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files. This directory contains the .NET Framework 4.8 version of the client.
+2. **OPTIONAL** Copy contents of downloaded `BinariesNET8` into a new directory `Resources/BinariesNET8`. This directory contains the .NET 8 version of the client.
+3. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with
 version [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
 
 ### Add new assets
