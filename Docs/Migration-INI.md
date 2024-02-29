@@ -1,6 +1,6 @@
 # Migrating from older versions - INI configuration
 
-Migrating to client version [2.7][client].
+Migrating to client version [2.11.0.0][client].
 
 This guide uses [YR mod base][mod_base] (commit `34efc04`) configuration as an example. The majority of changes also applies to non-YR client configurations.
 
@@ -909,7 +909,7 @@ Location=12,189
 
 ## Appendix
 
-For completion's sake, below are additional steps required for a complete migration (beyond INIs) to client version [2.7][client].
+For completion's sake, below are additional steps required for a complete migration (beyond INIs) to client version [2.11.0.0][client].
 
 ### Replace binary files
 
@@ -929,5 +929,5 @@ Every file here can be placed either in `Resources` or in theme directories:
 
 You can find example assets in the [YR mod base][mod_base].
 
-[client]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.7
+[client]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.0.0
 [mod_base]: https://github.com/Starkku/cncnet-client-mod-base
