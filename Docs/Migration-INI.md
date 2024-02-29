@@ -21,9 +21,7 @@ The way the client is launched on Unix systems has changed.
 #!/bin/sh
 
 cd "$(dirname "$0")"
-dotnet Resources/Binaries/UniversalGL/clientogl.dll "$@"
-# or if you want to use .NET 8:
-# dotnet Resources/BinariesNET8/UniversalGL/clientogl.dll "$@"
+dotnet Resources/BinariesNET8/UniversalGL/clientogl.dll "$@"
 ```
 
 3. **OPTIONAL** Add these entries in `[Settings]` (fill with your
@@ -945,7 +943,7 @@ migration (beyond INI changes) to client version [2.11.0.0][client].
 1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with
    new files. This directory contains the .NET Framework 4.8 version
    of the client.
-2. **OPTIONAL** Copy contents of downloaded `BinariesNET8` into a new directory
+2. Copy contents of downloaded `BinariesNET8` into a new directory
    `Resources/BinariesNET8`. This directory contains the .NET 8 version
    of the client.
 3. Replace your launcher executable in game directory (whetever it's called,
