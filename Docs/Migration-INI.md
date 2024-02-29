@@ -15,7 +15,7 @@ The way the client is launched on Unix systems has changed.
 
 1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be
    anything)
-2. Create `Launcher.sh` in root directory:
+2. Create `Launcher.sh` in game directory:
 
 ```sh
 #!/bin/sh
@@ -948,7 +948,7 @@ migration (beyond INI changes) to client version [2.11.0.0][client].
 2. **OPTIONAL** Copy contents of downloaded `BinariesNET8` into a new directory
    `Resources/BinariesNET8`. This directory contains the .NET 8 version
    of the client.
-3. Replace your launcher executable in root directory (whetever it's called,
+3. Replace your launcher executable in game directory (whetever it's called,
    `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with version
    [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
 
