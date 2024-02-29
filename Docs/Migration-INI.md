@@ -30,29 +30,11 @@ RequiredFiles=
 ForbiddenFiles=
 ```
 
-## Edit `SkirmishLobby.ini`
-
-Skirmish game lobby used to be based on multiplayer game lobby. Now, skirmish and multiplayer lobbies share a new base layout instead.
-Map list (`lbMapList`) has been moved to the base layout. Game speed dropdown (`cmbGameSpeedCapSkirmish`) has been moved here from `GameOptions.ini`.
-
-1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`
-2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
-3. Remove `[lbMapList]` section
-4. Add these two sections:
-
-```ini
-[GameOptionsPanel]
-$CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
-
-[cmbGameSpeedCapSkirmish]
-$BaseSection=cmbGameSpeedCap
-Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
-```
-
 ## Add `GameLobbyBase.ini`
 
+Skirmish game lobby used to be based on multiplayer game lobby. Now, skirmish and multiplayer lobbies share a new base layout instead.
 This file is the base layout of all game lobbies (skirmish, LAN, CnCNet). **Game options have been moved from `GameOptions.ini` to this file**.
-See example configuration below.
+See example configuration below or in [YR mod base][mod_base].
 
 <details>
 <summary>Click to show file content</summary>
@@ -147,7 +129,7 @@ $BaseSection=ddPlayerStartBase
 [lbMapList]
 $X=LOBBY_EMPTY_SPACE_SIDES
 $Y=EMPTY_SPACE_TOP + 33
-$Width=getWidth($ParentControl) - (getX($Self) + (getWidth(MapPreviewBox) + LOBBY_EMPTY_SPACE_SIDES + LOBBY_PANEL_SPACING)
+$Width=getWidth($ParentControl) - (getX($Self) + (getWidth(MapPreviewBox) + LOBBY_EMPTY_SPACE_SIDES + LOBBY_PANEL_SPACING))
 $Height=getBottom(MapPreviewBox) - getY($Self)
 SolidColorBackgroundTexture=0,0,0,128
 
@@ -555,7 +537,7 @@ DistanceFromBottomBorder=-8
 
 If your game/mod has custom game options, you have to port them yourself. To add controls in the game options panel, add `$CC-GO` prefixed list entries in `[GameOptionsPanel]`, then create their own sections. In example:
 
-Before in `GameOptions.ini`:
+In `GameOptions.ini` in previous versions:
 
 ```ini
 [MultiplayerGameLobby]
@@ -572,7 +554,7 @@ Checked=False
 Location=1126,79
 ```
 
-After in `GameLobbyBase.ini`:
+In `GameLobbyBase.ini` in the new version:
 
 ```ini
 [GameOptionsPanel]
@@ -586,13 +568,29 @@ Checked=False
 Location=1126,79 ; $X and $Y are recommended instead
 ```
 
-## Edit `GameOptions.ini`
+## Edit `SkirmishLobby.ini`
 
-After adding all game lobby options to `GameLobbyBase.ini`, remove them here, as well as `SkirmishGameLobby` and `MultiplayerGameLobby` sections.
+This file extends the game lobby base with skirmish-specific controls. Map list (`lbMapList`) has been moved to the base layout. Game speed dropdown (`cmbGameSpeedCapSkirmish`) has been moved here from `GameOptions.ini`.
+If you have a modified `[SkirmishLobby]` section in `GameOptions.ini`, move it here.
+
+1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`
+2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
+3. Remove `[lbMapList]` section
+4. Add these two sections:
+
+```ini
+[GameOptionsPanel]
+$CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
+
+[cmbGameSpeedCapSkirmish]
+$BaseSection=cmbGameSpeedCap
+Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
+```
 
 ## Rename/Remove old `MultiplayerGameLobby.ini` and create new `MultiplayerGameLobby.ini`
 
 This file extends the game lobby base with multiplayer-specific controls, such as the chat box and lock and ready buttons.
+If you have a modified `[MultiplayerGameLobby]` section in `GameOptions.ini`, move it here instead of using the example one below.
 
 <details>
 <summary>Click to show file content</summary>
@@ -723,6 +721,10 @@ Location=12,12
 Location=43,12
 ```
 
+## Edit `GameOptions.ini`
+
+After adding all game lobby options to `GameLobbyBase.ini`, remove them here. Remove `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections too.
+
 ## Edit `GenericWindow.ini`
 
 Replace `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections with this:
@@ -798,14 +800,14 @@ SettingSection=Video
 SettingKey=UseDDWrapperForMapEditor
 ```
 
-2. **OPTIONAL (YR)** Add sections:
+2. **OPTIONAL (YR+Phobos)** Add sections:
 
 ```ini
 [GameOptionsPanelExtraControls]
-; Enable if using Phobos
-;0=chkTooltipsExtra:SettingCheckBox
-;1=chkPrioritySelection:SettingCheckBox
-;2=chkBuildingPlacement:SettingCheckBox
+; Only available with Phobos
+0=chkTooltipsExtra:SettingCheckBox
+1=chkPrioritySelection:SettingCheckBox
+2=chkBuildingPlacement:SettingCheckBox
 
 [chkTooltipsExtra]
 Location=24,151, ;12,151
