@@ -949,6 +949,8 @@ migration (beyond INI changes) to client version [2.11.0.0][client].
 3. Replace your launcher executable in game directory (whetever it's called,
    `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with version
    [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
+4. Replace the second-stage updater in `Resource/Updater` with version
+   [1.0.16](https://github.com/CnCNet/cncnet-client-updater/releases/tag/v1.0.16).
 
 ### Add new assets
 
