@@ -946,6 +946,24 @@ migration (beyond INI changes) to client version [2.11.0.0][client].
    `Resources/BinariesNET8`. This directory contains the .NET 8 version
    of the client that enabled experimental cross-platform Unix support.
 
+The `Resources` directory should look like this (omitting configuration
+files and assets):
+
+```plaintext
+<game dir>/Resources     # override the `Resources` folder to update the client binaries
+├── Binaries             # this folder contains partial .NET 4.8 client files
+├── BinariesNET8         # this folder contains .NET 8.0 client files, where modders can either delete it, or keep it for an experimental cross-platform support
+├── clientdx.exe         # .NET 4.8 client main executable
+├── clientdx.exe.config  # distributed along with `.exe` file. Can be removed but it is better to keep it.
+├── clientdx.pdb         # .pdb file contains debug symbols. It can be either deleted or retained.
+├── clientogl.exe        # .NET 4.8 client main executable
+├── clientogl.exe.config # same as above
+├── clientogl.pdb        # same as above
+├── clientxna.exe        # .NET 4.8 client main executable
+├── clientxna.exe.config # same as above
+└── clientxna.pdb        # same as above
+```
+
 ### Update the client launcher
 
 The client launcher (that resides in the game directory) has been updated.
@@ -963,6 +981,17 @@ should be placed in new directory `Resources/Updater`. The new version
 has two variants, for .NET Framework 4.8 (`SecondStageUpdater.exe`)
 and for .NET 8.0 (`SecondStageUpdater.dll`). If you want to use the .NET 8.0
 client, you should include the .NET 8.0 updater.
+
+The `Updater` directory should look like this:
+
+```plaintext
+<game dir>/Resources/Updater
+├── Rampastring.Tools.dll                 # common dependencies of .NET 4.8/.NET 8.0 second-stage updater
+├── SecondStageUpdater.dll                # .NET 8.0 second-stage updater
+├── SecondStageUpdater.exe                # .NET 4.8 second-stage updater
+├── SecondStageUpdater.exe.config         # .NET 4.8 second-stage updater
+└── SecondStageUpdater.runtimeconfig.json # .NET 8.0 second-stage updater
+```
 
 The old updater will still work, but is no longer maintained.
 
