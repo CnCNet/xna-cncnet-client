@@ -113,7 +113,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 ## Ingame translation setup
 
-The translation system's ingame translation support requires the mod/game author(s) to specify the files which translators can provide in order to translate the game. The files are specified in the the syntax is `GameFileX=path/to/source.file,path/to/destination.file[,checked]` INI key in the `[Translations]` section of `ClientDefinitions.ini` (X is an index starting from 0 and going up), with comma-separated parts of the value meaning the following:
+The translation system's ingame translation support requires the mod/game author(s) to specify the files which translators can provide in order to translate the game. The files are specified in the the syntax is `GameFileX=path/to/source.file,path/to/destination.file[,checked]` INI key in the `[Translations]` section of `ClientDefinitions.ini` (X is any text you want to add to the key to help sort files), with comma-separated parts of the value meaning the following:
 1) the path to the source file relative to currently selected translation directory;
 2) the destination to copy to, relative to the game root folder;
 3) (optional) `checked` for the file to be checked by file integrity checks (should be on if this file can be used to cheat), if not specified - this file is not checked.
@@ -124,7 +124,11 @@ The translation system's ingame translation support requires the mod/game author
 Example configuration in `ClientDefinitions.ini`:
 ```ini
 [Translations]
-GameFile0=translation.mix,expandmo98.mix
+GameFileTranslationMix=translation.mix,expandmo98.mix
+GameFile_GDI01=Missions/g0.map,Maps/Missions/g0.map
+GameFile_NOD01=Missions/n0.map,Maps/Missions/n0.map
+GameFile_DLL_SD=Resources/language_800x600.dll, Resources/language_800x600.dll
+GameFile_DLL_HD=Resources/language_1024x720.dll,Resources/language_1024x720.dll
 ```
 
 This will make the `translation.mix` file from current translation folder (say, `Resources/Translations/ru`) copied to game root as `expandmo98.mix` on game start.
