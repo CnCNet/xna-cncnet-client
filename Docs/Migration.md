@@ -28,7 +28,7 @@ Migrating from older versions
   DrawBorders=false
   ```
 
-- The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) breaks compatibility. You need to reimplement the ini files for `SkirmishLobby`, `LANLobby`, and `CnCNetLobby` with the new `INItializableWindow` format. Also, add the `[$ExtraControls]` section in `GenericWindow.ini` file if you rely on `[ExtraControls]`. Define constants in `[ParserConstants]` section in `DTACnCNetClient.ini` file, which might be used from the `INItializableWindow` configuration.
+- The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) breaks compatibility. You need to reimplement the ini files for `SkirmishLobby`, `LANLobby`, and `CnCNetLobby` with the new `INItializableWindow` format. Also, add the `[$ExtraControls]` section in `GenericWindow.ini` file if you rely on `[ExtraControls]`. Define constants in `[ParserConstants]` section in `DTACnCNetClient.ini` file, which might be used from the `INItializableWindow` configuration. See [this guide](/Docs/Migration-INI.md) for details.
 
 - The new [player status indicators feature](https://github.com/CnCNet/xna-cncnet-client/pull/251) replaces the old "player is ready" indicators in game lobby. This requires:
   - renaming `PlayerReadyBox*` tags into `PlayerStatusIndicator*` (which now have default values of `0` and `0` instead of `7` and `4` for `X` and `Y` respectively);
