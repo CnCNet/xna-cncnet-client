@@ -280,11 +280,12 @@ namespace ClientCore
 
             foreach (string key in clientDefinitionsIni.GetSectionKeys(TRANSLATIONS))
             {
-                // syntax must bet GameFileX=..., where X - any text.
+                // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
+                // where X can be any text or number
                 if (!key.StartsWith("GameFile"))
                     continue;
 
-                string   value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
+                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
                 string[] parts = value.Split(',');
 
                 // fail explicitly if the syntax is wrong
