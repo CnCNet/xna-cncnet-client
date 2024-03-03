@@ -36,10 +36,10 @@ ForbiddenFiles=
 
 ## Add `GameLobbyBase.ini`
 
-Skirmish game lobby used to be based on multiplayer game lobby. Now, skirmish
-and multiplayer lobbies share a new base layout instead.
-This file is the base layout of all game lobbies (skirmish, LAN, CnCNet).
-**Game options have been moved from `GameOptions.ini` to this file**.
+Unlike in previous versions, skirmish and multiplayer lobbies share a common,
+abstract base layout. This file is the base layout of all game lobbies
+(skirmish, LAN, CnCNet). **Game options have been moved from `GameOptions.ini`
+to this file**.
 
 See example configuration below or in [YR mod base][mod_base]:
 
@@ -579,18 +579,26 @@ Location=1126,79 ; $X and $Y are recommended instead
 
 ## Edit `SkirmishLobby.ini`
 
-This file extends the game lobby base with skirmish-specific controls. Map list
-(`lbMapList`) has been moved to the base layout. Game speed dropdown
-(`cmbGameSpeedCapSkirmish`) has been moved here from `GameOptions.ini`.
-If you have a modified `[SkirmishLobby]` section in `GameOptions.ini`, move it here.
+This file extends the game lobby base with skirmish-specific controls.
+**Remove (or port) previous content of this file.** If you have a modified
+`[SkirmishLobby]` section in `GameOptions.ini`, move it here instead of using
+the example one below. Remove `CheckBoxes`,`DropDowns` and`Labels` entries;
+if you have custom game options, see section
+[Port custom game options](#port-custom-game-options) on how to port them.
 
-1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`
-2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
-3. Remove `[lbMapList]` section
-4. Add these two sections:
+<details>
+<summary>Click to show file content</summary>
 
 ```ini
+[INISystem]
+BasedOn=GameLobbyBase.ini
+
+[SkirmishLobby]
+$BaseSection=GameLobbyBase
+PlayerNameWidth=120
+
 [GameOptionsPanel]
+$Width=337
 $CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
 
 [cmbGameSpeedCapSkirmish]
@@ -598,12 +606,17 @@ $BaseSection=cmbGameSpeedCap
 Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
 ```
 
+</details>
+
 ## Edit `MultiplayerGameLobby.ini`
 
 This file extends the game lobby base with multiplayer-specific controls,
 such as the chat box and lock and ready buttons. **Remove (or port) previous
 content of this file.** If you have a modified `[MultiplayerGameLobby]` section
 in `GameOptions.ini`, move it here instead of using the example one below.
+Remove `CheckBoxes`,`DropDowns` and`Labels` entries; if you have custom game
+options, see section
+[Port custom game options](#port-custom-game-options) on how to port them.
 
 <details>
 <summary>Click to show file content</summary>
@@ -692,10 +705,11 @@ Items=Fastest (60 FPS),Faster (45 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FP
 
 </details>
 
-## Create `CnCNetGameLobby.ini`
+## Edit `CnCNetGameLobby.ini`
 
 This file extends the multiplayer game lobby with CnCNet-specific controls,
-like the change tunnel button.
+like the change tunnel button. **Remove (or port) previous content
+of this file.**
 
 ```ini
 [INISystem]
@@ -712,9 +726,10 @@ $X=getX(btnLeaveGame) - getWidth($Self) - LOBBY_PANEL_SPACING
 $Y=getY(btnLeaveGame)
 ```
 
-## Create `LANGameLobby.ini`
+## Edit `LANGameLobby.ini`
 
 This stub file can extend the multiplayer lobby with LAN-specifc controls.
+**Remove (or port) previous content of this file.**
 
 ```ini
 [INISystem]
@@ -743,7 +758,7 @@ Remove `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections, too.
 
 ## Edit `GenericWindow.ini`
 
-Replace `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections with this:
+Replace `[SkirmishLobby]` with this:
 
 ```ini
 [GameLobbyBase]
@@ -938,19 +953,33 @@ Location=12,189
 For completion's sake, below are additional steps required for a complete
 migration (beyond INI changes) to client version [2.11.0.0][client].
 
-### Replace binary files
+### Update client binary files
 
-1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with
-   new files. This directory contains the .NET Framework 4.8 version
-   of the client.
+1. Replace contents of `Resources/Binaries` with new files. This directory
+   contains the .NET Framework 4.8 version of the client.
 2. Copy contents of downloaded `BinariesNET8` into a new directory
    `Resources/BinariesNET8`. This directory contains the .NET 8 version
    of the client.
-3. Replace your launcher executable in game directory (whetever it's called,
-   `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.) with version
-   [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
-4. Replace the second-stage updater in `Resource/Updater` with version
-   [1.0.16](https://github.com/CnCNet/cncnet-client-updater/releases/tag/v1.0.16).
+
+### Update the client launcher
+
+The client launcher (that resides in the game directory) has been updated.
+You can replace the old one with version
+[2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7).
+Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e.
+`YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file
+appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
+
+### Update the second-stage updater
+
+The second-stage updater (formerly `clientupdt.dat`) has been reworked.
+The new version [1.0.16](https://github.com/CnCNet/cncnet-client-updater/releases/tag/v1.0.16)
+should be placed in new directory `Resources/Updater`. The new version
+has two variants, for .NET Framework 4.8 (`SecondStageUpdater.exe`)
+and for .NET 8.0 (`SecondStageUpdater.dll`). If you want to use the .NET 8.0
+client, you should include the .NET 8.0 updater.
+
+The old updater will still work, but is no longer maintained.
 
 ### Add new assets
 
