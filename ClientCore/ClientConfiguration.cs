@@ -280,13 +280,12 @@ namespace ClientCore
 
             foreach (string key in clientDefinitionsIni.GetSectionKeys(TRANSLATIONS))
             {
-                // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
-
-                if (!key.StartsWith("GameFile", System.StringComparison.Ordinal))
+                // syntax must bet GameFileX=..., where X - any text.
+                if (!key.StartsWith("GameFile"))
                     continue;
 
-                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
-                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+                string   value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
+                string[] parts = value.Split(',');
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
@@ -298,7 +297,7 @@ namespace ClientCore
 
                 bool isChecked = parts.Length == 3 && parts[2].ToUpperInvariant() == "CHECKED";
 
-                gameFiles.Add(new(Source: parts[0], Target: parts[1], isChecked));
+                gameFiles.Add(new(Source: parts[0].Trim(), Target: parts[1].Trim(), isChecked));
             }
 
             return gameFiles;
