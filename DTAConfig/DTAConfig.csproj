@@ -14,16 +14,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
-    <PackageReference Include="CnCNet.ClientUpdater" Version="1.0.16" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="CnCNet.ClientUpdater" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
