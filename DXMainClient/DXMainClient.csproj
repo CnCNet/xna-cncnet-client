@@ -34,26 +34,22 @@
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.6" />
-    <PackageReference Include="DiscordRichPresence" Version="1.1.3.18" />
-    <PackageReference Include="lzo.net" Version="0.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.12" />
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="System.DirectoryServices" Version="8.0.0" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="DiscordRichPresence" />
+    <PackageReference Include="lzo.net" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="OpenMcdf" />
+    <PackageReference Include="System.IO.Compression" />
+    <PackageReference Include="System.Management" />
+    <PackageReference Include="System.DirectoryServices" />
   </ItemGroup>
   <ItemGroup>
     <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
     <!-- This error is only raised when both .NET 4 and .NET 8 exists in TargetFrameworks: -->
     <!-- <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> -->
     <!-- and -p:Engine=WindowsDX -f net48 -->
-    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="NETStandard.Library" />
+    <PackageReference Include="System.IO.FileSystem" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
@@ -61,7 +57,4 @@
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
-  <ItemGroup>
-    <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
 </Project>
