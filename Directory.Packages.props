@@ -39,7 +39,7 @@
     <PackageVersion Include="Rampastring.XNAUI.WindowsGL.Debug" Version="$(Rampastring_XNAUI_Version)" />
     <PackageVersion Include="Rampastring.XNAUI.UniversalGL.Debug" Version="$(Rampastring_XNAUI_Version)" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsXNA.Debug" Version="$(Rampastring_XNAUI_Version)" />
-    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.6" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.7" />
     <PackageVersion Include="System.DirectoryServices" Version="8.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
