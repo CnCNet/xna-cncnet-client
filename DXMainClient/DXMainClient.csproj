@@ -54,7 +54,4 @@
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
 </Project>

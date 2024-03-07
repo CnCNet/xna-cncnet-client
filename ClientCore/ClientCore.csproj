@@ -12,7 +12,6 @@
     <AssemblyName>ClientCore</AssemblyName>
     <RootNamespace>ClientCore</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <None Remove="Resources\cncneticon.png" />
     <None Remove="Resources\cncricon.png" />

@@ -12,7 +12,6 @@
     <AssemblyName>ClientGUI</AssemblyName>
     <RootNamespace>ClientGUI</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>

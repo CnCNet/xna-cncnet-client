@@ -1,5 +1,138 @@
 <Project>
-  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86' And '$(TargetFrameworkIdentifier)' != '.NETFramework'">
-    <RunCommand>$(MSBuildProgramFiles32)\dotnet\dotnet</RunCommand> <!-- Support WindowsXNA 32bit debugging in VS -->
-  </PropertyGroup>
+  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
+  </Target>
+
+  <Target Name="MakeDirectoryStruct" AfterTargets="Publish">
+    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
+    <CallTarget Targets="MoveCommonBinaries;MoveCommonBinariesNetFx;MoveClientExes" />
+  </Target>
+
+  <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying NetFramework WindowsGLNative files" />
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
+  </Target>
+
+  <Target Name="RemoveNetFrameworkWindowsGLNative" AfterTargets="PublishNetFrameworkWindowsGLNative">
+    <Message Importance="high" Text="Removing not needed NetFramework WindowsGLNative files" />
+    <Delete Files="$(PublishDir)SDL2.dll" />
+    <Delete Files="$(PublishDir)soft_oal.dll" />
+  </Target>
+
+  <Target Name="RemoveWindowsDXNonWindowsBinaries" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
+    <Message Importance="high" Text="Removing unnecessary WindowsDX files" />
+    <RemoveDir Directories="$(PublishDir)runtimes/debian-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/fedora-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/opensuse-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+    <RemoveDir Directories="$(PublishDir)runtimes/rhel-x64" />
+  </Target>
+
+  <Target Name="RemoveWindowsGLNonWindowsBinaries" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Removing unnecessary WindowsGL files" />
+    <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+  </Target>
+
+  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
+  <Target Name="MoveCommonBinaries">
+    <!-- Note: in order to update this file list, first removing all files in this secion. -->
+    <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
+    <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
+    <Message Importance="high" Text="Moving common binaries" />
+    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Binder.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.CommandLine.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.EnvironmentVariables.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.FileExtensions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Json.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.UserSecrets.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Physical.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileSystemGlobbing.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Hosting.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Hosting.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Configuration.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Console.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Debug.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventLog.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventSource.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Primitives.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.CodeDom.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+
+  <Target Name="MoveCommonBinariesNetFx" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving common binaries for .NET Framework" />
+    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Diagnostics.DiagnosticSource.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.IO.FileSystem.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Memory.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Numerics.Vectors.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Runtime.CompilerServices.Unsafe.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Security.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Security.Principal.Windows.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Encoding.CodePages.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Encodings.Web.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Json.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Threading.Tasks.Extensions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.ValueTuple.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+
+  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
+  <Target Name="MoveClientExes" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving client executables" />
+    <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')" />
+    <Move SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.pdb')" />
+    <Move SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe')" />
+    <Move SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientogl.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.pdb')" />
+    <Move SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe')" />
+    <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
+  </Target>
+  
+  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
+    <ItemGroup>
+      <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
+      <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />
+      <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
+      <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
+      <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
+      <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
+      <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
+    </ItemGroup>
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
+  </Target>
+
 </Project>

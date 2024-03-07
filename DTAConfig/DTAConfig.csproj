@@ -12,7 +12,6 @@
     <AssemblyName>DTAConfig</AssemblyName>
     <RootNamespace>DTAConfig</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <PackageReference Include="CnCNet.ClientUpdater" />
   </ItemGroup>
