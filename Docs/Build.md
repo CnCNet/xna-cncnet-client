@@ -1,6 +1,6 @@
 # Build & Publish #
 
-The information below describes the steps that the default build script (Build-All.ps1) performs.
+The information below describes the steps that the default build script (build.ps1) performs.
 
 Game configurations
 -------------------
