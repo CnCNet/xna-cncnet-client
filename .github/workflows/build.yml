@@ -11,20 +11,23 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        Game: [Ares,TS,YR]
+        Game: 
+          - Ares
+          - TS
+          - YR
 
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Setup .NET Core SDK
+    - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
 
     - name: Build ${{matrix.Game}}
-      run: ./BuildScripts/Build-${{matrix.Game}}.ps1
+      run: ./build.ps1 ${{matrix.Game}}
       shell: pwsh
 
     - uses: actions/upload-artifact@v4
