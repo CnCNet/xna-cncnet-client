@@ -5,7 +5,7 @@
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
-    <CallTarget Targets="MoveCommonBinaries;MoveCommonBinariesNetFx;MoveClientExes" />
+    <CallTarget Targets="MoveCommonLibraries;MoveCommonLibrariesNetFx;MoveClientExes" />
   </Target>
 
   <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
@@ -40,7 +40,7 @@
   </Target>
 
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
-  <Target Name="MoveCommonBinaries">
+  <Target Name="MoveCommonLibraries">
     <!-- Note: in order to update this file list, first removing all files in this secion. -->
     <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
     <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
@@ -85,7 +85,7 @@
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
 
-  <Target Name="MoveCommonBinariesNetFx" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+  <Target Name="MoveCommonLibrariesNetFx" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving common binaries for .NET Framework" />
     <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Diagnostics.DiagnosticSource.dll" DestinationFolder="$(PublishDir)../" />
@@ -115,7 +115,7 @@
     <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')" />
     <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
   </Target>
-  
+
   <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
     <ItemGroup>
       <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
