@@ -11,6 +11,8 @@
   Build all games when they empty.
 .PARAMETER IsDebug
   Build projects by debug mode.
+.PARAMETER Log
+  Detail log.
 .EXAMPLE
   build.ps1
   Build for all games.
@@ -27,7 +29,10 @@ param(
   $Games,
   [Parameter()]
   [switch]
-  $IsDebug
+  $IsDebug,
+  [Parameter()]
+  [switch]
+  $Log
 )
 
 $Script:ConfigurationSuffix = 'Release'
@@ -81,6 +86,9 @@ function Script:Invoke-BuildProject {
       $Private:ArgumentList.Add("--framework:$Framework")
       $Private:ArgumentList.Add("--output:$Output")
       $Private:ArgumentList.Add('-property:SatelliteResourceLanguages=en')
+      if ($Log) {
+        $Private:ArgumentList.Add('-verbosity:diagnostic')
+      }
       # $Private:ArgumentList.Add("-property:AssemblyVersion=$AssemblySemVer")
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
       # $Private:ArgumentList.Add("-property:InformationalVersion=$InformationalVersion")
@@ -89,14 +97,8 @@ function Script:Invoke-BuildProject {
         $Private:ArgumentList.Add('--arch=x86')
       }
   
-      $Private:Process = Start-Process `
-        -FilePath 'dotnet' `
-        -ArgumentList $Private:ArgumentList `
-        -NoNewWindow `
-        -PassThru `
-        -Wait
-  
-      if ($Private:Process.ExitCode -NE 0) {
+      & 'dotnet' $Private:ArgumentList  
+      if ($LASTEXITCODE) {
         throw "Build failed for ${Game}${Engine}$Script:ConfigurationSuffix $Framework"
       }
     }
