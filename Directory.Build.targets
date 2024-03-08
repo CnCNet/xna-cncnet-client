@@ -1,9 +1,9 @@
 <Project>
-  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
+  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
-  <Target Name="MakeDirectoryStructure" AfterTargets="Publish">
+  <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
     <CallTarget Targets="MoveCommonLibraries;MoveCommonLibrariesNetFx;MoveClientExes" />
   </Target>
