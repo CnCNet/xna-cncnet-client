@@ -76,6 +76,7 @@
     <ClientConfiguration Condition="$(Configuration.Contains(Release))">Release</ClientConfiguration>
     <OutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseOutputPath)bin\$(ClientConfiguration)\$(Game)\$(Engine)\</OutputPath>
     <IntermediateOutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(ClientConfiguration)\$(Game)\$(Engine)\</IntermediateOutputPath>
+    <ArtifactsPivots>$(ClientConfiguration)\$(Game)\$(Engine)\$(TargetFramework)</ArtifactsPivots>
   </PropertyGroup>
 
   <!-- Support WindowsXNA 32bit debugging in VS -->
