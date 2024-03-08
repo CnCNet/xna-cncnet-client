@@ -5,7 +5,7 @@
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
-    <CallTarget Targets="MoveCommonLibraries;MoveCommonLibrariesNetFx;MoveClientExes" />
+    <CallTarget Targets="MoveCommonLibraries;MoveCommonLibrariesNetFx;MoveClientExes" Condition="'$(NoMove)' != 'true'"/>
   </Target>
 
   <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">

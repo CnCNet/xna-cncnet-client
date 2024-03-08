@@ -13,6 +13,10 @@
   Build projects by debug mode.
 .PARAMETER Log
   Detail log.
+.PARAMETER NoClean
+  Do not clean Compiled folder.
+.PARAMETER NoMove
+  Do not make folder structure.
 .EXAMPLE
   build.ps1
   Build for all games.
@@ -32,7 +36,13 @@ param(
   $IsDebug,
   [Parameter()]
   [switch]
-  $Log
+  $Log,
+  [Parameter()]
+  [switch]
+  $NoClean,
+  [Parameter()]
+  [switch]
+  $NoMove
 )
 
 $Script:ConfigurationSuffix = 'Release'
@@ -53,6 +63,10 @@ $Script:FrameworkBinariesFolderMap = @{
   'net48'          = 'Binaries'
   'net8.0'         = 'BinariesNET8'
   'net8.0-windows' = 'BinariesNET8'
+}
+
+if (!$NoClean) {
+  Remove-Item -Recurse -Force -LiteralPath $Script:CompiledRoot
 }
 
 if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition ) {
@@ -88,6 +102,9 @@ function Script:Invoke-BuildProject {
       $Private:ArgumentList.Add('-property:SatelliteResourceLanguages=en')
       if ($Log) {
         $Private:ArgumentList.Add('-verbosity:diagnostic')
+      }
+      if ($NoMove) {
+        $Private:ArgumentList.Add('-property:NoMove=true')
       }
       # $Private:ArgumentList.Add("-property:AssemblyVersion=$AssemblySemVer")
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
