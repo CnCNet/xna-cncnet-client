@@ -5,7 +5,7 @@
     <LangVersion>12.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
-    
+
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
@@ -44,8 +44,10 @@
     <TargetFrameworks Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">netstandard2.0</TargetFrameworks>
 
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <Platforms Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
+    <Platform Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platform>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
