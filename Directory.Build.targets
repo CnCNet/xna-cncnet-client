@@ -3,7 +3,7 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
-  <Target Name="MakeDirectoryStruct" AfterTargets="Publish">
+  <Target Name="MakeDirectoryStructure" AfterTargets="Publish">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
     <CallTarget Targets="MoveCommonBinaries;MoveCommonBinariesNetFx;MoveClientExes" />
   </Target>
