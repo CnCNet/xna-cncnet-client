@@ -65,7 +65,7 @@ $Script:FrameworkBinariesFolderMap = @{
   'net8.0-windows' = 'BinariesNET8'
 }
 
-if (!$NoClean) {
+if (!$NoClean -AND (Test-Path $Script:CompiledRoot)) {
   Remove-Item -Recurse -Force -LiteralPath $Script:CompiledRoot
 }
 
