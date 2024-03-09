@@ -43,9 +43,16 @@
     <PackageReference Include="System.Memory" Condition="$(TargetFrameworkIdentifier) == '.NETStandard' or $(TargetFrameworkIdentifier) == '.NETFramework' or $(TargetFramework.StartsWith('netcoreapp2'))" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="$(TargetFramework) == 'netstandard2.0' or $(TargetFramework) == 'netcoreapp2.0' or $(TargetFrameworkIdentifier) == '.NETFramework'" />
   </ItemGroup>
-  <!--  -->
+  <!-- I don't know how to write it. but I think we should make a note at here. -->
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
+    <!-- This error is only raised when both .NET 4 and .NET 8 exists in TargetFrameworks: -->
+    <!-- <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> -->
+    <!-- and -p:Engine=WindowsDX -f net48 -->
+    <PackageReference Include="NETStandard.Library" />
     <PackageVersion Include="NETStandard.Library" Version="2.0.3" />
+
+    <PackageReference Include="System.IO.FileSystem" />
     <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
   </ItemGroup>
 </Project>
