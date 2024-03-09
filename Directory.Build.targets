@@ -39,7 +39,7 @@
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
-  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
+  <!-- Note: the folder structure should be consistent with ./build.ps1 file -->
   <Target Name="MoveCommonBinaries">
     <!-- Note: in order to update this file list, first removing all files in this secion. -->
     <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
