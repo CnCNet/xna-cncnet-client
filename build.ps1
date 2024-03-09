@@ -8,9 +8,9 @@
   You can used this script to make publish packages for your game.
 .PARAMETER Games
   What game would you want to build.
-  Build all games when they empty.
+  Build all games by default.
 .PARAMETER IsDebug
-  Build projects by debug mode.
+  Build projects in debug mode.
 .PARAMETER Log
   Detail log.
 .PARAMETER NoClean
