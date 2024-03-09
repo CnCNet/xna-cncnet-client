@@ -30,7 +30,6 @@
     <PackageReference Include="lzo.net" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenMcdf" />
-    <PackageReference Include="System.IO.Compression" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
   </ItemGroup>

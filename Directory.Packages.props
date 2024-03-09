@@ -26,7 +26,6 @@
     <PackageVersion Include="Rampastring.XNAUI.WindowsXNA.Debug" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.7" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
-    <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="$(DotnetLibrariesVersion)" />
   </ItemGroup>
@@ -42,6 +41,7 @@
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="$(TargetFramework) == 'netstandard2.0' or $(TargetFramework) == 'netcoreapp2.0' or $(TargetFrameworkIdentifier) == '.NETFramework'" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <!-- I don't know how to write it. but I think we should make a note at here. -->
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
