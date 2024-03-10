@@ -226,6 +226,8 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<CnCNetGameLoadingLobby>()
                             .AddSingletonXnaControl<CnCNetLobby>()
                             .AddSingletonXnaControl<GameInProgressWindow>()
+                            .AddSingletonXnaControl<CampaignTagSelector>()
+                            .AddSingletonXnaControl<GameLoadingWindow>()
                             .AddSingletonXnaControl<SkirmishLobby>()
                             .AddSingletonXnaControl<MainMenu>()
                             .AddSingletonXnaControl<MapPreviewBox>()
