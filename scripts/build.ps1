@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.1
+#Requires -Version 7.2
 
 <#
 .SYNOPSIS
@@ -50,7 +50,7 @@ if ($IsDebug) {
   $Script:ConfigurationSuffix = 'Debug'
 }
 
-$Script:RepoRoot = $PSScriptRoot
+$Script:RepoRoot = Split-Path $PSScriptRoot
 $Script:ProjectPath = Join-Path $RepoRoot 'DXMainClient' 'DXMainClient.csproj'
 $Script:CompiledRoot = Join-Path $RepoRoot 'Compiled'
 $Script:EngineSubFolderMap = @{
