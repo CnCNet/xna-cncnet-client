@@ -5,7 +5,7 @@
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
-    <CallTarget Targets="MoveCommonBinaries;MoveCommonBinariesNetFx;MoveClientExes" Condition="'$(NoMove)' != 'true'" />
+    <CallTarget Targets="MoveCommonBinaries;MoveClientExes" Condition="'$(NoMove)' != 'true'" />
   </Target>
 
   <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
@@ -44,62 +44,16 @@
     <!-- Note: in order to update this file list, first removing all files in this secion. -->
     <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
     <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
+    <PropertyGroup>
+      <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
+      <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssembliesNetFx.txt</_CommonAssembliesFilePath>
+    </PropertyGroup>
     <Message Importance="high" Text="Moving common binaries" />
-    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Binder.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.CommandLine.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.EnvironmentVariables.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.FileExtensions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.UserSecrets.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Physical.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileSystemGlobbing.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Hosting.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Hosting.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Configuration.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Console.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.Debug.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventLog.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventSource.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Primitives.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.CodeDom.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
-  </Target>
-
-  <Target Name="MoveCommonBinariesNetFx" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Message Importance="high" Text="Moving common binaries for .NET Framework" />
-    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Diagnostics.DiagnosticSource.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.IO.FileSystem.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Memory.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Numerics.Vectors.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Runtime.CompilerServices.Unsafe.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Security.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Security.Principal.Windows.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Text.Encoding.CodePages.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Text.Encodings.Web.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Text.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Threading.Tasks.Extensions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.ValueTuple.dll" DestinationFolder="$(PublishDir)../" />
+    <ReadLinesFromFile File="$(_CommonAssembliesFilePath)">
+      <Output TaskParameter="Lines" ItemName="_CommonFiles" />
+    </ReadLinesFromFile>
+    <Move SourceFiles="$(PublishDir)%(_CommonFiles.Identity)" DestinationFolder="$(PublishDir)..\" Condition="!Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
+    <Delete Files="$(PublishDir)%(_CommonFiles.Identity)" Condition="Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
   </Target>
 
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
@@ -115,7 +69,7 @@
     <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')" />
     <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
   </Target>
-  
+
   <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
     <ItemGroup>
       <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
