@@ -5,5 +5,5 @@ if %errorlevel% equ 0 (
 ) else (
   echo "Please Install PowerShell."
   echo "https://aka.ms/pscore6"
-  pause
 )
+pause
