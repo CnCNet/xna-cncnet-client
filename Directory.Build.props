@@ -86,8 +86,6 @@
 
   <!-- Allow a game specific build prop file to be imported, if available -->
   <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).props')" />
-  <!-- Obsolete -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props')" />
 
   <ItemGroup>
     <CompilerVisibleProperty Include="RootNamespace" />
