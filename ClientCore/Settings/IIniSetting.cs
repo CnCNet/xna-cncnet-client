@@ -1,9 +1,8 @@
-﻿namespace ClientCore.Settings
+﻿namespace ClientCore.Settings;
+
+/// <summary>
+/// A dummy interface for checking for INISetting in reflection.
+/// </summary>
+internal interface IIniSetting
 {
-    /// <summary>
-    /// A dummy interface for checking for INISetting in reflection.
-    /// </summary>
-    interface IIniSetting
-    {
-    }
 }

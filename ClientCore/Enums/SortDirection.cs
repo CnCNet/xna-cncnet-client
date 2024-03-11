@@ -1,9 +1,8 @@
-﻿namespace ClientCore.Enums
+﻿namespace ClientCore.Enums;
+
+public enum SortDirection
 {
-    public enum SortDirection
-    {
-        None = 0,
-        Asc = 1,
-        Desc = 2
-    }
+    None = 0,
+    Asc = 1,
+    Desc = 2
 }

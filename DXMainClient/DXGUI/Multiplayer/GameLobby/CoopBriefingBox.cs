@@ -1,85 +1,78 @@
-﻿using Rampastring.XNAUI.XNAControls;
+﻿using Microsoft.Xna.Framework;
+
 using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
+using Rampastring.XNAUI.XNAControls;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby;
+
+/// <summary>
+/// A box for drawing scenario briefings.
+/// </summary>
+internal class CoopBriefingBox : XNAPanel
 {
-    /// <summary>
-    /// A box for drawing scenario briefings.
-    /// </summary>
-    class CoopBriefingBox : XNAPanel
+    private const int MARGIN = 12;
+    private const float ALPHA_RATE = 0.4f;
+
+    public CoopBriefingBox(WindowManager windowManager) : base(windowManager)
     {
-        private const int MARGIN = 12;
-        private const float ALPHA_RATE = 0.4f;
+    }
 
-        public CoopBriefingBox(WindowManager windowManager) : base(windowManager)
-        {
-        }
+    private string text = string.Empty;
+    private readonly int fontIndex = 3;
 
-        string text = string.Empty;
-        int fontIndex = 3;
+    private bool isVisible = true;
 
-        private bool isVisible = true;
+    public override void Initialize()
+    {
+        Name = "CoopBriefingBox";
+        DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+        ClientRectangle = new Rectangle(0, 0, 400, 300);
+        PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+        BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 224), 2, 2);
 
-        public override void Initialize()
-        {
-            Name = "CoopBriefingBox";
-            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
-            ClientRectangle = new Rectangle(0, 0, 400, 300);
-            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 224), 2, 2);
-            
-            InputEnabled = false;
+        InputEnabled = false;
 
-            AlphaRate = ALPHA_RATE;
+        AlphaRate = ALPHA_RATE;
 
-            base.Initialize();
+        base.Initialize();
 
-            CenterOnParent();
-        }
+        CenterOnParent();
+    }
 
-        public void SetFadeVisibility(bool visible)
-        {
-            isVisible = visible;
-        }
+    public void SetFadeVisibility(bool visible)
+    {
+        isVisible = visible;
+    }
 
-        public void SetAlpha(float alpha)
-        {
-            Alpha = alpha;
-        }
+    public void SetAlpha(float alpha)
+    {
+        Alpha = alpha;
+    }
 
-        public void SetText(string text)
-        {
-            this.text = Renderer.FixText(text, fontIndex, Width - (MARGIN * 2)).Text;
-            int textHeight = (int)Renderer.GetTextDimensions(this.text, fontIndex).Y;
-            ClientRectangle = new Rectangle(X, 0,
-                Width, textHeight + MARGIN * 2);
-            CenterOnParent();
-        }
+    public void SetText(string text)
+    {
+        this.text = Renderer.FixText(text, fontIndex, Width - (MARGIN * 2)).Text;
+        int textHeight = (int)Renderer.GetTextDimensions(this.text, fontIndex).Y;
+        ClientRectangle = new Rectangle(X, 0,
+            Width, textHeight + (MARGIN * 2));
+        CenterOnParent();
+    }
 
-        public override void Update(GameTime gameTime)
-        {
-            if (isVisible)
-            {
-                AlphaRate = ALPHA_RATE;
-            }
-            else
-            {
-                AlphaRate = -ALPHA_RATE;
-            }
+    public override void Update(GameTime gameTime)
+    {
+        AlphaRate = isVisible ? ALPHA_RATE : -ALPHA_RATE;
 
-            base.Update(gameTime);
-        }
+        base.Update(gameTime);
+    }
 
-        public override void Draw(GameTime gameTime)
-        {
-            //base.Draw(gameTime);
+    public override void Draw(GameTime gameTime)
+    {
+        //base.Draw(gameTime);
 
-            FillControlArea(new Color(0, 0, 0, 224));
-            DrawRectangle(new Rectangle(0, 0, Width, Height), BorderColor);
-            DrawStringWithShadow(text, fontIndex,
-                new Vector2(MARGIN, MARGIN),
-                UISettings.ActiveSettings.AltColor);
-        }
+        FillControlArea(new Color(0, 0, 0, 224));
+        DrawRectangle(new Rectangle(0, 0, Width, Height), BorderColor);
+        DrawStringWithShadow(text, fontIndex,
+            new Vector2(MARGIN, MARGIN),
+            UISettings.ActiveSettings.AltColor);
     }
 }

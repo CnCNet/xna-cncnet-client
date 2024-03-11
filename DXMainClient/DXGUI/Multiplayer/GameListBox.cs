@@ -1,355 +1,376 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.Settings;
+
 using DTAClient.Domain.Multiplayer;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer;
+
+/// <summary>
+/// A list box for listing hosted games.
+/// </summary>
+public class GameListBox : XNAListBox
 {
-    /// <summary>
-    /// A list box for listing hosted games.
-    /// </summary>
-    public class GameListBox : XNAListBox
+    private const int GAME_REFRESH_RATE = 1;
+    private const int ICON_MARGIN = 2;
+    private const int FONT_INDEX = 0;
+    private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
+
+    public GameListBox(WindowManager windowManager, MapLoader mapLoader,
+        string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
+        : base(windowManager)
     {
-        private const int GAME_REFRESH_RATE = 1;
-        private const int ICON_MARGIN = 2;
-        private const int FONT_INDEX = 0;
-        private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
+        this.mapLoader = mapLoader;
+        this.localGameIdentifier = localGameIdentifier;
+        GameMatchesFilter = gameMatchesFilter;
+    }
 
-        public GameListBox(WindowManager windowManager, MapLoader mapLoader,
-            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
-            : base(windowManager)
+    private int loadedGameTextWidth;
+
+    public List<GenericHostedGame> HostedGames = [];
+
+    public double GameLifetime { get; set; } = 35.0;
+
+    /// <summary>
+    /// A predicate for setting a filter expression for displayed games.
+    /// </summary>
+    private Predicate<GenericHostedGame> GameMatchesFilter { get; }
+
+    private Texture2D txLockedGame;
+    private Texture2D txIncompatibleGame;
+    private Texture2D txPasswordedGame;
+
+    private readonly string localGameIdentifier;
+
+    private readonly MapLoader mapLoader;
+
+    private GameInformationPanel panelGameInformation;
+
+    private TimeSpan timeSinceGameRefresh;
+
+    private Color hoverOnGameColor;
+
+    /// <summary>
+    /// Removes a game from the list.
+    /// </summary>
+    /// <param name="index">The index of the game to remove.</param>
+    public void RemoveGame(int index)
+    {
+        HostedGames.RemoveAt(index);
+
+        Refresh();
+    }
+
+    /// <summary>
+    /// Compares each listed XNAListBoxItem item in the GameListBox to the refernece XNAListBoxItem item for equality.
+    /// </summary>
+    /// <param name="referencedItem">The XNAListBoxItem to compare against</param>
+    /// <returns>bool</returns>
+    private static Predicate<XNAListBoxItem> GameListMatch(XNAListBoxItem referencedItem)
+    {
+        return listedItem =>
+    {
+        GenericHostedGame referencedGame = (GenericHostedGame)referencedItem?.Tag;
+        GenericHostedGame listedGame = (GenericHostedGame)listedItem?.Tag;
+
+        return referencedGame != null && listedGame != null && referencedGame.Equals(listedGame);
+    };
+    }
+
+    /// <summary>
+    /// Refreshes game information in the game list box.
+    /// </summary>
+    public void Refresh()
+    {
+        XNAListBoxItem selectedItem = SelectedItem;
+        XNAListBoxItem hoveredItem = HoveredItem;
+
+        Items.Clear();
+
+        GetSortedAndFilteredGames()
+            .ToList()
+            .ForEach(AddGameToList);
+
+        if (selectedItem != null)
         {
-            this.mapLoader = mapLoader;
-            this.localGameIdentifier = localGameIdentifier;
-            GameMatchesFilter = gameMatchesFilter;
+            SelectedIndex = Items.FindIndex(GameListMatch(selectedItem));
         }
 
-        private int loadedGameTextWidth;
-
-        public List<GenericHostedGame> HostedGames = new();
-
-        public double GameLifetime { get; set; } = 35.0;
-
-        /// <summary>
-        /// A predicate for setting a filter expression for displayed games.
-        /// </summary>
-        private Predicate<GenericHostedGame> GameMatchesFilter { get; }
-
-        private Texture2D txLockedGame;
-        private Texture2D txIncompatibleGame;
-        private Texture2D txPasswordedGame;
-
-        private string localGameIdentifier;
-
-        private MapLoader mapLoader;
-
-        private GameInformationPanel panelGameInformation;
-
-        private TimeSpan timeSinceGameRefresh;
-
-        private Color hoverOnGameColor;
-
-        /// <summary>
-        /// Removes a game from the list.
-        /// </summary>
-        /// <param name="index">The index of the game to remove.</param>
-        public void RemoveGame(int index)
+        if (hoveredItem != null)
         {
-            HostedGames.RemoveAt(index);
-
-            Refresh();
+            HoveredIndex = Items.FindIndex(GameListMatch(hoveredItem));
         }
 
-        /// <summary>
-        /// Compares each listed XNAListBoxItem item in the GameListBox to the refernece XNAListBoxItem item for equality.
-        /// </summary>
-        /// <param name="referencedItem">The XNAListBoxItem to compare against</param>
-        /// <returns>bool</returns>
-        private static Predicate<XNAListBoxItem> GameListMatch(XNAListBoxItem referencedItem) => listedItem =>
+        ShowGamePanelInfoForIndex(IsValidGameIndex(SelectedIndex) ? SelectedIndex : HoveredIndex);
+    }
+
+    /// <summary>
+    /// Adds a game to the game list.
+    /// </summary>
+    /// <param name="game">The game to add.</param>
+    public void AddGame(GenericHostedGame game)
+    {
+        HostedGames.Add(game);
+
+        Refresh();
+    }
+
+    private IEnumerable<GenericHostedGame> GetSortedAndFilteredGames()
+    {
+        IEnumerable<GenericHostedGame> sortedGames = GetSortedGames();
+
+        return GameMatchesFilter == null ? sortedGames : sortedGames.Where(hg => GameMatchesFilter(hg));
+    }
+
+    private IEnumerable<GenericHostedGame> GetSortedGames()
+    {
+        IOrderedEnumerable<GenericHostedGame> sortedGames =
+            HostedGames
+                .OrderBy(hg => hg.Locked)
+                .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
+                .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
+                .ThenBy(hg => hg.Passworded);
+
+        switch ((SortDirection)UserINISettings.Instance.SortState.Value)
         {
-            var referencedGame = (GenericHostedGame)referencedItem?.Tag;
-            var listedGame = (GenericHostedGame)listedItem?.Tag;
+            case SortDirection.Asc:
+                sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+                break;
+            case SortDirection.Desc:
+                sortedGames = sortedGames.ThenByDescending(hg => hg.RoomName);
+                break;
+        }
 
-            if (referencedGame == null || listedGame == null)
-                return false;
+        return sortedGames;
+    }
 
-            return referencedGame.Equals(listedGame);
+    /// <summary>
+    /// Sorts and refreshes the game information in the game list box.
+    /// </summary>
+    public void SortAndRefreshHostedGames()
+    {
+        Refresh();
+    }
+
+    public void ClearGames()
+    {
+        Clear();
+        HostedGames.Clear();
+    }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
+        txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
+        txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
+
+        panelGameInformation = new GameInformationPanel(WindowManager, mapLoader);
+        panelGameInformation.Name = nameof(panelGameInformation);
+        panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
+        panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+        panelGameInformation.Initialize();
+        panelGameInformation.ClearInfo();
+        panelGameInformation.Disable();
+        panelGameInformation.InputEnabled = false;
+        panelGameInformation.Alpha = 0f;
+        Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
+
+        SelectedIndexChanged += GameListBox_SelectedIndexChanged;
+        HoveredIndexChanged += GameListBox_HoveredIndexChanged;
+
+        hoverOnGameColor = AssetLoader.GetColorFromString(
+            ClientConfiguration.Instance.HoverOnGameColor);
+
+        loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
+    }
+
+    private bool IsValidGameIndex(int index)
+    {
+        return index >= 0 && index < Items.Count;
+    }
+
+    private void ShowGamePanelInfoForIndex(int index)
+    {
+        if (!IsValidGameIndex(index))
+        {
+            panelGameInformation.AlphaRate = -0.5f;
+            return;
+        }
+
+        panelGameInformation.Enable();
+        panelGameInformation.X = Right;
+        panelGameInformation.Y = Y;
+
+        panelGameInformation.AlphaRate = 0.5f;
+
+        GenericHostedGame hostedGame = (GenericHostedGame)Items[index].Tag;
+        panelGameInformation.SetInfo(hostedGame);
+    }
+
+    private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        ShowGamePanelInfoForIndex(SelectedIndex);
+    }
+
+    private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
+    {
+        if (!IsValidGameIndex(SelectedIndex))
+        {
+            ShowGamePanelInfoForIndex(HoveredIndex);
+        }
+    }
+
+    private void AddGameToList(GenericHostedGame hg)
+    {
+        int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
+        int maxTextWidth = Width - hg.Game.Texture.Width -
+            (hg.Incompatible ? txIncompatibleGame.Width : 0) -
+            (hg.Locked ? txLockedGame.Width : 0) - (hg.Passworded ? txPasswordedGame.Width : 0) -
+            (ICON_MARGIN * 3) - GetScrollBarWidth() - lgTextWidth;
+
+        XNAListBoxItem lbItem = new()
+        {
+            Tag = hg,
+            Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
+            hg.RoomName, FontIndex), FontIndex, maxTextWidth)
         };
 
-        /// <summary>
-        /// Refreshes game information in the game list box.
-        /// </summary>
-        public void Refresh()
+        if (hg.Game.InternalName != localGameIdentifier.ToLower())
         {
-            var selectedItem = SelectedItem;
-            var hoveredItem = HoveredItem;
+            lbItem.TextColor = UISettings.ActiveSettings.TextColor;
+        }
+        //else // made unnecessary by new Rampastring.XNAUI
+        //    lbItem.TextColor = UISettings.ActiveSettings.AltColor;
 
-            Items.Clear();
-
-            GetSortedAndFilteredGames()
-                .ToList()
-                .ForEach(AddGameToList);
-
-            if (selectedItem != null)
-                SelectedIndex = Items.FindIndex(GameListMatch(selectedItem));
-            if (hoveredItem != null)
-                HoveredIndex = Items.FindIndex(GameListMatch(hoveredItem));
-
-            ShowGamePanelInfoForIndex(IsValidGameIndex(SelectedIndex) ? SelectedIndex : HoveredIndex);
+        if (hg.Incompatible || hg.Locked)
+        {
+            lbItem.TextColor = Color.Gray;
         }
 
-        /// <summary>
-        /// Adds a game to the game list.
-        /// </summary>
-        /// <param name="game">The game to add.</param>
-        public void AddGame(GenericHostedGame game)
+        AddItem(lbItem);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        timeSinceGameRefresh += gameTime.ElapsedGameTime;
+
+        if (timeSinceGameRefresh.TotalSeconds > GAME_REFRESH_RATE)
         {
-            HostedGames.Add(game);
+            for (int i = 0; i < HostedGames.Count; i++)
+            {
+                if (DateTime.Now - HostedGames[i].LastRefreshTime > TimeSpan.FromSeconds(GameLifetime))
+                {
+                    HostedGames.RemoveAt(i);
+                    i--;
+                }
+            }
 
             Refresh();
+
+            timeSinceGameRefresh = TimeSpan.Zero;
         }
 
-        private IEnumerable<GenericHostedGame> GetSortedAndFilteredGames()
+        base.Update(gameTime);
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        DrawPanel();
+
+        int height = 2;
+
+        for (int i = TopIndex; i < Items.Count; i++)
         {
-            var sortedGames = GetSortedGames();
+            XNAListBoxItem lbItem = Items[i];
 
-            return GameMatchesFilter == null ? sortedGames : sortedGames.Where(hg => GameMatchesFilter(hg));
-        }
-
-        private IEnumerable<GenericHostedGame> GetSortedGames()
-        {
-            var sortedGames =
-                HostedGames
-                    .OrderBy(hg => hg.Locked)
-                    .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
-                    .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
-                    .ThenBy(hg => hg.Passworded);
-
-            switch ((SortDirection)UserINISettings.Instance.SortState.Value)
+            if (height + (lbItem.TextLines.Count * LineHeight) > Height)
             {
-                case SortDirection.Asc:
-                    sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
-                    break;
-                case SortDirection.Desc:
-                    sortedGames = sortedGames.ThenByDescending(hg => hg.RoomName);
-                    break;
+                break;
             }
 
-            return sortedGames;
-        }
+            int x = TextBorderDistance;
 
-        /// <summary>
-        /// Sorts and refreshes the game information in the game list box.
-        /// </summary>
-        public void SortAndRefreshHostedGames()
-        {
-            Refresh();
-        }
+            bool scrollBarDrawn = ScrollBar.IsDrawn() && EnableScrollbar;
+            int drawnWidth = !scrollBarDrawn || DrawSelectionUnderScrollbar ? Width - 2 : Width - 2 - ScrollBar.Width;
 
-        public void ClearGames()
-        {
-            Clear();
-            HostedGames.Clear();
-        }
-
-        public override void Initialize()
-        {
-            base.Initialize();
-
-            txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
-            txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
-            txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
-
-            panelGameInformation = new GameInformationPanel(WindowManager, mapLoader);
-            panelGameInformation.Name = nameof(panelGameInformation);
-            panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
-            panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
-            panelGameInformation.Initialize();
-            panelGameInformation.ClearInfo();
-            panelGameInformation.Disable();
-            panelGameInformation.InputEnabled = false;
-            panelGameInformation.Alpha = 0f;
-            Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
-
-            SelectedIndexChanged += GameListBox_SelectedIndexChanged;
-            HoveredIndexChanged += GameListBox_HoveredIndexChanged;
-
-            hoverOnGameColor = AssetLoader.GetColorFromString(
-                ClientConfiguration.Instance.HoverOnGameColor);
-
-            loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
-        }
-
-        private bool IsValidGameIndex(int index)
-        {
-            return index >= 0 && index < Items.Count;
-        }
-
-        private void ShowGamePanelInfoForIndex(int index)
-        {
-            if (!IsValidGameIndex(index))
+            if (i == SelectedIndex)
             {
-                panelGameInformation.AlphaRate = -0.5f;
-                return;
+                FillRectangle(
+                    new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
+                    FocusColor);
+            }
+            else if (i == HoveredIndex)
+            {
+                FillRectangle(
+                    new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
+                    hoverOnGameColor);
             }
 
-            panelGameInformation.Enable();
-            panelGameInformation.X = Right;
-            panelGameInformation.Y = Y;
+            GenericHostedGame hostedGame = (GenericHostedGame)lbItem.Tag;
 
-            panelGameInformation.AlphaRate = 0.5f;
+            DrawTexture(hostedGame.Game.Texture,
+                new Rectangle(x, height,
+                hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
-            var hostedGame = (GenericHostedGame)Items[index].Tag;
-            panelGameInformation.SetInfo(hostedGame);
-        }
+            x += hostedGame.Game.Texture.Width + ICON_MARGIN;
 
-        private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ShowGamePanelInfoForIndex(SelectedIndex);
-        }
-
-        private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
-        {
-            if (!IsValidGameIndex(SelectedIndex))
-                ShowGamePanelInfoForIndex(HoveredIndex);
-        }
-
-        private void AddGameToList(GenericHostedGame hg)
-        {
-            int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
-            int maxTextWidth = Width - hg.Game.Texture.Width - 
-                (hg.Incompatible ? txIncompatibleGame.Width : 0) -
-                (hg.Locked ? txLockedGame.Width : 0) - (hg.Passworded ? txPasswordedGame.Width : 0) - 
-                (ICON_MARGIN * 3) - GetScrollBarWidth() - lgTextWidth;
-
-            var lbItem = new XNAListBoxItem();
-            lbItem.Tag = hg;
-            lbItem.Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
-                hg.RoomName, FontIndex), FontIndex, maxTextWidth);
-
-            if (hg.Game.InternalName != localGameIdentifier.ToLower())
-                lbItem.TextColor = UISettings.ActiveSettings.TextColor;
-            //else // made unnecessary by new Rampastring.XNAUI
-            //    lbItem.TextColor = UISettings.ActiveSettings.AltColor;
-
-            if (hg.Incompatible || hg.Locked)
+            if (hostedGame.Locked)
             {
-                lbItem.TextColor = Color.Gray;
-            }
-
-            AddItem(lbItem);
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            timeSinceGameRefresh += gameTime.ElapsedGameTime;
-
-            if (timeSinceGameRefresh.TotalSeconds > GAME_REFRESH_RATE)
-            {
-                for (int i = 0; i < HostedGames.Count; i++)
-                {
-                    if (DateTime.Now - HostedGames[i].LastRefreshTime > TimeSpan.FromSeconds(GameLifetime))
-                    {
-                        HostedGames.RemoveAt(i);
-                        i--;
-                    }
-                }
-
-                Refresh();
-
-                timeSinceGameRefresh = TimeSpan.Zero;
-            }
-
-            base.Update(gameTime);
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            DrawPanel();
-
-            int height = 2;
-
-            for (int i = TopIndex; i < Items.Count; i++)
-            {
-                var lbItem = Items[i];
-
-                if (height + lbItem.TextLines.Count * LineHeight > Height)
-                    break;
-
-                int x = TextBorderDistance;
-
-                bool scrollBarDrawn = ScrollBar.IsDrawn() && EnableScrollbar;
-                int drawnWidth = !scrollBarDrawn || DrawSelectionUnderScrollbar ? Width - 2 : Width - 2 - ScrollBar.Width;
-
-                if (i == SelectedIndex)
-                {
-                    FillRectangle(
-                        new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
-                        FocusColor);
-                }
-                else if (i == HoveredIndex)
-                {
-                    FillRectangle(
-                        new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
-                        hoverOnGameColor);
-                }
-
-                var hostedGame = (GenericHostedGame)lbItem.Tag;
-
-                DrawTexture(hostedGame.Game.Texture,
+                DrawTexture(txLockedGame,
                     new Rectangle(x, height,
-                    hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
-
-                x += hostedGame.Game.Texture.Width + ICON_MARGIN;
-
-                if (hostedGame.Locked)
-                {
-                    DrawTexture(txLockedGame,
-                        new Rectangle(x, height,
-                        txLockedGame.Width, txLockedGame.Height), Color.White);
-                    x += txLockedGame.Width + ICON_MARGIN;
-                }
-
-                if (hostedGame.Incompatible)
-                {
-                    DrawTexture(txIncompatibleGame,
-                        new Rectangle(x, height,
-                        txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
-                    x += txIncompatibleGame.Width + ICON_MARGIN;
-                }
-
-                if (hostedGame.Passworded)
-                {
-                    DrawTexture(txPasswordedGame,
-                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                        height, txPasswordedGame.Width, txPasswordedGame.Height),
-                        Color.White);
-                }
-
-                var text = lbItem.Text;
-                if (hostedGame.IsLoadedGame)
-                    text = lbItem.Text + LOADED_GAME_TEXT;
-
-                x += lbItem.TextXPadding;
-
-                DrawStringWithShadow(text, FontIndex,
-                    new Vector2(x, height),
-                    lbItem.TextColor);
-
-                height += LineHeight;
+                    txLockedGame.Width, txLockedGame.Height), Color.White);
+                x += txLockedGame.Width + ICON_MARGIN;
             }
 
-            if (DrawBorders)
-                DrawPanelBorders();
+            if (hostedGame.Incompatible)
+            {
+                DrawTexture(txIncompatibleGame,
+                    new Rectangle(x, height,
+                    txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
+                x += txIncompatibleGame.Width + ICON_MARGIN;
+            }
 
-            DrawChildren(gameTime);
+            if (hostedGame.Passworded)
+            {
+                DrawTexture(txPasswordedGame,
+                    new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                    height, txPasswordedGame.Width, txPasswordedGame.Height),
+                    Color.White);
+            }
+
+            string text = lbItem.Text;
+            if (hostedGame.IsLoadedGame)
+            {
+                text = lbItem.Text + LOADED_GAME_TEXT;
+            }
+
+            x += lbItem.TextXPadding;
+
+            DrawStringWithShadow(text, FontIndex,
+                new Vector2(x, height),
+                lbItem.TextColor);
+
+            height += LineHeight;
         }
+
+        if (DrawBorders)
+        {
+            DrawPanelBorders();
+        }
+
+        DrawChildren(gameTime);
     }
 }

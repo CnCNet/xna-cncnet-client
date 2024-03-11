@@ -1,32 +1,36 @@
 ﻿using System;
 
-namespace DTAClient.Domain.Multiplayer.LAN
+namespace DTAClient.Domain.Multiplayer.LAN;
+
+public class ClientIntCommandHandler : LANClientCommandHandler
 {
-    public class ClientIntCommandHandler : LANClientCommandHandler
+    public ClientIntCommandHandler(string commandName, Action<int> action) : base(commandName)
     {
-        public ClientIntCommandHandler(string commandName, Action<int> action) : base(commandName)
+        this.action = action;
+    }
+
+    private readonly Action<int> action;
+
+    public override bool Handle(string message)
+    {
+        if (!message.StartsWith(CommandName))
         {
-            this.action = action;
+            return false;
         }
 
-        private Action<int> action;
-
-        public override bool Handle(string message)
+        if (message.Length < CommandName.Length + 2)
         {
-            if (!message.StartsWith(CommandName))
-                return false;
-
-            if (message.Length < CommandName.Length + 2)
-                return false;
-
-            int value;
-            bool success = int.TryParse(message.Substring(CommandName.Length + 1), out value);
-
-            if (!success)
-                return false;
-
-            action(value);
-            return true;
+            return false;
         }
+
+        bool success = int.TryParse(message[(CommandName.Length + 1)..], out int value);
+
+        if (!success)
+        {
+            return false;
+        }
+
+        action(value);
+        return true;
     }
 }

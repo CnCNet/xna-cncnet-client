@@ -1,70 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using ClientCore.Extensions;
+
 using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-namespace ClientGUI
+namespace ClientGUI;
+
+public class XNAClientStateButton<T> : XNAButton where T : Enum
 {
-    public class XNAClientStateButton<T> : XNAButton where T : Enum
+    private T _state { get; set; }
+
+    private Dictionary<T, Texture2D> StateTextures { get; set; }
+
+    private string _toolTipText { get; set; }
+    private ToolTip _toolTip { get; set; }
+
+    public XNAClientStateButton(WindowManager windowManager, Dictionary<T, Texture2D> textures) : base(windowManager)
     {
-        private T _state { get; set; }
+        LeftClick += CycleState;
+        StateTextures = textures;
+    }
 
-        private Dictionary<T, Texture2D> StateTextures { get; set; }
-
-        private string _toolTipText { get; set; }
-        private ToolTip _toolTip { get; set; }
-
-        public XNAClientStateButton(WindowManager windowManager, Dictionary<T, Texture2D> textures) : base(windowManager)
+    public override void Initialize()
+    {
+        if (StateTextures == null || StateTextures.Count < 2)
         {
-            LeftClick += CycleState;
-            StateTextures = textures;
+            throw new ArgumentException("State button requires at least 2 states");
         }
 
-        public override void Initialize()
+        UpdateStateTexture();
+
+        base.Initialize();
+
+        _toolTip = new ToolTip(WindowManager, this);
+        SetToolTipText(_toolTipText);
+
+        if (Width == 0)
         {
-            if (StateTextures == null || StateTextures.Count < 2)
-                throw new ArgumentException("State button requires at least 2 states");
+            Width = IdleTexture.Width;
+        }
+    }
 
-            UpdateStateTexture();
-
-            base.Initialize();
-
-            _toolTip = new ToolTip(WindowManager, this);
-            SetToolTipText(_toolTipText);
-            
-            if (Width == 0)
-                Width = IdleTexture.Width;
+    public void SetState(T state)
+    {
+        if (!Enum.IsDefined(typeof(T), state))
+        {
+            throw new IndexOutOfRangeException($"{state} not a valid texture value");
         }
 
-        public void SetState(T state)
+        _state = state;
+        UpdateStateTexture();
+    }
+
+    public T GetState()
+    {
+        return _state;
+    }
+
+    private void CycleState(object sender, EventArgs e)
+    {
+        _state = _state.Next();
+        UpdateStateTexture();
+    }
+
+    public void SetToolTipText(string text)
+    {
+        _toolTipText = text ?? string.Empty;
+        if (_toolTip != null)
         {
-            if(!Enum.IsDefined(typeof(T), state))
-                throw new IndexOutOfRangeException($"{state} not a valid texture value");
-
-            _state = state;
-            UpdateStateTexture();
+            _toolTip.Text = _toolTipText;
         }
+    }
 
-        public T GetState() => _state;
-
-        private void CycleState(object sender, EventArgs e)
-        {
-            _state = _state.Next();
-            UpdateStateTexture();
-        }
-
-        public void SetToolTipText(string text)
-        {
-            _toolTipText = text ?? string.Empty;
-            if (_toolTip != null)
-                _toolTip.Text = _toolTipText;
-        }
-
-        private void UpdateStateTexture()
-        {
-            IdleTexture = StateTextures[_state];
-        }
+    private void UpdateStateTexture()
+    {
+        IdleTexture = StateTextures[_state];
     }
 }

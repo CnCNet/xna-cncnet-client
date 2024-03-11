@@ -122,6 +122,8 @@ csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
+# https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0160-ide0161
+csharp_style_namespace_declarations = file_scoped:silent
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace:silent
 

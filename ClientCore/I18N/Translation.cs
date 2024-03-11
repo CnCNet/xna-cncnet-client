@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using ClientCore.Extensions;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
@@ -51,12 +53,12 @@ public class Translation : ICloneable
     public string Author { get; private set; } = string.Empty;
 
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
-    private Dictionary<string, string> Values { get; } = new();
+    private Dictionary<string, string> Values { get; } = [];
 
     // public bool IsRightToLeft { get; set; } // TODO
 
     /// <summary>Contains all keys within <see cref="Values"/> with missing translations.</summary>
-    private readonly HashSet<string> MissingKeys = new();
+    private readonly HashSet<string> MissingKeys = [];
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
@@ -89,7 +91,9 @@ public class Translation : ICloneable
         : this(localeCode)
     {
         if (ini is null)
+        {
             throw new ArgumentNullException(nameof(ini));
+        }
 
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
@@ -97,7 +101,9 @@ public class Translation : ICloneable
 
         string cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
         if (cultureName is not null)
+        {
             Culture = new(cultureName);
+        }
 
         AppendValuesFromIniFile(ini);
     }
@@ -123,19 +129,30 @@ public class Translation : ICloneable
         _culture = other._culture;
         Author = other.Author;
 
-        foreach (var (key, value) in other.Values)
+        foreach ((string key, string value) in other.Values)
+        {
             Values.Add(key, value);
+        }
     }
 
-    public Translation Clone() => new Translation(this);
-    object ICloneable.Clone() => Clone();
+    public Translation Clone()
+    {
+        return new Translation(this);
+    }
+
+    object ICloneable.Clone()
+    {
+        return Clone();
+    }
 
     /// <summary>
     /// Reads <see cref="Values"/> from an INI file, overriding possibly existing ones.
     /// </summary>
     /// <param name="iniPath">A path to an INI file to read from.</param>
     public void AppendValuesFromIniFile(string iniPath)
-        => AppendValuesFromIniFile(new CCIniFile(iniPath));
+    {
+        AppendValuesFromIniFile(new CCIniFile(iniPath));
+    }
 
     /// <summary>
     /// Reads <see cref="Values"/> from an INI file, overriding possibly existing ones.
@@ -144,8 +161,10 @@ public class Translation : ICloneable
     public void AppendValuesFromIniFile(IniFile ini)
     {
         IniSection valuesSection = ini.GetSection(nameof(Values));
-        foreach (var (key, value) in valuesSection.Keys)
+        foreach ((string key, string value) in valuesSection.Keys)
+        {
             Values[key] = value.FromIniString();
+        }
     }
 
     /// <param name="localeCode">The locale code to look up the language name for.</param>
@@ -176,10 +195,14 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
+        {
             result = new CultureInfo(localeCode).DisplayName;
+        }
 
         if (string.IsNullOrWhiteSpace(result))
+        {
             result = localeCode;
+        }
 
         return result;
     }
@@ -191,16 +214,18 @@ public class Translation : ICloneable
     /// <returns>Locale code -> display name pairs.</returns>
     public static Dictionary<string, string> GetTranslations()
     {
-        var translations = new Dictionary<string, string>
+        Dictionary<string, string> translations = new()
         {
             // Add default localization so that we always have it in the list even if the localization does not exist
             [ProgramConstants.HARDCODED_LOCALE_CODE] = GetLanguageName(ProgramConstants.HARDCODED_LOCALE_CODE)
         };
 
         if (!Directory.Exists(ClientConfiguration.Instance.TranslationsFolderPath))
+        {
             return translations;
+        }
 
-        foreach (var localizationFolder in Directory.GetDirectories(ClientConfiguration.Instance.TranslationsFolderPath))
+        foreach (string localizationFolder in Directory.GetDirectories(ClientConfiguration.Instance.TranslationsFolderPath))
         {
             string localizationCode = Path.GetFileName(localizationFolder);
             translations[localizationCode] = GetLanguageName(localizationCode);
@@ -218,14 +243,16 @@ public class Translation : ICloneable
         // we don't need names here pretty much
         Dictionary<string, string> translations = GetTranslations();
 
-        for (var culture = InitialUICulture;
+        for (CultureInfo culture = InitialUICulture;
             culture != CultureInfo.InvariantCulture;
             culture = culture.Parent)
         {
             string translation = culture.Name;
 
             if (translations.ContainsKey(translation))
+            {
                 return translation;
+            }
         }
 
         return ProgramConstants.HARDCODED_LOCALE_CODE;
@@ -237,23 +264,27 @@ public class Translation : ICloneable
     /// <returns>An ini file that contains the translation table.</returns>
     public IniFile DumpIni(bool saveOnlyMissingValues = false)
     {
-        IniFile ini = new IniFile();
+        IniFile ini = new();
 
         ini.AddSection(METADATA_SECTION);
         IniSection general = ini.GetSection(METADATA_SECTION);
 
         if (!string.IsNullOrWhiteSpace(_name))
+        {
             general.AddKey(nameof(Name), _name);
+        }
 
         if (_culture is not null)
+        {
             general.AddKey(nameof(Culture), _culture.Name);
+        }
 
         general.AddKey(nameof(Author), Author);
 
         ini.AddSection(nameof(Values));
         IniSection translation = ini.GetSection(nameof(Values));
 
-        foreach (var (key, value) in Values.OrderBy(kvp => kvp.Key))
+        foreach ((string key, string value) in Values.OrderBy(kvp => kvp.Key))
         {
             bool valueMissing = MissingKeys.Contains(key);
             if (!saveOnlyMissingValues || valueMissing)
@@ -289,10 +320,14 @@ public class Translation : ICloneable
     public string LookUp(string key, string defaultValue, bool notify = true)
     {
         if (Values.ContainsKey(key))
+        {
             return Values[key];
+        }
 
         if (notify)
+        {
             _ = HandleMissing(key, defaultValue);
+        }
 
         return defaultValue;
     }
@@ -324,7 +359,9 @@ public class Translation : ICloneable
             result = defaultValue;
 
             if (notify)
+            {
                 _ = HandleMissing(key, defaultValue);
+            }
         }
 
         return result;

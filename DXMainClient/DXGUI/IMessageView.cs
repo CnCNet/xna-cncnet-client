@@ -1,9 +1,8 @@
 ﻿using DTAClient.Online;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI;
+
+public interface IMessageView
 {
-    public interface IMessageView
-    {
-        void AddMessage(ChatMessage message);
-    }
+    void AddMessage(ChatMessage message);
 }

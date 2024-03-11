@@ -1,13 +1,12 @@
 ﻿using System;
 
-namespace DTAClient.Online.EventArguments
+namespace DTAClient.Online.EventArguments;
+
+public class ConnectionLostEventArgs : EventArgs
 {
-    public class ConnectionLostEventArgs : EventArgs
+    public ConnectionLostEventArgs(string reason)
     {
-        public ConnectionLostEventArgs(string reason)
-        {
-            Reason = reason;
-        }
-        public string Reason { get; private set; }
+        Reason = reason;
     }
+    public string Reason { get; private set; }
 }

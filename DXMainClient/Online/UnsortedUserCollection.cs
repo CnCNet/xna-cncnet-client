@@ -1,60 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DTAClient.Online
+namespace DTAClient.Online;
+
+/// <summary>
+/// A custom collection that aims to provide quick insertion,
+/// removal and lookup operations by using a dictionary. Does not
+/// keep the list sorted.
+/// </summary>
+public class UnsortedUserCollection<T> : IUserCollection<T>
 {
-    /// <summary>
-    /// A custom collection that aims to provide quick insertion,
-    /// removal and lookup operations by using a dictionary. Does not
-    /// keep the list sorted.
-    /// </summary>
-    public class UnsortedUserCollection<T> : IUserCollection<T>
+    private readonly Dictionary<string, T> dictionary = [];
+
+    public int Count => dictionary.Count;
+
+    public void Add(string username, T item)
     {
-        private Dictionary<string, T> dictionary = new Dictionary<string, T>();
+        dictionary.Add(username.ToLower(), item);
+    }
 
-        public int Count => dictionary.Count;
+    public void Clear()
+    {
+        dictionary.Clear();
+    }
 
-        public void Add(string username, T item)
+    public void DoForAllUsers(Action<T> action)
+    {
+        Dictionary<string, T>.ValueCollection values = dictionary.Values;
+
+        foreach (T value in values)
         {
-            dictionary.Add(username.ToLower(), item);
+            action(value);
         }
+    }
 
-        public void Clear()
-        {
-            dictionary.Clear();
-        }
+    public T Find(string username)
+    {
+        return dictionary.TryGetValue(username.ToLower(), out T value) ? value : default;
+    }
 
-        public void DoForAllUsers(Action<T> action)
-        {
-            var values = dictionary.Values;
-            
-            foreach (T value in values)
-            {
-                action(value);
-            }
-        }
+    public LinkedListNode<T> GetFirst()
+    {
+        throw new NotImplementedException();
+    }
 
-        public T Find(string username)
-        {
-            if (dictionary.TryGetValue(username.ToLower(), out T value))
-                return value;
+    public void Reinsert(string username)
+    {
+        throw new NotImplementedException();
+    }
 
-            return default(T);
-        }
-
-        public LinkedListNode<T> GetFirst()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reinsert(string username)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Remove(string username)
-        {
-            return dictionary.Remove(username.ToLower());
-        }
+    public bool Remove(string username)
+    {
+        return dictionary.Remove(username.ToLower());
     }
 }

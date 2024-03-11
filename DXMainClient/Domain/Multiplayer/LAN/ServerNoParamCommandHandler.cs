@@ -1,26 +1,25 @@
 ﻿using System;
 
-namespace DTAClient.Domain.Multiplayer.LAN
+namespace DTAClient.Domain.Multiplayer.LAN;
+
+public class ServerNoParamCommandHandler : LANServerCommandHandler
 {
-    public class ServerNoParamCommandHandler : LANServerCommandHandler
+    public ServerNoParamCommandHandler(string commandName,
+        Action<LANPlayerInfo> handler) : base(commandName)
     {
-        public ServerNoParamCommandHandler(string commandName,
-            Action<LANPlayerInfo> handler) : base(commandName)
+        this.handler = handler;
+    }
+
+    private readonly Action<LANPlayerInfo> handler;
+
+    public override bool Handle(LANPlayerInfo pInfo, string message)
+    {
+        if (message == CommandName)
         {
-            this.handler = handler;
+            handler(pInfo);
+            return true;
         }
 
-        Action<LANPlayerInfo> handler;
-
-        public override bool Handle(LANPlayerInfo pInfo, string message)
-        {
-            if (message == CommandName)
-            {
-                handler(pInfo);
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

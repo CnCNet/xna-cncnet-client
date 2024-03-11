@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 
-namespace DTAClient.Online
+namespace DTAClient.Online;
+
+internal class PrivateMessageUser
 {
-    class PrivateMessageUser
+    public PrivateMessageUser(IRCUser user)
     {
-        public PrivateMessageUser(IRCUser user)
-        {
-            IrcUser = user;
-        }
-
-        public IRCUser IrcUser { get; private set; }
-
-        public List<ChatMessage> Messages = new List<ChatMessage>();
+        IrcUser = user;
     }
+
+    public IRCUser IrcUser { get; private set; }
+
+    public List<ChatMessage> Messages = [];
 }

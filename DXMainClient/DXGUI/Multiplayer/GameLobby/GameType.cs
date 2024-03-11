@@ -1,10 +1,9 @@
-﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby
+﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby;
+
+public enum GameType
 {
-    public enum GameType
-    {
-        Undefined,
-        FFA,
-        TeamGame,
-        Coop
-    }
+    Undefined,
+    FFA,
+    TeamGame,
+    Coop
 }

@@ -1,37 +1,37 @@
 ﻿using ClientGUI;
+
 using Rampastring.XNAUI;
 
-namespace DTAClient.DXGUI.Multiplayer.CnCNet
+namespace DTAClient.DXGUI.Multiplayer.CnCNet;
+
+/// <summary>
+/// A panel that hides itself if it's clicked while none of its children
+/// are the focus of input.
+/// </summary>
+public class PrivateMessagingPanel : DarkeningPanel
 {
-    /// <summary>
-    /// A panel that hides itself if it's clicked while none of its children
-    /// are the focus of input.
-    /// </summary>
-    public class PrivateMessagingPanel : DarkeningPanel
+    public PrivateMessagingPanel(WindowManager windowManager) : base(windowManager)
     {
-        public PrivateMessagingPanel(WindowManager windowManager) : base(windowManager)
-        {
-        }
+    }
 
-        public override void OnLeftClick()
-        {
-            bool hideControl = true;
+    public override void OnLeftClick()
+    {
+        bool hideControl = true;
 
-            foreach (var child in Children)
+        foreach (Rampastring.XNAUI.XNAControls.XNAControl child in Children)
+        {
+            if (child.IsActive)
             {
-                if (child.IsActive)
-                {
-                    hideControl = false;
-                    break;
-                }
+                hideControl = false;
+                break;
             }
-
-            if (hideControl)
-                Hide();
-
-            base.OnLeftClick();
         }
 
+        if (hideControl)
+        {
+            Hide();
+        }
 
+        base.OnLeftClick();
     }
 }

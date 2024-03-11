@@ -1,4 +1,5 @@
 ﻿using System;
+
 using ClientCore.I18N;
 
 namespace ClientCore.Extensions;
@@ -8,18 +9,27 @@ public static class StringExtensions
     public static string GetLink(this string text)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return null;
+        }
 
         int index = text.IndexOf("http://", StringComparison.Ordinal);
         if (index == -1)
+        {
             index = text.IndexOf("ftp://", StringComparison.Ordinal);
+        }
+
         if (index == -1)
+        {
             index = text.IndexOf("https://", StringComparison.Ordinal);
+        }
 
         if (index == -1)
+        {
             return null; // No link found
+        }
 
-        string link = text.Substring(index);
+        string link = text[index..];
         return link.Split(' ')[0]; // Nuke any words coming after the link
     }
 
@@ -33,13 +43,11 @@ public static class StringExtensions
     /// <returns>INI-safe string.</returns>
     public static string ToIniString(this string raw)
     {
-        if (raw.Contains(ESCAPED_INI_NEWLINE_PATTERN, StringComparison.InvariantCulture))
-            throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_INI_NEWLINE_PATTERN})");
-
-        if (raw.Contains(ESCAPED_SEMICOLON, StringComparison.InvariantCulture))
-            throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_SEMICOLON})");
-
-        return raw
+        return raw.Contains(ESCAPED_INI_NEWLINE_PATTERN, StringComparison.InvariantCulture)
+            ? throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_INI_NEWLINE_PATTERN})")
+            : raw.Contains(ESCAPED_SEMICOLON, StringComparison.InvariantCulture)
+            ? throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_SEMICOLON})")
+            : raw
             .Replace(ProgramConstants.INI_NEWLINE_PATTERN, ESCAPED_INI_NEWLINE_PATTERN)
             .Replace(";", ESCAPED_SEMICOLON)
             .Replace(Environment.NewLine, "\n")
@@ -74,7 +82,9 @@ public static class StringExtensions
     /// source code to match.
     /// </remarks>
     public static string L10N(this string defaultValue, string key, bool notify = true)
-        => string.IsNullOrEmpty(defaultValue)
-            ? defaultValue
-            : Translation.Instance.LookUp(key, defaultValue, notify);
+    {
+        return string.IsNullOrEmpty(defaultValue)
+                ? defaultValue
+                : Translation.Instance.LookUp(key, defaultValue, notify);
+    }
 }

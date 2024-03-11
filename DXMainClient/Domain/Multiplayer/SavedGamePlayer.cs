@@ -1,8 +1,7 @@
-﻿namespace DTAClient.Domain.Multiplayer
+﻿namespace DTAClient.Domain.Multiplayer;
+
+public class SavedGamePlayer
 {
-    public class SavedGamePlayer
-    {
-        public string Name { get; set; }
-        public int ColorIndex { get; set; }
-    }
+    public string Name { get; set; }
+    public int ColorIndex { get; set; }
 }

@@ -1,44 +1,47 @@
-﻿using System;
-using Rampastring.XNAUI;
+﻿using ClientCore;
+
 using Rampastring.Tools;
-using ClientCore;
+using Rampastring.XNAUI;
 
-namespace ClientGUI
+namespace ClientGUI;
+
+public class XNALinkButton : XNAClientButton
 {
-    public class XNALinkButton : XNAClientButton
+    public XNALinkButton(WindowManager windowManager) : base(windowManager) { }
+
+    public string URL { get; set; }
+    public string UnixURL { get; set; }
+
+    protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
-        public XNALinkButton(WindowManager windowManager) : base(windowManager) { }
-
-        public string URL { get; set; }
-        public string UnixURL { get; set; }
-
-        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+        if (key == "URL")
         {
-            if (key == "URL")
-            {
-                URL = value;
-                return;
-            }
-
-            if (key == "UnixURL")
-            {
-                UnixURL = value;
-                return;
-            }
-
-            base.ParseControlINIAttribute(iniFile, key, value);
+            URL = value;
+            return;
         }
 
-        public override void OnLeftClick()
+        if (key == "UnixURL")
         {
-            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
-            if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
-                ProcessLauncher.StartShellProcess(UnixURL);
-            else if (!string.IsNullOrEmpty(URL))
-                ProcessLauncher.StartShellProcess(URL);
-
-            base.OnLeftClick();
+            UnixURL = value;
+            return;
         }
+
+        base.ParseControlINIAttribute(iniFile, key, value);
+    }
+
+    public override void OnLeftClick()
+    {
+        OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+        if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
+        {
+            ProcessLauncher.StartShellProcess(UnixURL);
+        }
+        else if (!string.IsNullOrEmpty(URL))
+        {
+            ProcessLauncher.StartShellProcess(URL);
+        }
+
+        base.OnLeftClick();
     }
 }

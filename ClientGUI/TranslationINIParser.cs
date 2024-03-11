@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ClientCore;
+﻿using System.Globalization;
+
 using ClientCore.Extensions;
 using ClientCore.I18N;
+
 using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
@@ -20,7 +17,9 @@ public class TranslationINIParser : IControlINIAttributeParser
 
     // shorthand for localization function
     private string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-        => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+    {
+        return Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+    }
 
     public bool ParseINIAttribute(XNAControl control, IniFile iniFile, string key, string value)
     {
@@ -68,6 +67,7 @@ public class TranslationINIParser : IControlINIAttributeParser
                         control.Y,
                         control.Width, control.Height);
                 }
+
                 return true;
             case "DistanceFromBottomBorder":
                 if (control.Parent != null)
@@ -79,6 +79,7 @@ public class TranslationINIParser : IControlINIAttributeParser
                             - Conversions.IntFromString(Localize(control, key, value, notify: false), 0),
                         control.Width, control.Height);
                 }
+
                 return true;
             case "ToolTip" when control is IToolTipContainer controlWithToolTip:
                 controlWithToolTip.ToolTipText = Localize(control, key, value.FromIniString());

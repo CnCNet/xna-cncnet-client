@@ -1,9 +1,8 @@
-﻿namespace ClientCore.Enums
+﻿namespace ClientCore.Enums;
+
+public enum AllowPrivateMessagesFromEnum
 {
-    public enum AllowPrivateMessagesFromEnum
-    {
-        All = 1,
-        Friends = 2,
-        None = 3
-    }
+    All = 1,
+    Friends = 2,
+    None = 3
 }

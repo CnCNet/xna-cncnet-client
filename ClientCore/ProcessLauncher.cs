@@ -1,16 +1,15 @@
 ﻿using System.Diagnostics;
 
-namespace ClientCore
+namespace ClientCore;
+
+public static class ProcessLauncher
 {
-    public static class ProcessLauncher
+    public static void StartShellProcess(string commandLine)
     {
-        public static void StartShellProcess(string commandLine)
+        using Process _ = Process.Start(new ProcessStartInfo
         {
-            using var _ = Process.Start(new ProcessStartInfo
-            {
-                FileName = commandLine,
-                UseShellExecute = true
-            });
-        }
+            FileName = commandLine,
+            UseShellExecute = true
+        });
     }
 }

@@ -1,14 +1,13 @@
-﻿namespace DTAClient.Domain.Multiplayer.LAN
+﻿namespace DTAClient.Domain.Multiplayer.LAN;
+
+public abstract class LANClientCommandHandler
 {
-    public abstract class LANClientCommandHandler
+    public LANClientCommandHandler(string commandName)
     {
-        public LANClientCommandHandler(string commandName)
-        {
-            CommandName = commandName;
-        }
-
-        public string CommandName { get; private set; }
-
-        public abstract bool Handle(string message);
+        CommandName = commandName;
     }
+
+    public string CommandName { get; private set; }
+
+    public abstract bool Handle(string message);
 }

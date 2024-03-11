@@ -1,399 +1,441 @@
-﻿using ClientCore;
+﻿using System;
+
+using ClientCore;
 using ClientCore.CnCNet5;
-using ClientGUI;
-using DTAClient.Domain;
-using DTAClient.DXGUI.Generic;
 using ClientCore.Extensions;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+
 using ClientGUI;
+
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
+
 using DTAConfig;
 using DTAConfig.Settings;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
+
 #if DX || (GL && WINFORMS)
 using System.Diagnostics;
-using System.IO;
+
+using ClientCore.Settings;
+
 #endif
 #if WINFORMS
-using System.Windows.Forms;
 using System.IO;
 #endif
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI;
+
+/// <summary>
+/// The main class for the game. Sets up asset search paths
+/// and initializes components.
+/// </summary>
+public class GameClass : Game
 {
-    /// <summary>
-    /// The main class for the game. Sets up asset search paths
-    /// and initializes components.
-    /// </summary>
-    public class GameClass : Game
+    public GameClass()
     {
-        public GameClass()
-        {
-            graphics = new GraphicsDeviceManager(this);
-            graphics.SynchronizeWithVerticalRetrace = false;
+        graphics = new GraphicsDeviceManager(this);
+        graphics.SynchronizeWithVerticalRetrace = false;
 #if !XNA
-            graphics.HardwareModeSwitch = false;
+        graphics.HardwareModeSwitch = false;
 #endif
-            content = new ContentManager(Services);
-        }
+        content = new ContentManager(Services);
+    }
 
-        private static GraphicsDeviceManager graphics;
-        ContentManager content;
+    private static GraphicsDeviceManager graphics;
+    private readonly ContentManager content;
 
-        protected override void Initialize()
-        {
-            Logger.Log("Initializing GameClass.");
+    protected override void Initialize()
+    {
+        Logger.Log("Initializing GameClass.");
 
-            string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            Window.Title = string.IsNullOrEmpty(windowTitle) ?
-                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
+        string windowTitle = ClientConfiguration.Instance.WindowTitle;
+        Window.Title = string.IsNullOrEmpty(windowTitle) ?
+            string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
-            base.Initialize();
+        base.Initialize();
 
-            AssetLoader.Initialize(GraphicsDevice, content);
-            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationThemeFolderPath);
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
-            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationFolderPath);
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
+        AssetLoader.Initialize(GraphicsDevice, content);
+        AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationThemeFolderPath);
+        AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
+        AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationFolderPath);
+        AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
+        AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
 #if DX || (GL && WINFORMS)
-            // Try to create and load a texture to check for MonoGame compatibility
+        // Try to create and load a texture to check for MonoGame compatibility
 #if DX
-            const string startupFailureFile = ".dxfail";
+        const string startupFailureFile = ".dxfail";
 #elif GL && WINFORMS
-            const string startupFailureFile = ".oglfail";
+        const string startupFailureFile = ".oglfail";
 #endif
 
-            try
-            {
-                Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
-                Color[] colorArray = new Color[100 * 100];
-                texture.SetData(colorArray);
+        try
+        {
+            Texture2D texture = new(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
+            Color[] colorArray = new Color[100 * 100];
+            texture.SetData(colorArray);
 
-                _ = AssetLoader.LoadTextureUncached("checkBoxClear.png");
-            }
-            catch (Exception ex)
+            _ = AssetLoader.LoadTextureUncached("checkBoxClear.png");
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("DeviceRemoved"))
             {
-                if (ex.Message.Contains("DeviceRemoved"))
+                Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
+
+                DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+
+                if (!clientDirectory.Exists)
                 {
-                    Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
+                    clientDirectory.Create();
+                }
 
-                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+                // Create startup failure file that the launcher can check for this error
+                // and handle it by redirecting the user to another version instead
 
-                    if (!clientDirectory.Exists)
-                        clientDirectory.Create();
+                File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
 
-                    // Create startup failure file that the launcher can check for this error
-                    // and handle it by redirecting the user to another version instead
+                string launcherExe = ClientConfiguration.Instance.LauncherExe;
+                if (string.IsNullOrEmpty(launcherExe))
+                {
+                    // LauncherExe is unspecified, just throw the exception forward
+                    // because we can't handle it
 
-                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
+                    Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
+                        "Forwarding exception to regular exception handler.");
 
-                    string launcherExe = ClientConfiguration.Instance.LauncherExe;
-                    if (string.IsNullOrEmpty(launcherExe))
-                    {
-                        // LauncherExe is unspecified, just throw the exception forward
-                        // because we can't handle it
+                    throw;
+                }
+                else
+                {
+                    Logger.Log("Starting " + launcherExe + " and exiting.");
 
-                        Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
-                            "Forwarding exception to regular exception handler.");
-
-                        throw;
-                    }
-                    else
-                    {
-                        Logger.Log("Starting " + launcherExe + " and exiting.");
-
-                        Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
-                        Environment.Exit(1);
-                    }
+                    Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
+                    Environment.Exit(1);
                 }
             }
+        }
 
 #endif
-            InitializeUISettings();
+        InitializeUISettings();
 
-            WindowManager wm = new WindowManager(this, graphics);
-            wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+        WindowManager wm = new(this, graphics);
+        wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
+        wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
-            ProgramConstants.DisplayErrorAction = (title, error, exit) =>
+        ProgramConstants.DisplayErrorAction = (title, error, exit) => new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
+        {
+            OKClickedAction = _ =>
             {
-                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
+                if (exit)
                 {
-                    OKClickedAction = _ =>
-                    {
-                        if (exit)
-                            Environment.Exit(1);
-                    }
-                }.Show();
-            };
-
-            SetGraphicsMode(wm);
-#if WINFORMS
-
-            wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
-            wm.SetControlBox(true);
-#endif
-
-            wm.Cursor.Textures = new Texture2D[]
-            {
-                AssetLoader.LoadTexture("cursor.png"),
-                AssetLoader.LoadTexture("waitCursor.png")
-            };
-
-#if WINFORMS
-            FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
-            FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
-
-            if (primaryNativeCursorPath.Exists)
-                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
-            else if (alternativeNativeCursorPath.Exists)
-                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
-
-#endif
-            Components.Add(wm);
-
-            string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-
-            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
-            {
-                while (playerName.EndsWith("_"))
-                    playerName = playerName.Substring(0, playerName.Length - 1);
-            }
-
-            if (string.IsNullOrEmpty(playerName))
-            {
-                playerName = Environment.UserName;
-
-                playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
-            }
-
-            playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
-
-            ProgramConstants.PLAYERNAME = playerName;
-            UserINISettings.Instance.PlayerName.Value = playerName;
-
-            IServiceProvider serviceProvider = BuildServiceProvider(wm);
-            LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
-            wm.AddAndInitializeControl(ls);
-            ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
-                (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
-        }
-
-        private IServiceProvider BuildServiceProvider(WindowManager windowManager)
-        {
-            // Create host - this allows for things like DependencyInjection
-            IHost host = Host.CreateDefaultBuilder()
-                .ConfigureServices((_, services) =>
-                    {
-                        // services (or service-like)
-                        services
-                            .AddSingleton<ServiceProvider>()
-                            .AddSingleton(windowManager)
-                            .AddSingleton(GraphicsDevice)
-                            .AddSingleton<GameCollection>()
-                            .AddSingleton<CnCNetUserData>()
-                            .AddSingleton<CnCNetManager>()
-                            .AddSingleton<TunnelHandler>()
-                            .AddSingleton<DiscordHandler>()
-                            .AddSingleton<PrivateMessageHandler>()
-                            .AddSingleton<MapLoader>();
-
-                        // singleton xna controls - same instance on each request
-                        services
-                            .AddSingletonXnaControl<LoadingScreen>()
-                            .AddSingletonXnaControl<TopBar>()
-                            .AddSingletonXnaControl<OptionsWindow>()
-                            .AddSingletonXnaControl<PrivateMessagingWindow>()
-                            .AddSingletonXnaControl<PrivateMessagingPanel>()
-                            .AddSingletonXnaControl<LANLobby>()
-                            .AddSingletonXnaControl<CnCNetGameLobby>()
-                            .AddSingletonXnaControl<CnCNetGameLoadingLobby>()
-                            .AddSingletonXnaControl<CnCNetLobby>()
-                            .AddSingletonXnaControl<GameInProgressWindow>()
-                            .AddSingletonXnaControl<SkirmishLobby>()
-                            .AddSingletonXnaControl<MainMenu>()
-                            .AddSingletonXnaControl<MapPreviewBox>()
-                            .AddSingletonXnaControl<GameLaunchButton>()
-                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>();
-
-                        // transient xna controls - new instance on each request
-                        services
-                            .AddTransientXnaControl<XNAControl>()
-                            .AddTransientXnaControl<XNAButton>()
-                            .AddTransientXnaControl<XNAClientButton>()
-                            .AddTransientXnaControl<XNAClientCheckBox>()
-                            .AddTransientXnaControl<XNAClientDropDown>()
-                            .AddTransientXnaControl<XNALinkButton>()
-                            .AddTransientXnaControl<XNAExtraPanel>()
-                            .AddTransientXnaControl<XNACheckBox>()
-                            .AddTransientXnaControl<XNADropDown>()
-                            .AddTransientXnaControl<XNALabel>()
-                            .AddTransientXnaControl<XNALinkLabel>()
-                            .AddTransientXnaControl<XNAListBox>()
-                            .AddTransientXnaControl<XNAMultiColumnListBox>()
-                            .AddTransientXnaControl<XNAPanel>()
-                            .AddTransientXnaControl<XNAProgressBar>()
-                            .AddTransientXnaControl<XNASuggestionTextBox>()
-                            .AddTransientXnaControl<XNATextBox>()
-                            .AddTransientXnaControl<XNATrackbar>()
-                            .AddTransientXnaControl<XNAChatTextBox>()
-                            .AddTransientXnaControl<ChatListBox>()
-                            .AddTransientXnaControl<GameLobbyCheckBox>()
-                            .AddTransientXnaControl<GameLobbyDropDown>()
-                            .AddTransientXnaControl<SettingCheckBox>()
-                            .AddTransientXnaControl<SettingDropDown>()
-                            .AddTransientXnaControl<FileSettingCheckBox>()
-                            .AddTransientXnaControl<FileSettingDropDown>();
-                    }
-                )
-                .Build();
-
-            return host.Services.GetService<IServiceProvider>();
-        }
-
-        private void InitializeUISettings()
-        {
-            UISettings settings = new UISettings();
-
-            settings.AltColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIColor);
-            settings.SubtleTextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UIHintTextColor);
-            settings.ButtonTextColor = settings.AltColor;
-            settings.ButtonHoverColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ButtonHoverColor);
-            settings.TextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UILabelColor);
-            //settings.WindowBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.WindowBorderColor);
-            settings.PanelBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.PanelBorderColor);
-            settings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
-            settings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
-            settings.DisabledItemColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
-
-            settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
-            settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
-            settings.IndicatorAlphaRate = ClientConfiguration.Instance.IndicatorAlphaRate;
-
-            settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
-            settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
-            settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
-            settings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
-
-            XNAPlayerSlotIndicator.LoadTextures();
-
-            UISettings.ActiveSettings = settings;
-        }
-
-        /// <summary>
-        /// Sets the client's graphics mode.
-        /// TODO move to some helper class?
-        /// </summary>
-        /// <param name="wm">The window manager</param>
-        public static void SetGraphicsMode(WindowManager wm)
-        {
-            var clientConfiguration = ClientConfiguration.Instance;
-
-            int windowWidth = UserINISettings.Instance.ClientResolutionX;
-            int windowHeight = UserINISettings.Instance.ClientResolutionY;
-
-            bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-
-            if (currentWidth >= windowWidth && currentHeight >= windowHeight)
-            {
-                if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
-                    throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("Client:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
-            }
-            else
-            {
-                if (!wm.InitGraphicsMode(1024, 600, false))
-                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
-            }
-
-            int renderResolutionX = 0;
-            int renderResolutionY = 0;
-
-            int initialXRes = Math.Max(windowWidth, clientConfiguration.MinimumRenderWidth);
-            initialXRes = Math.Min(initialXRes, clientConfiguration.MaximumRenderWidth);
-
-            int initialYRes = Math.Max(windowHeight, clientConfiguration.MinimumRenderHeight);
-            initialYRes = Math.Min(initialYRes, clientConfiguration.MaximumRenderHeight);
-
-            double xRatio = (windowWidth) / (double)initialXRes;
-            double yRatio = (windowHeight) / (double)initialYRes;
-
-            double ratio = xRatio > yRatio ? yRatio : xRatio;
-
-            if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
-            {
-                renderResolutionX = windowWidth;
-                renderResolutionY = windowHeight;
-            }
-
-            if (ratio > 1.0)
-            {
-                // Check whether we could sharp-scale our client window
-                for (int i = 2; i < 10; i++)
-                {
-                    int sharpScaleRenderResX = windowWidth / i;
-                    int sharpScaleRenderResY = windowHeight / i;
-
-                    if (sharpScaleRenderResX >= clientConfiguration.MinimumRenderWidth &&
-                        sharpScaleRenderResX <= clientConfiguration.MaximumRenderWidth &&
-                        sharpScaleRenderResY >= clientConfiguration.MinimumRenderHeight &&
-                        sharpScaleRenderResY <= clientConfiguration.MaximumRenderHeight)
-                    {
-                        renderResolutionX = sharpScaleRenderResX;
-                        renderResolutionY = sharpScaleRenderResY;
-                        break;
-                    }
+                    Environment.Exit(1);
                 }
             }
+        }.Show();
 
-            if (renderResolutionX == 0 || renderResolutionY == 0)
-            {
-                renderResolutionX = initialXRes;
-                renderResolutionY = initialYRes;
+        SetGraphicsMode(wm);
+#if WINFORMS
 
-                if (ratio == xRatio)
-                    renderResolutionY = (int)(windowHeight / ratio);
-            }
+        wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
+        wm.SetControlBox(true);
+#endif
 
-            wm.SetBorderlessMode(borderlessWindowedClient);
-#if !XNA
+        wm.Cursor.Textures = new Texture2D[]
+        {
+            AssetLoader.LoadTexture("cursor.png"),
+            AssetLoader.LoadTexture("waitCursor.png")
+        };
 
-            if (borderlessWindowedClient)
-            {
-                graphics.IsFullScreen = true;
-                graphics.ApplyChanges();
-            }
+#if WINFORMS
+        FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
+        FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
+
+        if (primaryNativeCursorPath.Exists)
+        {
+            wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
+        }
+        else if (alternativeNativeCursorPath.Exists)
+        {
+            wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
+        }
 
 #endif
-            wm.CenterOnScreen();
-            wm.SetRenderResolution(renderResolutionX, renderResolutionY);
+        Components.Add(wm);
+
+        string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
+
+        if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
+        {
+            while (playerName.EndsWith("_"))
+            {
+                playerName = playerName[..^1];
+            }
         }
+
+        if (string.IsNullOrEmpty(playerName))
+        {
+            playerName = Environment.UserName;
+
+            playerName = playerName[(playerName.IndexOf("\\") + 1)..];
+        }
+
+        playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
+
+        ProgramConstants.PLAYERNAME = playerName;
+        UserINISettings.Instance.PlayerName.Value = playerName;
+
+        IServiceProvider serviceProvider = BuildServiceProvider(wm);
+        LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
+        wm.AddAndInitializeControl(ls);
+        ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
+            (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+    }
+
+    private IServiceProvider BuildServiceProvider(WindowManager windowManager)
+    {
+        // Create host - this allows for things like DependencyInjection
+        IHost host = Host.CreateDefaultBuilder()
+            .ConfigureServices((_, services) =>
+                {
+                    // services (or service-like)
+
+                    /* 项目“DXMainClient (net48)”的未合并的更改
+                    在此之前:
+                                            services
+                    在此之后:
+                                        _ = (HostBuilderContext)services
+                    */
+                    _ = (HostBuilderContext)services
+                        .AddSingleton<ServiceProvider>()
+                        .AddSingleton(windowManager)
+                        .AddSingleton(GraphicsDevice)
+                        .AddSingleton<GameCollection>()
+                        .AddSingleton<CnCNetUserData>()
+                        .AddSingleton<CnCNetManager>()
+                        .AddSingleton<TunnelHandler>()
+                        .AddSingleton<DiscordHandler>()
+                        .AddSingleton<PrivateMessageHandler>()
+                        .AddSingleton<MapLoader>();
+
+                    // singleton xna controls - same instance on each request
+
+                    /* 项目“DXMainClient (net48)”的未合并的更改
+                    在此之前:
+                                            services
+                    在此之后:
+                                        _ = (HostBuilderContext)services
+                    */
+                    _ = (HostBuilderContext)services
+                        .AddSingletonXnaControl<LoadingScreen>()
+                        .AddSingletonXnaControl<TopBar>()
+                        .AddSingletonXnaControl<OptionsWindow>()
+                        .AddSingletonXnaControl<PrivateMessagingWindow>()
+                        .AddSingletonXnaControl<PrivateMessagingPanel>()
+                        .AddSingletonXnaControl<LANLobby>()
+                        .AddSingletonXnaControl<CnCNetGameLobby>()
+                        .AddSingletonXnaControl<CnCNetGameLoadingLobby>()
+                        .AddSingletonXnaControl<CnCNetLobby>()
+                        .AddSingletonXnaControl<GameInProgressWindow>()
+                        .AddSingletonXnaControl<SkirmishLobby>()
+                        .AddSingletonXnaControl<MainMenu>()
+                        .AddSingletonXnaControl<MapPreviewBox>()
+                        .AddSingletonXnaControl<GameLaunchButton>()
+                        .AddSingletonXnaControl<PlayerExtraOptionsPanel>();
+
+                    // transient xna controls - new instance on each request
+
+                    /* 项目“DXMainClient (net48)”的未合并的更改
+                    在此之前:
+                                            services
+                    在此之后:
+                                        _ = (HostBuilderContext)services
+                    */
+                    _ = (HostBuilderContext)services
+                        .AddTransientXnaControl<XNAControl>()
+                        .AddTransientXnaControl<XNAButton>()
+                        .AddTransientXnaControl<XNAClientButton>()
+                        .AddTransientXnaControl<XNAClientCheckBox>()
+                        .AddTransientXnaControl<XNAClientDropDown>()
+                        .AddTransientXnaControl<XNALinkButton>()
+                        .AddTransientXnaControl<XNAExtraPanel>()
+                        .AddTransientXnaControl<XNACheckBox>()
+                        .AddTransientXnaControl<XNADropDown>()
+                        .AddTransientXnaControl<XNALabel>()
+                        .AddTransientXnaControl<XNALinkLabel>()
+                        .AddTransientXnaControl<XNAListBox>()
+                        .AddTransientXnaControl<XNAMultiColumnListBox>()
+                        .AddTransientXnaControl<XNAPanel>()
+                        .AddTransientXnaControl<XNAProgressBar>()
+                        .AddTransientXnaControl<XNASuggestionTextBox>()
+                        .AddTransientXnaControl<XNATextBox>()
+                        .AddTransientXnaControl<XNATrackbar>()
+                        .AddTransientXnaControl<XNAChatTextBox>()
+                        .AddTransientXnaControl<ChatListBox>()
+                        .AddTransientXnaControl<GameLobbyCheckBox>()
+                        .AddTransientXnaControl<GameLobbyDropDown>()
+                        .AddTransientXnaControl<SettingCheckBox>()
+                        .AddTransientXnaControl<SettingDropDown>()
+                        .AddTransientXnaControl<FileSettingCheckBox>()
+                        .AddTransientXnaControl<FileSettingDropDown>();
+                }
+            )
+            .Build();
+
+        return host.Services.GetService<IServiceProvider>();
+    }
+
+    private void InitializeUISettings()
+    {
+        UISettings settings = new()
+        {
+            AltColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIColor),
+            SubtleTextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UIHintTextColor)
+        };
+        settings.ButtonTextColor = settings.AltColor;
+        settings.ButtonHoverColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ButtonHoverColor);
+        settings.TextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UILabelColor);
+        //settings.WindowBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.WindowBorderColor);
+        settings.PanelBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.PanelBorderColor);
+        settings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
+        settings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
+        settings.DisabledItemColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
+
+        settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
+        settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
+        settings.IndicatorAlphaRate = ClientConfiguration.Instance.IndicatorAlphaRate;
+
+        settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
+        settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
+        settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
+        settings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
+
+        XNAPlayerSlotIndicator.LoadTextures();
+
+        UISettings.ActiveSettings = settings;
     }
 
     /// <summary>
-    /// An exception that is thrown when initializing display / graphics mode fails.
+    /// Sets the client's graphics mode.
+    /// TODO move to some helper class?
     /// </summary>
-    class GraphicsModeInitializationException : Exception
+    /// <param name="wm">The window manager</param>
+    public static void SetGraphicsMode(WindowManager wm)
     {
-        public GraphicsModeInitializationException(string message) : base(message)
+        ClientConfiguration clientConfiguration = ClientConfiguration.Instance;
+
+        int windowWidth = UserINISettings.Instance.ClientResolutionX;
+        int windowHeight = UserINISettings.Instance.ClientResolutionY;
+
+        bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+        int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+        if (currentWidth >= windowWidth && currentHeight >= windowHeight)
         {
+            if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
+            {
+                throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("Client:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
+            }
         }
+        else
+        {
+            if (!wm.InitGraphicsMode(1024, 600, false))
+            {
+                throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
+            }
+        }
+
+        int renderResolutionX = 0;
+        int renderResolutionY = 0;
+
+        int initialXRes = Math.Max(windowWidth, clientConfiguration.MinimumRenderWidth);
+        initialXRes = Math.Min(initialXRes, clientConfiguration.MaximumRenderWidth);
+
+        int initialYRes = Math.Max(windowHeight, clientConfiguration.MinimumRenderHeight);
+        initialYRes = Math.Min(initialYRes, clientConfiguration.MaximumRenderHeight);
+
+        double xRatio = windowWidth / (double)initialXRes;
+        double yRatio = windowHeight / (double)initialYRes;
+
+        double ratio = xRatio > yRatio ? yRatio : xRatio;
+
+        if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
+        {
+            renderResolutionX = windowWidth;
+            renderResolutionY = windowHeight;
+        }
+
+        if (ratio > 1.0)
+        {
+            // Check whether we could sharp-scale our client window
+            for (int i = 2; i < 10; i++)
+            {
+                int sharpScaleRenderResX = windowWidth / i;
+                int sharpScaleRenderResY = windowHeight / i;
+
+                if (sharpScaleRenderResX >= clientConfiguration.MinimumRenderWidth &&
+                    sharpScaleRenderResX <= clientConfiguration.MaximumRenderWidth &&
+                    sharpScaleRenderResY >= clientConfiguration.MinimumRenderHeight &&
+                    sharpScaleRenderResY <= clientConfiguration.MaximumRenderHeight)
+                {
+                    renderResolutionX = sharpScaleRenderResX;
+                    renderResolutionY = sharpScaleRenderResY;
+                    break;
+                }
+            }
+        }
+
+        if (renderResolutionX == 0 || renderResolutionY == 0)
+        {
+            renderResolutionX = initialXRes;
+            renderResolutionY = initialYRes;
+
+            if (ratio == xRatio)
+            {
+                renderResolutionY = (int)(windowHeight / ratio);
+            }
+        }
+
+        wm.SetBorderlessMode(borderlessWindowedClient);
+#if !XNA
+
+        if (borderlessWindowedClient)
+        {
+            graphics.IsFullScreen = true;
+            graphics.ApplyChanges();
+        }
+
+#endif
+        wm.CenterOnScreen();
+        wm.SetRenderResolution(renderResolutionX, renderResolutionY);
+    }
+}
+
+/// <summary>
+/// An exception that is thrown when initializing display / graphics mode fails.
+/// </summary>
+internal class GraphicsModeInitializationException : Exception
+{
+    public GraphicsModeInitializationException(string message) : base(message)
+    {
     }
 }

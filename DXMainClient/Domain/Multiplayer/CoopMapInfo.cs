@@ -1,49 +1,51 @@
-﻿using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace DTAClient.Domain.Multiplayer
+using Rampastring.Tools;
+
+namespace DTAClient.Domain.Multiplayer;
+
+public class CoopMapInfo
 {
-    public class CoopMapInfo
+    [JsonInclude]
+    public List<CoopHouseInfo> EnemyHouses = [];
+
+    [JsonInclude]
+    public List<CoopHouseInfo> AllyHouses = [];
+
+    [JsonInclude]
+    public List<int> DisallowedPlayerSides = [];
+
+    [JsonInclude]
+    public List<int> DisallowedPlayerColors = [];
+
+    public void SetHouseInfos(IniSection iniSection)
     {
-        [JsonInclude]
-        public List<CoopHouseInfo> EnemyHouses = new List<CoopHouseInfo>();
+        EnemyHouses = GetGenericHouseInfo(iniSection, "EnemyHouse");
+        AllyHouses = GetGenericHouseInfo(iniSection, "AllyHouse");
+    }
 
-        [JsonInclude]
-        public List<CoopHouseInfo> AllyHouses = new List<CoopHouseInfo>();
+    private List<CoopHouseInfo> GetGenericHouseInfo(IniSection iniSection, string keyName)
+    {
+        List<CoopHouseInfo> houseList = [];
 
-        [JsonInclude]
-        public List<int> DisallowedPlayerSides = new List<int>();
-
-        [JsonInclude]
-        public List<int> DisallowedPlayerColors = new List<int>();
-
-        public void SetHouseInfos(IniSection iniSection)
+        for (int i = 0; ; i++)
         {
-            EnemyHouses = GetGenericHouseInfo(iniSection, "EnemyHouse");
-            AllyHouses = GetGenericHouseInfo(iniSection, "AllyHouse");
-        }
+            string[] houseInfo = iniSection.GetStringValue(keyName + i, string.Empty).Split(
+                new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-        private List<CoopHouseInfo> GetGenericHouseInfo(IniSection iniSection, string keyName)
-        {
-            var houseList = new List<CoopHouseInfo>();
-
-            for (int i = 0; ; i++)
+            if (houseInfo.Length == 0)
             {
-                string[] houseInfo = iniSection.GetStringValue(keyName + i, string.Empty).Split(
-                    new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (houseInfo.Length == 0)
-                    break;
-
-                int[] info = Conversions.IntArrayFromStringArray(houseInfo);
-                var chInfo = new CoopHouseInfo(info[0], info[1], info[2]);
-
-                houseList.Add(new CoopHouseInfo(info[0], info[1], info[2]));
+                break;
             }
 
-            return houseList;
+            int[] info = Conversions.IntArrayFromStringArray(houseInfo);
+            _ = new CoopHouseInfo(info[0], info[1], info[2]);
+
+            houseList.Add(new CoopHouseInfo(info[0], info[1], info[2]));
         }
+
+        return houseList;
     }
 }

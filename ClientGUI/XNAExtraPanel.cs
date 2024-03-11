@@ -1,38 +1,38 @@
 ﻿using Microsoft.Xna.Framework;
-using Rampastring.XNAUI.XNAControls;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
-namespace ClientGUI
+namespace ClientGUI;
+
+/// <summary>
+/// An "extra panel" for modders that automatically
+/// changes its size to match the texture size.
+/// </summary>
+public class XNAExtraPanel : XNAPanel
 {
-    /// <summary>
-    /// An "extra panel" for modders that automatically
-    /// changes its size to match the texture size.
-    /// </summary>
-    public class XNAExtraPanel : XNAPanel
+    public XNAExtraPanel(WindowManager windowManager) : base(windowManager)
     {
-        public XNAExtraPanel(WindowManager windowManager) : base(windowManager)
-        {
-            InputEnabled = false;
-            DrawBorders = false;
-        }
+        InputEnabled = false;
+        DrawBorders = false;
+    }
 
-        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+    protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+    {
+        if (key == "BackgroundTexture")
         {
-            if (key == "BackgroundTexture")
+            BackgroundTexture = AssetLoader.LoadTexture(value);
+
+            if (new Point(Width, Height) == Point.Zero)
             {
-                BackgroundTexture = AssetLoader.LoadTexture(value);
-
-                if (new Point(Width, Height) == Point.Zero)
-                {
-                    ClientRectangle = new Rectangle(X, Y,
-                        BackgroundTexture.Width, BackgroundTexture.Height);
-                }
-
-                return;
+                ClientRectangle = new Rectangle(X, Y,
+                    BackgroundTexture.Width, BackgroundTexture.Height);
             }
 
-            base.ParseControlINIAttribute(iniFile, key, value);
+            return;
         }
+
+        base.ParseControlINIAttribute(iniFile, key, value);
     }
 }

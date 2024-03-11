@@ -1,105 +1,106 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DTAClient.Online
+namespace DTAClient.Online;
+
+/// <summary>
+/// A custom collection that aims to provide quick insertion,
+/// removal and lookup operations while always keeping the list sorted
+/// by combining Dictionary and LinkedList.
+/// </summary>
+public class SortedUserCollection<T> : IUserCollection<T>
 {
-    /// <summary>
-    /// A custom collection that aims to provide quick insertion,
-    /// removal and lookup operations while always keeping the list sorted
-    /// by combining Dictionary and LinkedList.
-    /// </summary>
-    public class SortedUserCollection<T> : IUserCollection<T>
+    public SortedUserCollection(Func<T, T, int> userComparer)
     {
-        public SortedUserCollection(Func<T, T, int> userComparer)
+        dictionary = [];
+        linkedList = new LinkedList<T>();
+        this.userComparer = userComparer;
+    }
+
+    private readonly Dictionary<string, LinkedListNode<T>> dictionary;
+    private readonly LinkedList<T> linkedList;
+
+    private readonly Func<T, T, int> userComparer;
+
+    public int Count => dictionary.Count;
+
+    public void Add(string username, T item)
+    {
+        if (linkedList.Count == 0)
         {
-            dictionary = new Dictionary<string, LinkedListNode<T>>();
-            linkedList = new LinkedList<T>();
-            this.userComparer = userComparer;
+            LinkedListNode<T> node = linkedList.AddFirst(item);
+            dictionary.Add(username.ToLower(), node);
+            return;
         }
 
-        private readonly Dictionary<string, LinkedListNode<T>> dictionary;
-        private readonly LinkedList<T> linkedList;
-
-        private readonly Func<T, T, int> userComparer;
-
-        public int Count => dictionary.Count;
-
-        public void Add(string username, T item)
+        LinkedListNode<T> currentNode = linkedList.First;
+        while (true)
         {
-            if (linkedList.Count == 0)
+            if (userComparer(currentNode.Value, item) > 0)
             {
-                var node = linkedList.AddFirst(item);
+                LinkedListNode<T> node = linkedList.AddBefore(currentNode, item);
                 dictionary.Add(username.ToLower(), node);
-                return;
+                break;
             }
 
-            var currentNode = linkedList.First;
-            while (true)
+            if (currentNode.Next == null)
             {
-                if (userComparer(currentNode.Value, item) > 0)
-                {
-                    var node = linkedList.AddBefore(currentNode, item);
-                    dictionary.Add(username.ToLower(), node);
-                    break;
-                }
-
-                if (currentNode.Next == null)
-                {
-                    var node = linkedList.AddAfter(currentNode, item);
-                    dictionary.Add(username.ToLower(), node);
-                    break;
-                }
-
-                currentNode = currentNode.Next;
-            }
-        }
-
-        public bool Remove(string username)
-        {
-            if (dictionary.TryGetValue(username.ToLower(), out var node))
-            {
-                linkedList.Remove(node);
-                dictionary.Remove(username.ToLower());
-                return true;
+                LinkedListNode<T> node = linkedList.AddAfter(currentNode, item);
+                dictionary.Add(username.ToLower(), node);
+                break;
             }
 
-            return false;
+            currentNode = currentNode.Next;
+        }
+    }
+
+    public bool Remove(string username)
+    {
+        if (dictionary.TryGetValue(username.ToLower(), out LinkedListNode<T> node))
+        {
+            linkedList.Remove(node);
+            _ = dictionary.Remove(username.ToLower());
+            return true;
         }
 
-        public T Find(string username)
-        {
-            if (dictionary.TryGetValue(username.ToLower(), out var node))
-                return node.Value;
+        return false;
+    }
 
-            return default(T);
+    public T Find(string username)
+    {
+        return dictionary.TryGetValue(username.ToLower(), out LinkedListNode<T> node) ? node.Value : default;
+    }
+
+    public void Reinsert(string username)
+    {
+        T existing = Find(username.ToLower());
+        if (existing == null)
+        {
+            return;
         }
 
-        public void Reinsert(string username)
+        _ = Remove(username);
+        Add(username, existing);
+    }
+
+    public void Clear()
+    {
+        linkedList.Clear();
+        dictionary.Clear();
+    }
+
+    public LinkedListNode<T> GetFirst()
+    {
+        return linkedList.First;
+    }
+
+    public void DoForAllUsers(Action<T> action)
+    {
+        LinkedListNode<T> current = linkedList.First;
+        while (current != null)
         {
-            var existing = Find(username.ToLower());
-            if (existing == null)
-                return;
-
-            Remove(username);
-            Add(username, existing);
-        }
-
-        public void Clear()
-        {
-            linkedList.Clear();
-            dictionary.Clear();
-        }
-
-        public LinkedListNode<T> GetFirst() => linkedList.First;
-
-        public void DoForAllUsers(Action<T> action)
-        {
-            var current = linkedList.First;
-            while (current != null)
-            {
-                action(current.Value);
-                current = current.Next;
-            }
+            action(current.Value);
+            current = current.Next;
         }
     }
 }

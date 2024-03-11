@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Net;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet;
+
+/// <summary>
+/// A web client that supports customizing the timeout of the request.
+/// </summary>
+internal class ExtendedWebClient : WebClient
 {
-    /// <summary>
-    /// A web client that supports customizing the timeout of the request.
-    /// </summary>
-    class ExtendedWebClient : WebClient
+    public ExtendedWebClient(int timeout)
     {
-        public ExtendedWebClient(int timeout)
-        {
-            this.timeout = timeout;
-        }
+        this.timeout = timeout;
+    }
 
-        private int timeout;
+    private readonly int timeout;
 
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            WebRequest webRequest = base.GetWebRequest(address);
-            webRequest.Timeout = timeout;
-            return webRequest;
-        }
+    protected override WebRequest GetWebRequest(Uri address)
+    {
+        WebRequest webRequest = base.GetWebRequest(address);
+        webRequest.Timeout = timeout;
+        return webRequest;
     }
 }
