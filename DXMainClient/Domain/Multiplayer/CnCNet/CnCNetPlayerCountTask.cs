@@ -50,10 +50,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                WebClient client = new WebClient();
+                // Don't fetch the player count if it is explicitly disabled
+                // For example, the official CnCNet server might be unavailable/unstable in a country with Internet censorship,
+                // which causes lags in the splash screen. In the worst case, say if packets are dropped, it waits until timeouts --- 30 seconds
+                if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetPlayerCountURL))
+                    return -1;
 
-                Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
+                WebClient client = new WebClient();
+                Stream data = client.OpenRead(ClientConfiguration.Instance.CnCNetPlayerCountURL);
+
                 string info = string.Empty;
 
                 using (StreamReader reader = new StreamReader(data))
