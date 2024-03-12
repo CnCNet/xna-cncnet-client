@@ -99,7 +99,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                Logger.Log($"Saving {path} failed! Error message: " + ex.ToString());
             }
         }
 
@@ -116,7 +116,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                Logger.Log($"Saving {path} failed! Error message: " + ex.ToString());
             }
         }
 

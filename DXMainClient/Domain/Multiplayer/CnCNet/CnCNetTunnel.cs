@@ -61,7 +61,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 if (ex is FormatException || ex is OverflowException || ex is IndexOutOfRangeException)
                 {
-                    Logger.Log("Parsing tunnel information failed: " + ex.Message + Environment.NewLine + "Parsed string: " + str);
+                    Logger.Log("Parsing tunnel information failed: " + ex.ToString() + Environment.NewLine + "Parsed string: " + str);
                     return null;
                 }
 
@@ -119,7 +119,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("Unable to connect to the specified tunnel server. Returned error message: " + ex.Message);
+                Logger.Log("Unable to connect to the specified tunnel server. Returned error message: " + ex.ToString());
             }
 
             return new List<int>();
@@ -137,7 +137,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (PingException ex)
                 {
-                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.Message}");
+                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.ToString()}");
                 }
             }
         }

@@ -107,7 +107,7 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Error reading statistics: " + ex.Message);
+                Logger.Log("Error reading statistics: " + ex.ToString());
             }
 
             return returnValue;
@@ -259,7 +259,7 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Reading the statistics file failed! Message: " + ex.Message);
+                Logger.Log("Reading the statistics file failed! Message: " + ex.ToString());
             }
         }
 

@@ -428,7 +428,7 @@ namespace DTAClient.Domain.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
+                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.ToString());
                 PreStartup.LogException(ex);
                 return false;
             }
@@ -455,9 +455,9 @@ namespace DTAClient.Domain.Multiplayer
                         TeamStartMappings = TeamStartMapping.FromListString(teamStartMappingPreset)
                     });
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {ex.Message}");
                     TeamStartMappingPresets = new List<TeamStartMappingPreset>();
                 }
             }

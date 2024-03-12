@@ -138,7 +138,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to load the translation file. " + ex.Message);
+                Logger.Log("Failed to load the translation file. " + ex.ToString());
                 Translation.Instance = new Translation(UserINISettings.Instance.Translation);
             }
 
@@ -169,7 +169,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to generate the translation stub: " + ex.Message);
+                Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
             // Delete obsolete files from old target project versions
@@ -185,10 +185,9 @@ namespace DTAClient
             {
                 LogException(ex);
 
-                string error = "Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again."
-                    + Environment.NewLine + Environment.NewLine +
-                    "Message: " + ex.Message;
+                string error = ("Deleting wsock32.dll failed! Please close any " +
+                    "applications that could be using the file, and then start the client again." + "\n\n" +
+                    "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
 
                 ProgramConstants.DisplayErrorAction(null, error, true);
             }

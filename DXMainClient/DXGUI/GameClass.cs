@@ -88,6 +88,7 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
+                // TODO Get English exception message
                 if (ex.Message.Contains("DeviceRemoved"))
                 {
                     Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
