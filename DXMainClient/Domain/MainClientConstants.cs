@@ -1,4 +1,11 @@
-﻿using ClientCore;
+﻿using System;
+using System.IO;
+
+#if WINFORMS
+using System.Windows.Forms;
+#endif
+using ClientCore;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain
 {
@@ -20,8 +27,54 @@ namespace DTAClient.Domain
 
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
+        private static Action<string, string, bool> displayErrorAction = null;
+        /// <summary>
+        /// Gets or sets the action to perform to notify the user of an error.
+        /// </summary>
+        public static Action<string, string, bool> DisplayErrorAction
+        {
+            get => displayErrorAction ??= InitialDisplayErrorAction;
+            set => displayErrorAction = value;
+        }
+
+        public static Action<string, string, bool> InitialDisplayErrorAction = (title, error, exit) =>
+        {
+            Console.WriteLine(title);
+            Console.WriteLine();
+            Console.WriteLine(error);
+#if WINFORMS
+            MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+#else
+            string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.txt");
+            using (StreamWriter writer = new StreamWriter(tempfile))
+            {
+                writer.WriteLine(title);
+                writer.WriteLine();
+                writer.WriteLine(error);
+            }
+            ProcessLauncher.StartShellProcess(tempfile);
+#endif
+            if (exit)
+                Environment.Exit(1);
+        };
+
+        public static Action<string, string, bool> DefaultDisplayErrorAction = (title, error, exit) =>
+        {
+            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+#if WINFORMS
+            MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+#else
+            ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+#endif
+
+            if (exit)
+                Environment.Exit(1);
+        };
+
         public static void Initialize()
         {
+            DisplayErrorAction = DefaultDisplayErrorAction;
+
             var clientConfiguration = ClientConfiguration.Instance;
 
             OSId = clientConfiguration.GetOperatingSystemVersion();

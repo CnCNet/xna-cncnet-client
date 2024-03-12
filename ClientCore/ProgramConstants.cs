@@ -4,9 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-#if WINFORMS
-using System.Windows.Forms;
-#endif
 using Rampastring.Tools;
 using ClientCore.Extensions;
 
@@ -117,33 +114,6 @@ namespace ClientCore
         public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("Client:Main:EasyAIName"), "Medium AI".L10N("Client:Main:MediumAIName"), "Hard AI".L10N("Client:Main:HardAIName") };
 
         public static string LogFileName { get; set; }
-
-        private static Action<string, string, bool> displayErrorAction = null;
-        /// <summary>
-        /// Gets or sets the action to perform to notify the user of an error.
-        /// </summary>
-        public static Action<string, string, bool> DisplayErrorAction
-        {
-            get => displayErrorAction ??= DefaultDisplayErrorAction;
-            set => displayErrorAction = value;
-        }
-
-        public static Action<string, string, bool> DefaultDisplayErrorAction = (title, error, exit) =>
-        {
-            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
-#if WINFORMS
-#if NETFRAMEWORK
-            MessageBox.Show(error, title, MessageBoxButtons.OK);
-#else
-            TaskDialog.ShowDialog(new() { Caption = title, Heading = error });
-#endif
-#else
-            ProcessLauncher.StartShellProcess(LogFileName);
-#endif
-
-            if (exit)
-                Environment.Exit(1);
-        };
 
         /// <summary>
         /// This method finds the "Resources" directory by traversing the directory tree upwards from the startup path.
