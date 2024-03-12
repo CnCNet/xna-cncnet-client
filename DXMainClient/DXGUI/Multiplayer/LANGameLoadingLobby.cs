@@ -167,7 +167,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Listener error: " + ex.Message);
+                    Logger.Log("Listener error: " + ex.ToString());
                     break;
                 }
 
@@ -197,7 +197,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Socket error with client " + lpInfo.IPAddress + "; removing. Message: " + ex.Message);
+                    Logger.Log("Socket error with client " + lpInfo.IPAddress + "; removing. Message: " + ex.ToString());
                     break;
                 }
 
@@ -328,7 +328,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.Message);
+                    Logger.Log("Reading data from the server failed! Message: " + ex.ToString());
                     LeaveGame();
                     break;
                 }

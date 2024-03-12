@@ -353,7 +353,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (SocketException ex)
             {
-                Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
+                Logger.Log("Creating LAN socket failed! Message: " + ex.ToString());
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message:".L10N("Client:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
@@ -405,7 +405,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("LAN socket listener: exception: " + ex.Message);
+                Logger.Log("LAN socket listener: exception: " + ex.ToString());
             }
         }
 

@@ -108,7 +108,7 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("Exception when deleting error log files! Message: " + ex.Message);
+                Logger.Log("Exception when deleting error log files! Message: " + ex.ToString());
                 deletingLogFilesFailed = true;
             }
 #endif
@@ -246,7 +246,7 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while checking for " + filename + " file. Message: " + ex.Message);
+                Logger.Log("An error occured while checking for " + filename + " file. Message: " + ex.ToString());
             }
             return copied;
         }
@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while checking for SYNCX.TXT files. Message: " + ex.Message);
+                Logger.Log("An error occured while checking for SYNCX.TXT files. Message: " + ex.ToString());
             }
             return copied;
         }
@@ -360,7 +360,7 @@ namespace DTAClient.DXGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: An error occured trying to create Screenshots directory. Message: " + ex.Message);
+                    Logger.Log("ProcessScreenshots: An error occured trying to create Screenshots directory. Message: " + ex.ToString());
                     return;
                 }
             }
@@ -378,7 +378,7 @@ namespace DTAClient.DXGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(file.FullName) + ".png. Message: " + ex.Message);
+                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(file.FullName) + ".png. Message: " + ex.ToString());
                     continue;
                 }
 
