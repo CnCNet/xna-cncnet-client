@@ -134,9 +134,9 @@ namespace DTAClient.Domain.Multiplayer
                 errorMessage = null;
                 return dataDest;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered decompressing preview data. Message: " + e.Message;
+                errorMessage = "Error encountered decompressing preview data. Message: " + ex.Message;
                 return null;
             }
         }
@@ -213,9 +213,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 return image;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered creating preview bitmap. Message: " + e.Message;
+                errorMessage = "Error encountered creating preview bitmap. Message: " + ex.Message;
                 return null;
             }
         }

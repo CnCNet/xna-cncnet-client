@@ -207,7 +207,7 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Unable to connect to the server. " + ex.Message);
+                    Logger.Log("Unable to connect to the server. " + ex.ToString());
                 }
             }
 
@@ -252,7 +252,7 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.ToString());
                     errorTimes++;
 
                     if (errorTimes > MAX_RECONNECT_COUNT)
@@ -349,7 +349,7 @@ namespace DTAClient.Online
                     }
                     catch (SocketException ex)
                     {
-                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.Message}");
+                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.ToString()}");
                     }
 
                     return _serverInfos;
@@ -441,7 +441,7 @@ namespace DTAClient.Online
                         }
                         catch (PingException ex)
                         {
-                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.Message}");
+                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.ToString()}");
 
                             return new Tuple<Server, long>(server, long.MaxValue);
                         }
@@ -968,7 +968,7 @@ namespace DTAClient.Online
                 }
                 catch (IOException ex)
                 {
-                    Logger.Log("Sending message to the server failed! Reason: " + ex.Message);
+                    Logger.Log("Sending message to the server failed! Reason: " + ex.ToString());
                 }
             }
         }

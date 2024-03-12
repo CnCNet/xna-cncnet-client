@@ -150,7 +150,7 @@ namespace ClientCore.Statistics.GameParsers
             }
             catch (Exception ex)
             {
-                Logger.Log("DTAStatisticsParser: Error parsing statistics from match! Message: " + ex.Message);
+                Logger.Log("DTAStatisticsParser: Error parsing statistics from match! Message: " + ex.ToString());
             }
         }
     }

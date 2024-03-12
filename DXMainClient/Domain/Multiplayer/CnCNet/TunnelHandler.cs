@@ -165,7 +165,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("Error when downloading tunnel server info: " + ex.Message);
+                Logger.Log("Error when downloading tunnel server info: " + ex.ToString());
                 Logger.Log("Retrying.");
                 try
                 {
@@ -210,7 +210,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.Message);
+                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.ToString());
                 }
             }
 
@@ -230,7 +230,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
+                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.ToString());
                 }
             }
 

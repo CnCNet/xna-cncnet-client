@@ -377,7 +377,7 @@ namespace DTAClient.DXGUI.Generic
             }
             catch (Exception ex)
             {
-                Logger.Log("Refreshing settings failed! Exception message: " + ex.Message);
+                Logger.Log("Refreshing settings failed! Exception message: " + ex.ToString());
                 // We don't want to show the dialog when starting a game
                 //XNAMessageBox.Show(WindowManager, "Saving settings failed",
                 //    "Saving settings failed! Error message: " + ex.Message);
@@ -941,7 +941,7 @@ namespace DTAClient.DXGUI.Generic
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Logger.Log("Playing main menu music failed! " + ex.Message);
+                    Logger.Log("Playing main menu music failed! " + ex.ToString());
                 }
             }
         }
@@ -1036,7 +1036,7 @@ namespace DTAClient.DXGUI.Generic
             }
             catch (Exception ex)
             {
-                Logger.Log("Turning music off failed! Message: " + ex.Message);
+                Logger.Log("Turning music off failed! Message: " + ex.ToString());
             }
         }
 
@@ -1052,9 +1052,9 @@ namespace DTAClient.DXGUI.Generic
                 MediaState state = MediaPlayer.State;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.Log("Error encountered when checking media player availability. Error message: " + e.Message);
+                Logger.Log("Error encountered when checking media player availability. Error message: " + ex.ToString());
                 return false;
             }
         }

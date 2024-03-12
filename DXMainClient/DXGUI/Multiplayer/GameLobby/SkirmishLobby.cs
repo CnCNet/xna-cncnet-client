@@ -296,7 +296,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                Logger.Log("Saving skirmish settings failed! Reason: " + ex.Message);
+                Logger.Log("Saving skirmish settings failed! Reason: " + ex.ToString());
             }
         }
 

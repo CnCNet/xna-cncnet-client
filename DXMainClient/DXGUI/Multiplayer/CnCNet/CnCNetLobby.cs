@@ -1554,7 +1554,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("Game parsing error: " + ex.Message);
+                Logger.Log("Game parsing error: " + ex.ToString());
             }
         }
 

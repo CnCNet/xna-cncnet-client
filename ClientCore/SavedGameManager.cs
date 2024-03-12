@@ -83,7 +83,7 @@ namespace ClientCore
             }
             catch (Exception ex)
             {
-                Logger.Log("Writing spawn.ini for saved game failed! Exception message: " + ex.Message);
+                Logger.Log("Writing spawn.ini for saved game failed! Exception message: " + ex.ToString());
                 return false;
             }
 
@@ -140,7 +140,7 @@ namespace ClientCore
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Renaming saved game failed! Exception message: " + ex.Message);
+                    Logger.Log("Renaming saved game failed! Exception message: " + ex.ToString());
                 }
 
                 tryCount++;
@@ -172,7 +172,7 @@ namespace ClientCore
             }
             catch (Exception ex)
             {
-                Logger.Log("Erasing previous MP saved games failed! Exception message: " + ex.Message);
+                Logger.Log("Erasing previous MP saved games failed! Exception message: " + ex.ToString());
                 return false;
             }
 

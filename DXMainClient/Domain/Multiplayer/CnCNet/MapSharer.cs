@@ -326,7 +326,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("MapSharer: ERROR " + ex.Message);
+                Logger.Log("MapSharer: ERROR " + ex.ToString());
             }
 
             string mapPath = DownloadMain(sha1, myGameId, mapName, out success);
