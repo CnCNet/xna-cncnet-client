@@ -118,10 +118,15 @@ namespace ClientCore
 
         public static string LogFileName { get; set; }
 
+        private static Action<string, string, bool> displayErrorAction = null;
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
         /// </summary>
-        public static Action<string, string, bool> DisplayErrorAction { get; set; } = DefaultDisplayErrorAction;
+        public static Action<string, string, bool> DisplayErrorAction
+        {
+            get => displayErrorAction ??= DefaultDisplayErrorAction;
+            set => displayErrorAction = value;
+        }
 
         public static Action<string, string, bool> DefaultDisplayErrorAction = (title, error, exit) =>
         {
