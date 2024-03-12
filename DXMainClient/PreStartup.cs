@@ -64,12 +64,12 @@ namespace DTAClient
 
             Environment.CurrentDirectory = gameDirectory.FullName;
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
+
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
             ProgramConstants.LogFileName = clientLogFile.FullName;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CheckPermissions();
 
             if (clientLogFile.Exists)
             {
@@ -190,19 +190,8 @@ namespace DTAClient
                     + Environment.NewLine + Environment.NewLine +
                     "Message: " + ex.Message;
 
-                ProgramConstants.DisplayErrorAction(null, error, true);
+                MainClientConstants.DisplayErrorAction(null, error, true);
             }
-
-#if WINFORMS
-#if NET6_0_OR_GREATER
-            // .NET 6.0 brings a source generator ApplicationConfiguration which is not available in previous .NET versions
-            // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
-            ApplicationConfiguration.Initialize();
-#else
-            global::System.Windows.Forms.Application.EnableVisualStyles();
-            global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-#endif
-#endif
 
             Startup startup = new();
 #if DEBUG
@@ -214,9 +203,9 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                // ProgramConstants.DisplayErrorAction might have been overriden by XNA messagebox, which might be unable to display an error message.
+                // MainClientConstants.DisplayErrorAction might have been overriden by XNA messagebox, which might be unable to display an error message.
                 // Fallback to MessageBox.
-                ProgramConstants.DisplayErrorAction = ProgramConstants.DefaultDisplayErrorAction;
+                MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
                 HandleException(startup, ex);
             }
 #endif
@@ -269,7 +258,7 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
+            MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
         [SupportedOSPlatform("windows")]
@@ -279,19 +268,28 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
-                "Would you like to restart the client with administrative rights?\n\n" +
-                "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
+                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.").L10N("Client:Main:AdminRequiredText1"),
+                MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("Client:Main:AdminRequiredTitle"), error, false);
+            string question = string.Format(("Would you like to restart the client with administrative rights?\n\n" +
+                "Please also make sure that your security software isn't blocking {0}.").L10N("Client:Main:AdminRequiredText2"), MainClientConstants.GAME_NAME_SHORT);
 
-            using var _ = Process.Start(new ProcessStartInfo
+            string title = "Administrative privileges required".L10N("Client:Main:AdminRequiredTitle");
+
+#if WINFORMS && NETFRAMEWORK
+            DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (result == DialogResult.Yes)
             {
-                FileName = "dotnet",
-                Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                Verb = "runas",
-                CreateNoWindow = true
-            });
+                using var _ = Process.Start(new ProcessStartInfo
+                {
+                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
+                    Verb = "runas",
+                    UseShellExecute = true,
+                });
+            }
+#else
+            MainClientConstants.DisplayErrorAction(title, error, true);
+#endif
             Environment.Exit(1);
         }
 

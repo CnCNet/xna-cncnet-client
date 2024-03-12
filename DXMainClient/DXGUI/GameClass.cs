@@ -131,7 +131,7 @@ namespace DTAClient.DXGUI
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
-            ProgramConstants.DisplayErrorAction = (title, error, exit) =>
+            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {
                 new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
                 {
