@@ -277,6 +277,8 @@ namespace ClientCore
         private List<TranslationGameFile> ParseTranslationGameFiles()
         {
             List<TranslationGameFile> gameFiles = new();
+            if (!clientDefinitionsIni.SectionExists(TRANSLATIONS))
+                return gameFiles;
 
             foreach (string key in clientDefinitionsIni.GetSectionKeys(TRANSLATIONS))
             {
