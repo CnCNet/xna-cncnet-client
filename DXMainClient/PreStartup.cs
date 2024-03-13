@@ -18,6 +18,7 @@ using System.Runtime.Versioning;
 using ClientCore.I18N;
 using System.Globalization;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -171,6 +172,9 @@ namespace DTAClient
             {
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
+
+            // Delete custom mission files
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             // Delete obsolete files from old target project versions
 

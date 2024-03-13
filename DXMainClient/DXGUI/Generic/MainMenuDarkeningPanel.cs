@@ -26,8 +26,6 @@ namespace DTAClient.DXGUI.Generic
         private DiscordHandler discordHandler;
         private MapLoader mapLoader;
 
-        public CampaignSelector CampaignSelector;
-        public GameLoadingWindow GameLoadingWindow;
         public StatisticsWindow StatisticsWindow;
         public UpdateQueryWindow UpdateQueryWindow;
         public ManualUpdateQueryWindow ManualUpdateQueryWindow;
@@ -43,12 +41,6 @@ namespace DTAClient.DXGUI.Generic
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             Alpha = 1.0f;
-
-            CampaignSelector = new CampaignSelector(WindowManager, discordHandler);
-            AddChild(CampaignSelector);
-
-            GameLoadingWindow = new GameLoadingWindow(WindowManager, discordHandler);
-            AddChild(GameLoadingWindow);
 
             StatisticsWindow = new StatisticsWindow(WindowManager, mapLoader);
             AddChild(StatisticsWindow);
