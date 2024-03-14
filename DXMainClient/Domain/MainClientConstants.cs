@@ -28,7 +28,8 @@ namespace DTAClient.Domain
 
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
-        public static bool LoggerInitialized = false;
+        // TODO: remove this variable after `Logger.Initialized` property is implemented by upstream
+        public static bool LoggerInitialized { get; set; } = false;
 
         private static Action<string, string, bool> displayErrorAction = null;
         /// <summary>
