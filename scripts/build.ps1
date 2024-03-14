@@ -5,7 +5,7 @@
 .SYNOPSIS
   Build Project.
 .DESCRIPTION
-  You can used this script to make publish packages for your game.
+  You can use this script to make publish packages for your game.
 .PARAMETER Games
   What game would you want to build.
   Build all games by default.
