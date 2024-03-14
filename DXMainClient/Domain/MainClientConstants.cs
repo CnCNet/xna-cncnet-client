@@ -53,7 +53,9 @@ namespace DTAClient.Domain
             Console.WriteLine();
             Console.WriteLine(error);
 
-            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+            if (LoggerInitialized)
+                Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
 #if WINFORMS
             MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
 #else
