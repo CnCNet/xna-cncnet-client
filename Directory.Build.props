@@ -58,11 +58,11 @@
     <DefineConstants Condition="$(Configuration.Contains(Debug))">$(DefineConstants);DEBUG</DefineConstants>
 
     <!-- Engines -->
-    <DefineConstants Condition="'$(Engine)' == 'WindowsDX'">$(DefineConstants);DX;WINFORMS;ISWINDOWS</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'WindowsGL'">$(DefineConstants);GL;WINFORMS;ISWINDOWS</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'UniversalGL'">$(DefineConstants);GL</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">$(DefineConstants);ISWINDOWS</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'WindowsXNA'">$(DefineConstants);XNA;WINFORMS;ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('DX'))">$(DefineConstants);DX</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('GL'))">$(DefineConstants);GL</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('XNA'))">$(DefineConstants);XNA</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('Windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(UseWindowsForms)' == 'true'">$(DefineConstants);WINFORMS</DefineConstants>
 
     <!-- Games-->
     <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>
