@@ -41,8 +41,8 @@
 
   <!-- Note: the folder structure should be consistent with ./build.ps1 file -->
   <Target Name="MoveCommonBinaries">
-    <!-- Note: in order to update this file list, first removing all files in this secion. -->
-    <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
+    <!-- Note: in order to update this file list, first remove all files in this section. -->
+    <!-- Then, compile the whole project, and determine whether each dll file is consistent by comparing file hashes.  -->
     <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
     <PropertyGroup>
       <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
