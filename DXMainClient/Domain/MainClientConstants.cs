@@ -61,7 +61,7 @@ namespace DTAClient.Domain
                 ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
             else
             {
-                string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.txt");
+                string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.log");
                 using (StreamWriter writer = new StreamWriter(tempfile))
                 {
                     writer.WriteLine(title);
