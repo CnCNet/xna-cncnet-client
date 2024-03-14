@@ -57,6 +57,19 @@ namespace DTAClient
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;
 
+        static void InitializeApplicationConfiguration() {
+#if WINFORMS
+#if NET6_0_OR_GREATER
+            // .NET 6.0 brings a source generator ApplicationConfiguration which is not available in previous .NET versions
+            // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
+            ApplicationConfiguration.Initialize();
+#else
+            System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+#endif
+#endif
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -65,6 +78,8 @@ namespace DTAClient
 #endif
         static void Main(string[] args)
         {
+            InitializeApplicationConfiguration();
+
             bool noAudio = false;
             bool multipleInstanceMode = false;
             List<string> unknownStartupParams = new List<string>();

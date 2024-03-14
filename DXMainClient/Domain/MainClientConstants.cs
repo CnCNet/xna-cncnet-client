@@ -1,4 +1,12 @@
-﻿using ClientCore;
+﻿using System;
+using System.IO;
+
+#if WINFORMS
+using System.Windows.Forms;
+#endif
+using ClientCore;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain
 {
@@ -19,6 +27,57 @@ namespace DTAClient.Domain
         public static int MAP_CELL_SIZE_Y = 24;
 
         public static OSVersion OSId = OSVersion.UNKNOWN;
+
+        // TODO: remove this variable after `Logger.Initialized` property is implemented by upstream
+        public static bool LoggerInitialized { get; set; } = false;
+
+        private static Action<string, string, bool> displayErrorAction = null;
+        /// <summary>
+        /// Gets or sets the action to perform to notify the user of an error.
+        /// </summary>
+        public static Action<string, string, bool> DisplayErrorAction
+        {
+            get => displayErrorAction ??= DefaultDisplayErrorAction;
+            set => displayErrorAction = value;
+        }
+
+        /// <summary>
+        /// Show an error in console as well as a Win32 MessageBox. For non-Windows platforms, this launches a text file in a GUI editor.
+        /// This action handles errors when XNA windows are not initialized yet.
+        /// </summary>
+        /// <param name="title">The title.</param>
+        /// <param name="error">The error.</param>
+        /// <param name="exit">Whether the client exits.</param>
+        public static void DefaultDisplayErrorAction(string title, string error, bool exit)
+        {
+            Console.WriteLine(title);
+            Console.WriteLine();
+            Console.WriteLine(error);
+
+            if (LoggerInitialized)
+                Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
+#if WINFORMS
+            MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+#else
+            if (LoggerInitialized)
+                ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+            else
+            {
+                string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.log");
+                using (StreamWriter writer = new StreamWriter(tempfile))
+                {
+                    writer.WriteLine(title);
+                    writer.WriteLine();
+                    writer.WriteLine(error);
+                }
+                ProcessLauncher.StartShellProcess(tempfile);
+            }
+#endif
+
+            if (exit)
+                Environment.Exit(1);
+        }
 
         public static void Initialize()
         {
