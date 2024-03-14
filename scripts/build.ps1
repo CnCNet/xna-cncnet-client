@@ -8,7 +8,7 @@
   You can use this script to make publish packages for your game.
 .PARAMETER Games
   What game(s) to build the client for?
-  Build all games by default.
+  If not specified - builds the client for all games.
 .PARAMETER IsDebug
   Build projects in debug mode.
 .PARAMETER Log
