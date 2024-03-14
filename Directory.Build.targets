@@ -39,11 +39,10 @@
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
-  <!-- Note: the folder structure should be consistent with ./build.ps1 file -->
+  <!-- IMPORTANT: You SHOULD NOT modify the logic here if you don't have to. -->
+  <!-- The list of common assemblies has been moved to the `CommonAssemblies.txt` and `CommonAssembliesNetFx.txt` files. -->
+  <!-- And you SHOULD NOT attempt to manually modify these two files at any time! -->
   <Target Name="MoveCommonBinaries">
-    <!-- Note: in order to update this file list, first remove all files in this section. -->
-    <!-- Then, compile the whole project, and determine whether each dll file is consistent by comparing file hashes.  -->
-    <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
     <PropertyGroup>
       <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
       <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssembliesNetFx.txt</_CommonAssembliesFilePath>
@@ -56,7 +55,7 @@
     <Delete Files="$(PublishDir)%(_CommonFiles.Identity)" Condition="Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
   </Target>
 
-  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
+  <!-- Note: the folder structure should be consistent with scripts\build.ps1 file -->
   <Target Name="MoveClientExes" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving client executables" />
     <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')" />

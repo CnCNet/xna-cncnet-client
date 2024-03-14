@@ -1,6 +1,14 @@
 #!/usr/bin/env pwsh
 #Requires -Version 7.2
 
+#####################################################################
+#
+# Note: 
+#    Be careful to synchronize changes to `Directory.Build.targets`
+#    when making changes to paths.
+#
+#####################################################################
+
 <#
 .SYNOPSIS
   Builds XNA CnCNet Client using specified parameters.
@@ -69,7 +77,7 @@ if (!$NoClean -AND (Test-Path $Script:CompiledRoot)) {
   Remove-Item -Recurse -Force -LiteralPath $Script:CompiledRoot
 }
 
-if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition ) {
+if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) {
   $Script:IsWindows = $true
 }
 
