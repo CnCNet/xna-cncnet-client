@@ -47,24 +47,9 @@ namespace DTAClient.Online
                     serversList = ClientConfiguration.Instance.IRCServers;
                 else
                 {
-                    // fallback to the hardcoded server list
+                    // fallback to the hardcoded servers list
                     serversList = [
-                        "Burstfire.UK.EU.GameSurge.net|GameSurge London, UK|6667,6668,7000",
-                        "ColoCrossing.IL.US.GameSurge.net|GameSurge Chicago, IL|6660,6666,6667,6668,6669",
-                        "Gameservers.NJ.US.GameSurge.net|GameSurge Newark, NJ|6665,6666,6667,6668,6669,7000,8080",
-                        "Krypt.CA.US.GameSurge.net|GameSurge Santa Ana, CA|6666,6667,6668,6669",
-                        "NuclearFallout.WA.US.GameSurge.net|GameSurge Seattle, WA|6667,5960",
-                        "Portlane.SE.EU.GameSurge.net|GameSurge Stockholm, Sweden|6660,6666,6667,6668,6669",
-                        "Prothid.NY.US.GameSurge.Net|GameSurge NYC, NY|5960,6660,6666,6667,6668,6669,6697",
-                        "TAL.DE.EU.GameSurge.net|GameSurge Wuppertal, Germany|6660,6666,6667,6668,6669",
-                        "208.167.237.120|GameSurge IP 208.167.237.120|6660,6666,6667,6668,6669,7000,8080",
-                        "192.223.27.109|GameSurge IP 192.223.27.109|6660,6666,6667,6668,6669,7000,8080",
-                        "108.174.48.100|GameSurge IP 108.174.48.100|6660,6666,6667,6668,6669,7000,8080",
-                        "208.146.35.105|GameSurge IP 208.146.35.105|6660,6666,6667,6668,6669,7000,8080",
-                        "195.8.250.180|GameSurge IP 195.8.250.180|6660,6666,6667,6668,6669,7000,8080",
-                        "91.217.189.76|GameSurge IP 91.217.189.76|6660,6666,6667,6668,6669,7000,8080",
-                        "195.68.206.250|GameSurge IP 195.68.206.250|6660,6666,6667,6668,6669,7000,8080",
-                        "irc.gamesurge.net|GameSurge|6667",
+                        "irc.gamesurge.net|GameSurge|6667,6660,6666,6668,6669",
                     ];
                 }
 
