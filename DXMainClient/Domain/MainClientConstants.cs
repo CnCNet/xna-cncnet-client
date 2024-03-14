@@ -37,7 +37,14 @@ namespace DTAClient.Domain
             set => displayErrorAction = value;
         }
 
-        public static Action<string, string, bool> InitialDisplayErrorAction = (title, error, exit) =>
+        /// <summary>
+        /// Show an error in console as well as Win32 MessageBox. For non-Windows platforms, this creates and opens a temporary text file containing the error message in a GUI editor.
+        /// This action handles errors before the logger is initialized.
+        /// </summary>
+        /// <param name="title">The title.</param>
+        /// <param name="error">The error.</param>
+        /// <param name="exit">Whether the client exits.</param>
+        public static void InitialDisplayErrorAction(string title, string error, bool exit)
         {
             Console.WriteLine(title);
             Console.WriteLine();
@@ -56,9 +63,16 @@ namespace DTAClient.Domain
 #endif
             if (exit)
                 Environment.Exit(1);
-        };
+        }
 
-        public static Action<string, string, bool> DefaultDisplayErrorAction = (title, error, exit) =>
+        /// <summary>
+        /// Show an error in Win32 MessageBox. For non-Windows platforms, this launches the log file in a GUI editor.
+        /// This action handles errors after the logger is available, but XNA windows are not initialized yet.
+        /// </summary>
+        /// <param name="title">The title.</param>
+        /// <param name="error">The error.</param>
+        /// <param name="exit">Whether the client exits.</param>
+        public static void DefaultDisplayErrorAction(string title, string error, bool exit)
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 #if WINFORMS
@@ -69,7 +83,7 @@ namespace DTAClient.Domain
 
             if (exit)
                 Environment.Exit(1);
-        };
+        }
 
         public static void Initialize()
         {
