@@ -269,7 +269,7 @@ namespace DTAClient
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
-                "Please also make sure that your security software isn't blocking {0}.").L10N("Client:Main:AdminRequiredExplanation"),
+                "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
             string question = "Would you like to restart the client with administrative rights?".L10N("Client:Main:AdminRequiredRestartPrompt");
