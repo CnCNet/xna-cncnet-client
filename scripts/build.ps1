@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-  Build Project.
+  Builds XNA CnCNet Client using specified parameters.
 .DESCRIPTION
   You can use this script to make publish packages for your game.
 .PARAMETER Games
