@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 #endif
 using ClientCore;
+
 using Rampastring.Tools;
 
 namespace DTAClient.Domain
@@ -27,58 +28,48 @@ namespace DTAClient.Domain
 
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
+        public static bool LoggerInitialized = false;
+
         private static Action<string, string, bool> displayErrorAction = null;
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
         /// </summary>
         public static Action<string, string, bool> DisplayErrorAction
         {
-            get => displayErrorAction ??= InitialDisplayErrorAction;
+            get => displayErrorAction ??= DefaultDisplayErrorAction;
             set => displayErrorAction = value;
         }
 
         /// <summary>
-        /// Show an error in console as well as Win32 MessageBox. For non-Windows platforms, this creates and opens a temporary text file containing the error message in a GUI editor.
-        /// This action handles errors before the logger is initialized.
-        /// </summary>
-        /// <param name="title">The title.</param>
-        /// <param name="error">The error.</param>
-        /// <param name="exit">Whether the client exits.</param>
-        public static void InitialDisplayErrorAction(string title, string error, bool exit)
-        {
-            Console.WriteLine(title);
-            Console.WriteLine();
-            Console.WriteLine(error);
-#if WINFORMS
-            MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
-#else
-            string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.txt");
-            using (StreamWriter writer = new StreamWriter(tempfile))
-            {
-                writer.WriteLine(title);
-                writer.WriteLine();
-                writer.WriteLine(error);
-            }
-            ProcessLauncher.StartShellProcess(tempfile);
-#endif
-            if (exit)
-                Environment.Exit(1);
-        }
-
-        /// <summary>
-        /// Show an error in Win32 MessageBox. For non-Windows platforms, this launches the log file in a GUI editor.
-        /// This action handles errors after the logger is available, but XNA windows are not initialized yet.
+        /// Show an error in console as well as a Win32 MessageBox. For non-Windows platforms, this launches a text file in a GUI editor.
+        /// This action handles errors when XNA windows are not initialized yet.
         /// </summary>
         /// <param name="title">The title.</param>
         /// <param name="error">The error.</param>
         /// <param name="exit">Whether the client exits.</param>
         public static void DefaultDisplayErrorAction(string title, string error, bool exit)
         {
+            Console.WriteLine(title);
+            Console.WriteLine();
+            Console.WriteLine(error);
+
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 #if WINFORMS
             MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
 #else
-            ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+            if (LoggerInitialized)
+                ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+            else
+            {
+                string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.txt");
+                using (StreamWriter writer = new StreamWriter(tempfile))
+                {
+                    writer.WriteLine(title);
+                    writer.WriteLine();
+                    writer.WriteLine(error);
+                }
+                ProcessLauncher.StartShellProcess(tempfile);
+            }
 #endif
 
             if (exit)
@@ -87,8 +78,6 @@ namespace DTAClient.Domain
 
         public static void Initialize()
         {
-            DisplayErrorAction = DefaultDisplayErrorAction;
-
             var clientConfiguration = ClientConfiguration.Instance;
 
             OSId = clientConfiguration.GetOperatingSystemVersion();

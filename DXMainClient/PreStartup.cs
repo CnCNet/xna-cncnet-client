@@ -82,6 +82,7 @@ namespace DTAClient
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
+            MainClientConstants.LoggerInitialized = true;
 
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
