@@ -6,16 +6,7 @@
     <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
-    <Title>CnCNet Client</Title>
     <Description>CnCNet Main Client Library</Description>
-    <Company>CnCNet</Company>
-    <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
-    <Trademark>CnCNet</Trademark>
-    <Version>2.8.0.0</Version>
-    <FileVersion>2.8.0.0</FileVersion>
-    <InformationalVersion>2.8.0.0</InformationalVersion>
-    <AssemblyName>DXMainClient</AssemblyName>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
     <ApplicationHighDpiMode Condition="'$(Engine)' != 'UniversalGL'">PerMonitorV2</ApplicationHighDpiMode>
@@ -39,22 +30,10 @@
     <PackageReference Include="lzo.net" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenMcdf" />
-    <PackageReference Include="System.IO.Compression" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
   </ItemGroup>
   <ItemGroup>
-    <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
-    <!-- This error is only raised when both .NET 4 and .NET 8 exists in TargetFrameworks: -->
-    <!-- <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> -->
-    <!-- and -p:Engine=WindowsDX -f net48 -->
-    <PackageReference Include="NETStandard.Library" />
-    <PackageReference Include="System.IO.FileSystem" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
 </Project>
