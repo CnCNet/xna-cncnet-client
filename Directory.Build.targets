@@ -3,6 +3,13 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
+  <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier="
+      Targets="Restore" />
+  </Target>
+
   <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
