@@ -1,4 +1,6 @@
-﻿namespace DTAClient.Online
+﻿using System;
+
+namespace DTAClient.Online
 {
     /// <summary>
     /// A struct containing information on an IRC server.
@@ -16,7 +18,7 @@
         public string Name;
         public int[] Ports;
 
-        public string Serialize() => $"{Host}|{Name}|{string.Join(",", Ports)}";
+        public string Serialize() => FormattableString.Invariant($"{Host}|{Name}|{string.Join(",", Ports)}");
 
         public static Server Deserialize(string serialized)
         {
