@@ -1,7 +1,5 @@
 <Project>
   <PropertyGroup>
-    <WindowsTargetFrameworks>net48;net8.0-windows</WindowsTargetFrameworks>
-    <NonWindowsTargetFrameworks>net8.0</NonWindowsTargetFrameworks>
     <LangVersion>12.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
@@ -38,9 +36,9 @@
     <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks Condition="$(Engine.Contains(Windows))">$(WindowsTargetFrameworks)</TargetFrameworks>
-    <TargetFrameworks Condition="!$(Engine.Contains(Windows))">$(NonWindowsTargetFrameworks)</TargetFrameworks>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
+    <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">netstandard2.0</TargetFrameworks>
 
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
@@ -50,6 +48,11 @@
     <Platform Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platform>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
+  </PropertyGroup>
+    
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <!-- For Constants -->

@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <Title>CnCNet.SecondStageUpdater</Title>
+    <Description>CnCNet Client Second-Stage Updater</Description>
+    <Company>CnCNet</Company>
+    <Product>CnCNet.SecondStageUpdater</Product>
+    <Copyright>Copyright © CnCNet 2022-2024</Copyright>
+    <Trademark></Trademark>
+    <AssemblyName>SecondStageUpdater</AssemblyName>
+    <RootNamespace>SecondStageUpdater</RootNamespace>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Platforms>AnyCPU</Platforms>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <UseAppHost>false</UseAppHost>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Rampastring.Tools"/>
+    <PackageReference Include="Polyfill" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>
