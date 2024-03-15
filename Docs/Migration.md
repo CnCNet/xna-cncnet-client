@@ -1,7 +1,7 @@
 Migrating from older versions
 -----------------------------
 
-## Migrating from pre-2.8.0.0
+## Migrating from pre-2.11.0.0
 
 - `CustomSettingFileCheckBox` and `CustomSettingFileDropDown` have been renamed to simply `FileSettingCheckBox` and `FileSettingDropDown`. This requires adjusting the control names in `OptionsWindow.ini`. `FileSettingCheckBox` has a fallback to legacy behaviour if the control has any files defined with `FileX`.
 
@@ -13,7 +13,7 @@ Migrating from older versions
 
     - **Note:** If you want end-users to be able to update via the old client, it is necessary to preserve a copy of the old second-stage updater (`clientupdt.dat`) in the client base directory. In other words, *don't* modify or delete `clientupdt.dat` with either of the [update server scripts](https://github.com/CnCNet/xna-cncnet-client/blob/develop/Docs/Updater.md).
 
-- Second-stage updater is now maintained as a separate project. Download the latest release [here](https://github.com/CnCNet/cncnet-client-updater/releases) (select `SecondStageUpdater-<version_number>.zip`), and extract its contents to the client's `Resources\Updater` folder.
+- Second-stage updater is now automatically copied to `Resources\Updater` folder by build scripts.
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
 

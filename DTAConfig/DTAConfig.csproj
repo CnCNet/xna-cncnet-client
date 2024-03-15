@@ -3,9 +3,7 @@
     <Description>CnCNet Config Library</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CnCNet.ClientUpdater" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
+    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
 </Project>
