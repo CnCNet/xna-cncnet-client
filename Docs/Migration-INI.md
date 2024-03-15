@@ -931,7 +931,7 @@ The client launcher (that resides in the game directory) has been updated. You c
 
 ### Keep the old second-stage updater
 
-The second-stage updater (formerly `clientupdt.dat`) has been reworked as `SecondStageUpdater.exe`, and will be automatically copied to `Resources/Updater` directory by the build script. The old updater will still work, but is no longer maintained. However, don't remove the old updater (`clientupdt.dat`) so that end-users are able to update via the old client.
+The second-stage updater (formerly `clientupdt.dat`) has been reworked as `SecondStageUpdater.exe`, and will be automatically copied to `Resources/Binaries/Updater` directory by the build script. The old updater will still work, but is no longer maintained. However, don't remove the old updater (`clientupdt.dat`) so that end-users are able to update via the old client.
 
 ### Add new assets
 

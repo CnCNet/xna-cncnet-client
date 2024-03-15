@@ -9,7 +9,7 @@ Migrating from older versions
 
 - Second-stage updater no longer has hardcoded list of launcher executables to check for when restarting the client. It will now only check `ClientDefinitions.ini` for `LauncherExe` key, and it it fails to read and launch this the client will not automatically restart after updating.
 
-- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.dll` for .NET 8 / `SecondStageUpdater.exe` for .NET 4.8 and has been moved from base folder to `Resources\Updater`.
+- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.dll` for .NET 8 / `SecondStageUpdater.exe` for .NET 4.8 and has been moved from base folder to `Resources\Binaries\Updater`.
 
     - **Note:** If you want end-users to be able to update via the old client, it is necessary to preserve a copy of the old second-stage updater (`clientupdt.dat`) in the client base directory. In other words, *don't* modify or delete `clientupdt.dat` with either of the [update server scripts](https://github.com/CnCNet/xna-cncnet-client/blob/develop/Docs/Updater.md).
 
