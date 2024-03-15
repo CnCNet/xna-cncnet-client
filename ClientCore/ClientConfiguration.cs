@@ -27,7 +27,7 @@ namespace ClientCore
         private IniFile gameOptions_ini;
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
-        private IniFile networkDefinitionIni;
+        private IniFile networkDefinitionsIni;
 
         protected ClientConfiguration()
         {
@@ -47,7 +47,7 @@ namespace ClientCore
 
             gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
 
-            networkDefinitionIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS));
+            networkDefinitionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS));
         }
 
         /// <summary>
@@ -391,15 +391,15 @@ namespace ClientCore
 
         #region Network definitions
 
-        public string CnCNetTunnelListURL => networkDefinitionIni.GetStringValue(SETTINGS, "CnCNetTunnelListURL", "http://cncnet.org/master-list");
+        public string CnCNetTunnelListURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetTunnelListURL", "http://cncnet.org/master-list");
 
-        public string CnCNetPlayerCountURL => networkDefinitionIni.GetStringValue(SETTINGS, "CnCNetPlayerCountURL", "http://api.cncnet.org/status");
+        public string CnCNetPlayerCountURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetPlayerCountURL", "http://api.cncnet.org/status");
 
-        public string CnCNetMapDBDownloadURL => networkDefinitionIni.GetStringValue(SETTINGS, "CnCNetMapDBDownloadURL", "http://mapdb.cncnet.org");
+        public string CnCNetMapDBDownloadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBDownloadURL", "http://mapdb.cncnet.org");
 
-        public string CnCNetMapDBUploadURL => networkDefinitionIni.GetStringValue(SETTINGS, "CnCNetMapDBUploadURL", "http://mapdb.cncnet.org/upload");
+        public string CnCNetMapDBUploadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBUploadURL", "http://mapdb.cncnet.org/upload");
 
-        public bool DisableDiscordIntegration => networkDefinitionIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
+        public bool DisableDiscordIntegration => networkDefinitionsIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
 
         public List<string> IRCServers => GetIRCServers();
 
@@ -409,7 +409,7 @@ namespace ClientCore
         {
             List<string> servers = [];
 
-            IniSection serversSection = networkDefinitionIni.GetSection("IRCServers");
+            IniSection serversSection = networkDefinitionsIni.GetSection("IRCServers");
             if (serversSection != null)
                 foreach ((_, string value) in serversSection.Keys)
                     if (!string.IsNullOrWhiteSpace(value))
