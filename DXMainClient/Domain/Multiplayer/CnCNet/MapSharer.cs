@@ -78,7 +78,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBUploadURL))
             {
-                Logger.Log("MapSharer: Upload URL is not set.");
+                Logger.Log("MapSharer: Upload URL is not configured.");
                 MapUploadFailed?.Invoke(null, new MapEventArgs(map));
                 return;
             }
