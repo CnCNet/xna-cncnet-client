@@ -88,6 +88,19 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
   </Target>
 
+  <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <PropertyGroup>
+      <CNCNetUpdaterCopyTo>$(MSBuildThisFileDirectory)\DXMainClient\bin\$(OutputPathSuffix)</CNCNetUpdaterCopyTo>
+      <__CNCNetUpdaterTFM>$(TargetFramework)</__CNCNetUpdaterTFM>
+      <__CNCNetUpdaterTFM Condition="!$(TargetFramework.StartsWith('net4')) AND $(Engine.Contains(Windows))">$(TargetFramework)-windows</__CNCNetUpdaterTFM>
+      <CNCNetUpdaterCopyTo>$(CNCNetUpdaterCopyTo)$(__CNCNetUpdaterTFM)\Resources\Updater</CNCNetUpdaterCopyTo>
+    </PropertyGroup>
+    <ItemGroup>
+      <CNCNetUpdaterOutputFile Include="$(OutputPath)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CNCNetUpdaterOutputFile)" DestinationFolder="$(CNCNetUpdaterCopyTo)" />
+  </Target>
+
   <!-- Allow a game specific build prop file to be imported, if available -->
   <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).targets')" />
 
