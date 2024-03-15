@@ -222,7 +222,7 @@ public class CustomComponent
 
                 num++;
 
-                var downloadFileStream = new FileStream(versionFileName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+                var downloadFileStream = new FileStream(downloadFileName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
                 using (downloadFileStream)
                 {
                     Stream stream = await httpClient.GetStreamAsync(downloadUri).ConfigureAwait(false);
