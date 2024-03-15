@@ -2,20 +2,7 @@
   <PropertyGroup>
     <Title>CnCNet.ClientUpdater</Title>
     <Description>CnCNet Client Updater Library</Description>
-    <Company>CnCNet</Company>
     <Product>CnCNet.ClientUpdater</Product>
-    <Copyright>Copyright © CnCNet 2022-2024</Copyright>
-    <Trademark></Trademark>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageId>CnCNet.ClientUpdater</PackageId>
-    <PackageTags></PackageTags>
-    <PackageProjectUrl>https://github.com/CnCNet/cncnet-client-updater</PackageProjectUrl>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageLicenseExpression></PackageLicenseExpression>
-    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" />

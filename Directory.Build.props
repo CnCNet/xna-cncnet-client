@@ -4,8 +4,6 @@
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <ImplicitUsings>disable</ImplicitUsings>
-    <!-- TODO: We should enable it to eliminate the null hazard during development. -->
-    <Nullable>disable</Nullable>
 
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>

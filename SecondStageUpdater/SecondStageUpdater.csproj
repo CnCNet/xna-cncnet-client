@@ -6,10 +6,7 @@
   <PropertyGroup>
     <Title>CnCNet.SecondStageUpdater</Title>
     <Description>CnCNet Client Second-Stage Updater</Description>
-    <Company>CnCNet</Company>
     <Product>CnCNet.SecondStageUpdater</Product>
-    <Copyright>Copyright © CnCNet 2022-2024</Copyright>
-    <Trademark></Trademark>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" />
