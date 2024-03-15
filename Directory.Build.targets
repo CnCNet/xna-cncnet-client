@@ -3,9 +3,22 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
+  <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier="
+      Targets="Restore" />
+  </Target>
+
+  <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
+  </Target>
+
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
-    <CallTarget Targets="MoveCommonBinaries;MoveClientExes" Condition="'$(NoMove)' != 'true'" />
+    <CallTarget Targets="MoveCommonBinaries;MoveClientExes;MoveUpdater" Condition="'$(NoMove)' != 'true'" />
   </Target>
 
   <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
@@ -71,13 +84,13 @@
 
   <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
     <ItemGroup>
-      <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
-      <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />
-      <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
-      <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
-      <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
-      <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
-      <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
+      <ExampleClientResources Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\DTA\**\*.*" />
+      <ExampleClientMaps Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Maps\**\*.*" />
+      <ExampleClientIni Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\INI\**\*.*" />
+      <ExampleClientMix Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\MIX\**\*.*" />
+      <ExampleClientSettings Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Settings.ini" />
+      <ExampleClientLinuxRun Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\run.sh" />
+      <ExampleClientDefinitions Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\ClientDefinitions.ini" />
     </ItemGroup>
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
@@ -86,6 +99,29 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
+  </Target>
+
+  <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <PropertyGroup>
+      <!-- For Normal Build -->
+      <CNCNetUpdaterCopyTo>$(MSBuildThisFileDirectory)\DXMainClient\bin\$(OutputPathSuffix)</CNCNetUpdaterCopyTo>
+      <__CNCNetUpdaterTFM>$(TargetFramework)</__CNCNetUpdaterTFM>
+      <__CNCNetUpdaterTFM Condition="!$(TargetFramework.StartsWith('net4')) AND $(Engine.Contains(Windows))">$(TargetFramework)-windows</__CNCNetUpdaterTFM>
+      <CNCNetUpdaterCopyTo>$(CNCNetUpdaterCopyTo)$(__CNCNetUpdaterTFM)\Resources\</CNCNetUpdaterCopyTo>
+      <!-- For Publish -->
+      <CNCNetUpdaterCopyTo Condition="'$(PublishDir)' != ''">$(PublishDir)\..\..\</CNCNetUpdaterCopyTo>
+      <CNCNetUpdaterCopyTo>$(CNCNetUpdaterCopyTo)Updater\</CNCNetUpdaterCopyTo>
+    </PropertyGroup>
+    <ItemGroup>
+      <CNCNetUpdaterOutputFile Include="$(OutputPath)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CNCNetUpdaterOutputFile)" DestinationFolder="$(CNCNetUpdaterCopyTo)" />
+  </Target>
+
+  <Target Name="MoveUpdater" Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <Message Importance="high" Text="Moving updater executables" />
+    <Move SourceFiles="%(CNCNetUpdaterOutputFile.Identity)" DestinationFolder="$(CNCNetUpdaterCopyTo)" Condition="!Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
+    <Delete Files="%(CNCNetUpdaterOutputFile.Identity)" Condition="Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
   </Target>
 
   <!-- Allow a game specific build prop file to be imported, if available -->

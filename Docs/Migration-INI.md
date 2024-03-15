@@ -929,22 +929,9 @@ The `Resources` directory should look like this (omitting configuration files an
 
 The client launcher (that resides in the game directory) has been updated. You can replace the old one with version [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7). Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e. `YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
 
-### Update the second-stage updater
+### Keep the old second-stage updater
 
-The second-stage updater (formerly `clientupdt.dat`) has been reworked. The new version [1.0.17](https://github.com/CnCNet/cncnet-client-updater/releases/tag/v1.0.17) should be placed in new directory `Resources/Updater`. The new version has two variants, for .NET Framework 4.8 (`SecondStageUpdater.exe`) and for .NET 8.0 (`SecondStageUpdater.dll`). If you want to use the .NET 8.0 client, you should include the .NET 8.0 updater.
-
-The `Updater` directory should look like this:
-
-```plaintext
-<game dir>/Resources/Updater
-├── Rampastring.Tools.dll                 # common dependencies of .NET 4.8/.NET 8.0 second-stage updater
-├── SecondStageUpdater.dll                # .NET 8.0 second-stage updater
-├── SecondStageUpdater.exe                # .NET 4.8 second-stage updater
-├── SecondStageUpdater.exe.config         # .NET 4.8 second-stage updater
-└── SecondStageUpdater.runtimeconfig.json # .NET 8.0 second-stage updater
-```
-
-The old updater will still work, but is no longer maintained.
+The second-stage updater (formerly `clientupdt.dat`) has been reworked as `SecondStageUpdater.exe`, and will be automatically copied to `Resources/Updater` directory by the build script. The old updater will still work, but is no longer maintained. However, don't remove the old updater (`clientupdt.dat`) so that end-users are able to update via the old client.
 
 ### Add new assets
 

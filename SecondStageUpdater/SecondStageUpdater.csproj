@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Title>CnCNet.SecondStageUpdater</Title>
+    <Description>CnCNet Client Second-Stage Updater</Description>
+    <Product>CnCNet.SecondStageUpdater</Product>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Rampastring.Tools" />
+  </ItemGroup>
+</Project>
