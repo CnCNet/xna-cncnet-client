@@ -3,6 +3,9 @@
     <LangVersion>12.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- TODO: We should enable it to eliminate the null hazard during development. -->
+    <Nullable>disable</Nullable>
 
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>
@@ -39,7 +42,6 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">netstandard2.0</TargetFrameworks>
 
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
     <Platforms Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platforms>
@@ -49,10 +51,16 @@
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
-    
+
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientUpdater' OR '$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- For Constants -->
