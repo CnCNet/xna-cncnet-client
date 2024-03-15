@@ -418,11 +418,8 @@ namespace ClientCore
             return servers;
         }
 
-        public bool IsDiscordIntegrationGloballyDisabled()
-        {
-            return string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
-        }
-
+        public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
+        
         public OSVersion GetOperatingSystemVersion()
         {
 #if NETFRAMEWORK

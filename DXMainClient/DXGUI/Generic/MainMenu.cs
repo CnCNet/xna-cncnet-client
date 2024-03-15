@@ -410,7 +410,7 @@ namespace DTAClient.DXGUI.Generic
             if (!connectionManager.IsConnected)
                 ProgramConstants.PLAYERNAME = UserINISettings.Instance.PlayerName;
 
-            if (UserINISettings.Instance.DiscordIntegration && !ClientConfiguration.Instance.IsDiscordIntegrationGloballyDisabled())
+            if (UserINISettings.Instance.DiscordIntegration && !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
                 discordHandler.Connect();
             else
                 discordHandler.Disconnect();

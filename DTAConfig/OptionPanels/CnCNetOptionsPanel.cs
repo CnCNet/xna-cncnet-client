@@ -140,7 +140,7 @@ namespace DTAConfig.OptionPanels
                 chkConnectOnStartup.Bottom + 12, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
 
-            if (ClientConfiguration.Instance.IsDiscordIntegrationGloballyDisabled())
+            if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
                 chkDiscordIntegration.AllowChecking = false;
                 chkDiscordIntegration.Checked = false;
@@ -317,7 +317,7 @@ namespace DTAConfig.OptionPanels
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
 
-            chkDiscordIntegration.Checked = !ClientConfiguration.Instance.IsDiscordIntegrationGloballyDisabled()
+            chkDiscordIntegration.Checked = !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled
                 && IniSettings.DiscordIntegration;
 
             chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
@@ -352,7 +352,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
 
-            if (!ClientConfiguration.Instance.IsDiscordIntegrationGloballyDisabled())
+            if (!ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
                 IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
             }

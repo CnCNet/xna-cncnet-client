@@ -143,8 +143,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             });
         }
 
-        private bool IsOnlineTunnelDataAvailable() => !string.IsNullOrWhiteSpace(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
-        private bool IsOfflineTunnelDataAvailable() => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
+        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+        private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
 
         private byte[] GetRawTunnelDataOnline()
         {
@@ -162,7 +162,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             Logger.Log("Fetching tunnel server info.");
 
-            if (IsOnlineTunnelDataAvailable())
+            if (OnlineTunnelDataAvailable)
             {
                 for (int i = 0; i < retryCount; i++)
                 {
@@ -189,7 +189,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("Fetching tunnel server list online is disabled.");
             }
 
-            if (IsOfflineTunnelDataAvailable())
+            if (OfflineTunnelDataAvailable)
             {
                 Logger.Log("Using cached tunnel data.");
                 byte[] data = GetRawTunnelDataOffline();
