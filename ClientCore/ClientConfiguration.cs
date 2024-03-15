@@ -20,12 +20,14 @@ namespace ClientCore
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
+        private const string NETWORK_DEFS = "NetworkDefinitions.ini";
 
         private static ClientConfiguration _instance;
 
         private IniFile gameOptions_ini;
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
+        private IniFile networkDefinitionsIni;
 
         protected ClientConfiguration()
         {
@@ -36,7 +38,7 @@ namespace ClientCore
 
             FileInfo clientDefinitionsFile = SafePath.GetFile(baseResourceDirectory.FullName, CLIENT_DEFS);
 
-            if (clientDefinitionsFile is null)
+            if (!(clientDefinitionsFile?.Exists ?? false))
                 throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory}. Please verify that you're running the client from the correct directory.");
 
             clientDefinitionsIni = new IniFile(clientDefinitionsFile.FullName);
@@ -44,6 +46,8 @@ namespace ClientCore
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
 
             gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
+
+            networkDefinitionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS));
         }
 
         /// <summary>
@@ -99,7 +103,7 @@ namespace ClientCore
 
         public string AltUIBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
 
-        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128"); 
+        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
 
         public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
 
@@ -385,6 +389,37 @@ namespace ClientCore
 
         #endregion
 
+        #region Network definitions
+
+        public string CnCNetTunnelListURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetTunnelListURL", "http://cncnet.org/master-list");
+
+        public string CnCNetPlayerCountURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetPlayerCountURL", "http://api.cncnet.org/status");
+
+        public string CnCNetMapDBDownloadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBDownloadURL", "http://mapdb.cncnet.org");
+
+        public string CnCNetMapDBUploadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBUploadURL", "http://mapdb.cncnet.org/upload");
+
+        public bool DisableDiscordIntegration => networkDefinitionsIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
+
+        public List<string> IRCServers => GetIRCServers();
+
+        #endregion
+
+        public List<string> GetIRCServers()
+        {
+            List<string> servers = [];
+
+            IniSection serversSection = networkDefinitionsIni.GetSection("IRCServers");
+            if (serversSection != null)
+                foreach ((_, string value) in serversSection.Keys)
+                    if (!string.IsNullOrWhiteSpace(value))
+                        servers.Add(value);
+
+            return servers;
+        }
+
+        public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
+        
         public OSVersion GetOperatingSystemVersion()
         {
 #if NETFRAMEWORK

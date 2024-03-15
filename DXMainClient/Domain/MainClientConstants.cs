@@ -12,7 +12,7 @@ namespace DTAClient.Domain
 {
     public static class MainClientConstants
     {
-        public const string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
+        public static string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
 
         public static string GAME_NAME_LONG = "CnCNet Client";
         public static string GAME_NAME_SHORT = "CnCNet";
@@ -91,6 +91,8 @@ namespace DTAClient.Domain
             SUPPORT_URL_SHORT = clientConfiguration.ShortSupportURL;
 
             CREDITS_URL = clientConfiguration.CreditsURL;
+
+            CNCNET_TUNNEL_LIST_URL = clientConfiguration.CnCNetTunnelListURL;
 
             USE_ISOMETRIC_CELLS = clientConfiguration.UseIsometricCells;
             TDRA_WAYPOINT_COEFFICIENT = clientConfiguration.WaypointCoefficient;
