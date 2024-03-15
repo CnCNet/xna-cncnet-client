@@ -3,14 +3,14 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
-  <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+  <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
       Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier="
       Targets="Restore" />
   </Target>
 
-  <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+  <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
       Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
@@ -101,16 +101,9 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
   </Target>
 
-  <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+  <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'SecondStageUpdater'">
     <PropertyGroup>
-      <!-- For Normal Build -->
-      <CNCNetUpdaterCopyTo>$(MSBuildThisFileDirectory)\DXMainClient\bin\$(OutputPathSuffix)</CNCNetUpdaterCopyTo>
-      <__CNCNetUpdaterTFM>$(TargetFramework)</__CNCNetUpdaterTFM>
-      <__CNCNetUpdaterTFM Condition="!$(TargetFramework.StartsWith('net4')) AND $(Engine.Contains(Windows))">$(TargetFramework)-windows</__CNCNetUpdaterTFM>
-      <CNCNetUpdaterCopyTo>$(CNCNetUpdaterCopyTo)$(__CNCNetUpdaterTFM)\Resources\</CNCNetUpdaterCopyTo>
-      <!-- For Publish -->
-      <CNCNetUpdaterCopyTo Condition="'$(PublishDir)' != ''">$(PublishDir)\..\..\</CNCNetUpdaterCopyTo>
-      <CNCNetUpdaterCopyTo>$(CNCNetUpdaterCopyTo)Updater\</CNCNetUpdaterCopyTo>
+      <CNCNetUpdaterCopyTo>$(PublishDir)\..\Updater\</CNCNetUpdaterCopyTo>
     </PropertyGroup>
     <ItemGroup>
       <CNCNetUpdaterOutputFile Include="$(OutputPath)\*.*" />
@@ -126,6 +119,5 @@
 
   <!-- Allow a game specific build prop file to be imported, if available -->
   <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).targets')" />
-
 
 </Project>

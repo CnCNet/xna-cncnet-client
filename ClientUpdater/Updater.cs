@@ -45,6 +45,12 @@ public static class Updater
     public const string VERSION_FILE = "version";
     public const string ARCHIVE_FILE_EXTENSION = ".lzma";
 
+#if NETFRAMEWORK
+    private const string BINARIES_FOLDER = "Binaries";
+#else
+    private const string BINARIES_FOLDER = "BinariesNET8";
+#endif
+
     /// <summary>
     /// Currently set game path for the updater.
     /// </summary>
@@ -1267,15 +1273,15 @@ public static class Updater
 
                         #region update-second-stage-updater
 
-                        // the second stage updater is placed at "Resources\Updater" directory.
-                        DirectoryInfo currentSecondStageUpdaterDirectory = SafePath.GetDirectory(ResourcePath, "Updater");
+                        // the second stage updater is placed at "Resources\Binaries\Updater" directory.
+                        DirectoryInfo currentSecondStageUpdaterDirectory = SafePath.GetDirectory(ResourcePath, BINARIES_FOLDER, "Updater");
                         if (!currentSecondStageUpdaterDirectory.Exists)
                             currentSecondStageUpdaterDirectory.Create();
 
                         FileInfo secondStageUpdaterExecutable = SafePath.GetFile(currentSecondStageUpdaterDirectory.FullName, SECOND_STAGE_UPDATER);
 
                         // update the new second stage updater before other files
-                        DirectoryInfo incomingSecondStageUpdaterDirectory = SafePath.GetDirectory(incomingDirectoryInfo.FullName, "Resources", "Updater");
+                        DirectoryInfo incomingSecondStageUpdaterDirectory = SafePath.GetDirectory(incomingDirectoryInfo.FullName, "Resources", BINARIES_FOLDER, "Updater");
                         if (incomingSecondStageUpdaterDirectory.Exists)
                         {
                             Logger.Log("Updater: Checking & moving second-stage updater files.");
