@@ -48,7 +48,7 @@ namespace DTAClient.Domain
         /// </summary>
         public DiscordHandler()
         {
-            if (!UserINISettings.Instance.DiscordIntegration || string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            if (!UserINISettings.Instance.DiscordIntegration || ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
                 return;
 
             InitializeClient();

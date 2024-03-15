@@ -36,8 +36,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static readonly object locker = new object();
 
-        private const string MAPDB_URL = "http://mapdb.cncnet.org/upload";
-
         /// <summary>
         /// Adds a map into the CnCNet map upload queue.
         /// </summary>
@@ -78,8 +76,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             Logger.Log("MapSharer: Starting upload of " + map.BaseFilePath);
 
-            bool success = false;
-            string message = MapUpload(MAPDB_URL, map, myGameId, out success);
+            if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBUploadURL))
+            {
+                Logger.Log("MapSharer: Upload URL is not configured.");
+                MapUploadFailed?.Invoke(null, new MapEventArgs(map));
+                return;
+            }
+
+            string message = MapUpload(ClientConfiguration.Instance.CnCNetMapDBUploadURL, map, myGameId, out bool success);
 
             if (success)
             {
@@ -380,12 +384,22 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             using (TWebClient webClient = new TWebClient())
             {
+                // TODO enable proxy support for some users
                 webClient.Proxy = null;
+
+                if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
+                {
+                    success = false;
+                    Logger.Log("MapSharer: Download URL is not configured.");
+                    return null;
+                }
+
+                string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
 
                 try
                 {
-                    Logger.Log("MapSharer: Downloading URL: " + "http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip");
-                    webClient.DownloadFile("http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip", destinationFile.FullName);
+                    Logger.Log($"MapSharer: Downloading URL: {url}");
+                    webClient.DownloadFile(url, destinationFile.FullName);
                 }
                 catch (Exception ex)
                 {
@@ -449,6 +463,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             public TWebClient()
             {
+                // TODO enable proxy support for some users
                 this.Proxy = null;
             }
 
