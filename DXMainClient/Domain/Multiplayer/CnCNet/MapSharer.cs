@@ -390,7 +390,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
                 {
                     success = false;
-                    return "MapSharer: Download URL is not set.";
+                    Logger.Log("MapSharer: Download URL is not configured.");
+                    return null;
                 }
 
                 string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
