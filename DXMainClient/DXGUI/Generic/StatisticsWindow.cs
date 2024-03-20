@@ -1009,9 +1009,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
-            // To hide the control, just set Enabled=false
-            // and MainMenuDarkeningPanel will deal with the rest
-            Enabled = false;
+            Disable();
         }
 
         private void BtnClearStatistics_LeftClick(object sender, EventArgs e)
