@@ -40,6 +40,7 @@ namespace DTAClient.Domain
 
         public int Index { get; }
         public int CD { get; }
+        public int CampaignID { get; } = -1;
         public int Side { get; }
         public string Scenario { get; }
         public string GUIName { get; }
