@@ -242,6 +242,7 @@ These can ONLY be used in parent controls that inherit the `INItializableWindow`
 `$Width` = ``{integer}`` the Width of the control  
 `$Height` = ``{integer}`` the Height of the control  
 `$TextAnchor`  
+`$ToggleableControl` = ``{control name}`` (only on `XNAClientButton` or derived classes) Name of control whose visibility this button toggles, only works if the target control is initialized before the button and is not the parent window
 
 ### Dynamic Control Property Examples
 ```
