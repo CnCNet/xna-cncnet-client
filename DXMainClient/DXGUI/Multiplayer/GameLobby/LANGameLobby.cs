@@ -17,7 +17,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -737,6 +737,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BroadcastGame()
         {
+            Debug.Assert(Map is not null);
+            Debug.Assert(GameMode is not null);
+
             var sb = new ExtendedStringBuilder("GAME ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
