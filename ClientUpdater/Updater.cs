@@ -1473,6 +1473,8 @@ public static class Updater
                 {
                     Logger.Log($"Updater: File {downloadFile.Name} is a script, adding execute permission. Current permission flags: " + downloadFile.UnixFileMode);
 
+                    downloadFile.Refresh();
+
                     downloadFile.UnixFileMode |= UnixFileMode.UserExecute;
 
                     downloadFile.Refresh();
