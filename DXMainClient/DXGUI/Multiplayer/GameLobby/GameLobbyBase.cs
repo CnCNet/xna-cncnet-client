@@ -172,7 +172,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected bool RemoveStartingLocations { get; set; } = false;
         protected IniFile GameOptionsIni { get; private set; }
 
-        protected XNAClientButton BtnSaveLoadGameOptions { get; set; }
+        protected XNAClientButton btnSaveLoadGameOptions { get; set; }
 
         private XNAContextMenu loadSaveGameOptionsMenu { get; set; }
 
@@ -309,9 +309,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void InitializeGameOptionPresetUI()
         {
-            BtnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(BtnSaveLoadGameOptions), true);
+            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), true);
 
-            if (BtnSaveLoadGameOptions != null)
+            if (btnSaveLoadGameOptions != null)
             {
                 loadOrSaveGameOptionPresetWindow = new LoadOrSaveGameOptionPresetWindow(WindowManager);
                 loadOrSaveGameOptionPresetWindow.Name = nameof(loadOrSaveGameOptionPresetWindow);
@@ -335,7 +335,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
                 loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
 
-                BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
+                btnSaveLoadGameOptions.LeftClick += (sender, args) =>
                     loadSaveGameOptionsMenu.Open(GetCursorPoint());
 
                 AddChild(loadSaveGameOptionsMenu);
