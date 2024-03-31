@@ -1073,7 +1073,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void CheckDisallowedSidesForGroup(bool forHumanPlayers)
         {
             var disallowedSideArray = GetDisallowedSidesForGroup(forHumanPlayers);
-            var players = forHumanPlayers ? Players : AIPlayers;
+            var playerInfos = forHumanPlayers ? Players : AIPlayers;
             int defaultSide = 0;
             int allowedSideCount = disallowedSideArray.Count(b => b == false);
 
@@ -1087,7 +1087,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         defaultSide = i + RandomSelectorCount;
                 }
 
-                foreach (var pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     var dd = ddPlayerSides[pInfo.Index];
                     for (int i = 0; i < RandomSelectorCount; i++)
@@ -1096,7 +1096,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                foreach (var pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     var dd = ddPlayerSides[pInfo.Index];
                     for (int i = 0; i < RandomSelectorCount; i++)
@@ -1118,7 +1118,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 bool disabled = disableCount >= randomSides.Length - 1;
 
-                foreach (var pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     var dd = ddPlayerSides[pInfo.Index];
                     dd.Items[1 + c].Selectable = !disabled;
@@ -1140,7 +1140,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     // Change the sides of players that use the disabled
                     // side to the default side
-                    foreach (var pInfo in players)
+                    foreach (PlayerInfo pInfo in playerInfos)
                     {
                         var dd = ddPlayerSides[pInfo.Index];
                         dd.Items[i + RandomSelectorCount].Selectable = false;
@@ -1151,7 +1151,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 else
                 {
-                    foreach (var pInfo in players)
+                    foreach (PlayerInfo pInfo in playerInfos)
                     {
                         var dd = ddPlayerSides[pInfo.Index];
                         dd.Items[i + RandomSelectorCount].Selectable = true;
@@ -1162,7 +1162,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // If only 1 side is allowed, change all players' sides to that
             if (allowedSideCount == 1)
             {
-                foreach (PlayerInfo pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     if (pInfo.SideId == 0)
                         pInfo.SideId = defaultSide;
@@ -1173,13 +1173,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 // Disallow spectator
 
-                foreach (PlayerInfo pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     if (pInfo.SideId == GetSpectatorSideIndex())
                         pInfo.SideId = defaultSide;
                 }
 
-                foreach (var pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     var dd = ddPlayerSides[pInfo.Index];
                     if (dd.Items.Count > GetSpectatorSideIndex())
@@ -1188,7 +1188,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                foreach (var pInfo in players)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     var dd = ddPlayerSides[pInfo.Index];
                     if (dd.Items.Count > SideCount + RandomSelectorCount)
