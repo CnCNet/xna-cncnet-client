@@ -496,6 +496,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 UpdateDiscordPresence();
                 ClearReadyStatuses();
+                CheckDisallowedSides();
             }
         }
 
@@ -546,6 +547,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 Players[0].Ready = true;
                 CopyPlayerDataToUI();
+
+                CheckDisallowedSides();
             }
 
             if (Players.Count >= playerLimit)
@@ -955,6 +958,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Players.Add(pInfo);
                     i += HUMAN_PLAYER_OPTIONS_LENGTH;
                 }
+
+                CheckDisallowedSides();
             }
 
             CopyPlayerDataToUI();

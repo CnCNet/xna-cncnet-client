@@ -1933,6 +1933,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             btnLaunchGame.SetRank(GetRank());
 
+            CheckDisallowedSides();
+
             if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
                 UpdateDiscordPresence();
         }
