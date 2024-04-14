@@ -948,11 +948,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Ready = readyStatus > 0;
                 pInfo.AutoReady = readyStatus > 1;
                 pInfo.IPAddress = ipAddress;
-
-                CheckDisallowedSides();
             }
 
             CopyPlayerDataToUI();
+
             localPlayer = FindLocalPlayer();
             if (localPlayer != null && oldSideId != localPlayer.SideId)
                 UpdateDiscordPresence();
