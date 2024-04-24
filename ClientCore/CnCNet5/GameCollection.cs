@@ -132,7 +132,8 @@ namespace ClientCore.CnCNet5
                     InternalName = "td",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Dawn",
                     UIName = "Tiberian Dawn",
-                    Texture = AssetLoader.TextureFromImage(tdIcon)
+                    Texture = AssetLoader.TextureFromImage(tdIcon),
+                    Supported = false
                 },
 
                 new()
@@ -143,7 +144,8 @@ namespace ClientCore.CnCNet5
                     InternalName = "ra",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Red Alert",
                     UIName = "Red Alert",
-                    Texture = AssetLoader.TextureFromImage(raIcon)
+                    Texture = AssetLoader.TextureFromImage(raIcon),
+                    Supported = false
                 },
 
                 new()
@@ -154,7 +156,8 @@ namespace ClientCore.CnCNet5
                     InternalName = "d2k",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
                     UIName = "Dune 2000",
-                    Texture = AssetLoader.TextureFromImage(d2kIcon)
+                    Texture = AssetLoader.TextureFromImage(d2kIcon),
+                    Supported = false
                 },
 
                 new()
@@ -187,7 +190,8 @@ namespace ClientCore.CnCNet5
                     InternalName = "ss",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Sole Survivor",
                     UIName = "Sole Survivor",
-                    Texture = AssetLoader.TextureFromImage(ssIcon)
+                    Texture = AssetLoader.TextureFromImage(ssIcon),
+                    Supported = false
                 }
             };
 
