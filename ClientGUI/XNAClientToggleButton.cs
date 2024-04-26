@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -65,6 +66,27 @@ namespace ClientGUI
 
         public XNAClientToggleButton(WindowManager windowManager) : base(windowManager)
         {
+        }
+
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+        {
+            switch (key)
+            {
+                case nameof(CheckedTexture):
+                    CheckedTexture = AssetLoader.LoadTexture(value);
+                    UpdateIdleTexture();
+                    break;
+                case nameof(UncheckedTexture):
+                    UncheckedTexture = AssetLoader.LoadTexture(value);
+                    UpdateIdleTexture();
+                    break;
+                case nameof(ToolTip):
+                    SetToolTipText(value);
+                    break;
+                default:
+                    base.ParseControlINIAttribute(iniFile, key, value);
+                    break;
+            }
         }
     }
 }
