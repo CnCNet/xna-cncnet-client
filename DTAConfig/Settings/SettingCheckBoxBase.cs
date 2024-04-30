@@ -1,7 +1,9 @@
 ﻿using System;
+using ClientCore.I18N;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAConfig.Settings
 {
@@ -74,6 +76,9 @@ namespace DTAConfig.Settings
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
+            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+
             switch (key)
             {
                 case "Checked":
@@ -98,6 +103,16 @@ namespace DTAConfig.Settings
             }
 
             base.ParseControlINIAttribute(iniFile, key, value);
+
+            switch (key)
+            {
+                case nameof(Text):
+                    Text = Localize(this, nameof(Text), Text);
+                    break;
+                case nameof(ToolTip):
+                    ToolTipText = Localize(this, nameof(ToolTip), ToolTipText);
+                    break;
+            }
         }
 
         public abstract void Load();

@@ -1,5 +1,4 @@
-﻿using ClientCore.Extensions;
-using ClientCore.I18N;
+﻿using ClientCore.I18N;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -77,6 +76,13 @@ namespace DTAConfig.Settings
             }
 
             base.ParseControlINIAttribute(iniFile, key, value);
+
+            switch (key)
+            {
+                case nameof(ToolTip):
+                    ToolTipText = Localize(this, nameof(ToolTip), ToolTipText);
+                    break;
+            }
         }
 
         public abstract void Load();
