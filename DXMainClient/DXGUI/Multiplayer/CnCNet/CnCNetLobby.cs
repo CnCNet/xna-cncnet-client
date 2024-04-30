@@ -1325,7 +1325,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
-            currentChatChannel = (Channel)ddCurrentChannel.SelectedItem.Tag;
+            currentChatChannel = (Channel)ddCurrentChannel.SelectedItem?.Tag;
+            if (currentChatChannel == null)
+                return;
+            
             currentChatChannel.UserAdded += RefreshPlayerList;
             currentChatChannel.UserLeft += RefreshPlayerList;
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
