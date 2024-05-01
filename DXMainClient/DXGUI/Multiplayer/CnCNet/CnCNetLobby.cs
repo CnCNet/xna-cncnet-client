@@ -468,7 +468,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 if (!game.Supported || string.IsNullOrEmpty(game.ChatChannel))
                 {
-                    i++;
                     continue;
                 }
 
@@ -1327,7 +1326,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             currentChatChannel = (Channel)ddCurrentChannel.SelectedItem?.Tag;
             if (currentChatChannel == null)
-                return;
+                throw new Exception("Current selected chat channel is null. This should not happen.");
             
             currentChatChannel.UserAdded += RefreshPlayerList;
             currentChatChannel.UserLeft += RefreshPlayerList;
