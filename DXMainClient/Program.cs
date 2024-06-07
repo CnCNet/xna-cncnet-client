@@ -40,7 +40,7 @@ namespace DTAClient
 #elif DX
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName, "Windows") + Path.DirectorySeparatorChar;
 #else
-            Yuri has won
+#error Yuri has won
 #endif
 
 #if !DEBUG
