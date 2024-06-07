@@ -69,6 +69,9 @@ namespace ClientGUI
 
             string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
 
+            if (Environment.CommandLine.Contains(" -- "))
+                extraCommandLine += Environment.CommandLine[(Environment.CommandLine.IndexOf("--") + 2)..];
+
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "DTA.LOG");
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TI.LOG");
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TS.LOG");
