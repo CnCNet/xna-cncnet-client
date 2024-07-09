@@ -373,6 +373,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Disable();
+            PlayerExtraOptionsPanel?.Disable();
+
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
