@@ -424,6 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Clear();
             GameLeft?.Invoke(this, EventArgs.Empty);
+            PlayerExtraOptionsPanel?.Disable();
             Disable();
         }
 
