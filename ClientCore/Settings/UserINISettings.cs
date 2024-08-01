@@ -1,4 +1,4 @@
-﻿using ClientCore.Settings;
+using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -13,13 +13,12 @@ namespace ClientCore
     {
         private static UserINISettings _instance;
 
-        private const string VIDEO = "Video";
-        private const string MULTIPLAYER = "MultiPlayer";
-        private const string OPTIONS = "Options";
-        private const string AUDIO = "Audio";
-        private const string CUSTOM_SETTINGS = "CustomSettings";
-        private const string COMPATIBILITY = "Compatibility";
-        private const string GAME_FILTERS = "GameFilters";
+        public const string VIDEO = "Video";
+        public const string MULTIPLAYER = "MultiPlayer";
+        public const string OPTIONS = "Options";
+        public const string AUDIO = "Audio";
+        public const string COMPATIBILITY = "Compatibility";
+        public const string GAME_FILTERS = "GameFilters";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -44,7 +43,7 @@ namespace ClientCore
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
-            var iniFile = new IniFile(ProgramConstants.GamePath + iniFileName);
+            var iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, iniFileName));
 
             _instance = new UserINISettings(iniFile);
         }
@@ -53,26 +52,24 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-#if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
-            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-#else
-            const string WINDOWED_MODE_KEY = "Video.Windowed";
+#if TS
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
+#else
+            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #endif
 
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
-            ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
+            ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
+            Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
-
-            ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
-            ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
+            DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -84,12 +81,6 @@ namespace ClientCore
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
-            TargetLines = new BoolSetting(iniFile, OPTIONS, "UnitActionLines", true);
-            ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
-            Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
-            ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
-            MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
-            TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
@@ -125,6 +116,8 @@ namespace ClientCore
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
+            GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
+            GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
 
             SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
@@ -147,15 +140,23 @@ namespace ClientCore
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
         public StringSetting ClientTheme { get; private set; }
+        public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
+        public StringSetting Translation { get; private set; }
+        public string TranslationFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.TranslationsFolderPath, Translation);
+        public string TranslationThemeFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.TranslationsFolderPath, Translation,
+            ClientConfiguration.Instance.GetThemePath(ClientTheme));
         public IntSetting DetailLevel { get; private set; }
         public StringSetting Renderer { get; private set; }
         public BoolSetting WindowedMode { get; private set; }
         public BoolSetting BorderlessWindowedMode { get; private set; }
         public BoolSetting BackBufferInVRAM { get; private set; }
-        public IntSetting ClientResolutionX { get; private set; }
-        public IntSetting ClientResolutionY { get; private set; }
+        public IntSetting ClientResolutionX { get; set; }
+        public IntSetting ClientResolutionY { get; set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
         public IntSetting ClientFPS { get; private set; }
+        public BoolSetting DisplayToggleableExtraTextures { get; private set; }
 
         /*********/
         /* AUDIO */
@@ -175,12 +176,6 @@ namespace ClientCore
         /********/
 
         public IntSetting ScrollRate { get; private set; }
-        public BoolSetting TargetLines { get; private set; }
-        public IntSetting ScrollCoasting { get; private set; }
-        public BoolSetting Tooltips { get; private set; }
-        public BoolSetting ShowHiddenObjects { get; private set; }
-        public BoolSetting MoveToUndeploy { get; private set; }
-        public IntSetting TextBackgroundColor { get; private set; }
         public IntSetting DragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
@@ -255,7 +250,29 @@ namespace ClientCore
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
 
+        public BoolSetting GenerateTranslationStub { get; private set; }
+
+        public BoolSetting GenerateOnlyNewValuesInTranslationStub { get; private set; }
+
         public List<string> FavoriteMaps { get; private set; }
+
+        public void SetValue(string section, string key, string value)
+               => SettingsIni.SetStringValue(section, key, value);
+
+        public void SetValue(string section, string key, bool value)
+            => SettingsIni.SetBooleanValue(section, key, value);
+
+        public void SetValue(string section, string key, int value)
+            => SettingsIni.SetIntValue(section, key, value);
+
+        public string GetValue(string section, string key, string defaultValue)
+            => SettingsIni.GetStringValue(section, key, defaultValue);
+
+        public bool GetValue(string section, string key, bool defaultValue)
+            => SettingsIni.GetBooleanValue(section, key, defaultValue);
+
+        public int GetValue(string section, string key, int defaultValue)
+            => SettingsIni.GetIntValue(section, key, defaultValue);
 
         public bool IsGameFollowed(string gameName)
         {
@@ -273,6 +290,8 @@ namespace ClientCore
                 FavoriteMaps.Remove(favoriteMapKey);
             else
                 FavoriteMaps.Add(favoriteMapKey);
+
+            Instance.SaveSettings();
 
             WriteFavoriteMaps();
 
@@ -321,28 +340,6 @@ namespace ClientCore
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
         }
-
-        #region Custom settings
-
-        public bool CustomSettingCheckBoxValueExists(string name)
-            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_Checked");
-
-        public bool GetCustomSettingValue(string name, bool defaultValue)
-            => SettingsIni.GetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", defaultValue);
-
-        public void SetCustomSettingValue(string name, bool value)
-            => SettingsIni.SetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", value);
-
-        public bool CustomSettingDropDownValueExists(string name)
-            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_SelectedIndex");
-
-        public int GetCustomSettingValue(string name, int defaultValue)
-            => SettingsIni.GetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", defaultValue);
-
-        public void SetCustomSettingValue(string name, int value)
-            => SettingsIni.SetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", value);
-
-        #endregion
 
         public void SaveSettings()
         {

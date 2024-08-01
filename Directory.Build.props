@@ -1,0 +1,103 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <Title>CnCNet Client</Title>
+    <Company>CnCNet</Company>
+    <Product>CnCNet Client</Product>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
+    <Trademark>CnCNet</Trademark>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configurations>
+      AresWindowsDXDebug;AresUniversalGLDebug;AresWindowsGLDebug;AresWindowsXNADebug;
+      AresWindowsDXRelease;AresUniversalGLRelease;AresWindowsGLRelease;AresWindowsXNARelease;
+      TSWindowsDXDebug;TSUniversalGLDebug;TSWindowsGLDebug;TSWindowsXNADebug;
+      TSWindowsDXRelease;TSUniversalGLRelease;TSWindowsGLRelease;TSWindowsXNARelease;
+      YRWindowsDXDebug;YRUniversalGLDebug;YRWindowsGLDebug;YRWindowsXNADebug;
+      YRWindowsDXRelease;YRUniversalGLRelease;YRWindowsGLRelease;YRWindowsXNARelease
+    </Configurations>
+  </PropertyGroup>
+
+  <!-- For Internal Logic -->
+  <PropertyGroup>
+    <!-- Game -->
+    <Game Condition="$(Configuration.Contains(Ares))">Ares</Game>
+    <Game Condition="$(Configuration.Contains(TS))">TS</Game>
+    <Game Condition="$(Configuration.Contains(YR))">YR</Game>
+
+    <!-- Rendering Engine -->
+    <Engine Condition="$(Configuration.Contains(WindowsDX))">WindowsDX</Engine>
+    <Engine Condition="$(Configuration.Contains(UniversalGL))">UniversalGL</Engine>
+    <Engine Condition="$(Configuration.Contains(WindowsGL))">WindowsGL</Engine>
+    <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
+    <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
+
+    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <Platforms Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platforms>
+    <!-- XNA only supports x86, but the other engines support any CPU. -->
+    <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
+    <Platform Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platform>
+    <!-- WinForms Auto Configure -->
+    <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientUpdater' OR '$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- For Constants -->
+  <PropertyGroup>
+    <!-- Is Debug -->
+    <DefineConstants Condition="$(Configuration.Contains(Debug))">$(DefineConstants);DEBUG</DefineConstants>
+
+    <!-- Engines -->
+    <DefineConstants Condition="$(Engine.Contains('DX'))">$(DefineConstants);DX</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('GL'))">$(DefineConstants);GL</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('XNA'))">$(DefineConstants);XNA</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('Windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(UseWindowsForms)' == 'true'">$(DefineConstants);WINFORMS</DefineConstants>
+
+    <!-- Games-->
+    <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>
+    <DefineConstants Condition="'$(Game)' == 'TS'">$(DefineConstants);TS</DefineConstants>
+    <DefineConstants Condition="'$(Game)' == 'YR'">$(DefineConstants);YR</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Output Path Hack -->
+  <PropertyGroup>
+    <ClientConfiguration Condition="$(Configuration.Contains(Debug))">Debug</ClientConfiguration>
+    <ClientConfiguration Condition="$(Configuration.Contains(Release))">Release</ClientConfiguration>
+    <OutputPathSuffix>$(ClientConfiguration)\$(Game)\$(Engine)\</OutputPathSuffix>
+    <OutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseOutputPath)bin\$(OutputPathSuffix)</OutputPath>
+    <IntermediateOutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(OutputPathSuffix)</IntermediateOutputPath>
+    <ArtifactsPivots>$(OutputPathSuffix)$(TargetFramework)</ArtifactsPivots>
+  </PropertyGroup>
+
+  <!-- Support WindowsXNA 32bit debugging in VS -->
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86' And '$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <RunCommand Condition="Exists('$(MSBuildProgramFiles32)\dotnet\dotnet.exe')">$(MSBuildProgramFiles32)\dotnet\dotnet.exe</RunCommand>
+  </PropertyGroup>
+
+  <!-- Allow a game specific build prop file to be imported, if available -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).props')" />
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="RootNamespace" />
+  </ItemGroup>
+</Project>

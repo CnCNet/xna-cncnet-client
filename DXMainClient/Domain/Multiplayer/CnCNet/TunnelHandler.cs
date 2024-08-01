@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -142,54 +143,85 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             });
         }
 
+        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+        private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
+
+        private byte[] GetRawTunnelDataOnline()
+        {
+            WebClient client = new WebClient();
+            return client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+        }
+
+        private byte[] GetRawTunnelDataOffline()
+        {
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
+            return File.ReadAllBytes(tunnelCacheFile.FullName);
+        }
+
+        private byte[] GetRawTunnelData(int retryCount = 2)
+        {
+            Logger.Log("Fetching tunnel server info.");
+
+            if (OnlineTunnelDataAvailable)
+            {
+                for (int i = 0; i < retryCount; i++)
+                {
+                    try
+                    {
+                        byte[] data = GetRawTunnelDataOnline();
+                        return data;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log("Error when downloading tunnel server info: " + ex.Message);
+                        if (i < retryCount - 1)
+                            Logger.Log("Retrying.");
+                        else
+                            Logger.Log("Fetching tunnel server list failed.");
+                    }
+                }
+            }
+            else
+            {
+                // Don't fetch the latest tunnel list if it is explicitly disabled
+                // For example, the official CnCNet server might be unavailable/unstable in a country with Internet censorship,
+                // where players might either establish a substitute server or manually distribute the tunnel cache file
+                Logger.Log("Fetching tunnel server list online is disabled.");
+            }
+
+            if (OfflineTunnelDataAvailable)
+            {
+                Logger.Log("Using cached tunnel data.");
+                byte[] data = GetRawTunnelDataOffline();
+                return data;
+            }
+            else
+                Logger.Log("Tunnel cache file doesn't exist!");
+
+            return null;
+        }
+
+
         /// <summary>
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
         private List<CnCNetTunnel> RefreshTunnels()
         {
-            string tunnelCacheFile = ProgramConstants.GamePath + "Client/tunnel_cache";
-
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
 
-            WebClient client = new WebClient();
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
-            byte[] data;
-
-            Logger.Log("Fetching tunnel server info.");
-
-            try
-            {
-                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error when downloading tunnel server info: " + ex.Message);
-                Logger.Log("Retrying.");
-                try
-                {
-                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
-                }
-                catch
-                {
-                    if (!File.Exists(tunnelCacheFile))
-                    {
-                        Logger.Log("Tunnel cache file doesn't exist!");
-                        return returnValue;
-                    }
-                    else
-                    {
-                        Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                        data = File.ReadAllBytes(tunnelCacheFile);
-                    }
-                }
-            }
+            byte[] data = GetRawTunnelData();
+            if (data is null)
+                return returnValue;
 
             string convertedData = Encoding.Default.GetString(data);
 
             string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string serverInfo in serverList)
+            // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
+            foreach (string serverInfo in serverList.Skip(1))
             {
                 try
                 {
@@ -208,7 +240,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.Message);
+                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.ToString());
                 }
             }
 
@@ -216,18 +248,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 try
                 {
-                    if (File.Exists(tunnelCacheFile))
-                        File.Delete(tunnelCacheFile);
-                    if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                        Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
-                    File.WriteAllBytes(tunnelCacheFile, data);
+                    if (tunnelCacheFile.Exists)
+                        tunnelCacheFile.Delete();
+
+                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+
+                    if (!clientDirectoryInfo.Exists)
+                        clientDirectoryInfo.Create();
+
+                    File.WriteAllBytes(tunnelCacheFile.FullName, data);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
+                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.ToString());
                 }
             }
 
+            Logger.Log($"Successfully refreshed tunnel cache with {returnValue.Count} servers.");
             return returnValue;
         }
 

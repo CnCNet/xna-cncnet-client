@@ -1,10 +1,7 @@
 ﻿using ClientCore;
-using Rampastring.XNAUI.XNAControls;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Rampastring.XNAUI;
 
 namespace ClientGUI
@@ -38,14 +35,14 @@ namespace ClientGUI
 
         protected virtual void SetAttributesFromIni()
         {
-            if (File.Exists(ProgramConstants.GetResourcePath() + Name + ".ini"))
-                GetINIAttributes(new CCIniFile(ProgramConstants.GetResourcePath() + Name + ".ini"));
-            else if (File.Exists(ProgramConstants.GetBaseResourcePath() + Name + ".ini"))
-                GetINIAttributes(new CCIniFile(ProgramConstants.GetBaseResourcePath() + Name + ".ini"));
-            else if (File.Exists(ProgramConstants.GetResourcePath() + GENERIC_WINDOW_INI))
-                GetINIAttributes(new CCIniFile(ProgramConstants.GetResourcePath() + GENERIC_WINDOW_INI));
+            if (SafePath.GetFile(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{Name}.ini")).Exists)
+                GetINIAttributes(new CCIniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{Name}.ini"))));
+            else if (SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{Name}.ini")).Exists)
+                GetINIAttributes(new CCIniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{Name}.ini"))));
+            else if (SafePath.GetFile(ProgramConstants.GetResourcePath(), GENERIC_WINDOW_INI).Exists)
+                GetINIAttributes(new CCIniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), GENERIC_WINDOW_INI)));
             else
-                GetINIAttributes(new CCIniFile(ProgramConstants.GetBaseResourcePath() + GENERIC_WINDOW_INI));
+                GetINIAttributes(new CCIniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), GENERIC_WINDOW_INI)));
         }
 
         /// <summary>
@@ -60,7 +57,7 @@ namespace ClientGUI
             if (keys != null)
             {
                 foreach (string key in keys)
-                    ParseAttributeFromINI(iniFile, key, iniFile.GetStringValue(Name, key, String.Empty));
+                    ParseINIAttribute(iniFile, key, iniFile.GetStringValue(Name, key, String.Empty));
             }
             else
             {
@@ -69,7 +66,7 @@ namespace ClientGUI
                 if (keys != null)
                 {
                     foreach (string key in keys)
-                        ParseAttributeFromINI(iniFile, key, iniFile.GetStringValue(GENERIC_WINDOW_SECTION, key, String.Empty));
+                        ParseINIAttribute(iniFile, key, iniFile.GetStringValue(GENERIC_WINDOW_SECTION, key, String.Empty));
                 }
             }
 

@@ -5,12 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DTAClient.Online
 {
-    public class CnCNetUserData
+    public sealed class CnCNetUserData
     {
         private const string FRIEND_LIST_PATH = "Client/friend_list";
         private const string IGNORE_LIST_PATH = "Client/ignore_list";
@@ -23,19 +22,19 @@ namespace DTAClient.Online
         /// directly you have to also invoke UserFriendToggled event handler for every
         /// user name added or removed.
         /// </summary>
-        public List<string> FriendList { get; private set;  } = new List<string>();
+        public List<string> FriendList { get; private set; } = new();
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
         /// directly you have to also invoke UserIgnoreToggled event handler for every
         /// user ident added or removed.
         /// </summary>
-        public List<string> IgnoreList { get; private set; } = new List<string>();
+        public List<string> IgnoreList { get; private set; } = new();
 
         /// <summary>
         /// A list which contains names of players from recent games.
         /// </summary>
-        public List<RecentPlayer> RecentList { get; private set; } = new List<RecentPlayer>();
+        public List<RecentPlayer> RecentList { get; private set; } = new();
 
         public event EventHandler<UserNameEventArgs> UserFriendToggled;
         public event EventHandler<IdentEventArgs> UserIgnoreToggled;
@@ -49,95 +48,104 @@ namespace DTAClient.Online
             windowManager.GameClosing += WindowManager_GameClosing;
         }
 
-        private void LoadFriendList()
+        private static List<string> LoadTextList(string path)
         {
             try
             {
-                FriendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
+                FileInfo listFile = SafePath.GetFile(ProgramConstants.GamePath, path);
+
+                if (listFile.Exists)
+                    return File.ReadAllLines(listFile.FullName).ToList();
+
+                Logger.Log($"Loading {path} failed! File does not exist.");
+                return new();
             }
             catch
             {
-                Logger.Log("Loading friend list failed!");
-                FriendList = new List<string>();
+                Logger.Log($"Loading {path} list failed!");
+                return new();
             }
         }
 
-        private void LoadIgnoreList()
+        private static List<T> LoadJsonList<T>(string path)
         {
             try
             {
-                IgnoreList = File.ReadAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH).ToList();
+                FileInfo listFile = SafePath.GetFile(ProgramConstants.GamePath, path);
+
+                if (listFile.Exists)
+                    return JsonSerializer.Deserialize<List<T>>(File.ReadAllText(listFile.FullName)) ?? new List<T>();
+
+                Logger.Log($"Loading {path} failed! File does not exist.");
+                return new();
             }
             catch
             {
-                Logger.Log("Loading ignore list failed!");
-                IgnoreList = new List<string>();
+                Logger.Log($"Loading {path} list failed!");
+                return new();
             }
         }
 
-        private void LoadRecentPlayerList()
+        private static void SaveTextList(string path, List<string> textList)
         {
+            Logger.Log($"Saving {path}.");
+
             try
             {
-                RecentList = JsonConvert.DeserializeObject<List<RecentPlayer>>(File.ReadAllText(ProgramConstants.GamePath + RECENT_LIST_PATH)) ?? new List<RecentPlayer>();
+                FileInfo listFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
+
+                listFileInfo.Delete();
+                File.WriteAllLines(listFileInfo.FullName, textList.ToArray());
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("Loading recent player list failed!");
-                RecentList = new List<RecentPlayer>();
+                Logger.Log($"Saving {path} failed! Error message: " + ex.ToString());
             }
         }
+
+        private static void SaveJsonList<T>(string path, IReadOnlyCollection<T> jsonList)
+        {
+            Logger.Log($"Saving {path}.");
+
+            try
+            {
+                FileInfo listFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
+
+                listFileInfo.Delete();
+                File.WriteAllText(listFileInfo.FullName, JsonSerializer.Serialize(jsonList));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Saving {path} failed! Error message: " + ex.ToString());
+            }
+        }
+
+        private static void Toggle(string value, ICollection<string> list)
+        {
+            if (string.IsNullOrEmpty(value))
+                return;
+
+            if (list.Contains(value))
+                list.Remove(value);
+            else
+                list.Add(value);
+        }
+
+        private void LoadFriendList() => FriendList = LoadTextList(FRIEND_LIST_PATH);
+
+        private void LoadIgnoreList() => IgnoreList = LoadTextList(IGNORE_LIST_PATH);
+
+        private void LoadRecentPlayerList() => RecentList = LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
 
         private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
 
-        private void SaveFriends()
-        {
-            Logger.Log("Saving friend list.");
+        private void SaveFriends() => SaveTextList(FRIEND_LIST_PATH, FriendList);
 
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
-                    FriendList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving friends failed! Error message: " + ex.Message);
-            }
-        }
+        private void SaveIgnoreList() => SaveTextList(IGNORE_LIST_PATH, IgnoreList);
 
-        private void SaveIgnoreList()
-        {
-            Logger.Log("Saving ignore list.");
+        private void SaveRecentList() => SaveJsonList(RECENT_LIST_PATH, RecentList);
 
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + IGNORE_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH,
-                    IgnoreList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving ignore list failed! Error message: " + ex.Message);
-            }
-        }
-
-        private void SaveRecentList()
-        {
-            Logger.Log("Saving recent list.");
-
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + RECENT_LIST_PATH);
-                File.WriteAllText(ProgramConstants.GamePath + RECENT_LIST_PATH, JsonConvert.SerializeObject(RecentList));
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving recent players list failed! Error message: " + ex.Message);
-            }
-        }
-
-        public void Save()
+        private void Save()
         {
             SaveFriends();
             SaveIgnoreList();
@@ -151,15 +159,8 @@ namespace DTAClient.Online
         /// <param name="name">The name of the user.</param>
         public void ToggleFriend(string name)
         {
-            if (string.IsNullOrEmpty(name))
-                return;
-
-            if (IsFriend(name))
-                FriendList.Remove(name);
-            else
-                FriendList.Add(name);
-
-            UserFriendToggled?.Invoke(this, new UserNameEventArgs(name));
+            Toggle(name, FriendList);
+            UserFriendToggled?.Invoke(this, new(name));
         }
 
         /// <summary>
@@ -169,15 +170,8 @@ namespace DTAClient.Online
         /// <param name="ident">The ident of the IRCUser.</param>
         public void ToggleIgnoreUser(string ident)
         {
-            if (string.IsNullOrEmpty(ident))
-                return;
-
-            if (IsIgnored(ident))
-                IgnoreList.Remove(ident);
-            else
-                IgnoreList.Add(ident);
-
-            UserIgnoreToggled?.Invoke(this, new IdentEventArgs(ident));
+            Toggle(ident, IgnoreList);
+            UserIgnoreToggled?.Invoke(this, new(ident));
         }
 
         public void AddRecentPlayers(IEnumerable<string> recentPlayerNames, string gameName)
@@ -198,7 +192,6 @@ namespace DTAClient.Online
         /// Checks to see if a user is in the ignore list.
         /// </summary>
         /// <param name="ident">The IRC identifier of the user.</param>
-        /// <returns></returns>
         public bool IsIgnored(string ident) => IgnoreList.Contains(ident);
 
         /// <summary>
@@ -208,13 +201,13 @@ namespace DTAClient.Online
         public bool IsFriend(string name) => FriendList.Contains(name);
     }
 
-    public class IdentEventArgs : EventArgs
+    public sealed class IdentEventArgs : EventArgs
     {
         public IdentEventArgs(string ident)
         {
             Ident = ident;
         }
 
-        public string Ident { get; private set; }
+        public string Ident { get; }
     }
 }

@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Text;
 using ClientCore;
 using Rampastring.Tools;
 using lzo.net;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Memory;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -22,7 +24,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapIni">Map file.</param>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static Bitmap ExtractMapPreview(IniFile mapIni)
+        public static Image ExtractMapPreview(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
@@ -78,7 +80,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            Bitmap bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
+            Image bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
 
             if (errorMessage != null)
             {
@@ -132,9 +134,9 @@ namespace DTAClient.Domain.Multiplayer
                 errorMessage = null;
                 return dataDest;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered decompressing preview data. Message: " + e.Message;
+                errorMessage = "Error encountered decompressing preview data. Message: " + ex.Message;
                 return null;
             }
         }
@@ -147,9 +149,12 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
         /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
-        private static Bitmap CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
+        private static Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
         {
-            if (imageData.Length != width * height * 3)
+            const int pixelFormatBitCount = 24;
+            const int pixelFormatByteCount = pixelFormatBitCount / 8;
+
+            if (imageData.Length != width * height * pixelFormatByteCount)
             {
                 errorMessage = "Provided preview image dimensions do not match preview image data length.";
                 return null;
@@ -157,25 +162,22 @@ namespace DTAClient.Domain.Multiplayer
 
             try
             {
-                Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-                IntPtr scan0 = bitmapData.Scan0;
-                int strideWidth = Math.Abs(bitmapData.Stride);
-                int numSkipBytes = strideWidth - bitmapData.Width * 3;
-                byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
+                int strideWidth = (((width * pixelFormatBitCount) + 31) & ~31) >> 3;
+                int numSkipBytes = strideWidth - (width * pixelFormatByteCount);
+                byte[] bitmapPixelData = new byte[strideWidth * height];
                 int writtenBytes = 0;
                 int readBytes = 0;
 
-                for (int h = 0; h < bitmapData.Height; h++)
+                for (int h = 0; h < height; h++)
                 {
-                    for (int w = 0; w < bitmapData.Width; w++)
+                    for (int w = 0; w < width; w++)
                     {
                         // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
                         bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
                         bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
                         bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
-                        writtenBytes += 3;
-                        readBytes += 3;
+                        writtenBytes += pixelFormatByteCount;
+                        readBytes += pixelFormatByteCount;
                     }
 
                     // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
@@ -183,15 +185,37 @@ namespace DTAClient.Domain.Multiplayer
                     writtenBytes += numSkipBytes;
                 }
 
-                Marshal.Copy(bitmapPixelData, 0, scan0, bitmapPixelData.Length);
-                bitmap.UnlockBits(bitmapData);
-                errorMessage = null;
-                return bitmap;
+                // https://github.com/SixLabors/ImageSharp/blob/main/tests/ImageSharp.Tests/TestUtilities/ReferenceCodecs/SystemDrawingBridge.cs
+                var image = new Image<Bgr24>(width, height);
+                Configuration configuration = image.GetConfiguration();
+                Buffer2D<Bgr24> imageBuffer = image.Frames.RootFrame.PixelBuffer;
+                using IMemoryOwner<Bgr24> workBuffer = Configuration.Default.MemoryAllocator.Allocate<Bgr24>(width);
 
+                unsafe
+                {
+                    fixed (byte* sourcePtrBase = &bitmapPixelData[0])
+                    {
+                        fixed (Bgr24* destPtr = &workBuffer.Memory.Span[0])
+                        {
+                            for (int rowCount = 0; rowCount < height; rowCount++)
+                            {
+                                Span<Bgr24> row = imageBuffer.DangerousGetRowSpan(rowCount);
+                                byte* sourcePtr = sourcePtrBase + (strideWidth * rowCount);
+
+                                Buffer.MemoryCopy(sourcePtr, destPtr, strideWidth, strideWidth);
+                                PixelOperations<Bgr24>.Instance.FromBgr24(configuration, workBuffer.Memory.Span[..width], row);
+                            }
+                        }
+                    }
+                }
+
+                errorMessage = null;
+
+                return image;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered creating preview bitmap. Message: " + e.Message;
+                errorMessage = "Error encountered creating preview bitmap. Message: " + ex.Message;
                 return null;
             }
         }

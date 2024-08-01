@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ClientCore.Extensions;
+using System;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Input;
-using Localization;
 
 namespace ClientGUI
 {
@@ -105,7 +105,7 @@ namespace ClientGUI
             btnOK.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             btnOK.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnOK.Name = "btnOK";
-            btnOK.Text = "OK".L10N("UI:ClientGUI:ButtonOK");
+            btnOK.Text = "OK".L10N("Client:ClientGUI:ButtonOK");
             btnOK.LeftClick += BtnOK_LeftClick;
             btnOK.HotKey = Keys.Enter;
 
@@ -125,7 +125,7 @@ namespace ClientGUI
             btnYes.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             btnYes.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnYes.Name = "btnYes";
-            btnYes.Text = "Yes".L10N("UI:ClientGUI:ButtonYes");
+            btnYes.Text = "Yes".L10N("Client:ClientGUI:ButtonYes");
             btnYes.LeftClick += BtnYes_LeftClick;
             btnYes.HotKey = Keys.Y;
 
@@ -141,7 +141,7 @@ namespace ClientGUI
             btnNo.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             btnNo.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnNo.Name = "btnNo";
-            btnNo.Text = "No".L10N("UI:ClientGUI:ButtonNo");
+            btnNo.Text = "No".L10N("Client:ClientGUI:ButtonNo");
             btnNo.LeftClick += BtnNo_LeftClick;
             btnNo.HotKey = Keys.N;
 
@@ -160,7 +160,7 @@ namespace ClientGUI
             btnOK.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             btnOK.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnOK.Name = "btnOK";
-            btnOK.Text = "OK".L10N("UI:ClientGUI:ButtonOK");
+            btnOK.Text = "OK".L10N("Client:ClientGUI:ButtonOK");
             btnOK.LeftClick += BtnYes_LeftClick;
             btnOK.HotKey = Keys.Enter;
 
@@ -176,7 +176,7 @@ namespace ClientGUI
             btnCancel.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             btnCancel.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnCancel.Name = "btnCancel";
-            btnCancel.Text = "Cancel".L10N("UI:ClientGUI:ButtonCancel");
+            btnCancel.Text = "Cancel".L10N("Client:ClientGUI:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
             btnCancel.HotKey = Keys.C;
 

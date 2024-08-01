@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ClientCore;
 using ClientCore.Enums;
+using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
@@ -20,20 +20,20 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int GAME_REFRESH_RATE = 1;
         private const int ICON_MARGIN = 2;
         private const int FONT_INDEX = 0;
-        private const string LOADED_GAME_TEXT = " (Loaded Game)";
+        private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
 
-        public GameListBox(WindowManager windowManager,
-            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter)
+        public GameListBox(WindowManager windowManager, MapLoader mapLoader,
+            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
             : base(windowManager)
         {
-            HostedGames = new List<GenericHostedGame>();
+            this.mapLoader = mapLoader;
             this.localGameIdentifier = localGameIdentifier;
             GameMatchesFilter = gameMatchesFilter;
         }
 
         private int loadedGameTextWidth;
 
-        public List<GenericHostedGame> HostedGames;
+        public List<GenericHostedGame> HostedGames = new();
 
         public double GameLifetime { get; set; } = 35.0;
 
@@ -47,6 +47,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D txPasswordedGame;
 
         private string localGameIdentifier;
+
+        private MapLoader mapLoader;
 
         private GameInformationPanel panelGameInformation;
 
@@ -80,7 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             return referencedGame.Equals(listedGame);
         };
-        
+
         /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
@@ -88,7 +90,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var selectedItem = SelectedItem;
             var hoveredItem = HoveredItem;
-            
+
             Items.Clear();
 
             GetSortedAndFilteredGames()
@@ -129,7 +131,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
                     .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
                     .ThenBy(hg => hg.Passworded);
-            
+
             switch ((SortDirection)UserINISettings.Instance.SortState.Value)
             {
                 case SortDirection.Asc:
@@ -165,8 +167,8 @@ namespace DTAClient.DXGUI.Multiplayer
             txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
             txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
 
-            panelGameInformation = new GameInformationPanel(WindowManager);
-            panelGameInformation.Name = "panelGameInformation";
+            panelGameInformation = new GameInformationPanel(WindowManager, mapLoader);
+            panelGameInformation.Name = nameof(panelGameInformation);
             panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
             panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
             panelGameInformation.Initialize();

@@ -29,7 +29,9 @@ namespace ClientCore.Statistics
 
         public override void ReadStatistics(string gamePath)
         {
-            if (!File.Exists(gamePath + SCORE_FILE_PATH))
+            FileInfo scoreFileInfo = SafePath.GetFile(gamePath, SCORE_FILE_PATH);
+
+            if (!scoreFileInfo.Exists)
             {
                 Logger.Log("Skipping reading statistics because the file doesn't exist!");
                 return;
@@ -39,17 +41,18 @@ namespace ClientCore.Statistics
 
             Statistics.Clear();
 
-            bool resave = ReadFile(gamePath + OLD_SCORE_FILE_PATH);
-            bool resaveNew = ReadFile(gamePath + SCORE_FILE_PATH);
+            FileInfo oldScoreFileInfo = SafePath.GetFile(gamePath, OLD_SCORE_FILE_PATH);
+            bool resave = ReadFile(oldScoreFileInfo.FullName);
+            bool resaveNew = ReadFile(scoreFileInfo.FullName);
 
             PurgeStats();
 
             if (resave || resaveNew)
             {
-                if (File.Exists(gamePath + OLD_SCORE_FILE_PATH))
+                if (oldScoreFileInfo.Exists)
                 {
-                    File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client/dscore_old.dat");
-                    File.Delete(gamePath + OLD_SCORE_FILE_PATH);
+                    File.Copy(oldScoreFileInfo.FullName, SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "dscore_old.dat"));
+                    SafePath.DeleteFileIfExists(oldScoreFileInfo.FullName);
                 }
 
                 SaveDatabase();
@@ -104,7 +107,7 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Error reading statistics: " + ex.Message);
+                Logger.Log("Error reading statistics: " + ex.ToString());
             }
 
             return returnValue;
@@ -256,7 +259,7 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Reading the statistics file failed! Message: " + ex.Message);
+                Logger.Log("Reading the statistics file failed! Message: " + ex.ToString());
             }
         }
 
@@ -306,14 +309,16 @@ namespace ClientCore.Statistics
                 GameAdded?.Invoke(this, EventArgs.Empty);
             }
 
-            if (!File.Exists(ProgramConstants.GamePath + SCORE_FILE_PATH))
+            FileInfo scoreFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH);
+
+            if (!scoreFileInfo.Exists)
             {
                 CreateDummyFile();
             }
 
             Logger.Log("Writing game info to statistics file.");
 
-            using (FileStream fs = File.Open(ProgramConstants.GamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
                 fs.WriteInt(Statistics.Count);
@@ -329,9 +334,8 @@ namespace ClientCore.Statistics
         {
             Logger.Log("Creating empty statistics file.");
 
-            StreamWriter sw = new StreamWriter(File.Create(ProgramConstants.GamePath + SCORE_FILE_PATH));
+            using StreamWriter sw = new StreamWriter(SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH).Create());
             sw.Write(VERSION);
-            sw.Close();
         }
 
         /// <summary>
@@ -339,10 +343,11 @@ namespace ClientCore.Statistics
         /// </summary>
         public void SaveDatabase()
         {
-            File.Delete(ProgramConstants.GamePath + SCORE_FILE_PATH);
+            FileInfo scoreFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH);
+            SafePath.DeleteFileIfExists(scoreFileInfo.FullName);
             CreateDummyFile();
 
-            using (FileStream fs = File.Open(ProgramConstants.GamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
                 fs.WriteInt(Statistics.Count);
@@ -550,7 +555,7 @@ namespace ClientCore.Statistics
             // Filter out unfitting games
             foreach (MatchStatistics ms in Statistics)
             {
-                if (ms.SawCompletion && 
+                if (ms.SawCompletion &&
                     ms.IsValidForStar &&
                     ms.MapName == mapName &&
                     ms.Players.Count == requiredPlayerCount &&

@@ -1,0 +1,58 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RampastringXNAUIVersion>2.3.20</RampastringXNAUIVersion>
+    <DotnetLibrariesVersion>8.0.0</DotnetLibrariesVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="GitVersion.MsBuild" Version="5.11.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="DiscordRichPresence" Version="1.1.3.18" />
+    <PackageVersion Include="lzo.net" Version="0.0.6" />
+    <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotnetLibrariesVersion)" />
+    <PackageVersion Include="OpenMcdf" Version="2.2.1.12" />
+    <PackageVersion Include="Rampastring.Tools" Version="2.0.6" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsDX" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsGL" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.UniversalGL" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsXNA" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsDX.Debug" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsGL.Debug" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.UniversalGL.Debug" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="Rampastring.XNAUI.WindowsXNA.Debug" Version="$(RampastringXNAUIVersion)" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.7" />
+    <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
+    <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="$(DotnetLibrariesVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <!-- Polyfill -->
+  <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+    <GlobalPackageReference Include="Polyfill" Version="2.2.0" />
+    <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
+    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.Memory" Condition="$(TargetFrameworkIdentifier) == '.NETStandard' or $(TargetFrameworkIdentifier) == '.NETFramework' or $(TargetFramework.StartsWith('netcoreapp2'))" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Condition="$(TargetFramework) == 'netstandard2.0' or $(TargetFramework) == 'netcoreapp2.0' or $(TargetFrameworkIdentifier) == '.NETFramework'" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+  <!-- I don't know how to write it. but I think we should make a note at here. -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
+    <!-- This error is only raised when both .NET 4 and .NET 8 exists in TargetFrameworks: -->
+    <!-- <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> -->
+    <!-- and -p:Engine=WindowsDX -f net48 -->
+    <PackageReference Include="NETStandard.Library" />
+    <PackageVersion Include="NETStandard.Library" Version="2.0.3" />
+
+    <PackageReference Include="System.IO.FileSystem" />
+    <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
+  </ItemGroup>
+</Project>

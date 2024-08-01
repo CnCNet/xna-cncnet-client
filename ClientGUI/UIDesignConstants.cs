@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ClientGUI
+﻿namespace ClientGUI
 {
     /// <summary>
     /// Contains constants used in user interface design.

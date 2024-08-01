@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Localization;
+using ClientCore.Extensions;
 
 namespace ClientCore.CnCNet5
 {
@@ -16,16 +16,16 @@ namespace ClientCore.CnCNet5
             var profanityFilter = new ProfanityFilter();
 
             if (string.IsNullOrEmpty(name))
-                return "Please enter a name.".L10N("UI:ClientCore:EnterAName");
+                return "Please enter a name.".L10N("Client:ClientCore:EnterAName");
 
             if (profanityFilter.IsOffensive(name))
-                return "Please enter a name that is less offensive.".L10N("UI:ClientCore:NameOffensive");
+                return "Please enter a name that is less offensive.".L10N("Client:ClientCore:NameOffensive");
 
             if (int.TryParse(name.Substring(0, 1), out _))
-                return "The first character in the player name cannot be a number.".L10N("UI:ClientCore:NameFirstIsNumber");
+                return "The first character in the player name cannot be a number.".L10N("Client:ClientCore:NameFirstIsNumber");
 
             if (name[0] == '-')
-                return "The first character in the player name cannot be a dash ( - ).".L10N("UI:ClientCore:NameFirstIsDash");
+                return "The first character in the player name cannot be a dash ( - ).".L10N("Client:ClientCore:NameFirstIsDash");
 
             // Check that there are no invalid chars
             char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();
@@ -35,13 +35,13 @@ namespace ClientCore.CnCNet5
             {
                 if (!allowedCharacters.Contains(nickChar))
                 {
-                    return "Your player name has invalid characters in it.".L10N("UI:ClientCore:NameInvalidChar1") + Environment.NewLine +
-                    "Allowed characters are anything from A to Z and numbers.".L10N("UI:ClientCore:NameInvalidChar2");
+                    return "Your player name has invalid characters in it.".L10N("Client:ClientCore:NameInvalidChar1") + Environment.NewLine +
+                    "Allowed characters are anything from A to Z and numbers.".L10N("Client:ClientCore:NameInvalidChar2");
                 }
             }
 
             if (name.Length > ClientConfiguration.Instance.MaxNameLength)
-                return "Your nickname is too long.".L10N("UI:ClientCore:NameTooLong");
+                return "Your nickname is too long.".L10N("Client:ClientCore:NameTooLong");
 
             return null;
         }

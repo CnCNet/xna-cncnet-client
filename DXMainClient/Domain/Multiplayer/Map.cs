@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using Microsoft.Xna.Framework;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -8,8 +8,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
+using static System.Collections.Specialized.BitVector32;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -18,12 +22,14 @@ namespace DTAClient.Domain.Multiplayer
         public string TextureName;
         public Point Point;
         public int Level;
+        public bool Toggleable;
 
-        public ExtraMapPreviewTexture(string textureName, Point point, int level)
+        public ExtraMapPreviewTexture(string textureName, Point point, int level, bool toggleable)
         {
             TextureName = textureName;
             Point = point;
             Level = level;
+            Toggleable = toggleable;
         }
     }
 
@@ -34,29 +40,42 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public Map(string baseFilePath, string customMapFilePath = null)
+        [JsonConstructor]
+        public Map(string baseFilePath)
+            : this(baseFilePath, true)
+        {
+        }
+
+        public Map(string baseFilePath, bool isCustomMap)
         {
             BaseFilePath = baseFilePath;
-            this.customMapFilePath = customMapFilePath;
-            Official = string.IsNullOrEmpty(this.customMapFilePath);
+            customMapFilePath = isCustomMap
+                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}{MapLoader.MAP_FILE_EXTENSION}"))
+                : null;
+            Official = string.IsNullOrWhiteSpace(customMapFilePath);
         }
 
         /// <summary>
         /// The name of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Name { get; private set; }
+
+        /// <summary>
+        /// The original untranslated name of the map.
+        /// </summary>
+        public string UntranslatedName { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public int MaxPlayers { get; private set; }
 
         /// <summary>
         /// The minimum amount of players supported by the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public int MinPlayers { get; private set; }
 
         /// <summary>
@@ -64,14 +83,14 @@ namespace DTAClient.Domain.Multiplayer
         /// If false (which is the default), MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool EnforceMaxPlayers { get; private set; }
 
         /// <summary>
         /// Controls if the map is meant for a co-operation game mode
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool IsCoop { get; private set; }
 
         /// <summary>
@@ -84,19 +103,19 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Contains co-op information.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public CoopMapInfo CoopInfo { get; private set; }
 
         /// <summary>
         /// The briefing of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Briefing { get; private set; }
 
         /// <summary>
         /// The author of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Author { get; private set; }
 
         /// <summary>
@@ -108,108 +127,121 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The path to the map file.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string BaseFilePath { get; private set; }
 
         /// <summary>
         /// Returns the complete path to the map file.
         /// Includes the game directory in the path.
         /// </summary>
-        public string CompleteFilePath => ProgramConstants.GamePath + BaseFilePath + ".map";
+        [JsonIgnore]
+        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
 
         /// <summary>
         /// The file name of the preview image.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string PreviewPath { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played on Skirmish.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played with AI players.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool HumanPlayersOnly { get; private set; }
 
         /// <summary>
         /// If set, players are forced to random starting locations on this map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool ForceRandomStartLocations { get; private set; }
 
         /// <summary>
         /// If set, players are forced to different teams on this map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool ForceNoTeams { get; private set; }
 
         /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
         /// embedded into this map's INI code when a game is started.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string ExtraININame { get; private set; }
 
         /// <summary>
         /// The game modes that the map is listed for.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string[] GameModes;
 
         /// <summary>
         /// The forced UnitCount for the map. -1 means none.
         /// </summary>
-        [JsonProperty]
-        int UnitCount = -1;
+        [JsonInclude]
+        public int UnitCount = -1;
 
         /// <summary>
         /// The forced starting credits for the map. -1 means none.
         /// </summary>
-        [JsonProperty]
-        int Credits = -1;
+        [JsonInclude]
+        public int Credits = -1;
 
-        [JsonProperty]
-        int NeutralHouseColor = -1;
+        [JsonInclude]
+        public int NeutralHouseColor = -1;
 
-        [JsonProperty]
-        int SpecialHouseColor = -1;
+        [JsonInclude]
+        public int SpecialHouseColor = -1;
 
-        [JsonProperty]
-        int Bases = -1;
+        [JsonInclude]
+        public int Bases = -1;
 
-        [JsonProperty]
-        string[] localSize;
+        [JsonInclude]
+        public string[] localSize;
 
-        [JsonProperty]
-        string[] actualSize;
+        [JsonInclude]
+        public string[] actualSize;
 
+        [JsonInclude]
+        public int x;
+
+        [JsonInclude]
+        public int y;
+
+        [JsonInclude]
+        public int width;
+
+        [JsonInclude]
+        public int height;
+
+        [JsonIgnore]
         private IniFile customMapIni;
 
-        [JsonProperty]
-        private string customMapFilePath;
+        [JsonIgnore]
+        private readonly string customMapFilePath;
 
-        [JsonProperty]
-        List<string> waypoints = new List<string>();
+        [JsonInclude]
+        public List<string> waypoints = new List<string>();
 
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
-        [JsonProperty]
-        List<Point> startingLocations;
+        [JsonInclude]
+        public List<Point> startingLocations;
 
-        [JsonProperty]
+        [JsonInclude]
         public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
 
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
+        [JsonIgnore]
         public Texture2D PreviewTexture { get; set; }
-
-        private bool extractCustomPreview = true;
 
         public void CalculateSHA()
         {
@@ -219,25 +251,28 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// If false, the preview shouldn't be extracted for this (custom) map.
         /// </summary>
-        public bool ExtractCustomPreview
-        {
-            get { return extractCustomPreview; }
-            set { extractCustomPreview = value; }
-        }
+        [JsonInclude]
+        public bool ExtractCustomPreview { get; set; } = true;
 
+        [JsonInclude]
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+
+        [JsonInclude]
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
 
+        [JsonIgnore]
         private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+
         public List<ExtraMapPreviewTexture> GetExtraMapPreviewTextures() => extraTextures;
 
+        [JsonIgnore]
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
 
         /// <summary>
         /// This is used to load a map from the MPMaps.ini (default name) file.
         /// </summary>
-        /// <param name="iniFile"></param>
-        /// <returns></returns>
+        /// <param name="iniFile">The configuration file for the multiplayer maps.</param>
+        /// <returns>True if loading the map succeeded, otherwise false.</returns>
         public bool SetInfoFromMpMapsINI(IniFile iniFile)
         {
             try
@@ -249,16 +284,24 @@ namespace DTAClient.Domain.Multiplayer
 
                 var section = iniFile.GetSection(BaseFilePath);
 
-                Name = section.GetStringValue("Description", "Unnamed map");
+                UntranslatedName = section.GetStringValue("Description", "Unnamed map");
+                Name = UntranslatedName
+                    .L10N($"INI:Maps:{BaseFilePath}:Description");
+
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
-                    section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
-                Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
+
+                FileInfo mapFile = SafePath.GetFile(BaseFilePath);
+                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+
+                Briefing = section.GetStringValue("Briefing", string.Empty)
+                    .FromIniString()
+                    .L10N($"INI:Maps:{BaseFilePath}:Briefing");
+
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
@@ -280,9 +323,9 @@ namespace DTAClient.Domain.Multiplayer
                 while (true)
                 {
                     // Format example:
-                    // ExtraTexture0=oilderrick.png,200,150,1
-                    // Last value is map cell level and is optional, defaults to 0 if unspecified.
-
+                    // ExtraTexture0=oilderrick.png,200,150,1,false
+                    // Third value is optional map cell level, defaults to 0 if unspecified.
+                    // Fourth value is optional boolean value that determines if the texture can be toggled on / off.
                     string value = section.GetStringValue("ExtraTexture" + i, null);
 
                     if (string.IsNullOrWhiteSpace(value))
@@ -290,7 +333,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     string[] parts = value.Split(',');
 
-                    if (parts.Length < 3 || parts.Length > 4)
+                    if (parts.Length is < 3 or > 5)
                     {
                         Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
                         continue;
@@ -300,11 +343,15 @@ namespace DTAClient.Domain.Multiplayer
                     success &= int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int y);
 
                     int level = 0;
+                    bool toggleable = false;
 
                     if (parts.Length > 3)
                         int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out level);
 
-                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y), level));
+                    if (parts.Length > 4)
+                        toggleable = Conversions.BooleanFromString(parts[4], false);
+
+                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y), level, toggleable));
 
                     i++;
                 }
@@ -316,36 +363,47 @@ namespace DTAClient.Domain.Multiplayer
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string sideIndex in disallowedSides)
-                        CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex));
+                        CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex, CultureInfo.InvariantCulture));
 
                     string[] disallowedColors = section.GetStringValue("DisallowedPlayerColors", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string colorIndex in disallowedColors)
-                        CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
+                        CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex, CultureInfo.InvariantCulture));
 
                     CoopInfo.SetHouseInfos(section);
                 }
 
-                localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
-                actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
+                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                {
+                    localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
+                    actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
+                }
+                else
+                {
+                    x = section.GetIntValue("X", 0);
+                    y = section.GetIntValue("Y", 0);
+                    width = section.GetIntValue("Width", 0);
+                    height = section.GetIntValue("Height", 0);
+                }
 
                 for (i = 0; i < MAX_PLAYERS; i++)
                 {
                     string waypoint = section.GetStringValue("Waypoint" + i, string.Empty);
 
-                    if (String.IsNullOrEmpty(waypoint))
+                    if (string.IsNullOrEmpty(waypoint))
                         break;
 
                     waypoints.Add(waypoint);
                 }
 
                 GetTeamStartMappingPresets(section);
+#if !GL
 
-#if !WINDOWSGL
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
 #endif
+
                 // Parse forced options
 
                 string forcedOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
@@ -370,7 +428,8 @@ namespace DTAClient.Domain.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
+                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.ToString());
+                PreStartup.LogException(ex);
                 return false;
             }
         }
@@ -396,9 +455,9 @@ namespace DTAClient.Domain.Multiplayer
                         TeamStartMappings = TeamStartMapping.FromListString(teamStartMappingPreset)
                     });
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {ex.Message}");
                     TeamStartMappingPresets = new List<TeamStartMappingPreset>();
                 }
             }
@@ -412,7 +471,10 @@ namespace DTAClient.Domain.Multiplayer
 
                 foreach (string waypoint in waypoints)
                 {
-                    startingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSize));
+                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
+                    else
+                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
                 }
             }
 
@@ -421,19 +483,23 @@ namespace DTAClient.Domain.Multiplayer
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
         {
-            return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
+            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
+
+            return GetTDRACellPixelCoord(mapPoint.X, mapPoint.Y, x, y, width, height, previewSize);
         }
 
         /// <summary>
         /// Due to caching, this may not have been loaded on application start.
         /// This function provides the ability to load when needed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns the loaded INI file of a custom map.</returns>
         private IniFile GetCustomMapIniFile()
         {
-            if (customMapIni != null) return customMapIni;
+            if (customMapIni != null)
+                return customMapIni;
 
-            customMapIni = new IniFile { FileName = customMapFilePath };
+            customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
@@ -460,9 +526,9 @@ namespace DTAClient.Domain.Multiplayer
             {
                 IniFile iniFile = GetCustomMapIniFile();
 
-                var basicSection = iniFile.GetSection("Basic");
+                IniSection basicSection = iniFile.GetSection("Basic");
 
-                Name = basicSection.GetStringValue("Name", "Unnamed map");
+                UntranslatedName = Name = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
 
                 string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);
@@ -478,7 +544,7 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + customMapFilePath + " has no game modes!");
                     return false;
                 }
-                
+
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
@@ -491,9 +557,8 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
-                //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
-                Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
+                Briefing = basicSection.GetStringValue("Briefing", string.Empty)
+                    .FromIniString();
                 CalculateSHA();
                 IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
                 Credits = basicSection.GetIntValue("Credits", -1);
@@ -503,7 +568,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(customMapFilePath.Substring(ProgramConstants.GamePath.Length), ".png");
+                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -519,13 +584,13 @@ namespace DTAClient.Domain.Multiplayer
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string sideIndex in disallowedSides)
-                        CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex));
+                        CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex, CultureInfo.InvariantCulture));
 
                     string[] disallowedColors = iniFile.GetStringValue("Basic", "DisallowedPlayerColors", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string colorIndex in disallowedColors)
-                        CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
+                        CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex, CultureInfo.InvariantCulture));
 
                     CoopInfo.SetHouseInfos(basicSection);
                 }
@@ -533,16 +598,29 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                 actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
+                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                {
+                    localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
+                    actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
+                }
+                else
+                {
+                    x = iniFile.GetIntValue("Map", "X", 0);
+                    y = iniFile.GetIntValue("Map", "Y", 0);
+                    width = iniFile.GetIntValue("Map", "Width", 0);
+                    height = iniFile.GetIntValue("Map", "Height", 0);
+                }
+
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
-                    string waypoint = GetCustomMapIniFile().GetStringValue("Waypoints", i.ToString(), string.Empty);
+                    string waypoint = GetCustomMapIniFile().GetStringValue("Waypoints", i.ToString(CultureInfo.InvariantCulture), string.Empty);
 
                     if (string.IsNullOrEmpty(waypoint))
                         break;
 
                     waypoints.Add(waypoint);
                 }
-                
+
                 GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
@@ -557,6 +635,13 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        // Ran after the map has been loaded from cache if it is a custom map.
+        public void AfterDeserialize()
+        {
+            CalculateSHA();
+            UntranslatedName = Name;
+        }
+
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
         {
             List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
@@ -569,10 +654,9 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in keys)
             {
-                string value = iniFile.GetStringValue(forcedOptionsSection, key, String.Empty);
+                string value = iniFile.GetStringValue(forcedOptionsSection, key, string.Empty);
 
-                int intValue = 0;
-                if (Int32.TryParse(value, out intValue))
+                if (int.TryParse(value, out int intValue))
                 {
                     ForcedDropDownValues.Add(new KeyValuePair<string, int>(key, intValue));
                 }
@@ -589,8 +673,8 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
-                    forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, String.Empty)));
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key,
+                    forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, string.Empty)));
             }
         }
 
@@ -599,13 +683,13 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public Texture2D LoadPreviewTexture()
         {
-            if (File.Exists(ProgramConstants.GamePath + PreviewPath))
+            if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
                 return AssetLoader.LoadTextureUncached(PreviewPath);
 
             if (!Official)
             {
                 // Extract preview from the map itself
-                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
 
                 if (preview != null)
                 {
@@ -624,14 +708,14 @@ namespace DTAClient.Domain.Multiplayer
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/" + ExtraININame);
+                var extraIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame));
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 
             return mapIni;
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 
+        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount,
             int aiPlayerCount, int coopDifficultyLevel)
         {
             foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
@@ -704,8 +788,8 @@ namespace DTAClient.Domain.Multiplayer
                     }
                 }
 
-                spawnIni.SetIntValue("Settings", "AIPlayers", aiPlayerCount +
-                    allyHouses.Count + enemyHouses.Count);
+                spawnIni.SetIntValue("Settings", "AIPlayers",
+                    aiPlayerCount + allyHouses.Count + enemyHouses.Count);
 
                 neutralHouseIndex += allyHouses.Count + enemyHouses.Count;
                 specialHouseIndex += allyHouses.Count + enemyHouses.Count;
@@ -739,24 +823,60 @@ namespace DTAClient.Domain.Multiplayer
 
         public string GetSizeString()
         {
-            if (actualSize == null || actualSize.Length < 4)
-                return "Not available";
-            return actualSize[2] + "x" + actualSize[3];
+            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            {
+                if (actualSize == null || actualSize.Length < 4)
+                    return "Not available";
+
+                return actualSize[2] + "x" + actualSize[3];
+            }
+            else
+            {
+                return width + "x" + height;
+            }
+        }
+
+        private static Point GetTDRAWaypointCoords(string waypoint, int x, int y, int width, int height, Point previewSizePoint)
+        {
+            int waypointCoordsInt = Conversions.IntFromString(waypoint, -1);
+
+            if (waypointCoordsInt < 0)
+                return new Point(0, 0);
+
+            // https://modenc.renegadeprojects.com/Waypoints
+            int waypointX = waypointCoordsInt % MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
+            int waypointY = waypointCoordsInt / MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
+
+            return GetTDRACellPixelCoord(waypointX, waypointY, x, y, width, height, previewSizePoint);
+        }
+
+        private static Point GetTDRACellPixelCoord(int cellX, int cellY, int x, int y, int width, int height, Point previewSizePoint)
+        {
+            int rx = cellX - x;
+            int ry = cellY - y;
+
+            double ratioX = rx / (double)width;
+            double ratioY = ry / (double)height;
+
+            int pixelX = (int)(ratioX * previewSizePoint.X);
+            int pixelY = (int)(ratioY * previewSizePoint.Y);
+
+            return new Point(pixelX, pixelY);
         }
 
         /// <summary>
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
         /// <returns>The waypoint's location on the map preview as a point.</returns>
-        private static Point GetWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
+        private static Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
             Point previewSizePoint)
         {
             string[] parts = waypoint.Split(',');
 
             int xCoordIndex = parts[0].Length - 3;
 
-            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex));
-            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex));
+            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex), CultureInfo.InvariantCulture);
+            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex), CultureInfo.InvariantCulture);
 
             int level = 0;
 
@@ -768,18 +888,18 @@ namespace DTAClient.Domain.Multiplayer
 
         private static Point GetIsoTilePixelCoord(int isoTileX, int isoTileY, string[] actualSizeValues, string[] localSizeValues, Point previewSizePoint, int level)
         {
-            int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2]) - 1;
-            int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2]) - 1;
+            int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
+            int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
 
             int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
             int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2 - level * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
-            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * MainClientConstants.MAP_CELL_SIZE_X);
-            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * MainClientConstants.MAP_CELL_SIZE_Y);
+            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X);
+            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y);
 
             // Calculate map size
-            int mapSizeX = Convert.ToInt32(localSizeValues[2]) * MainClientConstants.MAP_CELL_SIZE_X;
-            int mapSizeY = Convert.ToInt32(localSizeValues[3]) * MainClientConstants.MAP_CELL_SIZE_Y;
+            int mapSizeX = Convert.ToInt32(localSizeValues[2], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X;
+            int mapSizeY = Convert.ToInt32(localSizeValues[3], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y;
 
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;
@@ -792,6 +912,6 @@ namespace DTAClient.Domain.Multiplayer
 
         protected bool Equals(Map other) => string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
 
-        public override int GetHashCode() => (SHA1 != null ? SHA1.GetHashCode() : 0);
+        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : 0;
     }
 }

@@ -1,11 +1,7 @@
-﻿using ClientCore;
-using Rampastring.Tools;
-using System;
-using System.Collections.Generic;
+﻿using Rampastring.Tools;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ClientCore.INIProcessing
 {
@@ -37,14 +33,16 @@ namespace ClientCore.INIProcessing
 
         public void Run()
         {
-            task = Task.Factory.StartNew(() => CheckFiles());
+            task = Task.Factory.StartNew(CheckFiles);
         }
 
-        private void CheckFiles()
+        private static void CheckFiles()
         {
             Logger.Log("Starting background processing of INI files.");
 
-            if (!Directory.Exists(ProgramConstants.GamePath + "INI/Base"))
+            DirectoryInfo iniFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Base");
+
+            if (!iniFolder.Exists)
             {
                 Logger.Log("/INI/Base does not exist, skipping background processing of INI files.");
                 return;
@@ -55,30 +53,29 @@ namespace ClientCore.INIProcessing
 
             IniPreprocessor processor = new IniPreprocessor();
 
-            string[] iniFiles = Directory.GetFiles(ProgramConstants.GamePath + "INI/Base", "*.ini", SearchOption.TopDirectoryOnly);
-            iniFiles = Array.ConvertAll(iniFiles, s => Path.GetFileName(s));
+            IEnumerable<FileInfo> iniFiles = iniFolder.EnumerateFiles("*.ini", SearchOption.TopDirectoryOnly);
 
             int processedCount = 0;
 
-            foreach (string fileName in iniFiles)
+            foreach (FileInfo iniFile in iniFiles)
             {
-                if (!infoStore.IsIniUpToDate(fileName))
+                if (!infoStore.IsIniUpToDate(iniFile.Name))
                 {
-                    Logger.Log("INI file " + fileName + " is not processed or outdated, re-processing it.");
+                    Logger.Log("INI file " + iniFile.Name + " is not processed or outdated, re-processing it.");
 
-                    string sourcePath = $"{ProgramConstants.GamePath}INI/Base/{fileName}";
-                    string destinationPath = $"{ProgramConstants.GamePath}INI/{fileName}";
+                    string sourcePath = iniFile.FullName;
+                    string destinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", iniFile.Name);
 
                     processor.ProcessIni(sourcePath, destinationPath);
 
                     string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
                     string destinationHash = Utilities.CalculateSHA1ForFile(destinationPath);
-                    infoStore.UpsertRecord(fileName, sourceHash, destinationHash);
+                    infoStore.UpsertRecord(iniFile.Name, sourceHash, destinationHash);
                     processedCount++;
                 }
                 else
                 {
-                    Logger.Log("INI file " + fileName + " is up to date.");
+                    Logger.Log("INI file " + iniFile.Name + " is up to date.");
                 }
             }
 

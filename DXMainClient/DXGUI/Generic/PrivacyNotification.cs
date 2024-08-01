@@ -1,10 +1,9 @@
 ﻿using ClientCore;
 using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -36,7 +35,7 @@ namespace DTAClient.DXGUI.Generic
             lblMoreInformation.Name = nameof(lblMoreInformation);
             lblMoreInformation.X = lblDescription.X;
             lblMoreInformation.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
-            lblMoreInformation.Text = "More information:".L10N("UI:Main:TOSMoreInfo")+ " ";
+            lblMoreInformation.Text = "More information:".L10N("Client:Main:TOSMoreInfo")+ " ";
             AddChild(lblMoreInformation);
 
             var lblTermsAndConditions = new XNALinkLabel(WindowManager);
@@ -44,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.X = lblMoreInformation.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblTermsAndConditions.Y = lblMoreInformation.Y;
             lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
-            lblTermsAndConditions.LeftClick += (s, e) => Process.Start(lblTermsAndConditions.Text);
+            lblTermsAndConditions.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblTermsAndConditions.Text);
             AddChild(lblTermsAndConditions);
 
             var lblPrivacyPolicy = new XNALinkLabel(WindowManager);
@@ -52,7 +51,7 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.X = lblTermsAndConditions.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblPrivacyPolicy.Y = lblMoreInformation.Y;
             lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
-            lblPrivacyPolicy.LeftClick += (s, e) => Process.Start(lblPrivacyPolicy.Text);
+            lblPrivacyPolicy.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblPrivacyPolicy.Text);
             AddChild(lblPrivacyPolicy);
 
             var lblExplanation = new XNALabel(WindowManager);
@@ -68,7 +67,7 @@ namespace DTAClient.DXGUI.Generic
             btnOK.Width = 75;
             btnOK.Y = lblExplanation.Y;
             btnOK.X = WindowManager.RenderResolutionX - btnOK.Width - UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
-            btnOK.Text = "Got it".L10N("UI:Main:TOSButtonOK");
+            btnOK.Text = "Got it".L10N("Client:Main:TOSButtonOK");
             AddChild(btnOK);
             btnOK.LeftClick += (s, e) => 
             {

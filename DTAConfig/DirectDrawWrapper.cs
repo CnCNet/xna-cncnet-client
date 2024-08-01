@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace DTAConfig
 {
@@ -59,10 +58,10 @@ namespace DTAConfig
 
         public bool Hidden { get; private set; }
 
-		/// <summary>
-		/// Many ddraw wrappers need qres.dat to set the desktop to 16 bit mode
-		/// </summary>
-		public bool UseQres { get; private set; } = true;
+        /// <summary>
+        /// Many ddraw wrappers need qres.dat to set the desktop to 16 bit mode
+        /// </summary>
+        public bool UseQres { get; private set; } = true;
 
         /// <summary>
         /// If set to false, the client won't set single-core affinity
@@ -91,7 +90,7 @@ namespace DTAConfig
                 Logger.Log("DirectDrawWrapper: Configuration for renderer '" + InternalName + "' not found!");
                 return;
             }
-                
+
             UIName = section.GetStringValue("UIName", "Unnamed renderer");
 
             if (section.GetBooleanValue("IsDxWnd", false))
@@ -134,17 +133,17 @@ namespace DTAConfig
                 disallowedOSList.Add(disallowedOS);
             }
 
-            if (!string.IsNullOrEmpty(ddrawDLLPath) && 
-                !File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
+            if (!string.IsNullOrEmpty(ddrawDLLPath) &&
+                !SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), ddrawDLLPath).Exists)
                 Logger.Log("DirectDrawWrapper: File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
 
             if (!string.IsNullOrEmpty(resConfigFileName) &&
-                !File.Exists(ProgramConstants.GetBaseResourcePath() + resConfigFileName))
+                !SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), resConfigFileName).Exists)
                 Logger.Log("DirectDrawWrapper: File specified in ConfigFileName= for renderer '" + InternalName + "' does not exist!");
 
             foreach (var file in filesToCopy)
             {
-                if (!File.Exists(ProgramConstants.GetBaseResourcePath() + file))
+                if (!SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), file).Exists)
                     Logger.Log("DirectDrawWrapper: Additional file '" + file + "' for renderer '" + InternalName + "' does not exist!");
             }
         }
@@ -166,24 +165,21 @@ namespace DTAConfig
         {
             if (!string.IsNullOrEmpty(ddrawDLLPath))
             {
-                File.Copy(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
-                    ProgramConstants.GamePath + "ddraw.dll", true);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ddrawDLLPath), SafePath.CombineFilePath(ProgramConstants.GamePath, "ddraw.dll"), true);
             }
             else
-                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
+                File.Delete(SafePath.CombineFilePath(ProgramConstants.GamePath, "ddraw.dll"));
 
 
             if (!string.IsNullOrEmpty(ConfigFileName) && !string.IsNullOrEmpty(resConfigFileName)
-                && !File.Exists(ProgramConstants.GamePath + ConfigFileName)) // Do not overwrite settings
+                && !SafePath.GetFile(ProgramConstants.GamePath, ConfigFileName).Exists) // Do not overwrite settings
             {
-                File.Copy(ProgramConstants.GetBaseResourcePath() + resConfigFileName,
-                    ProgramConstants.GamePath + Path.GetFileName(ConfigFileName));
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), resConfigFileName), SafePath.CombineFilePath(ProgramConstants.GamePath, Path.GetFileName(ConfigFileName)));
             }
 
             foreach (var file in filesToCopy)
             {
-                File.Copy(ProgramConstants.GetBaseResourcePath() + file,
-                    ProgramConstants.GamePath + Path.GetFileName(file), true);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), file), SafePath.CombineFilePath(ProgramConstants.GamePath, Path.GetFileName(file)), true);
             }
         }
 
@@ -193,10 +189,10 @@ namespace DTAConfig
         public void Clean()
         {
             if (!string.IsNullOrEmpty(ConfigFileName))
-                File.Delete(ProgramConstants.GamePath + Path.GetFileName(ConfigFileName));
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, Path.GetFileName(ConfigFileName));
 
             foreach (var file in filesToCopy)
-                File.Delete(ProgramConstants.GamePath + Path.GetFileName(file));
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, Path.GetFileName(file));
         }
 
         /// <summary>
@@ -205,7 +201,7 @@ namespace DTAConfig
         /// </summary>
         public bool UsesCustomWindowedOption()
         {
-            return !string.IsNullOrEmpty(WindowedModeSection) && 
+            return !string.IsNullOrEmpty(WindowedModeSection) &&
                 !string.IsNullOrEmpty(WindowedModeKey);
         }
     }

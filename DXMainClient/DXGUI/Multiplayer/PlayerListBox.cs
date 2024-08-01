@@ -1,15 +1,16 @@
 ﻿using ClientCore.CnCNet5;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
+using System.Reflection;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -36,8 +37,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Users = new List<ChannelUser>();
 
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
@@ -124,7 +129,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 */
 
                 // Player Name
-                string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix") : user.IRCUser.Name;
+                string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("Client:Main:AdminSuffix") : user.IRCUser.Name;
                 x += lbItem.TextXPadding;
 
                 DrawStringWithShadow(name, FontIndex,
@@ -146,7 +151,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (user.IsAdmin)
             {
-                item.Text = user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix");
+                item.Text = user.IRCUser.Name + " " + "(Admin)".L10N("Client:Main:AdminSuffix");
                 item.TextColor = Color.Red;
                 item.Texture = adminGameIcon;
             }

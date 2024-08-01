@@ -1,11 +1,10 @@
-﻿using ClientCore;
+﻿using ClientCore.Extensions;
+using ClientCore;
 using ClientGUI;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
 
 namespace DTAConfig.OptionPanels
 {
@@ -41,12 +40,12 @@ namespace DTAConfig.OptionPanels
             var lblScoreVolume = new XNALabel(WindowManager);
             lblScoreVolume.Name = "lblScoreVolume";
             lblScoreVolume.ClientRectangle = new Rectangle(12, 14, 0, 0);
-            lblScoreVolume.Text = "Music Volume:".L10N("UI:DTAConfig:MusicVolume");
+            lblScoreVolume.Text = "Music Volume:".L10N("Client:DTAConfig:MusicVolume");
 
             lblScoreVolumeValue = new XNALabel(WindowManager);
             lblScoreVolumeValue.Name = "lblScoreVolumeValue";
             lblScoreVolumeValue.FontIndex = 1;
-            lblScoreVolumeValue.Text = "10";
+            lblScoreVolumeValue.Text = "0";
             lblScoreVolumeValue.ClientRectangle = new Rectangle(
                 Width - lblScoreVolumeValue.Width - 12,
                 lblScoreVolume.Y, 0, 0);
@@ -67,12 +66,12 @@ namespace DTAConfig.OptionPanels
             lblSoundVolume.Name = "lblSoundVolume";
             lblSoundVolume.ClientRectangle = new Rectangle(lblScoreVolume.X,
                 lblScoreVolume.Bottom + 20, 0, 0);
-            lblSoundVolume.Text = "Sound Volume:".L10N("UI:DTAConfig:SoundVolume");
+            lblSoundVolume.Text = "Sound Volume:".L10N("Client:DTAConfig:SoundVolume");
 
             lblSoundVolumeValue = new XNALabel(WindowManager);
             lblSoundVolumeValue.Name = "lblSoundVolumeValue";
             lblSoundVolumeValue.FontIndex = 1;
-            lblSoundVolumeValue.Text = "10";
+            lblSoundVolumeValue.Text = "0";
             lblSoundVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblSoundVolume.Y, 0, 0);
@@ -93,12 +92,12 @@ namespace DTAConfig.OptionPanels
             lblVoiceVolume.Name = "lblVoiceVolume";
             lblVoiceVolume.ClientRectangle = new Rectangle(lblScoreVolume.X,
                 lblSoundVolume.Bottom + 20, 0, 0);
-            lblVoiceVolume.Text = "Voice Volume:".L10N("UI:DTAConfig:VoiceVolume");
+            lblVoiceVolume.Text = "Voice Volume:".L10N("Client:DTAConfig:VoiceVolume");
 
             lblVoiceVolumeValue = new XNALabel(WindowManager);
             lblVoiceVolumeValue.Name = "lblVoiceVolumeValue";
             lblVoiceVolumeValue.FontIndex = 1;
-            lblVoiceVolumeValue.Text = "10";
+            lblVoiceVolumeValue.Text = "0";
             lblVoiceVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblVoiceVolume.Y, 0, 0);
@@ -120,18 +119,18 @@ namespace DTAConfig.OptionPanels
             chkScoreShuffle.ClientRectangle = new Rectangle(
                 lblScoreVolume.X,
                 trbVoiceVolume.Bottom + 12, 0, 0);
-            chkScoreShuffle.Text = "Shuffle Music".L10N("UI:DTAConfig:ShuffleMusic");
+            chkScoreShuffle.Text = "Shuffle Music".L10N("Client:DTAConfig:ShuffleMusic");
 
             var lblClientVolume = new XNALabel(WindowManager);
             lblClientVolume.Name = "lblClientVolume";
             lblClientVolume.ClientRectangle = new Rectangle(lblScoreVolume.X,
                 chkScoreShuffle.Bottom + 40, 0, 0);
-            lblClientVolume.Text = "Client Volume:".L10N("UI:DTAConfig:ClientVolume");
+            lblClientVolume.Text = "Client Volume:".L10N("Client:DTAConfig:ClientVolume");
 
             lblClientVolumeValue = new XNALabel(WindowManager);
             lblClientVolumeValue.Name = "lblClientVolumeValue";
             lblClientVolumeValue.FontIndex = 1;
-            lblClientVolumeValue.Text = "10";
+            lblClientVolumeValue.Text = "0";
             lblClientVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblClientVolume.Y, 0, 0);
@@ -153,14 +152,14 @@ namespace DTAConfig.OptionPanels
             chkMainMenuMusic.ClientRectangle = new Rectangle(
                 lblScoreVolume.X,
                 trbClientVolume.Bottom + 12, 0, 0);
-            chkMainMenuMusic.Text = "Main menu music".L10N("UI:DTAConfig:MainMenuMusic");
+            chkMainMenuMusic.Text = "Main menu music".L10N("Client:DTAConfig:MainMenuMusic");
             chkMainMenuMusic.CheckedChanged += ChkMainMenuMusic_CheckedChanged;
 
             chkStopMusicOnMenu = new XNAClientCheckBox(WindowManager);
             chkStopMusicOnMenu.Name = "chkStopMusicOnMenu";
             chkStopMusicOnMenu.ClientRectangle = new Rectangle(
                 lblScoreVolume.X, chkMainMenuMusic.Bottom + 24, 0, 0);
-            chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies".L10N("UI:DTAConfig:NoLobbiesMusic");
+            chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies".L10N("Client:DTAConfig:NoLobbiesMusic");
 
             AddChild(lblScoreVolume);
             AddChild(lblScoreVolumeValue);
@@ -234,7 +233,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / 10.0;
-            
+
             IniSettings.IsScoreShuffle.Value = chkScoreShuffle.Checked;
 
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;

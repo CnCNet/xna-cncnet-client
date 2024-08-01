@@ -73,6 +73,8 @@ namespace DTAClient.Online
 
         bool GetDisconnectStatus();
 
+        void OnServerLatencyTested(int candidateCount, int closerCount);
+
         //public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         //public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         //public EventHandler<UserAwayEventArgs> AwayMessageReceived;
