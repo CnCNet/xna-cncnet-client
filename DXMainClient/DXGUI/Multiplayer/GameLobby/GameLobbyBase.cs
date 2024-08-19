@@ -468,7 +468,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var playerExtraOptions = PlayerExtraOptions.FromMessage(message);
 
-            if (PlayerExtraOptionsPanel is not null)
+            if (PlayerExtraOptionsPanel != null)
             {
                 if (playerExtraOptions.IsForceRandomSides != PlayerExtraOptionsPanel.IsForcedRandomSides())
                     AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomSides, "side selection".L10N("Client:Main:SideAsANoun"));
