@@ -82,9 +82,21 @@ namespace DTAConfig.OptionPanels
 
             var clientConfig = ClientConfiguration.Instance;
 
+            int maximumIngameWidth = clientConfig.MaximumIngameWidth;
+            int maximumIngameHeight = clientConfig.MaximumIngameHeight;
+
+#if XNA
+            // We do not enable HiDef on XNA builds. Therefore, drop resolutions larger than 3840x3840.
+            // Refer to GameClass constructor for more details
+            if (maximumIngameWidth > 3840)
+                maximumIngameWidth = 3840;
+            if (maximumIngameHeight > 3840)
+                maximumIngameHeight = 3840;
+#endif
+
             var resolutions = GetResolutions(clientConfig.MinimumIngameWidth,
                 clientConfig.MinimumIngameHeight,
-                clientConfig.MaximumIngameWidth, clientConfig.MaximumIngameHeight);
+                maximumIngameWidth, maximumIngameHeight);
 
             resolutions.Sort();
 
@@ -176,10 +188,18 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("Client:DTAConfig:Recommended");
 
-            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            int desktopWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int desktopHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+#if XNA
+            // We do not enable HiDef on XNA builds. Therefore, drop resolutions larger than 3840x3840.
+            // Refer to GameClass constructor for more details
+            if (desktopWidth > 3840)
+                desktopWidth = 3840;
+            if (desktopHeight > 3840)
+                desktopHeight = 3840;
+#endif
 
-            resolutions = GetResolutions(800, 600, width, height);
+            resolutions = GetResolutions(800, 600, desktopWidth, desktopHeight);
 
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode

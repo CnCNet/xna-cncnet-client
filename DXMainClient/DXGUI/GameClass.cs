@@ -46,6 +46,16 @@ namespace DTAClient.DXGUI
             graphics.SynchronizeWithVerticalRetrace = false;
 #if !XNA
             graphics.HardwareModeSwitch = false;
+
+            // Enable HiDef on a large monitor.
+            // The default graphic profile supports resolution up to 4096x4096. The number gets even smaller in practice. Therefore, we select 3840 as the limit.
+            if (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width > 3840 ||
+                GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height > 3840)
+            {
+                // Enable HiDef profile drops legacy GPUs not supporting DirectX 10.
+                // In practical, it's recommended to have a DirectX 11 capable GPU.
+                graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            }
 #endif
             content = new ContentManager(Services);
         }
