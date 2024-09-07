@@ -25,7 +25,7 @@ For example:
   - Translations
     - ru
       - Some Theme Folder
-	* Translation.ini
+        * Translation.ini
         * someThemeAsset.png
         * ...
       * Translation.ini
