@@ -321,6 +321,8 @@ namespace DTAClient.DXGUI
             }
             else
             {
+                // fallback to the minimum supported resolution when the desktop is not sufficient to contain the client
+                // e.g., when users set a lower desktop resolution but the client resolution in the settings file remains high
                 if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
