@@ -558,13 +558,12 @@ namespace DTAConfig.OptionPanels
             if (chkBorderlessClient.Checked)
             {
                 ddClientResolution.AllowDropDown = false;
-#if WINFORMS
+
                 string nativeRes = ScreenResolution.SafeFullScreenResolution;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
                     ddClientResolution.SelectedIndex = nativeResIndex;
-#endif
             }
             else
             {
