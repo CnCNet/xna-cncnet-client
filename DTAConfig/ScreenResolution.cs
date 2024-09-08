@@ -123,6 +123,23 @@ namespace DTAConfig
 
         public const int MAX_INT_SCALE = 10;
 
+        public SortedSet<ScreenResolution> GetIntegerScaledResolutions() => GetIntegerScaledResolutions(SafeDesktopResolution);
+        public SortedSet<ScreenResolution> GetIntegerScaledResolutions(ScreenResolution maxResolution)
+        {
+            SortedSet<ScreenResolution> resolutions = [];
+            for (int i = 1; i < MAX_INT_SCALE; i++)
+            {
+                ScreenResolution scaledResolution = (this.Width * i, this.Height * i);
+
+                if (maxResolution.Fit(scaledResolution))
+                    resolutions.Add(scaledResolution);
+                else
+                    break;
+            }
+
+            return resolutions;
+        }
+
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) => GetWindowedResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
@@ -132,17 +149,12 @@ namespace DTAConfig
 
             foreach (ScreenResolution optimalResolution in OptimalWindowedResolutions)
             {
-                for (int i = 1; i < MAX_INT_SCALE; i++)
+                foreach (ScreenResolution scaledResolution in optimalResolution.GetIntegerScaledResolutions(maxResolution))
                 {
-                    ScreenResolution scaledResolution = (optimalResolution.Width * i, optimalResolution.Height * i);
-
                     if (scaledResolution.Width < minWidth || scaledResolution.Height < minHeight)
                         continue;
 
-                    if (maxResolution.Fit(scaledResolution))
-                        windowedResolutions.Add(scaledResolution);
-                    else
-                        break;
+                    windowedResolutions.Add(scaledResolution);
                 }
             }
 
