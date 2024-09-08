@@ -68,6 +68,11 @@ namespace DTAClient
             // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
             ApplicationConfiguration.Initialize();
 #else
+
+#if NETCOREAPP3_0_OR_GREATER
+            System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
+#endif
+
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 #endif
