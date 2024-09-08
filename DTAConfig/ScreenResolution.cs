@@ -77,15 +77,15 @@ namespace DTAConfig
         // The default graphic profile supports resolution up to 4096x4096. The number gets even smaller in practice. Therefore, we select 3840 as the limit.
         public static ScreenResolution HiDefLimitResolution { get; } = "3840x3840";
 
-        private static ScreenResolution _safeDesktopResolution = null;
+        private static ScreenResolution _safeMaximumResolution = null;
         public static ScreenResolution SafeMaximumResolution
         {
             get
             {
 #if XNA
-                return _safeDesktopResolution ??= HiDefLimitResolution.Fit(DesktopResolution) ? DesktopResolution : HiDefLimitResolution;
+                return _safeMaximumResolution ??= HiDefLimitResolution.Fit(DesktopResolution) ? DesktopResolution : HiDefLimitResolution;
 #else
-                return _safeDesktopResolution ??= DesktopResolution;
+                return _safeMaximumResolution ??= DesktopResolution;
 #endif
             }
         }
