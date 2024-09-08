@@ -44,7 +44,7 @@ namespace DTAConfig
 
         public static implicit operator ScreenResolution(string resolution)
         {
-            List<int> resolutionList = resolution.Split('x').Take(2).Select(int.Parse).ToList();
+            List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
             return new(resolutionList[0], resolutionList[1]);
         }
 
@@ -140,14 +140,19 @@ namespace DTAConfig
             return resolutions;
         }
 
-        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) => GetWindowedResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
-        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) =>
+            GetWindowedResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight) =>
+            GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight) =>
+            GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, maxWidth, maxHeight);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             ScreenResolution maxResolution = (maxWidth, maxHeight);
 
             var windowedResolutions = new SortedSet<ScreenResolution>();
 
-            foreach (ScreenResolution optimalResolution in OptimalWindowedResolutions)
+            foreach (ScreenResolution optimalResolution in optimalResolutions)
             {
                 foreach (ScreenResolution scaledResolution in optimalResolution.GetIntegerScaledResolutions(maxResolution))
                 {

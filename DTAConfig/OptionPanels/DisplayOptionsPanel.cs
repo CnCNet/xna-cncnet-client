@@ -187,8 +187,14 @@ namespace DTAConfig.OptionPanels
 
             // Add client resolutions
             {
-                SortedSet<ScreenResolution> resolutions = [.. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
-                    .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600)];
+                List<ScreenResolution> recommendedResolutions = clientConfig.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+                List<ScreenResolution> scaledRecommendedResolutions = recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions()).ToList();
+
+                SortedSet<ScreenResolution> resolutions = [
+                    ..ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
+                    ..ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600),
+                    ..scaledRecommendedResolutions
+                ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
 
                 foreach (var res in resolutionList)
@@ -202,11 +208,9 @@ namespace DTAConfig.OptionPanels
                 // So we add the optimal resolutions to the list, sort it and then find
                 // out the optimal resolution index - it's inefficient, but works
 
-                string[] recommendedResolutions = clientConfig.RecommendedResolutions;
-
-                foreach (string resolution in recommendedResolutions.Select(resolution => resolution.Trim()))
+                foreach (ScreenResolution scaledRecommendedResolution in scaledRecommendedResolutions)
                 {
-                    int index = resolutionList.FindIndex(res => res.ToString() == resolution);
+                    int index = resolutionList.FindIndex(res => res == scaledRecommendedResolution);
                     if (index > -1)
                         ddClientResolution.PreferredItemIndexes.Add(index);
                 }
