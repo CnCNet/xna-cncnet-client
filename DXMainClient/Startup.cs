@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
+using DTAConfig;
 
 namespace DTAClient
 {
@@ -126,11 +127,11 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
 
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            // Find the largest full screen resolution as the default
+            var resolution = ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max();
 
-            UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", currentWidth);
-            UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", currentHeight);
+            UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
+            UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
 
             gameClass.Run();
         }

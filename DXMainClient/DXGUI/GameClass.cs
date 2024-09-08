@@ -48,9 +48,7 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 
             // Enable HiDef on a large monitor.
-            // The default graphic profile supports resolution up to 4096x4096. The number gets even smaller in practice. Therefore, we select 3840 as the limit.
-            if (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width > 3840 ||
-                GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height > 3840)
+            if (!ScreenResolution.HiDefLimitResolution.Fit(ScreenResolution.DesktopResolution))
             {
                 // Enable HiDef profile drops legacy GPUs not supporting DirectX 10.
                 // In practical, it's recommended to have a DirectX 11 capable GPU.
@@ -321,10 +319,10 @@ namespace DTAClient.DXGUI
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            if (currentWidth >= windowWidth && currentHeight >= windowHeight)
+            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeDesktopResolution;
+
+            if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
                     throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("Client:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);

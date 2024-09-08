@@ -82,26 +82,23 @@ namespace DTAConfig.OptionPanels
 
             var clientConfig = ClientConfiguration.Instance;
 
-            int maximumIngameWidth = clientConfig.MaximumIngameWidth;
-            int maximumIngameHeight = clientConfig.MaximumIngameHeight;
+            // Add in-game resolutions
+            {
+                var maximumIngameResolution = new ScreenResolution(clientConfig.MaximumIngameWidth, clientConfig.MaximumIngameHeight);
 
 #if XNA
-            // We do not enable HiDef on XNA builds. Therefore, drop resolutions larger than 3840x3840.
-            // Refer to GameClass constructor for more details
-            if (maximumIngameWidth > 3840)
-                maximumIngameWidth = 3840;
-            if (maximumIngameHeight > 3840)
-                maximumIngameHeight = 3840;
+                if (!ScreenResolution.HiDefLimitResolution.Fit(maximumIngameResolution))
+                    maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
 #endif
 
-            var resolutions = GetResolutions(clientConfig.MinimumIngameWidth,
-                clientConfig.MinimumIngameHeight,
-                maximumIngameWidth, maximumIngameHeight);
+                var resolutions = ScreenResolution.GetFullScreenResolutions(clientConfig.MinimumIngameWidth, clientConfig.MinimumIngameHeight,
+                    maximumIngameResolution.Width, maximumIngameResolution.Height);
 
-            resolutions.Sort();
+                resolutions.Sort();
 
-            foreach (var res in resolutions)
-                ddIngameResolution.AddItem(res.ToString());
+                foreach (var res in resolutions)
+                    ddIngameResolution.AddItem(res.ToString());
+            }
 
             var lblDetailLevel = new XNALabel(WindowManager);
             lblDetailLevel.Name = "lblDetailLevel";
@@ -188,50 +185,35 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("Client:DTAConfig:Recommended");
 
-            int desktopWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int desktopHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-#if XNA
-            // We do not enable HiDef on XNA builds. Therefore, drop resolutions larger than 3840x3840.
-            // Refer to GameClass constructor for more details
-            if (desktopWidth > 3840)
-                desktopWidth = 3840;
-            if (desktopHeight > 3840)
-                desktopHeight = 3840;
-#endif
-
-            resolutions = GetResolutions(800, 600, desktopWidth, desktopHeight);
-
-            // Add "optimal" client resolutions for windowed mode
-            // if they're not supported in fullscreen mode
-
-            AddResolutionIfFitting(1024, 600, resolutions);
-            AddResolutionIfFitting(1024, 720, resolutions);
-            AddResolutionIfFitting(1280, 600, resolutions);
-            AddResolutionIfFitting(1280, 720, resolutions);
-            AddResolutionIfFitting(1280, 768, resolutions);
-            AddResolutionIfFitting(1280, 800, resolutions);
-
-            resolutions.Sort();
-
-            foreach (var res in resolutions)
+            // Add client resolutions
             {
-                var item = new XNADropDownItem();
-                item.Text = res.ToString();
-                item.Tag = res.ToString();
-                ddClientResolution.AddItem(item);
-            }
+                var screenResolutions = ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600);
+                // Add "optimal" client resolutions for windowed mode if they're not supported in fullscreen mode
+                var windowedResolutions = ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600);
 
-            // So we add the optimal resolutions to the list, sort it and then find
-            // out the optimal resolution index - it's inefficient, but works
+                List<ScreenResolution> resolutions = [.. screenResolutions, .. windowedResolutions];
+                resolutions.Sort();
 
-            string[] recommendedResolutions = clientConfig.RecommendedResolutions;
+                foreach (var res in resolutions)
+                {
+                    var item = new XNADropDownItem();
+                    item.Text = res.ToString();
+                    item.Tag = res.ToString();
+                    ddClientResolution.AddItem(item);
+                }
 
-            foreach (string resolution in recommendedResolutions)
-            {
-                string trimmedresolution = resolution.Trim();
-                int index = resolutions.FindIndex(res => res.ToString() == trimmedresolution);
-                if (index > -1)
-                    ddClientResolution.PreferredItemIndexes.Add(index);
+                // So we add the optimal resolutions to the list, sort it and then find
+                // out the optimal resolution index - it's inefficient, but works
+
+                string[] recommendedResolutions = clientConfig.RecommendedResolutions;
+
+                foreach (string resolution in recommendedResolutions)
+                {
+                    string trimmedresolution = resolution.Trim();
+                    int index = resolutions.FindIndex(res => res.ToString() == trimmedresolution);
+                    if (index > -1)
+                        ddClientResolution.PreferredItemIndexes.Add(index);
+                }
             }
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
@@ -357,27 +339,6 @@ namespace DTAConfig.OptionPanels
             AddChild(ddDetailLevel);
             AddChild(lblIngameResolution);
             AddChild(ddIngameResolution);
-        }
-
-        /// <summary>
-        /// Adds a screen resolution to a list of resolutions if it fits on the screen.
-        /// Checks if the resolution already exists before adding it.
-        /// </summary>
-        /// <param name="width">The width of the new resolution.</param>
-        /// <param name="height">The height of the new resolution.</param>
-        /// <param name="resolutions">A list of screen resolutions.</param>
-        private void AddResolutionIfFitting(int width, int height, List<ScreenResolution> resolutions)
-        {
-            if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
-                return;
-
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-
-            if (currentWidth >= width && currentHeight >= height)
-            {
-                resolutions.Add(new ScreenResolution(width, height));
-            }
         }
 
         private void GetRenderers()
@@ -907,85 +868,5 @@ namespace DTAConfig.OptionPanels
             return restartRequired;
         }
 
-        private List<ScreenResolution> GetResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
-        {
-            var screenResolutions = new List<ScreenResolution>();
-
-            foreach (DisplayMode dm in GraphicsAdapter.DefaultAdapter.SupportedDisplayModes)
-            {
-                if (dm.Width < minWidth || dm.Height < minHeight || dm.Width > maxWidth || dm.Height > maxHeight)
-                    continue;
-
-                var resolution = new ScreenResolution(dm.Width, dm.Height);
-
-                // SupportedDisplayModes can include the same resolution multiple times
-                // because it takes the refresh rate into consideration.
-                // Which means that we have to check if the resolution is already listed
-                if (screenResolutions.Find(res => res.Equals(resolution)) != null)
-                    continue;
-
-                screenResolutions.Add(resolution);
-            }
-
-            return screenResolutions;
-        }
-
-        /// <summary>
-        /// A single screen resolution.
-        /// </summary>
-        sealed class ScreenResolution : IComparable<ScreenResolution>
-        {
-            public ScreenResolution(int width, int height)
-            {
-                Width = width;
-                Height = height;
-            }
-
-            /// <summary>
-            /// The width of the resolution in pixels.
-            /// </summary>
-            public int Width { get; set; }
-
-            /// <summary>
-            /// The height of the resolution in pixels.
-            /// </summary>
-            public int Height { get; set; }
-
-            public override string ToString()
-            {
-                return Width + "x" + Height;
-            }
-
-            public int CompareTo(ScreenResolution res2)
-            {
-                if (this.Width < res2.Width)
-                    return -1;
-                else if (this.Width > res2.Width)
-                    return 1;
-                else // equal
-                {
-                    if (this.Height < res2.Height)
-                        return -1;
-                    else if (this.Height > res2.Height)
-                        return 1;
-                    else return 0;
-                }
-            }
-
-            public override bool Equals(object obj)
-            {
-                var resolution = obj as ScreenResolution;
-
-                if (resolution == null)
-                    return false;
-
-                return CompareTo(resolution) == 0;
-            }
-
-            public override int GetHashCode()
-            {
-                return new { Width, Height }.GetHashCode();
-            }
-        }
     }
 }
