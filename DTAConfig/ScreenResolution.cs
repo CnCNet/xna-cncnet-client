@@ -157,13 +157,10 @@ namespace DTAConfig
 
             foreach (ScreenResolution optimalResolution in optimalResolutions)
             {
-                foreach (ScreenResolution scaledResolution in optimalResolution.GetIntegerScaledResolutions(maxResolution))
-                {
-                    if (scaledResolution.Width < minWidth || scaledResolution.Height < minHeight)
-                        continue;
+                if (optimalResolution.Width < minWidth || optimalResolution.Height < minHeight)
+                    continue;
 
-                    windowedResolutions.Add(scaledResolution);
-                }
+                windowedResolutions.Add(optimalResolution);
             }
 
             return windowedResolutions;
