@@ -739,15 +739,12 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;
 
-            string[] resolution = ddIngameResolution.SelectedItem.Text.Split('x');
+            ScreenResolution ingameRes = ddIngameResolution.SelectedItem.Text;
 
-            int[] ingameRes = new int[2] { int.Parse(resolution[0]), int.Parse(resolution[1]) };
-
-            IniSettings.IngameScreenWidth.Value = ingameRes[0];
-            IniSettings.IngameScreenHeight.Value = ingameRes[1];
+            (IniSettings.IngameScreenWidth.Value, IniSettings.IngameScreenHeight.Value) = ingameRes;
 
             // Calculate drag selection distance, scale it with resolution width
-            int dragDistance = ingameRes[0] / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
+            int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
             DirectDrawWrapper originalRenderer = selectedRenderer;
@@ -759,16 +756,13 @@ namespace DTAConfig.OptionPanels
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
                 string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
 
-            string[] clientResolution = ((string)ddClientResolution.SelectedItem.Tag).Split('x');
+            ScreenResolution clientRes = (string)ddClientResolution.SelectedItem.Tag;
 
-            int[] clientRes = new int[2] { int.Parse(clientResolution[0]), int.Parse(clientResolution[1]) };
-
-            if (clientRes[0] != IniSettings.ClientResolutionX.Value ||
-                clientRes[1] != IniSettings.ClientResolutionY.Value)
+            if (clientRes.Width != IniSettings.ClientResolutionX.Value ||
+                clientRes.Height != IniSettings.ClientResolutionY.Value)
                 restartRequired = true;
 
-            IniSettings.ClientResolutionX.Value = clientRes[0];
-            IniSettings.ClientResolutionY.Value = clientRes[1];
+            (IniSettings.ClientResolutionX.Value, IniSettings.ClientResolutionY.Value) = clientRes;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;
@@ -854,9 +848,9 @@ namespace DTAConfig.OptionPanels
 
                 SafePath.DeleteFileIfExists(languageDllDestinationPath);
 
-                if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
+                if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);
-                else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
+                else if (ingameRes.Width >= 800 && ingameRes.Height >= 600)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), languageDllDestinationPath);
                 else
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
