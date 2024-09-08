@@ -91,7 +91,7 @@ namespace DTAConfig
         }
 
         private static ScreenResolution _safeFullScreenResolution = null;
-        public static ScreenResolution SafeFullScreenResolution = _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max();
+        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max();
 
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) => GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
