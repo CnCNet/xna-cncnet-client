@@ -19,6 +19,7 @@ using System.Runtime.Versioning;
 #endif
 using System.IO;
 using ClientCore.I18N;
+using System.Linq;
 
 namespace DTAConfig.OptionPanels
 {
@@ -91,10 +92,9 @@ namespace DTAConfig.OptionPanels
                     maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
 #endif
 
-                var resolutions = ScreenResolution.GetFullScreenResolutions(clientConfig.MinimumIngameWidth, clientConfig.MinimumIngameHeight,
+                SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
+                    clientConfig.MinimumIngameWidth, clientConfig.MinimumIngameHeight,
                     maximumIngameResolution.Width, maximumIngameResolution.Height);
-
-                resolutions.Sort();
 
                 foreach (var res in resolutions)
                     ddIngameResolution.AddItem(res.ToString());
@@ -187,14 +187,11 @@ namespace DTAConfig.OptionPanels
 
             // Add client resolutions
             {
-                var screenResolutions = ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600);
-                // Add "optimal" client resolutions for windowed mode if they're not supported in fullscreen mode
-                var windowedResolutions = ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600);
+                SortedSet<ScreenResolution> resolutions = [.. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
+                    .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600)];
+                List<ScreenResolution> resolutionList = resolutions.ToList();
 
-                List<ScreenResolution> resolutions = [.. screenResolutions, .. windowedResolutions];
-                resolutions.Sort();
-
-                foreach (var res in resolutions)
+                foreach (var res in resolutionList)
                 {
                     var item = new XNADropDownItem();
                     item.Text = res.ToString();
@@ -207,10 +204,9 @@ namespace DTAConfig.OptionPanels
 
                 string[] recommendedResolutions = clientConfig.RecommendedResolutions;
 
-                foreach (string resolution in recommendedResolutions)
+                foreach (string resolution in recommendedResolutions.Select(resolution => resolution.Trim()))
                 {
-                    string trimmedresolution = resolution.Trim();
-                    int index = resolutions.FindIndex(res => res.ToString() == trimmedresolution);
+                    int index = resolutionList.FindIndex(res => res.ToString() == resolution);
                     if (index > -1)
                         ddClientResolution.PreferredItemIndexes.Add(index);
                 }

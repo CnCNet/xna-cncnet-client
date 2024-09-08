@@ -90,10 +90,10 @@ namespace DTAConfig
             }
         }
 
-        public static List<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) => GetFullScreenResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
-        public static List<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
+        public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) => GetFullScreenResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
+        public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
-            var screenResolutions = new List<ScreenResolution>();
+            var screenResolutions = new SortedSet<ScreenResolution>();
 
             foreach (DisplayMode dm in GraphicsAdapter.DefaultAdapter.SupportedDisplayModes)
             {
@@ -104,9 +104,7 @@ namespace DTAConfig
 
                 // SupportedDisplayModes can include the same resolution multiple times
                 // because it takes the refresh rate into consideration.
-                // Which means that we have to check if the resolution is already listed
-                if (screenResolutions.Find(res => res.Equals(resolution)) != null)
-                    continue;
+                // Which will be filltered out by HashSet
 
                 screenResolutions.Add(resolution);
             }
@@ -125,12 +123,12 @@ namespace DTAConfig
 
         public const int MAX_INT_SCALE = 10;
 
-        public static List<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) => GetWindowedResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
-        public static List<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) => GetWindowedResolutions(minWidth, minHeight, SafeDesktopResolution.Width, SafeDesktopResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             ScreenResolution maxResolution = (maxWidth, maxHeight);
 
-            var windowedResolutions = new List<ScreenResolution>();
+            var windowedResolutions = new SortedSet<ScreenResolution>();
 
             foreach (ScreenResolution optimalResolution in OptimalWindowedResolutions)
             {
