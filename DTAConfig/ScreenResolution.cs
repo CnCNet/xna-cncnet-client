@@ -71,6 +71,7 @@ namespace DTAConfig
             }
         }
 
+        // TODO: accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
         private static ScreenResolution _desktopResolution = null;
         public static ScreenResolution DesktopResolution => _desktopResolution ??= new(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
 
