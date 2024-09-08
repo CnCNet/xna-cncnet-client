@@ -320,7 +320,7 @@ namespace DTAClient.DXGUI
 
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
 
-            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeDesktopResolution;
+            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
