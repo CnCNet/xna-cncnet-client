@@ -108,7 +108,7 @@ namespace DTAConfig
 
                 // SupportedDisplayModes can include the same resolution multiple times
                 // because it takes the refresh rate into consideration.
-                // Which will be filltered out by HashSet
+                // Which will be filtered out by HashSet
 
                 screenResolutions.Add(resolution);
             }
