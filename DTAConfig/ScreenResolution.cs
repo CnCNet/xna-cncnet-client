@@ -125,13 +125,13 @@ namespace DTAConfig
             "1280x800",
         ];
 
-        public const int MAX_INT_SCALE = 10;
+        public const int MAX_INT_SCALE = 9;
 
         public SortedSet<ScreenResolution> GetIntegerScaledResolutions() => GetIntegerScaledResolutions(SafeMaximumResolution);
         public SortedSet<ScreenResolution> GetIntegerScaledResolutions(ScreenResolution maxResolution)
         {
             SortedSet<ScreenResolution> resolutions = [];
-            for (int i = 1; i < MAX_INT_SCALE; i++)
+            for (int i = 1; i <= MAX_INT_SCALE; i++)
             {
                 ScreenResolution scaledResolution = (this.Width * i, this.Height * i);
 
