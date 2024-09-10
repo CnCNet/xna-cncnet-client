@@ -81,11 +81,9 @@ namespace DTAConfig.OptionPanels
                 lblIngameResolution.Right + 12,
                 lblIngameResolution.Y - 2, 120, 19);
 
-            var clientConfig = ClientConfiguration.Instance;
-
             // Add in-game resolutions
             {
-                var maximumIngameResolution = new ScreenResolution(clientConfig.MaximumIngameWidth, clientConfig.MaximumIngameHeight);
+                var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
 #if XNA
                 if (!ScreenResolution.HiDefLimitResolution.Fit(maximumIngameResolution))
@@ -93,7 +91,7 @@ namespace DTAConfig.OptionPanels
 #endif
 
                 SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
-                    clientConfig.MinimumIngameWidth, clientConfig.MinimumIngameHeight,
+                    ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
                     maximumIngameResolution.Width, maximumIngameResolution.Height);
 
                 foreach (var res in resolutions)
@@ -187,7 +185,7 @@ namespace DTAConfig.OptionPanels
 
             // Add client resolutions
             {
-                List<ScreenResolution> recommendedResolutions = clientConfig.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+                List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
                 SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
 
                 SortedSet<ScreenResolution> resolutions = [
@@ -207,6 +205,7 @@ namespace DTAConfig.OptionPanels
 
                 // So we add the optimal resolutions to the list, sort it and then find
                 // out the optimal resolution index - it's inefficient, but works
+                // Note: ddClientResolution.PreferredItemIndexes is assumed in ascending order
 
                 foreach (ScreenResolution scaledRecommendedResolution in scaledRecommendedResolutions)
                 {
@@ -339,6 +338,13 @@ namespace DTAConfig.OptionPanels
             AddChild(ddDetailLevel);
             AddChild(lblIngameResolution);
             AddChild(ddIngameResolution);
+        }
+
+        public static ScreenResolution GetBestRecommendedResolution()
+        {
+            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            return scaledRecommendedResolutions.Max();
         }
 
         private void GetRenderers()
@@ -571,7 +577,8 @@ namespace DTAConfig.OptionPanels
 
                 if (ddClientResolution.PreferredItemIndexes.Count > 0)
                 {
-                    int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[0];
+                    // Note: ddClientResolution.PreferredItemIndexes is assumed in ascending order
+                    int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[^1];
                     ddClientResolution.SelectedIndex = optimalWindowedResIndex;
                 }
             }
