@@ -3,8 +3,6 @@ using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -13,7 +11,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using ClientCore.Enums;
+using ClientCore.Extensions;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -26,8 +29,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private const int LB_USERS_WIDTH = 150;
 
-        private const string DEFAULT_PLAYERS_TEXT = "PLAYERS:";
-        private const string RECENT_PLAYERS_TEXT = "RECENT PLAYERS:";
+        private readonly string DEFAULT_PLAYERS_TEXT = "PLAYERS:".L10N("Client:Main:Players");
+        private readonly string RECENT_PLAYERS_TEXT = "RECENT PLAYERS:".L10N("Client:Main:RecentPlayers");
 
         private CnCNetUserData cncnetUserData;
         private readonly PrivateMessageHandler privateMessageHandler;
@@ -106,8 +109,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClientRectangle = new Rectangle(0, 0, 600, 600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
 
             personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
             otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
@@ -115,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPrivateMessaging = new XNALabel(WindowManager);
             lblPrivateMessaging.Name = nameof(lblPrivateMessaging);
             lblPrivateMessaging.FontIndex = 1;
-            lblPrivateMessaging.Text = "PRIVATE MESSAGING";
+            lblPrivateMessaging.Text = "PRIVATE MESSAGING".L10N("Client:Main:PMLabel");
 
             AddChild(lblPrivateMessaging);
             lblPrivateMessaging.CenterOnParent();
@@ -129,10 +136,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.ClientRectangle = new Rectangle(34, 50, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages", UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("Friend List", UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("All Players", UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("Recent Players", UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Messages".L10N("Client:Main:MessagesTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Friend List".L10N("Client:Main:FriendListTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("All Players".L10N("Client:Main:AllPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Recent Players".L10N("Client:Main:RecentPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             lblPlayers = new XNALabel(WindowManager);
@@ -157,7 +164,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
                 lblPlayers.Y, 0, 0);
             lblMessages.FontIndex = 1;
-            lblMessages.Text = "MESSAGES:";
+            lblMessages.Text = "MESSAGES:".L10N("Client:Main:Messages");
 
             lbMessages = new ChatListBox(WindowManager);
             lbMessages.Name = nameof(lbMessages);
@@ -258,7 +265,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (pmUser != null)
             {
                 leaveMessage = new ChatMessage(Color.White,
-                    e.UserName + " is now offline.");
+                    string.Format("{0} is now offline.".L10N("Client:Main:PlayerOffline"), e.UserName));
                 pmUser.Messages.Add(leaveMessage);
             }
 
@@ -307,7 +314,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUser != null)
             {
-                joinMessage = new ChatMessage(e.User.Name + " is now online.");
+                joinMessage = new ChatMessage(string.Format("{0} is now online.".L10N("Client:Main:PlayerOnline"), e.User.Name));
                 pmUser.Messages.Add(joinMessage);
             }
 
@@ -807,7 +814,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void SwitchOff() => Disable();
 
-        public string GetSwitchName() => "Private Messaging";
+        public string GetSwitchName() => "Private Messaging".L10N("Client:Main:PrivateMessaging");
 
         /// <summary>
         /// A class for storing a private message in memory.
@@ -834,7 +841,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             public void AddMessage(ChatMessage message)
-                => XNAMessageBox.Show(windowManager, "Message", message.Message);
+                => XNAMessageBox.Show(windowManager, "Message".L10N("Client:Main:MessageTitle"), message.Message);
         }
     }
 }

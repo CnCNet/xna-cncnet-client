@@ -1,11 +1,10 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAClient.Domain;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -42,7 +41,7 @@ namespace DTAClient.DXGUI.Generic
 
             var lblChangelogLink = new XNALinkLabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
-            lblChangelogLink.Text = "View Changelog";
+            lblChangelogLink.Text = "View Changelog".L10N("Client:Main:ViewChangeLog");
             lblChangelogLink.IdleColor = Color.Goldenrod;
             lblChangelogLink.Name = nameof(lblChangelogLink);
             lblChangelogLink.LeftClick += LblChangelogLink_LeftClick;
@@ -54,13 +53,13 @@ namespace DTAClient.DXGUI.Generic
 
             var btnYes = new XNAClientButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
-            btnYes.Text = "Yes";
+            btnYes.Text = "Yes".L10N("Client:Main:ButtonYes");
             btnYes.LeftClick += BtnYes_LeftClick;
             btnYes.Name = nameof(btnYes);
 
             var btnNo = new XNAClientButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
-            btnNo.Text = "No";
+            btnNo.Text = "No".L10N("Client:Main:ButtonNo");
             btnNo.LeftClick += BtnNo_LeftClick;
             btnNo.Name = nameof(btnNo);
 
@@ -77,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblChangelogLink_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(changelogUrl);
+            ProcessLauncher.StartShellProcess(changelogUrl);
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)
@@ -92,11 +91,11 @@ namespace DTAClient.DXGUI.Generic
 
         public void SetInfo(string version, int updateSize)
         {
-            lblDescription.Text = string.Format("Version {0} is available for download." + Environment.NewLine + "Do you wish to install it?", version);
+            lblDescription.Text = string.Format(("Version {0} is available for download.\nDo you wish to install it?").L10N("Client:Main:VersionAvailable"), version);
             if (updateSize >= 1000)
-                lblUpdateSize.Text = string.Format("The size of the update is {0} MB.", updateSize / 1000);
+                lblUpdateSize.Text = string.Format("The size of the update is {0} MB.".L10N("Client:Main:UpdateSizeMB"), updateSize / 1000);
             else
-                lblUpdateSize.Text = string.Format("The size of the update is {0} KB.", updateSize);
+                lblUpdateSize.Text = string.Format("The size of the update is {0} KB.".L10N("Client:Main:UpdateSizeKB"), updateSize);
         }
     }
 }

@@ -3,9 +3,6 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ClientGUI
 {
@@ -18,6 +15,11 @@ namespace ClientGUI
         /// If set to true - makes tooltip not appear and instantly hides it if currently shown.
         /// </summary>
         public bool Blocked { get; set; }
+
+        /// <summary>
+        /// Whether the tooltip should move with the cursor after it was shown.
+        /// </summary>
+        public bool FollowCursor { get; set; }
 
         /// <summary>
         /// Creates a new tool tip and attaches it to the given control.
@@ -37,12 +39,16 @@ namespace ClientGUI
             Visible = false;
         }
 
-        private static XNAControl GetParentControl(XNAControl parent)
+        private XNAControl GetParentControl(XNAControl parent)
         {
-            if (parent is XNAWindow parentWindow)
-                return parentWindow;
-            
-            return parent.Parent == null ? parent : GetParentControl(parent.Parent);
+            if (parent is XNAWindow)
+                return parent as XNAWindow;
+            else if (parent is INItializableWindow)
+                return parent as INItializableWindow;
+            else if (parent.Parent != null)
+                return GetParentControl(parent.Parent);
+            else
+                return parent;
         }
 
         private void MasterControl_EnabledChanged(object sender, EventArgs e)
@@ -54,9 +60,15 @@ namespace ClientGUI
             set
             {
                 base.Text = value;
-                Vector2 textSize = Renderer.GetTextDimensions(base.Text, ClientConfiguration.Instance.ToolTipFontIndex);
+                Vector2 textSize = Renderer.GetTextDimensions(base.Text ?? string.Empty, ClientConfiguration.Instance.ToolTipFontIndex);
                 Width = (int)textSize.X + ClientConfiguration.Instance.ToolTipMargin * 2;
                 Height = (int)textSize.Y + ClientConfiguration.Instance.ToolTipMargin * 2;
+
+                if (string.IsNullOrEmpty(Text))
+                {
+                    Alpha = 0f;
+                    Visible = false;
+                }
             }
         }
 
@@ -66,16 +78,16 @@ namespace ClientGUI
         private XNAControl masterControl;
 
         private TimeSpan cursorTime = TimeSpan.Zero;
-        
 
         private void MasterControl_MouseEnter(object sender, EventArgs e)
         {
+            IsMasterControlOnCursor = true;
+
             if (string.IsNullOrEmpty(Text))
                 return;
 
             DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
                 new Point(ClientConfiguration.Instance.ToolTipOffsetX, ClientConfiguration.Instance.ToolTipOffsetY)));
-            IsMasterControlOnCursor = true;
         }
 
         private void MasterControl_MouseLeave(object sender, EventArgs e)
@@ -86,10 +98,10 @@ namespace ClientGUI
 
         private void MasterControl_MouseMove(object sender, EventArgs e)
         {
-            if (!Visible && !string.IsNullOrEmpty(Text))
+            if ((FollowCursor || !Visible) && !string.IsNullOrEmpty(Text))
             {
                 // Move the tooltip if the cursor has moved while staying 
-                // on the control area and we're invisible
+                // on the control area and we're invisible or we follow the cursor
                 DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
                     new Point(ClientConfiguration.Instance.ToolTipOffsetX, ClientConfiguration.Instance.ToolTipOffsetY)));
             }
@@ -108,7 +120,7 @@ namespace ClientGUI
 
         public override void Update(GameTime gameTime)
         {
-            if (Blocked)
+            if (Blocked || string.IsNullOrEmpty(Text))
             {
                 Alpha = 0f;
                 Visible = false;

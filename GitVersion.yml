@@ -1,0 +1,47 @@
+# Configuration docs: https://gitversion.net/docs/reference/configuration
+#
+# This configuration will allow the gitversion msbuild task to auto version our executable. It uses existing tags
+# to determine the next version by auto incrementing the Minor, Patch, or Tag version. The Tag version is calculated
+# by counting the number of commits since the last tag.
+# Minor version is incremented by 1 when a build is created from the develop branch. 
+# Patch version is incremented by 1 when a build is created from the master branch.
+#
+# Examples:
+#
+# Latest tag is "2.8.0" - 
+# The next commit on develop branch will start version 2.9.0-beta.1.
+# That increments the Minor by 1. That also increments the beta by 1 for the 1 additional commit.
+# Another commit creates 2.9.0-beta.2 and so on.
+#
+# Latest tag is "2.8.0-beta.1" - 
+# The next commit on develop branch is "2.8.0-beta.2". Minor version is NOT incremented, because the 
+# base tag of "2.8.0-beta.1" is also a beta.
+# 
+# Latest tag is "2.8.0" -
+# A new commit is added directly to master. The new version is "2.8.1".
+# That increments th Patch, because it is treated as a "hotfix" directly on master.
+#
+# Versioning Modes Quick View:
+# 
+# Continuous Delivery: The default versioning mode. In this mode, GitVersion calculates the next version and will use that until that is released.
+# Continuous Deployment: Sometimes you just want the version to keep changing and deploy continuously.
+# In this case, Continuous Deployment is a good mode to operate GitVersion by.
+
+tag-prefix: 'v'
+
+branches:
+  master:
+    regex: ^master$
+    
+    mode: ContinuousDelivery
+    increment: Patch
+    is-mainline: true
+    source-branches: [ 'develop' ]
+    tag: ''
+  
+  develop:
+    regex: ^develop$
+    increment: Minor
+    is-mainline: false
+    mode: ContinuousDeployment
+    tag: beta

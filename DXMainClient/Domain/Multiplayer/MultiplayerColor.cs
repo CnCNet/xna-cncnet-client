@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
@@ -43,7 +44,7 @@ namespace DTAClient.Domain.Multiplayer
             if (colorList != null)
                 return new List<MultiplayerColor>(colorList);
 
-            IniFile gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
+            IniFile gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "GameOptions.ini"));
 
             List<MultiplayerColor> mpColors = new List<MultiplayerColor>();
 
@@ -58,8 +59,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 try
                 {
-                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key, values);
-
+                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key.L10N($"INI:Colors:{key}"), values);
                     mpColors.Add(mpColor);
                 }
                 catch

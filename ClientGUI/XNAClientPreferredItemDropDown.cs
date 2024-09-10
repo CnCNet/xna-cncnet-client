@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System.Collections.Generic;
 
 namespace ClientGUI
 {
@@ -18,7 +19,7 @@ namespace ClientGUI
         /// <summary>
         /// Index of the preferred drop-down item.
         /// </summary>
-        public int PreferredItemIndex { get; set; } = -1;
+        public List<int> PreferredItemIndexes { get; set; } = new List<int>();
 
         /// <summary>
         /// Creates a new preferred item drop-down control.
@@ -28,7 +29,7 @@ namespace ClientGUI
         {
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -37,7 +38,7 @@ namespace ClientGUI
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         /// <summary>
@@ -45,15 +46,22 @@ namespace ClientGUI
         /// </summary>
         public override void Draw(GameTime gameTime)
         {
-            if (PreferredItemIndex > -1 && PreferredItemIndex < Items.Count)
+            if (PreferredItemIndexes.Count > 0)
             {
-                XNADropDownItem preferredItem = Items[PreferredItemIndex];
-                string preferredItemOriginalText = preferredItem.Text;
-                preferredItem.Text += " " + PreferredItemLabel;
+                PreferredItemIndexes.ForEach(i =>
+                {
+                    XNADropDownItem preferredItem = Items[i];
+                    string preferredItemOriginalText = preferredItem.Text;
+                    preferredItem.Text += " " + PreferredItemLabel;
+                });
 
                 base.Draw(gameTime);
 
-                preferredItem.Text = preferredItemOriginalText;
+                PreferredItemIndexes.ForEach(i =>
+                {
+                    XNADropDownItem preferredItem = Items[i];
+                    preferredItem.Text = preferredItem.Text.Substring(0, preferredItem.Text.Length - PreferredItemLabel.Length - 1);
+                });
             }
             else
             {

@@ -1,7 +1,6 @@
 ﻿using ClientCore;
 using Rampastring.Tools;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using OpenMcdf;
 
@@ -45,18 +44,20 @@ namespace DTAClient.Domain
         {
             try
             {
-                using (Stream file = (File.Open(ProgramConstants.GamePath + SAVED_GAME_PATH + FileName, FileMode.Open, FileAccess.Read)))
+                FileInfo savedGameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SAVED_GAME_PATH, FileName);
+
+                using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
                 {
                     GUIName = GetArchiveName(file);
                 }
 
-                LastModified = File.GetLastWriteTime(ProgramConstants.GamePath + SAVED_GAME_PATH + FileName);
+                LastModified = savedGameFileInfo.LastWriteTime;
                 return true;
             }
             catch (Exception ex)
             {
                 Logger.Log("An error occured while parsing saved game " + FileName + ":" +
-                    ex.Message);
+                    ex.ToString());
                 return false;
             }
         }

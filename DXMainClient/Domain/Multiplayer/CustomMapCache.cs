@@ -1,14 +1,16 @@
 ﻿using System.Collections.Concurrent;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DTAClient.Domain.Multiplayer
 {
     public class CustomMapCache
     {
-        [JsonProperty("version")]
+        [JsonInclude]
+        [JsonPropertyName("version")]
         public int Version { get; set; }
-        
-        [JsonProperty("maps")]
+
+        [JsonInclude]
+        [JsonPropertyName("maps")]
         public ConcurrentDictionary<string, Map> Maps { get; set; }
     }
 }

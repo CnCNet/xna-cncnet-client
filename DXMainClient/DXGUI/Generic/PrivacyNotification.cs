@@ -1,9 +1,9 @@
 ﻿using ClientCore;
 using ClientGUI;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -26,7 +26,8 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Name = nameof(lblDescription);
             lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP;
-            lblDescription.Text = Renderer.FixText("By using the client you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client options.",
+            lblDescription.Text = Renderer.FixText(
+                "This application makes use of CnCNet web & tunnel server services and is subject to collection of technical & other necessary information through them.".L10N("Client:Main:TOSText"),
                 lblDescription.FontIndex, WindowManager.RenderResolutionX - (UIDesignConstants.EMPTY_SPACE_SIDES * 2)).Text;
             AddChild(lblDescription);
 
@@ -34,7 +35,7 @@ namespace DTAClient.DXGUI.Generic
             lblMoreInformation.Name = nameof(lblMoreInformation);
             lblMoreInformation.X = lblDescription.X;
             lblMoreInformation.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
-            lblMoreInformation.Text = "More information: ";
+            lblMoreInformation.Text = "More information:".L10N("Client:Main:TOSMoreInfo")+ " ";
             AddChild(lblMoreInformation);
 
             var lblTermsAndConditions = new XNALinkLabel(WindowManager);
@@ -42,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.X = lblMoreInformation.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblTermsAndConditions.Y = lblMoreInformation.Y;
             lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
-            lblTermsAndConditions.LeftClick += (s, e) => Process.Start(lblTermsAndConditions.Text);
+            lblTermsAndConditions.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblTermsAndConditions.Text);
             AddChild(lblTermsAndConditions);
 
             var lblPrivacyPolicy = new XNALinkLabel(WindowManager);
@@ -50,14 +51,14 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.X = lblTermsAndConditions.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblPrivacyPolicy.Y = lblMoreInformation.Y;
             lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
-            lblPrivacyPolicy.LeftClick += (s, e) => Process.Start(lblPrivacyPolicy.Text);
+            lblPrivacyPolicy.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblPrivacyPolicy.Text);
             AddChild(lblPrivacyPolicy);
 
             var lblExplanation = new XNALabel(WindowManager);
             lblExplanation.Name = nameof(lblExplanation);
             lblExplanation.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblExplanation.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
-            lblExplanation.Text = "No worries, we're not actually using your data for anything evil, but we have to display this message due to regulations.";
+            lblExplanation.Text = "By using this application you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client settings.".L10N("Client:Main:TOSExplanation");
             lblExplanation.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblExplanation);
 
@@ -66,7 +67,7 @@ namespace DTAClient.DXGUI.Generic
             btnOK.Width = 75;
             btnOK.Y = lblExplanation.Y;
             btnOK.X = WindowManager.RenderResolutionX - btnOK.Width - UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
-            btnOK.Text = "Got it";
+            btnOK.Text = "Got it".L10N("Client:Main:TOSButtonOK");
             AddChild(btnOK);
             btnOK.LeftClick += (s, e) => 
             {

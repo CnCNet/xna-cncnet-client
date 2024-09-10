@@ -1,9 +1,16 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.IO;
+using System.Reflection;
+using ClientCore.CnCNet5;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -44,7 +51,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             XNALabel lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = "lblHeader";
             lblHeader.FontIndex = 1;
-            lblHeader.Text = "PRIVATE MESSAGE";
+            lblHeader.Text = "PRIVATE MESSAGE".L10N("Client:Main:PMHeader");
             AddChild(lblHeader);
             lblHeader.CenterOnParent();
             lblHeader.ClientRectangle = new Rectangle(lblHeader.X,
@@ -57,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             XNALabel lblHint = new XNALabel(WindowManager);
             lblHint.Name = "lblHint";
             lblHint.RemapColor = UISettings.ActiveSettings.SubtleTextColor;
-            lblHint.Text = "Press F4 to respond";
+            lblHint.Text = "Press F4 to respond".L10N("Client:Main:F4ToRespond");
 
             AddChild(lblHint);
             lblHint.CenterOnParent();
@@ -69,7 +76,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.Name = "gameIconPanel";
             gameIconPanel.ClientRectangle = new Rectangle(12, 30, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
+
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaIcon = Image.Load(dtaIconStream);
+
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);
 
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";

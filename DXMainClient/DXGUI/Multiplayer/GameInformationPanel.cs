@@ -2,6 +2,7 @@
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -12,10 +13,14 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public GameInformationPanel(WindowManager windowManager) : base(windowManager)
+        public GameInformationPanel(WindowManager windowManager, MapLoader mapLoader)
+            : base(windowManager)
         {
+            this.mapLoader = mapLoader;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
+
+        private MapLoader mapLoader;
 
         private XNALabel lblGameInformation;
         private XNALabel lblGameMode;
@@ -34,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lblGameInformation = new XNALabel(WindowManager);
             lblGameInformation.FontIndex = 1;
-            lblGameInformation.Text = "GAME INFORMATION";
+            lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
 
             lblGameMode = new XNALabel(WindowManager);
             lblGameMode.ClientRectangle = new Rectangle(6, 30, 0, 0);
@@ -81,7 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblGameInformation);
 
             lblGameInformation.CenterOnParent();
-            lblGameInformation.ClientRectangle = new Rectangle( lblGameInformation.X, 6,
+            lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
                 lblGameInformation.Width, lblGameInformation.Height);
 
             base.Initialize();
@@ -89,20 +94,32 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-            lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode: " + Renderer.GetSafeString(game.GameMode, lblGameMode.FontIndex),
+            string gameModeName = game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+
+            lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(gameModeName, lblGameMode.FontIndex),
                 lblGameMode.FontIndex, Width - lblGameMode.X * 2);
             lblGameMode.Visible = true;
-            lblMap.Text = Renderer.GetStringWithLimitedWidth("Map: " + Renderer.GetSafeString(game.Map, lblMap.FontIndex),
+
+            // we don't have the ID of a map here
+            string mapName = mapLoader.TranslatedMapNames.ContainsKey(game.Map)
+                ? mapLoader.TranslatedMapNames[game.Map]
+                : game.Map;
+
+            lblMap.Text = Renderer.GetStringWithLimitedWidth("Map:".L10N("Client:Main:GameInfoMap") + " " + Renderer.GetSafeString(mapName, lblMap.FontIndex),
                 lblMap.FontIndex, Width - lblMap.X * 2);
             lblMap.Visible = true;
-            lblGameVersion.Text = "Game version: " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
+
+            lblGameVersion.Text = "Game version:".L10N("Client:Main:GameInfoGameVersion") + " " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;
-            lblHost.Text = "Host: " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
+
+            lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
-            lblPing.Text = game.Ping > 0 ? "Ping: " + game.Ping.ToString() + " ms" : "Ping: Unknown";
+
+            lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
             lblPing.Visible = true;
+
             lblPlayers.Visible = true;
-            lblPlayers.Text = "Players (" + game.Players.Length + " / " + game.MaxPlayers + "):";
+            lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
 
             for (int i = 0; i < game.Players.Length && i < MAX_PLAYERS; i++)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientCore.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,11 +8,11 @@ namespace DTAClient.Domain.Multiplayer
 {
     public class PlayerExtraOptions
     {
-        private const string INVALID_OPTIONS_MESSAGE = "Invalid player extra options message";
-        private const string MAPPING_ERROR_PREFIX = "Auto Allying:";
-        protected static readonly string NOT_ALL_MAPPINGS_ASSIGNED = $"{MAPPING_ERROR_PREFIX} You must have all mappings assigned.";
-        protected static readonly string MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START = $"{MAPPING_ERROR_PREFIX} Multiple mappings assigned to the same start location.";
-        protected static readonly string ONLY_ONE_TEAM = $"{MAPPING_ERROR_PREFIX} You must have more than one team assigned.";
+        private static string INVALID_OPTIONS_MESSAGE => "Invalid player extra options message".L10N("Client:Main:InvalidPlayerExtraOptionsMessage");
+        private static string MAPPING_ERROR_PREFIX => "Auto Allying:".L10N("Client:Main:AutoAllyingPrefix");
+        protected static string NOT_ALL_MAPPINGS_ASSIGNED => MAPPING_ERROR_PREFIX + " " + "You must have all mappings assigned.".L10N("Client:Main:NotAllMappingsAssigned");
+        protected static string MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START => MAPPING_ERROR_PREFIX + " " + "Multiple mappings assigned to the same start location.".L10N("Client:Main:MultipleMappingsAssigned");
+        protected static string ONLY_ONE_TEAM => MAPPING_ERROR_PREFIX + " " + "You must have more than one team assigned.".L10N("Client:Main:OnlyOneTeam");
         private const char MESSAGE_SEPARATOR = ';';
 
         public const string CNCNET_MESSAGE_KEY = "PEO";
@@ -22,13 +23,13 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsForceRandomTeams { get; set; }
         public bool IsForceRandomStarts { get; set; }
         public bool IsUseTeamStartMappings { get; set; }
-        public List<TeamStartMapping> TeamStartMappings { get; set; }
+        public List<TeamStartMapping> TeamStartMappings { get; set; } = new List<TeamStartMapping>();
 
         public string GetTeamMappingsError()
         {
             if (!IsUseTeamStartMappings)
                 return null;
-            
+
             var distinctStartLocations = TeamStartMappings.Select(m => m.Start).Distinct();
             if (distinctStartLocations.Count() != TeamStartMappings.Count)
                 return MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START; // multiple mappings are using the same spawn location

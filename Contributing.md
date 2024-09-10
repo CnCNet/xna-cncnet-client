@@ -28,12 +28,24 @@ Wrong:
 Added null-check for GameMode
 ```
 
+### Pull Requests
+
+Make sure that the scope of your pull request is well defined. Pull requests can take significant developer time to review and very large pull requests or pull requests with poorly defined scope can be difficult to review.
+
+One pull request should _only implement one feature_ or _fix one bug_, unless there is a good reason for grouping the changes together.
+
+Do not heavily refactor the style of existing code in a pull request, unless the refactored code fits to the scope of the pull request (feature or bug fix). Rather, if you want to refactor existing code just for the sake of refactoring or getting rid of technical debt, create a secondary pull request for that purpose.
+
+**Make sure your code and commits match this style guide before you create your pull request.**
+
+Pull requests that are not well defined in their scope or pull requests that don't match the style guide can end up rejected and closed by the staff.
+
 ### Code style guide
 
 We have established a couple of code style rules to keep things consistent. Please check your code style before committing the code.
 - We use spaces instead of tabs to indent code.
 - Curly braces are always to be placed on a new line. One of the reasons for this is to clearly separate the end of the code block head and body in case of multiline bodies:
-```cpp
+```cs
 if (SomeReallyLongCondition() ||
     ThatSplitsIntoMultipleLines())
 {
@@ -41,7 +53,7 @@ if (SomeReallyLongCondition() ||
     DoSomethingMore();
 }
 ```
-- Braceless code block bodies should be made only when both code block head and body are single line, statements split into multiple lines and nested braceless blocks are not allowed within braceless blocks:
+- Braceless code block bodies should be made only when both code block head and body are single line. Statements that split into multiple lines and nested braceless blocks are not allowed within braceless blocks:
 ```cs
 // OK
 if (Something())
@@ -123,7 +135,7 @@ var list = new List<int>();
 // Not OK
 var something = 6;
 ```
-- Local variables, function/method args and private class fields are named in the `camelCase` (using a `p` prefix to denote pointer type for every pointer nesting level) and a descriptive name, like `ircUser` for a local `IrcUser` variable.
+- Local variables, function/method args and private class fields are named in `camelCase` and a descriptive name, like `ircUser` for a local `IrcUser` variable.
 - Classes, namespaces, and properties are always written in `PascalCase`.
 - Class fields that can be set via INI tags should be named exactly like ini tags with dots replaced with underscores.
 

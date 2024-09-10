@@ -5,44 +5,34 @@ on:
     branches: [ master, develop ]
   pull_request:
     branches: [ master, develop ]
-
+  workflow_dispatch:
 jobs:
   build-clients:
-    runs-on: windows-2019
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        Game: 
+          - Ares
+          - TS
+          - YR
 
     steps:
-    - uses: actions/checkout@v2
-        
-    - name: Create Artifacts Directories
-      run: mkdir .\Artifacts\YR & mkdir .\Artifacts\Ares & mkdir .\Artifacts\TS
-      shell: cmd
-      
-    - name: Build YR
-      run: BuildYR.bat
-      shell: cmd
-      working-directory: ./BuildScripts
-      
-    - name: Archive YR
-      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/YR"
-      
-    - name: Build Ares
-      run: BuildAres.bat
-      shell: cmd
-      working-directory: ./BuildScripts
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    - name: Archive Ares
-      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/Ares"
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json
 
-    - name: Build TS
-      run: BuildTS.bat
-      shell: cmd
-      working-directory: ./BuildScripts
+    - name: Build ${{matrix.Game}}
+      run: ./Scripts/build.ps1 ${{matrix.Game}}
+      shell: pwsh
 
-    - name: Archive TS
-      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/TS"
-
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       name: Upload Artifacts
       with:
-        name: artifacts
-        path: ./Artifacts
+        name: artifacts-${{matrix.Game}}
+        path: ./Compiled/${{matrix.Game}}
+

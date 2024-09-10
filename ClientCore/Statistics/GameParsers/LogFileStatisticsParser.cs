@@ -25,7 +25,9 @@ namespace ClientCore.Statistics.GameParsers
 
         protected override void ParseStatistics(string gamepath)
         {
-            if (!File.Exists(gamepath + fileName))
+            FileInfo statisticsFileInfo = SafePath.GetFile(gamepath, fileName);
+
+            if (!statisticsFileInfo.Exists)
             {
                 Logger.Log("DTAStatisticsParser: Failed to read statistics: the log file does not exist.");
                 return;
@@ -35,7 +37,7 @@ namespace ClientCore.Statistics.GameParsers
 
             try
             {
-                StreamReader reader = new StreamReader(File.OpenRead(gamepath + fileName));
+                using StreamReader reader = new StreamReader(statisticsFileInfo.OpenRead());
 
                 string line;
 
@@ -116,11 +118,9 @@ namespace ClientCore.Statistics.GameParsers
                         currentPlayer.Kills = Int32.Parse(line.Substring(8));
                     else if (line.StartsWith("Score = "))
                         currentPlayer.Score = Int32.Parse(line.Substring(8));
-                    else if (line.StartsWith(economyString+ " = "))
+                    else if (line.StartsWith(economyString + " = "))
                         currentPlayer.Economy = Int32.Parse(line.Substring(economyString.Length + 2));
                 }
-
-                reader.Close();
 
                 // Check empty players for take-over by AIs
                 if (takeoverAIs.Count == 1)
@@ -150,7 +150,7 @@ namespace ClientCore.Statistics.GameParsers
             }
             catch (Exception ex)
             {
-                Logger.Log("DTAStatisticsParser: Error parsing statistics from match! Message: " + ex.Message);
+                Logger.Log("DTAStatisticsParser: Error parsing statistics from match! Message: " + ex.ToString());
             }
         }
     }

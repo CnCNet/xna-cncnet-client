@@ -1,21 +1,23 @@
+using ClientCore;
+using DTAClient.Domain;
+using DTAClient.Domain.LAN;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.LAN;
+using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Online;
+using ClientCore.Extensions;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Generic;
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI;
-using System.Net.Sockets;
-using Rampastring.Tools;
 using System.Net;
-using DTAClient.Domain.Multiplayer.LAN;
-using ClientCore;
-using DTAClient.Domain.LAN;
-using DTAClient.Online;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
-using DTAClient.Domain;
+
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -40,8 +42,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_COMMAND = "DR";
         public const string PING = "PING";
 
-        public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
+        public LANGameLobby(WindowManager windowManager, string iniName,
+            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) :
             base(windowManager, iniName, topBar, mapLoader, discordHandler)
         {
             this.chatColors = chatColors;
@@ -85,11 +87,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleFileHashCommand(string sender, string fileHash)
         {
             if (fileHash != localFileHash)
-                AddNotice(sender + " has modified game files! They could be cheating!");
+                AddNotice(string.Format("{0} has modified game files! They could be cheating!".L10N("Client:Main:PlayerModifiedFiles"), sender));
 
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
             pInfo.Verified = true;
+            CopyPlayerDataToUI();
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
@@ -119,6 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
+            IniNameOverride = nameof(LANGameLobby);
             base.Initialize();
             PostInitialize();
         }
@@ -189,7 +193,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Listener error: " + ex.Message);
+                    Logger.Log("Listener error: " + ex.ToString());
                     break;
                 }
 
@@ -233,7 +237,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Socket error with client " + lpInfo.IPAddress + "; removing. Message: " + ex.Message);
+                    Logger.Log("Socket error with client " + lpInfo.IPAddress + "; removing. Message: " + ex.ToString());
                     break;
                 }
 
@@ -283,7 +287,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lpInfo.MessageReceived += LpInfo_MessageReceived;
             lpInfo.ConnectionLost += LpInfo_ConnectionLost;
 
-            AddNotice(lpInfo.Name + " connected from " + lpInfo.IPAddress);
+            AddNotice(string.Format("{0} connected from {1}".L10N("Client:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
             lpInfo.StartReceiveLoop();
 
             CopyPlayerDataToUI();
@@ -299,13 +303,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CleanUpPlayer(lpInfo);
             Players.Remove(lpInfo);
 
-            AddNotice(lpInfo.Name + " has left the game.");
+            AddNotice(string.Format("{0} has left the game.".L10N("Client:Main:PlayerLeftGame"), lpInfo.Name));
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
 
             if (lpInfo.Name == ProgramConstants.PLAYERNAME)
-                ResetDiscordPresence(); 
+                ResetDiscordPresence();
             else
                 UpdateDiscordPresence();
         }
@@ -361,7 +365,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.Message);
+                    Logger.Log("Reading data from the server failed! Message: " + ex.ToString());
                     BtnLeaveGame_LeftClick(this, EventArgs.Empty);
                     break;
                 }
@@ -420,6 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Clear();
             GameLeft?.Invoke(this, EventArgs.Empty);
+            PlayerExtraOptionsPanel?.Disable();
             Disable();
         }
 
@@ -433,11 +438,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             string side = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, "LAN",
+                Map.UntranslatedName, GameMode.UntranslatedUIName, "LAN",
                 currentState, Players.Count, 8, side,
                 "LAN Game", IsHost, false, Locked, resetTimer);
         }
@@ -470,7 +475,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.TextColor = chatColors[colorIndex].XNAColor;
         }
 
-        public override string GetSwitchName() => "LAN Game Lobby";
+        public override string GetSwitchName() => "LAN Game Lobby".L10N("Client:Main:LANGameLobby");
 
         protected override void AddNotice(string message, Color color) =>
             lbChatMessages.AddMessage(null, message, color);
@@ -506,7 +511,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void BroadcastPlayerExtraOptions()
         {
             var playerExtraOptions = GetPlayerExtraOptions();
-            
+
             BroadcastMessage(playerExtraOptions.ToLanMessage(), true);
         }
 
@@ -572,8 +577,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void GetReadyNotification()
         {
             base.GetReadyNotification();
-
+#if WINFORMS
             WindowManager.FlashWindow();
+#endif
 
             if (IsHost)
                 BroadcastMessage(GET_READY_COMMAND);
@@ -636,20 +642,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Locked = false;
 
-            btnLockGame.Text = "Lock Game";
+            btnLockGame.Text = "Lock Game".L10N("Client:Main:LockGame");
 
             if (manual)
-                AddNotice("You've unlocked the game room.");
+                AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnockedByYou"));
         }
 
         protected override void LockGame()
         {
             Locked = true;
 
-            btnLockGame.Text = "Unlock Game";
+            btnLockGame.Text = "Unlock Game".L10N("Client:Main:UnlockGame");
 
             if (Locked)
-                AddNotice("You've locked the game room.");
+                AddNotice("You've locked the game room.".L10N("Client:Main:RoomLockedByYou"));
         }
 
         protected override void GameProcessExited()
@@ -676,7 +682,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ReturnNotification(string sender)
         {
-            AddNotice(sender + " has returned from the game.");
+            AddNotice(string.Format("{0} has returned from the game.".L10N("Client:Main:PlayerReturned"), sender));
 
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
@@ -684,6 +690,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
 
             sndReturnSound.Play();
+            CopyPlayerDataToUI();
         }
 
         public override void Update(GameTime gameTime)
@@ -697,7 +704,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
-                        AddNotice(lpInfo.Name + " - connection timed out");
+                        AddNotice(string.Format("{0} - connection timed out".L10N("Client:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
                         BroadcastPlayerOptions();
                         BroadcastPlayerExtraOptions();
@@ -721,7 +728,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
                 {
                     LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out."));
+                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("Client:Main:HostConnectTimeOut")));
                     BtnLeaveGame_LeftClick(this, EventArgs.Empty);
                 }
             }
@@ -736,8 +743,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
             sb.Append(localGame);
-            sb.Append(Map.Name);
-            sb.Append(GameMode.UIName);
+            sb.Append(Map.UntranslatedName);
+            sb.Append(GameMode.UntranslatedUIName);
             sb.Append(0); // LoadedGameID
             var sbPlayers = new StringBuilder();
             Players.ForEach(p => sbPlayers.Append(p.Name + ","));
@@ -948,7 +955,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            AddNotice(pInfo.Name + " has left the game.");
+            AddNotice(string.Format("{0} has left the game.".L10N("Client:Main:PlayerLeftGame"), pInfo.Name));
             Players.Remove(pInfo);
             ClearReadyStatuses();
             CopyPlayerDataToUI();
@@ -962,11 +969,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
-            
+
             if (parts.Length != CheckBoxes.Count + DropDowns.Count + GAME_OPTION_SPECIAL_FLAG_COUNT)
             {
-                AddNotice("The game host has sent an invalid game options message. This " +
-                    "usually means that the game host has a different game version than you.");
+                AddNotice(("The game host has sent an invalid game options message! " +
+                    "The game host's game version might be different from yours.").L10N("Client:Main:HostGameOptionInvalid"));
                 Logger.Log("Invalid game options message from host: " + data);
                 return;
             }
@@ -984,8 +991,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (gameModeMap == null)
             {
-                AddNotice("The game host has selected a map that doesn't exist on your " +
-                    "installation. The host needs to change the map or you won't be able to play.");
+                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("Client:Main:MapNotExist") +
+                    "The host needs to change the map or you won't be able to play.".L10N("Client:Main:HostNeedChangeMapForYou"));
                 ChangeMap(null);
                 return;
             }
@@ -997,7 +1004,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (frameSendRate != FrameSendRate)
             {
                 FrameSendRate = frameSendRate;
-                AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
+                AddNotice(string.Format("The game host has changed FrameSendRate (order lag) to {0}".L10N("Client:Main:HostChangeFrameSendRate"), frameSendRate));
             }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(
@@ -1014,9 +1021,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (chkBox.Checked != oldValue)
                 {
                     if (chkBox.Checked)
-                        AddNotice("The game host has enabled " + chkBox.Text);
+                        AddNotice(string.Format("The game host has enabled {0}".L10N("Client:Main:HostEnableOption"), chkBox.Text));
                     else
-                        AddNotice("The game host has disabled " + chkBox.Text);
+                        AddNotice(string.Format("The game host has disabled {0}".L10N("Client:Main:HostDisableOption"), chkBox.Text));
                 }
             }
 
@@ -1038,7 +1045,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (dd.OptionName == null)
                         ddName = dd.Name;
 
-                    AddNotice("The game host has set " + ddName + " to " + dd.SelectedItem.Text);
+                    AddNotice(string.Format("The game host has set {0} to {1}".L10N("Client:Main:HostSetOption"), ddName, dd.SelectedItem.Text));
                 }
             }
         }
@@ -1063,6 +1070,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
+            CopyPlayerDataToUI();
             StartGame();
         }
 

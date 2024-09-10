@@ -26,11 +26,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.nameBorderColor = nameBorderColor;
             this.contextMenu = contextMenu;
             HoverRemapColor = Color.White;
+            usePlayerRemapColor = ClientConfiguration.Instance.MapPreviewStartingLocationUsePlayerRemapColor;
         }
 
-        Texture2D baseTexture;
-        Texture2D hoverTexture;
-        Texture2D usedTexture;
+        private Texture2D baseTexture;
+        private Texture2D hoverTexture;
+        private Texture2D usedTexture;
         public Texture2D WaypointTexture { get; set; }
         public List<PlayerInfo> Players = new List<PlayerInfo>();
 
@@ -45,27 +46,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public Color HoverRemapColor { get; set; }
 
-        XNAContextMenu contextMenu { get; set; }
+        private XNAContextMenu contextMenu { get; set; }
 
-        Color nameBackgroundColor;
-        Color nameBorderColor;
+        private Color nameBackgroundColor;
+        private Color nameBorderColor;
 
-        readonly string[] teamIds = new[] { string.Empty }
+        private readonly string[] teamIds = new[] { string.Empty }
             .Concat(ProgramConstants.TEAMS.Select(team => $"[{team}]")).ToArray();
 
-        bool isHoveredOn = false;
+        private bool usePlayerRemapColor = false;
 
-        double backgroundAlpha = 0.0;
-        double backgroundAlphaRate = 0.1;
+        private bool isHoveredOn = false;
 
-        double angle;
+        private double backgroundAlpha = 0.0;
+        private double backgroundAlphaRate = 0.1;
 
-        int lineHeight;
+        private double angle;
 
-        Vector2 textSize;
-        int textXPosition;
+        private int lineHeight;
 
-        List<PlayerText> pText = new List<PlayerText>();
+        private Vector2 textSize;
+        private int textXPosition;
+
+        private List<PlayerText> pText = new List<PlayerText>();
 
         public override void Initialize()
         {
@@ -222,6 +225,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 origin,
                 new Vector2(TEXTURE_SCALE), Color.Black);
 
+            Color remapColor = Color.White;
+            Color hoverRemapColor = HoverRemapColor;
+            if (Players.Count == 1 && Players[0].ColorId > 0)
+            {
+                remapColor = mpColors[Players[0].ColorId - 1].XnaColor;
+                hoverRemapColor = remapColor;
+            }
+
             if (isHoveredOn ||
                 (contextMenu.Tag == this.Tag && contextMenu.Visible))
             {
@@ -229,21 +240,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
                 (float)angle,
                 origin,
-                new Vector2(TEXTURE_SCALE + 0.1f), HoverRemapColor);
+                new Vector2(TEXTURE_SCALE + 0.1f), hoverRemapColor);
             }
 
             Renderer.DrawTexture(usedTexture,
                 new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
                 (float)angle,
                 origin,
-                new Vector2(TEXTURE_SCALE), Color.White);
+                new Vector2(TEXTURE_SCALE), remapColor);
 
             if (WaypointTexture != null)
             {
                 // Non-premultiplied blending makes the indicators look sharper for some reason
                 // TODO figure out why
-                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null));
-                Renderer.DrawTexture(WaypointTexture, displayRectangle, Color.White);
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null, null));
+
+                Renderer.DrawTexture(WaypointTexture,
+                    new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
+                    0f, 
+                    new Vector2(WaypointTexture.Width / 2, WaypointTexture.Height / 2),
+                    new Vector2(1f, 1f),
+                    Color.White);
+
                 Renderer.PopSettings();
             }
 

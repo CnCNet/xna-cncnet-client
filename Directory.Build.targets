@@ -1,0 +1,123 @@
+<Project>
+  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
+  </Target>
+
+  <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier="
+      Targets="Restore" />
+  </Target>
+
+  <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
+  </Target>
+
+  <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
+    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
+    <CallTarget Targets="MoveCommonBinaries;MoveClientExes;MoveUpdater" Condition="'$(NoMove)' != 'true'" />
+  </Target>
+
+  <Target Name="PublishNetFrameworkWindowsGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying NetFramework WindowsGLNative files" />
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
+  </Target>
+
+  <Target Name="RemoveNetFrameworkWindowsGLNative" AfterTargets="PublishNetFrameworkWindowsGLNative">
+    <Message Importance="high" Text="Removing not needed NetFramework WindowsGLNative files" />
+    <Delete Files="$(PublishDir)SDL2.dll" />
+    <Delete Files="$(PublishDir)soft_oal.dll" />
+  </Target>
+
+  <Target Name="RemoveWindowsDXNonWindowsBinaries" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
+    <Message Importance="high" Text="Removing unnecessary WindowsDX files" />
+    <RemoveDir Directories="$(PublishDir)runtimes/debian-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/fedora-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/opensuse-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+    <RemoveDir Directories="$(PublishDir)runtimes/rhel-x64" />
+  </Target>
+
+  <Target Name="RemoveWindowsGLNonWindowsBinaries" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Removing unnecessary WindowsGL files" />
+    <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+  </Target>
+
+  <!-- IMPORTANT: You SHOULD NOT modify the logic here if you don't have to. -->
+  <!-- The list of common assemblies has been moved to the `CommonAssemblies.txt` and `CommonAssembliesNetFx.txt` files. -->
+  <!-- And you SHOULD NOT attempt to manually modify these two files at any time! -->
+  <Target Name="MoveCommonBinaries">
+    <PropertyGroup>
+      <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
+      <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssembliesNetFx.txt</_CommonAssembliesFilePath>
+    </PropertyGroup>
+    <Message Importance="high" Text="Moving common binaries" />
+    <ReadLinesFromFile File="$(_CommonAssembliesFilePath)">
+      <Output TaskParameter="Lines" ItemName="_CommonFiles" />
+    </ReadLinesFromFile>
+    <Move SourceFiles="$(PublishDir)%(_CommonFiles.Identity)" DestinationFolder="$(PublishDir)..\" Condition="!Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
+    <Delete Files="$(PublishDir)%(_CommonFiles.Identity)" Condition="Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
+  </Target>
+
+  <!-- Note: the folder structure should be consistent with scripts\build.ps1 file -->
+  <Target Name="MoveClientExes" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving client executables" />
+    <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')" />
+    <Move SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.pdb')" />
+    <Move SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe')" />
+    <Move SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientogl.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.pdb')" />
+    <Move SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe')" />
+    <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')" />
+    <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
+  </Target>
+
+  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
+    <ItemGroup>
+      <ExampleClientResources Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\DTA\**\*.*" />
+      <ExampleClientMaps Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Maps\**\*.*" />
+      <ExampleClientIni Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\INI\**\*.*" />
+      <ExampleClientMix Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\MIX\**\*.*" />
+      <ExampleClientSettings Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Settings.ini" />
+      <ExampleClientLinuxRun Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\run.sh" />
+      <ExampleClientDefinitions Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\ClientDefinitions.ini" />
+    </ItemGroup>
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
+  </Target>
+
+  <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <PropertyGroup>
+      <CNCNetUpdaterCopyTo>$(PublishDir)\..\Updater\</CNCNetUpdaterCopyTo>
+    </PropertyGroup>
+    <ItemGroup>
+      <CNCNetUpdaterOutputFile Include="$(OutputPath)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CNCNetUpdaterOutputFile)" DestinationFolder="$(CNCNetUpdaterCopyTo)" />
+  </Target>
+
+  <Target Name="MoveUpdater" Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <Message Importance="high" Text="Moving updater executables" />
+    <Move SourceFiles="%(CNCNetUpdaterOutputFile.Identity)" DestinationFolder="$(CNCNetUpdaterCopyTo)" Condition="!Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
+    <Delete Files="%(CNCNetUpdaterOutputFile.Identity)" Condition="Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
+  </Target>
+
+  <!-- Allow a game specific build prop file to be imported, if available -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).targets')" />
+
+</Project>

@@ -2,16 +2,29 @@
 using Rampastring.XNAUI;
 using System;
 using Rampastring.Tools;
+using ClientCore;
+using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientCheckBox : XNACheckBox
+    public class XNAClientCheckBox : XNACheckBox, IToolTipContainer
     {
-        public ToolTip ToolTip { get; set; }
+        public ToolTip ToolTip { get; private set; }
 
-        public XNAClientCheckBox(WindowManager windowManager) : base(windowManager)
+        private string _initialToolTipText;
+        public string ToolTipText
         {
+            get => Initialized ? ToolTip?.Text : _initialToolTipText;
+            set
+            {
+                if (Initialized)
+                    ToolTip.Text = value;
+                else
+                    _initialToolTipText = value;
+            }
         }
+
+        public XNAClientCheckBox(WindowManager windowManager) : base(windowManager) { }
 
         public override void Initialize()
         {
@@ -19,18 +32,18 @@ namespace ClientGUI
 
             base.Initialize();
 
-            ToolTip = new ToolTip(WindowManager, this);
+            ToolTip = new ToolTip(WindowManager, this) { Text = _initialToolTipText };
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "ToolTip")
             {
-                ToolTip.Text = value.Replace("@", Environment.NewLine);
+                ToolTipText = value.FromIniString();
                 return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
     }
 }

@@ -1,15 +1,29 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
+using System;
+using ClientCore;
+using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientButton : XNAButton
+    public class XNAClientButton : XNAButton, IToolTipContainer
     {
-        private string _toolTipText { get; set; }
-        
-        private ToolTip _toolTip { get; set; }
-        
+        public ToolTip ToolTip { get; private set; }
+
+        private string _initialToolTipText;
+        public string ToolTipText
+        {
+            get => Initialized ? ToolTip?.Text : _initialToolTipText;
+            set
+            {
+                if (Initialized)
+                    ToolTip.Text = value;
+                else
+                    _initialToolTipText = value;
+            }
+        }
+
         public XNAClientButton(WindowManager windowManager) : base(windowManager)
         {
             FontIndex = 1;
@@ -33,28 +47,25 @@ namespace ClientGUI
 
             if (Width == 0)
                 Width = IdleTexture.Width;
-            
-            _toolTip = new ToolTip(WindowManager, this);
-            SetToolTipText(_toolTipText);
+
+            ToolTip = new ToolTip(WindowManager, this) { Text = _initialToolTipText };
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
-            if (key == "MatchTextureSize" && Conversions.BooleanFromString(key, false))
+            if (key == "MatchTextureSize" && Conversions.BooleanFromString(value, false))
             {
                 Width = IdleTexture.Width;
                 Height = IdleTexture.Height;
                 return;
             }
+            else if (key == "ToolTip")
+            {
+                ToolTipText = value.FromIniString();
+                return;
+            }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
-        }
-
-        public void SetToolTipText(string text)
-        {
-            _toolTipText = text ?? string.Empty;
-            if (_toolTip != null)
-                _toolTip.Text = _toolTipText;
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
     }
 }
