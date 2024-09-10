@@ -11,11 +11,6 @@ namespace DTAConfig
     /// </summary>
     public sealed record ScreenResolution : IComparable<ScreenResolution>
     {
-        public ScreenResolution(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
 
         /// <summary>
         /// The width of the resolution in pixels.
@@ -27,7 +22,24 @@ namespace DTAConfig
         /// </summary>
         public int Height { get; }
 
-        public override string ToString() => Width + "x" + Height;
+        public ScreenResolution(int width, int height)
+        {
+            Width = width;
+            Height = height;
+        }
+
+        public ScreenResolution(string resolution)
+        {
+            List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
+            Width = resolutionList[0];
+            Height = resolutionList[1];
+        }
+
+        public static implicit operator ScreenResolution(string resolution) => new(resolution);
+
+        public sealed override string ToString() => Width + "x" + Height;
+
+        public static implicit operator string(ScreenResolution resolution) => resolution.ToString();
 
         public void Deconstruct(out int width, out int height)
         {
@@ -38,14 +50,6 @@ namespace DTAConfig
         public static implicit operator ScreenResolution((int Width, int Height) resolutionTuple) => new(resolutionTuple.Width, resolutionTuple.Height);
 
         public static implicit operator (int Width, int Height)(ScreenResolution resolution) => new(resolution.Width, resolution.Height);
-
-        public static implicit operator ScreenResolution(string resolution)
-        {
-            List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
-            return new(resolutionList[0], resolutionList[1]);
-        }
-
-        public static implicit operator string(ScreenResolution resolution) => resolution.ToString();
 
         public bool Fit(ScreenResolution child) => this.Width >= child.Width && this.Height >= child.Height;
 
