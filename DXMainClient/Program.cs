@@ -84,6 +84,7 @@ namespace DTAClient
         }
 
         [DllImport("user32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [SupportedOSPlatform("windows")]
         private static extern bool SetProcessDPIAware();
 
