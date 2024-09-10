@@ -55,21 +55,7 @@ namespace DTAConfig
             return this.Width >= child.Width && this.Height >= child.Height;
         }
 
-        public int CompareTo(ScreenResolution res2)
-        {
-            if (this.Width < res2.Width)
-                return -1;
-            else if (this.Width > res2.Width)
-                return 1;
-            else // equal
-            {
-                if (this.Height < res2.Height)
-                    return -1;
-                else if (this.Height > res2.Height)
-                    return 1;
-                else return 0;
-            }
-        }
+        public int CompareTo(ScreenResolution other) => (this.Width, this.Height).CompareTo(other);
 
         // Accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
         private static ScreenResolution _desktopResolution = null;
