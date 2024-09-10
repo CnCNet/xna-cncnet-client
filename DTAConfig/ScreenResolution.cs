@@ -20,12 +20,12 @@ namespace DTAConfig
         /// <summary>
         /// The width of the resolution in pixels.
         /// </summary>
-        public int Width { get; set; }
+        public int Width { get; }
 
         /// <summary>
         /// The height of the resolution in pixels.
         /// </summary>
-        public int Height { get; set; }
+        public int Height { get; }
 
         public override string ToString() => Width + "x" + Height;
 
