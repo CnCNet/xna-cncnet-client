@@ -116,7 +116,8 @@ namespace DTAConfig
             return screenResolutions;
         }
 
-        public static IReadOnlyList<ScreenResolution> OptimalWindowedResolutions { get; } = [
+        public static readonly IReadOnlyList<ScreenResolution> OptimalWindowedResolutions =
+        [
             "1024x600",
             "1024x720",
             "1280x600",
