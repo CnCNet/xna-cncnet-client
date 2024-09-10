@@ -389,17 +389,17 @@ namespace DTAClient.DXGUI
 
             if (borderlessWindowedClient)
             {
-                // Note: on full screen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
+                // Note: on fullscreen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
                 ScreenResolution clientResolution = (windowWidth, windowHeight);
                 if (ScreenResolution.DesktopResolution == clientResolution)
                 {
-                    Logger.Log($"Entering full screen mode with resolution {ScreenResolution.DesktopResolution}.");
+                    Logger.Log($"Entering fullscreen mode with resolution {ScreenResolution.DesktopResolution}.");
                     graphics.IsFullScreen = true;
                     graphics.ApplyChanges();
                 }
                 else
                 {
-                    Logger.Log($"Not entering full screen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
+                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
                 }
             }
 

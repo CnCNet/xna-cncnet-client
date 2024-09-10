@@ -127,7 +127,7 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
 
-            // Find the largest full screen resolution as the default
+            // Find the largest fullscreen resolution as the default
             var resolution = ScreenResolution.SafeFullScreenResolution;
 
             UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
