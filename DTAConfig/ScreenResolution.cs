@@ -27,10 +27,7 @@ namespace DTAConfig
         /// </summary>
         public int Height { get; set; }
 
-        public override string ToString()
-        {
-            return Width + "x" + Height;
-        }
+        public override string ToString() => Width + "x" + Height;
 
         public void Deconstruct(out int width, out int height)
         {
@@ -50,16 +47,14 @@ namespace DTAConfig
 
         public static implicit operator string(ScreenResolution resolution) => resolution.ToString();
 
-        public bool Fit(ScreenResolution child)
-        {
-            return this.Width >= child.Width && this.Height >= child.Height;
-        }
+        public bool Fit(ScreenResolution child) => this.Width >= child.Width && this.Height >= child.Height;
 
         public int CompareTo(ScreenResolution other) => (this.Width, this.Height).CompareTo(other);
 
         // Accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
         private static ScreenResolution _desktopResolution = null;
-        public static ScreenResolution DesktopResolution => _desktopResolution ??= new(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
+        public static ScreenResolution DesktopResolution =>
+            _desktopResolution ??= new(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
 
         // The default graphic profile supports resolution up to 4096x4096. The number gets even smaller in practice. Therefore, we select 3840 as the limit.
         public static ScreenResolution HiDefLimitResolution { get; } = "3840x3840";
@@ -80,10 +75,11 @@ namespace DTAConfig
         private static ScreenResolution _safeFullScreenResolution = null;
         public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max();
 
-        public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) => GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
+            GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
-            var screenResolutions = new SortedSet<ScreenResolution>();
+            SortedSet<ScreenResolution> screenResolutions = [];
 
             foreach (DisplayMode dm in GraphicsAdapter.DefaultAdapter.SupportedDisplayModes)
             {
@@ -114,7 +110,8 @@ namespace DTAConfig
 
         public const int MAX_INT_SCALE = 9;
 
-        public SortedSet<ScreenResolution> GetIntegerScaledResolutions() => GetIntegerScaledResolutions(SafeMaximumResolution);
+        public SortedSet<ScreenResolution> GetIntegerScaledResolutions() =>
+            GetIntegerScaledResolutions(SafeMaximumResolution);
         public SortedSet<ScreenResolution> GetIntegerScaledResolutions(ScreenResolution maxResolution)
         {
             SortedSet<ScreenResolution> resolutions = [];
@@ -141,7 +138,7 @@ namespace DTAConfig
         {
             ScreenResolution maxResolution = (maxWidth, maxHeight);
 
-            var windowedResolutions = new SortedSet<ScreenResolution>();
+            SortedSet<ScreenResolution> windowedResolutions = [];
 
             foreach (ScreenResolution optimalResolution in optimalResolutions)
             {

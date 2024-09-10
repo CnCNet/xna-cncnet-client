@@ -197,7 +197,7 @@ namespace DTAConfig.OptionPanels
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
 
-                foreach (var res in resolutionList)
+                foreach (ScreenResolution res in resolutionList)
                 {
                     var item = new XNADropDownItem();
                     item.Text = res.ToString();
