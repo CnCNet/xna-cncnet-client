@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 #if !NETFRAMEWORK
 using System.Runtime.Loader;
 #endif
@@ -57,18 +59,34 @@ namespace DTAClient
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;
 
-        static void InitializeApplicationConfiguration() {
+        static void InitializeApplicationConfiguration()
+        {
 #if WINFORMS
+
 #if NET6_0_OR_GREATER
             // .NET 6.0 brings a source generator ApplicationConfiguration which is not available in previous .NET versions
             // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
             ApplicationConfiguration.Initialize();
 #else
+
+#if NETCOREAPP3_0_OR_GREATER
+            System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
+#endif
+
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 #endif
+
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                SetProcessDPIAware();
 #endif
         }
+
+        [DllImport("user32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [SupportedOSPlatform("windows")]
+        private static extern bool SetProcessDPIAware();
 
         /// <summary>
         /// The main entry point for the application.
@@ -144,7 +162,7 @@ namespace DTAClient
                     mutex.ReleaseMutex();
             }
         }
- 
+
 #if !NETFRAMEWORK
         private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {

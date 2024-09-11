@@ -46,6 +46,14 @@ namespace DTAClient.DXGUI
             graphics.SynchronizeWithVerticalRetrace = false;
 #if !XNA
             graphics.HardwareModeSwitch = false;
+
+            // Enable HiDef on a large monitor.
+            if (!ScreenResolution.HiDefLimitResolution.Fit(ScreenResolution.DesktopResolution))
+            {
+                // Enabling HiDef profile drops legacy GPUs not supporting DirectX 10.
+                // In practice, it's recommended to have a DirectX 11 capable GPU.
+                graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            }
 #endif
             content = new ContentManager(Services);
         }
@@ -311,16 +319,18 @@ namespace DTAClient.DXGUI
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            if (currentWidth >= windowWidth && currentHeight >= windowHeight)
+            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
+
+            if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
                     throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("Client:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
             }
             else
             {
+                // fallback to the minimum supported resolution when the desktop is not sufficient to contain the client
+                // e.g., when users set a lower desktop resolution but the client resolution in the settings file remains high
                 if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
@@ -348,7 +358,7 @@ namespace DTAClient.DXGUI
             if (ratio > 1.0)
             {
                 // Check whether we could sharp-scale our client window
-                for (int i = 2; i < 10; i++)
+                for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
                 {
                     int sharpScaleRenderResX = windowWidth / i;
                     int sharpScaleRenderResY = windowHeight / i;
@@ -379,8 +389,18 @@ namespace DTAClient.DXGUI
 
             if (borderlessWindowedClient)
             {
-                graphics.IsFullScreen = true;
-                graphics.ApplyChanges();
+                // Note: on fullscreen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
+                ScreenResolution clientResolution = (windowWidth, windowHeight);
+                if (ScreenResolution.DesktopResolution == clientResolution)
+                {
+                    Logger.Log($"Entering fullscreen mode with resolution {ScreenResolution.DesktopResolution}.");
+                    graphics.IsFullScreen = true;
+                    graphics.ApplyChanges();
+                }
+                else
+                {
+                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
+                }
             }
 
 #endif
