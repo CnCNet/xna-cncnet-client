@@ -419,8 +419,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string command = commandAndParams[0];
 
             string[] parameters = data.Substring(command.Length + 1).Split(
-                new char[] { ProgramConstants.LAN_DATA_SEPARATOR },
-                StringSplitOptions.RemoveEmptyEntries);
+                new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
             LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
 
