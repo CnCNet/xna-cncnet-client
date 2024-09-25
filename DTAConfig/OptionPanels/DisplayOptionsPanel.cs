@@ -679,7 +679,7 @@ namespace DTAConfig.OptionPanels
                 ddi => (string)ddi.Tag == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-            foreach (string localeCode in [UserINISettings.Instance.Translation, Translation.GetDefaultTranslationLocaleCode(), ProgramConstants.HARDCODED_LOCALE_CODE])
+            foreach (string localeCode in new string[] { UserINISettings.Instance.Translation, Translation.GetDefaultTranslationLocaleCode(), ProgramConstants.HARDCODED_LOCALE_CODE })
             {
                 int selectedTranslationIndex = ddTranslation.Items.FindIndex(
                     ddi => localeCode.Equals((string)ddi.Tag, StringComparison.InvariantCultureIgnoreCase));
