@@ -566,8 +566,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             sb.Append(RandomSeed);
-            sb.Append(Map.SHA1);
-            sb.Append(GameMode.Name);
+            sb.Append(Map?.SHA1 ?? string.Empty);
+            sb.Append(GameMode?.Name ?? string.Empty);
             sb.Append(FrameSendRate);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
 
@@ -743,8 +743,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
             sb.Append(localGame);
-            sb.Append(Map.UntranslatedName);
-            sb.Append(GameMode.UntranslatedUIName);
+            sb.Append(Map?.UntranslatedName ?? string.Empty);
+            sb.Append(GameMode?.UntranslatedUIName ?? string.Empty);
             sb.Append(0); // LoadedGameID
             var sbPlayers = new StringBuilder();
             Players.ForEach(p => sbPlayers.Append(p.Name + ","));
@@ -991,9 +991,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (gameModeMap == null)
             {
-                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("Client:Main:MapNotExist") +
-                    "The host needs to change the map or you won't be able to play.".L10N("Client:Main:HostNeedChangeMapForYou"));
                 ChangeMap(null);
+                if (!string.IsNullOrEmpty(mapSHA1))
+                    AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("Client:Main:MapNotExist") + " " +
+                        "The host needs to change the map or you won't be able to play.".L10N("Client:Main:HostNeedChangeMapForYou"));
+
                 return;
             }
 

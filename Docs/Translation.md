@@ -25,13 +25,17 @@ For example:
   - Translations
     - ru
       - Some Theme Folder
-	* Translation.ini
+        * Translation.ini
         * someThemeAsset.png
         * ...
       * Translation.ini
       * someAsset.png
       * ...
     - uk
+      * ...
+    - zh-Hans
+      * ...
+    - zh-Hant
       * ...
   * someAsset.png
   * ...
@@ -42,7 +46,7 @@ For example:
 The translation folder name is used to match it to the system locale code (as defined by BCP-47), so it is advised to name the translation folders according to that (for example, see how [the locales Windows uses](https://learn.microsoft.com/ru-ru/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c) are coded). That allows the client to choose the appropriate translation based on the system locale and also automatically fetch the name of the translation.
 
 > **Note**
-> Unless you're aiming for making a translation for a specific country (e.g. `en-US` and `en-GB`), it's advised to use simply a [language code](http://www.loc.gov/standards/iso639-2/php/code_list.php) (for example, `ru`, `de`, `en` etc.)
+> Unless you're aiming for making a translation for a specific country (e.g. `en-US` and `en-GB`), it's advised to use simply a [language code](http://www.loc.gov/standards/iso639-2/php/code_list.php) (for example, `ru`, `de`, `en`, `zh-Hans`, `zh-Hant` etc.)
 
 The folder name doesn't explicitly need to match the existing locale code. However, in that case you would want to provide an explicit name in the translation INI, and the translation won't be automatically picked in any case.
 
