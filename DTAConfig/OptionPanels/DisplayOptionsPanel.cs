@@ -13,12 +13,12 @@ using System.Windows.Forms;
 #endif
 #if TS
 using Microsoft.Win32;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 #endif
 using System.IO;
 using ClientCore.I18N;
+using System.Diagnostics;
 using System.Linq;
 
 namespace DTAConfig.OptionPanels
@@ -679,19 +679,19 @@ namespace DTAConfig.OptionPanels
                 ddi => (string)ddi.Tag == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-            int selectedTranslationIndex = ddTranslation.Items.FindIndex(
-                ddi => (string)ddi.Tag == UserINISettings.Instance.Translation);
+            foreach (string localeCode in new string[] { UserINISettings.Instance.Translation, Translation.GetDefaultTranslationLocaleCode(), ProgramConstants.HARDCODED_LOCALE_CODE })
+            {
+                int selectedTranslationIndex = ddTranslation.Items.FindIndex(
+                    ddi => localeCode.Equals((string)ddi.Tag, StringComparison.InvariantCultureIgnoreCase));
 
-            if (selectedTranslationIndex > -1)
-            {
-                ddTranslation.SelectedIndex = selectedTranslationIndex;
+                if (selectedTranslationIndex > -1)
+                {
+                    ddTranslation.SelectedIndex = selectedTranslationIndex;
+                    break;
+                }
             }
-            else
-            {
-                string defaultTranslationCode = Translation.GetDefaultTranslationLocaleCode();
-                ddTranslation.SelectedIndex = ddTranslation.Items.FindIndex(
-                    ddi => (string)ddi.Tag == defaultTranslationCode);
-            }
+
+            Debug.Assert(ddTranslation.SelectedIndex > -1, "No translation was selected");
 
 #if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
@@ -780,7 +780,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
-            restartRequired = restartRequired || IniSettings.Translation != (string)ddTranslation.SelectedItem.Tag;
+            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
 
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
