@@ -10,7 +10,7 @@ Updater-Related Files
 
 ### Distributable Files
 - **Updater Configuration File** (`Resources/UpdaterConfig.ini`, included with [default resources](../DXMainClient/Resources/DTA) in the client repository): Client [updater configuration](#updater-configuration) file which sets the download mirrors for the updater and available custom component info. If no such file is found, client falls back to using legacy `updateconfig.ini` which uses a different syntax and does not allow setting custom component info.
-- **Second-Stage Updater** (`Resources/Updater/SecondStageUpdater.dll`, included with [default resources](../DXMainClient/Resources/DTA) in the client repository): A second-stage updater executable that copies the files to their correct places after they've all been downloaded and then launches the client again after it is done. Client launcher executable is read from `LauncherExe` key in `Resources/ClientDefinitions.ini`, if it is not present or cannot be read for any other reason the client will not automatically restart after the second-stage updater has finished.
+- **Second-Stage Updater** (`Resources/Binaries/Updater/SecondStageUpdater.exe`, now belongs to a part of the client binaries: A second-stage updater executable that copies the files to their correct places after they've all been downloaded and then launches the client again after it is done. Client launcher executable is read from `LauncherExe` key in `Resources/ClientDefinitions.ini`, if it is not present or cannot be read for any other reason the client will not automatically restart after the second-stage updater has finished.
 
 Basic Usage
 -----------

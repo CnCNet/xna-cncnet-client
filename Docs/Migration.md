@@ -9,11 +9,11 @@ Migrating from older versions
 
 - Second-stage updater no longer has hardcoded list of launcher executables to check for when restarting the client. It will now only check `ClientDefinitions.ini` for `LauncherExe` key, and it it fails to read and launch this the client will not automatically restart after updating.
 
-- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.dll` for .NET 8 / `SecondStageUpdater.exe` for .NET 4.8 and has been moved from base folder to `Resources\Binaries\Updater`.
+- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` for .NET 4.8 and has been moved from base folder to `Resources/Binaries/Updater`.
 
     - **Note:** If you want end-users to be able to update via the old client, it is necessary to preserve a copy of the old second-stage updater (`clientupdt.dat`) in the client base directory. In other words, *don't* modify or delete `clientupdt.dat` with either of the [update server scripts](https://github.com/CnCNet/xna-cncnet-client/blob/develop/Docs/Updater.md).
 
-- Second-stage updater is now automatically copied to `Resources\Updater` folder by build scripts.
+- Second-stage updater is now automatically copied to `Resources/Binaries/Updater` folder by build scripts.
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
 
