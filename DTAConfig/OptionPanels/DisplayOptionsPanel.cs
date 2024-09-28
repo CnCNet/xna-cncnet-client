@@ -86,7 +86,7 @@ namespace DTAConfig.OptionPanels
                 var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
 #if XNA
-                if (!ScreenResolution.HiDefLimitResolution.Fit(maximumIngameResolution))
+                if (!ScreenResolution.HiDefLimitResolution.Fits(maximumIngameResolution))
                     maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
 #endif
 
@@ -768,6 +768,8 @@ namespace DTAConfig.OptionPanels
             if (clientRes.Width != IniSettings.ClientResolutionX.Value ||
                 clientRes.Height != IniSettings.ClientResolutionY.Value)
                 restartRequired = true;
+
+            // TODO: since DTAConfig must not rely on DXMainClient, we can't notify the client to dynamically change the resolution or togging borderless windowed mode. Thus, we need to restart the client as a workaround.
 
             (IniSettings.ClientResolutionX.Value, IniSettings.ClientResolutionY.Value) = clientRes;
 
