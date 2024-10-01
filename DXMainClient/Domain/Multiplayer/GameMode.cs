@@ -1,8 +1,10 @@
-﻿using ClientCore;
-using ClientCore.Extensions;
-using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
+using ClientCore;
+using ClientCore.Extensions;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -56,6 +58,16 @@ namespace DTAClient.Domain.Multiplayer
         public bool ForceNoTeams { get; private set; }
 
         /// <summary>
+        /// If set, given start mapping 'TeamStartMappings' is forced on this game mode.
+        /// </summary>
+        public bool ForceTeamStartMappings { get; private set; }
+
+        /// <summary>
+        /// If 'ForceTeamStartMappings' is set, this variable indicates the start mapping being forced on this game mode.
+        /// </summary>
+        public List<TeamStartMapping> TeamStartMappings { get; private set; } = [];
+
+        /// <summary>
         /// List of side indices players cannot select in this game mode.
         /// </summary>
         public List<int> DisallowedPlayerSides = new List<int>();
@@ -88,6 +100,8 @@ namespace DTAClient.Domain.Multiplayer
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
             ForceRandomStartLocations = forcedOptionsIni.GetBooleanValue(Name, "ForceRandomStartLocations", false);
+            ForceTeamStartMappings = forcedOptionsIni.GetBooleanValue(Name, "ForceTeamStartMappings", false);
+            TeamStartMappings = TeamStartMapping.FromListString(forcedOptionsIni.GetStringValue(Name, "TeamStartMappings", string.Empty));
             ForceNoTeams = forcedOptionsIni.GetBooleanValue(Name, "ForceNoTeams", false);
             MinPlayersOverride = forcedOptionsIni.GetIntValue(Name, "MinPlayersOverride", -1);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
