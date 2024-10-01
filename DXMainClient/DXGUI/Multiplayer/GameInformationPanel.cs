@@ -94,18 +94,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-            string gameModeName = game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+            // we don't have the ID of a map here
+            string translatedMapName = string.IsNullOrEmpty(game.Map) 
+                ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(game.Map)
+                ? mapLoader.TranslatedMapNames[game.Map] : game.Map;
 
-            lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(gameModeName, lblGameMode.FontIndex),
+            string translatedGameModeName = string.IsNullOrEmpty(game.GameMode) 
+                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+
+            lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
                 lblGameMode.FontIndex, Width - lblGameMode.X * 2);
             lblGameMode.Visible = true;
 
-            // we don't have the ID of a map here
-            string mapName = mapLoader.TranslatedMapNames.ContainsKey(game.Map)
-                ? mapLoader.TranslatedMapNames[game.Map]
-                : game.Map;
-
-            lblMap.Text = Renderer.GetStringWithLimitedWidth("Map:".L10N("Client:Main:GameInfoMap") + " " + Renderer.GetSafeString(mapName, lblMap.FontIndex),
+            lblMap.Text = Renderer.GetStringWithLimitedWidth("Map:".L10N("Client:Main:GameInfoMap") + " " + Renderer.GetSafeString(translatedMapName, lblMap.FontIndex),
                 lblMap.FontIndex, Width - lblMap.X * 2);
             lblMap.Visible = true;
 

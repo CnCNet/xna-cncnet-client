@@ -13,12 +13,13 @@ using System.Windows.Forms;
 #endif
 #if TS
 using Microsoft.Win32;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 #endif
 using System.IO;
 using ClientCore.I18N;
+using System.Diagnostics;
+using System.Linq;
 
 namespace DTAConfig.OptionPanels
 {
@@ -80,16 +81,22 @@ namespace DTAConfig.OptionPanels
                 lblIngameResolution.Right + 12,
                 lblIngameResolution.Y - 2, 120, 19);
 
-            var clientConfig = ClientConfiguration.Instance;
+            // Add in-game resolutions
+            {
+                var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
-            var resolutions = GetResolutions(clientConfig.MinimumIngameWidth,
-                clientConfig.MinimumIngameHeight,
-                clientConfig.MaximumIngameWidth, clientConfig.MaximumIngameHeight);
+#if XNA
+                if (!ScreenResolution.HiDefLimitResolution.Fit(maximumIngameResolution))
+                    maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
+#endif
 
-            resolutions.Sort();
+                SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
+                    ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
+                    maximumIngameResolution.Width, maximumIngameResolution.Height);
 
-            foreach (var res in resolutions)
-                ddIngameResolution.AddItem(res.ToString());
+                foreach (var res in resolutions)
+                    ddIngameResolution.AddItem(res.ToString());
+            }
 
             var lblDetailLevel = new XNALabel(WindowManager);
             lblDetailLevel.Name = "lblDetailLevel";
@@ -176,42 +183,36 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("Client:DTAConfig:Recommended");
 
-            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-
-            resolutions = GetResolutions(800, 600, width, height);
-
-            // Add "optimal" client resolutions for windowed mode
-            // if they're not supported in fullscreen mode
-
-            AddResolutionIfFitting(1024, 600, resolutions);
-            AddResolutionIfFitting(1024, 720, resolutions);
-            AddResolutionIfFitting(1280, 600, resolutions);
-            AddResolutionIfFitting(1280, 720, resolutions);
-            AddResolutionIfFitting(1280, 768, resolutions);
-            AddResolutionIfFitting(1280, 800, resolutions);
-
-            resolutions.Sort();
-
-            foreach (var res in resolutions)
+            // Add client resolutions
             {
-                var item = new XNADropDownItem();
-                item.Text = res.ToString();
-                item.Tag = res.ToString();
-                ddClientResolution.AddItem(item);
-            }
+                List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
 
-            // So we add the optimal resolutions to the list, sort it and then find
-            // out the optimal resolution index - it's inefficient, but works
+                SortedSet<ScreenResolution> resolutions = [
+                    .. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
+                    .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600),
+                    .. scaledRecommendedResolutions
+                ];
+                List<ScreenResolution> resolutionList = resolutions.ToList();
 
-            string[] recommendedResolutions = clientConfig.RecommendedResolutions;
+                foreach (ScreenResolution res in resolutionList)
+                {
+                    var item = new XNADropDownItem();
+                    item.Text = res.ToString();
+                    item.Tag = res.ToString();
+                    ddClientResolution.AddItem(item);
+                }
 
-            foreach (string resolution in recommendedResolutions)
-            {
-                string trimmedresolution = resolution.Trim();
-                int index = resolutions.FindIndex(res => res.ToString() == trimmedresolution);
-                if (index > -1)
-                    ddClientResolution.PreferredItemIndexes.Add(index);
+                // So we add the optimal resolutions to the list, sort it and then find
+                // out the optimal resolution index - it's inefficient, but works
+                // Note: ddClientResolution.PreferredItemIndexes is assumed in ascending order
+
+                foreach (ScreenResolution scaledRecommendedResolution in scaledRecommendedResolutions)
+                {
+                    int index = resolutionList.FindIndex(res => res == scaledRecommendedResolution);
+                    if (index > -1)
+                        ddClientResolution.PreferredItemIndexes.Add(index);
+                }
             }
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
@@ -339,25 +340,11 @@ namespace DTAConfig.OptionPanels
             AddChild(ddIngameResolution);
         }
 
-        /// <summary>
-        /// Adds a screen resolution to a list of resolutions if it fits on the screen.
-        /// Checks if the resolution already exists before adding it.
-        /// </summary>
-        /// <param name="width">The width of the new resolution.</param>
-        /// <param name="height">The height of the new resolution.</param>
-        /// <param name="resolutions">A list of screen resolutions.</param>
-        private void AddResolutionIfFitting(int width, int height, List<ScreenResolution> resolutions)
+        public static ScreenResolution GetBestRecommendedResolution()
         {
-            if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
-                return;
-
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-
-            if (currentWidth >= width && currentHeight >= height)
-            {
-                resolutions.Add(new ScreenResolution(width, height));
-            }
+            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            return scaledRecommendedResolutions.Max();
         }
 
         private void GetRenderers()
@@ -577,14 +564,12 @@ namespace DTAConfig.OptionPanels
             if (chkBorderlessClient.Checked)
             {
                 ddClientResolution.AllowDropDown = false;
-#if WINFORMS
-                string nativeRes = Screen.PrimaryScreen.Bounds.Width +
-                    "x" + Screen.PrimaryScreen.Bounds.Height;
+
+                string nativeRes = ScreenResolution.SafeFullScreenResolution;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
                     ddClientResolution.SelectedIndex = nativeResIndex;
-#endif
             }
             else
             {
@@ -592,7 +577,8 @@ namespace DTAConfig.OptionPanels
 
                 if (ddClientResolution.PreferredItemIndexes.Count > 0)
                 {
-                    int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[0];
+                    // Note: ddClientResolution.PreferredItemIndexes is assumed in ascending order
+                    int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[^1];
                     ddClientResolution.SelectedIndex = optimalWindowedResIndex;
                 }
             }
@@ -693,19 +679,19 @@ namespace DTAConfig.OptionPanels
                 ddi => (string)ddi.Tag == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-            int selectedTranslationIndex = ddTranslation.Items.FindIndex(
-                ddi => (string)ddi.Tag == UserINISettings.Instance.Translation);
+            foreach (string localeCode in new string[] { UserINISettings.Instance.Translation, Translation.GetDefaultTranslationLocaleCode(), ProgramConstants.HARDCODED_LOCALE_CODE })
+            {
+                int selectedTranslationIndex = ddTranslation.Items.FindIndex(
+                    ddi => localeCode.Equals((string)ddi.Tag, StringComparison.InvariantCultureIgnoreCase));
 
-            if (selectedTranslationIndex > -1)
-            {
-                ddTranslation.SelectedIndex = selectedTranslationIndex;
+                if (selectedTranslationIndex > -1)
+                {
+                    ddTranslation.SelectedIndex = selectedTranslationIndex;
+                    break;
+                }
             }
-            else
-            {
-                string defaultTranslationCode = Translation.GetDefaultTranslationLocaleCode();
-                ddTranslation.SelectedIndex = ddTranslation.Items.FindIndex(
-                    ddi => (string)ddi.Tag == defaultTranslationCode);
-            }
+
+            Debug.Assert(ddTranslation.SelectedIndex > -1, "No translation was selected");
 
 #if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
@@ -760,15 +746,12 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;
 
-            string[] resolution = ddIngameResolution.SelectedItem.Text.Split('x');
+            ScreenResolution ingameRes = ddIngameResolution.SelectedItem.Text;
 
-            int[] ingameRes = new int[2] { int.Parse(resolution[0]), int.Parse(resolution[1]) };
-
-            IniSettings.IngameScreenWidth.Value = ingameRes[0];
-            IniSettings.IngameScreenHeight.Value = ingameRes[1];
+            (IniSettings.IngameScreenWidth.Value, IniSettings.IngameScreenHeight.Value) = ingameRes;
 
             // Calculate drag selection distance, scale it with resolution width
-            int dragDistance = ingameRes[0] / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
+            int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
             DirectDrawWrapper originalRenderer = selectedRenderer;
@@ -780,16 +763,13 @@ namespace DTAConfig.OptionPanels
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
                 string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
 
-            string[] clientResolution = ((string)ddClientResolution.SelectedItem.Tag).Split('x');
+            ScreenResolution clientRes = (string)ddClientResolution.SelectedItem.Tag;
 
-            int[] clientRes = new int[2] { int.Parse(clientResolution[0]), int.Parse(clientResolution[1]) };
-
-            if (clientRes[0] != IniSettings.ClientResolutionX.Value ||
-                clientRes[1] != IniSettings.ClientResolutionY.Value)
+            if (clientRes.Width != IniSettings.ClientResolutionX.Value ||
+                clientRes.Height != IniSettings.ClientResolutionY.Value)
                 restartRequired = true;
 
-            IniSettings.ClientResolutionX.Value = clientRes[0];
-            IniSettings.ClientResolutionY.Value = clientRes[1];
+            (IniSettings.ClientResolutionX.Value, IniSettings.ClientResolutionY.Value) = clientRes;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;
@@ -800,7 +780,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
-            restartRequired = restartRequired || IniSettings.Translation != (string)ddTranslation.SelectedItem.Tag;
+            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
 
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
@@ -875,9 +855,9 @@ namespace DTAConfig.OptionPanels
 
                 SafePath.DeleteFileIfExists(languageDllDestinationPath);
 
-                if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
+                if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);
-                else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
+                else if (ingameRes.Width >= 800 && ingameRes.Height >= 600)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), languageDllDestinationPath);
                 else
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
@@ -887,85 +867,5 @@ namespace DTAConfig.OptionPanels
             return restartRequired;
         }
 
-        private List<ScreenResolution> GetResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
-        {
-            var screenResolutions = new List<ScreenResolution>();
-
-            foreach (DisplayMode dm in GraphicsAdapter.DefaultAdapter.SupportedDisplayModes)
-            {
-                if (dm.Width < minWidth || dm.Height < minHeight || dm.Width > maxWidth || dm.Height > maxHeight)
-                    continue;
-
-                var resolution = new ScreenResolution(dm.Width, dm.Height);
-
-                // SupportedDisplayModes can include the same resolution multiple times
-                // because it takes the refresh rate into consideration.
-                // Which means that we have to check if the resolution is already listed
-                if (screenResolutions.Find(res => res.Equals(resolution)) != null)
-                    continue;
-
-                screenResolutions.Add(resolution);
-            }
-
-            return screenResolutions;
-        }
-
-        /// <summary>
-        /// A single screen resolution.
-        /// </summary>
-        sealed class ScreenResolution : IComparable<ScreenResolution>
-        {
-            public ScreenResolution(int width, int height)
-            {
-                Width = width;
-                Height = height;
-            }
-
-            /// <summary>
-            /// The width of the resolution in pixels.
-            /// </summary>
-            public int Width { get; set; }
-
-            /// <summary>
-            /// The height of the resolution in pixels.
-            /// </summary>
-            public int Height { get; set; }
-
-            public override string ToString()
-            {
-                return Width + "x" + Height;
-            }
-
-            public int CompareTo(ScreenResolution res2)
-            {
-                if (this.Width < res2.Width)
-                    return -1;
-                else if (this.Width > res2.Width)
-                    return 1;
-                else // equal
-                {
-                    if (this.Height < res2.Height)
-                        return -1;
-                    else if (this.Height > res2.Height)
-                        return 1;
-                    else return 0;
-                }
-            }
-
-            public override bool Equals(object obj)
-            {
-                var resolution = obj as ScreenResolution;
-
-                if (resolution == null)
-                    return false;
-
-                return CompareTo(resolution) == 0;
-            }
-
-            public override int GetHashCode()
-            {
-                return new { Width, Height }.GetHashCode();
-            }
-        }
     }
 }

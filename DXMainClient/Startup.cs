@@ -19,6 +19,8 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
+using DTAConfig;
+using System.Collections.Generic;
 
 namespace DTAClient
 {
@@ -126,11 +128,23 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
 
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            if (!UserINISettings.Instance.BorderlessWindowedClient)
+            {
+                // Find the largest recommended resolution as the default windowed resolution
+                List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+                var bestRecommendedResolution = scaledRecommendedResolutions.Max();
 
-            UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", currentWidth);
-            UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", currentHeight);
+                UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
+                UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
+            }
+            else
+            {
+                // Find the largest fullscreen resolution as the default fullscreen resolution
+                var resolution = ScreenResolution.SafeFullScreenResolution;
+                UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
+                UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
+            }
 
             gameClass.Run();
         }
