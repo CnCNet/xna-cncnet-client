@@ -112,15 +112,15 @@ namespace DTAClient.Domain.Multiplayer
                 DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
             disallowedSides = forcedOptionsIni
-            .GetStringValue(Name, "DisallowedHumanPlayerSides", string.Empty)
-            .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                .GetStringValue(Name, "DisallowedHumanPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedHumanPlayerSides.Add(int.Parse(sideIndex));
 
             disallowedSides = forcedOptionsIni
-            .GetStringValue(Name, "DisallowedComputerPlayerSides", string.Empty)
-            .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                .GetStringValue(Name, "DisallowedComputerPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedComputerPlayerSides.Add(int.Parse(sideIndex));
