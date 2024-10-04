@@ -11,8 +11,6 @@ using ClientCore.I18N;
 
 using Rampastring.Tools;
 
-using Utilities = Rampastring.Tools.Utilities;
-
 namespace DTAClient.Online
 {
     public class FileHashCalculator
