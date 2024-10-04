@@ -234,7 +234,7 @@ namespace DTAClient.Online
 
                 using StreamReader reader = new(inputStream, utf8Encoding, detectEncodingFromByteOrderMarks: false);
                 string text = reader.ReadToEnd();
-                text = text.Replace("\r\n", "\n");
+                text = text.Replace("\r\n", "\n").Trim();
 
                 byte[] bytes = utf8Encoding.GetBytes(text);
 
