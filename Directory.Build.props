@@ -58,7 +58,6 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientUpdater' OR '$(MSBuildProjectName)' == 'SecondStageUpdater'">
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- For Constants -->
