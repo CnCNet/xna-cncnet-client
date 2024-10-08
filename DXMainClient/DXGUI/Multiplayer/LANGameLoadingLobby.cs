@@ -126,7 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client.GetStream().Flush();
 
                 var fhc = new FileHashCalculator();
-                fhc.CalculateHashes(gameModes);
+                fhc.CalculateHashes();
                 localFileHash = fhc.GetCompleteHash();
             }
             else
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public void PostJoin()
         {
             var fhc = new FileHashCalculator();
-            fhc.CalculateHashes(gameModes);
+            fhc.CalculateHashes();
             SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
             UpdateDiscordPresence(true);
         }

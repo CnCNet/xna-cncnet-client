@@ -230,7 +230,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void OnJoined()
         {
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(gameModes);
+            fhc.CalculateHashes();
 
             if (IsHost)
             {
