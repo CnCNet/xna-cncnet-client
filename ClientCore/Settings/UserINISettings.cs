@@ -11,6 +11,7 @@ namespace ClientCore
         private static UserINISettings _instance;
 
         public const string VIDEO = "Video";
+        public const string INTRO_SETTINGS = "Intro";
         public const string MULTIPLAYER = "MultiPlayer";
         public const string OPTIONS = "Options";
         public const string AUDIO = "Audio";
@@ -66,6 +67,8 @@ namespace ClientCore
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
+
+            PlayIntroSetting = new BoolSetting(iniFile, INTRO_SETTINGS, "Play", false);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -166,6 +169,12 @@ namespace ClientCore
         public BoolSetting PlayMainMenuMusic { get; private set; }
         public BoolSetting StopMusicOnMenu { get; private set; }
         public BoolSetting MessageSound { get; private set; }
+
+        /*********/
+        /* INTRO */
+        /*********/
+
+        public BoolSetting PlayIntroSetting { get; private set; }
 
         /********/
         /* GAME */
@@ -308,9 +317,16 @@ namespace ClientCore
 
         public void ApplyDefaults()
         {
+#if YR || ARES
             ForceLowestDetailLevel.SetDefaultIfNonexistent();
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
+            PlayIntroSetting.SetDefaultIfNonexistent();
+#else
+            ForceLowestDetailLevel.SetDefaultIfNonexistent();
+            DoubleTapInterval.SetDefaultIfNonexistent();
+            ScrollDelay.SetDefaultIfNonexistent();
+#endif
         }
 
         public void SaveSettings()
