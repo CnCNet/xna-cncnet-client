@@ -139,6 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private InvitationIndex invitationIndex;
 
         private GameFiltersPanel panelGameFilters;
+        private Timer gameChanneListTimer;
 
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
@@ -541,6 +542,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.PrivateCTCPReceived += ConnectionManager_PrivateCTCPReceived;
             connectionManager.ChannelListReceived += ConnectionManager_ChannelListReceived;
+            connectionManager.ChannelMOTDComplete += ConnectionManager_ChannelMOTDComplete;
 
             cncnetUserData.UserFriendToggled += RefreshPlayerList;
             cncnetUserData.UserIgnoreToggled += RefreshPlayerList;
@@ -590,6 +592,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void ConnectionManager_ChannelMOTDComplete(object sender, EventArgs e)
+        {
+            RequestChannelList(null);
+            gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
+        }
+
+        private void DisposeGameChannelListTimer()
+        {
+            if (gameChanneListTimer != null)
+            {
+                gameChanneListTimer.Dispose();
+                gameChanneListTimer = null;
+            }
+        }
+
+        private void RequestChannelList(object state)
+        {
+            string pattern = gameCollection.GetGameListPatternFromIdentifier(localGameID);
+            connectionManager.RequestChannelList(pattern);
         }
 
         private void ConnectionManager_ChannelListReceived(object sender, ChannelTopicEventArgs e)

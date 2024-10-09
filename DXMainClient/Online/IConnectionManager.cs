@@ -12,6 +12,8 @@ namespace DTAClient.Online
 
         void OnGenericServerMessageReceived(string message);
 
+        void OnMOTDComplete();
+
         void OnAwayMessageReceived(string userName, string reason);
 
         void OnChannelTopicReceived(string channelName, string topic);

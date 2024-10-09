@@ -27,6 +27,13 @@ namespace ClientCore.CnCNet5
         /// </summary>
         public string GameBroadcastChannel { get; set; }
 
+
+        /// <summary>
+        /// The IRC game pattern of a hosted game channels
+        /// </summary>
+        public string GameListPattern { get; set; }
+
+
         /// <summary>
         /// The executable name of the game's client.
         /// </summary>

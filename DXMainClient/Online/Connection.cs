@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -231,7 +232,6 @@ namespace DTAClient.Online
             Register();
 
             Timer pingTimer = new Timer(AutoPing, null, 30000, 120000);
-            Timer gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
 
             connectionCut = true;
 
@@ -285,9 +285,6 @@ namespace DTAClient.Online
 
             pingTimer.Change(Timeout.Infinite, Timeout.Infinite);
             pingTimer.Dispose();
-
-            gameChanneListTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            gameChanneListTimer.Dispose();
 
             _isConnected = false;
             disconnect = false;
@@ -571,7 +568,7 @@ namespace DTAClient.Online
                             break;
                         case 376: // End of MOTD
                         case 422: // Server has no MOTD
-                            RequestChannelList(null);
+                            connectionManager.OnMOTDComplete();
                             break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."
@@ -952,12 +949,10 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        private void RequestChannelList(object state)
+        public void RequestChannelList(string pattern)
         {
             Logger.Log("RequestChannelList");
 
-            // @TODO
-            string pattern = "#cncnet-yr-game*";
             string listCommand = $"LIST {pattern}";
             Logger.Log($"RequestChannelList: {listCommand}");
 

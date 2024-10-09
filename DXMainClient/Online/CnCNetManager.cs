@@ -28,6 +28,7 @@ namespace DTAClient.Online
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
+        public event EventHandler ChannelMOTDComplete;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
@@ -274,6 +275,16 @@ namespace DTAClient.Online
                 Channel channel = FindChannel(channelName);
                 wm.AddCallback(new Action<string, string>(DoChannelListReceived), channelName, channelTopic);
             }
+        }
+
+        public void OnMOTDComplete()
+        {
+            wm.AddCallback(new Action(DoMOTDComplete), null);
+        }
+
+        private void DoMOTDComplete()
+        {
+            ChannelMOTDComplete?.Invoke(this, null);
         }
 
         private void DoChannelListReceived(string channelName, string channelTopic)
@@ -973,6 +984,11 @@ namespace DTAClient.Online
         public void SetChannelTopic(Channel channel, string topic)
         {
             connection.SetChannelTopic(channel.ChannelName, topic);
+        }
+
+        public void RequestChannelList(string pattern)
+        {
+            connection.RequestChannelList(pattern);
         }
     }
 
