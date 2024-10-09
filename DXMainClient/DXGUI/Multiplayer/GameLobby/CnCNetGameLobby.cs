@@ -1970,7 +1970,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
 
             // Append additional game info  (11 onwards)
-            sb.Append(hasSpecialGameMode ? "1" : "0");
             sb.Append(Convert.ToInt32(hasSpecialGameMode));
             sb.Append(";");
             sb.Append(Convert.ToInt32(hasSupers));
