@@ -1602,6 +1602,48 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     updateMessageBox.YesClickedAction = UpdateMessageBox_YesClicked;
                 }
             }
+
+            // Ensure the topic starts with "GAME " as expected
+            if (!e.Message.StartsWith("GAME "))
+                return;
+
+            // Extract the game information from the topic string
+            string msg = e.Message.Substring(5); // Cut out "GAME " part
+            string[] splitMessage = msg.Split(new char[] { ';' });
+
+            // Ensure the message has the expected number of parts
+            if (splitMessage.Length != 14)
+            {
+                Logger.Log("Ignoring game message because of an invalid number of parameters.");
+                return;
+            }
+
+            // We keep this here because this is the fastest way of removing a game
+            try
+            {
+                bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
+
+                // If the game is closed, remove it from the list
+                if (isClosed)
+                {
+                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == e.UserName);
+
+                    if (index > -1)
+                    {
+                        lbGameList.RemoveGame(index);
+
+                        // Dismiss any outstanding invitations that are no longer valid
+                        DismissInvalidInvitations();
+                    }
+
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Game parsing error: " + ex.ToString());
+            }
+           
         }
 
         private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) =>
