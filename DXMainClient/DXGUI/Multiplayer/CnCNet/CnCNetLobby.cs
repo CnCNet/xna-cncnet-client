@@ -600,15 +600,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
         }
 
-        private void DisposeGameChannelListTimer()
-        {
-            if (gameChanneListTimer != null)
-            {
-                gameChanneListTimer.Dispose();
-                gameChanneListTimer = null;
-            }
-        }
-
         private void RequestChannelList(object state)
         {
             string pattern = gameCollection.GetGameListPatternFromIdentifier(localGameID);
