@@ -125,7 +125,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncreloaded",
                     ClientExecutableName = "CnCReloadedClient.exe",
                     GameBroadcastChannel = "#cncreloaded-games",
-                    GameListPattern = "#cncnet-cncr-game*",
+                    GameListPattern = "#cncreloaded-cncr-game*",
                     InternalName = "cncr",
                     RegistryInstallPath = "HKCU\\Software\\CnCReloaded",
                     UIName = "C&C: Reloaded",
@@ -379,6 +379,29 @@ namespace ClientCore.CnCNet5
             if (game == null)
                 return null;
             return game.ChatChannel;
+        }
+
+        public CnCNetGame GetGameFromHostedChannelName(string channelName)
+        {
+            // Remove the "#" at the beginning of the channel name, if present
+            string cleanedChannelName = channelName.StartsWith("#") ? channelName.Substring(1) : channelName;
+
+            // Loop through the game list to find the first matching pattern
+            return GameList.Find(g =>
+            {
+                if (g.GameListPattern != null)
+                {
+                    // Remove the "#" from the GameListPattern as well
+                    string cleanedGameListPattern = g.GameListPattern.StartsWith("#") ? g.GameListPattern.Substring(1) : g.GameListPattern;
+
+                    // Check if the channel name starts with the portion of the pattern before the wildcard '*'
+                    string fixedPatternPart = cleanedGameListPattern.Split('*')[0];
+
+                    // Use StartsWith to match the fixed part of the pattern
+                    return cleanedChannelName.StartsWith(fixedPatternPart);
+                }
+                return false;
+            });
         }
     }
 
