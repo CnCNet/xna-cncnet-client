@@ -12,7 +12,7 @@ namespace DTAClient.Online
 
         void OnGenericServerMessageReceived(string message);
 
-        void OnMOTDComplete();
+        void OnMessageOfTheDayComplete();
 
         void OnAwayMessageReceived(string userName, string reason);
 

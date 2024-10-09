@@ -568,7 +568,7 @@ namespace DTAClient.Online
                             break;
                         case 376: // End of MOTD
                         case 422: // Server has no MOTD
-                            connectionManager.OnMOTDComplete();
+                            connectionManager.OnMessageOfTheDayComplete();
                             break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."

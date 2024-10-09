@@ -303,7 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                var hostedGameTexture = hostedGame.HasSpecialGameMode == true && hostedGame.Game.TextureSpecialGameMode != null ? 
+                var hostedGameTexture = hostedGame.HasSpecialGameMode && hostedGame.Game.TextureSpecialGameMode != null ? 
                         hostedGame.Game.TextureSpecialGameMode :
                         hostedGame.Game.Texture;
 

@@ -146,7 +146,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblCrates.Text = "Crates:".L10N("Client:Main:GameInfoCrates") + " " + Renderer.GetSafeString(game.HasCrates ? "Yes" : "No", lblCrates.FontIndex);
             lblCrates.Visible = true;
 
-            lblSupers.Text = "Superweapons:".L10N("Client:Main:GameInfoSupers") + " " + Renderer.GetSafeString(game.HasSupers ? "Yes" : "No", lblSupers.FontIndex);
+            lblSupers.Text = "Superweapons:".L10N("Client:Main:GameInfoSupers") + " " + Renderer.GetSafeString(game.HasSuperWeapons ? "Yes" : "No", lblSupers.FontIndex);
             lblSupers.Visible = true;
         }
 

@@ -22,7 +22,7 @@ namespace DTAClient.Domain.Multiplayer
         public string[] Players { get; set; }
         public bool HasSpecialGameMode { get; set; }
         public bool HasCrates { get; set; }
-        public bool HasSupers { get; set; }
+        public bool HasSuperWeapons { get; set; }
 
         public int MaxPlayers { get; set; } = 8;
 

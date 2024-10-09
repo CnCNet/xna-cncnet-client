@@ -542,7 +542,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.PrivateCTCPReceived += ConnectionManager_PrivateCTCPReceived;
             connectionManager.ChannelListReceived += ConnectionManager_ChannelListReceived;
-            connectionManager.ChannelMOTDComplete += ConnectionManager_ChannelMOTDComplete;
+            connectionManager.ChannelMessageOfTheDayComplete += ConnectionManager_ChannelMessageOfTheDayComplete;
 
             cncnetUserData.UserFriendToggled += RefreshPlayerList;
             cncnetUserData.UserIgnoreToggled += RefreshPlayerList;
@@ -594,7 +594,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
-        private void ConnectionManager_ChannelMOTDComplete(object sender, EventArgs e)
+        private void ConnectionManager_ChannelMessageOfTheDayComplete(object sender, EventArgs e)
         {
             RequestChannelList(null);
             gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
@@ -614,9 +614,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // Ensure the topic starts with "GAME " as expected
             if (!e.Topic.StartsWith("GAME "))
-            {
                 return;
-            }
 
             // Extract the game information from the topic string
             string msg = e.Topic.Substring(5); // Cut out "GAME " part
@@ -633,9 +631,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 string revision = splitMessage[0];
                 if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
-                {
                     return;
-                }
 
                 string gameVersion = splitMessage[1];
                 int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
@@ -658,15 +654,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 string loadedGameId = splitMessage[10];
                 bool hasSpecialGameMode = Conversions.BooleanFromString(splitMessage[11], false);
-                bool hasSupers = Conversions.BooleanFromString(splitMessage[12], false);
+                bool hasSuperWeapons = Conversions.BooleanFromString(splitMessage[12], false);
                 bool hasCrates = Conversions.BooleanFromString(splitMessage[13], false);
 
-                // @TODO: Find the CnCNet game and tunnel information based on the channel name
-                CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.InternalName == "yr");
+                CnCNetGame cncnetGame = gameCollection.GetGameFromHostedChannelName(e.ChannelName);
                 CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
 
                 if (tunnel == null || cncnetGame == null)
                 {
+                    Logger.Log($"GameBroadcastChannel_ChannelListReceived ** Tunnel: {tunnel} // cncnetGame: {cncnetGame}");
                     return;
                 }
 
@@ -694,7 +690,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.TunnelServer = tunnel;
                 game.HasSpecialGameMode = hasSpecialGameMode;
                 game.HasCrates = hasCrates;
-                game.HasSupers = hasSupers;
+                game.HasSuperWeapons = hasSuperWeapons;
 
                 // If the game is closed, remove it from the list
                 if (isClosed)

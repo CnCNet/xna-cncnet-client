@@ -236,8 +236,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
 
-                StringBuilder topic = BuildGameBroadcastingString();
-                connectionManager.SetChannelTopic(channel, topic.ToString());
+                string topic = BuildGameBroadcastingString();
+                connectionManager.SetChannelTopic(channel, topic);
             }
             else
             {
@@ -1896,16 +1896,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ProgramConstants.IsInGame && broadcastChannel.Users.Count > 500)
                 return;
 
-            StringBuilder sb = BuildGameBroadcastingString();
+            string gameBroadcastingString = BuildGameBroadcastingString();
 
             // @TODO: Sending ctcp for broadcasting may not be needed now, if its only informing cncnet lobby
-            broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
+            broadcastChannel.SendCTCPMessage(gameBroadcastingString, QueuedMessageType.SYSTEM_MESSAGE, 20);
 
             // @TODO: Perhaps we should only update the topic when something has changed?
-            connectionManager.SetChannelTopic(channel, sb.ToString());
+            connectionManager.SetChannelTopic(channel, gameBroadcastingString);
         }
 
-        private StringBuilder BuildGameBroadcastingString()
+        private string BuildGameBroadcastingString()
         {
             // @TODO: Do we need a way to allow games/mods to specify their additional game options they want to broadcast
             // For now hardcoded bits
@@ -1964,19 +1964,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(GameMode?.UntranslatedUIName ?? string.Empty);
             sb.Append(";");
-            sb.Append(tunnelHandler?.CurrentTunnel?.Address + ":" + tunnelHandler?.CurrentTunnel?.Port);
+            sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
             sb.Append(";");
 
             // Append additional game info  (11 onwards)
             sb.Append(hasSpecialGameMode ? "1" : "0");
+            sb.Append(Convert.ToInt32(hasSpecialGameMode));
             sb.Append(";");
-            sb.Append(hasSupers ? "1" : "0");
+            sb.Append(Convert.ToInt32(hasSupers));
             sb.Append(";");
-            sb.Append(hasCrates ? "1" : "0");
+            sb.Append(Convert.ToInt32(hasCrates));
 
-            return sb;
+            return sb.ToString();
         }
 
         #endregion
