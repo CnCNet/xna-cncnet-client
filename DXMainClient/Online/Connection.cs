@@ -569,6 +569,10 @@ namespace DTAClient.Online
                             connectionManager.OnWelcomeMessageReceived(message);
                             reconnectCount = 0;
                             break;
+                        case 376: // End of MOTD
+                        case 422: // Server has no MOTD
+                            RequestChannelList(null);
+                            break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."
                         case 251: // There are <int> users and <int> invisible on <int> servers
@@ -950,15 +954,14 @@ namespace DTAClient.Online
 
         private void RequestChannelList(object state)
         {
-            if (IsConnected)
-            {
-                // @TODO
-                string pattern = "#cncnet-yr-game*";
-                string listCommand = $"LIST {pattern}";
-                Logger.Log($"RequestChannelList: {listCommand}");
+            Logger.Log("RequestChannelList");
 
-                QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
-            }
+            // @TODO
+            string pattern = "#cncnet-yr-game*";
+            string listCommand = $"LIST {pattern}";
+            Logger.Log($"RequestChannelList: {listCommand}");
+
+            QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
         public void SetChannelTopic(string channelName, string newTopic)

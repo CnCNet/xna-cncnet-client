@@ -1913,6 +1913,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool hasSpecialGameMode = false;
             bool hasCrates = false;
             bool hasSupers = false;
+
             for (int i = 0; i < CheckBoxes.Count; i++)
             {
                 var checkbox = CheckBoxes[i];
