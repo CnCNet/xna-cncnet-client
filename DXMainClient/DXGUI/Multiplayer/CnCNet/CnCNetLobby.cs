@@ -502,7 +502,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         connectionManager.AddChannel(gameBroadcastChannel);
                     }
 
-                    gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
                     gameBroadcastChannel.UserLeft += GameBroadcastChannel_UserLeftOrQuit;
                     gameBroadcastChannel.UserQuitIRC += GameBroadcastChannel_UserLeftOrQuit;
                     gameBroadcastChannel.UserKicked += GameBroadcastChannel_UserLeftOrQuit;
