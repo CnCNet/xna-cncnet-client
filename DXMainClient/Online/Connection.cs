@@ -121,6 +121,7 @@ namespace DTAClient.Online
         private static bool idSet = false;
         private static string systemId;
         private static readonly object idLocker = new object();
+        private readonly List<Tuple<string, string>> _channelList = [];
 
         public static void SetId(string id)
         {
@@ -229,7 +230,8 @@ namespace DTAClient.Online
 
             Register();
 
-            Timer timer = new Timer(AutoPing, null, 30000, 120000);
+            Timer pingTimer = new Timer(AutoPing, null, 30000, 120000);
+            Timer gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
 
             connectionCut = true;
 
@@ -278,11 +280,14 @@ namespace DTAClient.Online
                 Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
-                timer.Change(30000, 30000);
+                pingTimer.Change(30000, 30000);
             }
 
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
-            timer.Dispose();
+            pingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            pingTimer.Dispose();
+
+            gameChanneListTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            gameChanneListTimer.Dispose();
 
             _isConnected = false;
             disconnect = false;
@@ -599,6 +604,16 @@ namespace DTAClient.Online
                             string awayPlayer = parameters[1];
                             string awayReason = parameters[2];
                             connectionManager.OnAwayMessageReceived(awayPlayer, awayReason);
+                            break;
+                        case 322: // Channel information from LIST command
+                            string listChannelName = parameters[1];
+                            string listChannelTopic = parameters[3];
+                            _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            break;
+                        case 323: // End of the LIST command
+                            Logger.Log($"End of Channel LIST");
+                            connectionManager.OnChannelListReceived(_channelList);
+                            _channelList.Clear();
                             break;
                         case 332: // Channel topic message
                             string _target = parameters[0];
@@ -931,6 +946,29 @@ namespace DTAClient.Online
                 systemId, realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
+        }
+
+        private void RequestChannelList(object state)
+        {
+            if (IsConnected)
+            {
+                // @TODO
+                string pattern = "#cncnet-yr-game*";
+                string listCommand = $"LIST {pattern}";
+                Logger.Log($"RequestChannelList: {listCommand}");
+
+                QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+            }
+        }
+
+        public void SetChannelTopic(string channelName, string newTopic)
+        {
+            // Send the TOPIC command to the IRC server with the desired topic.
+            string topicCommand = $"TOPIC {channelName} :{newTopic}";
+            Logger.Log($"Setting topic for {channelName}: {newTopic}");
+
+            // Queue the message to be sent to the server.
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
         public void ChangeNickname()

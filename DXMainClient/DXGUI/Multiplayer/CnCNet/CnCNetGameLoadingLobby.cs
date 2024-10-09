@@ -235,7 +235,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("MODE {0} +klnNs {1} {2}", channel.ChannelName,
+                    string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, SGPlayers.Count),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 

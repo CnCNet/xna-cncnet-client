@@ -29,6 +29,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblHost;
         private XNALabel lblPing;
         private XNALabel lblPlayers;
+        private XNALabel lblCrates;
+        private XNALabel lblSupers;
         private XNALabel[] lblPlayerNames;
 
         public override void Initialize()
@@ -56,8 +58,14 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing = new XNALabel(WindowManager);
             lblPing.ClientRectangle = new Rectangle(6, 126, 0, 0);
 
+            lblCrates = new XNALabel(WindowManager);
+            lblCrates.ClientRectangle = new Rectangle(6, 150, 0, 0);
+
+            lblSupers = new XNALabel(WindowManager);
+            lblSupers.ClientRectangle = new Rectangle(6, 174, 0, 0);
+
             lblPlayers = new XNALabel(WindowManager);
-            lblPlayers.ClientRectangle = new Rectangle(6, 150, 0, 0);
+            lblPlayers.ClientRectangle = new Rectangle(6, 198, 0, 0);
 
             lblPlayerNames = new XNALabel[MAX_PLAYERS];
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
@@ -83,6 +91,8 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblHost);
             AddChild(lblPing);
             AddChild(lblPlayers);
+            AddChild(lblCrates);
+            AddChild(lblSupers);
             AddChild(lblGameInformation);
 
             lblGameInformation.CenterOnParent();
@@ -132,6 +142,12 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 lblPlayerNames[i].Visible = false;
             }
+
+            lblCrates.Text = "Crates:".L10N("Client:Main:GameInfoCrates") + " " + Renderer.GetSafeString(game.HasCrates ? "Yes" : "No", lblCrates.FontIndex);
+            lblCrates.Visible = true;
+
+            lblSupers.Text = "Superweapons:".L10N("Client:Main:GameInfoSupers") + " " + Renderer.GetSafeString(game.HasSupers ? "Yes" : "No", lblSupers.FontIndex);
+            lblSupers.Visible = true;
         }
 
         public void ClearInfo()
