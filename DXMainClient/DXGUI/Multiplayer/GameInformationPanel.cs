@@ -194,6 +194,45 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     Texture2D pingTexture = GetTextureForPing(game.Ping); // Static test with the first texture
                     DrawTexture(pingTexture, new Rectangle(10, 10, pingTexture.Width, pingTexture.Height), Color.White); // Fixed position
+
+                    if (mapLoader != null)
+                    {
+                        Texture2D mapTexture = mapLoader.GameModeMaps.Find((m) => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+
+                        if (mapTexture != null)
+                        {
+                            double xRatio = (Width - 2) / (double)mapTexture.Width;
+                            double yRatio = (Height - 2) / (double)mapTexture.Height;
+
+                            double ratio;
+
+                            int texturePositionX = 1;
+                            int texturePositionY = 1;
+                            int textureHeight = 0;
+                            int textureWidth = 0;
+
+                            if (xRatio > yRatio)
+                            {
+                                ratio = yRatio;
+                                textureHeight = Height - 2;
+                                textureWidth = (int)(mapTexture.Width * ratio);
+                                texturePositionX = (int)(Width - 2 - textureWidth) / 2;
+                            }
+                            else
+                            {
+                                ratio = xRatio;
+                                textureWidth = Width - 2;
+                                textureHeight = (int)(mapTexture.Height * ratio);
+                                texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
+                            }
+
+                            DrawTexture(mapTexture, new Rectangle(texturePositionX, texturePositionY, textureWidth, textureHeight), Color.White); // Fixed position
+                        }
+                    }
+                    else
+                    {
+                        Logger.Log($"mapLoader is null {mapLoader}");
+                    }
                 }
                 else
                 {
