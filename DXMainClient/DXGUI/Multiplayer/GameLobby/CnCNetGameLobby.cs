@@ -1896,13 +1896,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ProgramConstants.IsInGame && broadcastChannel.Users.Count > 500)
                 return;
 
-            string gameBroadcastingString = BuildGameBroadcastingString();
+            string broadcastString = BuildGameBroadcastingString();
 
             // @TODO: Sending ctcp for broadcasting may not be needed now, if its only informing cncnet lobby
-            broadcastChannel.SendCTCPMessage(gameBroadcastingString, QueuedMessageType.SYSTEM_MESSAGE, 20);
+            broadcastChannel.SendCTCPMessage(broadcastString, QueuedMessageType.SYSTEM_MESSAGE, 20);
 
             // @TODO: Perhaps we should only update the topic when something has changed?
-            connectionManager.SetChannelTopic(channel, gameBroadcastingString);
+            connectionManager.SetChannelTopic(channel, broadcastString);
         }
 
         private string BuildGameBroadcastingString()

@@ -3,6 +3,9 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
 using ClientCore.Extensions;
+using Microsoft.Xna.Framework.Graphics;
+using System.Net.NetworkInformation;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -32,6 +35,9 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblCrates;
         private XNALabel lblSuperWeapons;
         private XNALabel[] lblPlayerNames;
+
+        private Texture2D[] PingTextures;
+
 
         public override void Initialize()
         {
@@ -85,6 +91,15 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
+            PingTextures = new Texture2D[5]
+{
+                AssetLoader.LoadTexture("ping0.png"),
+                AssetLoader.LoadTexture("ping1.png"),
+                AssetLoader.LoadTexture("ping2.png"),
+                AssetLoader.LoadTexture("ping3.png"),
+                AssetLoader.LoadTexture("ping4.png")
+            };
+
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -102,8 +117,11 @@ namespace DTAClient.DXGUI.Multiplayer
             base.Initialize();
         }
 
+        private GenericHostedGame game = null;
         public void SetInfo(GenericHostedGame game)
         {
+            this.game = game;
+
             // we don't have the ID of a map here
             string translatedMapName = string.IsNullOrEmpty(game.Map) 
                 ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(game.Map)
@@ -129,6 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
             lblPing.Visible = true;
 
+            
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
 
@@ -158,6 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Visible = false;
             lblPing.Visible = false;
             lblPlayers.Visible = false;
+            game = null;
 
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
@@ -166,7 +186,37 @@ namespace DTAClient.DXGUI.Multiplayer
         public override void Draw(GameTime gameTime)
         {
             if (Alpha > 0.0f)
+            {
                 base.Draw(gameTime);
+
+                // Test with a simple static texture
+                if (game != null)
+                {
+                    Texture2D pingTexture = GetTextureForPing(game.Ping); // Static test with the first texture
+                    DrawTexture(pingTexture, new Rectangle(10, 10, pingTexture.Width, pingTexture.Height), Color.White); // Fixed position
+                }
+                else
+                {
+                    Logger.Log("PingTextures is null or empty");
+                }
+            }
+        }
+
+        private Texture2D GetTextureForPing(int ping)
+        {
+            switch (ping)
+            {
+                case int p when (p > 350):
+                    return PingTextures[4];
+                case int p when (p > 250):
+                    return PingTextures[3];
+                case int p when (p > 100):
+                    return PingTextures[2];
+                case int p when (p >= 0):
+                    return PingTextures[1];
+                default:
+                    return PingTextures[0];
+            }
         }
     }
 }

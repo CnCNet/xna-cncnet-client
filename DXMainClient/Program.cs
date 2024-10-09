@@ -99,7 +99,7 @@ namespace DTAClient
             InitializeApplicationConfiguration();
 
             bool noAudio = false;
-            bool multipleInstanceMode = false;
+            bool multipleInstanceMode = true;
             List<string> unknownStartupParams = new List<string>();
 
             for (int arg = 0; arg < args.Length; arg++)
