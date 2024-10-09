@@ -179,9 +179,14 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPlayers.Visible = false;
             game = null;
 
+            if (mapTexture != null && !mapTexture.IsDisposed)
+                mapTexture.Dispose();
+
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
         }
+
+        private Texture2D mapTexture;
 
         public override void Draw(GameTime gameTime)
         {
@@ -192,12 +197,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 // Test with a simple static texture
                 if (game != null)
                 {
-                    Texture2D pingTexture = GetTextureForPing(game.Ping); // Static test with the first texture
+                    Texture2D pingTexture = GetTextureForPing(game.Ping); 
                     DrawTexture(pingTexture, new Rectangle(10, 10, pingTexture.Width, pingTexture.Height), Color.White); // Fixed position
 
                     if (mapLoader != null)
                     {
-                        Texture2D mapTexture = mapLoader.GameModeMaps.Find((m) => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+                        mapTexture = mapLoader.GameModeMaps.Find((m) => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
 
                         if (mapTexture != null)
                         {
