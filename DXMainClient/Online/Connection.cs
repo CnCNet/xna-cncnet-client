@@ -122,6 +122,8 @@ namespace DTAClient.Online
         private static string systemId;
         private static readonly object idLocker = new object();
 
+        private readonly List<Tuple<string, string>> _channelList = [];
+
         public static void SetId(string id)
         {
             lock (idLocker)
@@ -229,7 +231,8 @@ namespace DTAClient.Online
 
             Register();
 
-            Timer timer = new Timer(AutoPing, null, 30000, 120000);
+            Timer pingTimer = new Timer(AutoPing, null, 30000, 120000);
+            Timer gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
 
             connectionCut = true;
 
@@ -278,11 +281,14 @@ namespace DTAClient.Online
                 Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
-                timer.Change(30000, 30000);
+                pingTimer.Change(30000, 30000);
             }
 
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
-            timer.Dispose();
+            pingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            pingTimer.Dispose();
+
+            gameChanneListTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            gameChanneListTimer.Dispose();
 
             _isConnected = false;
             disconnect = false;
@@ -494,13 +500,36 @@ namespace DTAClient.Online
             serverStream.Close();
         }
 
+        private void RequestChannelList(object state)
+        {
+            if (IsConnected)
+            {
+                // @TODO
+                string pattern = "#cncnet-yr-test*";
+                string listCommand = $"LIST {pattern}";
+                Logger.Log($"RequestChannelList: {listCommand}");
+
+                QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+            }
+        }
+
+        public void SetChannelTopic(string channelName, string newTopic)
+        {
+            // Send the TOPIC command to the IRC server with the desired topic.
+            string topicCommand = $"TOPIC {channelName} :{newTopic}";
+            Logger.Log($"Setting topic for {channelName}: {newTopic}");
+
+            // Queue the message to be sent to the server.
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+        }
+
         #region Handling commands
 
-        /// <summary>
-        /// Checks if a message from the IRC server is a partial or full
-        /// message, and handles it accordingly.
-        /// </summary>
-        /// <param name="message">The message.</param>
+            /// <summary>
+            /// Checks if a message from the IRC server is a partial or full
+            /// message, and handles it accordingly.
+            /// </summary>
+            /// <param name="message">The message.</param>
         private void HandleMessage(string message)
         {
             string msg = overMessage + message;
@@ -529,6 +558,7 @@ namespace DTAClient.Online
                 }
             }
         }
+
 
         /// <summary>
         /// Handles a specific command received from the IRC server.
@@ -563,6 +593,7 @@ namespace DTAClient.Online
                             welcomeMessageReceived = true;
                             connectionManager.OnWelcomeMessageReceived(message);
                             reconnectCount = 0;
+                            RequestChannelList(null);
                             break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."
@@ -600,6 +631,17 @@ namespace DTAClient.Online
                             string awayReason = parameters[2];
                             connectionManager.OnAwayMessageReceived(awayPlayer, awayReason);
                             break;
+                        case 322: // Channel information from LIST command
+                            string listChannelName = parameters[1];
+                            string listChannelTopic = parameters[3];
+                            _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            break;
+                        case 323: // End of the LIST command
+                            Logger.Log($"End of Channel LIST");
+                            connectionManager.OnListTopicReceived(_channelList);
+                            _channelList.Clear();
+                            break;
+
                         case 332: // Channel topic message
                             string _target = parameters[0];
                             if (_target != ProgramConstants.PLAYERNAME)
@@ -912,6 +954,7 @@ namespace DTAClient.Online
         {
             SendMessage("PING LAG" + new Random().Next(100000, 999999));
         }
+
 
         /// <summary>
         /// Registers the user.

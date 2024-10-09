@@ -7,6 +7,8 @@ using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -303,11 +305,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                DrawTexture(hostedGame.Game.Texture,
-                    new Rectangle(x, height,
-                    hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
+                var hostedGameTexture = hostedGame.IsSpecialGameMode == true ? hostedGame.Game.TextureSpecialGameMode: hostedGame.Game.Texture;
+                DrawTexture(hostedGameTexture, new Rectangle(x, height, hostedGameTexture.Width, hostedGameTexture.Height),Color.White);
 
-                x += hostedGame.Game.Texture.Width + ICON_MARGIN;
+                x += hostedGameTexture.Width + ICON_MARGIN;
 
                 if (hostedGame.Locked)
                 {

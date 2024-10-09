@@ -235,13 +235,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("MODE {0} +klnNs {1} {2}", channel.ChannelName,
+                    string.Format("MODE {0} +nt {1} {2}", channel.ChannelName,
                     channel.Password, SGPlayers.Count),
-                    QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-                connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("TOPIC {0} :{1}", channel.ChannelName,
-                    ProgramConstants.CNCNET_PROTOCOL_REVISION + ";" + localGame.ToLower()),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 gameFilesHash = fhc.GetCompleteHash();

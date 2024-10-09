@@ -7,9 +7,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public HostedCnCNetGame() { }
 
         public HostedCnCNetGame(string channelName, string revision, string gamever, int maxPlayers,
-            string roomName, bool passworded,
-            bool tunneled,
-            string[] players, string adminName, string mapName, string gameMode)
+            string roomName, bool passworded, bool tunneled, string[] players, string adminName, 
+            string mapName, string gameMode)
         {
             ChannelName = channelName;
             Revision = revision;
@@ -29,6 +28,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public bool Tunneled { get; set; }
         public bool IsLadder { get; set; }
         public string MatchID { get; set; }
+        
+
         public CnCNetTunnel TunnelServer { get; set; }
 
         public override int Ping => TunnelServer.PingInMs;

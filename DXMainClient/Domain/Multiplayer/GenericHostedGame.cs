@@ -20,6 +20,9 @@ namespace DTAClient.Domain.Multiplayer
         public string GameVersion { get; set; }
         public string HostName { get; set; }
         public string[] Players { get; set; }
+        public bool IsSpecialGameMode { get; set; }
+        public bool HasCrates { get; set; }
+        public bool HasSupers{ get; set; }
 
         public int MaxPlayers { get; set; } = 8;
 

@@ -23,6 +23,7 @@ namespace DTAClient.Online
         public event EventHandler<IRCMessageEventArgs> MessageAdded;
         public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
+        public event EventHandler<ChannelTopicEventArgs> GameBroadcastChannelListReceived;
         public event EventHandler InvalidPasswordEntered;
         public event EventHandler InviteOnlyErrorOnJoin;
 
@@ -222,6 +223,11 @@ namespace DTAClient.Online
         public void OnCTCPReceived(string userName, string message)
         {
             CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message));
+        }
+
+        public void OnChannelTopicReceived(string channelName, string channelTopic)
+        {
+            GameBroadcastChannelListReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, channelTopic));
         }
 
         public void OnInvalidJoinPassword()

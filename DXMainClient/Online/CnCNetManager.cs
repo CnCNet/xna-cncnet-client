@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace DTAClient.Online
 {
@@ -33,6 +34,7 @@ namespace DTAClient.Online
         public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
+        public event EventHandler<ChannelTopicEventArgs> ChannelListReceived;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -148,6 +150,11 @@ namespace DTAClient.Online
                 throw new ArgumentException("Persistent channels cannot be removed.".L10N("Client:Main:PersistentChannelRemove"), "channel");
 
             channels.Remove(channel);
+        }
+
+        public void SetChannelTopic(Channel channel, string topic)
+        {
+            connection.SetChannelTopic(channel.ChannelName, topic);
         }
 
         public IRCColor[] GetIRCColors()
@@ -946,6 +953,32 @@ namespace DTAClient.Online
                 string.Format(
                     "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
+        }
+
+        public void OnListTopicReceived(List<Tuple<string, string>> channelListAndTopics)
+        {
+            // Log out channel list and topics
+            Logger.Log("Channel list and topics:");
+
+            foreach (var channeListTopic in channelListAndTopics)
+            {
+                string channelName = channeListTopic.Item1; // channel name
+                string channelTopic = channeListTopic.Item2; // channel topic
+                Channel channel = FindChannel(channelName);
+
+                Logger.Log("OnChannelListAndTopicReceived: channelName" + channelName + " channelTopic: " + channelTopic);
+
+
+                // Broadcast the channel list and topics to the UI
+                wm.AddCallback(new Action<string, string>(DoListTopicReceived), channelName, channelTopic);
+            }
+            Logger.Log("OnChannelListAndTopicReceived: " + channelListAndTopics);
+        }
+
+        private void DoListTopicReceived(string channelName, string channelTopic)
+        {
+            // Broadcast the channel list and topics to the UI
+            ChannelListReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, channelTopic));
         }
     }
 

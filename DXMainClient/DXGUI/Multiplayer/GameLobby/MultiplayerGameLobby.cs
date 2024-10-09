@@ -228,6 +228,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadDefaultGameModeMap();
         }
 
+        
+
         private void fsw_Created(object sender, FileSystemEventArgs e)
         {
             AddCallback(new Action<FileSystemEventArgs>(FSWEvent), e);

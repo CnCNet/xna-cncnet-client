@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DTAClient.Online
 {
@@ -55,6 +56,8 @@ namespace DTAClient.Online
 
         void OnUserNicknameChange(string oldNickname, string newNickname);
 
+        void OnListTopicReceived(List<Tuple<string, string>> channelListWithTopics);
+
         // **********************
         // Connection-related methods
         // **********************
@@ -78,7 +81,7 @@ namespace DTAClient.Online
         //public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         //public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         //public EventHandler<UserAwayEventArgs> AwayMessageReceived;
-        //public EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
+        //public EventHandler<ChannelTopicEventArgs> GameBroadcastChannelListReceived;
         //public EventHandler<UserListEventArgs> UserListReceived;
         //public EventHandler<WhoEventArgs> WhoReplyReceived;
         //public EventHandler<ChannelEventArgs> ChannelFull;
