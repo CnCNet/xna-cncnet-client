@@ -1916,20 +1916,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = 0; i < CheckBoxes.Count; i++)
             {
                 var checkbox = CheckBoxes[i];
+
                 if (checkbox.Name == "chkRA2Mode" && checkbox.Checked)
                 {
                     hasSpecialGameMode = true;
-                    continue;
                 }
-                if (checkbox.Name == "chkCrates" && checkbox.Checked)
+                else if (checkbox.Name == "chkCrates" && checkbox.Checked)
                 {
                     hasCrates = true;
-                    continue;
                 }
-                if (checkbox.Name == "chkSuperWeapons" && checkbox.Checked)
+                else if (checkbox.Name == "chkSuperWeapons" && checkbox.Checked)
                 {
                     hasSupers = true;
-                    continue;
                 }
             }
 
