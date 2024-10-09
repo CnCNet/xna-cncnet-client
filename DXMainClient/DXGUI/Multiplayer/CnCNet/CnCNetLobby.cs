@@ -643,7 +643,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
-                bool isSpecialGameMode = Conversions.BooleanFromString(splitMessage[11], false);
+                bool hasSpecialGameMode = Conversions.BooleanFromString(splitMessage[11], false);
                 bool hasSupers = Conversions.BooleanFromString(splitMessage[12], false);
                 bool hasCrates = Conversions.BooleanFromString(splitMessage[13], false);
 
@@ -678,7 +678,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
-                game.HasSpecialGameMode = isSpecialGameMode;
+                game.HasSpecialGameMode = hasSpecialGameMode;
                 game.HasCrates = hasCrates;
                 game.HasSupers = hasSupers;
 

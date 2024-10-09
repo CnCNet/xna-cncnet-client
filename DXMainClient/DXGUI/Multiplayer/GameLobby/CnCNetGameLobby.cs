@@ -1910,7 +1910,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // @TODO: Do we need a way to allow games/mods to specify their additional game options they want to broadcast
             // For now hardcoded bits
 
-            bool isSpecialGameMode = false;
+            bool hasSpecialGameMode = false;
             bool hasCrates = false;
             bool hasSupers = false;
             for (int i = 0; i < CheckBoxes.Count; i++)
@@ -1918,7 +1918,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 var checkbox = CheckBoxes[i];
                 if (checkbox.Name == "chkRA2Mode" && checkbox.Checked)
                 {
-                    isSpecialGameMode = true;
+                    hasSpecialGameMode = true;
                     continue;
                 }
                 if (checkbox.Name == "chkCrates" && checkbox.Checked)
@@ -1971,7 +1971,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
 
             // Append additional game info  (11 onwards)
-            sb.Append(isSpecialGameMode ? "1" : "0");
+            sb.Append(hasSpecialGameMode ? "1" : "0");
             sb.Append(";");
             sb.Append(hasSupers ? "1" : "0");
             sb.Append(";");
