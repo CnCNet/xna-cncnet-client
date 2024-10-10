@@ -18,8 +18,8 @@ namespace DTAClient.DXGUI.Multiplayer
     public class GameListBox : XNAListBox
     {
         private const int GAME_REFRESH_RATE = 1;
-        private const int ICON_MARGIN = 2;
-        private const int FONT_INDEX = 0;
+        private const int ICON_MARGIN = 3;
+        private const int FONT_INDEX =1;
         private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
 
         public GameListBox(WindowManager windowManager, MapLoader mapLoader,
@@ -232,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
             lbItem.Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
-                hg.RoomName, FontIndex), FontIndex, maxTextWidth);
+                hg.RoomName, 1), 1, maxTextWidth);
 
             if (hg.Game.InternalName != localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.ActiveSettings.TextColor;
