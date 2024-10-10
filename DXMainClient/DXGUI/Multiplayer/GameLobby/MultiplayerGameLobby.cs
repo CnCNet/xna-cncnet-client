@@ -162,7 +162,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnLockGame = FindChild<XNAClientButton>(nameof(btnLockGame));
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
-
+            
             chkAutoReady = FindChild<XNAClientCheckBox>(nameof(chkAutoReady));
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();

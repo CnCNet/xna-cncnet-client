@@ -235,6 +235,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+
+                string topic = BuildGameBroadcastingString();
+                connectionManager.SetChannelTopic(channel, topic);
             }
             else
             {
@@ -264,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("MODE {0} +klnNs {1} {2}", channel.ChannelName,
+                    string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, playerLimit),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
@@ -1893,6 +1896,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ProgramConstants.IsInGame && broadcastChannel.Users.Count > 500)
                 return;
 
+            string broadcastString = BuildGameBroadcastingString();
+
+            // @TODO: Sending ctcp for broadcasting may not be needed now, if its only informing cncnet lobby
+            broadcastChannel.SendCTCPMessage(broadcastString, QueuedMessageType.SYSTEM_MESSAGE, 20);
+
+            // @TODO: Perhaps we should only update the topic when something has changed?
+            connectionManager.SetChannelTopic(channel, broadcastString);
+        }
+
+        private string BuildGameBroadcastingString()
+        {
+            // @TODO: Do we need a way to allow games/mods to specify their additional game options they want to broadcast
+            // For now hardcoded bits
+
+            bool hasSpecialGameMode = false;
+            bool hasCrates = false;
+            bool hasSupers = false;
+
+            for (int i = 0; i < CheckBoxes.Count; i++)
+            {
+                var checkbox = CheckBoxes[i];
+
+                if (checkbox.Name == "chkRA2Mode" && checkbox.Checked)
+                {
+                    hasSpecialGameMode = true;
+                }
+                else if (checkbox.Name == "chkCrates" && checkbox.Checked)
+                {
+                    hasCrates = true;
+                }
+                else if (checkbox.Name == "chkSuperWeapons" && checkbox.Checked)
+                {
+                    hasSupers = true;
+                }
+            }
+
             StringBuilder sb = new StringBuilder("GAME ");
             sb.Append(ProgramConstants.CNCNET_PROTOCOL_REVISION);
             sb.Append(";");
@@ -1925,11 +1964,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(GameMode?.UntranslatedUIName ?? string.Empty);
             sb.Append(";");
-            sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
+            sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
+            sb.Append(";");
 
-            broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
+            // Append additional game info  (11 onwards)
+            sb.Append(Convert.ToInt32(hasSpecialGameMode));
+            sb.Append(";");
+            sb.Append(Convert.ToInt32(hasSupers));
+            sb.Append(";");
+            sb.Append(Convert.ToInt32(hasCrates));
+
+            return sb.ToString();
         }
 
         #endregion

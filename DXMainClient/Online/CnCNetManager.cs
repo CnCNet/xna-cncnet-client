@@ -28,11 +28,13 @@ namespace DTAClient.Online
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
+        public event EventHandler ChannelMessageOfTheDayComplete;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
+        public event EventHandler<ChannelTopicEventArgs> ChannelListReceived;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -258,6 +260,37 @@ namespace DTAClient.Online
             ApplyChannelModes(channel, modeString, modeParameters);
 
             channel.OnChannelModesChanged(userName, modeString);
+        }
+
+        public void OnChannelListReceived(List<Tuple<string, string>> channelList)
+        {
+            Logger.Log("OnChannelListReceived called");
+
+            foreach (var nameTopic in channelList)
+            {
+                (string channelName, string channelTopic) = nameTopic;
+
+                Logger.Log($"OnChannelListReceived: channelName: {channelName} channelTopic: {channelTopic}");
+
+                Channel channel = FindChannel(channelName);
+                wm.AddCallback(new Action<string, string>(DoChannelListReceived), channelName, channelTopic);
+            }
+        }
+
+        public void OnMessageOfTheDayComplete()
+        {
+            wm.AddCallback(new Action(DoMessageOfTheDayComplete), null);
+        }
+
+        private void DoMessageOfTheDayComplete()
+        {
+            ChannelMessageOfTheDayComplete?.Invoke(this, null);
+        }
+
+        private void DoChannelListReceived(string channelName, string channelTopic)
+        {
+            // Broadcast the channel list and topics to the UI
+            ChannelListReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, channelTopic));
         }
 
         private void ApplyChannelModes(Channel channel, string modeString, List<string> modeParameters)
@@ -946,6 +979,16 @@ namespace DTAClient.Online
                 string.Format(
                     "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
+        }
+
+        public void SetChannelTopic(Channel channel, string topic)
+        {
+            connection.SetChannelTopic(channel.ChannelName, topic);
+        }
+
+        public void RequestChannelList(string pattern)
+        {
+            connection.RequestChannelList(pattern);
         }
     }
 
