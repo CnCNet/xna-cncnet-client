@@ -31,6 +31,7 @@ namespace ClientCore.CnCNet5
             using Stream tsIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
             using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
             using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
+            using Stream ra2IconStream = assembly.GetManifestResourceStream("ClientCore.Resources.ra2icon.png");
             using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
             using Stream reIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.reicon.png");
             using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
@@ -44,6 +45,7 @@ namespace ClientCore.CnCNet5
             using var tiIcon = Image.Load(tiIconStream);
             using var tsIcon = Image.Load(tsIconStream);
             using var moIcon = Image.Load(moIconStream);
+            using var ra2Icon = Image.Load(ra2IconStream);
             using var yrIcon = Image.Load(yrIconStream);
             using var rrIcon = Image.Load(rrIconStream);
             using var reIcon = Image.Load(reIconStream);
@@ -63,6 +65,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-dta",
                     ClientExecutableName = "DTA.exe",
                     GameBroadcastChannel = "#cncnet-dta-games",
+                    GameListPattern = "#cncnet-dta-game*",
                     InternalName = "dta",
                     RegistryInstallPath = "HKCU\\Software\\TheDawnOfTheTiberiumAge",
                     UIName = "Dawn of the Tiberium Age",
@@ -74,6 +77,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-ti",
                     ClientExecutableName = "TI_Launcher.exe",
                     GameBroadcastChannel = "#cncnet-ti-games",
+                    GameListPattern = "#cncnet-ti-game*",
                     InternalName = "ti",
                     RegistryInstallPath = "HKCU\\Software\\TwistedInsurrection",
                     UIName = "Twisted Insurrection",
@@ -85,6 +89,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-mo",
                     ClientExecutableName = "MentalOmegaClient.exe",
                     GameBroadcastChannel = "#cncnet-mo-games",
+                    GameListPattern = "#cncnet-mo-game*",
                     InternalName = "mo",
                     RegistryInstallPath = "HKCU\\Software\\MentalOmega",
                     UIName = "Mental Omega",
@@ -96,6 +101,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#redres-lobby",
                     ClientExecutableName = "RRLauncher.exe",
                     GameBroadcastChannel = "#redres-games",
+                    GameListPattern = "#cncnet-rr-game*",
                     InternalName = "rr",
                     RegistryInstallPath = "HKLM\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
@@ -107,6 +113,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#riseoftheeast",
                     ClientExecutableName = "RELauncher.exe",
                     GameBroadcastChannel = "#rote-games",
+                    GameListPattern = "#cncnet-re-game*",
                     InternalName = "re",
                     RegistryInstallPath = "HKLM\\Software\\RiseoftheEast",
                     UIName = "Rise of the East",
@@ -118,6 +125,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncreloaded",
                     ClientExecutableName = "CnCReloadedClient.exe",
                     GameBroadcastChannel = "#cncreloaded-games",
+                    GameListPattern = "#cncreloaded-cncr-game*",
                     InternalName = "cncr",
                     RegistryInstallPath = "HKCU\\Software\\CnCReloaded",
                     UIName = "C&C: Reloaded",
@@ -129,6 +137,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-td",
                     ClientExecutableName = "TiberianDawn.exe",
                     GameBroadcastChannel = "#cncnet-td-games",
+                    GameListPattern = "#cncnet-td-game*",
                     InternalName = "td",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Dawn",
                     UIName = "Tiberian Dawn",
@@ -141,6 +150,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-ra",
                     ClientExecutableName = "RedAlert.exe",
                     GameBroadcastChannel = "#cncnet-ra-games",
+                    GameListPattern = "#cncnet-ra-game*",
                     InternalName = "ra",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Red Alert",
                     UIName = "Red Alert",
@@ -153,6 +163,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-d2k",
                     ClientExecutableName = "Dune2000.exe",
                     GameBroadcastChannel = "#cncnet-d2k-games",
+                    GameListPattern = "#cncnet-d2k-game*",
                     InternalName = "d2k",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
                     UIName = "Dune 2000",
@@ -165,6 +176,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-ts",
                     ClientExecutableName = "TiberianSun.exe",
                     GameBroadcastChannel = "#cncnet-ts-games",
+                    GameListPattern = "#cncnet-ts-game*",
                     InternalName = "ts",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Sun",
                     UIName = "Tiberian Sun",
@@ -176,10 +188,12 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-yr",
                     ClientExecutableName = "CnCNetClientYR.exe",
                     GameBroadcastChannel = "#cncnet-yr-games",
+                    GameListPattern = "#cncnet-yr-game*",
                     InternalName = "yr",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge",
-                    Texture = AssetLoader.TextureFromImage(yrIcon)
+                    Texture = AssetLoader.TextureFromImage(yrIcon),
+                    TextureSpecialGameMode = AssetLoader.TextureFromImage(ra2Icon)
                 },
 
                 new()
@@ -187,6 +201,7 @@ namespace ClientCore.CnCNet5
                     ChatChannel = "#cncnet-ss",
                     ClientExecutableName = "SoleSurvivor.exe",
                     GameBroadcastChannel = "#cncnet-ss-games",
+                    GameListPattern = "#cncnet-ss-game*",
                     InternalName = "ss",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Sole Survivor",
                     UIName = "Sole Survivor",
@@ -350,12 +365,43 @@ namespace ClientCore.CnCNet5
             return game.GameBroadcastChannel;
         }
 
+        public string GetGameListPatternFromIdentifier(string gameIdentifier)
+        {
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLowerInvariant());
+            if (game == null)
+                return null;
+            return game.GameListPattern;
+        }
+
         public string GetGameChatChannelNameFromIdentifier(string gameIdentifier)
         {
             CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLowerInvariant());
             if (game == null)
                 return null;
             return game.ChatChannel;
+        }
+
+        public CnCNetGame GetGameFromHostedChannelName(string channelName)
+        {
+            // Remove the "#" at the beginning of the channel name, if present
+            string cleanedChannelName = channelName.StartsWith("#") ? channelName.Substring(1) : channelName;
+
+            // Loop through the game list to find the first matching pattern
+            return GameList.Find(g =>
+            {
+                if (g.GameListPattern != null)
+                {
+                    // Remove the "#" from the GameListPattern as well
+                    string cleanedGameListPattern = g.GameListPattern.StartsWith("#") ? g.GameListPattern.Substring(1) : g.GameListPattern;
+
+                    // Check if the channel name starts with the portion of the pattern before the wildcard '*'
+                    string fixedPatternPart = cleanedGameListPattern.Split('*')[0];
+
+                    // Use StartsWith to match the fixed part of the pattern
+                    return cleanedChannelName.StartsWith(fixedPatternPart);
+                }
+                return false;
+            });
         }
     }
 

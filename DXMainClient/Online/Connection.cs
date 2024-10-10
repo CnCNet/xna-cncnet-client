@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -121,6 +122,7 @@ namespace DTAClient.Online
         private static bool idSet = false;
         private static string systemId;
         private static readonly object idLocker = new object();
+        private readonly List<Tuple<string, string>> _channelList = [];
 
         public static void SetId(string id)
         {
@@ -229,7 +231,7 @@ namespace DTAClient.Online
 
             Register();
 
-            Timer timer = new Timer(AutoPing, null, 30000, 120000);
+            Timer pingTimer = new Timer(AutoPing, null, 30000, 120000);
 
             connectionCut = true;
 
@@ -278,11 +280,11 @@ namespace DTAClient.Online
                 Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
-                timer.Change(30000, 30000);
+                pingTimer.Change(30000, 30000);
             }
 
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
-            timer.Dispose();
+            pingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            pingTimer.Dispose();
 
             _isConnected = false;
             disconnect = false;
@@ -564,6 +566,10 @@ namespace DTAClient.Online
                             connectionManager.OnWelcomeMessageReceived(message);
                             reconnectCount = 0;
                             break;
+                        case 376: // End of MOTD
+                        case 422: // Server has no MOTD
+                            connectionManager.OnMessageOfTheDayComplete();
+                            break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."
                         case 251: // There are <int> users and <int> invisible on <int> servers
@@ -599,6 +605,16 @@ namespace DTAClient.Online
                             string awayPlayer = parameters[1];
                             string awayReason = parameters[2];
                             connectionManager.OnAwayMessageReceived(awayPlayer, awayReason);
+                            break;
+                        case 322: // Channel information from LIST command
+                            string listChannelName = parameters[1];
+                            string listChannelTopic = parameters[3];
+                            _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            break;
+                        case 323: // End of the LIST command
+                            Logger.Log($"End of Channel LIST");
+                            connectionManager.OnChannelListReceived(_channelList);
+                            _channelList.Clear();
                             break;
                         case 332: // Channel topic message
                             string _target = parameters[0];
@@ -931,6 +947,26 @@ namespace DTAClient.Online
                 systemId, realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
+        }
+
+        public void RequestChannelList(string pattern)
+        {
+            Logger.Log("RequestChannelList");
+
+            string listCommand = $"LIST {pattern}";
+            Logger.Log($"RequestChannelList: {listCommand}");
+
+            QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+        }
+
+        public void SetChannelTopic(string channelName, string newTopic)
+        {
+            // Send the TOPIC command to the IRC server with the desired topic.
+            string topicCommand = $"TOPIC {channelName} :{newTopic}";
+            Logger.Log($"Setting topic for {channelName}: {newTopic}");
+
+            // Queue the message to be sent to the server.
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
         public void ChangeNickname()

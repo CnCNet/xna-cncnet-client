@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DTAClient.Online
 {
@@ -10,6 +11,8 @@ namespace DTAClient.Online
         void OnWelcomeMessageReceived(string message);
 
         void OnGenericServerMessageReceived(string message);
+
+        void OnMessageOfTheDayComplete();
 
         void OnAwayMessageReceived(string userName, string reason);
 
@@ -26,6 +29,8 @@ namespace DTAClient.Online
         void OnTargetChangeTooFast(string channelName, string message);
 
         void OnChannelInviteOnly(string channelName);
+
+        void OnChannelListReceived(List<Tuple<string, string>> channelList);
 
         void OnIncorrectChannelPassword(string channelName);
 

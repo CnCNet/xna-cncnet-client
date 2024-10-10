@@ -139,6 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private InvitationIndex invitationIndex;
 
         private GameFiltersPanel panelGameFilters;
+        private Timer gameChanneListTimer;
 
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
@@ -540,6 +541,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.PrivateCTCPReceived += ConnectionManager_PrivateCTCPReceived;
+            connectionManager.ChannelListReceived += ConnectionManager_ChannelListReceived;
+            connectionManager.ChannelMessageOfTheDayComplete += ConnectionManager_ChannelMessageOfTheDayComplete;
 
             cncnetUserData.UserFriendToggled += RefreshPlayerList;
             cncnetUserData.UserIgnoreToggled += RefreshPlayerList;
@@ -589,6 +592,145 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void ConnectionManager_ChannelMessageOfTheDayComplete(object sender, EventArgs e)
+        {
+            RequestChannelList(null);
+            gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
+        }
+
+        private void RequestChannelList(object state)
+        {
+            string pattern = gameCollection.GetGameListPatternFromIdentifier(localGameID);
+            connectionManager.RequestChannelList(pattern);
+        }
+
+        private void ConnectionManager_ChannelListReceived(object sender, ChannelTopicEventArgs e)
+        {
+            Logger.Log($"GameBroadcastChannel_ChannelListReceived ** {e.ChannelName}, {e.Topic}");
+
+            var cncnetManager = (CnCNetManager)sender;
+
+            // Ensure the topic starts with "GAME " as expected
+            if (!e.Topic.StartsWith("GAME "))
+                return;
+
+            // Extract the game information from the topic string
+            string msg = e.Topic.Substring(5); // Cut out "GAME " part
+            string[] splitMessage = msg.Split(new char[] { ';' });
+
+            // Ensure the message has the expected number of parts
+            if (splitMessage.Length != 14)
+            {
+                Logger.Log("Ignoring game message because of an invalid number of parameters.");
+                return;
+            }
+
+            try
+            {
+                string revision = splitMessage[0];
+                if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
+                    return;
+
+                string gameVersion = splitMessage[1];
+                int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
+                string gameRoomChannelName = splitMessage[3];
+                string gameRoomDisplayName = splitMessage[4];
+                bool locked = Conversions.BooleanFromString(splitMessage[5].Substring(0, 1), true);
+                bool isCustomPassword = Conversions.BooleanFromString(splitMessage[5].Substring(1, 1), false);
+                bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
+                bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
+                bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
+                string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string hostName = players[0]; // Assume host is always first in the list
+                List<string> playerNames = players.ToList();
+                string mapName = splitMessage[7];
+                string gameMode = splitMessage[8];
+
+                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                string tunnelAddress = tunnelAddressAndPort[0];
+                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+
+                string loadedGameId = splitMessage[10];
+                bool hasSpecialGameMode = Conversions.BooleanFromString(splitMessage[11], false);
+                bool hasSuperWeapons = Conversions.BooleanFromString(splitMessage[12], false);
+                bool hasCrates = Conversions.BooleanFromString(splitMessage[13], false);
+
+                CnCNetGame cncnetGame = gameCollection.GetGameFromHostedChannelName(e.ChannelName);
+                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+
+                if (tunnel == null || cncnetGame == null)
+                {
+                    Logger.Log($"GameBroadcastChannel_ChannelListReceived ** Tunnel: {tunnel} // cncnetGame: {cncnetGame}");
+                    return;
+                }
+
+                HostedCnCNetGame game = new HostedCnCNetGame(
+                    gameRoomChannelName,
+                    revision,
+                    gameVersion,
+                    maxPlayers,
+                    gameRoomDisplayName,
+                    isCustomPassword,
+                    true,
+                    players,
+                    hostName,
+                    mapName,
+                    gameMode
+                );
+
+                game.IsLoadedGame = isLoadedGame;
+                game.MatchID = loadedGameId;
+                game.LastRefreshTime = DateTime.Now;
+                game.IsLadder = isLadder;
+                game.Game = cncnetGame;
+                game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
+                game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
+                game.TunnelServer = tunnel;
+                game.HasSpecialGameMode = hasSpecialGameMode;
+                game.HasCrates = hasCrates;
+                game.HasSuperWeapons = hasSuperWeapons;
+
+                // If the game is closed, remove it from the list
+                if (isClosed)
+                {
+                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == hostName);
+
+                    if (index > -1)
+                    {
+                        lbGameList.RemoveGame(index);
+
+                        // Dismiss any outstanding invitations that are no longer valid
+                        DismissInvalidInvitations();
+                    }
+
+                    return;
+                }
+
+                int gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == hostName);
+                if (gameIndex > -1)
+                {
+                    lbGameList.HostedGames[gameIndex] = game;
+                }
+                else
+                {
+                    if (UserINISettings.Instance.PlaySoundOnGameHosted &&
+                        cncnetGame.InternalName == localGameID.ToLower() &&
+                        !ProgramConstants.IsInGame && !game.Locked)
+                    {
+                        SoundPlayer.Play(sndGameCreated);
+                    }
+
+                    lbGameList.AddGame(game);
+                }
+
+                SortAndRefreshHostedGames();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Game parsing error: " + ex.ToString());
+            }
         }
 
         /// <summary>
@@ -1461,105 +1603,47 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
+            // Ensure the topic starts with "GAME " as expected
             if (!e.Message.StartsWith("GAME "))
                 return;
 
-            string msg = e.Message.Substring(5); // Cut out GAME part
+            // Extract the game information from the topic string
+            string msg = e.Message.Substring(5); // Cut out "GAME " part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 11)
+            // Ensure the message has the expected number of parts
+            if (splitMessage.Length != 14)
             {
-                Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
+                Logger.Log("Ignoring game message because of an invalid number of parameters.");
                 return;
             }
 
+            // We keep this here because this is the fastest way of removing a game
             try
             {
-                string revision = splitMessage[0];
-                if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
-                    return;
-                string gameVersion = splitMessage[1];
-                int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
-                string gameRoomChannelName = splitMessage[3];
-                string gameRoomDisplayName = splitMessage[4];
-                bool locked = Conversions.BooleanFromString(splitMessage[5].Substring(0, 1), true);
-                bool isCustomPassword = Conversions.BooleanFromString(splitMessage[5].Substring(1, 1), false);
                 bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
-                bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
-                bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
-                string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                List<string> playerNames = players.ToList();
-                string mapName = splitMessage[7];
-                string gameMode = splitMessage[8];
 
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
-
-                string loadedGameId = splitMessage[10];
-
-                CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
-
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                    return;
-
-                if (cncnetGame == null)
-                    return;
-
-                HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
-                    e.UserName, mapName, gameMode);
-                game.IsLoadedGame = isLoadedGame;
-                game.MatchID = loadedGameId;
-                game.LastRefreshTime = DateTime.Now;
-                game.IsLadder = isLadder;
-                game.Game = cncnetGame;
-                game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
-                game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
-                game.TunnelServer = tunnel;
-
+                // If the game is closed, remove it from the list
                 if (isClosed)
                 {
-                    int index = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
+                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == e.UserName);
 
                     if (index > -1)
                     {
                         lbGameList.RemoveGame(index);
 
-                        // dismiss any outstanding invitations that are no longer valid
+                        // Dismiss any outstanding invitations that are no longer valid
                         DismissInvalidInvitations();
                     }
 
                     return;
                 }
-
-                // Seek for the game in the internal game list based on the name of its host;
-                // if found, then refresh that game's information, otherwise add as new game
-                int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
-
-                if (gameIndex > -1)
-                {
-                    lbGameList.HostedGames[gameIndex] = game;
-                }
-                else
-                {
-                    if (UserINISettings.Instance.PlaySoundOnGameHosted &&
-                        cncnetGame.InternalName == localGameID.ToLower() &&
-                        !ProgramConstants.IsInGame && !game.Locked)
-                    {
-                        SoundPlayer.Play(sndGameCreated);
-                    }
-
-                    lbGameList.AddGame(game);
-                }
-                SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {
                 Logger.Log("Game parsing error: " + ex.ToString());
             }
+           
         }
 
         private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) =>
