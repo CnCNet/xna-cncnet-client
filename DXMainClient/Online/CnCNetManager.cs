@@ -268,8 +268,8 @@ namespace DTAClient.Online
 
             foreach (var nameTopic in channelList)
             {
-                string channelName = nameTopic.Item1; 
-                string channelTopic = nameTopic.Item2; 
+                (string channelName, string channelTopic) = nameTopic;
+
                 Logger.Log($"OnChannelListReceived: channelName: {channelName} channelTopic: {channelTopic}");
 
                 Channel channel = FindChannel(channelName);
