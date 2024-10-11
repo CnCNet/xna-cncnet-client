@@ -956,11 +956,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             OnShouldUpdateTopic();
         }
 
-        protected virtual void OnShouldUpdateTopic()
-        {
-            // Default behavior (if any)
-        }
-
+        protected virtual void OnShouldUpdateTopic() {}
 
         protected abstract void HostLaunchGame();
 
