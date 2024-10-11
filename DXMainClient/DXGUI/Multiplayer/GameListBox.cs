@@ -303,13 +303,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                var hostedGameTexture = hostedGame.HasSpecialGameMode && hostedGame.Game.TextureSpecialGameMode != null ? 
-                        hostedGame.Game.TextureSpecialGameMode :
-                        hostedGame.Game.Texture;
+                DrawTexture(hostedGame.Game.Texture, new Rectangle(x, height, hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
-                DrawTexture(hostedGameTexture, new Rectangle(x, height, hostedGameTexture.Width, hostedGameTexture.Height), Color.White);
-
-                x += hostedGameTexture.Width + ICON_MARGIN;
+                x += hostedGame.Game.Texture.Width + ICON_MARGIN;
 
                 if (hostedGame.Locked)
                 {

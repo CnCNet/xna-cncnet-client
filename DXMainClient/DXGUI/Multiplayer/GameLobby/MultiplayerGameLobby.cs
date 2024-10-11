@@ -109,6 +109,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool lastMapChangeWasInvalid = false;
 
+        public event EventHandler OnLobbyGameOptionChanged;
+
+
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
         /// </summary>
@@ -951,7 +954,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClearReadyStatuses();
             CopyPlayerDataToUI();
+            OnShouldUpdateTopic();
         }
+
+        protected virtual void OnShouldUpdateTopic()
+        {
+            // Default behavior (if any)
+        }
+
 
         protected abstract void HostLaunchGame();
 

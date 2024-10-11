@@ -20,10 +20,6 @@ namespace DTAClient.Domain.Multiplayer
         public string GameVersion { get; set; }
         public string HostName { get; set; }
         public string[] Players { get; set; }
-        public bool HasSpecialGameMode { get; set; }
-        public bool HasCrates { get; set; }
-        public bool HasSuperWeapons { get; set; }
-
         public int MaxPlayers { get; set; } = 8;
 
         public abstract int Ping { get; }

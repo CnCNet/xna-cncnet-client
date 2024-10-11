@@ -31,7 +31,6 @@ namespace ClientCore.CnCNet5
             using Stream tsIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
             using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
             using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
-            using Stream ra2IconStream = assembly.GetManifestResourceStream("ClientCore.Resources.ra2icon.png");
             using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
             using Stream reIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.reicon.png");
             using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
@@ -45,7 +44,6 @@ namespace ClientCore.CnCNet5
             using var tiIcon = Image.Load(tiIconStream);
             using var tsIcon = Image.Load(tsIconStream);
             using var moIcon = Image.Load(moIconStream);
-            using var ra2Icon = Image.Load(ra2IconStream);
             using var yrIcon = Image.Load(yrIconStream);
             using var rrIcon = Image.Load(rrIconStream);
             using var reIcon = Image.Load(reIconStream);
@@ -193,7 +191,6 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge",
                     Texture = AssetLoader.TextureFromImage(yrIcon),
-                    TextureSpecialGameMode = AssetLoader.TextureFromImage(ra2Icon)
                 },
 
                 new()

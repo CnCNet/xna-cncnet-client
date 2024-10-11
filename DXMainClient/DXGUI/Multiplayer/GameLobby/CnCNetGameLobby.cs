@@ -27,10 +27,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
 
-        private const double GAME_BROADCAST_INTERVAL = 30.0;
-        private const double GAME_BROADCAST_ACCELERATION = 10.0;
-        private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
-
         private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
 
         private const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
@@ -125,8 +121,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private IRCColor chatColor;
 
-        private XNATimerControl gameBroadcastTimer;
-
         private int playerLimit;
 
         private bool closed = false;
@@ -163,6 +157,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private bool tunnelErrorMode;
 
+        /// <summary>
+        /// Cached topic, allows us to compare with a new topic to see if it has changed.
+        /// </summary>
+        private string cachedGameBroadcastString = string.Empty;
+
+
         public override void Initialize()
         {
             IniNameOverride = nameof(CnCNetGameLobby);
@@ -170,12 +170,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
-
-            gameBroadcastTimer = new XNATimerControl(WindowManager);
-            gameBroadcastTimer.AutoReset = true;
-            gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
-            gameBroadcastTimer.Enabled = false;
-            gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
@@ -189,8 +183,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel = new MapSharingConfirmationPanel(WindowManager);
             MapPreviewBox.AddChild(mapSharingConfirmationPanel);
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
-
-            WindowManager.AddAndInitializeControl(gameBroadcastTimer);
 
             globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
             AddChild(globalContextMenu);
@@ -211,7 +203,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("Client:Main:SelectTunnelServer"));
 
-        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -235,9 +226,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
-
-                string topic = BuildGameBroadcastingString();
-                connectionManager.SetChannelTopic(channel, topic);
             }
             else
             {
@@ -271,14 +259,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     channel.Password, playerLimit),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
-                connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("TOPIC {0} :{1}", channel.ChannelName,
-                    ProgramConstants.CNCNET_PROTOCOL_REVISION + ";" + localGame.ToLower()),
-                    QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-                gameBroadcastTimer.Enabled = true;
-                gameBroadcastTimer.Start();
-                gameBroadcastTimer.SetTime(TimeSpan.FromSeconds(INITIAL_GAME_BROADCAST_DELAY));
+                OnShouldUpdateTopic();
             }
             else
             {
@@ -381,7 +362,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
-            gameBroadcastTimer.Enabled = false;
             closed = false;
 
             tbChatInput.Text = string.Empty;
@@ -400,7 +380,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 closed = true;
-                BroadcastGame();
             }
 
             Clear();
@@ -1513,7 +1492,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Locked = true;
             btnLockGame.Text = "Unlock Game".L10N("Client:Main:UnlockGame");
-            AccelerateGameBroadcasting();
+
+            OnShouldUpdateTopic();
         }
 
         protected override void UnlockGame(bool announce)
@@ -1525,7 +1505,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (announce)
                 AddNotice("The game room has been unlocked.".L10N("Client:Main:GameRoomUnlocked"));
             btnLockGame.Text = "Lock Game".L10N("Client:Main:LockGame");
-            AccelerateGameBroadcasting();
+
+            OnShouldUpdateTopic();
         }
 
         protected override void KickPlayer(int playerIndex)
@@ -1555,6 +1536,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendKickMessage(user.Name, 8);
             }
         }
+        
+
 
         private void HandleCheatDetectedMessage(string sender) =>
             AddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("Client:Main:PlayerModifyFileCheat"), sender), Color.Red);
@@ -1875,63 +1858,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MapSharer.DownloadMap(sha1, localGame, safeMapName);
         }
-
         #endregion
 
         #region Game broadcasting logic
-
-        /// <summary>
-        /// Lowers the time until the next game broadcasting message.
-        /// </summary>
-        private void AccelerateGameBroadcasting() =>
-            gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
-
-        private void BroadcastGame()
-        {
-            Channel broadcastChannel = connectionManager.FindChannel(gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame));
-
-            if (broadcastChannel == null)
-                return;
-
-            if (ProgramConstants.IsInGame && broadcastChannel.Users.Count > 500)
-                return;
-
-            string gameBroadcastingString = BuildGameBroadcastingString();
-
-            // @TODO: Sending ctcp for broadcasting may not be needed now, if its only informing cncnet lobby
-            broadcastChannel.SendCTCPMessage(gameBroadcastingString, QueuedMessageType.SYSTEM_MESSAGE, 20);
-
-            // @TODO: Perhaps we should only update the topic when something has changed?
-            connectionManager.SetChannelTopic(channel, gameBroadcastingString);
-        }
-
         private string BuildGameBroadcastingString()
         {
-            // @TODO: Do we need a way to allow games/mods to specify their additional game options they want to broadcast
-            // For now hardcoded bits
-
-            bool hasSpecialGameMode = false;
-            bool hasCrates = false;
-            bool hasSupers = false;
-
-            for (int i = 0; i < CheckBoxes.Count; i++)
-            {
-                var checkbox = CheckBoxes[i];
-
-                if (checkbox.Name == "chkRA2Mode" && checkbox.Checked)
-                {
-                    hasSpecialGameMode = true;
-                }
-                else if (checkbox.Name == "chkCrates" && checkbox.Checked)
-                {
-                    hasCrates = true;
-                }
-                else if (checkbox.Name == "chkSuperWeapons" && checkbox.Checked)
-                {
-                    hasSupers = true;
-                }
-            }
-
             StringBuilder sb = new StringBuilder("GAME ");
             sb.Append(ProgramConstants.CNCNET_PROTOCOL_REVISION);
             sb.Append(";");
@@ -1967,18 +1898,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
-            sb.Append(";");
-
-            // Append additional game info  (11 onwards)
-            sb.Append(Convert.ToInt32(hasSpecialGameMode));
-            sb.Append(";");
-            sb.Append(Convert.ToInt32(hasSupers));
-            sb.Append(";");
-            sb.Append(Convert.ToInt32(hasCrates));
 
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Only update the topic when something in the lobby has changed, but also only relevent to the CnCNetLobby.
+        /// </summary>
+        protected override void OnShouldUpdateTopic()
+        {
+            if (channel != null)
+            {
+                string newGameBroadcastString = BuildGameBroadcastingString();
+                if (cachedGameBroadcastString != newGameBroadcastString)
+                {
+                    connectionManager.SetChannelTopic(channel, newGameBroadcastString);
+                    cachedGameBroadcastString = newGameBroadcastString;
+                }
+            }
+        }
         #endregion
 
         public override string GetSwitchName() => "Game Lobby".L10N("Client:Main:GameLobby");

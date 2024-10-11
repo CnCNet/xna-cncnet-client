@@ -597,7 +597,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void ConnectionManager_ChannelMessageOfTheDayComplete(object sender, EventArgs e)
         {
             RequestChannelList(null);
-            gameChanneListTimer = new Timer(RequestChannelList, null, 30000, 30000);
+            gameChanneListTimer = new Timer(RequestChannelList, null, 8000, 8000);
         }
 
         private void RequestChannelList(object state)
@@ -621,7 +621,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string[] splitMessage = msg.Split(new char[] { ';' });
 
             // Ensure the message has the expected number of parts
-            if (splitMessage.Length != 14)
+            if (splitMessage.Length != 11)
             {
                 Logger.Log("Ignoring game message because of an invalid number of parameters.");
                 return;
@@ -653,9 +653,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
-                bool hasSpecialGameMode = Conversions.BooleanFromString(splitMessage[11], false);
-                bool hasSuperWeapons = Conversions.BooleanFromString(splitMessage[12], false);
-                bool hasCrates = Conversions.BooleanFromString(splitMessage[13], false);
 
                 CnCNetGame cncnetGame = gameCollection.GetGameFromHostedChannelName(e.ChannelName);
                 CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
@@ -688,9 +685,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
-                game.HasSpecialGameMode = hasSpecialGameMode;
-                game.HasCrates = hasCrates;
-                game.HasSuperWeapons = hasSuperWeapons;
 
                 // If the game is closed, remove it from the list
                 if (isClosed)
@@ -1602,48 +1596,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     updateMessageBox.YesClickedAction = UpdateMessageBox_YesClicked;
                 }
             }
-
-            // Ensure the topic starts with "GAME " as expected
-            if (!e.Message.StartsWith("GAME "))
-                return;
-
-            // Extract the game information from the topic string
-            string msg = e.Message.Substring(5); // Cut out "GAME " part
-            string[] splitMessage = msg.Split(new char[] { ';' });
-
-            // Ensure the message has the expected number of parts
-            if (splitMessage.Length != 14)
-            {
-                Logger.Log("Ignoring game message because of an invalid number of parameters.");
-                return;
-            }
-
-            // We keep this here because this is the fastest way of removing a game
-            try
-            {
-                bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
-
-                // If the game is closed, remove it from the list
-                if (isClosed)
-                {
-                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == e.UserName);
-
-                    if (index > -1)
-                    {
-                        lbGameList.RemoveGame(index);
-
-                        // Dismiss any outstanding invitations that are no longer valid
-                        DismissInvalidInvitations();
-                    }
-
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Game parsing error: " + ex.ToString());
-            }
-           
         }
 
         private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) =>

@@ -41,7 +41,6 @@ namespace ClientCore.CnCNet5
 
         public Texture2D Texture { get; set; }
 
-        public Texture2D TextureSpecialGameMode { get; set; }
 
         /// <summary>
         /// The location where to read the game's installation path from the registry.
