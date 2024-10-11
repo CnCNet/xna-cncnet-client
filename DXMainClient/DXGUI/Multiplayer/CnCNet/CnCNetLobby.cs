@@ -617,6 +617,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
 
             // Extract the game information from the topic string
+            // Example Topic: GAME R10;N/A;8;#cncnet-yr-game7417533;neogrant's Game;00000;neogrant;[2] A Hill Between;Battle;198.244.177.26:50000;0
+
             string msg = e.Topic.Substring(5); // Cut out "GAME " part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
