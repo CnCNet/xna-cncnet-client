@@ -109,7 +109,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool lastMapChangeWasInvalid = false;
 
-        public event EventHandler OnLobbyGameOptionChanged;
 
 
         /// <summary>
