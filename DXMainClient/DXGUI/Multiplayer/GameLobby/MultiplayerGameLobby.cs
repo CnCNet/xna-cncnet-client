@@ -953,10 +953,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClearReadyStatuses();
             CopyPlayerDataToUI();
-            OnShouldUpdateTopic();
+            OnHostShouldUpdateTopic();
         }
 
-        protected virtual void OnShouldUpdateTopic() {}
+        protected virtual void OnHostShouldUpdateTopic() {}
 
         protected abstract void HostLaunchGame();
 

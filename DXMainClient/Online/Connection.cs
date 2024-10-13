@@ -1055,6 +1055,7 @@ namespace DTAClient.Online
                     case QueuedMessageType.GAME_BROADCASTING_MESSAGE:
                     case QueuedMessageType.GAME_PLAYERS_MESSAGE:
                     case QueuedMessageType.GAME_SETTINGS_MESSAGE:
+                    case QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE:
                     case QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE:
                     case QueuedMessageType.GAME_LOCKED_MESSAGE:
                     case QueuedMessageType.GAME_GET_READY_MESSAGE:

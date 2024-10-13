@@ -273,7 +273,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdatePing();
             UpdateDiscordPresence(true);
 
-            OnShouldUpdateTopic();
+            OnHostShouldUpdateTopic();
         }
 
         private void UpdatePing()
@@ -381,8 +381,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void Channel_TopicChanged(object sender, MessageEventArgs e)
         {
             Logger.Log("CnCNetGameLobby ** Channel_TopicChanged " + e.Message);
-            if (!IsHost)
-                ParseGameTopic(e.Message);
+            ParseGameTopic(e.Message);
         }
 
         public void LeaveGameLobby()
@@ -710,9 +709,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         /// <summary>
         /// Handles player option requests received from non-host players.
+        /// E.g. I've received this message from a normal player (as a host) to update the TOPIC with the player's options.
         /// </summary>
         private void HandleOptionsRequest(string playerName, int options)
         {
+            Logger.Log($"HandleOptionsRequest: Received options from {playerName}.");
+
+
             if (!IsHost)
                 return;
 
@@ -770,7 +773,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             pInfo.TeamId = team;
 
             CopyPlayerDataToUI();
-            BroadcastPlayerOptions();
+            //BroadcastPlayerOptions();
+            OnHostShouldUpdateTopic();
         }
 
         /// <summary>
@@ -963,42 +967,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
-            bool[] optionValues = new bool[CheckBoxes.Count];
-            for (int i = 0; i < CheckBoxes.Count; i++)
-                optionValues[i] = CheckBoxes[i].Checked;
-
-            // Let's pack the booleans into bytes
-            List<byte> byteList = Conversions.BoolArrayIntoBytes(optionValues).ToList();
-
-            while (byteList.Count % 4 != 0)
-                byteList.Add(0);
-
-            int integerCount = byteList.Count / 4;
-            byte[] byteArray = byteList.ToArray();
-
-            ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
-
-            for (int i = 0; i < integerCount; i++)
-                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
-
-            // We don't gain much in most cases by packing the drop-down values
-            // (because they're bytes to begin with, and usually non-zero),
-            // so let's just transfer them as usual
-
-            foreach (GameLobbyDropDown dd in DropDowns)
-                sb.Append(dd.SelectedIndex);
-
-            sb.Append(Convert.ToInt32(Map?.Official ?? false));
-            sb.Append(Map?.SHA1 ?? string.Empty);
-            sb.Append(GameMode?.Name ?? string.Empty);
-            sb.Append(FrameSendRate);
-            sb.Append(MaxAhead);
-            sb.Append(ProtocolVersion);
-            sb.Append(RandomSeed);
-            sb.Append(Convert.ToInt32(RemoveStartingLocations));
-            sb.Append(Map?.UntranslatedName ?? string.Empty);
-
-            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
+            //channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
+            OnHostShouldUpdateTopic();
         }
 
         /// <summary>
@@ -1500,7 +1470,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Locked = true;
             btnLockGame.Text = "Unlock Game".L10N("Client:Main:UnlockGame");
 
-            OnShouldUpdateTopic();
+            OnHostShouldUpdateTopic();
         }
 
         protected override void UnlockGame(bool announce)
@@ -1513,7 +1483,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice("The game room has been unlocked.".L10N("Client:Main:GameRoomUnlocked"));
             btnLockGame.Text = "Lock Game".L10N("Client:Main:LockGame");
 
-            OnShouldUpdateTopic();
+            OnHostShouldUpdateTopic();
         }
 
         protected override void KickPlayer(int playerIndex)
@@ -2017,7 +1987,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Only update the topic when something in the lobby has changed, but also only relevent to the CnCNetLobby.
         /// </summary>
-        protected override void OnShouldUpdateTopic()
+        protected override void OnHostShouldUpdateTopic()
         {
             if (channel != null && IsHost)
             {
@@ -2028,13 +1998,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string newGameTopic = newGameBroadcastString += newGameOptionsBroadcastString += newPlayerOptionsBroadcastString += newPlayerExtraOptionsBroadcastString;
 
+
                 if (cachedGameTopic != newGameTopic)
                 {
-                    connectionManager.SetChannelTopic(channel, newGameTopic, 10);
+                    Logger.Log($"Comparing cached topic: '{cachedGameTopic}' with new topic: '{newGameTopic}'");
+                    connectionManager.SetChannelTopic(channel, newGameTopic, 50);
                     cachedGameTopic = newGameTopic;
                 }
 
-                channel.Topic = cachedGameTopic;
+                //channel.Topic = cachedGameTopic;
             }
             else if (channel != null && !IsHost)
             {
