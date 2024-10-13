@@ -711,9 +711,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
                 else
                 {
-                    if (UserINISettings.Instance.PlaySoundOnGameHosted &&
-                        cncnetGame.InternalName == localGameID.ToLower() &&
-                        !ProgramConstants.IsInGame && !game.Locked)
+                    if (UserINISettings.Instance.PlaySoundOnGameHosted 
+                        && cncnetGame.InternalName == localGameID.ToLower() 
+                        && !ProgramConstants.IsInGame 
+                        && !game.Locked)
                     {
                         SoundPlayer.Play(sndGameCreated);
                     }
