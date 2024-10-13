@@ -1855,6 +1855,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyGameOptions(gameOptionMessage.Substring(3)); // Remove the "GO " prefix
             ApplyPlayerOptions(playerOptionsMessage.Substring(3)); // Remove the "PO " prefix
             ApplyPlayerExtraOptions(playerExtraOptionMessage.Substring(4)); // Remove the "PEO " prefix
+            CopyPlayerDataToUI();
         }
 
         private string BuildGameBroadcastingString()
@@ -1998,7 +1999,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string newGameTopic = newGameBroadcastString += newGameOptionsBroadcastString += newPlayerOptionsBroadcastString += newPlayerExtraOptionsBroadcastString;
 
-
                 if (cachedGameTopic != newGameTopic)
                 {
                     Logger.Log($"Comparing cached topic: '{cachedGameTopic}' with new topic: '{newGameTopic}'");
@@ -2007,6 +2007,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 //channel.Topic = cachedGameTopic;
+
             }
             else if (channel != null && !IsHost)
             {

@@ -968,7 +968,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 base.CopyPlayerDataFromUI(sender, e);
-                BroadcastPlayerOptions();
+                OnHostShouldUpdateTopic();
                 return;
             }
 

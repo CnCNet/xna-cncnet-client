@@ -277,7 +277,7 @@ namespace DTAClient.Online
 
                 // A message has been succesfully received
                 string msg = encoding.GetString(message, 0, bytesRead);
-                Logger.Log("Message received: " + msg);
+                //Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
                 pingTimer.Change(30000, 30000);
@@ -544,7 +544,7 @@ namespace DTAClient.Online
             ParseIrcMessage(message, out prefix, out command, out parameters);
             string paramString = String.Empty;
             foreach (string param in parameters) { paramString = paramString + param + ","; }
-            Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
+            //Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
 
             try
             {
