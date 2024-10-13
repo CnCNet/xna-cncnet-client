@@ -1902,6 +1902,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return sb.ToString();
         }
 
+        private string BuildGameDetailsBroadcastingString()
+        {
+            // | is the separator for the game details
+            StringBuilder sb = new StringBuilder("|DETAIL ");
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Only update the topic when something in the lobby has changed, but also only relevent to the CnCNetLobby.
         /// </summary>
@@ -1910,10 +1918,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (channel != null)
             {
                 string newGameBroadcastString = BuildGameBroadcastingString();
-                if (cachedGameBroadcastString != newGameBroadcastString)
+                string newGameDetailsBroadcastString = BuildGameDetailsBroadcastingString();
+                string gameBroadcastString = newGameBroadcastString += newGameDetailsBroadcastString;
+
+                if (cachedGameBroadcastString != gameBroadcastString)
                 {
-                    connectionManager.SetChannelTopic(channel, newGameBroadcastString);
-                    cachedGameBroadcastString = newGameBroadcastString;
+                    connectionManager.SetChannelTopic(channel, gameBroadcastString);
+                    cachedGameBroadcastString = gameBroadcastString;
                 }
             }
         }

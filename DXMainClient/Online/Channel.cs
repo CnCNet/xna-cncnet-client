@@ -25,6 +25,7 @@ namespace DTAClient.Online
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
         public event EventHandler InvalidPasswordEntered;
         public event EventHandler InviteOnlyErrorOnJoin;
+        public event EventHandler<MessageEventArgs> TopicChanged;
 
         /// <summary>
         /// Raised when the server informs the client that it's is unable to
@@ -80,10 +81,17 @@ namespace DTAClient.Online
             get { return _topic; }
             set
             {
-                _topic = value;
-                if (Persistent)
-                    AddMessage(new ChatMessage(
-                        string.Format("Topic for {0} is: {1}".L10N("Client:Main:ChannelTopic"), UIName, _topic)));
+                if (_topic != value)  // Only trigger the event if the topic actually changes
+                {
+                    _topic = value;
+
+                    // Raise the TopicChanged event
+                    TopicChanged?.Invoke(this, new MessageEventArgs(_topic));
+
+                    if (Persistent)
+                        AddMessage(new ChatMessage(
+                            string.Format("Topic for {0} is: {1}".L10N("Client:Main:ChannelTopic"), UIName, _topic)));
+                }
             }
         }
 
