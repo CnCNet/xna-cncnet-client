@@ -613,17 +613,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var cncnetManager = (CnCNetManager)sender;
 
             // Ensure the topic starts with "GAME " as expected
-            if (!e.Topic.StartsWith("GAME "))
+            if (!e.Topic.StartsWith("GL "))
                 return;
 
-            // Split the topic into GAME and DETAIL parts using '|'
-            string[] topicParts = e.Topic.Substring(5).Split('|');
-            string gameInfo = topicParts[0]; // The part before '|', containing GAME data
-            string detailInfo = topicParts.Length > 1 ? topicParts[1] : null; // The part after '|', if present (DETAIL)
+            // Split the topic into GAME, DETAIL, PO parts using '|'
+            string[] topicParts = e.Topic.Substring(3).Split('|');
+            string gameListingInfo = topicParts[0]; // The part before '|', containing GL data
 
-            // Extract the game information from the topic string
-            // Example Topic: GAME R10;N/A;8;#cncnet-yr-game7417533;neogrant's Game;00000;neogrant;[2] A Hill Between;Battle;198.244.177.26:50000;0
-            string[] splitMessage = gameInfo.Split(new char[] { ';' });
+            // Example Topic: GL R10;N/A;8;#cncnet-yr-game7417533;neogrant's Game;00000;neogrant;[2] A Hill Between;Battle;198.244.177.26:50000;0
+            string[] splitMessage = gameListingInfo.Split(new char[] { ';' });
 
             // Ensure the message has the expected number of parts
             if (splitMessage.Length != 11)

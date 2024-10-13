@@ -464,7 +464,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerExtraOptionsPanel.Enable();
         }
 
-        protected void ApplyPlayerExtraOptions(string sender, string message)
+        protected void ApplyPlayerExtraOptions(string message)
         {
             var playerExtraOptions = PlayerExtraOptions.FromMessage(message);
 

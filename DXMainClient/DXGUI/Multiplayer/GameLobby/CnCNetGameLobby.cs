@@ -59,9 +59,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 new IntCommandHandler("OR", HandleOptionsRequest),
                 new IntCommandHandler("R", HandleReadyRequest),
-                new StringCommandHandler("PO", ApplyPlayerOptions),
-                new StringCommandHandler(PlayerExtraOptions.CNCNET_MESSAGE_KEY, ApplyPlayerExtraOptions),
-                new StringCommandHandler("GO", ApplyGameOptions),
+                //new StringCommandHandler("PO", ApplyPlayerOptions),
+                //new StringCommandHandler(PlayerExtraOptions.CNCNET_MESSAGE_KEY, ApplyPlayerExtraOptions),
+                //new StringCommandHandler("GO", ApplyGameOptions),
                 new StringCommandHandler("START", NonHostLaunchGame),
                 new NotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
                 new NotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
@@ -160,7 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Cached topic, allows us to compare with a new topic to see if it has changed.
         /// </summary>
-        private string cachedGameBroadcastString = string.Empty;
+        private string cachedGameTopic = string.Empty;
 
 
         public override void Initialize()
@@ -216,6 +216,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.UserAdded += Channel_UserAdded;
             channel.UserNameChanged += Channel_UserNameChanged;
             channel.UserListReceived += Channel_UserListReceived;
+            channel.TopicChanged += Channel_TopicChanged;
 
             this.hostName = hostName;
             this.playerLimit = playerLimit;
@@ -258,12 +259,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, playerLimit),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-                OnShouldUpdateTopic();
             }
             else
             {
                 channel.SendCTCPMessage("FHSH " + gameFilesHash, QueuedMessageType.SYSTEM_MESSAGE, 10);
+                Logger.Log("PLAYER TOPIC: " + channel.Topic);
             }
 
             TopBar.AddPrimarySwitchable(this);
@@ -272,6 +272,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ResetAutoReadyCheckbox();
             UpdatePing();
             UpdateDiscordPresence(true);
+
+            OnShouldUpdateTopic();
         }
 
         private void UpdatePing()
@@ -347,6 +349,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.UserAdded -= Channel_UserAdded;
                 channel.UserNameChanged -= Channel_UserNameChanged;
                 channel.UserListReceived -= Channel_UserListReceived;
+                channel.TopicChanged -= Channel_TopicChanged;
 
                 if (!IsHost)
                 {
@@ -373,6 +376,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             TopBar.RemovePrimarySwitchable(this);
             ResetDiscordPresence();
+        }
+
+        private void Channel_TopicChanged(object sender, MessageEventArgs e)
+        {
+            Logger.Log("CnCNetGameLobby ** Channel_TopicChanged " + e.Message);
+            if (!IsHost)
+                ParseGameTopic(e.Message);
         }
 
         public void LeaveGameLobby()
@@ -844,9 +854,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Handles player option messages received from the game host.
         /// </summary>
-        private void ApplyPlayerOptions(string sender, string message)
+        private void ApplyPlayerOptions(string message)
         {
-            if (sender != hostName)
+            if (IsHost)
                 return;
 
             Players.Clear();
@@ -994,11 +1004,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Handles game option messages received from the game host.
         /// </summary>
-        private void ApplyGameOptions(string sender, string message)
+        private void ApplyGameOptions(string message)
         {
-            if (sender != hostName)
-                return;
-
             string[] parts = message.Split(';');
 
             int checkBoxIntegerCount = (CheckBoxes.Count / 32) + 1;
@@ -1861,9 +1868,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         #endregion
 
         #region Game broadcasting logic
+        private void ParseGameTopic(string topic)
+        {
+            // GL | GO | PO | PEO 
+            // Ensure the topic starts with "GL " as expected
+            if (!topic.StartsWith("GL "))
+                return;
+
+            // Split the topic into GAME and DETAIL parts using '|'
+            string[] topicParts = topic.Substring(5).Split('|');
+            string gameListing = topicParts[0];
+            string gameOptionMessage = topicParts.Length > 1 ? topicParts[1] : null;
+            string playerOptionsMessage = topicParts.Length > 2 ? topicParts[2] : null;
+            string playerExtraOptionMessage = topicParts.Length > 3 ? topicParts[3] : null;
+
+            ApplyGameOptions(gameOptionMessage.Substring(3)); // Remove the "GO " prefix
+            ApplyPlayerOptions(playerOptionsMessage.Substring(3)); // Remove the "PO " prefix
+            ApplyPlayerExtraOptions(playerExtraOptionMessage.Substring(4)); // Remove the "PEO " prefix
+        }
+
         private string BuildGameBroadcastingString()
         {
-            StringBuilder sb = new StringBuilder("GAME ");
+            StringBuilder sb = new StringBuilder("GL "); // Short for Game Listings
             sb.Append(ProgramConstants.CNCNET_PROTOCOL_REVISION);
             sb.Append(";");
             sb.Append(ProgramConstants.GAME_VERSION);
@@ -1891,7 +1917,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             sb.Remove(sb.Length - 1, 1);
             sb.Append(";");
-            sb.Append(Map?.UntranslatedName ?? string.Empty);
+            sb.Append("Map TODO");
             sb.Append(";");
             sb.Append(GameMode?.UntranslatedUIName ?? string.Empty);
             sb.Append(";");
@@ -1902,30 +1928,117 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return sb.ToString();
         }
 
-        private string BuildGameDetailsBroadcastingString()
+        private string BuildGameOptionsBroadcastString()
         {
-            // | is the separator for the game details
-            StringBuilder sb = new StringBuilder("|DETAIL ");
+            ExtendedStringBuilder sb = new ExtendedStringBuilder("|GO ", true, ';');
+
+            bool[] optionValues = new bool[CheckBoxes.Count];
+            for (int i = 0; i < CheckBoxes.Count; i++)
+                optionValues[i] = CheckBoxes[i].Checked;
+
+            // Let's pack the booleans into bytes
+            List<byte> byteList = Conversions.BoolArrayIntoBytes(optionValues).ToList();
+
+            while (byteList.Count % 4 != 0)
+                byteList.Add(0);
+
+            int integerCount = byteList.Count / 4;
+            byte[] byteArray = byteList.ToArray();
+
+
+            for (int i = 0; i < integerCount; i++)
+                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
+
+            // We don't gain much in most cases by packing the drop-down values
+            // (because they're bytes to begin with, and usually non-zero),
+            // so let's just transfer them as usual
+
+            foreach (GameLobbyDropDown dd in DropDowns)
+                sb.Append(dd.SelectedIndex);
+
+            sb.Append(Convert.ToInt32(Map?.Official ?? false));
+            sb.Append(Map?.SHA1 ?? string.Empty);
+            sb.Append(GameMode?.Name ?? string.Empty);
+            sb.Append(FrameSendRate);
+            sb.Append(MaxAhead);
+            sb.Append(ProtocolVersion);
+            sb.Append(RandomSeed);
+            sb.Append(Convert.ToInt32(RemoveStartingLocations));
+            sb.Append(Map?.UntranslatedName ?? string.Empty);
 
             return sb.ToString();
         }
+
+        private string BuildAdditionalPlayerOptionsBroadcastString()
+        {
+            // "|PEO " is the separator for the player extra options
+            var playerExtraOptions = GetPlayerExtraOptions();
+            return playerExtraOptions.ToCncnetMessage();
+        }
+
+        private string BuildPlayerOptionsBroadcastngString()
+        {
+            StringBuilder sb = new StringBuilder("|PO ");
+            foreach (PlayerInfo pInfo in Players.Concat(AIPlayers))
+            {
+                if (pInfo.IsAI)
+                    sb.Append(pInfo.AILevel);
+                else
+                    sb.Append(pInfo.Name);
+                sb.Append(";");
+
+                // Combine the options into one integer to save bandwidth in
+                // cases where the player uses default options (this is common for AI players)
+                // Will hopefully make GameSurge kicking people a bit less common
+                byte[] byteArray = new byte[]
+                {
+              (byte)pInfo.TeamId,
+              (byte)pInfo.StartingLocation,
+              (byte)pInfo.ColorId,
+              (byte)pInfo.SideId,
+                };
+
+                int value = BitConverter.ToInt32(byteArray, 0);
+                sb.Append(value);
+                sb.Append(";");
+                if (!pInfo.IsAI)
+                {
+                    if (pInfo.AutoReady && !pInfo.IsInGame)
+                        sb.Append(2);
+                    else
+                        sb.Append(Convert.ToInt32(pInfo.Ready));
+                    sb.Append(';');
+                }
+            }
+            return sb.ToString();
+        }
+
 
         /// <summary>
         /// Only update the topic when something in the lobby has changed, but also only relevent to the CnCNetLobby.
         /// </summary>
         protected override void OnShouldUpdateTopic()
         {
-            if (channel != null)
+            if (channel != null && IsHost)
             {
                 string newGameBroadcastString = BuildGameBroadcastingString();
-                string newGameDetailsBroadcastString = BuildGameDetailsBroadcastingString();
-                string gameBroadcastString = newGameBroadcastString += newGameDetailsBroadcastString;
+                string newGameOptionsBroadcastString = BuildGameOptionsBroadcastString();
+                string newPlayerOptionsBroadcastString = BuildPlayerOptionsBroadcastngString();
+                string newPlayerExtraOptionsBroadcastString = BuildAdditionalPlayerOptionsBroadcastString();
 
-                if (cachedGameBroadcastString != gameBroadcastString)
+                string newGameTopic = newGameBroadcastString += newGameOptionsBroadcastString += newPlayerOptionsBroadcastString += newPlayerExtraOptionsBroadcastString;
+
+                if (cachedGameTopic != newGameTopic)
                 {
-                    connectionManager.SetChannelTopic(channel, gameBroadcastString);
-                    cachedGameBroadcastString = gameBroadcastString;
+                    connectionManager.SetChannelTopic(channel, newGameTopic, 10);
+                    cachedGameTopic = newGameTopic;
                 }
+
+                channel.Topic = cachedGameTopic;
+            }
+            else if (channel != null && !IsHost)
+            {
+                SendChatMessage("PLAYER IS NEEDING THE HOST TO UPDATE THE TOPIC");
             }
         }
         #endregion

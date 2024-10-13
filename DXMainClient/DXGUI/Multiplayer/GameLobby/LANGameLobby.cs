@@ -864,7 +864,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             BroadcastPlayerOptions();
         }
 
-        private void HandlePlayerExtraOptionsBroadcast(string data) => ApplyPlayerExtraOptions(null, data);
+        private void HandlePlayerExtraOptionsBroadcast(string data) => ApplyPlayerExtraOptions(data);
 
         private void HandlePlayerOptionsBroadcast(string data)
         {

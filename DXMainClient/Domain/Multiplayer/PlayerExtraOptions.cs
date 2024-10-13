@@ -41,7 +41,7 @@ namespace DTAClient.Domain.Multiplayer
             return null;
         }
 
-        public string ToCncnetMessage() => $"{CNCNET_MESSAGE_KEY} {ToString()}";
+        public string ToCncnetMessage() => $"|{CNCNET_MESSAGE_KEY} {ToString()}";
 
         public string ToLanMessage() => $"{LAN_MESSAGE_KEY} {ToString()}";
 
