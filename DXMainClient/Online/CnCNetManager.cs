@@ -981,9 +981,9 @@ namespace DTAClient.Online
                     candidateCount, closerCount)));
         }
 
-        public void SetChannelTopic(Channel channel, string topic, int priority = 10)
+        public void SetChannelTopic(Channel channel, string topic)
         {
-            connection.SetChannelTopic(channel.ChannelName, topic, priority);
+            connection.SetChannelTopic(channel.ChannelName, topic);
         }
 
         public void RequestChannelList(string pattern)

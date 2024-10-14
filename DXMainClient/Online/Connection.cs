@@ -959,14 +959,14 @@ namespace DTAClient.Online
             QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
-        public void SetChannelTopic(string channelName, string newTopic, int priority = 10)
+        public void SetChannelTopic(string channelName, string newTopic)
         {
             // Send the TOPIC command to the IRC server with the desired topic.
             string topicCommand = $"TOPIC {channelName} :{newTopic}";
             Logger.Log($"Setting topic for {channelName}: {newTopic}");
 
             // Queue the message to be sent to the server.
-            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE, priority));
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE, 20));
         }
 
         public void ChangeNickname()

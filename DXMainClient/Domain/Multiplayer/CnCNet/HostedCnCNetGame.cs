@@ -6,20 +6,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     {
         public HostedCnCNetGame() { }
 
-        public HostedCnCNetGame(string channelName, string revision, string gamever, int maxPlayers,
-            string roomName, bool passworded,
-            bool tunneled,
-            string[] players, string adminName, string mapName, string gameMode)
+        public HostedCnCNetGame(string channelName, string revision, string gameVersion, int maxPlayers,
+            string roomName, bool passworded, bool tunneled, string[] players, 
+            string hostName, string mapName, string gameMode)
         {
             ChannelName = channelName;
             Revision = revision;
-            GameVersion = gamever;
+            GameVersion = gameVersion;
             MaxPlayers = maxPlayers;
             RoomName = roomName;
             Passworded = passworded;
             Tunneled = tunneled;
             Players = players;
-            HostName = adminName;
+            HostName = hostName;
             Map = mapName;
             GameMode = gameMode;
         }
