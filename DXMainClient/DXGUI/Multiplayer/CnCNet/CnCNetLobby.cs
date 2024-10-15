@@ -62,6 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private MapLoader mapLoader;
+        private GameModeMapCollection GameModeMaps => mapLoader.GameModeMaps;
 
         private CnCNetManager connectionManager;
         private CnCNetUserData cncnetUserData;
@@ -625,66 +626,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ); 
         }
 
-        ///// <summary>
-        ///// Return playerInfo from game options message
-        ///// Should be in a helper somewhere.
-        ///// </summary>
-        ///// <param name="playerOptionsMessage"></param>
-        ///// <returns></returns>
-        //private List<PlayerInfo> GetPlayerInfoFromPlayerOptionsMessage(string playerOptionsMessage)
-        //{
-        //    List<PlayerInfo> players = new List<PlayerInfo>();
-        //    string[] playerOptionsArray = playerOptionsMessage.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-        //    for (int i = 0; i < playerOptionsArray.Length; i += 3) // Each player has 3 segments: Name/AILevel, Options, ReadyStatus
-        //    {
-        //        PlayerInfo playerInfo = new PlayerInfo();
-
-        //        // Parse AI or player name
-        //        string playerOrAI = playerOptionsArray[i];
-        //        if (int.TryParse(playerOrAI, out int aiLevel))
-        //        {
-        //            // This is an AI player
-        //            playerInfo.IsAI = true;
-        //            playerInfo.AILevel = aiLevel;
-        //        }
-        //        else
-        //        {
-        //            // This is a real player
-        //            playerInfo.IsAI = false;
-        //            playerInfo.Name = playerOrAI;
-        //        }
-
-        //        // Parse the packed integer options
-        //        int packedOptions = int.Parse(playerOptionsArray[i + 1]);
-        //        byte[] byteArray = BitConverter.GetBytes(packedOptions);
-
-        //        playerInfo.TeamId = byteArray[0];
-        //        playerInfo.StartingLocation = byteArray[1];
-        //        playerInfo.ColorId = byteArray[2];
-        //        playerInfo.SideId = byteArray[3];
-
-        //        // Parse the ready status
-        //        if (!playerInfo.IsAI)
-        //        {
-        //            playerInfo.Ready = playerOptionsArray[i + 2] == "1";
-        //            playerInfo.AutoReady = playerOptionsArray[i + 2] == "2";
-        //        }
-
-        //        players.Add(playerInfo);
-        //    }
-
-        //    return players;
-        //}
-
         private void ApplyGameDetails(string gameDetailsMessage, string channelName)
         {
 
             try
             {
-                //List<PlayerInfo> players = GetPlayerInfoFromPlayerOptionsMessage(playerOptionsMessage);
-
                 string[] splitGameDettailsMessage = gameDetailsMessage.Split(new char[] { ';' });
+
                 // 0. Protocol version
                 // 1. Game Version
                 // 2. Player Limit
@@ -696,16 +644,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // 8. IsLadder
                 // 9. LoadedGameId
                 // 10. Map Is Official
-                // 11. Map Untranslated Name
-                // 12. Map SHA1
-                // 13. Game Mode Name
-                // 14. Tunnel address: Port
-                // 15. FrameSendRate    @TODO: We can remove?
-                // 16. MaxAhead         @TODO: We can remove?
-                // 17. ProtocolVersion  @TODO: We can remove?
-                // 18. RandomSeed
-                // 19. RemoveStartingLocations 
-                // 20. Players
+                // 11. Map SHA1
+                // 12. Game Mode Name
+                // 13. Tunnel address: Port
+                // 14. FrameSendRate
+                // 15. MaxAhead        
+                // 16. ProtocolVersion
+                // 17. RandomSeed
+                // 18. RemoveStartingLocations 
+                // 19. Players
 
                 string revision = splitGameDettailsMessage[0];
                 if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
@@ -721,22 +668,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isLadderGame = Conversions.BooleanFromString(splitGameDettailsMessage[8], true);
                 string loadedGameId = splitGameDettailsMessage[9];
                 string mapOfficial = splitGameDettailsMessage[10];
-                string mapName = splitGameDettailsMessage[11];
-                string mapSHA1 = splitGameDettailsMessage[12];
-                string gameMode = splitGameDettailsMessage[13];
-                string[] tunnelAddressAndPort = splitGameDettailsMessage[14].Split(':');
-                string messageFrameSendRate = splitGameDettailsMessage[15];
-                string messageMaxAhead = splitGameDettailsMessage[16];
-                string messageGameProtocolVersion = splitGameDettailsMessage[17];
-                string messagePlayers = splitGameDettailsMessage[20];
+                string mapSHA1 = splitGameDettailsMessage[11];
+                string gameMode = splitGameDettailsMessage[12];
+                string[] tunnelAddressAndPort = splitGameDettailsMessage[13].Split(':');
+                string messageFrameSendRate = splitGameDettailsMessage[14];
+                string messageMaxAhead = splitGameDettailsMessage[15];
+                string messageGameProtocolVersion = splitGameDettailsMessage[16];
+                string messagePlayers = splitGameDettailsMessage[19];
 
 
-                // Now do stuff
                 // Pluck out playernames from players
-
                 List<string> playersList = messagePlayers.Split(',').ToList();
                 string hostName = string.Empty;
-                if (playersList.Count>0)
+                if (playersList.Count > 0)
                     hostName = playersList[0]; // Host is the first in the list
                 string tunnelAddress = tunnelAddressAndPort[0];
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
@@ -750,6 +694,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     return;
                 }
 
+                GameModeMap gameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == mapSHA1);
+
                 HostedCnCNetGame game = new HostedCnCNetGame(
                     channelName,
                     revision,
@@ -760,7 +706,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     true,
                     playersList,
                     hostName,
-                    mapName,
+                    gameModeMap?.Map.Name ?? string.Empty,
                     gameMode
                 );
 

@@ -1008,27 +1008,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // 8. IsLadder
                 // 9. LoadedGameId
                 // 10. Map Is Official
-                // 11. Map Untranslated Name
-                // 12. Map SHA1
-                // 13. Game Mode Name
-                // 14. Tunnel address: Port
-                // 15. FrameSendRate
-                // 16. MaxAhead        
-                // 17. ProtocolVersion
-                // 18. RandomSeed
-                // 19. RemoveStartingLocations 
-                // 20. Players
+                // 11. Map SHA1
+                // 12. Game Mode Name
+                // 13. Tunnel address: Port
+                // 14. FrameSendRate
+                // 15. MaxAhead        
+                // 16. ProtocolVersion
+                // 17. RandomSeed
+                // 18. RemoveStartingLocations 
+                // 19. Players
 
                 string mapOfficial = splitMessage[10];
-                string mapName = splitMessage[11];
-                string mapSHA1 = splitMessage[12];
-                string gameMode = splitMessage[13];
-                string messageFrameSendRate = splitMessage[15];
-                string messageMaxAhead = splitMessage[16];
-                string messageGameProtocolVersion = splitMessage[17];
-                string messageRandomSeed = splitMessage[18];
-                string messageRemoveStartingLocations = splitMessage[19];
-                string messagePlayers = splitMessage[20];
+                string mapSHA1 = splitMessage[11];
+                string gameMode = splitMessage[12];
+                string messageFrameSendRate = splitMessage[14];
+                string messageMaxAhead = splitMessage[15];
+                string messageGameProtocolVersion = splitMessage[16];
+                string messageRandomSeed = splitMessage[17];
+                string messageRemoveStartingLocations = splitMessage[18];
+                string messagePlayers = splitMessage[19];
 
 
                 // Do stuff with it.
@@ -1070,7 +1068,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ChangeMap(GameModeMap);
                 }
 
-                lastMapName = mapName;
+                lastMapName = GameModeMap.Map?.Name ?? string.Empty;
                 lastGameMode = gameMode;
                 lastMapSHA1 = mapSHA1;
 
@@ -1935,16 +1933,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // 8. IsLadder
             // 9. LoadedGameId
             // 10. Map Is Official
-            // 11. Map Untranslated Name
-            // 12. Map SHA1
-            // 13. Game Mode Name
-            // 14. Tunnel address: Port
-            // 15. FrameSendRate
-            // 16. MaxAhead
-            // 17. ProtocolVersion
-            // 18. RandomSeed
-            // 19. RemoveStartingLocations 
-            // 20. Players
+            // 11. Map SHA1
+            // 12. Game Mode Name
+            // 13. Tunnel address: Port
+            // 14. FrameSendRate
+            // 15. MaxAhead        
+            // 16. ProtocolVersion
+            // 17. RandomSeed
+            // 18. RemoveStartingLocations 
+            // 19. Players
 
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GD ", true, ';');
 
@@ -1960,7 +1957,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append("0"); // LoadedGameId
 
             sb.Append(Convert.ToInt32(Map?.Official ?? false));
-            sb.Append(Map?.UntranslatedName ?? string.Empty);
             sb.Append(Map?.SHA1 ?? string.Empty);
             sb.Append(GameMode?.Name ?? string.Empty);
             sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
