@@ -36,6 +36,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static readonly object locker = new object();
 
+        private const int DOWNLOAD_TIMEOUT = 100000; // In milliseconds
+        private const int UPLOAD_TIMEOUT = 100000; // In milliseconds
+
         /// <summary>
         /// Adds a map into the CnCNet map upload queue.
         /// </summary>
@@ -211,6 +214,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
         {
             WebRequest request = WebRequest.Create(address);
+            request.Timeout = UPLOAD_TIMEOUT;
             request.Method = "POST";
             string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
             request.ContentType = "multipart/form-data; boundary=" + boundary;
@@ -382,7 +386,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             destinationFile.Delete();
             newFile.Delete();
 
-            using (WebClient webClient = new ExtendedWebClient(timeout: 10000))
+            using (WebClient webClient = new ExtendedWebClient(DOWNLOAD_TIMEOUT))
             {
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
                 {
