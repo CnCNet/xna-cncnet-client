@@ -382,7 +382,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             destinationFile.Delete();
             newFile.Delete();
 
-            using (TWebClient webClient = new TWebClient())
+            using (WebClient webClient = new ExtendedWebClient(timeout: 10000))
             {
                 // TODO enable proxy support for some users
                 webClient.Proxy = null;
@@ -455,24 +455,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             public string Filename { get; set; }
             public string ContentType { get; set; }
             public Stream Stream { get; set; }
-        }
-
-        class TWebClient : WebClient
-        {
-            private int Timeout = 10000;
-
-            public TWebClient()
-            {
-                // TODO enable proxy support for some users
-                this.Proxy = null;
-            }
-
-            protected override WebRequest GetWebRequest(Uri address)
-            {
-                var webRequest = base.GetWebRequest(address);
-                webRequest.Timeout = Timeout;
-                return webRequest;
-            }
         }
     }
 }
