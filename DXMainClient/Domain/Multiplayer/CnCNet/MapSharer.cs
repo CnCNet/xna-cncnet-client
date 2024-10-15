@@ -384,9 +384,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             using (WebClient webClient = new ExtendedWebClient(timeout: 10000))
             {
-                // TODO enable proxy support for some users
-                webClient.Proxy = null;
-
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
                 {
                     success = false;
