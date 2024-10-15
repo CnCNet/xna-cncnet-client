@@ -8,6 +8,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     class ExtendedWebClient : WebClient
     {
+        public ExtendedWebClient() : this(timeout: 10000) { }
+
         public ExtendedWebClient(int timeout)
         {
             this.timeout = timeout;

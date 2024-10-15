@@ -148,7 +148,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private byte[] GetRawTunnelDataOnline()
         {
-            WebClient client = new WebClient();
+            WebClient client = new ExtendedWebClient();
             return client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
         }
 

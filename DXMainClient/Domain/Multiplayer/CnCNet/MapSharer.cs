@@ -36,6 +36,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static readonly object locker = new object();
 
+        private const int DOWNLOAD_TIMEOUT = 100000; // In milliseconds
+        private const int UPLOAD_TIMEOUT = 100000; // In milliseconds
+
         /// <summary>
         /// Adds a map into the CnCNet map upload queue.
         /// </summary>
@@ -211,6 +214,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
         {
             WebRequest request = WebRequest.Create(address);
+            request.Timeout = UPLOAD_TIMEOUT;
             request.Method = "POST";
             string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
             request.ContentType = "multipart/form-data; boundary=" + boundary;
@@ -382,11 +386,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             destinationFile.Delete();
             newFile.Delete();
 
-            using (TWebClient webClient = new TWebClient())
+            using (WebClient webClient = new ExtendedWebClient(DOWNLOAD_TIMEOUT))
             {
-                // TODO enable proxy support for some users
-                webClient.Proxy = null;
-
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
                 {
                     success = false;
@@ -455,24 +456,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             public string Filename { get; set; }
             public string ContentType { get; set; }
             public Stream Stream { get; set; }
-        }
-
-        class TWebClient : WebClient
-        {
-            private int Timeout = 10000;
-
-            public TWebClient()
-            {
-                // TODO enable proxy support for some users
-                this.Proxy = null;
-            }
-
-            protected override WebRequest GetWebRequest(Uri address)
-            {
-                var webRequest = base.GetWebRequest(address);
-                webRequest.Timeout = Timeout;
-                return webRequest;
-            }
         }
     }
 }
