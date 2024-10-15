@@ -607,7 +607,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IsHost = isHost;
             Locked = false;
-            CopyPlayerDataToUI();
+            //CopyPlayerDataToUI();
 
             UpdateMapPreviewBoxEnabledStatus();
             PlayerExtraOptionsPanel?.SetIsHost(isHost);
@@ -951,12 +951,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.OnGameOptionChanged();
 
+            Logger.Log("MultiplayerGameLobby: Game option changed");
+
             ClearReadyStatuses();
             CopyPlayerDataToUI();
-            OnHostShouldUpdateTopic();
         }
-
-        protected virtual void OnHostShouldUpdateTopic() {}
 
         protected abstract void HostLaunchGame();
 

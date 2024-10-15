@@ -764,7 +764,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ConnectionManager_ChannelListReceived(object sender, ChannelTopicEventArgs e)
         {
-            Logger.Log($"GameBroadcastChannel_ChannelListReceived ** {e.ChannelName}, {e.Topic}");
             OnParseGameTopic(e.Topic, e.ChannelName);
         }
 
@@ -987,6 +986,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
 
+            Logger.Log($"{hg.ChannelName}");
+
             return GetJoinGameErrorBase();
         }
 
@@ -1092,6 +1093,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameChannel.ChannelFull += GameChannel_ChannelFull;
                 gameChannel.TargetChangeTooFast += GameChannel_TargetChangeTooFast;
             }
+
+            Logger.Log("Pausing listings in lobby");
+            //gameChanneListTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));

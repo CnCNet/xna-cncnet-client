@@ -264,13 +264,9 @@ namespace DTAClient.Online
 
         public void OnChannelListReceived(List<Tuple<string, string>> channelList)
         {
-            Logger.Log("OnChannelListReceived called");
-
             foreach (var nameTopic in channelList)
             {
                 (string channelName, string channelTopic) = nameTopic;
-
-                Logger.Log($"OnChannelListReceived: channelName: {channelName} channelTopic: {channelTopic}");
 
                 Channel channel = FindChannel(channelName);
                 wm.AddCallback(new Action<string, string>(DoChannelListReceived), channelName, channelTopic);

@@ -612,7 +612,6 @@ namespace DTAClient.Online
                             _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
                             break;
                         case 323: // End of the LIST command
-                            Logger.Log($"End of Channel LIST");
                             connectionManager.OnChannelListReceived(_channelList);
                             _channelList.Clear();
                             break;
@@ -788,7 +787,7 @@ namespace DTAClient.Online
             }
             catch
             {
-                Logger.Log("Warning: Failed to parse command " + message);
+                Logger.Log("Warning: Failed to parse command " + message + " // " + parameters);
             }
         }
 
@@ -951,11 +950,7 @@ namespace DTAClient.Online
 
         public void RequestChannelList(string pattern)
         {
-            Logger.Log("RequestChannelList");
-
             string listCommand = $"LIST {pattern}";
-            Logger.Log($"RequestChannelList: {listCommand}");
-
             QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
@@ -966,7 +961,7 @@ namespace DTAClient.Online
             Logger.Log($"Setting topic for {channelName}: {newTopic}");
 
             // Queue the message to be sent to the server.
-            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE, 20));
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE, 11));
         }
 
         public void ChangeNickname()
@@ -1047,6 +1042,8 @@ namespace DTAClient.Online
                 return;
 
             qm.ID = NextQueueID++;
+
+            Logger.Log("QUEUE Count: " + MessageQueue.Count);
 
             lock (messageQueueLocker)
             {

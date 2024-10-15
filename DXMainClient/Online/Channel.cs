@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using DTAClient.DXGUI;
 using ClientCore.Extensions;
+using Rampastring.Tools;
 
 namespace DTAClient.Online
 {
@@ -81,11 +82,11 @@ namespace DTAClient.Online
             get { return _topic; }
             set
             {
-                if (_topic != value)  // Only trigger the event if the topic actually changes
+                Logger.Log("SETTING TOPIC: " + value);
+                if (_topic != value || _topic == null)  // Only trigger the event if the topic actually changes
                 {
                     _topic = value;
 
-                    // Raise the TopicChanged event
                     TopicChanged?.Invoke(this, new MessageEventArgs(_topic));
 
                     if (Persistent)
