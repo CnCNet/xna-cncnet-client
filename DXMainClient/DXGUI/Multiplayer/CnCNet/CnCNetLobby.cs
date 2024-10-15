@@ -616,13 +616,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // Split the topic into GAME and DETAIL parts using '|'
             string[] topicParts = topic.Split('|');
             string gameDetails = topicParts[0];
-            //string gameOptions = topicParts.Length > 1 ? topicParts[1] : null;
-            string playerOptions = topicParts.Length > 2 ? topicParts[2] : null;
-            //string extraPlayerOptions = topicParts.Length > 3 ? topicParts[3] : null;
+            string gameOptions = topicParts.Length > 1 ? topicParts[1] : null;
+            string extraPlayerOptions = topicParts.Length > 2 ? topicParts[2] : null;
 
             ApplyGameDetails(
                 gameDetails.Substring(3), // Remove the "GD " prefix
-                playerOptions.Substring(3), // Remove the "PO " prefix
                 channelName
             ); 
         }
@@ -679,7 +677,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         //    return players;
         //}
 
-        private void ApplyGameDetails(string gameDetailsMessage, string playerOptionsMessage, string channelName)
+        private void ApplyGameDetails(string gameDetailsMessage, string channelName)
         {
 
             try

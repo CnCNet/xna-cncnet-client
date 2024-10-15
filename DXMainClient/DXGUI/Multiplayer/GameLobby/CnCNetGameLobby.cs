@@ -59,9 +59,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 new IntCommandHandler("OR", HandleOptionsRequest),
                 new IntCommandHandler("R", HandleReadyRequest),
-                new StringCommandHandler("PO", ApplyPlayerOptions),
+                new StringCommandHandler("PO", ApplyPlayerOptionsFromCTCP),
                 //new StringCommandHandler(PlayerExtraOptions.CNCNET_MESSAGE_KEY, ApplyPlayerExtraOptions),
-                //new StringCommandHandler("GO", ApplyGameOptions),
+                //new StringCommandHandler("GO", ApplyGameOptionsFromTopic),
                 new StringCommandHandler("START", NonHostLaunchGame),
                 new NotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
                 new NotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
@@ -273,6 +273,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdatePing();
             UpdateDiscordPresence(true);
 
+            BroadcastPlayerOptions();
             OnHostShouldUpdateTopic();
         }
 
@@ -711,12 +712,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         /// <summary>
         /// Handles player option requests received from non-host players.
-        /// E.g. I've received this message from a normal player (as a host) to update the TOPIC with the player's options.
         /// </summary>
         private void HandleOptionsRequest(string playerName, int options)
         {
             Logger.Log($"HandleOptionsRequest: Received options from {playerName}.");
-
 
             if (!IsHost)
                 return;
@@ -775,7 +774,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             pInfo.TeamId = team;
 
             CopyPlayerDataToUI();
-            OnHostShouldUpdateTopic();
+            //OnHostShouldUpdateTopic();
+            BroadcastPlayerOptions();
         }
 
         /// <summary>
@@ -804,41 +804,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void BroadcastPlayerOptions()
         {
-            // Broadcast player options
-            StringBuilder sb = new StringBuilder("PO ");
-            foreach (PlayerInfo pInfo in Players.Concat(AIPlayers))
-            {
-                if (pInfo.IsAI)
-                    sb.Append(pInfo.AILevel);
-                else
-                    sb.Append(pInfo.Name);
-                sb.Append(";");
-
-                // Combine the options into one integer to save bandwidth in
-                // cases where the player uses default options (this is common for AI players)
-                // Will hopefully make GameSurge kicking people a bit less common
-                byte[] byteArray = new byte[]
-                {
-                    (byte)pInfo.TeamId,
-                    (byte)pInfo.StartingLocation,
-                    (byte)pInfo.ColorId,
-                    (byte)pInfo.SideId,
-                };
-
-                int value = BitConverter.ToInt32(byteArray, 0);
-                sb.Append(value);
-                sb.Append(";");
-                if (!pInfo.IsAI)
-                {
-                    if (pInfo.AutoReady && !pInfo.IsInGame)
-                        sb.Append(2);
-                    else
-                        sb.Append(Convert.ToInt32(pInfo.Ready));
-                    sb.Append(';');
-                }
-            }
-
-            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
+            channel.SendCTCPMessage(BuildPlayerOptionsCTCPString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
         }
 
         protected override void PlayerExtraOptions_OptionsChanged(object sender, EventArgs e)
@@ -858,9 +824,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Handles player option messages received from the game host.
+        /// Handles player option messages received from the game host as CTCP.
         /// </summary>
-        private void ApplyPlayerOptions(string sender, string message)
+        private void ApplyPlayerOptionsFromCTCP(string sender, string message)
         {
             if (sender != hostName)
                 return;
@@ -959,15 +925,49 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Broadcasts game options to non-host players
-        /// when the host has changed an option.
+        /// Broadcasts game options to non-host players when the host has changed an option.
+        /// @TODO: This should be using the topic instead of sending a message?
         /// </summary>
         protected override void OnGameOptionChanged()
         {
             base.OnGameOptionChanged();
+
+            if (!IsHost)
+                return;
+
+            bool[] optionValues = new bool[CheckBoxes.Count];
+            for (int i = 0; i < CheckBoxes.Count; i++)
+                optionValues[i] = CheckBoxes[i].Checked;
+
+            // Let's pack the booleans into bytes
+            List<byte> byteList = Conversions.BoolArrayIntoBytes(optionValues).ToList();
+
+            while (byteList.Count % 4 != 0)
+                byteList.Add(0);
+
+            int integerCount = byteList.Count / 4;
+            byte[] byteArray = byteList.ToArray();
+
+            ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
+
+            for (int i = 0; i < integerCount; i++)
+                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
+
+            // We don't gain much in most cases by packing the drop-down values
+            // (because they're bytes to begin with, and usually non-zero),
+            // so let's just transfer them as usual
+
+            foreach (GameLobbyDropDown dd in DropDowns)
+                sb.Append(dd.SelectedIndex);
+
+            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
         }
 
-        private void ApplyGameDetails(string message)
+        /// <summary>
+        /// Handles game details messages from the channel topic
+        /// </summary>
+        /// <param name="message"></param>
+        private void ApplyGameDetailsFromTopic(string message)
         {
             string[] splitMessage = message.Split(new char[] { ';' });
 
@@ -1077,9 +1077,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
 
         /// <summary>
-        /// Handles game option messages received from the game host.
+        /// Handles game option messages received from the channel topic.
         /// </summary>
-        private void ApplyGameOptions(string message)
+        private void ApplyGameOptionsFromTopic(string message)
         {
             string[] parts = message.Split(';');
 
@@ -1178,6 +1178,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        #region Map Sharing
         private void RequestMap(string mapSHA1)
         {
             if (UserINISettings.Instance.EnableMapSharing)
@@ -1215,6 +1216,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel.Disable();
             base.ChangeMap(gameModeMap);
         }
+        #endregion
 
         /// <summary>
         /// Signals other players that the local player has returned from the game,
@@ -1549,12 +1551,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendKickMessage(user.Name, 8);
             }
         }
-        
 
+        protected override bool UpdateLaunchGameButtonStatus()
+        {
+            btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && !tunnelErrorMode;
+            return btnLaunchGame.Enabled;
+        }
 
         private void HandleCheatDetectedMessage(string sender) =>
             AddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("Client:Main:PlayerModifyFileCheat"), sender), Color.Red);
 
+        #region Tunnel Handling
         private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
         {
             if (sender != hostName)
@@ -1591,12 +1598,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("Client:Main:HostChangeTunnel"), tunnel.Name));
             UpdatePing();
         }
-
-        protected override bool UpdateLaunchGameButtonStatus()
-        {
-            btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && !tunnelErrorMode;
-            return btnLaunchGame.Enabled;
-        }
+        #endregion
 
         #region CnCNet map sharing
 
@@ -1885,21 +1887,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string[] topicParts = topic.Split('|');
             string gameDetails = topicParts[0];
             string gameOptions = topicParts.Length > 1 ? topicParts[1] : null;
-            string playerOptions = topicParts.Length > 2 ? topicParts[2] : null;
-            string extraPlayerOptions = topicParts.Length > 3 ? topicParts[3] : null;
+            string extraPlayerOptions = topicParts.Length > 2 ? topicParts[2] : null;
 
-            ApplyGameDetails(gameDetails.Substring(3)); // Remove the "GD " prefix
-            ApplyGameOptions(gameOptions.Substring(3)); // Remove the "GO " prefix
-            
-            // Player options is just too big to include in topic
-            // ApplyPlayerOptions(playerOptions.Substring(3)); // Remove the "PO " prefix
-
+            ApplyGameDetailsFromTopic(gameDetails.Substring(3)); // Remove the "GD " prefix
+            ApplyGameOptionsFromTopic(gameOptions.Substring(3)); // Remove the "GO " prefix
             ApplyPlayerExtraOptions(extraPlayerOptions.Substring(4)); // Remove the "PEO " prefix
             
             CopyPlayerDataToUI();
         }
 
-        private string BuildGameDetailsBroadcastString()
+        private string BuildGameDetailsTopicString()
         {
             // 0. Protocol version
             // 1. Game Version
@@ -1937,7 +1934,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append("0"); // LoadedGameId
 
             sb.Append(Convert.ToInt32(Map?.Official ?? false));
-            sb.Append(Map.UntranslatedName ?? string.Empty);
+            sb.Append(Map?.UntranslatedName ?? string.Empty);
             sb.Append(Map?.SHA1 ?? string.Empty);
             sb.Append(GameMode?.Name ?? string.Empty);
             sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
@@ -1948,7 +1945,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
 
             string gameDetails = sb.ToString();
-            StringBuilder playersSb = new StringBuilder("");
+            StringBuilder playersSb = new StringBuilder(";");
             foreach (PlayerInfo pInfo in Players)
             {
                 playersSb.Append(pInfo.Name);
@@ -1964,7 +1961,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return gameDetails;
         }
 
-        private string BuildGameOptionsBroadcastString()
+        private string BuildGameOptionsTopicString()
         {
             ExtendedStringBuilder sb = new ExtendedStringBuilder("|GO ", true, ';');
 
@@ -1993,16 +1990,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return sb.ToString();
         }
 
-        private string BuildAdditionalPlayerOptionsBroadcastString()
+        private string BuildExtraPlayerOptionsString()
         {
             // "|PEO " is the separator for the player extra options
             var playerExtraOptions = GetPlayerExtraOptions();
             return playerExtraOptions.ToCncnetMessage();
         }
 
-        private string BuildPlayerOptionsBroadcastString()
+        private string BuildPlayerOptionsCTCPString()
         {
-            StringBuilder sb = new StringBuilder("|PO ");
+            StringBuilder sb = new StringBuilder("PO ");
             foreach (PlayerInfo pInfo in Players.Concat(AIPlayers))
             {
                 if (pInfo.IsAI)
@@ -2039,19 +2036,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
 
         /// <summary>
-        /// Only update the topic when something in the lobby has changed, but also only relevent to the CnCNetLobby.
+        /// Only update the topic when something in the lobby has changed
+        /// Updates Game details for the CnCNet lobby & Game Lobby
         /// </summary>
         protected override void OnHostShouldUpdateTopic()
         {
             if (channel != null && IsHost)
             {
-                string gameDetails = BuildGameDetailsBroadcastString();
-                string gameOptions = BuildGameOptionsBroadcastString();
-                string playerOptions = BuildPlayerOptionsBroadcastString();
-                string extraPlayerOptions = BuildAdditionalPlayerOptionsBroadcastString();
+                // Player options are not included in the topic as it would exceed 300 chars
+                // Instead player options are sent and received via CTCP
 
-                string newGameTopic = gameDetails += gameOptions += playerOptions += extraPlayerOptions;
+                string gameDetails = BuildGameDetailsTopicString();
+                string gameOptions = BuildGameOptionsTopicString();
+                string extraPlayerOptions = BuildExtraPlayerOptionsString();
 
+                string newGameTopic = $"{gameDetails}{gameOptions}{extraPlayerOptions}";
                 if (cachedGameTopic != newGameTopic)
                 {
                     connectionManager.SetChannelTopic(channel, newGameTopic);
