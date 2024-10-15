@@ -120,15 +120,15 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing.Visible = true;
 
             lblPlayers.Visible = true;
-            lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
+            lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Count + " / " + game.MaxPlayers + "):";
 
-            for (int i = 0; i < game.Players.Length && i < MAX_PLAYERS; i++)
+            for (int i = 0; i < game.Players.Count && i < MAX_PLAYERS; i++)
             {
                 lblPlayerNames[i].Visible = true;
                 lblPlayerNames[i].Text = Renderer.GetSafeString(game.Players[i], lblPlayerNames[i].FontIndex);
             }
 
-            for (int i = game.Players.Length; i < MAX_PLAYERS; i++)
+            for (int i = game.Players.Count; i < MAX_PLAYERS; i++)
             {
                 lblPlayerNames[i].Visible = false;
             }

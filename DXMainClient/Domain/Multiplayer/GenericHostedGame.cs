@@ -1,5 +1,6 @@
 ﻿using ClientCore.CnCNet5;
 using System;
+using System.Collections.Generic;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -19,7 +20,7 @@ namespace DTAClient.Domain.Multiplayer
         public string Map { get; set; }
         public string GameVersion { get; set; }
         public string HostName { get; set; }
-        public string[] Players { get; set; }
+        public List<string>Players { get; set; }
         public int MaxPlayers { get; set; } = 8;
 
         public abstract int Ping { get; }

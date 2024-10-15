@@ -734,8 +734,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // Now do stuff
                 // Pluck out playernames from players
 
-                string[] playersList = messagePlayers.Split(',');
-                string hostName = playersList[0]; // Host is the first in the list
+                List<string> playersList = messagePlayers.Split(',').ToList();
+                string hostName = string.Empty;
+                if (playersList.Count>0)
+                    hostName = playersList[0]; // Host is the first in the list
                 string tunnelAddress = tunnelAddressAndPort[0];
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
@@ -1137,7 +1139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.Players);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1249,7 +1251,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.Players);
             gameChannel.UserAdded += GameChannel_UserAdded;
             //gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,

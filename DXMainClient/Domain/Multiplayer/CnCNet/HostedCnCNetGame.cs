@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -7,7 +8,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public HostedCnCNetGame() { }
 
         public HostedCnCNetGame(string channelName, string revision, string gameVersion, int maxPlayers,
-            string roomName, bool passworded, bool tunneled, string[] players, 
+            string roomName, bool passworded, bool tunneled, List<string> players, 
             string hostName, string mapName, string gameMode)
         {
             ChannelName = channelName;

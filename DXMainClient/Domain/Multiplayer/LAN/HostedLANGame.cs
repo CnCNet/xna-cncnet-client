@@ -3,6 +3,8 @@ using ClientCore.CnCNet5;
 using DTAClient.Domain.Multiplayer;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace DTAClient.Domain.LAN
@@ -41,9 +43,9 @@ namespace DTAClient.Domain.LAN
             Map = parameters[3];
             GameMode = parameters[4];
             LoadedGameID = parameters[5];
-            string[] players = parameters[6].Split(',');
+            List<string> players = parameters[6].Split(',').ToList();
             Players = players;
-            if (players.Length == 0)
+            if (players.Count == 0)
                 return false;
             HostName = players[0];
             Locked = Conversions.IntFromString(parameters[7], 1) > 0;

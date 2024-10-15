@@ -153,8 +153,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Sets up events and information before joining the channel.
         /// </summary>
-        public void SetUp(bool isHost, CnCNetTunnel tunnel, Channel channel,
-            string hostName)
+        public void SetUp(bool isHost, CnCNetTunnel tunnel, Channel channel, string hostName)
         {
             this.channel = channel;
             this.hostName = hostName;

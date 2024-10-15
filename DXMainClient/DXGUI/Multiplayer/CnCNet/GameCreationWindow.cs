@@ -43,6 +43,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientButton btnDisplayAdvancedOptions;
 
         private TunnelHandler tunnelHandler;
+        private string[] players;
 
         public override void Initialize()
         {
@@ -203,7 +204,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]);
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], []);
 
             LoadedGameCreated?.Invoke(this, ea);
         }
@@ -231,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreated?.Invoke(this, new GameCreationEventArgs(gameName,
                 int.Parse(ddMaxPlayers.SelectedItem.Text), tbPassword.Text,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]));
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], []));
         }
 
         private void BtnDisplayAdvancedOptions_LeftClick(object sender, EventArgs e)

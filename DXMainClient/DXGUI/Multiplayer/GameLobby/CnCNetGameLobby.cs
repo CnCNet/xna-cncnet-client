@@ -19,6 +19,8 @@ using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using SharpDX.Direct2D1;
+using Microsoft.VisualBasic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -205,7 +207,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
-            CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
+            CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
+            List<string> players)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -233,6 +236,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.ChannelModesChanged += Channel_ChannelModesChanged;
                 AIPlayers.Clear();
                 btnChangeTunnel.Disable();
+            }
+
+            if (players.Count > 0)
+            {
+                LoadInitialPlayerNamesIntoUI(players);
             }
 
             tunnelHandler.CurrentTunnel = tunnel;
@@ -269,10 +277,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.AddPrimarySwitchable(this);
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
+
             ResetAutoReadyCheckbox();
             UpdatePing();
             UpdateDiscordPresence(true);
-
             BroadcastPlayerOptions();
             OnHostShouldUpdateTopic();
         }
@@ -530,7 +538,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // new player, and it also sends an options broadcast message
                 //CopyPlayerDataToUI(); This is also called by ChangeMap()
                 ChangeMap(GameModeMap);
-
                 BroadcastPlayerOptions();
                 OnHostShouldUpdateTopic();
                 UpdateDiscordPresence();
@@ -824,6 +831,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
+        /// Show the player names in the UI upon joining the game. (So its not not initially blank).
+        /// </summary>
+        /// <param name="gameDetailMessage"></param>
+        private void LoadInitialPlayerNamesIntoUI(List<string> playerNames)
+        {
+            Players.Clear();
+
+            for (int i = 0; i < playerNames.Count; i++)
+            {
+                PlayerInfo pInfo = new() { Name = playerNames[i] };
+                Players.Add(pInfo);
+            }
+
+            CopyPlayerDataToUI();
+        }
+
+        /// <summary>
         /// Handles player option messages received from the game host as CTCP.
         /// </summary>
         private void ApplyPlayerOptionsFromCTCP(string sender, string message)
@@ -988,11 +1012,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // 12. Map SHA1
                 // 13. Game Mode Name
                 // 14. Tunnel address: Port
-                // 15. FrameSendRate    @TODO: We can remove?
-                // 16. MaxAhead         @TODO: We can remove?
-                // 17. ProtocolVersion  @TODO: We can remove?
+                // 15. FrameSendRate
+                // 16. MaxAhead        
+                // 17. ProtocolVersion
                 // 18. RandomSeed
                 // 19. RemoveStartingLocations 
+                // 20. Players
 
                 string mapOfficial = splitMessage[10];
                 string mapName = splitMessage[11];
@@ -1003,6 +1028,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string messageGameProtocolVersion = splitMessage[17];
                 string messageRandomSeed = splitMessage[18];
                 string messageRemoveStartingLocations = splitMessage[19];
+                string messagePlayers = splitMessage[20];
 
 
                 // Do stuff with it.
@@ -1913,9 +1939,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // 12. Map SHA1
             // 13. Game Mode Name
             // 14. Tunnel address: Port
-            // 15. FrameSendRate    @TODO: We can remove?
-            // 16. MaxAhead         @TODO: We can remove?
-            // 17. ProtocolVersion  @TODO: We can remove?
+            // 15. FrameSendRate
+            // 16. MaxAhead
+            // 17. ProtocolVersion
             // 18. RandomSeed
             // 19. RemoveStartingLocations 
             // 20. Players
