@@ -303,9 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                DrawTexture(hostedGame.Game.Texture,
-                    new Rectangle(x, height,
-                    hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
+                DrawTexture(hostedGame.Game.Texture, new Rectangle(x, height, hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
                 x += hostedGame.Game.Texture.Width + ICON_MARGIN;
 

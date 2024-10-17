@@ -113,22 +113,22 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameVersion.Text = "Game version:".L10N("Client:Main:GameInfoGameVersion") + " " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;
 
-            lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
+            lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostUserName, lblHost.FontIndex);
             lblHost.Visible = true;
 
             lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
             lblPing.Visible = true;
 
             lblPlayers.Visible = true;
-            lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
+            lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Count + " / " + game.MaxPlayers + "):";
 
-            for (int i = 0; i < game.Players.Length && i < MAX_PLAYERS; i++)
+            for (int i = 0; i < game.Players.Count && i < MAX_PLAYERS; i++)
             {
                 lblPlayerNames[i].Visible = true;
-                lblPlayerNames[i].Text = Renderer.GetSafeString(game.Players[i], lblPlayerNames[i].FontIndex);
+                lblPlayerNames[i].Text = Renderer.GetSafeString(game.Players[i].Name, lblPlayerNames[i].FontIndex);
             }
 
-            for (int i = game.Players.Length; i < MAX_PLAYERS; i++)
+            for (int i = game.Players.Count; i < MAX_PLAYERS; i++)
             {
                 lblPlayerNames[i].Visible = false;
             }

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -121,6 +122,8 @@ namespace DTAClient.Online
         private static bool idSet = false;
         private static string systemId;
         private static readonly object idLocker = new object();
+        private readonly List<Tuple<string, string>> _channelList = [];
+        private readonly List<Tuple<string, string, string, string>> _whoResponseList = [];
 
         public static void SetId(string id)
         {
@@ -229,7 +232,7 @@ namespace DTAClient.Online
 
             Register();
 
-            Timer timer = new Timer(AutoPing, null, 30000, 120000);
+            Timer pingTimer = new Timer(AutoPing, null, 30000, 120000);
 
             connectionCut = true;
 
@@ -275,14 +278,14 @@ namespace DTAClient.Online
 
                 // A message has been succesfully received
                 string msg = encoding.GetString(message, 0, bytesRead);
-                Logger.Log("Message received: " + msg);
+                //Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
-                timer.Change(30000, 30000);
+                pingTimer.Change(30000, 30000);
             }
 
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
-            timer.Dispose();
+            pingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            pingTimer.Dispose();
 
             _isConnected = false;
             disconnect = false;
@@ -542,7 +545,7 @@ namespace DTAClient.Online
             ParseIrcMessage(message, out prefix, out command, out parameters);
             string paramString = String.Empty;
             foreach (string param in parameters) { paramString = paramString + param + ","; }
-            Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
+            //Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
 
             try
             {
@@ -563,6 +566,10 @@ namespace DTAClient.Online
                             welcomeMessageReceived = true;
                             connectionManager.OnWelcomeMessageReceived(message);
                             reconnectCount = 0;
+                            break;
+                        case 376: // End of MOTD
+                        case 422: // Server has no MOTD
+                            connectionManager.OnMessageOfTheDayComplete();
                             break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."
@@ -600,6 +607,19 @@ namespace DTAClient.Online
                             string awayReason = parameters[2];
                             connectionManager.OnAwayMessageReceived(awayPlayer, awayReason);
                             break;
+                        case 322: // Channel information from LIST command
+                            // Ensure topic is present
+                            if (parameters.Count > 3) 
+                            {
+                                string listChannelName = parameters[1];
+                                string listChannelTopic = parameters[3];
+                                _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            }
+                            break;
+                        case 323: // End of the LIST command
+                            connectionManager.OnChannelListReceived(_channelList);
+                            _channelList.Clear();
+                            break;
                         case 332: // Channel topic message
                             string _target = parameters[0];
                             if (_target != ProgramConstants.PLAYERNAME)
@@ -619,10 +639,16 @@ namespace DTAClient.Online
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
+                            _whoResponseList.Add(Tuple.Create(ident, host, wUserName, extraInfo));
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
                         case 311: // Reply to WHOIS NAME query
                             connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
+                            break;
+                        case 315: // End of WHO query
+                            Logger.Log($"END OF WHO QUERY " + parameters[1]  + " COUNT:" + _whoResponseList.Count);
+                            connectionManager.OnWhoQueryComplete(parameters[1], new List<Tuple<string, string, string, string>>(_whoResponseList));
+                            _whoResponseList.Clear();
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -772,7 +798,7 @@ namespace DTAClient.Online
             }
             catch
             {
-                Logger.Log("Warning: Failed to parse command " + message);
+                Logger.Log("Warning: Failed to parse command " + message + " // " + parameters);
             }
         }
 
@@ -933,6 +959,28 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
+        public void RequestChannelList(string pattern)
+        {
+            string listCommand = $"LIST {pattern}";
+            QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+        }
+
+        public void RequestWHOList(string channelName)
+        {
+            string whoCommand = $"WHO {channelName}";
+            QueueMessage(new QueuedMessage(whoCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+        }
+
+        public void SetChannelTopic(string channelName, string newTopic)
+        {
+            // Send the TOPIC command to the IRC server with the desired topic.
+            string topicCommand = $"TOPIC {channelName} :{newTopic}";
+            Logger.Log($"Setting topic for {channelName}: {newTopic}");
+
+            // Queue the message to be sent to the server.
+            QueueMessage(new QueuedMessage(topicCommand, QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE, 11));
+        }
+
         public void ChangeNickname()
         {
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
@@ -948,7 +996,7 @@ namespace DTAClient.Online
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
             QueueMessage(qm);
-            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
+            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID + " __ " + message);
         }
 
         /// <summary>
@@ -1012,6 +1060,8 @@ namespace DTAClient.Online
 
             qm.ID = NextQueueID++;
 
+            Logger.Log("QUEUE Count: " + MessageQueue.Count);
+
             lock (messageQueueLocker)
             {
                 switch (qm.MessageType)
@@ -1019,6 +1069,7 @@ namespace DTAClient.Online
                     case QueuedMessageType.GAME_BROADCASTING_MESSAGE:
                     case QueuedMessageType.GAME_PLAYERS_MESSAGE:
                     case QueuedMessageType.GAME_SETTINGS_MESSAGE:
+                    case QueuedMessageType.GAME_TOPIC_CHANGED_MESSAGE:
                     case QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE:
                     case QueuedMessageType.GAME_LOCKED_MESSAGE:
                     case QueuedMessageType.GAME_GET_READY_MESSAGE:
