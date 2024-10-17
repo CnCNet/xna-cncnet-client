@@ -424,7 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             // friends list takes priority over other filters below
             if (UserINISettings.Instance.ShowFriendGamesOnly)
-                return hg.Players.Any(cncnetUserData.IsFriend);
+                return hg.Players.Any(p => cncnetUserData.IsFriend(p.Name)); // Compare based on player name
 
             if (UserINISettings.Instance.HideLockedGames.Value && hg.Locked)
                 return false;
@@ -440,7 +440,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
 
-            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode) 
+            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown")
                 : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
 
@@ -456,7 +456,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 translatedGameMode.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal) ||
                 hg.Map.ToUpperInvariant().Contains(textUpper) ||
                 (translatedMapName is not null && translatedMapName.ToUpperInvariant().Contains(textUpper)) ||
-                hg.Players.Any(pl => pl.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal));
+                hg.Players.Any(p => p.Name.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal));
         }
 
 
@@ -543,7 +543,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.PrivateCTCPReceived += ConnectionManager_PrivateCTCPReceived;
             connectionManager.ChannelListReceived += ConnectionManager_ChannelListReceived;
-            connectionManager.ChannelMessageOfTheDayComplete += ConnectionManager_ChannelMessageOfTheDayComplete;
+            connectionManager.UserListInitialized += ConnectionManager_UserListInitialized;
 
             cncnetUserData.UserFriendToggled += RefreshPlayerList;
             cncnetUserData.UserIgnoreToggled += RefreshPlayerList;
@@ -595,8 +595,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
-        private void ConnectionManager_ChannelMessageOfTheDayComplete(object sender, EventArgs e)
+        private void ConnectionManager_UserListInitialized(object sender, EventArgs e)
         {
+            // We have the user list with full ident info now. We can now request the games list
             RequestChannelList(null);
             gameChanneListTimer = new Timer(RequestChannelList, null, 8000, 8000);
         }
@@ -609,7 +610,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void OnParseGameTopic(string topic, string channelName)
         {
-            // GD | GO | PO | PEO 
+            // GD | GO | PO | PEO | GS
             // Ensure the topic starts with "GD " as expected
             if (!topic.StartsWith("GD "))
                 return;
@@ -628,10 +629,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ApplyGameDetails(string gameDetailsMessage, string channelName)
         {
-
             try
             {
                 string[] splitGameDettailsMessage = gameDetailsMessage.Split(new char[] { ';' });
+
+                if (splitGameDettailsMessage.Length < 20)
+                {
+                    Logger.Log("Error applying game details: message does not have enough elements.");
+                    return;
+                }
 
                 // 0. Protocol version
                 // 1. Game Version
@@ -652,7 +658,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // 16. ProtocolVersion
                 // 17. RandomSeed
                 // 18. RemoveStartingLocations 
-                // 19. Players
+                // 19. Player idents
 
                 string revision = splitGameDettailsMessage[0];
                 if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
@@ -674,14 +680,42 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string messageFrameSendRate = splitGameDettailsMessage[14];
                 string messageMaxAhead = splitGameDettailsMessage[15];
                 string messageGameProtocolVersion = splitGameDettailsMessage[16];
-                string messagePlayers = splitGameDettailsMessage[19];
+                string messagePlayerIdents = splitGameDettailsMessage[19];
 
+                // Find players by idents and give hostedgames a list of playerinfos
+                List<string> playerIdents = messagePlayerIdents.Split(',').ToList();
+                
+                List<PlayerInfo> playerInfos = new List<PlayerInfo>();
+                foreach (string playerIdent in playerIdents)
+                {
+                    // Check ident exists in the channel and populate name
+                    ChannelUser channelUser = currentChatChannel.Users.Find(u => u?.IRCUser.Ident == playerIdent);
 
-                // Pluck out playernames from players
-                List<string> playersList = messagePlayers.Split(',').ToList();
-                string hostName = string.Empty;
-                if (playersList.Count > 0)
-                    hostName = playersList[0]; // Host is the first in the list
+                    if (channelUser != null)
+                    {
+                        playerInfos.Add(new PlayerInfo()
+                        {
+                            Name = channelUser.IRCUser.Name,
+                            Ident = channelUser.IRCUser.Ident
+                        });
+                    }
+                }
+
+                string hostUserName = string.Empty;
+                string hostIdent = string.Empty;
+
+                if (playerIdents.Count > 0)
+                {
+                    hostIdent = playerIdents[0];
+                    ChannelUser hostChannelUser = currentChatChannel.Users.Find(u =>
+                        u?.IRCUser?.Ident != null && string.Equals(u.IRCUser.Ident.Trim(), hostIdent.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                    if (hostChannelUser != null)
+                    {
+                        hostUserName = hostChannelUser.IRCUser.Name;
+                    }
+                }
+
                 string tunnelAddress = tunnelAddressAndPort[0];
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
@@ -689,13 +723,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
 
                 if (tunnel == null || cncnetGame == null)
-                {
-                    Logger.Log($"GameBroadcastChannel_ChannelListReceived ** Tunnel: {tunnel} // cncnetGame: {cncnetGame}");
                     return;
-                }
 
                 GameModeMap gameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == mapSHA1);
-
                 HostedCnCNetGame game = new HostedCnCNetGame(
                     channelName,
                     revision,
@@ -704,8 +734,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     channelUIName,
                     isCustomPassword,
                     true,
-                    playersList,
-                    hostName,
+                    playerInfos,
+                    hostUserName,
                     gameModeMap?.Map.Name ?? string.Empty,
                     gameMode
                 );
@@ -715,14 +745,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadderGame;
                 game.Game = cncnetGame;
-                game.Locked = isLocked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
+                game.Locked = isLocked || (game.IsLoadedGame && !game.Players.Any(player => player.Name == ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
+                game.HostIdent = hostIdent;
 
                 // If the game is closed, remove it from the list
                 if (isClosed)
                 {
-                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == hostName);
+                    int index = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostIdent == hostIdent);
 
                     if (index > -1)
                     {
@@ -735,7 +766,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     return;
                 }
 
-                int gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostName == hostName);
+                int gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).HostIdent == hostIdent);
                 if (gameIndex > -1)
                 {
                     lbGameList.HostedGames[gameIndex] = game;
@@ -983,7 +1014,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.Locked)
                 return "The selected game is locked!".L10N("Client:Main:GameLocked");
 
-            if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
+            if (hg.IsLoadedGame && !hg.Players.Any(p => p.Name == ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
 
             Logger.Log($"{hg.ChannelName}");
@@ -1079,23 +1110,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (hg.IsLoadedGame)
             {
-                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostName);
+                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostUserName);
                 gameChannel.UserAdded += GameLoadingChannel_UserAdded;
                 //gameChannel.MessageAdded += GameLoadingChannel_MessageAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_LoadedGame;
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.Players);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostUserName, hg.Passworded, hg.Players);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
                 gameChannel.ChannelFull += GameChannel_ChannelFull;
                 gameChannel.TargetChangeTooFast += GameChannel_TargetChangeTooFast;
             }
-
-            Logger.Log("Pausing listings in lobby");
-            //gameChanneListTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
@@ -1167,6 +1195,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.InviteOnlyErrorOnJoin -= GameChannel_InviteOnlyErrorOnJoin;
             channel.ChannelFull -= GameChannel_ChannelFull;
             channel.TargetChangeTooFast -= GameChannel_TargetChangeTooFast;
+
             isJoiningGame = false;
         }
 
@@ -1337,8 +1366,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.AllowDropDown = true;
             tbChatInput.Enabled = true;
 
-            Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            cncnetChannel.Join();
+            //Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
+            //cncnetChannel.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             connectionManager.FindChannel(localGameChatChannelName).Join();
@@ -1543,6 +1572,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.Clear();
 
             var current = currentChatChannel.Users.GetFirst();
+
             while (current != null)
             {
                 var user = current.Value;
@@ -1604,7 +1634,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         private void GameBroadcastChannel_UserLeftOrQuit(object sender, UserNameEventArgs e)
         {
-            int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
+            int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostUserName == e.UserName);
 
             if (gameIndex > -1)
             {
@@ -1723,7 +1753,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 var gameIndex =
                     lbGameList.HostedGames.FindIndex(hg =>
-                    ((HostedCnCNetGame)hg).HostName == invitation.Key.Item1 &&
+                    ((HostedCnCNetGame)hg).HostUserName == invitation.Key.Item1 &&
                     ((HostedCnCNetGame)hg).ChannelName == invitation.Key.Item2);
 
                 if (gameIndex == -1)
@@ -1760,7 +1790,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns></returns>
         private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
         {
-            return lbGameList.HostedGames.Select(g => (HostedCnCNetGame)g).FirstOrDefault(g => g.Players.Contains(user.Name));
+            return lbGameList.HostedGames
+                .Select(g => (HostedCnCNetGame)g)
+                .FirstOrDefault(g => g.Players.Any(player => player.Name == user.Name));
         }
 
         /// <summary>

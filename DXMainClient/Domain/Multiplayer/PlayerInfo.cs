@@ -8,6 +8,8 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public class PlayerInfo
     {
+        private string _ident;
+
         public PlayerInfo() { }
 
         public PlayerInfo(string name)
@@ -24,6 +26,12 @@ namespace DTAClient.Domain.Multiplayer
             TeamId = teamId;
         }
 
+        public PlayerInfo(string name, string ident) : this(name)
+        {
+            _ident = ident;
+        }
+
+        public string Ident { get; set; }
         public string Name { get; set; }
         public int SideId { get; set; }
         public int StartingLocation { get; set; }

@@ -206,7 +206,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
-            List<string> players)
+            List<PlayerInfo> players)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -386,19 +386,40 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_TopicChanged(object sender, MessageEventArgs e)
         {
-            ParseGameTopic(e.Message);
+            if (closed)
+            {
+                OnHostLeftGame();
+            }
+            else
+            {
+                ParseGameTopic(e.Message);
+            }
+        }
+
+        private void RequestLeaveGame()
+        {
+            UpdateChannelTopic();
+        }
+
+        private void OnHostLeftGame()
+        {
+            Clear();
         }
 
         public void LeaveGameLobby()
         {
+            closed = true;
+
             if (IsHost)
             {
-                closed = true;
+                RequestLeaveGame();
+                channel.Leave();
             }
-
-            channel.Leave();
-            Clear();
-            channel = null;
+            else
+            {
+                channel.Leave();
+                Clear();
+            }
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -513,6 +534,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
+            pInfo.Ident = e.User.IRCUser.Ident;
             Players.Add(pInfo);
 
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
@@ -722,6 +744,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 readyState = 1;
 
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
+            OnGameOptionChanged();
         }
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
@@ -842,16 +865,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Show the player names in the UI upon joining the game. (So its not not initially blank).
         /// </summary>
         /// <param name="gameDetailMessage"></param>
-        private void LoadInitialPlayerNamesIntoUI(List<string> playerNames)
+        private void LoadInitialPlayerNamesIntoUI(List<PlayerInfo> players)
         {
-            Players.Clear();
-
-            for (int i = 0; i < playerNames.Count; i++)
-            {
-                PlayerInfo pInfo = new() { Name = playerNames[i] };
-                Players.Add(pInfo);
-            }
-
+            Players = players;
             CopyPlayerDataToUI();
         }
 
@@ -997,8 +1013,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // 16. ProtocolVersion
                 // 17. RandomSeed
                 // 18. RemoveStartingLocations 
-                // 19. Players
+                // 19. Player idents
 
+                bool isClosed = Conversions.BooleanFromString(splitMessage[6], true);
                 string mapOfficial = splitMessage[10];
                 string mapSHA1 = splitMessage[11];
                 string gameMode = splitMessage[12];
@@ -1007,11 +1024,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string messageGameProtocolVersion = splitMessage[16];
                 string messageRandomSeed = splitMessage[17];
                 string messageRemoveStartingLocations = splitMessage[18];
-                string messagePlayers = splitMessage[19];
+                string messagePlayerIdents = splitMessage[19];
 
+                if (isClosed)
+                {
+                    LeaveGameLobby();
+                    return;
+                }
 
-                // Do stuff with it.
-                // Seed
                 int randomSeed;
                 bool parseSuccess = int.TryParse(messageRandomSeed, out randomSeed);
 
@@ -1924,7 +1944,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // 16. ProtocolVersion
             // 17. RandomSeed
             // 18. RemoveStartingLocations 
-            // 19. Players
+            // 19. Idents
 
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GD ", true, ';');
 
@@ -1953,7 +1973,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             StringBuilder playersSb = new StringBuilder(";");
             foreach (PlayerInfo pInfo in Players)
             {
-                playersSb.Append(pInfo.Name);
+                playersSb.Append(pInfo.Ident);
                 playersSb.Append(",");
             }
 

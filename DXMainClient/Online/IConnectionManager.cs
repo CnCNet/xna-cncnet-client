@@ -24,6 +24,8 @@ namespace DTAClient.Online
 
         void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo);
 
+        void OnWhoQueryComplete(string channel, List<Tuple<string, string, string, string>> whoList);
+
         void OnChannelFull(string channelName);
 
         void OnTargetChangeTooFast(string channelName, string message);

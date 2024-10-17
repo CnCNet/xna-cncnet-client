@@ -271,6 +271,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             PlayerInfo pInfo = new PlayerInfo();
             pInfo.Name = e.User.IRCUser.Name;
+            pInfo.Ident = e.User.IRCUser.Ident; 
 
             Players.Add(pInfo);
 

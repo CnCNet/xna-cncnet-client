@@ -19,8 +19,8 @@ namespace DTAClient.Domain.Multiplayer
         public string GameMode { get; set; }
         public string Map { get; set; }
         public string GameVersion { get; set; }
-        public string HostName { get; set; }
-        public List<string>Players { get; set; }
+        public string HostUserName { get; set; }
+        public List<PlayerInfo> Players { get; set; }
         public int MaxPlayers { get; set; } = 8;
 
         public abstract int Ping { get; }

@@ -123,6 +123,7 @@ namespace DTAClient.Online
         private static string systemId;
         private static readonly object idLocker = new object();
         private readonly List<Tuple<string, string>> _channelList = [];
+        private readonly List<Tuple<string, string, string, string>> _whoResponseList = [];
 
         public static void SetId(string id)
         {
@@ -607,9 +608,13 @@ namespace DTAClient.Online
                             connectionManager.OnAwayMessageReceived(awayPlayer, awayReason);
                             break;
                         case 322: // Channel information from LIST command
-                            string listChannelName = parameters[1];
-                            string listChannelTopic = parameters[3];
-                            _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            // Ensure topic is present
+                            if (parameters.Count > 3) 
+                            {
+                                string listChannelName = parameters[1];
+                                string listChannelTopic = parameters[3];
+                                _channelList.Add(Tuple.Create(listChannelName, listChannelTopic));
+                            }
                             break;
                         case 323: // End of the LIST command
                             connectionManager.OnChannelListReceived(_channelList);
@@ -634,10 +639,16 @@ namespace DTAClient.Online
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
+                            _whoResponseList.Add(Tuple.Create(ident, host, wUserName, extraInfo));
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
                         case 311: // Reply to WHOIS NAME query
                             connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
+                            break;
+                        case 315: // End of WHO query
+                            Logger.Log($"END OF WHO QUERY " + parameters[1]  + " COUNT:" + _whoResponseList.Count);
+                            connectionManager.OnWhoQueryComplete(parameters[1], new List<Tuple<string, string, string, string>>(_whoResponseList));
+                            _whoResponseList.Clear();
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -954,6 +965,12 @@ namespace DTAClient.Online
             QueueMessage(new QueuedMessage(listCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
         }
 
+        public void RequestWHOList(string channelName)
+        {
+            string whoCommand = $"WHO {channelName}";
+            QueueMessage(new QueuedMessage(whoCommand, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+        }
+
         public void SetChannelTopic(string channelName, string newTopic)
         {
             // Send the TOPIC command to the IRC server with the desired topic.
@@ -979,7 +996,7 @@ namespace DTAClient.Online
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
             QueueMessage(qm);
-            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
+            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID + " __ " + message);
         }
 
         /// <summary>

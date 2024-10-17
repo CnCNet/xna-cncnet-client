@@ -1,4 +1,5 @@
-﻿using DTAClient.Domain.Multiplayer.CnCNet;
+﻿using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using System;
 using System.Collections.Generic;
 
@@ -7,7 +8,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     class GameCreationEventArgs : EventArgs
     {
         public GameCreationEventArgs(string roomName, int maxPlayers, 
-            string password, CnCNetTunnel tunnel, List<string> players)
+            string password, CnCNetTunnel tunnel, List<PlayerInfo> players)
         {
             GameRoomName = roomName;
             MaxPlayers = maxPlayers;
@@ -18,7 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public string GameRoomName { get; private set; }
         public int MaxPlayers { get; private set; }
-        public List<string> Players { get; private set; }
+        public List<PlayerInfo> Players { get; private set; }
         public string Password { get; private set; }
         public CnCNetTunnel Tunnel { get; private set; }
     }

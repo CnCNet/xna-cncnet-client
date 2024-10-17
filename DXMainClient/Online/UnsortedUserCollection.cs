@@ -42,12 +42,27 @@ namespace DTAClient.Online
             return default(T);
         }
 
+        public T Find(Func<T, bool> predicate)
+        {
+            foreach (var user in dictionary.Values)
+            {
+                if (predicate(user))
+                    return user;
+            }
+            return default(T);
+        }
+
         public LinkedListNode<T> GetFirst()
         {
             throw new NotImplementedException();
         }
 
         public void Reinsert(string username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update(string username, T item)
         {
             throw new NotImplementedException();
         }

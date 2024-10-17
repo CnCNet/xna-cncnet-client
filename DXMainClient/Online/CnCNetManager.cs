@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Hosting;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using SharpDX.XInput;
 
 namespace DTAClient.Online
 {
@@ -42,6 +45,7 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
+        public event EventHandler UserListInitialized;
 
         public event EventHandler<UserEventArgs> UserAdded;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
@@ -115,6 +119,8 @@ namespace DTAClient.Online
         private WindowManager wm;
 
         private bool disconnect = false;
+
+        private bool userListInitialized = false;
 
         public bool IsCnCNetInitialized()
         {
@@ -271,6 +277,49 @@ namespace DTAClient.Online
                 Channel channel = FindChannel(channelName);
                 wm.AddCallback(new Action<string, string>(DoChannelListReceived), channelName, channelTopic);
             }
+        }
+
+        public void OnWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            Logger.Log("OnWhoQueryComplete ** " + channelName + " -- " + whoDataList.Count);
+            wm.AddCallback(new Action<string, List<Tuple<string, string, string, string>>>(DoWhoQueryComplete), channelName, whoDataList);
+        }
+
+        private void DoWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            Channel channel = FindChannel(channelName);
+
+            Logger.Log("ChannelName ** " + channelName + " -- " + channel);
+
+            if (channel == null)
+                return;
+
+            if (!channel.IsChatChannel)
+                return;
+
+            var channelUserList = new List<ChannelUser>();
+
+            foreach (var whoData in whoDataList)
+            {
+                (string ident, string host, string userName, string extraInfo) = whoData;
+
+                IRCUser ircUser = new(userName);
+                ircUser.Ident = ident;
+                ircUser.Hostname = host;
+
+                UserList.Add(ircUser);
+                
+                var channelUser = new ChannelUser(ircUser);
+                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+
+                channelUserList.Add(channelUser);
+            }
+
+            UserList = UserList.OrderBy(u => u.Name).ToList();
+            MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
+            UserListInitialized?.Invoke(this, EventArgs.Empty);
+
+            channel.OnUserListReceived(channelUserList);
         }
 
         public void OnMessageOfTheDayComplete()
@@ -483,6 +532,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost.".L10N("Client:Main:ConnectToCncNetHasLost")));
             connected = false;
+            userListInitialized = false;
         }
 
         /// <summary>
@@ -529,6 +579,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("Client:Main:CncNetDisconnected")));
             connected = false;
+            userListInitialized = false;
 
             UserList.Clear();
 
@@ -747,6 +798,7 @@ namespace DTAClient.Online
                     UserRemoved?.Invoke(this, new UserNameIndexEventArgs(userIndex, userName));
                 }
             }
+            userListInitialized = false;
         }
 
         public void OnUserListReceived(string channelName, string[] userList)
@@ -799,6 +851,13 @@ namespace DTAClient.Online
             MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
 
             channel.OnUserListReceived(channelUserList);
+
+            // We only need to request user info once, and chat channels only.
+            if (!userListInitialized && channel.IsChatChannel)
+            {
+                channel.RequestUserInfo();
+                userListInitialized = true;
+            }
         }
 
         public void OnUserQuitIRC(string userName)

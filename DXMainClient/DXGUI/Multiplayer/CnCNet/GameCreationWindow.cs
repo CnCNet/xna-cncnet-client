@@ -43,7 +43,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientButton btnDisplayAdvancedOptions;
 
         private TunnelHandler tunnelHandler;
-        private string[] players;
 
         public override void Initialize()
         {

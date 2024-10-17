@@ -43,16 +43,25 @@ namespace DTAClient.Domain.LAN
             Map = parameters[3];
             GameMode = parameters[4];
             LoadedGameID = parameters[5];
-            List<string> players = parameters[6].Split(',').ToList();
-            Players = players;
-            if (players.Count == 0)
+
+            List<PlayerInfo> playerInfos = new List<PlayerInfo>();
+
+            List<string> playerNames = parameters[6].Split(',').ToList();
+            foreach (string playerName in playerNames)
+            {
+                playerInfos.Add(new PlayerInfo(playerName));
+            }
+
+            Players = playerInfos;
+            if (playerInfos.Count == 0)
                 return false;
-            HostName = players[0];
+
+            HostUserName = playerInfos[0].Name;
             Locked = Conversions.IntFromString(parameters[7], 1) > 0;
             IsLoadedGame = Conversions.IntFromString(parameters[8], 0) > 0;
             LastRefreshTime = DateTime.Now;
             TimeWithoutRefresh = TimeSpan.Zero;
-            RoomName = HostName + "'s Game";
+            RoomName = HostUserName + "'s Game";
 
             return true;
         }
