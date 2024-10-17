@@ -598,6 +598,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void ConnectionManager_UserListInitialized(object sender, EventArgs e)
         {
             // We have the user list with full ident info now. We can now request the games list
+
+            btnNewGame.AllowClick = true;
+            btnJoinGame.AllowClick = true;
+            ddCurrentChannel.AllowDropDown = true;
+
             RequestChannelList(null);
             gameChanneListTimer = new Timer(RequestChannelList, null, 8000, 8000);
         }
@@ -618,8 +623,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // Split the topic into GAME and DETAIL parts using '|'
             string[] topicParts = topic.Split('|');
             string gameDetails = topicParts[0];
-            string gameOptions = topicParts.Length > 1 ? topicParts[1] : null;
-            string extraPlayerOptions = topicParts.Length > 2 ? topicParts[2] : null;
 
             ApplyGameDetails(
                 gameDetails.Substring(3), // Remove the "GD " prefix
@@ -629,11 +632,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ApplyGameDetails(string gameDetailsMessage, string channelName)
         {
-            try
-            {
+            //try
+            //{
                 string[] splitGameDettailsMessage = gameDetailsMessage.Split(new char[] { ';' });
 
-                if (splitGameDettailsMessage.Length < 20)
+                if (splitGameDettailsMessage.Length < 19)
                 {
                     Logger.Log("Error applying game details: message does not have enough elements.");
                     return;
@@ -651,14 +654,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // 9. LoadedGameId
                 // 10. Map Is Official
                 // 11. Map SHA1
-                // 12. Game Mode Name
-                // 13. Tunnel address: Port
-                // 14. FrameSendRate
-                // 15. MaxAhead        
-                // 16. ProtocolVersion
-                // 17. RandomSeed
-                // 18. RemoveStartingLocations 
-                // 19. Player idents
+                // 12. Tunnel address: Port
+                // 13. FrameSendRate
+                // 14. MaxAhead        
+                // 15. ProtocolVersion
+                // 16. RandomSeed
+                // 17. RemoveStartingLocations 
+                // 18. Idents
 
                 string revision = splitGameDettailsMessage[0];
                 if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
@@ -675,12 +677,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string loadedGameId = splitGameDettailsMessage[9];
                 string mapOfficial = splitGameDettailsMessage[10];
                 string mapSHA1 = splitGameDettailsMessage[11];
-                string gameMode = splitGameDettailsMessage[12];
-                string[] tunnelAddressAndPort = splitGameDettailsMessage[13].Split(':');
-                string messageFrameSendRate = splitGameDettailsMessage[14];
-                string messageMaxAhead = splitGameDettailsMessage[15];
-                string messageGameProtocolVersion = splitGameDettailsMessage[16];
-                string messagePlayerIdents = splitGameDettailsMessage[19];
+                string[] tunnelAddressAndPort = splitGameDettailsMessage[12].Split(':');
+                string messageFrameSendRate = splitGameDettailsMessage[13];
+                string messageMaxAhead = splitGameDettailsMessage[14];
+                string messageGameProtocolVersion = splitGameDettailsMessage[15];
+                string messagePlayerIdents = splitGameDettailsMessage[18];
 
                 // Find players by idents and give hostedgames a list of playerinfos
                 List<string> playerIdents = messagePlayerIdents.Split(',').ToList();
@@ -737,7 +738,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     playerInfos,
                     hostUserName,
                     gameModeMap?.Map.Name ?? string.Empty,
-                    gameMode
+                    gameModeMap?.GameMode.Name ?? string.Empty
                 );
 
                 game.IsLoadedGame = isLoadedGame;
@@ -786,11 +787,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 SortAndRefreshHostedGames();
 
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error applying game details: " + ex.Message);
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Log("Error applying game details: " + ex.Message);
+            //    Logger.Log("Error applying game details: " + ex.Message);
+            //}
         }
 
         private void ConnectionManager_ChannelListReceived(object sender, ChannelTopicEventArgs e)
@@ -1361,13 +1363,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
         {
-            btnNewGame.AllowClick = true;
-            btnJoinGame.AllowClick = true;
-            ddCurrentChannel.AllowDropDown = true;
-            tbChatInput.Enabled = true;
-
-            //Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            //cncnetChannel.Join();
+            Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
+            cncnetChannel.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             connectionManager.FindChannel(localGameChatChannelName).Join();
@@ -1389,6 +1386,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
                 }
             }
+
+            tbChatInput.Enabled = true;
 
             gameCheckCancellation = new CancellationTokenSource();
             CnCNetGameCheck gameCheck = new CnCNetGameCheck();

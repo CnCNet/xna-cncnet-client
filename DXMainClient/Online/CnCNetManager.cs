@@ -281,15 +281,12 @@ namespace DTAClient.Online
 
         public void OnWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
         {
-            Logger.Log("OnWhoQueryComplete ** " + channelName + " -- " + whoDataList.Count);
             wm.AddCallback(new Action<string, List<Tuple<string, string, string, string>>>(DoWhoQueryComplete), channelName, whoDataList);
         }
 
         private void DoWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
         {
             Channel channel = FindChannel(channelName);
-
-            Logger.Log("ChannelName ** " + channelName + " -- " + channel);
 
             if (channel == null)
                 return;
@@ -334,7 +331,6 @@ namespace DTAClient.Online
 
         private void DoChannelListReceived(string channelName, string channelTopic)
         {
-            // Broadcast the channel list and topics to the UI
             ChannelListReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, channelTopic));
         }
 

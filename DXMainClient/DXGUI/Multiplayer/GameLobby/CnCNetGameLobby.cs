@@ -385,7 +385,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_TopicChanged(object sender, MessageEventArgs e)
         {
-            if (closed)
+            if (closed && IsHost)
             {
                 OnHostLeftGame();
             }
@@ -395,32 +395,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void RequestLeaveGame()
-        {
-            UpdateChannelTopic();
-        }
-
         private void OnHostLeftGame()
         {
             Clear();
+            channel.Leave();
         }
 
         public void LeaveGameLobby()
         {
-            closed = true;
-            Disable();
-
             if (IsHost)
             {
-                RequestLeaveGame();
-                channel.Leave();
+                // We need to succesfully change the topic first before we can leave the channel
+                btnLeaveGame.Enabled = false;
+                closed = true;
+                UpdateChannelTopic();
             }
             else
             {
-                channel.Leave();
                 Clear();
+                channel.Leave();
             }
         }
+
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
 
@@ -1017,25 +1013,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // 9. LoadedGameId
                 // 10. Map Is Official
                 // 11. Map SHA1
-                // 12. Game Mode Name
-                // 13. Tunnel address: Port
-                // 14. FrameSendRate
-                // 15. MaxAhead        
-                // 16. ProtocolVersion
-                // 17. RandomSeed
-                // 18. RemoveStartingLocations 
-                // 19. Player idents
+                // 12. Tunnel address: Port
+                // 13. FrameSendRate
+                // 14. MaxAhead        
+                // 15. ProtocolVersion
+                // 16. RandomSeed
+                // 17. RemoveStartingLocations 
+                // 18. Idents
 
                 bool isClosed = Conversions.BooleanFromString(splitMessage[6], true);
                 string mapOfficial = splitMessage[10];
                 string mapSHA1 = splitMessage[11];
-                string gameMode = splitMessage[12];
-                string messageFrameSendRate = splitMessage[14];
-                string messageMaxAhead = splitMessage[15];
-                string messageGameProtocolVersion = splitMessage[16];
-                string messageRandomSeed = splitMessage[17];
-                string messageRemoveStartingLocations = splitMessage[18];
-                string messagePlayerIdents = splitMessage[19];
+                // 12. Tunnel address: Port
+                string messageFrameSendRate = splitMessage[13];
+                string messageMaxAhead = splitMessage[14];
+                string messageGameProtocolVersion = splitMessage[15];
+                string messageRandomSeed = splitMessage[16];
+                string messageRemoveStartingLocations = splitMessage[17];
+                string messagePlayerIdents = splitMessage[18];
 
                 if (isClosed)
                 {
@@ -1062,7 +1057,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GameModeMap currentGameModeMap = GameModeMap;
                 bool isMapOfficial = Conversions.BooleanFromString(mapOfficial, true);
 
-                GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
+                GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == mapSHA1);
                 if (GameModeMap == null)
                 {
                     ChangeMap(null);
@@ -1081,7 +1076,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 lastMapName = GameModeMap.Map?.Name ?? string.Empty;
-                lastGameMode = gameMode;
+                lastGameMode = GameModeMap.GameMode?.Name ?? string.Empty;
                 lastMapSHA1 = mapSHA1;
 
                 int frameSendRate = Conversions.IntFromString(messageFrameSendRate, FrameSendRate);
@@ -1948,14 +1943,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // 9. LoadedGameId
             // 10. Map Is Official
             // 11. Map SHA1
-            // 12. Game Mode Name
-            // 13. Tunnel address: Port
-            // 14. FrameSendRate
-            // 15. MaxAhead        
-            // 16. ProtocolVersion
-            // 17. RandomSeed
-            // 18. RemoveStartingLocations 
-            // 19. Idents
+            // 12. Tunnel address: Port
+            // 13. FrameSendRate
+            // 14. MaxAhead        
+            // 15. ProtocolVersion
+            // 16. RandomSeed
+            // 17. RemoveStartingLocations 
+            // 18. Idents
 
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GD ", true, ';');
 
@@ -1972,7 +1966,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             sb.Append(Convert.ToInt32(Map?.Official ?? false));
             sb.Append(Map?.SHA1 ?? string.Empty);
-            sb.Append(GameMode?.Name ?? string.Empty);
             sb.Append(tunnelHandler?.CurrentTunnel == null ? string.Empty : tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(FrameSendRate);
             sb.Append(MaxAhead);

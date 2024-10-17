@@ -82,7 +82,6 @@ namespace DTAClient.Online
             get { return _topic; }
             set
             {
-                Logger.Log("SETTING TOPIC: " + value);
                 if (_topic != value || _topic == null)  // Only trigger the event if the topic actually changes
                 {
                     _topic = value;
