@@ -11,7 +11,6 @@ using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,8 +18,6 @@ using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
-using SharpDX.Direct2D1;
-using Microsoft.VisualBasic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
