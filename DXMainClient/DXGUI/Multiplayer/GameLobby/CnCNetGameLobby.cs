@@ -237,7 +237,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             tunnelHandler.CurrentTunnel = tunnel;
-            //tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
+            tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
 
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
@@ -250,10 +250,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void OnJoined()
         {
-            //FileHashCalculator fhc = new FileHashCalculator();
-            //fhc.CalculateHashes(GameModeMaps.GameModes);
+            FileHashCalculator fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModeMaps.GameModes);
 
-            //gameFilesHash = fhc.GetCompleteHash();
+            gameFilesHash = fhc.GetCompleteHash();
 
             if (IsHost)
             {
@@ -261,10 +261,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, playerLimit),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
+
+                UpdateChannelTopic();
             }
             else
             {
-                //channel.SendCTCPMessage("FHSH " + gameFilesHash, QueuedMessageType.SYSTEM_MESSAGE, 10);
+                channel.SendCTCPMessage("FHSH " + gameFilesHash, QueuedMessageType.SYSTEM_MESSAGE, 10);
             }
 
             TopBar.AddPrimarySwitchable(this);
@@ -272,25 +274,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WindowManager.SelectedControl = tbChatInput;
 
             ResetAutoReadyCheckbox();
-            //UpdatePing();
-            //UpdateDiscordPresence(true);
+            UpdatePing();
+            UpdateDiscordPresence(true);
 
             channel.TopicChanged += Channel_TopicChanged;
         }
 
         private void UpdatePing()
         {
-            //if (tunnelHandler.CurrentTunnel == null)
-            //    return;
+            if (tunnelHandler.CurrentTunnel == null)
+                return;
 
-            //channel.SendCTCPMessage("TNLPNG " + tunnelHandler.CurrentTunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
+            channel.SendCTCPMessage("TNLPNG " + tunnelHandler.CurrentTunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-            //PlayerInfo pInfo = Players.Find(p => p.Name.Equals(ProgramConstants.PLAYERNAME));
-            //if (pInfo != null)
-            //{
-            //    pInfo.Ping = tunnelHandler.CurrentTunnel.PingInMs;
-            //    UpdatePlayerPingIndicator(pInfo);
-            //}
+            PlayerInfo pInfo = Players.Find(p => p.Name.Equals(ProgramConstants.PLAYERNAME));
+            if (pInfo != null)
+            {
+                pInfo.Ping = tunnelHandler.CurrentTunnel.PingInMs;
+                UpdatePlayerPingIndicator(pInfo);
+            }
         }
 
         protected override void CopyPlayerDataToUI()
@@ -409,6 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void LeaveGameLobby()
         {
             closed = true;
+            Disable();
 
             if (IsHost)
             {
@@ -449,21 +452,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
         {
-            //if (discordHandler == null)
-            //    return;
+            if (discordHandler == null)
+                return;
 
-            //PlayerInfo player = FindLocalPlayer();
-            //if (player == null || Map == null || GameMode == null)
-            //    return;
-            //string side = "";
-            //if (ddPlayerSides.Length > Players.IndexOf(player))
-            //    side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
-            //string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
+            PlayerInfo player = FindLocalPlayer();
+            if (player == null || Map == null || GameMode == null || Players.Count == 0)
+                return;
 
-            //discordHandler.UpdatePresence(
-            //    Map.UntranslatedName, GameMode.UntranslatedUIName, "Multiplayer",
-            //    currentState, Players.Count, playerLimit, side,
-            //    channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
+            string side = "";
+            if (ddPlayerSides != null && ddPlayerSides.Length > Players.IndexOf(player))
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem?.Tag?.ToString() ?? "Unknown Side";
+
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                Map.UntranslatedName ?? "Unknown Map",
+                GameMode.UntranslatedUIName ?? "Unknown Mode",
+                "Multiplayer",
+                currentState,
+                Players.Count,
+                playerLimit,
+                side,
+                channel?.UIName ?? "Unknown Channel",
+                IsHost,
+                isCustomPassword,
+                Locked,
+                resetTimer);
         }
 
         private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
@@ -1320,15 +1334,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             AddNotice("Starting game...".L10N("Client:Main:StartingGame"));
 
-            //FileHashCalculator fhc = new FileHashCalculator();
-            //fhc.CalculateHashes(GameModeMaps.GameModes);
+            FileHashCalculator fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModeMaps.GameModes);
 
-            //if (gameFilesHash != fhc.GetCompleteHash())
-            //{
-            //    Logger.Log("Game files modified during client session!");
-            //    channel.SendCTCPMessage(CHEAT_DETECTED_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
-            //    HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
-            //}
+            if (gameFilesHash != fhc.GetCompleteHash())
+            {
+                Logger.Log("Game files modified during client session!");
+                channel.SendCTCPMessage(CHEAT_DETECTED_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
+                HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
+            }
 
             base.StartGame();
         }
@@ -1621,7 +1635,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             tunnelHandler.CurrentTunnel = tunnel;
             AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("Client:Main:HostChangeTunnel"), tunnel.Name));
-            //UpdatePing();
+            UpdatePing();
         }
         #endregion
 
