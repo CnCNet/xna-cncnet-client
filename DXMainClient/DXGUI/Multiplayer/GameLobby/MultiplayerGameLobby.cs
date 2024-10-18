@@ -951,8 +951,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.OnGameOptionChanged();
 
-            Logger.Log("MultiplayerGameLobby: Game option changed");
-
             ClearReadyStatuses();
             CopyPlayerDataToUI();
         }

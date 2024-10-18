@@ -632,8 +632,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ApplyGameDetails(string gameDetailsMessage, string channelName)
         {
-            //try
-            //{
+            try
+            {
                 string[] splitGameDettailsMessage = gameDetailsMessage.Split(new char[] { ';' });
 
                 if (splitGameDettailsMessage.Length < 19)
@@ -787,12 +787,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 SortAndRefreshHostedGames();
 
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Log("Error applying game details: " + ex.Message);
-            //    Logger.Log("Error applying game details: " + ex.Message);
-            //}
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error applying game details: " + ex.Message);
+                Logger.Log("Error applying game details: " + ex.Message);
+            }
         }
 
         private void ConnectionManager_ChannelListReceived(object sender, ChannelTopicEventArgs e)
@@ -1018,8 +1018,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (hg.IsLoadedGame && !hg.Players.Any(p => p.Name == ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
-
-            Logger.Log($"{hg.ChannelName}");
 
             return GetJoinGameErrorBase();
         }
