@@ -885,7 +885,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="gameDetailMessage"></param>
         private void LoadInitialPlayerNamesIntoUI(List<PlayerInfo> players)
         {
-            Players = players;
+            // If we leave a game, join again, the game topic may still have our name in. So we need to remove it.
+            players.FindAll(p => p.Name != ProgramConstants.PLAYERNAME).ForEach(p => Players.Add(p));
             CopyPlayerDataToUI();
         }
 
