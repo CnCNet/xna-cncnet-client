@@ -378,8 +378,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ResetDiscordPresence();
 
             cachedGameTopic = string.Empty;
-
-            Logger.Log("CnCNetGameLobby ** Clear Complete");
         }
 
         private void Channel_TopicChanged(object sender, MessageEventArgs e)
@@ -550,34 +548,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 #if WINFORMS
             WindowManager.FlashWindow();
 #endif
-
             if (IsHost)
-            {
-                Logger.Log("Channel_UserAdded ** Called BroadcastPlayerOptions");
                 BroadcastPlayerOptions();
-            }
 
             if (!IsHost)
-            {
-                Logger.Log("Removed CopyPlayerDataToUI from Channel_UserAdded");
-                //CopyPlayerDataToUI();
                 return;
-            }
 
             if (e.User.IRCUser.Name != ProgramConstants.PLAYERNAME)
             {
                 // Changing the map applies forced settings (co-op sides etc.) to the
                 // new player, and it also sends an options broadcast message
-                //CopyPlayerDataToUI(); This is also called by ChangeMap()
-                Logger.Log("Channel_UserAdded ** Called ChangeMap");
                 ChangeMap(GameModeMap);
-                //BroadcastPlayerOptions();
                 UpdateDiscordPresence();
-
             }
             else
             {
-                Logger.Log("Channel_UserAdded ** Called CopyPlayerDataToUI");
                 Players[0].Ready = true;
                 CopyPlayerDataToUI();
             }
@@ -721,8 +706,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int intValue = BitConverter.ToInt32(value, 0);
 
-            Logger.Log($"RequestPlayerOptions ** OR: {intValue}");
-
             channel.SendCTCPMessage(
                 string.Format("OR {0}", intValue),
                 QueuedMessageType.GAME_SETTINGS_MESSAGE, 6);
@@ -743,7 +726,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             int readyState = 0;
-            Logger.Log("RequestReadyStatus called ** // " + pInfo.Name + (ProgramConstants.PLAYERNAME) + " // Ready: " + pInfo.Ready + " // AutoReady: " + pInfo.AutoReady + " // CheckboxAutoReadyChecked: " + chkAutoReady.Checked + " // P");
 
             if (chkAutoReady.Checked)
             {
@@ -764,7 +746,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateLaunchGameButtonStatus();
 
             // Send the ready status to the host, host will then broadcast it to all players
-            Logger.Log("SENDING READY STATE " + readyState + " TO HOST" + " FROM " + pInfo.Name);
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
@@ -775,8 +756,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void HandleOptionsRequest(string playerName, int options)
         {
-            Logger.Log($"HandleOptionsRequest ** called: Playername: {playerName} // Options: {options}.");
-
             if (!IsHost)
                 return;
 
@@ -842,7 +821,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void HandleReadyRequest(string playerName, int readyStatus)
         {
-            Logger.Log("HandleReadyRequest ** called: Playername: " + playerName + " // ReadyStatus: " + readyStatus + ".");
             if (!IsHost)
                 return;
 
@@ -863,7 +841,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void BroadcastPlayerOptions()
         {
-            Logger.Log($"BroadcastPlayerOptions ** Broadcasting Player Options");
             channel.SendCTCPMessage(BuildPlayerOptionsCTCPString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
         }
 
@@ -895,7 +872,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void ApplyPlayerOptionsFromCTCP(string sender, string message)
         {
-            Logger.Log($"ApplyPlayerOptionsFromCTCP called ** Message: " + message + " // Sender: " + sender + " // Host: " + hostName);
             if (sender != hostName)
                 return;
 
