@@ -258,8 +258,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, playerLimit),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-                UpdateChannelTopic();
             }
             else
             {
@@ -270,6 +268,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
 
+            UpdateChannelTopic();
             ResetAutoReadyCheckbox();
             UpdatePing();
             UpdateDiscordPresence(true);
@@ -744,14 +743,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             int readyState = 0;
+            Logger.Log("RequestReadyStatus called ** // " + pInfo.Name + (ProgramConstants.PLAYERNAME) + " // Ready: " + pInfo.Ready + " // AutoReady: " + pInfo.AutoReady + " // CheckboxAutoReadyChecked: " + chkAutoReady.Checked + " // P");
 
             if (chkAutoReady.Checked)
+            {
                 readyState = 2;
+            }
             else if (!pInfo.Ready)
+            {
                 readyState = 1;
+            }
 
+            // Update our own client UI immediatly so its not waiting for the server to respond
+            pInfo.Ready = readyState > 0;
+            pInfo.AutoReady = readyState > 1;   
+            btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
+
+            // Copy the player data to the UI so it shows up
+            CopyPlayerDataToUI();
+            UpdateLaunchGameButtonStatus();
+
+            // Send the ready status to the host, host will then broadcast it to all players
+            Logger.Log("SENDING READY STATE " + readyState + " TO HOST" + " FROM " + pInfo.Name);
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
-            OnGameOptionChanged();
         }
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
@@ -761,7 +775,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void HandleOptionsRequest(string playerName, int options)
         {
-            Logger.Log($"HandleOptionsRequest: Received options from {playerName}.");
+            Logger.Log($"HandleOptionsRequest ** called: Playername: {playerName} // Options: {options}.");
 
             if (!IsHost)
                 return;
@@ -828,6 +842,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void HandleReadyRequest(string playerName, int readyStatus)
         {
+            Logger.Log("HandleReadyRequest ** called: Playername: " + playerName + " // ReadyStatus: " + readyStatus + ".");
             if (!IsHost)
                 return;
 
@@ -883,7 +898,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void ApplyPlayerOptionsFromCTCP(string sender, string message)
         {
-            Logger.Log($"ApplyPlayerOptionsFromCTCP ** " + message);
+            Logger.Log($"ApplyPlayerOptionsFromCTCP called ** Message: " + message + " // Sender: " + sender + " // Host: " + hostName);
             if (sender != hostName)
                 return;
 
@@ -977,7 +992,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            OnGameOptionChanged();
+            CopyPlayerDataToUI();
         }
 
         /// <summary>
@@ -1564,6 +1579,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice(string.Format("Kicking {0} from the game...".L10N("Client:Main:KickPlayer"), pInfo.Name));
             channel.SendKickMessage(pInfo.Name, 8);
+
+            UpdateChannelTopic();
         }
 
         protected override void BanPlayer(int playerIndex)
@@ -1581,6 +1598,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendBanMessage(user.Hostname, 8);
                 channel.SendKickMessage(user.Name, 8);
             }
+
+            UpdateChannelTopic();
         }
 
         protected override bool UpdateLaunchGameButtonStatus()
@@ -1926,7 +1945,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyGameOptionsFromTopic(gameOptions.Substring(3)); // Remove the "GO " prefix
             ApplyPlayerExtraOptionsFromTopic(extraPlayerOptions.Substring(4)); // Remove the "PEO " prefix
 
-            OnGameOptionChanged();
+            CopyPlayerDataToUI();
         }
 
         private string BuildGameDetailsTopicString()
