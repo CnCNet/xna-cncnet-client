@@ -28,11 +28,13 @@ namespace DTAClient.Online
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
+        public event EventHandler ChannelMessageOfTheDayComplete;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
+        public event EventHandler<ChannelTopicEventArgs> ChannelListReceived;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -40,6 +42,7 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
+        public event EventHandler UserListInitialized;
 
         public event EventHandler<UserEventArgs> UserAdded;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
@@ -113,6 +116,8 @@ namespace DTAClient.Online
         private WindowManager wm;
 
         private bool disconnect = false;
+
+        private bool userListInitialized = false;
 
         public bool IsCnCNetInitialized()
         {
@@ -258,6 +263,72 @@ namespace DTAClient.Online
             ApplyChannelModes(channel, modeString, modeParameters);
 
             channel.OnChannelModesChanged(userName, modeString);
+        }
+
+        public void OnChannelListReceived(List<Tuple<string, string>> channelList)
+        {
+            foreach (var nameTopic in channelList)
+            {
+                (string channelName, string channelTopic) = nameTopic;
+
+                Channel channel = FindChannel(channelName);
+                wm.AddCallback(new Action<string, string>(DoChannelListReceived), channelName, channelTopic);
+            }
+        }
+
+        public void OnWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            wm.AddCallback(new Action<string, List<Tuple<string, string, string, string>>>(DoWhoQueryComplete), channelName, whoDataList);
+        }
+
+        private void DoWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            Channel channel = FindChannel(channelName);
+
+            if (channel == null)
+                return;
+
+            if (!channel.IsChatChannel)
+                return;
+
+            var channelUserList = new List<ChannelUser>();
+
+            foreach (var whoData in whoDataList)
+            {
+                (string ident, string host, string userName, string extraInfo) = whoData;
+
+                IRCUser ircUser = new(userName);
+                ircUser.Ident = ident;
+                ircUser.Hostname = host;
+
+                UserList.Add(ircUser);
+                
+                var channelUser = new ChannelUser(ircUser);
+                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+
+                channelUserList.Add(channelUser);
+            }
+
+            UserList = UserList.OrderBy(u => u.Name).ToList();
+            MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
+            UserListInitialized?.Invoke(this, EventArgs.Empty);
+
+            channel.OnUserListReceived(channelUserList);
+        }
+
+        public void OnMessageOfTheDayComplete()
+        {
+            wm.AddCallback(new Action(DoMessageOfTheDayComplete), null);
+        }
+
+        private void DoMessageOfTheDayComplete()
+        {
+            ChannelMessageOfTheDayComplete?.Invoke(this, null);
+        }
+
+        private void DoChannelListReceived(string channelName, string channelTopic)
+        {
+            ChannelListReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, channelTopic));
         }
 
         private void ApplyChannelModes(Channel channel, string modeString, List<string> modeParameters)
@@ -454,6 +525,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost.".L10N("Client:Main:ConnectToCncNetHasLost")));
             connected = false;
+            userListInitialized = false;
         }
 
         /// <summary>
@@ -500,6 +572,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("Client:Main:CncNetDisconnected")));
             connected = false;
+            userListInitialized = false;
 
             UserList.Clear();
 
@@ -718,6 +791,7 @@ namespace DTAClient.Online
                     UserRemoved?.Invoke(this, new UserNameIndexEventArgs(userIndex, userName));
                 }
             }
+            userListInitialized = false;
         }
 
         public void OnUserListReceived(string channelName, string[] userList)
@@ -770,6 +844,13 @@ namespace DTAClient.Online
             MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
 
             channel.OnUserListReceived(channelUserList);
+
+            // We only need to request user info once, and chat channels only.
+            if (!userListInitialized && channel.IsChatChannel)
+            {
+                channel.RequestUserInfo();
+                userListInitialized = true;
+            }
         }
 
         public void OnUserQuitIRC(string userName)
@@ -946,6 +1027,16 @@ namespace DTAClient.Online
                 string.Format(
                     "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
+        }
+
+        public void SetChannelTopic(Channel channel, string topic)
+        {
+            connection.SetChannelTopic(channel.ChannelName, topic);
+        }
+
+        public void RequestChannelList(string pattern)
+        {
+            connection.RequestChannelList(pattern);
         }
     }
 
