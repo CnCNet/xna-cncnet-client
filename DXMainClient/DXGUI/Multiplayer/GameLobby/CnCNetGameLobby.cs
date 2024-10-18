@@ -876,11 +876,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void BroadcastPlayerExtraOptions()
         {
-            if (!IsHost)
-                return;
-            
-            var playerExtraOptions = GetPlayerExtraOptions();
-            channel.SendCTCPMessage(playerExtraOptions.ToCncnetMessage(), QueuedMessageType.GAME_PLAYERS_EXTRA_MESSAGE, 11, true);
+            UpdateChannelTopic();
         }
 
         /// <summary>
