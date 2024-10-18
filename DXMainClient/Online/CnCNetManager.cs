@@ -9,9 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Extensions.Hosting;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using SharpDX.XInput;
 
 namespace DTAClient.Online
 {
