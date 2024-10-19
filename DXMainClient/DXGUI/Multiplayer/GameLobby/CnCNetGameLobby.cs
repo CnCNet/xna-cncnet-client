@@ -382,36 +382,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_TopicChanged(object sender, MessageEventArgs e)
         {
-            if (closed && IsHost)
-            {
-                OnHostLeftGame();
-            }
-            else
-            {
-                ParseGameTopic(e.Message);
-            }
-        }
-
-        private void OnHostLeftGame()
-        {
-            Clear();
-            channel.Leave();
+            ParseGameTopic(e.Message);
         }
 
         public void LeaveGameLobby()
         {
             if (IsHost)
             {
-                // We need to succesfully change the topic first before we can leave the channel
-                btnLeaveGame.Enabled = false;
                 closed = true;
-                UpdateChannelTopic();
+                Locked = true; // So no-one can join our potentially ghosted game
+                UpdateChannelTopic(); // Mark it as closed
             }
-            else
-            {
-                Clear();
-                channel.Leave();
-            }
+
+            Clear();
+            channel.Leave();
         }
 
 
@@ -739,7 +723,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Update our own client UI immediatly so its not waiting for the server to respond
             pInfo.Ready = readyState > 0;
             pInfo.AutoReady = readyState > 1;   
-            btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
+            //btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
 
             // Copy the player data to the UI so it shows up
             CopyPlayerDataToUI();
@@ -1918,6 +1902,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyGameOptionsFromTopic(gameOptions.Substring(3)); // Remove the "GO " prefix
             ApplyPlayerExtraOptionsFromTopic(extraPlayerOptions.Substring(4)); // Remove the "PEO " prefix
 
+            BroadcastPlayerOptions();
             CopyPlayerDataToUI();
         }
 
