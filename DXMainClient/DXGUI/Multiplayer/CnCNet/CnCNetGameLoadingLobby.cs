@@ -153,8 +153,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Sets up events and information before joining the channel.
         /// </summary>
-        public void SetUp(bool isHost, CnCNetTunnel tunnel, Channel channel,
-            string hostName)
+        public void SetUp(bool isHost, CnCNetTunnel tunnel, Channel channel, string hostName)
         {
             this.channel = channel;
             this.hostName = hostName;
@@ -235,7 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
-                    string.Format("MODE {0} +klnNs {1} {2}", channel.ChannelName,
+                    string.Format("MODE {0} +klnN {1} {2}", channel.ChannelName,
                     channel.Password, SGPlayers.Count),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
@@ -272,6 +271,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             PlayerInfo pInfo = new PlayerInfo();
             pInfo.Name = e.User.IRCUser.Name;
+            pInfo.Ident = e.User.IRCUser.Ident; 
 
             Players.Add(pInfo);
 

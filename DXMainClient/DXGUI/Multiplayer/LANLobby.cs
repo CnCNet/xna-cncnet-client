@@ -545,7 +545,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.IsLoadedGame)
             {
-                if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                if (!hg.Players.Any(p => p.Name == ProgramConstants.PLAYERNAME))
                 {
                     lbChatMessages.AddMessage("You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame"));
                     return;
@@ -553,7 +553,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             else
             {
-                if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                if (!hg.Players.Any(p => p.Name == ProgramConstants.PLAYERNAME))
                 {
                     lbChatMessages.AddMessage("Your name is already taken in the game.".L10N("Client:Main:NameOccupied"));
                     return;

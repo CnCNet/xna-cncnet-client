@@ -109,6 +109,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool lastMapChangeWasInvalid = false;
 
+
+
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
         /// </summary>
@@ -605,7 +607,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IsHost = isHost;
             Locked = false;
-            CopyPlayerDataToUI();
+            //CopyPlayerDataToUI();
 
             UpdateMapPreviewBoxEnabledStatus();
             PlayerExtraOptionsPanel?.SetIsHost(isHost);

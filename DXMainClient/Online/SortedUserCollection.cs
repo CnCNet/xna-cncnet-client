@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Rampastring.Tools;
+
 namespace DTAClient.Online
 {
     /// <summary>
@@ -74,6 +76,20 @@ namespace DTAClient.Online
             return default(T);
         }
 
+        public T Find(Func<T, bool> predicate)
+        {
+            var current = linkedList.First;
+            while (current != null)
+            {
+                if (predicate(current.Value))
+                {
+                    return current.Value;
+                }
+                current = current.Next;
+            }
+            return default(T);
+        }
+
         public void Reinsert(string username)
         {
             var existing = Find(username.ToLower());
@@ -82,6 +98,14 @@ namespace DTAClient.Online
 
             Remove(username);
             Add(username, existing);
+        }
+
+        public void Update(string username, T item)
+        {
+            if (dictionary.TryGetValue(username.ToLower(), out var existing))
+            {
+                existing.Value = item;
+            }
         }
 
         public void Clear()

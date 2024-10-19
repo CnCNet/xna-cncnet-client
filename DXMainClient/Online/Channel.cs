@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using DTAClient.DXGUI;
 using ClientCore.Extensions;
+using Rampastring.Tools;
 
 namespace DTAClient.Online
 {
@@ -25,6 +26,7 @@ namespace DTAClient.Online
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
         public event EventHandler InvalidPasswordEntered;
         public event EventHandler InviteOnlyErrorOnJoin;
+        public event EventHandler<MessageEventArgs> TopicChanged;
 
         /// <summary>
         /// Raised when the server informs the client that it's is unable to
@@ -80,10 +82,16 @@ namespace DTAClient.Online
             get { return _topic; }
             set
             {
-                _topic = value;
-                if (Persistent)
-                    AddMessage(new ChatMessage(
-                        string.Format("Topic for {0} is: {1}".L10N("Client:Main:ChannelTopic"), UIName, _topic)));
+                if (_topic != value || _topic == null)  // Only trigger the event if the topic actually changes
+                {
+                    _topic = value;
+
+                    TopicChanged?.Invoke(this, new MessageEventArgs(_topic));
+
+                    if (Persistent)
+                        AddMessage(new ChatMessage(
+                            string.Format("Topic for {0} is: {1}".L10N("Client:Main:ChannelTopic"), UIName, _topic)));
+                }
             }
         }
 
@@ -128,24 +136,25 @@ namespace DTAClient.Online
 #endif
         }
 
-        public void OnUserListReceived(List<ChannelUser> userList)
+        public void OnUserListReceived(List<ChannelUser> channelUserList)
         {
-            for (int i = 0; i < userList.Count; i++)
+            for (int i = 0; i < channelUserList.Count; i++)
             {
-                ChannelUser user = userList[i];
-                var existingUser = users.Find(user.IRCUser.Name);
+                ChannelUser channelUser = channelUserList[i];
+                ChannelUser existingUser = users.Find(channelUser.IRCUser.Name);
                 if (existingUser == null)
                 {
-                    users.Add(user.IRCUser.Name, user);
+                    users.Add(channelUser.IRCUser.Name, channelUser);
                 }
                 else if (IsChatChannel)
                 {
-                    if (existingUser.IsAdmin != user.IsAdmin)
-                    {
-                        existingUser.IsAdmin = user.IsAdmin;
-                        existingUser.IsFriend = user.IsFriend;
-                        users.Reinsert(user.IRCUser.Name);
-                    }
+                    ChannelUser newChannelUser = new ChannelUser(existingUser.IRCUser);
+                    newChannelUser.IRCUser.Ident = channelUser.IRCUser.Ident;
+                    newChannelUser.IRCUser.Hostname = channelUser.IRCUser.Hostname;
+                    newChannelUser.IsFriend = existingUser.IsFriend;
+                    newChannelUser.IsAdmin = existingUser.IsAdmin;
+
+                    users.Update(channelUser.IRCUser.Name, newChannelUser);
                 }
             }
 
@@ -281,9 +290,9 @@ namespace DTAClient.Online
         }
 
         /// <summary>
-        /// Sends a "kick user" message to the channel.
+        /// Sends a "kick channelUser" message to the channel.
         /// </summary>
-        /// <param name="userName">The name of the user that should be kicked.</param>
+        /// <param name="userName">The name of the channelUser that should be kicked.</param>
         /// <param name="priority">The priority of the message in the send queue.</param>
         public void SendKickMessage(string userName, int priority)
         {
