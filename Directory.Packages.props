@@ -5,7 +5,7 @@
     <DotnetLibrariesVersion>8.0.0</DotnetLibrariesVersion>
   </PropertyGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="GitVersion.MsBuild" Version="5.11.1" />
+    <GlobalPackageReference Include="GitVersion.MsBuild" Version="5.12.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="DiscordRichPresence" Version="1.1.3.18" />
