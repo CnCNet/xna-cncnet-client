@@ -158,8 +158,8 @@ namespace DTAClient.DXGUI
             wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
             wm.SetControlBox(true);
 
-            // Enable resizable window for non-borderless windowed client
-            if (!UserINISettings.Instance.BorderlessWindowedClient)
+            // Enable resizable window for non-borderless windowed client, if integer scaling is enabled
+            if (!UserINISettings.Instance.BorderlessWindowedClient && UserINISettings.Instance.IntegerScaledClient)
             {
                 wm.SetFormBorderStyle(FormBorderStyle.Sizable);
                 wm.SetMaximizeBox(true);
