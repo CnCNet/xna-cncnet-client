@@ -444,6 +444,7 @@ namespace DTAClient.DXGUI
                     }
                 }
 
+                // No special rules are triggered. Just zoom the client to the window size with minimal black bars.
                 if (renderResolutionX == 0 || renderResolutionY == 0)
                 {
                     renderResolutionX = initialXRes;
