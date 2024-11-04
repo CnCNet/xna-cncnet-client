@@ -365,8 +365,6 @@ namespace DTAClient.DXGUI
         {
             var clientConfiguration = ClientConfiguration.Instance;
 
-            wm.IntegerScalingOnly = integerScale;
-
             (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
@@ -398,16 +396,32 @@ namespace DTAClient.DXGUI
 
                 double ratio = xRatio > yRatio ? yRatio : xRatio;
 
-                if (720 <= clientConfiguration.MaximumRenderHeight && clientConfiguration.MaximumRenderHeight < 768)
+                // Special rule for 1360x768 and 1366x768                
+                if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
                 {
                     // Most client interface has been designed for 1280x720 or 1280x800.
                     // 1280x720 upscaled to 1366x768 doesn't look great, so we allow players with 1366x768 to use their native resolution with small black bars on the sides
                     // This behavior is enforced even if IntegerScaledClient is turned off.
-                    if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
-                    {
-                        renderResolutionX = windowWidth;
-                        renderResolutionY = windowHeight;
-                    }
+                    renderResolutionX = windowWidth;
+                    renderResolutionY = windowHeight;
+                }
+
+                // Special rule: if 1280x720 is a valid render resolution, we allow 1.5x scaling for 1920x1080.
+                if (windowWidth == 1920 && windowHeight == 1080
+                    && 1280 >= clientConfiguration.MinimumRenderWidth && 1280 <= clientConfiguration.MaximumRenderWidth
+                    && 720 >= clientConfiguration.MinimumRenderHeight && 720 <= clientConfiguration.MaximumRenderHeight)
+                {
+                    renderResolutionX = 1280;
+                    renderResolutionY = 720;
+                }
+
+                // Special rule: if 1280x800 is a valid render resolution, we allow 1.5x scaling for 1920x1200.
+                if (windowWidth == 1920 && windowHeight == 1200
+                    && 1280 >= clientConfiguration.MinimumRenderWidth && 1280 <= clientConfiguration.MaximumRenderWidth
+                    && 800 >= clientConfiguration.MinimumRenderHeight && 800 <= clientConfiguration.MaximumRenderHeight)
+                {
+                    renderResolutionX = 1280;
+                    renderResolutionY = 800;
                 }
 
                 if (ratio > 1.0)
@@ -480,6 +494,7 @@ namespace DTAClient.DXGUI
                 wm.CenterOnScreen();
 
             Logger.Log("Setting render resolution to " + renderResolutionX + "x" + renderResolutionY + ". Integer scaling: " + integerScale);
+            wm.IntegerScalingOnly = integerScale;
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }
