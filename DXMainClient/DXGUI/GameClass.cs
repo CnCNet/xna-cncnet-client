@@ -424,9 +424,9 @@ namespace DTAClient.DXGUI
                     renderResolutionY = 800;
                 }
 
+                // Check whether we could integer-scale our client window
                 if (ratio > 1.0)
                 {
-                    // Check whether we could sharp-scale our client window
                     for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
                     {
                         int sharpScaleRenderResX = windowWidth / i;
