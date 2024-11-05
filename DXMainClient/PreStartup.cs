@@ -93,6 +93,10 @@ namespace DTAClient
             Logger.Log("Client version: " + Assembly.GetAssembly(typeof(PreStartup)).GetName().Version);
             Logger.Log(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion);
 
+#if DEVELOPMENT_BUILD
+            Logger.Log("This is a development build. Stability and reliability may not be fully guaranteed.");
+#endif
+
             // Log information about given startup params
             if (parameters.NoAudio)
             {

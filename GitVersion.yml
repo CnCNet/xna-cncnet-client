@@ -18,8 +18,8 @@
 # base tag of "2.8.0-beta.1" is also a beta.
 # 
 # Latest tag is "2.8.0" -
-# A new commit is added directly to master. The new version is "2.8.1".
-# That increments th Patch, because it is treated as a "hotfix" directly on master.
+# A new commit is added directly to master. The new version is "2.8.1-rc.1".
+# That increments the Patch, because it is treated as a "hotfix" directly on master.
 #
 # Versioning Modes Quick View:
 # 
@@ -37,7 +37,7 @@ branches:
     increment: Patch
     is-mainline: true
     source-branches: [ 'develop' ]
-    tag: ''
+    tag: rc
   
   develop:
     regex: ^develop$

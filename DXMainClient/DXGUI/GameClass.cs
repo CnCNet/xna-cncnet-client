@@ -69,6 +69,10 @@ namespace DTAClient.DXGUI
             Window.Title = string.IsNullOrEmpty(windowTitle) ?
                 string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
+#if DEVELOPMENT_BUILD
+            Window.Title += " (Development Build)";
+#endif
+
             base.Initialize();
 
             AssetLoader.Initialize(GraphicsDevice, content);
