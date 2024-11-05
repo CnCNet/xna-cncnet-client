@@ -560,6 +560,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
                     lbChatMessages.FontIndex)));
 
+            {
+                string developBuildWarningMessage = "This is a development build. Stability and reliability may not be fully guaranteed.".L10N("Client:Main:DevelopmentBuildWarning");
+#if DEVELOPMENT_BUILD
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Red, Renderer.GetSafeString(
+                        developBuildWarningMessage, lbChatMessages.FontIndex)));
+#endif
+            }
+
             connectionManager.BannedFromChannel += ConnectionManager_BannedFromChannel;
 
             loginWindow = new CnCNetLoginWindow(WindowManager);
