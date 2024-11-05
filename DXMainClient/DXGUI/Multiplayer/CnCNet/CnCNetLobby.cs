@@ -556,8 +556,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCreationPanel.Hide();
 
+            string clientVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#if DEVELOPMENT_BUILD
+            clientVersion = $"{ThisAssembly.Git.Branch} - {ThisAssembly.Git.Sha}";
+#endif
+
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(
-                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
+                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), clientVersion),
                     lbChatMessages.FontIndex)));
 
             {

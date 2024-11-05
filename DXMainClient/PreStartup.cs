@@ -90,8 +90,14 @@ namespace DTAClient
             MainClientConstants.Initialize();
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
-            Logger.Log("Client version: " + Assembly.GetAssembly(typeof(PreStartup)).GetName().Version);
-            Logger.Log(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion);
+
+            string clientVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#if DEVELOPMENT_BUILD
+            clientVersion = $"{ThisAssembly.Git.Branch} - {ThisAssembly.Git.Sha}";
+#endif
+
+            Logger.Log($"Client version: {clientVersion}");
+            Logger.Log(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
 
 #if DEVELOPMENT_BUILD
             Logger.Log("This is a development build. Stability and reliability may not be fully guaranteed.");
