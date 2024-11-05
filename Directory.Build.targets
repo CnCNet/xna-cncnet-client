@@ -3,7 +3,7 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
-  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_PreReleaseLabel) != '' OR $(GitVersion_BranchName) != 'master')">
+  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
     </PropertyGroup>
