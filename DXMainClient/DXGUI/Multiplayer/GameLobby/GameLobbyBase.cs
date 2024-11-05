@@ -202,7 +202,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.Initialize();
 
-            PlayerOptionsPanel = FindChild<XNAPanel>(nameof(PlayerOptionsPanel));
+            try
+            {
+                PlayerOptionsPanel = FindChild<XNAPanel>(nameof(PlayerOptionsPanel));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"It seems the modders have not migrated the 'Tiberian Sun Client v6 Changes'. Please refer to https://github.com/CnCNet/xna-cncnet-client/blob/122b2de962afc404e203290d0618363d83c4264a/Docs/Migration-INI.md for more details. {ex.Message}");
+            }
 
             btnLeaveGame = FindChild<XNAClientButton>(nameof(btnLeaveGame));
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
