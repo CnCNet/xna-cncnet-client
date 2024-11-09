@@ -40,6 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string LAUNCH_GAME_COMMAND = "LAUNCH";
         private const string FILE_HASH_COMMAND = "FHASH";
         private const string DICE_ROLL_COMMAND = "DR";
+        private const string HAND_RPS_COMMAND = "HRPS";
         public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName,
@@ -57,6 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(PLAYER_READY_REQUEST, GameHost_HandleReadyRequest),
                 new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand),
                 new StringCommandHandler(DICE_ROLL_COMMAND, Host_HandleDiceRoll),
+                new StringCommandHandler(HAND_RPS_COMMAND, Host_HandleHandRPS),
                 new NoParamCommandHandler(PING, s => { }),
             };
 
@@ -70,6 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
                 new ClientStringCommandHandler(DICE_ROLL_COMMAND, Client_HandleDiceRoll),
+                new ClientStringCommandHandler(HAND_RPS_COMMAND, Client_HandleHandRPS),
                 new ClientNoParamCommandHandler(PING, HandlePing),
             };
 
@@ -1086,7 +1089,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string resultString = string.Join(",", results);
             SendMessageToHost($"DR {dieSides},{resultString}");
         }
-
+        protected override void BroadcastHandRPS(string results)
+        {
+            SendMessageToHost($"HRPS {results}");
+        }
         private void Host_HandleDiceRoll(string sender, string result)
         {
             BroadcastMessage($"{DICE_ROLL_COMMAND} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
@@ -1100,7 +1106,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             HandleDiceRollResult(parts[0], parts[1]);
         }
+        private void Host_HandleHandRPS(string sender, string result)
+        {
+            BroadcastMessage($"{HAND_RPS_COMMAND} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
+        }
 
+        private void Client_HandleHandRPS(string data)
+        {
+            string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
+            if (parts.Length != 2)
+                return;
+
+            HandleHandRPSResult(parts[0], parts[1]);
+        }
         #endregion
 
         protected override void WriteSpawnIniAdditions(IniFile iniFile)
