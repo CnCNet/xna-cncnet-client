@@ -48,7 +48,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
                     s => SetStartingLocationClearance(s)),
                 new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6".L10N("Client:Main:ChatboxCommandRollHelp"), false, RollDiceCommand),
-                new ChatBoxCommand("HANDRPS", "Hand game, for example /handrps".L10N("Client:Main:ChatboxCommandHandRPSHelp"), false, HandRPSCommand),
                 new ChatBoxCommand("SAVEOPTIONS", "Save game option preset so it can be loaded later".L10N("Client:Main:ChatboxCommandSaveOptionsHelp"), false, HandleGameOptionPresetSaveCommand),
                 new ChatBoxCommand("LOADOPTIONS", "Load game option preset".L10N("Client:Main:ChatboxCommandLoadOptionsHelp"), true, HandleGameOptionPresetLoadCommand)
             };
@@ -522,14 +521,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             BroadcastDiceRoll(dieSides, results);
         }
-        private void HandRPSCommand(string ent)
-        {
-            string[] handgame = { "Rock", "Paper", "Scissors" };
-            Random rand = new Random();
-            int index = rand.Next(0, handgame.Length);
-            string reuslts = " selected  " + handgame[index] + "!";
-            BroadcastHandRPS(reuslts);
-        }
+
         /// <summary>
         /// Handles custom map load command.
         /// </summary>
@@ -554,7 +546,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="dieSides">The number of sides in the dice.</param>
         /// <param name="results">The results of the dice roll.</param>
         protected abstract void BroadcastDiceRoll(int dieSides, int[] results);
-        protected abstract void BroadcastHandRPS(string result);
 
         /// <summary>
         /// Parses and lists the results of rolling dice.
@@ -590,11 +581,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PrintDiceRollResult(senderName, dieSides, results);
         }
-        protected void HandleHandRPSResult(string senderName, string result)
-        {
-            if (string.IsNullOrEmpty(result))
-                return;
-        }
+
         /// <summary>
         /// Prints the result of rolling dice.
         /// </summary>
@@ -607,11 +594,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 senderName, results.Length, dieSides, string.Join(", ", results)
             ));
         }
-        protected void PrintHandRPSResult(string senderName, string result)
-        {
-            AddNotice(String.Format("{0} {1}".L10N("Client:Main:PrintHandRPSResult"),
-                senderName, result));
-        }
+
         protected abstract void SendChatMessage(string message);
 
         /// <summary>
