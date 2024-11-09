@@ -39,6 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
+        private const string Hand_RPS_MESSAGE = "HRPS";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
         public CnCNetGameLobby(
@@ -85,6 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
+                new StringCommandHandler(Hand_RPS_MESSAGE, HandleHandRPSResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
                 new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage)
             };
@@ -1480,7 +1482,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.SendCTCPMessage($"{DICE_ROLL_MESSAGE} {dieSides},{resultString}", QueuedMessageType.CHAT_MESSAGE, 0);
             PrintDiceRollResult(ProgramConstants.PLAYERNAME, dieSides, results);
         }
+        protected override void BroadcastHandRPS(string results)
+        {
 
+            channel.SendCTCPMessage($"{Hand_RPS_MESSAGE} {results}", QueuedMessageType.CHAT_MESSAGE, 0);
+            PrintHandRPSResult(ProgramConstants.PLAYERNAME, results);
+        }
         #endregion
 
         protected override void HandleLockGameButtonClick()
