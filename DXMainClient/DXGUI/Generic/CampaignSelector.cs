@@ -417,6 +417,15 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             string[] mapFiles = Directory.GetFiles(customMissionsDirectory, "*.map");
+            if (mapFiles.Length == 0)
+                return;
+
+            // Add a dummy mission to separate custom missions from official missions
+            IniSection customMissionSeparatorSection = new();
+            customMissionSeparatorSection.AddKey("Description", "-------- Custom Scenarios --------".L10N("Client:Main:CustomMissionSeparator"));
+            Mission separator = Mission.NewCustomMission(customMissionSeparatorSection, "__XCUSTOM", string.Empty, null);
+            AddMission(separator);
+
             foreach (string mapFilePath in mapFiles)
             {
                 var mapFile = new IniFile(mapFilePath);
@@ -482,7 +491,8 @@ namespace DTAClient.DXGUI.Generic
         /// Load or re-load missons with selected tags.
         /// </summary>
         /// <param name="selectedTags">Missions with at lease one of which tags to be shown. As an exception, null means show all missions.</param>
-        public void LoadMissionsWithFilter(ISet<string> selectedTags = null)
+        /// <param name="loadCustomMissions">True means show official missions. False means show custom missions.</param>
+        public void LoadMissionsWithFilter(ISet<string> selectedTags, bool loadCustomMissions = false)
         {
             lbCampaignListMissions.Clear();
 
@@ -497,6 +507,7 @@ namespace DTAClient.DXGUI.Generic
 
             // Select missions with the filter
             IEnumerable<Mission> missions = AllMissions;
+            missions = missions.Where(mission => mission.IsCustomMission == loadCustomMissions);
             if (selectedTags != null)
                 missions = missions.Where(mission => mission.Tags.Intersect(selectedTags).Any()).ToList();
             lbCampaignListMissions = missions.ToList();

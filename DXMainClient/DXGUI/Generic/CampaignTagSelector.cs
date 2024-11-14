@@ -56,6 +56,14 @@ namespace DTAClient.DXGUI.Generic
                 Disable();
             };
 
+            btnShowCustomMission = FindChild<XNAClientButton>(nameof(btnShowCustomMission));
+            btnShowCustomMission.LeftClick += (sender, e) =>
+            {
+                CampaignSelector.LoadMissionsWithFilter(null, true);
+                CampaignSelector.Enable();
+                Disable();
+            };
+
             const string TagButtonsPrefix = "ButtonTag_";
             var tagButtons = FindChildrenStartWith<XNAClientButton>(TagButtonsPrefix);
             foreach (var tagButton in tagButtons)
