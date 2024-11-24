@@ -1,5 +1,6 @@
 ﻿# Instructions on how to construct the UI using INI files.
-*TODO work in progress*
+> [!NOTE]
+> _TODO work in progress_
 
 ## Constants
 
@@ -12,62 +13,66 @@ The `[ParserConstants]` section of the `GlobalThemeSettings.ini` file contains c
 
 ### User Defined Constants
 
-```
+```ini
 MY_EXAMPLE_CONSTANT=15
 ```
 The above user-defined or system constants can be used elsewhere as:
-```
+```ini
 [MyExampleControl]
 $X=MY_EXAMPLE_CONSTANT
 ```
 _NOTE: Constants can only be used in [dynamic control properties](#dynamic-control-properties)_
 
+### Data Types
+- Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
+- Color string use form `R,G,B` or `R,G,B,A`. All values must be between 0 and 255.
+- Boolean parses as `true` if string value contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0` then it parses as `false`. 
+- Integer type is actually `System.Int32`.
+
 ## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
-
-> [!NOTE]
-> Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
 
 ### Basic Control Properties
 Basic control properties cannot use constants.
 
-#### XNAControl
+#### [XNAControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAControl.cs)
 
-`X` = `{integer}` the X location of the control  
-`Y` = `{integer}` the Y location of the control  
+`X` = `{integer}` the X location of the control.  
+`Y` = `{integer}` the Y location of the control.  
 `Location` = `{comma separated integers}` the X and Y location of the control.  
-`Width` = `{integer}` the Width of the control  
-`Height` = `{integer}` the Height of the control  
+`Width` = `{integer}` the Width of the control.  
+`Height` = `{integer}` the Height of the control.  
 `Size` = `{comma separated integers}` the Width and Height of the control.  
-`Text` = `{multi-line string}` the text to display for the control (ex: buttons, labels, etc...)  
-`Visible` = `{true/false or yes/no}` whether or not the control should be visible by default  
-`Enabled` = `{true/false or yes/no}` whether or not the control should be enabled by default  
+`Text` = `{multi-line string}` the text to display for the control (ex: buttons, labels, etc...).  
+`Visible` = `{true/false or yes/no}` whether or not the control should be visible by default.  
+`Enabled` = `{true/false or yes/no}` whether or not the control should be enabled by default.  
 `DistanceFromRightBorder` = `{integer}` the distance of the right edge of this control from the right edge of its parent. This control MUST have a parent.  
 `DistanceFromBottomBorder` = `{integer}` the distance of the bottom edge of this control from the bottom edge of its parent. This control MUST have a parent.  
-`FillWidth` = `{integer}` this will set the width of this control to fill the parent/window MINUS this value, starting from the its X position  
-`FillHeight` = `{integer}` this will set the height of this control to fill the parent/window MINUS this value, starting from the its Y position  
-`DrawOrder`  
-`UpdateOrder`  
-`RemapColor`  
+`FillWidth` = `{integer}` this will set the width of this control to fill the parent/window MINUS this value, starting from the its X position.  
+`FillHeight` = `{integer}` this will set the height of this control to fill the parent/window MINUS this value, starting from the its Y position.  
+`DrawOrder`  = `{integer}` determine the layering order of the control within its parent control's list of child controls.
+`UpdateOrder` = `{integer}` determine the layering order of the control within its parent control's list of child controls.
+`RemapColor` = `{color string}` this will set a theme defined color based.
+`ControlDrawMode` = `{string}` this will set render option to draw control on its own render target (`UniqueRenderTarget`) or to draw control on the same render target with its parent (`Normal`).
 
-#### XNAPanel
-_(inherits XNAControl)_
+#### [XNAPanel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAPanel.cs)
+_(inherits [XNAControl](#XNAControl))_
 
-`BorderColor`  
-`DrawMode`  
-`AlphaRate`  
-`BackgroundTexture`  
-`SolidColorBackgroundTexture`  
-`DrawBorders`  
-`Padding`  
+`BorderColor` = `{color string}` this will set a border color based on a string in the form `R,G,B` or `R,G,B,A`. All values must be between 0 and 255.
+`DrawMode` = `{string}` this will set draw mode for panel. Allowed values: `Tiled`, `Centered`, `Stretched` (default option).
+`AlphaRate` = `{float}` the panel's transparency changing rate per 100 milliseconds. If the panel is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
+`BackgroundTexture` = `{string}` loads a texture with the specific name. If the texture isn't found from any asset search path, returns a dummy texture.
+`SolidColorBackgroundTexture` = `{color string}` this will set background color stretched texture instead of user defined picture.
+`DrawBorders` = `{boolean}` enables or disables borders drawing for control. Borders enabled by default.
+`Padding` = `{comma separated integers}` css-like `1,2,3,4` panel padding in client window (1 - left, 2 - top, 3 - right, 4 - bottom).
 
-#### XNAExtraPanel
-_(inherits XNAPanel)_
+#### [XNAExtraPanel](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAExtraPanel.cs)
+_(inherits [XNAPanel](#XNAPanel))_
 
-`BackgroundTexture`  
+`BackgroundTexture` = `{string}` same as [XNAPanel](#XNAControl) `BackgroundTexture`. If this key exists, `XNAExtraPanel` parse ignore others.
 
 #### XNALabel
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `RemapColor`  
 `TextColor`  
@@ -77,7 +82,7 @@ _(inherits XNAControl)_
 `TextShadowDistance`  
 
 #### XNAButton
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `TextColorIdle`  
 `TextColorHover`  
@@ -103,7 +108,7 @@ _(inherits XNAClientButton)_
 `ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNACheckbox
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `FontIndex`  
 `IdleColor`  
@@ -118,7 +123,7 @@ _(inherits XNACheckBox)_
 `ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNADropDown
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `OpenUp`  
 `DropDownTexture`  
@@ -138,7 +143,7 @@ _(inherits XNADropDown)_
 `ToolTip` = `{multi-line string}` tooltip for checkbox 
 
 #### XNATabControl
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `RemapColor`  
 `TextColor`  
@@ -146,14 +151,15 @@ _(inherits XNAControl)_
 `RemoveTabIndexN`  
 
 #### XNATextBox
-_(inherits XNAControl)_
+_(inherits [XNAControl](#XNAControl))_
 
 `MaximumTextLength`  
 
 ### Basic Control Property Examples
-```
+```ini
 X=100
 Y=100
+Text=Text Sample
 Location=100,100
 Width=100
 Height=100
@@ -237,14 +243,14 @@ Dynamic Control Properties CAN use constants
 
 These can ONLY be used in parent controls that inherit the `INItializableWindow` class
 
-`$X` = ``{integer}`` the X location of the control  
-`$Y` = ``{integer}`` the Y location of the control  
-`$Width` = ``{integer}`` the Width of the control  
-`$Height` = ``{integer}`` the Height of the control  
+`$X` = `{integer}` the X location of the control  
+`$Y` = `{integer}` the Y location of the control  
+`$Width` = `{integer}` the Width of the control  
+`$Height` = `{integer}` the Height of the control  
 `$TextAnchor`  
 
 ### Dynamic Control Property Examples
-```
+```ini
 $X=100
 $X=MY_X_CONSTANT
 $Y=100
