@@ -25,7 +25,7 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 ## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
 
-> **Note**
+> [!NOTE]
 > Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
 
 ### Basic Control Properties
