@@ -24,10 +24,12 @@ $X=MY_EXAMPLE_CONSTANT
 _NOTE: Constants can only be used in [dynamic control properties](#dynamic-control-properties)_
 
 ### Data Types
-- Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
-- Color string use form `R,G,B` or `R,G,B,A`. All values must be between 0 and 255.
-- Boolean parses as `true` if string value contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0` then it parses as `false`. 
-- Integer type is actually `System.Int32`.
+- The `multi-line string`s use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
+- The `color string` use form `R,G,B` or `R,G,B,A`. All values must be between `0` and `255`.
+- The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
+- The `integer` type is actually `System.Int32`.
+- The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces, e.g. `0.0,0.0`
+- The `float` type is actually `System.Single`.
 
 ## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
@@ -44,8 +46,8 @@ Basic control properties cannot use constants.
 `Height` = `{integer}` the Height of the control.  
 `Size` = `{comma separated integers}` the Width and Height of the control.  
 `Text` = `{multi-line string}` the text to display for the control (ex: buttons, labels, etc...).  
-`Visible` = `{true/false or yes/no}` whether or not the control should be visible by default.  
-`Enabled` = `{true/false or yes/no}` whether or not the control should be enabled by default.  
+`Visible` = `{boolean}` whether or not the control should be visible by default.  
+`Enabled` = `{boolean}` whether or not the control should be enabled by default.  
 `DistanceFromRightBorder` = `{integer}` the distance of the right edge of this control from the right edge of its parent. This control MUST have a parent.  
 `DistanceFromBottomBorder` = `{integer}` the distance of the bottom edge of this control from the bottom edge of its parent. This control MUST have a parent.  
 `FillWidth` = `{integer}` this will set the width of this control to fill the parent/window MINUS this value, starting from the its X position.  
@@ -61,51 +63,52 @@ _(inherits [XNAControl](#XNAControl))_
 `BorderColor` = `{color string}` this will set a border color based on a string in the form `R,G,B` or `R,G,B,A`. All values must be between 0 and 255.
 `DrawMode` = `{string}` this will set draw mode for panel. Allowed values: `Tiled`, `Centered`, `Stretched` (default option).
 `AlphaRate` = `{float}` the panel's transparency changing rate per 100 milliseconds. If the panel is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
-`BackgroundTexture` = `{string}` loads a texture with the specific name. If the texture isn't found from any asset search path, returns a dummy texture.
+`BackgroundTexture` = `{string}` loads a texture with the specific file name with suffix. If the texture isn't found from any asset search path, returns a dummy texture.
 `SolidColorBackgroundTexture` = `{color string}` this will set background color stretched texture instead of user defined picture.
 `DrawBorders` = `{boolean}` enables or disables borders drawing for control. Borders enabled by default.
-`Padding` = `{comma separated integers}` css-like `1,2,3,4` panel padding in client window (1 - left, 2 - top, 3 - right, 4 - bottom).
+`Padding` = `{comma separated integers}` css-like panel padding in client window, i.e. `1,2,3,4` where `1` - left, `2` - top, `3` - right, `4` - bottom.
 
 #### [XNAExtraPanel](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAExtraPanel.cs)
 _(inherits [XNAPanel](#XNAPanel))_
 
-`BackgroundTexture` = `{string}` same as [XNAPanel](#XNAControl) `BackgroundTexture`. If this key exists, `XNAExtraPanel` parse ignore others.
+`BackgroundTexture` = `{string}` same as [XNAPanel](#XNAControl)'s `BackgroundTexture`. If this key exists, `XNAExtraPanel` parse ignore others.
 
-#### XNALabel
+#### [XNALabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`RemapColor`  
-`TextColor`  
-`FontIndex`  
-`AnchorPoint`  
-`TextAnchor`  
-`TextShadowDistance`  
+`RemapColor` = `{color string}` same as [XNAControl](#XNAControl)'s `RemapColor`.
+`TextColor` = `{color string}` determine color of the text in label.
+`FontIndex` = `{integer}` the index of loaded from font list. Default value is `0`.
+`AnchorPoint` = `{comma separated floats}`  this will set a label's text start drawing point. Default value is `0.0,0.0`
+`TextAnchor` = `{string}` this will set a text anchor in label draw box. Available values are `NONE`, `LEFT`, `RIGHT`, `HORIZONTAL_CENTER`, `TOP`, `BOTTOM`, `VERTICAL_CENTER`
+`TextShadowDistance` = `{float}` the distance between text and its shadow.
 
-#### XNAButton
+#### [XNAButton](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`TextColorIdle`  
-`TextColorHover`  
-`HoverSoundEffect`   
-`ClickSoundEffect`  
-`AdaptiveText`  
-`AlphaRate`  
-`FontIndex`  
-`IdleTexture`  
-`HoverTexture`  
-`TextShadowDistance`  
+`TextColorIdle` = `{color string}` the text color when cursor isn't above the button.
+`TextColorHover` = `{color string}` the text color when cursor above the button.
+`HoverSoundEffect` = `{string}` loads a sound with the specific file name with suffix as button hover sound.
+`ClickSoundEffect` = `{string}` loads a sound with the specific file name with suffix as button click sound.
+`AdaptiveText` = `{boolean}` specifies how the client should change the start text drawing position in the button to fill all the free space. Default value is `true`.
+`AlphaRate` = `{float}` the button's transparency changing rate per 100 milliseconds. If the panel is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
+`FontIndex` = `{integer}` the index of loaded from font list. Default value is `0`.
+`IdleTexture` = `{string}` loads a texture with the specific file name with suffix as button idle texture.
+`HoverTexture` = `{string}` loads a texture with the specific file name with suffix as button hover texture.
+`TextShadowDistance` = `{float}` the distance between text and its shadow.
 
-#### XNAClientButton
-_(inherits XNAButton)_
+#### [XNAClientButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientButton.cs)
+_(inherits [XNAButton](#XNAButton))_
 
-`MatchTextureSize`  
+`MatchTextureSize` = `{boolean}` 
+`ToolTip` = `{multi-line string}` 
 
-#### XNALinkButton
-_(inherits XNAClientButton)_
+#### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
+_(inherits [XNAClientButton](#XNAClientButton))_
 
-`URL`  
-`UnixURL`
-`ToolTip` = `{multi-line string}` tooltip for checkbox
+`URL` = `{string}` the URL-link for OS Windows
+`UnixURL` = `{string}` the URL-link for Unix-like OS
+`Arguments` = `{string}` the arguments separated with space for URL-link
 
 #### XNACheckbox
 _(inherits [XNAControl](#XNAControl))_
