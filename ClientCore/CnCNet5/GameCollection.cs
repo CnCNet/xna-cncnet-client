@@ -202,7 +202,7 @@ namespace ClientCore.CnCNet5
                 {
                     ChatChannel = "#cncnet",
                     InternalName = "cncnet",
-                    UIName = "General CnCNet Chat",
+                    UIName = "General CnCNet Chat".L10N("Client:Core:CNCNetChat"),
                     AlwaysEnabled = true,
                     Texture = AssetLoader.TextureFromImage(cncnetIcon)
                 }
