@@ -28,8 +28,8 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 - The `color string` use form `R,G,B` or `R,G,B,A`. All values must be between `0` and `255`.
 - The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
 - The `integer` type is actually `System.Int32`.
-- The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces, e.g. `0.0,0.0`
 - The `float` type is actually `System.Single`.
+- The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces, e.g. `0.0,0.0`
 
 ## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
@@ -57,10 +57,16 @@ Basic control properties cannot use constants.
 `RemapColor` = `{color string}` this will set a theme defined color based.
 `ControlDrawMode` = `{string}` this will set render option to draw control on its own render target (`UniqueRenderTarget`) or to draw control on the same render target with its parent (`Normal`).
 
+#### [XNAIndicator](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAIndicator.cs)
+_(inherits [XNAControl](#XNAControl))_
+`FontIndex` = `{integer}` the index of font loaded from font list. Default value is `0`.
+`HighlightColor` = `{color string}` the text color when cursor above the `XNAIndicator`.
+`AlphaRate` = `{float}` the indicator's transparency changing rate per 100 milliseconds. If the indicator is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
+
 #### [XNAPanel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAPanel.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`BorderColor` = `{color string}` this will set a border color based on a string in the form `R,G,B` or `R,G,B,A`. All values must be between 0 and 255.
+`BorderColor` = `{color string}` this will set a border color based.
 `DrawMode` = `{string}` this will set draw mode for panel. Allowed values: `Tiled`, `Centered`, `Stretched` (default option).
 `AlphaRate` = `{float}` the panel's transparency changing rate per 100 milliseconds. If the panel is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
 `BackgroundTexture` = `{string}` loads a texture with the specific file name with suffix. If the texture isn't found from any asset search path, returns a dummy texture.
@@ -71,14 +77,33 @@ _(inherits [XNAControl](#XNAControl))_
 #### [XNAExtraPanel](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAExtraPanel.cs)
 _(inherits [XNAPanel](#XNAPanel))_
 
-`BackgroundTexture` = `{string}` same as [XNAPanel](#XNAControl)'s `BackgroundTexture`. If this key exists, `XNAExtraPanel` parse ignore others.
+`BackgroundTexture` = `{string}` same as [XNAPanel](#XNAControl)'s `BackgroundTexture`.
+
+#### [XNATextBlock](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATextBlock.cs)
+_(inherits [XNAPanel](#XNAPanel))_
+`TextColor` = `{color string}` defines text color for text block.
+
+#### [XNAMultiColumnListBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAMultiColumnListBox.cs)
+_(inherits [XNAPanel](#XNAPanel))_
+`FontIndex` = `{integer}` the index of font loaded from font list. Default value is `0`.
+`DrawSelectionUnderScrollbar` = `{boolean}`. Default value is `true`.
+`ColumnWidthN` = `{integer}` the default columns width in pixels. `N` is integer column index.
+`ColumnX` = `{string}:{intgerer}` the column definition. `{string}` is a column header text. `{integer}` is a column width in pixels. `X` is an any text.
+`ListBoxYAttribute:Attrname` = `{string}` allows setting list box attributes. `Attrname` is column attribute.
+
+#### [XNATrackbar](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATrackbar.cs)
+_(inherits [XNAPanel](#XNAPanel))_
+`MinValue` = `{integer}` the minumum value available for `XNATrackbar`. Default value is `0`.
+`MaxValue` = `{integer}` the maximum value available for `XNATrackbar`. Default value is `10`.
+`Value` = `{integer}` the default value available for `XNATrackbar`. Default value is `0`.
+`ClickSound` = `{string}` loads a sound with the specific file name with suffix as `XNATrackbar` click sound.
 
 #### [XNALabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
 _(inherits [XNAControl](#XNAControl))_
 
 `RemapColor` = `{color string}` same as [XNAControl](#XNAControl)'s `RemapColor`.
 `TextColor` = `{color string}` determine color of the text in label.
-`FontIndex` = `{integer}` the index of loaded from font list. Default value is `0`.
+`FontIndex` = `{integer}` the index of font loaded from font list. Default value is `0`.
 `AnchorPoint` = `{comma separated floats}`  this will set a label's text start drawing point. Default value is `0.0,0.0`
 `TextAnchor` = `{string}` this will set a text anchor in label draw box. Available values are `NONE`, `LEFT`, `RIGHT`, `HORIZONTAL_CENTER`, `TOP`, `BOTTOM`, `VERTICAL_CENTER`
 `TextShadowDistance` = `{float}` the distance between text and its shadow.
@@ -91,7 +116,7 @@ _(inherits [XNAControl](#XNAControl))_
 `HoverSoundEffect` = `{string}` loads a sound with the specific file name with suffix as button hover sound.
 `ClickSoundEffect` = `{string}` loads a sound with the specific file name with suffix as button click sound.
 `AdaptiveText` = `{boolean}` specifies how the client should change the start text drawing position in the button to fill all the free space. Default value is `true`.
-`AlphaRate` = `{float}` the button's transparency changing rate per 100 milliseconds. If the panel is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
+`AlphaRate` = `{float}` the button's transparency changing rate per 100 milliseconds. If the button is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
 `FontIndex` = `{integer}` the index of loaded from font list. Default value is `0`.
 `IdleTexture` = `{string}` loads a texture with the specific file name with suffix as button idle texture.
 `HoverTexture` = `{string}` loads a texture with the specific file name with suffix as button hover texture.
@@ -100,66 +125,72 @@ _(inherits [XNAControl](#XNAControl))_
 #### [XNAClientButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientButton.cs)
 _(inherits [XNAButton](#XNAButton))_
 
-`MatchTextureSize` = `{boolean}` 
-`ToolTip` = `{multi-line string}` 
+`MatchTextureSize` = `{boolean}` the button's width and height will match its texture properties. Default value is `false`.
+`ToolTip` = `{multi-line string}` the tooltip for button.
 
 #### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
 _(inherits [XNAClientButton](#XNAClientButton))_
 
-`URL` = `{string}` the URL-link for OS Windows
-`UnixURL` = `{string}` the URL-link for Unix-like OS
-`Arguments` = `{string}` the arguments separated with space for URL-link
+`URL` = `{string}` the URL-link for OS Windows.
+`UnixURL` = `{string}` the URL-link for Unix-like OS.
+`Arguments` = `{string}` the arguments separated with space for URL-link.
 
-#### XNACheckbox
+#### [XNACheckbox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNACheckBox.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`FontIndex`  
-`IdleColor`  
-`HighlightColor`  
-`AlphaRate`  
-`AllowChecking`  
-`Checked`  
+`FontIndex` = `{integer}` the index of font loaded from font list. Default value is `0`.
+`IdleColor` = `{color string}` the the text color when cursor isn't above the checkbox.
+`HighlightColor` = `{color string}` the text color when cursor above the checkbox.
+`AlphaRate` = `{float}` the checkbox's transparency changing rate per 100 milliseconds. If the checkbox is transparent, it'll become non-transparent at this rate. Default value is `0.01`.
+`AllowChecking` = `{boolean}` the allows user to check/uncheck checkbox. Default value is `true`.
+`Checked` = `{boolean}` the default checkbox status. Default value is `true`.
 
-#### XNAClientCheckbox
-_(inherits XNACheckBox)_
+#### [XNAClientCheckbox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
+_(inherits [XNACheckBox](#XNACheckbox))_
 
-`ToolTip` = `{multi-line string}` tooltip for checkbox
+`ToolTip` = `{multi-line string}` the tooltip for checkbox.
 
-#### XNADropDown
+#### [XNADropDown](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNADropDown.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`OpenUp`  
-`DropDownTexture`  
-`DropDownOpenTexture`  
-`ItemHeight`  
-`ClickSoundEffect`  
-`FontIndex`   
-`BorderColor`  
-`FocusColor`  
-`BackColor`  
-`~~DisabledItemColor~~`  
-`OptionN`  
+`OpenUp` = `{boolean}` defines open/close default status.
+`DropDownTexture` = `{stiring}` loads a texture with the specific file name with suffix as texture when dropdown closed.
+`DropDownOpenTexture` = `{string}` loads a texture with the specific file name with suffix as texture when dropdown opened.
+`ItemHeight` = `{integer}` the height of each dropdown item in pixels.
+`ClickSoundEffect` = `{string}` loads a sound with the specific file name with suffix as dropdown click sound.
+`FontIndex` = `{integer}` the index of font loaded from font list. Default value is `0`.
+`BorderColor` = `{color string}` the color for dropdown's border line when it open.
+`FocusColor` = `{color string}` the color for dropdown item when cursore above it.
+`BackColor` = `{color string}` the background color dropdown when it open.
+`DisabledItemColor` = `{color string}` the color for disabled dropdown item.
+`OptionX` = `{string}` the text option for dropdown. `X` is an any text that helps to describe this option, e.g. `Option_FirstOption`.
 
-#### XNAClientDropDown
+#### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
 _(inherits XNADropDown)_
 
-`ToolTip` = `{multi-line string}` tooltip for checkbox 
+`ToolTip` = `{multi-line string}` tooltip for dropdown.
 
-#### XNATabControl
+#### [XNATabControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATabControl.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`RemapColor`  
-`TextColor`  
-`TextColorDisabled`  
-`RemoveTabIndexN`  
+`RemapColor` = `{color string}` the tab text color.
+`TextColor` = `{color string}` the tab text color.
+`TextColorDisabled` = `{color string}` the color for disabled tab.
+`RemoveTabIndexN` = `{boolean}` . `N` is `integer` equivalent if tab index.
 
-#### XNATextBox
+#### [XNATextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATextBox.cs)
 _(inherits [XNAControl](#XNAControl))_
 
-`MaximumTextLength`  
+`MaximumTextLength` = `{integer}` set maximum input string length.
+
+#### [XNASuggestionTextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNASuggestionTextBox.cs)
+_(inherits [XNAControl](#XNATextBox))_
+
+`Suggestion` = `{string}` set default background text when no text has typed.
 
 ### Basic Control Property Examples
 ```ini
+[lblExample]
 X=100
 Y=100
 Text=Text Sample
@@ -167,10 +198,8 @@ Location=100,100
 Width=100
 Height=100
 Size=100,100
-Visible=true
 Visible=yes
-Enabled=true
-Enabled=yes
+Enabled=false
 DistanceFromRightBorder=10
 DistanceFromLeftBorder=10
 FillWidth=10
@@ -188,27 +217,27 @@ Following controls are only available as children of `XNAOptionsPanel` and deriv
 ##### SettingCheckBox
 _(inherits XNAClientCheckBox)_
 
-`DefaultValue` = `{true/false or yes/no}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
+`DefaultValue` = `{boolean}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
 `SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
 `SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_Checked`.  
-`WriteSettingValue` = `{true/false or yes/no}` enable to write a specific string value to setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
+`WriteSettingValue` = `{boolean}` enable to write a specific string value to setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
 `EnabledSettingValue` = `{string}` value to write to setting INI key if `WriteSettingValue` is set and checkbox is checked.  
 `DisabledSettingValue` = `{string}` value to write to setting INI key if `WriteSettingValue` is set and checkbox is not checked.  
-`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`RestartRequired` = `{boolean}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
 `ParentCheckBoxName` = `{string}` name of a `XNAClientCheckBox` control to use as a parent checkbox that is required to either be checked or unchecked, depending on value of `ParentCheckBoxRequiredValue` for this checkbox to be enabled. Only works if name can be resolved to an existing control belonging to same parent as current checkbox.  
-`ParentCheckBoxRequiredValue` = `{true/false or yes/no}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
+`ParentCheckBoxRequiredValue` = `{boolean}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
 
 ##### FileSettingCheckBox
 _(inherits XNAClientCheckBox)_
 
-`DefaultValue` = `{true/false or yes/no}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
+`DefaultValue` = `{boolean}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
 `SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
 `SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_Checked`.  
-`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`RestartRequired` = `{boolean}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
 `ParentCheckBoxName` = `{string}` name of a `XNAClientCheckBox` control to use as a parent checkbox that is required to either be checked or unchecked, depending on value of `ParentCheckBoxRequiredValue` for this checkbox to be enabled. Only works if name can be resolved to an existing control belonging to same parent as current checkbox.  
-`ParentCheckBoxRequiredValue` = `{true/false or yes/no}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
-`CheckAvailability` = `{true/false or yes/no}` if set, whether or not the checkbox can be (un)checked depends on if the files to copy are actually present. Defaults to `false`.  
-`ResetUnavailableValue` = `{true/false or yes/no}` if set together with `CheckAvailability`, checkbox set to a value that is unavailable will be reset back to `DefaultValue`. Defaults to `false`.  
+`ParentCheckBoxRequiredValue` = `{boolean}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
+`CheckAvailability` = `{boolean}` if set, whether or not the checkbox can be (un)checked depends on if the files to copy are actually present. Defaults to `false`.  
+`ResetUnavailableValue` = `{boolean}` if set together with `CheckAvailability`, checkbox set to a value that is unavailable will be reset back to `DefaultValue`. Defaults to `false`.  
 `EnabledFileN` = `{comma-separated strings}` files to copy if checkbox is checked. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
 `DisabledFileN` = `{comma-separated strings}` files to copy if checkbox is not checked. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
 
@@ -219,8 +248,8 @@ _(inherits XNAClientDropDown)_
 `DefaultValue` = `{integer}` default item index of the dropdown. Defaults to 0 (first item).  
 `SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
 `SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_SelectedIndex`.  
-`WriteSettingValue` = `{true/false or yes/no}` enable to write selected item value to the setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
-`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`WriteSettingValue` = `{boolean}` enable to write selected item value to the setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
+`RestartRequired` = `{boolean}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
 
 ##### FileSettingDropDown
 _(inherits XNAClientDropDown)_
@@ -229,7 +258,7 @@ _(inherits XNAClientDropDown)_
 `DefaultValue` = `{integer}` default item index of the dropdown. Defaults to 0 (first item).  
 `SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
 `SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_SelectedIndex`.  
-`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`RestartRequired` = `{boolean}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
 `ItemXFileN` = `{comma-separated strings}` files to copy when dropdown item X is selected. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
 
 ##### Appendix: File Operation Options
@@ -254,6 +283,7 @@ These can ONLY be used in parent controls that inherit the `INItializableWindow`
 
 ### Dynamic Control Property Examples
 ```ini
+[lblExample]
 $X=100
 $X=MY_X_CONSTANT
 $Y=100
