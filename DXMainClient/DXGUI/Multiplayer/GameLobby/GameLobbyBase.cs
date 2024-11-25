@@ -208,7 +208,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                throw new Exception($"It seems the modders have not migrated the 'Tiberian Sun Client v6 Changes'. Please refer to https://github.com/CnCNet/xna-cncnet-client/blob/122b2de962afc404e203290d0618363d83c4264a/Docs/Migration-INI.md for more details. {ex.Message}");
+                throw new Exception(string.Format("It seems the modders have not migrated the 'Tiberian Sun Client v6 Changes'. Please refer to {0} for more details. Error message: {1}".L10N("Client:Main:NotMigratedClientException"),
+                                                  "https://github.com/CnCNet/xna-cncnet-client/blob/122b2de962afc404e203290d0618363d83c4264a/Docs/Migration-INI.md",
+                                                   ex.Message));
             }
 
             btnLeaveGame = FindChild<XNAClientButton>(nameof(btnLeaveGame));
