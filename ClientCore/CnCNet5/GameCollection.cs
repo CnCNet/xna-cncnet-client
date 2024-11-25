@@ -26,6 +26,7 @@ namespace ClientCore.CnCNet5
             GameList = new List<CnCNetGame>();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream prIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.pricon.png");
             using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
             using Stream tiIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tiicon.png");
             using Stream tsIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
