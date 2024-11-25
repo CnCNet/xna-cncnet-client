@@ -29,7 +29,7 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 - The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
 - The `integer` type is actually `System.Int32`.
 - The `float` type is actually `System.Single`.
-- The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces, e.g. `0.0,0.0`
+- The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces, e.g. `0,0` or `0.0,0.0` respectively.
 
 ## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
