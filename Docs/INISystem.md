@@ -63,7 +63,7 @@ Height=                            ; integer,    the Height of the control.
 Size=                              ; 2 integers, the Width and Height of the control.
 Text=                              ; text,       the text to display for the control (ex: buttons, labels, etc...).
 Visible=true                       ; boolean,    whether or not the control should be visible by default.
-Enabled=true                       ; boolean,    whether or not the control should be enabled by default.
+Enabled=true                       ; boolean,    whether or not the control can be interacted with by default.
 DistanceFromRightBorder=0          ; integer,    the distance of the right edge of this control from 
                                    ;             the right edge of its parent. This control MUST have a parent.
 DistanceFromBottomBorder=0         ; integer,    the distance of the bottom edge of this control from the 
