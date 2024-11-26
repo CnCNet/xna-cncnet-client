@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -20,12 +21,14 @@ namespace DTAClient.DXGUI.Generic
     {
         private const string SAVED_GAMES_DIRECTORY = "Saved Games";
 
-        public GameLoadingWindow(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
+        public GameLoadingWindow(WindowManager windowManager, DiscordHandler discordHandler, CampaignTagSelector campaignTagSelector) : base(windowManager)
         {
             this.discordHandler = discordHandler;
+            this.campaignTagSelector = campaignTagSelector;
         }
 
         private DiscordHandler discordHandler;
+        private CampaignTagSelector campaignTagSelector;
 
         private XNAMultiColumnListBox lbSaveGameList;
         private XNAClientButton btnLaunch;
@@ -96,15 +99,26 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        public void Open()
+        {
+            Enable();
+        }
+
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            Enabled = false;
+            Disable();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
             SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
             Logger.Log("Loading saved game " + sg.FileName);
+
+            Mission mission = campaignTagSelector.UniqueIDToMissions.GetValueOrDefault(sg.CustomMissionID, null);
+
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+            if (mission != null)
+                CustomMissionHelper.CopySupplementalMissionFiles(mission);
 
             FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
@@ -178,6 +192,9 @@ namespace DTAClient.DXGUI.Generic
         protected virtual void GameProcessExited()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
+
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+
             discordHandler.UpdatePresence();
         }
 
@@ -199,6 +216,7 @@ namespace DTAClient.DXGUI.Generic
 
             foreach (FileInfo file in files)
             {
+                // note: ParseSaveGame modify savedGames
                 ParseSaveGame(file.FullName);
             }
 

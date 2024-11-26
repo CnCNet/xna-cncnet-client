@@ -44,6 +44,8 @@ namespace DTAClient.DXGUI.Generic
             TopBar topBar,
             OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
+            CampaignTagSelector campaignTagSelector,
+            GameLoadingWindow gameLoadingWindow,
             CnCNetManager connectionManager,
             DiscordHandler discordHandler,
             CnCNetGameLoadingLobby cnCNetGameLoadingLobby,
@@ -59,6 +61,8 @@ namespace DTAClient.DXGUI.Generic
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
             this.cncnetLobby = cncnetLobby;
+            this.campaignTagSelector = campaignTagSelector;
+            this.gameLoadingWindow = gameLoadingWindow;
             this.discordHandler = discordHandler;
             this.skirmishLobby = skirmishLobby;
             this.cnCNetGameLoadingLobby = cnCNetGameLoadingLobby;
@@ -80,6 +84,9 @@ namespace DTAClient.DXGUI.Generic
         private CnCNetLobby cncnetLobby;
 
         private SkirmishLobby skirmishLobby;
+
+        private CampaignTagSelector campaignTagSelector;
+        private GameLoadingWindow gameLoadingWindow;
 
         private LANLobby lanLobby;
 
@@ -553,6 +560,8 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, campaignTagSelector);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, gameLoadingWindow);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLoadingLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLobby);
@@ -566,6 +575,8 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetOptionsWindow(optionsWindow);
             WindowManager.AddAndInitializeControl(gameInProgressWindow);
 
+            campaignTagSelector.Disable();
+            gameLoadingWindow.Disable();
             skirmishLobby.Disable();
             cncnetLobby.Disable();
             cnCNetGameLobby.Disable();
@@ -829,10 +840,10 @@ namespace DTAClient.DXGUI.Generic
             => optionsWindow.Open();
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
-            => innerPanel.Show(innerPanel.CampaignSelector);
+            => campaignTagSelector.Open();
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
-            => innerPanel.Show(innerPanel.GameLoadingWindow);
+            => gameLoadingWindow.Open();
 
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {
@@ -883,7 +894,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void HandleGameProcessExited()
         {
-            innerPanel.GameLoadingWindow.ListSaves();
+            gameLoadingWindow.ListSaves();
+            gameLoadingWindow.Disable();
             innerPanel.Hide();
 
             // If music is disabled on menus, check if the main menu is the top-most
