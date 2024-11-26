@@ -26,7 +26,7 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 - The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
 - The `integer` type is actually `System.Int32`.
 - The `float` type is actually `System.Single`.
-- The `N integers` or `N floats` is a `integer` or `float` type values repeated `N` times, but separated with `,` character without spaces e.g., `0,0` or `0.0,0.0` respectively.
+- The `N integers` or `N floats` is a `integer` or `float` type values repeated `N` times, but separated with `,` character without spaces e.g., `0,0` or `0.0,0.0` for `2 integers` or `2 floats` respectively.
 - The `comma-separated strings` is a string, but separated with `,` character without spaces e.g., `one,two,three`.
 <!-- - The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces e.g., `0,0` or `0.0,0.0` respectively. -->
 
