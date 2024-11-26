@@ -22,7 +22,7 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 
 ### Data Types
 - The `text` use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
-- The `color string` use form `R,G,B` or `R,G,B,A`. All values must be between `0` and `255`.
+- The `color` use string form `R,G,B` or `R,G,B,A`. All values must be between `0` and `255`. Example: `255,255,255`, `255,255,255,255`.
 - The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
 - The `integer` type is actually `System.Int32`.
 - The `float` type is actually `System.Single`.
