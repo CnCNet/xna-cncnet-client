@@ -54,33 +54,33 @@ Basic control properties cannot use constants.
 - Basic class inherited by any other control element.
 
 ```ini
-[SOMECONTROL]              ; XNAControl
-X=0                        ; integer,      the X location of the control.
-Y=0                        ; integer,      the Y location of the control.
-Location=50,100            ; 2 integers,   the X and Y location of the control.
-Width=25                   ; integer,      the Width of the control.
-Height=10                  ; integer,      the Height of the control.
-Size=60,30                 ; 2 integers,   the Width and Height of the control.
-Text=Some Text@Example     ; text,         the text to display for the control (ex: buttons, labels, etc...).
-Visible=yes                ; boolean,      whether or not the control should be visible by default.
-Enabled=yes                ; boolean,      whether or not the control should be enabled by default.
-DistanceFromRightBorder=5  ; integer,      the distance of the right edge of this control from 
-                           ;               the right edge of its parent. This control MUST have a parent.
-DistanceFromBottomBorder=3 ; integer,      the distance of the bottom edge of this control from the 
-                           ;               bottom edge of its parent. This control MUST have a parent.
-FillWidth=2                ; integer,      this will set the width of this control to fill 
-                           ;               the parent/window MINUS this value, starting from the its X position.
-FillHeight=1               ; integer,      this will set the height of this control to fill 
-                           ;               the parent/window MINUS this value, starting from the its Y position.
-DrawOrder=0                ; integer,      determine the layering order of the control within 
-                           ;               its parent control's list of child controls.
-UpdateOrder=0              ; integer,      determine the layering order of the control within 
-                           ;               its parent control's list of child controls.
-RemapColor=                ; color string, this will set a theme defined color based.
-ControlDrawMode=Normal     ; enum (UniqueRenderTarget | Normal), 
-                           ;               this will set render option to draw control on its own render 
-                           ;               target (`UniqueRenderTarget`) or to draw control on 
-                           ;               the same render target with its parent (`Normal`).
+[SOMECONTROL]                      ; XNAControl
+X=                                 ; integer,    the X location of the control.
+Y=                                 ; integer,    the Y location of the control.
+Location=                          ; 2 integers, the X and Y location of the control.
+Width=                             ; integer,    the Width of the control.
+Height=                            ; integer,    the Height of the control.
+Size=                              ; 2 integers, the Width and Height of the control.
+Text=                              ; text,       the text to display for the control (ex: buttons, labels, etc...).
+Visible=true                       ; boolean,    whether or not the control should be visible by default.
+Enabled=true                       ; boolean,    whether or not the control should be enabled by default.
+DistanceFromRightBorder=0          ; integer,    the distance of the right edge of this control from 
+                                   ;             the right edge of its parent. This control MUST have a parent.
+DistanceFromBottomBorder=0         ; integer,    the distance of the bottom edge of this control from the 
+                                   ;             bottom edge of its parent. This control MUST have a parent.
+FillWidth=0                        ; integer,    this will set the width of this control to fill 
+                                   ;             the parent/window MINUS this value, starting from the its X position.
+FillHeight=0                       ; integer,    this will set the height of this control to fill 
+                                   ;             the parent/window MINUS this value, starting from the its Y position.
+DrawOrder=0                        ; integer,    determine the layering order of the control within 
+                                   ;             its parent control's list of child controls.
+UpdateOrder=0                      ; integer,    determine the layering order of the control within 
+                                   ;             its parent control's list of child controls.
+RemapColor=                        ; color,      this will set a theme defined color based.
+ControlDrawMode=UniqueRenderTarget ; enum (UniqueRenderTarget | Normal), 
+                                   ;             this will set render option to draw control on its own render 
+                                   ;             target (`UniqueRenderTarget`) or to draw control on 
+                                   ;             the same render target with its parent (`Normal`).
 ```
 
 #### [XNAIndicator](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAIndicator.cs)
@@ -88,12 +88,11 @@ ControlDrawMode=Normal     ; enum (UniqueRenderTarget | Normal),
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMEINDICATOR]            ; XNAIndicator
-FontIndex=0                ; integer,      the index of font loaded from font list. Default value is `0`.
-HighlightColor=255,255,255 ; color string, the text color when cursor above the `XNAIndicator`.
-AlphaRate=0.02             ; float,        the indicator's transparency changing rate per 100 milliseconds. 
-                           ;               If the indicator is transparent, it'll become non-transparent at this rate. 
-                           ;               Default value is `0.01`.
+[SOMEINDICATOR] ; XNAIndicator
+FontIndex=0     ; integer, the index of font loaded from font list. Default value is `0`.
+HighlightColor= ; color,   the text color when cursor above the `XNAIndicator`.
+AlphaRate=0.1   ; float,   the indicator's transparency changing rate per 100 milliseconds. 
+                ;          If the indicator is transparent, it'll become non-transparent at this rate. 
 ```
 
 #### [XNAPanel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAPanel.cs)
@@ -101,22 +100,21 @@ AlphaRate=0.02             ; float,        the indicator's transparency changing
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMEPANEL]                             ; XNAPanel
-BorderColor=255,255,255                 ; color string, this will set a border color based.
-AlphaRate=0.05                          ; float,        the panel's transparency changing rate per 100 milliseconds.
-                                        ;               If the panel is transparent, it'll become non-transparent at this rate.
-                                        ;               Default value is `0.01`.
-BackgroundTexture=back.png              ; string,       loads a texture with the specific file name with suffix.
-                                        ;               If the texture isn't found from any asset search path,
-                                        ;               returns a dummy texture.
-SolidColorBackgroundTexture=255,255,255 ; color string, this will set background color stretched texture instead of 
-                                        ;               user defined picture.
-DrawBorders=true                        ; boolean,      enables or disables borders drawing for control. 
-                                        ;               Borders enabled by default.
-Padding=10,5,10,5                       ; 4 integers,   css-like panel padding in client window e.g.,
-                                        ;               `1,2,3,4` where `1` - left, `2` - top, `3` - right, `4` - bottom.
-DrawMode=Centered                       ; enum (Tiled | Centered | Stretched), this will set draw mode for panel.
-                                        ;               Default value is `Stretched`.
+[SOMEPANEL]                  ; XNAPanel
+BorderColor=                 ; color,      this will set a border color based.
+AlphaRate=0.01               ; float,      the panel's transparency changing rate per 100 milliseconds.
+                             ;             If the panel is transparent, it'll become non-transparent at this rate.
+BackgroundTexture=           ; string,     loads a texture with the specific file name with suffix.
+                             ;             If the texture isn't found from any asset search path,
+                             ;             returns a dummy texture.
+SolidColorBackgroundTexture= ; color,      this will set background color stretched texture instead of 
+                             ;             user defined picture.
+DrawBorders=true             ; boolean,    enables or disables borders drawing for control. 
+                             ;             Borders enabled by default.
+Padding=                     ; 4 integers, css-like panel padding in client window e.g.,
+                             ;             `1,2,3,4` where `1` - left, `2` - top, `3` - right, `4` - bottom.
+DrawMode=Stretched           ; enum (Tiled | Centered | Stretched), 
+                             ;             this will set draw mode for panel.
 ```
 
 #### [XNAExtraPanel](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAExtraPanel.cs)
@@ -124,8 +122,8 @@ DrawMode=Centered                       ; enum (Tiled | Centered | Stretched), t
 _(inherits [XNAPanel](#XNAPanel))_
 
 ```ini
-[SOMEEXTRAPANEL]           ; XNAExtraPanel
-BackgroundTexture=back.png ; string, same as XNAControl's `BackgroundTexture`.
+[SOMEEXTRAPANEL]   ; XNAExtraPanel
+BackgroundTexture= ; string, same as XNAControl's `BackgroundTexture`.
 ```
 
 #### [XNATextBlock](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATextBlock.cs)
@@ -133,8 +131,8 @@ BackgroundTexture=back.png ; string, same as XNAControl's `BackgroundTexture`.
 _(inherits [XNAPanel](#XNAPanel))_
 
 ```ini
-[SOMETEXTBLOCK]       ; XNATextBlock
-TextColor=255,255,255 ; color string, defines text color for text block.
+[SOMETEXTBLOCK] ; XNATextBlock
+TextColor=      ; color, defines text color for text block.
 ```
 
 #### [XNAMultiColumnListBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAMultiColumnListBox.cs)
@@ -143,10 +141,10 @@ _(inherits [XNAPanel](#XNAPanel))_
 
 ```ini
 [SOMEMULTICOLUMBLISTBOX]         ; XNAMultiColumnListBox
-FontIndex=0                      ; integer,        the index of font loaded from font list. Default value is `0`.
+FontIndex=0                      ; integer,        the index of font loaded from font list.
 DrawSelectionUnderScrollbar=yes  ; boolean,        enable/disable scroll bar, default value is `true`.
-ColumnWidthN=0                   ; integer,        the default columns width in pixels. `N` is integer column index.
-ColumnX=Number,0                 ; string:integer, the column definition. `string` is a column header text. 
+ColumnWidthN=                    ; integer,        the default columns width in pixels. `N` is integer column index.
+ColumnX=                         ; string:integer, the column definition. `string` is a column header text. 
                                  ;                 `integer` is a column width in pixels. `X` is an any text.
 ListBoxYAttribute:Attrname=Value ; string,         allows setting list box attributes. `Attrname` is column attribute.
                                  ;                 `Value` is column attribute value.
@@ -157,26 +155,26 @@ ListBoxYAttribute:Attrname=Value ; string,         allows setting list box attri
 _(inherits [XNAPanel](#XNAPanel))_
 
 ```ini
-[SOMETRACKBAR]       ; XNATrackbar
-MinValue=1           ; integer, the minumum value available for XNATrackbar. Default value is `0`.
-MaxValue=9           ; integer, the maximum value available for XNATrackbar. Default value is `10`.
-Value=4              ; integer, the default value available for XNATrackbar. Default value is `0`.
-ClickSound=click.wav ; string, loads a sound with the specific file name with suffix as XNATrackbar click sound.
+[SOMETRACKBAR] ; XNATrackbar
+MinValue=0     ; integer, the minumum value available for XNATrackbar.
+MaxValue=10    ; integer, the maximum value available for XNATrackbar.
+Value=0        ; integer, the default value available for XNATrackbar.
+ClickSound=    ; string,  loads a sound with the specific file name with suffix as XNATrackbar click sound.
 ```
 
-#### [XNALabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
+#### [XNALabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNALabel.cs)
 
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMELABEL]             ; XNALabel
-RemapColor=255,255,255  ; color string, same as XNAControl's `RemapColor`.
-TextColor=255,255,255   ; color string, determine color of the text in label.
-FontIndex=0             ; integer,      the index of font loaded from font list. Default value is `0`.
-AnchorPoint=0.5,0.5     ; 2 floats,     this will set a label's text start drawing point. Default value is `0.0,0.0`
-TextShadowDistance=0.04 ; float,        the distance between text and its shadow.
-TextAnchor=TOP          ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | BOTTOM | VERTICAL_CENTER),
-                        ;               this will set a text anchor in label draw box.
+[SOMELABEL]            ; XNALabel
+RemapColor=            ; color,    same as XNAControl's `RemapColor`.
+TextColor=             ; color,    determine color of the text in label.
+FontIndex=0            ; integer,  the index of font loaded from font list.
+AnchorPoint=0.0,0.0    ; 2 floats, this will set a label's text start drawing point.
+TextShadowDistance=0.1 ; float,    the distance between text and its shadow.
+TextAnchor=            ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | BOTTOM | VERTICAL_CENTER),
+                       ;           this will set a text anchor in label draw box.
 ```
 
 #### [XNAButton](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
@@ -184,20 +182,19 @@ TextAnchor=TOP          ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | 
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMEBUTTON]                      ; XNAButton
-TextColorIdle=255,255,255         ; color string, the text color when cursor isn't above the button.
-TextColorHover=255,255,255        ; color string, the text color when cursor above the button.
-HoverSoundEffect=hover_button.wav ; string,       loads a sound with the specific file name with suffix as button hover sound.
-ClickSoundEffect=click_button.wav ; string,       loads a sound with the specific file name with suffix as button click sound.
-AdaptiveText=enable               ; boolean,      specifies how the client should change the start text drawing position 
-                                  ;               in the button to fill all the free space. Default value is `true`.
-AlphaRate=0.04                    ; float,        the button's transparency changing rate per 100 milliseconds. 
-                                  ;               If the button is transparent, it'll become non-transparent at this rate. 
-                                  ;               Default value is `0.01`.
-FontIndex=0                       ; integer,      the index of loaded from font list. Default value is `0`.
-IdleTexture=button.png            ; string,       loads a texture with the specific file name with suffix as button idle texture.
-HoverTexture=button_h.png         ; string,       loads a texture with the specific file name with suffix as button hover texture.
-TextShadowDistance=0.03           ; float,        the distance between text and its shadow.
+[SOMEBUTTON]           ; XNAButton
+TextColorIdle=         ; color,   the text color when cursor isn't above the button.
+TextColorHover=        ; color,   the text color when cursor above the button.
+HoverSoundEffect=      ; string,  loads a sound with the specific file name with suffix as button hover sound.
+ClickSoundEffect=      ; string,  loads a sound with the specific file name with suffix as button click sound.
+AdaptiveText=true      ; boolean, specifies how the client should change the start text drawing position 
+                       ;          in the button to fill all the free space. Default value is `true`.
+AlphaRate=0.01         ; float,   the button's transparency changing rate per 100 milliseconds. 
+                       ;          If the button is transparent, it'll become non-transparent at this rate. 
+FontIndex=0            ; integer, the index of loaded from font list.
+IdleTexture=           ; string,  loads a texture with the specific file name with suffix as button idle texture.
+HoverTexture=          ; string,  loads a texture with the specific file name with suffix as button hover texture.
+TextShadowDistance=0.1 ; float,   the distance between text and its shadow.
 ```
 
 #### [XNAClientButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientButton.cs)
@@ -205,10 +202,9 @@ TextShadowDistance=0.03           ; float,        the distance between text and 
 _(inherits [XNAButton](#XNAButton))_
 
 ```ini
-[SOMECLIENTBUTTON]               ; XNAClientButton
-MatchTextureSize=true            ; boolean, the button's width and height will match its texture properties. 
-                                 ;          Default value is `false`.
-ToolTip=Big and helpful tooltip. ; text, the tooltip for button.
+[SOMECLIENTBUTTON] ; XNAClientButton
+MatchTextureSize=  ; boolean, the button's width and height will match its texture properties. 
+ToolTip=           ; text,    the tooltip for button.
 ```
 
 #### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
@@ -216,10 +212,10 @@ ToolTip=Big and helpful tooltip. ; text, the tooltip for button.
 _(inherits [XNAClientButton](#XNAClientButton))_
 
 ```ini
-[SOMELINKBUTTON]               ; XNALinkButton
-URL=https://www.cncnet.org     ; `{string}` the URL-link for OS Windows.
-UnixURL=https://www.cncnet.org ; `{string}` the URL-link for Unix-like OS.
-Arguments=1 2 3 4              ; `{string}` the arguments separated with space for URL-link.
+[SOMELINKBUTTON] ; XNALinkButton
+URL=             ; string, the URL-link for OS Windows.
+UnixURL=         ; string, the URL-link for Unix-like OS.
+Arguments=       ; string, the arguments separated with space for URL-link.
 ```
 
 #### [XNACheckbox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNACheckBox.cs)
@@ -227,15 +223,14 @@ Arguments=1 2 3 4              ; `{string}` the arguments separated with space f
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMECHECKBOX]             ; XNACheckbox
-FontIndex=0                ; integer,      the index of font loaded from font list. Default value is `0`.
-IdleColor=255,255,255      ; color string, the the text color when cursor isn't above the checkbox.
-HighlightColor=255,255,255 ; color string, the text color when cursor above the checkbox.
-AlphaRate=0.1              ; float,        the checkbox's transparency changing rate per 100 milliseconds. 
-                           ;               If the checkbox is transparent, it'll become non-transparent at this rate. 
-                           ;               Default value is `0.01`.
-AllowChecking=yes          ; boolean,      the allows user to check/uncheck checkbox. Default value is `true`.
-Checked=no                 ; boolean,      the default checkbox status. Default value is `true`.
+[SOMECHECKBOX]     ; XNACheckbox
+FontIndex=0        ; integer, the index of font loaded from font list.
+IdleColor=         ; color,   the the text color when cursor isn't above the checkbox.
+HighlightColor=    ; color,   the text color when cursor above the checkbox.
+AlphaRate=0.1      ; float,   the checkbox's transparency changing rate per 100 milliseconds. 
+                   ;          If the checkbox is transparent, it'll become non-transparent at this rate. 
+AllowChecking=true ; boolean, the allows user to check/uncheck checkbox.
+Checked=true       ; boolean, the default checkbox status.
 ```
 
 #### [XNAClientCheckbox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
@@ -244,7 +239,7 @@ _(inherits [XNACheckBox](#XNACheckbox))_
 
 ```ini
 [SOMECLIENTCHECKBOX] ; XNAClientCheckbox
-ToolTip=Some Text ; text, the tooltip for checkbox.
+ToolTip=             ; text, the tooltip for checkbox.
 ```
 
 #### [XNADropDown](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNADropDown.cs)
@@ -253,21 +248,21 @@ _(inherits [XNAControl](#XNAControl))_
 
 ```ini
 [SOMEDROPDOWN]                  ; XNADropDown
-OpenUp=false                    ; boolean,      defines open/close default status.
-DropDownTexture=dd.png          ; string,       loads a texture with the specific file name with suffix as 
-                                ;               texture when dropdown closed.
-DropDownOpenTexture=dd_open.png ; string,       loads a texture with the specific file name with suffix as 
-                                ;               texture when dropdown opened.
-ItemHeight=10                   ; integer,      the height of each dropdown item in pixels.
-ClickSoundEffect=dd_click.wav   ; string,       loads a sound with the specific file name with suffix as 
-                                ;               dropdown click sound.
-FontIndex=0                     ; integer,      the index of font loaded from font list. Default value is `0`.
-BorderColor=255,255,255         ; color string, the color for dropdown's border line when it open.
-FocusColor=255,255,255          ; color string, the color for dropdown item when cursore above it.
-BackColor=255,255,255           ; color string, the background color dropdown when it open.
-DisabledItemColor=255,255,255   ; color string, the color for disabled dropdown item.
-OptionX=First                   ; string,       the text option for dropdown. `X` is an any text that helps to 
-                                ;               describe this option e.g., `Option_FirstOption`.
+OpenUp=false                    ; boolean, defines open/close default status.
+DropDownTexture=                ; string,  loads a texture with the specific file name with suffix as 
+                                ;          texture when dropdown closed.
+DropDownOpenTexture=            ; string,  loads a texture with the specific file name with suffix as 
+                                ;          texture when dropdown opened.
+ItemHeight=17                   ; integer, the height of each dropdown item in pixels.
+ClickSoundEffect=               ; string,  loads a sound with the specific file name with suffix as 
+                                ;          dropdown click sound.
+FontIndex=0                     ; integer, the index of font loaded from font list.
+BorderColor=                    ; color,   the color for dropdown's border line when it open.
+FocusColor=                     ; color,   the color for dropdown item when cursore above it.
+BackColor=                      ; color,   the background color dropdown when it open.
+DisabledItemColor=              ; color,   the color for disabled dropdown item.
+OptionX=                        ; string,  the text option for dropdown. `X` is an any text that helps to 
+                                ;          describe this option e.g., `Option_FirstOption`.
 ; Option_FirstOption=1
 ; Option_SecondOption=two
 ; Option_ThirdOption=33333
@@ -279,7 +274,7 @@ _(inherits XNADropDown)_
 
 ```ini
 [SOMECLIENTDROPDOWN] ; XNAClientDropDown
-ToolTip=Some Text    ; text, tooltip for dropdown.
+ToolTip=            ; text, tooltip for dropdown.
 ```
 
 #### [XNATabControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATabControl.cs)
@@ -287,11 +282,12 @@ ToolTip=Some Text    ; text, tooltip for dropdown.
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMETABCONTROL]              ; XNATabControl
-RemapColor=255,255,255        ; color string, the tab text color.
-TextColor=255,255,255         ; color string, the tab text color.
-TextColorDisabled=255,255,255 ; color string, the color for disabled tab.
-RemoveTabIndexN=false         ; boolean,      `N` is `integer` equivalent of tab index.
+[SOMETABCONTROL]      ; XNATabControl
+RemapColor=           ; color,   the tab text color.
+TextColor=            ; color,   the tab text color.
+TextColorDisabled=    ; color,   the color for disabled tab.
+RemoveTabIndexN=false ; boolean, `N` is `integer` equivalent of tab index.
+
 ; RemoveTabIndex0=true
 ```
 
@@ -300,8 +296,8 @@ RemoveTabIndexN=false         ; boolean,      `N` is `integer` equivalent of tab
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMETEXTBOX]        ; XNATextBox
-MaximumTextLength=10 ; integer, set maximum input string length.
+[SOMETEXTBOX]                ; XNATextBox
+MaximumTextLength=2147483647 ; integer, set maximum input string length.
 ```
 
 #### [XNASuggestionTextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNASuggestionTextBox.cs)
@@ -310,7 +306,7 @@ _(inherits [XNAControl](#XNATextBox))_
 
 ```ini
 [SOMESUGGESTIONTEXTBOX] ; XNASuggestionTextBox
-Suggestion=Type some text here... ; string, set default background text when no text has typed.
+Suggestion=             ; string, set default background text when no text has typed.
 ```
 
 ### Basic Control Property Examples
@@ -348,25 +344,22 @@ _(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
 DefaultValue=false               ; boolean, default state of the checkbox. Value of `Checked` will be used 
                                  ;          if it is set and this isn't. Otherwise defaults to `false`.
 SettingSection=CustomSettings    ; string,  name of the section in settings INI the setting is saved to. 
-                                 ;          Defaults to `CustomSettings`.
-SettingKey=Key                   ; string,  name of the key in settings INI the setting is saved to. 
+SettingKey=                      ; string,  name of the key in settings INI the setting is saved to. 
                                  ;          Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, 
                                  ;          otherwise `CONTROLNAME_Checked`.
 WriteSettingValue=true           ; boolean, enable to write a specific string value to setting INI key 
                                  ;          instead of the checked state of the checkbox. Defaults to `false`.
-EnabledSettingValue=true         ; string,  value to write to setting INI key if `WriteSettingValue` 
+EnabledSettingValue=             ; string,  value to write to setting INI key if `WriteSettingValue` 
                                  ;          is set and checkbox is checked.
-DisabledSettingValue=false       ; string,  value to write to setting INI key if `WriteSettingValue` 
+DisabledSettingValue=            ; string,  value to write to setting INI key if `WriteSettingValue` 
                                  ;          is set and checkbox is not checked.
-RestartRequired=no               ; boolean, whether or not this setting requires restarting the client to apply. 
-                                 ;          Defaults to `false`.
-ParentCheckBoxName=SomeParent    ; string,  name of a `XNAClientCheckBox` control to use as a parent checkbox 
+RestartRequired=false            ; boolean, whether or not this setting requires restarting the client to apply. 
+ParentCheckBoxName=              ; string,  name of a `XNAClientCheckBox` control to use as a parent checkbox 
                                  ;          that is required to either be checked or unchecked, depending on value 
                                  ;          of ParentCheckBoxRequiredValue for this checkbox to be enabled. 
                                  ;          Only works if name can be resolved to an existing control belonging
                                  ;          to same parent as current checkbox.
 ParentCheckBoxRequiredValue=true ; boolean, state required from the parent checkbox for this one to be enabled.
-                                 ;          Defaults to `true`.
 ```
 
 ##### [FileSettingCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/FileSettingCheckBox.cs)
@@ -374,41 +367,39 @@ ParentCheckBoxRequiredValue=true ; boolean, state required from the parent check
 _(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
 
 ```ini
-[SOMEFILESETTINGCHECKBOX]                 ; FileSettingCheckBox
-DefaultValue=false                        ; boolean, default state of the checkbox. Value of `Checked` 
-                                          ;          will be used if it is set and this isn't. Otherwise defaults to `false`.
-SettingSection=Settings                   ; string,  name of the section in settings INI the setting is saved to.
-                                          ;          Defaults to `CustomSettings`.
-SettingKey=ThisKey                        ; string,  name of the key in settings INI the setting is saved to.
-                                          ;          Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set,
-                                          ;          otherwise `CONTROLNAME_Checked`.
-RestartRequired=yes                       ; boolean, whether or not this setting requires restarting the client to apply. 
-                                          ;          Defaults to `false`.
-ParentCheckBoxName=SomeParent             ; string,  name of a `XNAClientCheckBox` control to use as a parent checkbox that 
-                                          ;          is required to either be checked or unchecked, depending on value of 
-                                          ;          `ParentCheckBoxRequiredValue` for this checkbox to be enabled. 
-                                          ;          Only works if name can be resolved to an existing control belonging
-                                          ;          to same parent as current checkbox.
-ParentCheckBoxRequiredValue=true          ; boolean, state required from the parent checkbox for this one to be enabled.
-                                          ;          Defaults to `true`.
-CheckAvailability=true                    ; boolean, if set, whether or not the checkbox can be (un)checked depends on if 
-                                          ;          the files to copy are actually present. Defaults to `false`.
-ResetUnavailableValue=no                  ; boolean, if set together with `CheckAvailability`, checkbox set to a value that 
-                                          ;          is unavailable will be reset back to `DefaultValue`. Defaults to `false`.
-EnabledFileN=a.cfg,src/q.cfg              ; comma-separated strings, 
-                                          ;          files to copy if checkbox is checked.
-                                          ;          `N` starts from 0 and is incremented by 1 until no value is found. 
-                                          ;          Expects 2-3 comma-separated strings in following format: 
-                                          ;          source path relative to game root folder, destination path 
-                                          ;          relative to game root folder and a file operation option 
-                                          ;          (see #appendix-file-operation-options).
-DisabledFileN=b.cfg,src/q.cfg,KeepChanges ; comma-separated strings, 
-                                          ;          files to copy if checkbox is not checked. 
-                                          ;          `N` starts from 0 and is incremented by 1 until no value is found. 
-                                          ;          Expects 2-3 comma-separated strings in following format: 
-                                          ;          source path relative to game root folder, destination path
-                                          ;          relative to game root folder and a file operation option 
-                                          ;          (see #appendix-file-operation-options).
+[SOMEFILESETTINGCHECKBOX]        ; FileSettingCheckBox
+DefaultValue=false               ; boolean, default state of the checkbox. Value of `Checked` 
+                                 ;          will be used if it is set and this isn't. Otherwise defaults to `false`.
+SettingSection=                  ; string,  name of the section in settings INI the setting is saved to.
+                                 ;          Defaults to `CustomSettings`.
+SettingKey=                      ; string,  name of the key in settings INI the setting is saved to.
+                                 ;          Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set,
+                                 ;          otherwise `CONTROLNAME_Checked`.
+RestartRequired=false            ; boolean, whether or not this setting requires restarting the client to apply. 
+ParentCheckBoxName=              ; string,  name of a `XNAClientCheckBox` control to use as a parent checkbox that 
+                                 ;          is required to either be checked or unchecked, depending on value of 
+                                 ;          `ParentCheckBoxRequiredValue` for this checkbox to be enabled. 
+                                 ;          Only works if name can be resolved to an existing control belonging
+                                 ;          to same parent as current checkbox.
+ParentCheckBoxRequiredValue=true ; boolean, state required from the parent checkbox for this one to be enabled.
+CheckAvailability=false          ; boolean, if set, whether or not the checkbox can be (un)checked depends on if 
+                                 ;          the files to copy are actually present.
+ResetUnavailableValue=false      ; boolean, if set together with `CheckAvailability`, checkbox set to a value that 
+                                 ;          is unavailable will be reset back to `DefaultValue`.
+EnabledFileN=                    ; comma-separated strings, 
+                                 ;          files to copy if checkbox is checked.
+                                 ;          `N` starts from 0 and is incremented by 1 until no value is found. 
+                                 ;          Expects 2-3 comma-separated strings in following format: 
+                                 ;          source path relative to game root folder, destination path 
+                                 ;          relative to game root folder and a file operation option 
+                                 ;          (see #appendix-file-operation-options).
+DisabledFileN=                   ; comma-separated strings, 
+                                 ;          files to copy if checkbox is not checked. 
+                                 ;          `N` starts from 0 and is incremented by 1 until no value is found. 
+                                 ;          Expects 2-3 comma-separated strings in following format: 
+                                 ;          source path relative to game root folder, destination path
+                                 ;          relative to game root folder and a file operation option 
+                                 ;          (see #appendix-file-operation-options).
 ```
 
 ##### [SettingDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/SettingDropDown.cs)
@@ -417,15 +408,15 @@ _(inherits [XNAClientDropDown](#XNAClientDropDown))_
 
 ```ini
 [SOMESETTINGDROPDOWN]  ; SettingDropDown
-Items=0,1,2,3,4        ; comma-separated strings,
+Items=                 ; comma-separated strings,
                        ;          comma-separated list of strings to include as items to display on the dropdown control.
-DefaultValue=0         ; integer, default item index of the dropdown. Defaults to 0 (first item).
-SettingSection=section ; string,  name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.
-SettingKey=key         ; string,  name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` 
+DefaultValue=0         ; integer, default item index of the dropdown.
+SettingSection=        ; string,  name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.
+SettingKey=            ; string,  name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` 
                        ;          if `WriteSettingValue` is set, otherwise `CONTROLNAME_SelectedIndex`.
-WriteSettingValue=true ; boolean, enable to write selected item value to the setting INI key instead of the 
-                       ;          checked state of the checkbox. Defaults to `false`.
-RestartRequired=true   ; boolean, whether or not this setting requires restarting the client to apply. Defaults to `false`.
+WriteItemValue=false   ; boolean, enable to write selected item value to the setting INI key instead of the 
+                       ;          checked state of the checkbox.
+RestartRequired=true   ; boolean, whether or not this setting requires restarting the client to apply.
 ```
 
 ##### [FileSettingDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/FileSettingDropDown.cs)
@@ -433,21 +424,23 @@ RestartRequired=true   ; boolean, whether or not this setting requires restartin
 _(inherits [XNAClientDropDown](#XNAClientDropDown))_
 
 ```ini
-[SOMEFILESETTINGDROPDOWN]  ; FileSettingDropDown
-Items=1st,2nd,3rd          ; comma-separated strings,
-                           ;          comma-separated list of strings to include as items to display on the dropdown control.
-DefaultValue=1             ; integer, default item index of the dropdown. Defaults to 0 (first item).
-SettingSection=MySection   ; string,  name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.
-SettingKey=MyKey           ; string,  name of the key in settings INI the setting is saved to. 
-                           ;          Defaults to `CONTROLNAME_SelectedIndex`.
-RestartRequired=false      ; boolean, whether or not this setting requires restarting the client to apply. Defaults to `false`.
-ItemXFileN=src/a.ini,b.ini ; comma-separated strings, 
-                           ;          files to copy when dropdown item `X` is selected. 
-                           ;          `N` starts from 0 and is incremented by 1 until no value is found. 
-                           ;          Expects 2-3 comma-separated strings in following format: 
-                           ;          source path relative to game root folder,
-                           ;          destination path relative to game root folder and a file operation option 
-                           ;          (see #appendix-file-operation-options).
+[SOMEFILESETTINGDROPDOWN]            ; FileSettingDropDown
+Items=                               ; comma-separated strings,
+                                     ;          comma-separated list of strings to include as items
+                                     ;          to display on the dropdown control.
+DefaultValue=0                       ; integer, default item index of the dropdown.
+SettingSection=CustomSettings        ; string,  name of the section in settings INI the setting is saved to.
+SettingKey=CONTROLNAME_SelectedIndex ; string,  name of the key in settings INI the setting is saved to. 
+RestartRequired=false                ; boolean, whether or not this setting requires restarting the client to apply.
+ResetUnavailableValue=false          ; boolean, determines if the client would adjust the setting value automatically
+                                     ;          if the current value becomes unavailable.
+ItemXFileN=                          ; comma-separated strings, 
+                                     ;          files to copy when dropdown item `X` is selected. 
+                                     ;          `N` starts from 0 and is incremented by 1 until no value is found. 
+                                     ;          Expects 2-3 comma-separated strings in following format: 
+                                     ;          source path relative to game root folder,
+                                     ;          destination path relative to game root folder and a file operation option 
+                                     ;          (see #appendix-file-operation-options).
 ```
 
 ##### Appendix: File Operation Options
