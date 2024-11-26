@@ -76,7 +76,7 @@ DrawOrder=0                        ; integer,    determine the layering order of
                                    ;             its parent control's list of child controls.
 UpdateOrder=0                      ; integer,    determine the layering order of the control within 
                                    ;             its parent control's list of child controls.
-RemapColor=                        ; color,      this will set a theme defined color based.
+RemapColor=255,255,255             ; color,      this will set a theme defined color based.
 ControlDrawMode=UniqueRenderTarget ; enum (UniqueRenderTarget | Normal), 
                                    ;             this will set render option to draw control on its own render 
                                    ;             target (`UniqueRenderTarget`) or to draw control on 
@@ -88,11 +88,11 @@ ControlDrawMode=UniqueRenderTarget ; enum (UniqueRenderTarget | Normal),
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMEINDICATOR] ; XNAIndicator
-FontIndex=0     ; integer, the index of font loaded from font list. Default value is `0`.
-HighlightColor= ; color,   the text color when cursor above the `XNAIndicator`.
-AlphaRate=0.1   ; float,   the indicator's transparency changing rate per 100 milliseconds. 
-                ;          If the indicator is transparent, it'll become non-transparent at this rate. 
+[SOMEINDICATOR]            ; XNAIndicator
+FontIndex=0                ; integer, the index of font loaded from font list. Default value is `0`.
+HighlightColor=255,255,255 ; color,   the text color when cursor above the `XNAIndicator`.
+AlphaRate=0.1              ; float,   the indicator's transparency changing rate per 100 milliseconds. 
+                           ;          If the indicator is transparent, it'll become non-transparent at this rate. 
 ```
 
 #### [XNAPanel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAPanel.cs)
@@ -101,7 +101,7 @@ _(inherits [XNAControl](#XNAControl))_
 
 ```ini
 [SOMEPANEL]                  ; XNAPanel
-BorderColor=                 ; color,      this will set a border color based.
+BorderColor=196,196,196      ; color,      this will set a border color based.
 AlphaRate=0.01               ; float,      the panel's transparency changing rate per 100 milliseconds.
                              ;             If the panel is transparent, it'll become non-transparent at this rate.
 BackgroundTexture=           ; string,     loads a texture with the specific file name with suffix.
@@ -131,8 +131,8 @@ BackgroundTexture= ; string, same as XNAControl's `BackgroundTexture`.
 _(inherits [XNAPanel](#XNAPanel))_
 
 ```ini
-[SOMETEXTBLOCK] ; XNATextBlock
-TextColor=      ; color, defines text color for text block.
+[SOMETEXTBLOCK]       ; XNATextBlock
+TextColor=196,196,196 ; color, defines text color for text block.
 ```
 
 #### [XNAMultiColumnListBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAMultiColumnListBox.cs)
@@ -168,8 +168,8 @@ _(inherits [XNAControl](#XNAControl))_
 
 ```ini
 [SOMELABEL]            ; XNALabel
-RemapColor=            ; color,    same as XNAControl's `RemapColor`.
-TextColor=             ; color,    determine color of the text in label.
+RemapColor=255,255,255 ; color,    same as XNAControl's `RemapColor`.
+TextColor=196,196,196  ; color,    determine color of the text in label.
 FontIndex=0            ; integer,  the index of font loaded from font list.
 AnchorPoint=0.0,0.0    ; 2 floats, this will set a label's text start drawing point.
 TextShadowDistance=0.1 ; float,    the distance between text and its shadow.
@@ -182,19 +182,19 @@ TextAnchor=            ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | B
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMEBUTTON]           ; XNAButton
-TextColorIdle=         ; color,   the text color when cursor isn't above the button.
-TextColorHover=        ; color,   the text color when cursor above the button.
-HoverSoundEffect=      ; string,  loads a sound with the specific file name with suffix as button hover sound.
-ClickSoundEffect=      ; string,  loads a sound with the specific file name with suffix as button click sound.
-AdaptiveText=true      ; boolean, specifies how the client should change the start text drawing position 
-                       ;          in the button to fill all the free space. Default value is `true`.
-AlphaRate=0.01         ; float,   the button's transparency changing rate per 100 milliseconds. 
-                       ;          If the button is transparent, it'll become non-transparent at this rate. 
-FontIndex=0            ; integer, the index of loaded from font list.
-IdleTexture=           ; string,  loads a texture with the specific file name with suffix as button idle texture.
-HoverTexture=          ; string,  loads a texture with the specific file name with suffix as button hover texture.
-TextShadowDistance=0.1 ; float,   the distance between text and its shadow.
+[SOMEBUTTON]               ; XNAButton
+TextColorIdle=255,255,255  ; color,   the text color when cursor isn't above the button.
+TextColorHover=255,255,255 ; color,   the text color when cursor above the button.
+HoverSoundEffect=          ; string,  loads a sound with the specific file name with suffix as button hover sound.
+ClickSoundEffect=          ; string,  loads a sound with the specific file name with suffix as button click sound.
+AdaptiveText=true          ; boolean, specifies how the client should change the start text drawing position 
+                           ;          in the button to fill all the free space. Default value is `true`.
+AlphaRate=0.01             ; float,   the button's transparency changing rate per 100 milliseconds. 
+                           ;          If the button is transparent, it'll become non-transparent at this rate. 
+FontIndex=0                ; integer, the index of loaded from font list.
+IdleTexture=               ; string,  loads a texture with the specific file name with suffix as button idle texture.
+HoverTexture=              ; string,  loads a texture with the specific file name with suffix as button hover texture.
+TextShadowDistance=0.1     ; float,   the distance between text and its shadow.
 ```
 
 #### [XNAClientButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientButton.cs)
@@ -223,14 +223,14 @@ Arguments=       ; string, the arguments separated with space for URL-link.
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMECHECKBOX]     ; XNACheckbox
-FontIndex=0        ; integer, the index of font loaded from font list.
-IdleColor=         ; color,   the the text color when cursor isn't above the checkbox.
-HighlightColor=    ; color,   the text color when cursor above the checkbox.
-AlphaRate=0.1      ; float,   the checkbox's transparency changing rate per 100 milliseconds. 
-                   ;          If the checkbox is transparent, it'll become non-transparent at this rate. 
-AllowChecking=true ; boolean, the allows user to check/uncheck checkbox.
-Checked=true       ; boolean, the default checkbox status.
+[SOMECHECKBOX]             ; XNACheckbox
+FontIndex=0                ; integer, the index of font loaded from font list.
+IdleColor=196,196,196      ; color,   the the text color when cursor isn't above the checkbox.
+HighlightColor=255,255,255 ; color,   the text color when cursor above the checkbox.
+AlphaRate=0.1              ; float,   the checkbox's transparency changing rate per 100 milliseconds. 
+                           ;          If the checkbox is transparent, it'll become non-transparent at this rate. 
+AllowChecking=true         ; boolean, the allows user to check/uncheck checkbox.
+Checked=true               ; boolean, the default checkbox status.
 ```
 
 #### [XNAClientCheckbox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
@@ -257,10 +257,10 @@ ItemHeight=17                   ; integer, the height of each dropdown item in p
 ClickSoundEffect=               ; string,  loads a sound with the specific file name with suffix as 
                                 ;          dropdown click sound.
 FontIndex=0                     ; integer, the index of font loaded from font list.
-BorderColor=                    ; color,   the color for dropdown's border line when it open.
-FocusColor=                     ; color,   the color for dropdown item when cursore above it.
-BackColor=                      ; color,   the background color dropdown when it open.
-DisabledItemColor=              ; color,   the color for disabled dropdown item.
+BorderColor=196,196,196         ; color,   the color for dropdown's border line when it open.
+FocusColor=64,64,64             ; color,   the color for dropdown item when cursore above it.
+BackColor=0,0,0                 ; color,   the background color dropdown when it open.
+DisabledItemColor=169,169,169   ; color,   the color for disabled dropdown item.
 OptionX=                        ; string,  the text option for dropdown. `X` is an any text that helps to 
                                 ;          describe this option e.g., `Option_FirstOption`.
 ; Option_FirstOption=1
@@ -282,11 +282,11 @@ ToolTip=            ; text, tooltip for dropdown.
 _(inherits [XNAControl](#XNAControl))_
 
 ```ini
-[SOMETABCONTROL]      ; XNATabControl
-RemapColor=           ; color,   the tab text color.
-TextColor=            ; color,   the tab text color.
-TextColorDisabled=    ; color,   the color for disabled tab.
-RemoveTabIndexN=false ; boolean, `N` is `integer` equivalent of tab index.
+[SOMETABCONTROL]              ; XNATabControl
+RemapColor=255,255,255        ; color,   the tab text color.
+TextColor=255,255,255         ; color,   the tab text color.
+TextColorDisabled=169,169,169 ; color,   the color for disabled tab.
+RemoveTabIndexN=false         ; boolean, `N` is `integer` equivalent of tab index.
 
 ; RemoveTabIndex0=true
 ```
