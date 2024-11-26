@@ -10,10 +10,13 @@ The `[ParserConstants]` section of the `GlobalThemeSettings.ini` file contains c
 `RESOLUTION_HEIGHT`: the height of the window when it is initialized  
 
 ### User Defined Constants
+
 ```ini
 MY_EXAMPLE_CONSTANT=15
 ```
+
 The above user-defined or system constants can be used elsewhere as:
+
 ```ini
 [MyExampleControl]
 $X=MY_EXAMPLE_CONSTANT
@@ -21,6 +24,7 @@ $X=MY_EXAMPLE_CONSTANT
 _NOTE: Constants can only be used in [dynamic control properties](#dynamic-control-properties)_
 
 ### Data Types
+
 - The `text` use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
 - The `color` use string form `R,G,B` or `R,G,B,A`. All values must be between `0` and `255`. Example: `255,255,255`, `255,255,255,255`.
 - The `boolean` string value parses as `true` if it contains one of these symbol as first character: `t`, `y`, `1`, `a`, `e`; and if first symbol is `n`, `f`, `0`, then it parses as `false`. 
@@ -31,9 +35,11 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 <!-- - The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces e.g., `0,0` or `0.0,0.0` respectively. -->
 
 ## Control properties
+
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
 
 ### Basic Control Properties
+
 Basic control properties cannot use constants.
 > [!WARNING]
 > Do not copy-paste ini-code below without edits because it won't work! It shows only how to work with properties.
@@ -44,7 +50,9 @@ Basic control properties cannot use constants.
 > - and many others.
 
 #### [XNAControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAControl.cs)
+
 - Basic class inherited by any other control element.
+
 ```ini
 [SOMECONTROL]              ; XNAControl
 X=0                        ; integer,      the X location of the control.
@@ -76,7 +84,9 @@ ControlDrawMode=Normal     ; enum (UniqueRenderTarget | Normal),
 ```
 
 #### [XNAIndicator](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAIndicator.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMEINDICATOR]            ; XNAIndicator
 FontIndex=0                ; integer,      the index of font loaded from font list. Default value is `0`.
@@ -87,7 +97,9 @@ AlphaRate=0.02             ; float,        the indicator's transparency changing
 ```
 
 #### [XNAPanel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAPanel.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMEPANEL]                             ; XNAPanel
 BorderColor=255,255,255                 ; color string, this will set a border color based.
@@ -108,21 +120,27 @@ DrawMode=Centered                       ; enum (Tiled | Centered | Stretched), t
 ```
 
 #### [XNAExtraPanel](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAExtraPanel.cs)
+
 _(inherits [XNAPanel](#XNAPanel))_
+
 ```ini
 [SOMEEXTRAPANEL]           ; XNAExtraPanel
 BackgroundTexture=back.png ; string, same as XNAControl's `BackgroundTexture`.
 ```
 
 #### [XNATextBlock](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATextBlock.cs)
+
 _(inherits [XNAPanel](#XNAPanel))_
+
 ```ini
 [SOMETEXTBLOCK]       ; XNATextBlock
 TextColor=255,255,255 ; color string, defines text color for text block.
 ```
 
 #### [XNAMultiColumnListBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAMultiColumnListBox.cs)
+
 _(inherits [XNAPanel](#XNAPanel))_
+
 ```ini
 [SOMEMULTICOLUMBLISTBOX]         ; XNAMultiColumnListBox
 FontIndex=0                      ; integer,        the index of font loaded from font list. Default value is `0`.
@@ -135,7 +153,9 @@ ListBoxYAttribute:Attrname=Value ; string,         allows setting list box attri
 ```
 
 #### [XNATrackbar](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATrackbar.cs)
+
 _(inherits [XNAPanel](#XNAPanel))_
+
 ```ini
 [SOMETRACKBAR]       ; XNATrackbar
 MinValue=1           ; integer, the minumum value available for XNATrackbar. Default value is `0`.
@@ -145,7 +165,9 @@ ClickSound=click.wav ; string, loads a sound with the specific file name with su
 ```
 
 #### [XNALabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMELABEL]             ; XNALabel
 RemapColor=255,255,255  ; color string, same as XNAControl's `RemapColor`.
@@ -158,7 +180,9 @@ TextAnchor=TOP          ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | 
 ```
 
 #### [XNAButton](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMEBUTTON]                      ; XNAButton
 TextColorIdle=255,255,255         ; color string, the text color when cursor isn't above the button.
@@ -177,7 +201,9 @@ TextShadowDistance=0.03           ; float,        the distance between text and 
 ```
 
 #### [XNAClientButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientButton.cs)
+
 _(inherits [XNAButton](#XNAButton))_
+
 ```ini
 [SOMECLIENTBUTTON]               ; XNAClientButton
 MatchTextureSize=true            ; boolean, the button's width and height will match its texture properties. 
@@ -186,7 +212,9 @@ ToolTip=Big and helpful tooltip. ; text, the tooltip for button.
 ```
 
 #### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
+
 _(inherits [XNAClientButton](#XNAClientButton))_
+
 ```ini
 [SOMELINKBUTTON]               ; XNALinkButton
 URL=https://www.cncnet.org     ; `{string}` the URL-link for OS Windows.
@@ -195,7 +223,9 @@ Arguments=1 2 3 4              ; `{string}` the arguments separated with space f
 ```
 
 #### [XNACheckbox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNACheckBox.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMECHECKBOX]             ; XNACheckbox
 FontIndex=0                ; integer,      the index of font loaded from font list. Default value is `0`.
@@ -209,14 +239,18 @@ Checked=no                 ; boolean,      the default checkbox status. Default 
 ```
 
 #### [XNAClientCheckbox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
+
 _(inherits [XNACheckBox](#XNACheckbox))_
+
 ```ini
 [SOMECLIENTCHECKBOX] ; XNAClientCheckbox
 ToolTip=Some Text ; text, the tooltip for checkbox.
 ```
 
 #### [XNADropDown](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNADropDown.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMEDROPDOWN]                  ; XNADropDown
 OpenUp=false                    ; boolean,      defines open/close default status.
@@ -240,14 +274,18 @@ OptionX=First                   ; string,       the text option for dropdown. `X
 ```
 
 #### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
+
 _(inherits XNADropDown)_
+
 ```ini
 [SOMECLIENTDROPDOWN] ; XNAClientDropDown
 ToolTip=Some Text    ; text, tooltip for dropdown.
 ```
 
 #### [XNATabControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATabControl.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMETABCONTROL]              ; XNATabControl
 RemapColor=255,255,255        ; color string, the tab text color.
@@ -258,20 +296,25 @@ RemoveTabIndexN=false         ; boolean,      `N` is `integer` equivalent of tab
 ```
 
 #### [XNATextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATextBox.cs)
+
 _(inherits [XNAControl](#XNAControl))_
+
 ```ini
 [SOMETEXTBOX]        ; XNATextBox
 MaximumTextLength=10 ; integer, set maximum input string length.
 ```
 
 #### [XNASuggestionTextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNASuggestionTextBox.cs)
+
 _(inherits [XNAControl](#XNATextBox))_
+
 ```ini
 [SOMESUGGESTIONTEXTBOX] ; XNASuggestionTextBox
 Suggestion=Type some text here... ; string, set default background text when no text has typed.
 ```
 
 ### Basic Control Property Examples
+
 ```ini
 [lblExample]
 X=100
@@ -289,13 +332,17 @@ FillHeight=10
 ```
 
 ### Special Controls & Their Properties
+
 Some controls are only available under specific circumstances.
 
 #### XNAOptionsPanel Controls
+
 Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
 
 ##### [SettingCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/SettingCheckBox.cs)
+
 _(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
+
 ```ini
 [SOMESETTINGCHECKBOX]            ; SettingCheckBox
 DefaultValue=false               ; boolean, default state of the checkbox. Value of `Checked` will be used 
@@ -323,7 +370,9 @@ ParentCheckBoxRequiredValue=true ; boolean, state required from the parent check
 ```
 
 ##### [FileSettingCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/FileSettingCheckBox.cs)
+
 _(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
+
 ```ini
 [SOMEFILESETTINGCHECKBOX]                 ; FileSettingCheckBox
 DefaultValue=false                        ; boolean, default state of the checkbox. Value of `Checked` 
@@ -363,7 +412,9 @@ DisabledFileN=b.cfg,src/q.cfg,KeepChanges ; comma-separated strings,
 ```
 
 ##### [SettingDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/SettingDropDown.cs)
+
 _(inherits [XNAClientDropDown](#XNAClientDropDown))_
+
 ```ini
 [SOMESETTINGDROPDOWN]  ; SettingDropDown
 Items=0,1,2,3,4        ; comma-separated strings,
@@ -378,7 +429,9 @@ RestartRequired=true   ; boolean, whether or not this setting requires restartin
 ```
 
 ##### [FileSettingDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DTAConfig/Settings/FileSettingDropDown.cs)
+
 _(inherits [XNAClientDropDown](#XNAClientDropDown))_
+
 ```ini
 [SOMEFILESETTINGDROPDOWN]  ; FileSettingDropDown
 Items=1st,2nd,3rd          ; comma-separated strings,
@@ -398,6 +451,7 @@ ItemXFileN=src/a.ini,b.ini ; comma-separated strings,
 ```
 
 ##### Appendix: File Operation Options
+
 Valid file operation options available for files defined for `FileSettingCheckBox` and `FileSettingDropDown` are as follows:
 
 - `AlwaysOverwrite`: Always overwrites the destination file with source file.
@@ -406,6 +460,7 @@ Valid file operation options available for files defined for `FileSettingCheckBo
 - `KeepChanges`: Carries over the destination file with any changes manually made to by caching the file if deleted by disabling the option and then re-enabling it.
 
 ### Dynamic Control Properties
+
 Dynamic Control Properties CAN use constants.
 
 These can ONLY be used in parent controls that inherit the `INItializableWindow` class.
@@ -420,6 +475,7 @@ $TextAnchor=LEFT ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | BOTTOM 
 ```
 
 ### Dynamic Control Property Examples
+
 ```ini
 [lblExample]
 $X=100
