@@ -567,9 +567,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             {
                 string developBuildWarningMessage = "This is a development build of the client. Stability and reliability may not be fully guaranteed.".L10N("Client:Main:DevelopmentBuildWarning");
+
 #if DEVELOPMENT_BUILD
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Red, Renderer.GetSafeString(
-                        developBuildWarningMessage, lbChatMessages.FontIndex)));
+                if (ClientConfiguration.Instance.ShowDevelopmentBuildWarnings)
+                {
+                    connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Red, Renderer.GetSafeString(
+                            developBuildWarningMessage, lbChatMessages.FontIndex)));
+                }
 #endif
             }
 
