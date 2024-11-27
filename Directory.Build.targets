@@ -7,7 +7,7 @@
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
     </PropertyGroup>
-    <Warning Text="This is a development build. Stability and reliability may not be fully guaranteed." Condition="'$(BuildingInsideVisualStudio)' != 'true'"></Warning>
+    <Warning Text="This is a development build of the client. Stability and reliability may not be fully guaranteed." Condition="'$(BuildingInsideVisualStudio)' != 'true'"></Warning>
   </Target>
 
   <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">

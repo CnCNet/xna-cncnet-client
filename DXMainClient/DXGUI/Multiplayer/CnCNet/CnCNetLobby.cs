@@ -566,7 +566,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     lbChatMessages.FontIndex)));
 
             {
-                string developBuildWarningMessage = "This is a development build. Stability and reliability may not be fully guaranteed.".L10N("Client:Main:DevelopmentBuildWarning");
+                string developBuildWarningMessage = "This is a development build of the client. Stability and reliability may not be fully guaranteed.".L10N("Client:Main:DevelopmentBuildWarning");
 #if DEVELOPMENT_BUILD
                 connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Red, Renderer.GetSafeString(
                         developBuildWarningMessage, lbChatMessages.FontIndex)));

@@ -100,7 +100,7 @@ namespace DTAClient
             Logger.Log(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
 
 #if DEVELOPMENT_BUILD
-            Logger.Log("This is a development build. Stability and reliability may not be fully guaranteed.");
+            Logger.Log("This is a development build of the client. Stability and reliability may not be fully guaranteed.");
 #endif
 
             // Log information about given startup params
