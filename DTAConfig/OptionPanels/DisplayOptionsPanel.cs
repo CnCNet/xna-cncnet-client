@@ -42,6 +42,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkBackBufferInVRAM;
         private XNAClientPreferredItemDropDown ddClientResolution;
         private XNAClientCheckBox chkBorderlessClient;
+        private XNAClientCheckBox chkIntegerScaledClient;
         private XNAClientDropDown ddClientTheme;
         private XNAClientDropDown ddTranslation;
 
@@ -224,18 +225,27 @@ namespace DTAConfig.OptionPanels
             chkBorderlessClient.CheckedChanged += ChkBorderlessMenu_CheckedChanged;
             chkBorderlessClient.Checked = true;
 
+            chkIntegerScaledClient = new XNAClientCheckBox(WindowManager);
+            chkIntegerScaledClient.Name = nameof(chkIntegerScaledClient);
+            chkIntegerScaledClient.ClientRectangle = new Rectangle(
+                lblClientResolution.X,
+                lblRenderer.Y, 0, 0);
+            chkIntegerScaledClient.Text = "Integer Scaled Client".L10N("Client:DTAConfig:IntegerScaledClient");
+            chkIntegerScaledClient.CheckedChanged += ChkIntegerScaling_CheckedChanged;
+            chkIntegerScaledClient.Checked = IniSettings.IntegerScaledClient.Value;
+
             var lblClientTheme = new XNALabel(WindowManager);
             lblClientTheme.Name = "lblClientTheme";
             lblClientTheme.ClientRectangle = new Rectangle(
                 lblClientResolution.X,
-                lblRenderer.Y, 0, 0);
+                chkWindowedMode.Y, 0, 0);
             lblClientTheme.Text = "Client Theme:".L10N("Client:DTAConfig:ClientTheme");
 
             ddClientTheme = new XNAClientDropDown(WindowManager);
             ddClientTheme.Name = "ddClientTheme";
             ddClientTheme.ClientRectangle = new Rectangle(
                 ddClientResolution.X,
-                ddRenderer.Y,
+                chkWindowedMode.Y,
                 ddClientResolution.Width,
                 ddRenderer.Height);
 
@@ -326,6 +336,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
             AddChild(chkBorderlessClient);
+            AddChild(chkIntegerScaledClient);
             AddChild(lblClientTheme);
             AddChild(ddClientTheme);
             AddChild(lblTranslation);
@@ -584,6 +595,16 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+        private void ChkIntegerScaling_CheckedChanged(object sender, EventArgs e) 
+        {
+            if (chkIntegerScaledClient.Checked)
+            {
+            }
+            else
+            {
+            }
+        }
+
         private void ChkWindowedMode_CheckedChanged(object sender, EventArgs e)
         {
             if (chkWindowedMode.Checked)
@@ -777,6 +798,11 @@ namespace DTAConfig.OptionPanels
                 restartRequired = true;
 
             IniSettings.BorderlessWindowedClient.Value = chkBorderlessClient.Checked;
+
+            if (IniSettings.IntegerScaledClient.Value != chkIntegerScaledClient.Checked)
+                restartRequired = true;
+
+            IniSettings.IntegerScaledClient.Value = chkIntegerScaledClient.Checked;
 
             restartRequired = restartRequired || IniSettings.ClientTheme != (string)ddClientTheme.SelectedItem.Tag;
 
