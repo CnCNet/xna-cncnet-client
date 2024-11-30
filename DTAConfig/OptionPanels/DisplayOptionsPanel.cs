@@ -231,7 +231,6 @@ namespace DTAConfig.OptionPanels
                 lblClientResolution.X,
                 lblRenderer.Y, 0, 0);
             chkIntegerScaledClient.Text = "Integer Scaled Client".L10N("Client:DTAConfig:IntegerScaledClient");
-            chkIntegerScaledClient.CheckedChanged += ChkIntegerScaling_CheckedChanged;
             chkIntegerScaledClient.Checked = IniSettings.IntegerScaledClient.Value;
 
             var lblClientTheme = new XNALabel(WindowManager);
@@ -592,16 +591,6 @@ namespace DTAConfig.OptionPanels
                     int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[^1];
                     ddClientResolution.SelectedIndex = optimalWindowedResIndex;
                 }
-            }
-        }
-
-        private void ChkIntegerScaling_CheckedChanged(object sender, EventArgs e) 
-        {
-            if (chkIntegerScaledClient.Checked)
-            {
-            }
-            else
-            {
             }
         }
 
