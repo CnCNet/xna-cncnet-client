@@ -207,6 +207,17 @@ MatchTextureSize=  ; boolean, the button's width and height will match its textu
 ToolTip=           ; text,    the tooltip for button.
 ```
 
+#### [XNAClientToggleButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientToggleButton.cs)
+
+_(inherits [XNAButton](#XNAButton))_
+
+```ini
+[SOMECLIENTTOGGLEBUTTON] ; XNAClientToggleButton
+CheckedTexture=          ; string, loads a texture with the specific file name with suffix as toggle button checked texture.
+UncheckedTexture=        ; string, loads a texture with the specific file name with suffix as toggle button unchecked texture.
+ToolTip=                 ; text, the tooltip for toggle button.
+```
+
 #### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
 
 _(inherits [XNAClientButton](#XNAClientButton))_
