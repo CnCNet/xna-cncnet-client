@@ -213,9 +213,9 @@ _(inherits [XNAButton](#XNAButton))_
 
 ```ini
 [SOMECLIENTTOGGLEBUTTON] ; XNAClientToggleButton
-CheckedTexture=   ; string, loads a texture with the specific file name with suffix as toggle button checked texture.
-UncheckedTexture= ; string, loads a texture with the specific file name with suffix as toggle button unchecked texture.
-ToolTip=          ; text, the tooltip for toggle button.
+CheckedTexture=          ; string, loads a texture with the specific file name with suffix as toggle button checked texture.
+UncheckedTexture=        ; string, loads a texture with the specific file name with suffix as toggle button unchecked texture.
+ToolTip=                 ; text, the tooltip for toggle button.
 ```
 
 #### [XNALinkButton](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNALinkButton.cs)
