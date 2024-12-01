@@ -48,7 +48,7 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 
             // Enable HiDef on a large monitor.
-            if (!ScreenResolution.HiDefLimitResolution.Fit(ScreenResolution.DesktopResolution))
+            if (!ScreenResolution.HiDefLimitResolution.Fits(ScreenResolution.DesktopResolution))
             {
                 // Enabling HiDef profile drops legacy GPUs not supporting DirectX 10.
                 // In practice, it's recommended to have a DirectX 11 capable GPU.
@@ -153,10 +153,37 @@ namespace DTAClient.DXGUI
             };
 
             SetGraphicsMode(wm);
-#if WINFORMS
 
+#if WINFORMS
             wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
             wm.SetControlBox(true);
+
+            // Enable resizable window for non-borderless windowed client, if integer scaling is enabled
+            if (!UserINISettings.Instance.BorderlessWindowedClient && UserINISettings.Instance.IntegerScaledClient)
+            {
+                wm.SetFormBorderStyle(FormBorderStyle.Sizable);
+                wm.SetMaximizeBox(true);
+
+                //// Automatically update render resolution when the window size changes
+                //// Disabled for now. It does not work as expected.
+                //// To fix this, we need to make every window and control to be able to handle window size changes.
+                //// This is not a trivial work and does not gain much benefit since the minimum render resolution and the maximum one are close.
+                //// Example: https://github.com/Rampastring/WorldAlteringEditor/blob/71d9bd0ed9b9843d5dc15de14005f86b18e5465c/src/TSMapEditor/UI/Controls/INItializableWindow.cs#L98
+
+                //ScreenResolution lastWindowSizeCaptured = new(wm.Game.Window.ClientBounds);
+
+                //wm.WindowSizeChangedByUser += (sender, e) =>
+                //{
+                //    ScreenResolution currentWindowSize = new(wm.Game.Window.ClientBounds);
+
+                //    if (currentWindowSize != lastWindowSizeCaptured)
+                //    {
+                //        Logger.Log($"Window size changed from {lastWindowSizeCaptured} to {currentWindowSize}.");
+                //        lastWindowSizeCaptured = currentWindowSize;
+                //        SetGraphicsMode(wm, currentWindowSize.Width, currentWindowSize.Height, centerOnScreen: false);
+                //    }
+                //};
+            }
 #endif
 
             wm.Cursor.Textures = new Texture2D[]
@@ -311,14 +338,32 @@ namespace DTAClient.DXGUI
         /// TODO move to some helper class?
         /// </summary>
         /// <param name="wm">The window manager</param>
-        public static void SetGraphicsMode(WindowManager wm)
+        /// <param name="centerOnScreen">Whether to center the client window on the screen</param>
+        public static void SetGraphicsMode(WindowManager wm, bool centerOnScreen = true)
         {
-            var clientConfiguration = ClientConfiguration.Instance;
-
             int windowWidth = UserINISettings.Instance.ClientResolutionX;
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
+            SetGraphicsMode(wm, windowWidth, windowHeight, centerOnScreen);
+        }
+
+        /// <inheritdoc cref="SetGraphicsMode(WindowManager, bool)"/>
+        /// <param name="windowWidth">The viewport width</param>
+        /// <param name="windowHeight">The viewport height</param>
+        public static void SetGraphicsMode(WindowManager wm, int windowWidth, int windowHeight, bool centerOnScreen = true)
+        {
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+            bool integerScale = UserINISettings.Instance.IntegerScaledClient;
+
+            SetGraphicsMode(wm, windowWidth, windowHeight, borderlessWindowedClient, integerScale, centerOnScreen);
+        }
+
+        /// <inheritdoc cref="SetGraphicsMode(WindowManager, int, int, bool)"/>
+        /// <param name="borderlessWindowedClient">Whether to use borderless windowed mode</param>
+        /// <param name="integerScale">Whether to use integer scaling</param>
+        public static void SetGraphicsMode(WindowManager wm, int windowWidth, int windowHeight, bool borderlessWindowedClient, bool integerScale, bool centerOnScreen = true)
+        {
+            var clientConfiguration = ClientConfiguration.Instance;
 
             (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
 
@@ -338,53 +383,95 @@ namespace DTAClient.DXGUI
             int renderResolutionX = 0;
             int renderResolutionY = 0;
 
-            int initialXRes = Math.Max(windowWidth, clientConfiguration.MinimumRenderWidth);
-            initialXRes = Math.Min(initialXRes, clientConfiguration.MaximumRenderWidth);
-
-            int initialYRes = Math.Max(windowHeight, clientConfiguration.MinimumRenderHeight);
-            initialYRes = Math.Min(initialYRes, clientConfiguration.MaximumRenderHeight);
-
-            double xRatio = (windowWidth) / (double)initialXRes;
-            double yRatio = (windowHeight) / (double)initialYRes;
-
-            double ratio = xRatio > yRatio ? yRatio : xRatio;
-
-            if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
+            if (!integerScale || windowWidth < clientConfiguration.MinimumRenderWidth || windowHeight < clientConfiguration.MinimumRenderHeight)
             {
-                renderResolutionX = windowWidth;
-                renderResolutionY = windowHeight;
-            }
+                int initialXRes = Math.Max(windowWidth, clientConfiguration.MinimumRenderWidth);
+                initialXRes = Math.Min(initialXRes, clientConfiguration.MaximumRenderWidth);
 
-            if (ratio > 1.0)
-            {
-                // Check whether we could sharp-scale our client window
-                for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
+                int initialYRes = Math.Max(windowHeight, clientConfiguration.MinimumRenderHeight);
+                initialYRes = Math.Min(initialYRes, clientConfiguration.MaximumRenderHeight);
+
+                double xRatio = (windowWidth) / (double)initialXRes;
+                double yRatio = (windowHeight) / (double)initialYRes;
+
+                double ratio = xRatio > yRatio ? yRatio : xRatio;
+
+                // Special rule for 1360x768 and 1366x768                
+                if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
                 {
-                    int sharpScaleRenderResX = windowWidth / i;
-                    int sharpScaleRenderResY = windowHeight / i;
+                    // Most client interface has been designed for 1280x720 or 1280x800.
+                    // 1280x720 upscaled to 1366x768 doesn't look great, so we allow players with 1366x768 to use their native resolution with small black bars on the sides
+                    // This behavior is enforced even if IntegerScaledClient is turned off.
+                    renderResolutionX = windowWidth;
+                    renderResolutionY = windowHeight;
+                }
 
-                    if (sharpScaleRenderResX >= clientConfiguration.MinimumRenderWidth &&
-                        sharpScaleRenderResX <= clientConfiguration.MaximumRenderWidth &&
-                        sharpScaleRenderResY >= clientConfiguration.MinimumRenderHeight &&
-                        sharpScaleRenderResY <= clientConfiguration.MaximumRenderHeight)
+                // Special rule: if 1280x720 is a valid render resolution, we allow 1.5x scaling for 1920x1080.
+                if (windowWidth == 1920 && windowHeight == 1080
+                    && 1280 >= clientConfiguration.MinimumRenderWidth && 1280 <= clientConfiguration.MaximumRenderWidth
+                    && 720 >= clientConfiguration.MinimumRenderHeight && 720 <= clientConfiguration.MaximumRenderHeight)
+                {
+                    renderResolutionX = 1280;
+                    renderResolutionY = 720;
+                }
+
+                // Special rule: if 1280x800 is a valid render resolution, we allow 1.5x scaling for 1920x1200.
+                if (windowWidth == 1920 && windowHeight == 1200
+                    && 1280 >= clientConfiguration.MinimumRenderWidth && 1280 <= clientConfiguration.MaximumRenderWidth
+                    && 800 >= clientConfiguration.MinimumRenderHeight && 800 <= clientConfiguration.MaximumRenderHeight)
+                {
+                    renderResolutionX = 1280;
+                    renderResolutionY = 800;
+                }
+
+                // Check whether we could integer-scale our client window
+                if (ratio > 1.0)
+                {
+                    for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
                     {
-                        renderResolutionX = sharpScaleRenderResX;
-                        renderResolutionY = sharpScaleRenderResY;
-                        break;
+                        int sharpScaleRenderResX = windowWidth / i;
+                        int sharpScaleRenderResY = windowHeight / i;
+
+                        if (sharpScaleRenderResX >= clientConfiguration.MinimumRenderWidth &&
+                            sharpScaleRenderResX <= clientConfiguration.MaximumRenderWidth &&
+                            sharpScaleRenderResY >= clientConfiguration.MinimumRenderHeight &&
+                            sharpScaleRenderResY <= clientConfiguration.MaximumRenderHeight)
+                        {
+                            renderResolutionX = sharpScaleRenderResX;
+                            renderResolutionY = sharpScaleRenderResY;
+                            break;
+                        }
                     }
                 }
+
+                // No special rules are triggered. Just zoom the client to the window size with minimal black bars.
+                if (renderResolutionX == 0 || renderResolutionY == 0)
+                {
+                    renderResolutionX = initialXRes;
+                    renderResolutionY = initialYRes;
+
+                    if (ratio == xRatio)
+                        renderResolutionY = (int)(windowHeight / ratio);
+                }
             }
-
-            if (renderResolutionX == 0 || renderResolutionY == 0)
+            else
             {
-                renderResolutionX = initialXRes;
-                renderResolutionY = initialYRes;
+                // Compute integer scale ratio using minimum render resolution
+                // Note: this means we prefer larger scale ratio than render resolution.
+                // This policy works best when maximum and minimum render resolution are close.
+                int xScale = windowWidth / clientConfiguration.MinimumRenderWidth;
+                int yScale = windowHeight / clientConfiguration.MinimumRenderHeight;
+                int scale = Math.Min(xScale, yScale);
 
-                if (ratio == xRatio)
-                    renderResolutionY = (int)(windowHeight / ratio);
+                // Compute render resolution
+                renderResolutionX = Math.Min(clientConfiguration.MaximumRenderWidth,
+                    clientConfiguration.MinimumRenderWidth + (windowWidth - clientConfiguration.MinimumRenderWidth * scale) / scale);
+                renderResolutionY = Math.Min(clientConfiguration.MaximumRenderHeight,
+                    clientConfiguration.MinimumRenderHeight + (windowHeight - clientConfiguration.MinimumRenderHeight * scale) / scale);
             }
 
             wm.SetBorderlessMode(borderlessWindowedClient);
+
 #if !XNA
 
             if (borderlessWindowedClient)
@@ -404,7 +491,11 @@ namespace DTAClient.DXGUI
             }
 
 #endif
-            wm.CenterOnScreen();
+            if (centerOnScreen)
+                wm.CenterOnScreen();
+
+            Logger.Log("Setting render resolution to " + renderResolutionX + "x" + renderResolutionY + ". Integer scaling: " + integerScale);
+            wm.IntegerScalingOnly = integerScale;
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }

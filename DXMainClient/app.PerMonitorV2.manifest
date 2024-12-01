@@ -54,6 +54,7 @@
       <!-- See https://docs.microsoft.com/en-us/windows/win32/sbscs/application-manifests -->
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+
       <!-- Makes the application long-path aware. See https://docs.microsoft.com/windows/win32/fileio/maximum-file-path-limitation -->
       <!-- <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware> -->
     </windowsSettings>
@@ -73,4 +74,3 @@
     </dependentAssembly>
   </dependency>
 </assembly>
-

@@ -42,6 +42,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkBackBufferInVRAM;
         private XNAClientPreferredItemDropDown ddClientResolution;
         private XNAClientCheckBox chkBorderlessClient;
+        private XNAClientCheckBox chkIntegerScaledClient;
         private XNAClientDropDown ddClientTheme;
         private XNAClientDropDown ddTranslation;
 
@@ -86,7 +87,7 @@ namespace DTAConfig.OptionPanels
                 var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
 #if XNA
-                if (!ScreenResolution.HiDefLimitResolution.Fit(maximumIngameResolution))
+                if (!ScreenResolution.HiDefLimitResolution.Fits(maximumIngameResolution))
                     maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
 #endif
 
@@ -224,18 +225,36 @@ namespace DTAConfig.OptionPanels
             chkBorderlessClient.CheckedChanged += ChkBorderlessMenu_CheckedChanged;
             chkBorderlessClient.Checked = true;
 
+            chkIntegerScaledClient = new XNAClientCheckBox(WindowManager);
+            chkIntegerScaledClient.Name = nameof(chkIntegerScaledClient);
+            chkIntegerScaledClient.ClientRectangle = new Rectangle(
+                lblClientResolution.X,
+                lblRenderer.Y, 0, 0);
+            chkIntegerScaledClient.Text = "Integer Scaled Client".L10N("Client:DTAConfig:IntegerScaledClient");
+            chkIntegerScaledClient.Checked = IniSettings.IntegerScaledClient.Value;
+            chkIntegerScaledClient.ToolTipText =
+                """
+                Enable integer scaling for the client. This will cause the client to use
+                the closest fitting resolution that is required to maintain sharp graphics,
+                at the expense of black borders that may appear at some resolutions.
+
+                Additionally, enabling this option will also allow the client window 
+                to be resized (does not affect the selected client resolution).
+                """
+                .L10N("Client:DTAConfig:IntegerScaledClientToolTip");
+
             var lblClientTheme = new XNALabel(WindowManager);
             lblClientTheme.Name = "lblClientTheme";
             lblClientTheme.ClientRectangle = new Rectangle(
                 lblClientResolution.X,
-                lblRenderer.Y, 0, 0);
+                chkWindowedMode.Y, 0, 0);
             lblClientTheme.Text = "Client Theme:".L10N("Client:DTAConfig:ClientTheme");
 
             ddClientTheme = new XNAClientDropDown(WindowManager);
             ddClientTheme.Name = "ddClientTheme";
             ddClientTheme.ClientRectangle = new Rectangle(
                 ddClientResolution.X,
-                ddRenderer.Y,
+                chkWindowedMode.Y,
                 ddClientResolution.Width,
                 ddRenderer.Height);
 
@@ -326,6 +345,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
             AddChild(chkBorderlessClient);
+            AddChild(chkIntegerScaledClient);
             AddChild(lblClientTheme);
             AddChild(ddClientTheme);
             AddChild(lblTranslation);
@@ -769,12 +789,19 @@ namespace DTAConfig.OptionPanels
                 clientRes.Height != IniSettings.ClientResolutionY.Value)
                 restartRequired = true;
 
+            // TODO: since DTAConfig must not rely on DXMainClient, we can't notify the client to dynamically change the resolution or togging borderless windowed mode. Thus, we need to restart the client as a workaround.
+
             (IniSettings.ClientResolutionX.Value, IniSettings.ClientResolutionY.Value) = clientRes;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;
 
             IniSettings.BorderlessWindowedClient.Value = chkBorderlessClient.Checked;
+
+            if (IniSettings.IntegerScaledClient.Value != chkIntegerScaledClient.Checked)
+                restartRequired = true;
+
+            IniSettings.IntegerScaledClient.Value = chkIntegerScaledClient.Checked;
 
             restartRequired = restartRequired || IniSettings.ClientTheme != (string)ddClientTheme.SelectedItem.Tag;
 

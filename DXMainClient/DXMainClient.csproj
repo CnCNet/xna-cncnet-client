@@ -9,11 +9,13 @@
     <Description>CnCNet Main Client Library</Description>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
-    <ApplicationHighDpiMode Condition="'$(Engine)' != 'UniversalGL'">PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationHighDpiMode Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">SystemAware</ApplicationHighDpiMode>
+    <ApplicationHighDpiMode Condition="'$(Engine)' != 'UniversalGL' AND '$(Engine)' != 'WindowsGL'">PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">app.SystemAware.manifest</ApplicationManifest>
+    <ApplicationManifest Condition="'$(Engine)' != 'UniversalGL' AND '$(Engine)' != 'WindowsGL'">app.PerMonitorV2.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
