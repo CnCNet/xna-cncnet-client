@@ -232,6 +232,16 @@ namespace DTAConfig.OptionPanels
                 lblRenderer.Y, 0, 0);
             chkIntegerScaledClient.Text = "Integer Scaled Client".L10N("Client:DTAConfig:IntegerScaledClient");
             chkIntegerScaledClient.Checked = IniSettings.IntegerScaledClient.Value;
+            chkIntegerScaledClient.ToolTipText =
+                """
+                Enable integer scaling for the client. This will cause the client to use
+                the closest fitting resolution that is required to maintain sharp graphics,
+                at the expense of black borders that may appear at some resolutions.
+
+                Additionally, enabling this option will also allow the client window 
+                to be resized (does not affect the selected client resolution).
+                """
+                .L10N("Client:DTAConfig:IntegerScaledClientToolTip");
 
             var lblClientTheme = new XNALabel(WindowManager);
             lblClientTheme.Name = "lblClientTheme";
