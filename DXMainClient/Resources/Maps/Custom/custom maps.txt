@@ -1,0 +1,1 @@
+Any custom maps you made or downloaded are to be placed in this directory. Custom maps need to have a ".map" extension and they can be selected in the game by selecting the "Custom Map" game mode.
