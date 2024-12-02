@@ -416,15 +416,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!IsHost)
                 return;
 
+            PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+            if (pInfo == null)
+                return;
+
+            pInfo.Verified = true;
+
             if (fileHash != gameFilesHash)
             {
-                PlayerInfo pInfo = Players.Find(p => p.Name == sender);
-
-                if (pInfo == null)
-                    return;
-
-                pInfo.Verified = true;
-
                 HandleCheaterNotification(hostName, sender); // This is kinda hacky
             }
         }
