@@ -475,7 +475,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (hash != localFileHash)
                 AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("Client:Main:PlayerCheating"), sender.Name), Color.Red);
-            sender.Verified = true;
+            sender.HashReceived = true;
         }
 
         private void Server_HandleReadyRequest(LANPlayerInfo sender)
