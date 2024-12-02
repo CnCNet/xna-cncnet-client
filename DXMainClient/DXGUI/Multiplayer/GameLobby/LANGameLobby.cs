@@ -93,7 +93,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            pInfo.Verified = true;
+            pInfo.HashReceived = true;
             CopyPlayerDataToUI();
         }
 

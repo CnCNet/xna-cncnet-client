@@ -1456,7 +1456,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
             if (pInfo != null)
-                pInfo.Verified = true;
+                pInfo.HashReceived = true;
             CopyPlayerDataToUI();
 
             if (filesHash != gameFilesHash)

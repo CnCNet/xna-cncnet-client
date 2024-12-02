@@ -40,7 +40,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Whether the file hash information is received from the player, regardless of whether it is consistent with the one calculated by this client.
         /// </summary>
-        public bool Verified { get; set; }
+        public bool HashReceived { get; set; }
 
         public int Index { get; set; }
 

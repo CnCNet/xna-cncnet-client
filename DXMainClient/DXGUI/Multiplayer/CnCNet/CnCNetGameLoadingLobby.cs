@@ -420,7 +420,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (pInfo == null)
                 return;
 
-            pInfo.Verified = true;
+            pInfo.HashReceived = true;
 
             if (fileHash != gameFilesHash)
             {
