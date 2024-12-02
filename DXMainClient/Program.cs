@@ -70,7 +70,11 @@ namespace DTAClient
 #else
 
 #if NETCOREAPP3_0_OR_GREATER
+#if GL
+            System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.SystemAware);
+#else
             System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
+#endif
 #endif
 
             System.Windows.Forms.Application.EnableVisualStyles();
