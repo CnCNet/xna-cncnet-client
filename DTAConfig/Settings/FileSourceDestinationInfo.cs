@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace DTAConfig.Settings
 {
@@ -100,17 +101,7 @@ namespace DTAConfig.Settings
                     break;
 
                 case FileOperationOptions.KeepChanges:
-                    if (!File.Exists(DestinationPath))
-                    {
-                        if (File.Exists(CachedPath))
-                            File.Copy(CachedPath, DestinationPath, false);
-                        else
-                            File.Copy(SourcePath, DestinationPath, false);
-                    }
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
-                    File.Copy(DestinationPath, CachedPath, true);
-
+                    CreateSymbolicLink(SourcePath, DestinationPath);
                     break;
 
                 case FileOperationOptions.AlwaysOverwrite:
@@ -132,14 +123,6 @@ namespace DTAConfig.Settings
             switch (FileOperationOptions)
             {
                 case FileOperationOptions.KeepChanges:
-                    if (File.Exists(DestinationPath))
-                    {
-                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
-                        File.Copy(DestinationPath, CachedPath, true);
-                        File.Delete(DestinationPath);
-                    }
-                    break;
-
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
@@ -150,6 +133,27 @@ namespace DTAConfig.Settings
                     throw new InvalidOperationException($"{nameof(FileSourceDestinationInfo)}: " +
                         $"Invalid {nameof(FileOperationOptions)} value of {FileOperationOptions}");
             }
+        }
+
+#if NETFRAMEWORK
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool CreateHardLink(
+            string lpFileName,
+            string lpExistingFileName,
+            IntPtr lpSecurityAttributes
+        );
+#endif
+
+        /// <summary>
+        ///  Creates a symbolic link from the source file to the destination file.
+        /// </summary>
+        private void CreateSymbolicLink(string source, string destination)
+        {
+#if NETFRAMEWORK
+            CreateHardLink(destination, source, IntPtr.Zero);
+#else
+            File.CreateSymbolicLink(destination, source);
+#endif
         }
     }
 
