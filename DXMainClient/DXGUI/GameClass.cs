@@ -70,11 +70,11 @@ namespace DTAClient.DXGUI
                 string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             {
-                string developBuildTitle = "(Development Build)".L10N("Client:Main:DevelopmentBuildTitle");
+                string developBuildTitle = "Development Build".L10N("Client:Main:DevelopmentBuildTitle");
 
 #if DEVELOPMENT_BUILD
                 if (ClientConfiguration.Instance.ShowDevelopmentBuildWarnings)
-                    Window.Title += " " + developBuildTitle;
+                    Window.Title += $" ({developBuildTitle})";
 #endif
             }
 
