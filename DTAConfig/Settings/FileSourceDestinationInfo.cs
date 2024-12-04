@@ -208,10 +208,10 @@ namespace DTAConfig.Settings
         /// <param name="oldname"></param>
         /// <param name="newname"></param>
         /// <returns>This function returns a value of 0 if it is successful and -1 on failure.</returns>
-        [DllImport("libc.so", EntryPoint = "link")]
+        [DllImport("libc.so.6", EntryPoint = "link")]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
-        private static extern int link(string oldname, string newname);
+        private static extern int link([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
         /// <summary>
         /// The symlink function makes a symbolic link to oldname named newname.
@@ -220,10 +220,10 @@ namespace DTAConfig.Settings
         /// <param name="oldname"></param>
         /// <param name="newname"></param>
         /// <returns>The normal return value from symlink is 0. A return value of -1 indicates an error.</returns>
-        [DllImport("libc.so", EntryPoint = "symlink")]
+        [DllImport("libc.so.6", EntryPoint = "symlink")]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
-        private static extern int symlink(string oldname, string newname);
+        private static extern int symlink([MarshalAs(UnmanagedType.LPUTF8Str)]  string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
         private void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
