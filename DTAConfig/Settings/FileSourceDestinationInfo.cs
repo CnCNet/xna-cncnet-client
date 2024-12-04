@@ -119,17 +119,10 @@ namespace DTAConfig.Settings
                     File.Copy(SourcePath, DestinationPath, true);
                     break;
 
-                case FileOperationOptions.ImmutableLink:
-                    if (!File.Exists(DestinationPath))
-                    {
-                        FileInfo info = new FileInfo(SourcePath);
-                        info.IsReadOnly = true;
-                        CreateHardLinkFromSource(sourcePath, destinationPath);
-                    }
-                    break;
-
-                case FileOperationOptions.Link:
-                    CreateHardLinkFromSource(sourcePath, destinationPath);
+                case FileOperationOptions.AlwaysOverwrite_Link:
+                    CreateHardLinkFromSource(sourcePath, destinationPath, fallback:true);
+                    new FileInfo(DestinationPath).IsReadOnly = true;
+                    new FileInfo(SourcePath).IsReadOnly = true;
                     break;
 
                 default:
@@ -155,16 +148,10 @@ namespace DTAConfig.Settings
                     }
                     break;
 
-                case FileOperationOptions.ImmutableLink:
-                    FileInfo info = new FileInfo(SourcePath);
-                    info.IsReadOnly = false;
-                    File.Delete(DestinationPath);
-                    break;
-
-                case FileOperationOptions.Link:
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
+                case FileOperationOptions.AlwaysOverwrite_Link:
                     File.Delete(DestinationPath);
                     break;
 
@@ -312,7 +299,6 @@ namespace DTAConfig.Settings
         OverwriteOnMismatch,
         DontOverwrite,
         KeepChanges,
-        ImmutableLink,
-        Link
+        AlwaysOverwrite_Link,
     }
 }
