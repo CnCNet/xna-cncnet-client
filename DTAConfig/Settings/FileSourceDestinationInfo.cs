@@ -160,7 +160,10 @@ namespace DTAConfig.Settings
                         destinationFile.Delete();
                     }
 
-                    new FileInfo(SourcePath).IsReadOnly = false;
+                    if (FileOperationOptions == FileOperationOptions.AlwaysOverwrite_Link)
+                    {
+                        new FileInfo(SourcePath).IsReadOnly = false;
+                    }
 
                     break;
 
