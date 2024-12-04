@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace DTAConfig.Settings
 {
@@ -123,12 +124,12 @@ namespace DTAConfig.Settings
                     {
                         FileInfo info = new FileInfo(SourcePath);
                         info.IsReadOnly = true;
-                        CreateLinkToFile(sourcePath, destinationPath);
+                        CreateHardLinkFromSource(sourcePath, destinationPath);
                     }
                     break;
 
                 case FileOperationOptions.Link:
-                    CreateLinkToFile(sourcePath, destinationPath);
+                    CreateHardLinkFromSource(sourcePath, destinationPath);
                     break;
 
                 default:
@@ -155,7 +156,7 @@ namespace DTAConfig.Settings
                     break;
 
                 case FileOperationOptions.ImmutableLink:
-                    FileInfo info = new FileInfo (SourcePath);
+                    FileInfo info = new FileInfo(SourcePath);
                     info.IsReadOnly = false;
                     File.Delete(DestinationPath);
                     break;
@@ -173,37 +174,132 @@ namespace DTAConfig.Settings
             }
         }
 
-        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        /// <summary>
+        /// Establishes a hard link between an existing file and a new file. This function is only supported on the NTFS file system, and only for files, not directories.
+        /// <br/>
+        /// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+        /// </summary>
+        /// <param name="lpFileName">The name of the new file.</param>
+        /// <param name="lpExistingFileName">The name of the existing file.</param>
+        /// <param name="lpSecurityAttributes">Reserved; must be NULL.</param>
+        /// <returns>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero (0).</returns>
+        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateHardLinkW")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [SupportedOSPlatform("windows")]
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
-        [DllImport("libc.so", CharSet = CharSet.Unicode)]
-        private static extern int link(string source, string destination);
+        /// <summary>
+        /// Creates a symbolic link.
+        /// <br/>
+        /// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createsymboliclinkw
+        /// </summary>
+        /// <param name="lpSymlinkFileName">The symbolic link to be created.</param>
+        /// <param name="lpTargetFileName">The name of the target for the symbolic link to be created.</param>
+        /// <param name="dwFlags">Indicates whether the link target, lpTargetFileName, is a directory.</param>
+        /// <returns>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.</returns>
+        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateSymbolicLinkW")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [SupportedOSPlatform("windows")]
+        private static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, IntPtr dwFlags);
 
         /// <summary>
-        ///  Creates a link from the source file to the destination file. 
-        ///  Source and destination paths must be relative because for
-        ///  .NET 8 in Linux method creates symbolic link with relative paths.
-        /// </summary>
-        private void CreateLinkToFile(string source, string destination)
+        /// The link function makes a new link to the existing file named by oldname, under the new name newname.
+        /// <br/>
+        /// https://www.gnu.org/software/libc/manual/html_node/Hard-Links.html
+        /// <param name="oldname"></param>
+        /// <param name="newname"></param>
+        /// <returns>This function returns a value of 0 if it is successful and -1 on failure.</returns>
+        [DllImport("libc.so", EntryPoint = "link")]
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("osx")]
+        private static extern bool link(string oldname, string newname);
+
+        /// <summary>
+        /// The symlink function makes a symbolic link to oldname named newname.
+        /// <br/>
+        /// https://www.gnu.org/software/libc/manual/html_node/Symbolic-Links.html
+        /// <param name="oldname"></param>
+        /// <param name="newname"></param>
+        /// <returns>The normal return value from symlink is 0. A return value of -1 indicates an error.</returns>
+        [DllImport("libc.so", EntryPoint = "symlink")]
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("osx")]
+        private static extern bool symlink(string oldname, string newname);
+
+        private void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
+            if (fallback)
+            {
+                try
+                {
+                    CreateHardLinkFromSource(source, destination, fallback: false);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to create hard link at {destination}. Fallback to copy. {ex.Message}");
+                    File.Copy(source, destination, true);
+                }
+                return;
+            }
+
+            if (File.Exists(destination))
+                File.Delete(destination);
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                bool result = CreateHardLink(destination, source, IntPtr.Zero);
-                if (!result)
+                if (!CreateHardLink(source, destination, IntPtr.Zero))
                     throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
             }
-#if NETFRAMEWORK
-            else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                int result = link(source, destination);
-                if (result != 0)
+                if (!link(source, destination))
                     throw new Exception(string.Format("Unable to create hard link to file {0}", source));
             }
-#else
             else
-                File.CreateSymbolicLink(destination, source);
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+
+        private void CreateSymlinkFromSource(string source, string destination, bool fallback = false)
+        {
+            if (fallback)
+            {
+                try
+                {
+                    CreateHardLinkFromSource(source, destination, fallback: false);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to create symlink at {destination}. Fallback to copy. {ex.Message}");
+                    File.Copy(source, destination, true);
+                }
+                return;
+            }
+
+            if (File.Exists(destination))
+                File.Delete(destination);
+
+#if NET6_0_OR_GREATER
+            File.CreateSymbolicLink(destination, source);
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (!CreateSymbolicLink(source, destination, IntPtr.Zero))
+                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if (!symlink(source, destination))
+                    throw new Exception(string.Format("Unable to create symbolic link to file {0}", source));
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
 #endif
         }
+
     }
 
     /// <summary>
