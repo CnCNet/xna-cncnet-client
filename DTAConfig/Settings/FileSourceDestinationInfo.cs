@@ -234,7 +234,7 @@ namespace DTAConfig.Settings
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (!CreateHardLink(source, destination, IntPtr.Zero))
+                if (!CreateHardLink(destination, source, IntPtr.Zero))
                     throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -272,7 +272,7 @@ namespace DTAConfig.Settings
 #else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (!CreateSymbolicLink(source, destination, IntPtr.Zero))
+                if (!CreateSymbolicLink(destination, source, IntPtr.Zero))
                     throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
