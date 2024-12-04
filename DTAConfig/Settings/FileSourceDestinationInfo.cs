@@ -152,7 +152,13 @@ namespace DTAConfig.Settings
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
                 case FileOperationOptions.AlwaysOverwrite_Link:
-                    File.Delete(DestinationPath);
+                    if (File.Exists(DestinationPath))
+                    {
+                        FileInfo destinationFile = new(DestinationPath);
+                        destinationFile.IsReadOnly = false;
+                        destinationFile.Delete();
+                    }
+
                     break;
 
                 default:
@@ -230,7 +236,11 @@ namespace DTAConfig.Settings
             }
 
             if (File.Exists(destination))
-                File.Delete(destination);
+            {
+                FileInfo destinationFile = new(destination);
+                destinationFile.IsReadOnly = false;
+                destinationFile.Delete();
+            }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -265,7 +275,11 @@ namespace DTAConfig.Settings
             }
 
             if (File.Exists(destination))
-                File.Delete(destination);
+            {
+                FileInfo destinationFile = new(destination);
+                destinationFile.IsReadOnly = false;
+                destinationFile.Delete();
+            }
 
 #if NET6_0_OR_GREATER
             File.CreateSymbolicLink(destination, source);
