@@ -4,7 +4,7 @@
   </Target>
 
   <!-- "GetVersion" target is defined in GitVersion package -->
-  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
+  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
     </PropertyGroup>
