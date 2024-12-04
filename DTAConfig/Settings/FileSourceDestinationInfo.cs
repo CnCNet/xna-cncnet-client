@@ -120,7 +120,7 @@ namespace DTAConfig.Settings
                     break;
 
                 case FileOperationOptions.AlwaysOverwrite_Link:
-                    CreateHardLinkFromSource(sourcePath, destinationPath, fallback:true);
+                    CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
                     new FileInfo(DestinationPath).IsReadOnly = true;
                     new FileInfo(SourcePath).IsReadOnly = true;
                     break;
@@ -199,7 +199,7 @@ namespace DTAConfig.Settings
         [DllImport("libc.so", EntryPoint = "link")]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
-        private static extern bool link(string oldname, string newname);
+        private static extern int link(string oldname, string newname);
 
         /// <summary>
         /// The symlink function makes a symbolic link to oldname named newname.
@@ -211,7 +211,7 @@ namespace DTAConfig.Settings
         [DllImport("libc.so", EntryPoint = "symlink")]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
-        private static extern bool symlink(string oldname, string newname);
+        private static extern int symlink(string oldname, string newname);
 
         private void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
@@ -239,7 +239,7 @@ namespace DTAConfig.Settings
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (!link(source, destination))
+                if (link(source, destination) != 0)
                     throw new Exception(string.Format("Unable to create hard link to file {0}", source));
             }
             else
@@ -277,7 +277,7 @@ namespace DTAConfig.Settings
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (!symlink(source, destination))
+                if (symlink(source, destination) != 0)
                     throw new Exception(string.Format("Unable to create symbolic link to file {0}", source));
             }
             else
