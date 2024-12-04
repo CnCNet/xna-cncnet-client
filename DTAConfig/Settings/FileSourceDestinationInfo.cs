@@ -101,11 +101,34 @@ namespace DTAConfig.Settings
                     break;
 
                 case FileOperationOptions.KeepChanges:
-                    CreateLinkToFile(sourcePath, destinationPath);
+                    if (!File.Exists(DestinationPath))
+                    {
+                        if (File.Exists(CachedPath))
+                            File.Copy(CachedPath, DestinationPath, false);
+                        else
+                            File.Copy(SourcePath, DestinationPath, false);
+                    }
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
+                    File.Copy(DestinationPath, CachedPath, true);
+
                     break;
 
                 case FileOperationOptions.AlwaysOverwrite:
                     File.Copy(SourcePath, DestinationPath, true);
+                    break;
+
+                case FileOperationOptions.ImmutableLink:
+                    if (!File.Exists(DestinationPath))
+                    {
+                        FileInfo info = new FileInfo(SourcePath);
+                        info.IsReadOnly = true;
+                        CreateLinkToFile(sourcePath, destinationPath);
+                    }
+                    break;
+
+                case FileOperationOptions.Link:
+                    CreateLinkToFile(sourcePath, destinationPath);
                     break;
 
                 default:
@@ -123,6 +146,21 @@ namespace DTAConfig.Settings
             switch (FileOperationOptions)
             {
                 case FileOperationOptions.KeepChanges:
+                    if (File.Exists(DestinationPath))
+                    {
+                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
+                        File.Copy(DestinationPath, CachedPath, true);
+                        File.Delete(DestinationPath);
+                    }
+                    break;
+
+                case FileOperationOptions.ImmutableLink:
+                    FileInfo info = new FileInfo (SourcePath);
+                    info.IsReadOnly = false;
+                    File.Delete(DestinationPath);
+                    break;
+
+                case FileOperationOptions.Link:
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
@@ -177,6 +215,8 @@ namespace DTAConfig.Settings
         AlwaysOverwrite,
         OverwriteOnMismatch,
         DontOverwrite,
-        KeepChanges
+        KeepChanges,
+        ImmutableLink,
+        Link
     }
 }
