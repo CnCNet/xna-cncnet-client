@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -255,7 +256,7 @@ namespace DTAConfig.Settings
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (link(source, destination) != 0)
-                    throw new Exception(string.Format("Unable to create hard link to file {0}", source));
+                    throw new Exception(string.Format("Unable to create hard link at {0}".L10N("Client:DTAConfig:CreateHardLinkFailed"), destination));
             }
             else
             {
@@ -297,7 +298,7 @@ namespace DTAConfig.Settings
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (symlink(source, destination) != 0)
-                    throw new Exception(string.Format("Unable to create symbolic link to file {0}", source));
+                    throw new Exception(string.Format("Unable to create symbolic link at {0}".L10N("Client:DTAConfig:CreateSymlinkFailed"), destination));
             }
             else
             {
