@@ -223,7 +223,7 @@ namespace DTAConfig.Settings
         [DllImport("libc.so.6", EntryPoint = "symlink")]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
-        private static extern int symlink([MarshalAs(UnmanagedType.LPUTF8Str)]  string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
+        private static extern int symlink([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
         private static void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
@@ -252,7 +252,7 @@ namespace DTAConfig.Settings
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!CreateHardLink(destination, source, IntPtr.Zero))
-                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -295,7 +295,7 @@ namespace DTAConfig.Settings
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!CreateSymbolicLink(destination, source, IntPtr.Zero))
-                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
