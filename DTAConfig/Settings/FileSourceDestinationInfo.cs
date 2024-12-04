@@ -238,6 +238,7 @@ namespace DTAConfig.Settings
                     Logger.Log($"Failed to create hard link at {destination}. Fallback to copy. {ex.Message}");
                     File.Copy(source, destination, true);
                 }
+
                 return;
             }
 
@@ -277,6 +278,7 @@ namespace DTAConfig.Settings
                     Logger.Log($"Failed to create symlink at {destination}. Fallback to copy. {ex.Message}");
                     File.Copy(source, destination, true);
                 }
+
                 return;
             }
 
