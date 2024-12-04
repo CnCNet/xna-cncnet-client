@@ -101,7 +101,7 @@ namespace DTAConfig.Settings
                     break;
 
                 case FileOperationOptions.KeepChanges:
-                    CreateSymbolicLink(SourcePath, DestinationPath);
+                    CreateLinkToFile(sourcePath, destinationPath);
                     break;
 
                 case FileOperationOptions.AlwaysOverwrite:
@@ -135,24 +135,24 @@ namespace DTAConfig.Settings
             }
         }
 
-#if NETFRAMEWORK
         [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-        private static extern bool CreateHardLink(
-            string lpFileName,
-            string lpExistingFileName,
-            IntPtr lpSecurityAttributes
-        );
-#endif
+        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         /// <summary>
-        ///  Creates a symbolic link from the source file to the destination file.
+        ///  Creates a link from the source file to the destination file. 
+        ///  Source and destination paths must be relative because for
+        ///  .NET 8 in Linux method creates symbolic link with relative paths.
         /// </summary>
-        private void CreateSymbolicLink(string source, string destination)
+        private void CreateLinkToFile(string source, string destination)
         {
 #if NETFRAMEWORK
-            CreateHardLink(destination, source, IntPtr.Zero);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CreateHardLink(destination, source, IntPtr.Zero);
 #else
-            File.CreateSymbolicLink(destination, source);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CreateHardLink(destination, source, IntPtr.Zero);
+            else
+                File.CreateSymbolicLink(destination, source);
 #endif
         }
     }
