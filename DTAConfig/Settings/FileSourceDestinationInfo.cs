@@ -225,7 +225,7 @@ namespace DTAConfig.Settings
         [SupportedOSPlatform("osx")]
         private static extern int symlink([MarshalAs(UnmanagedType.LPUTF8Str)]  string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
-        private void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
+        private static void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
             if (fallback)
             {
@@ -264,7 +264,7 @@ namespace DTAConfig.Settings
             }
         }
 
-        private void CreateSymlinkFromSource(string source, string destination, bool fallback = false)
+        private static void CreateSymlinkFromSource(string source, string destination, bool fallback = false)
         {
             if (fallback)
             {
