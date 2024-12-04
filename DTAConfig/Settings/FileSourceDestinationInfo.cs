@@ -138,6 +138,9 @@ namespace DTAConfig.Settings
         [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
+        [DllImport("libc.so", CharSet = CharSet.Unicode)]
+        private static extern int link(string source, string destination);
+
         /// <summary>
         ///  Creates a link from the source file to the destination file. 
         ///  Source and destination paths must be relative because for
@@ -145,20 +148,20 @@ namespace DTAConfig.Settings
         /// </summary>
         private void CreateLinkToFile(string source, string destination)
         {
-#if NETFRAMEWORK
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 bool result = CreateHardLink(destination, source, IntPtr.Zero);
                 if (!result)
                     throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+            }
+#if NETFRAMEWORK
+            else
+            {
+                int result = link(source, destination);
+                if (result != 0)
+                    throw new Exception(string.Format("Unable to create hard link to file {0}", source));
             }
 #else
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                bool result = CreateHardLink(destination, source, IntPtr.Zero);
-                if (!result)
-                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
-            }
             else
                 File.CreateSymbolicLink(destination, source);
 #endif
