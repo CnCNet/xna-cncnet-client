@@ -135,7 +135,7 @@ namespace DTAConfig.Settings
             }
         }
 
-        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         /// <summary>
@@ -147,10 +147,18 @@ namespace DTAConfig.Settings
         {
 #if NETFRAMEWORK
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CreateHardLink(destination, source, IntPtr.Zero);
+            {
+                bool result = CreateHardLink(destination, source, IntPtr.Zero);
+                if (!result)
+                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+            }
 #else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CreateHardLink(destination, source, IntPtr.Zero);
+            {
+                bool result = CreateHardLink(destination, source, IntPtr.Zero);
+                if (!result)
+                    throw new Exception(Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message);
+            }
             else
                 File.CreateSymbolicLink(destination, source);
 #endif
