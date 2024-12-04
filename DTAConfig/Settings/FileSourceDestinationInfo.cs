@@ -254,7 +254,7 @@ namespace DTAConfig.Settings
             {
                 try
                 {
-                    CreateHardLinkFromSource(source, destination, fallback: false);
+                    CreateSymlinkFromSource(source, destination, fallback: false);
                 }
                 catch (Exception ex)
                 {
