@@ -202,7 +202,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.Initialize();
 
-            PlayerOptionsPanel = FindChild<XNAPanel>(nameof(PlayerOptionsPanel));
+            try
+            {
+                PlayerOptionsPanel = FindChild<XNAPanel>(nameof(PlayerOptionsPanel));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(string.Format("It seems the client configuration was not migrated to accomodate for the 'Tiberian Sun Client v6 Changes'.\n\nPlease refer to {0} for more details.\n\nError message: {1}".L10N("Client:Main:NotMigratedClientException"),
+                                                  "https://github.com/CnCNet/xna-cncnet-client/blob/122b2de962afc404e203290d0618363d83c4264a/Docs/Migration-INI.md",
+                                                   ex.Message));
+            }
 
             btnLeaveGame = FindChild<XNAClientButton>(nameof(btnLeaveGame));
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
