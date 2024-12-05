@@ -812,7 +812,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
             // copy translation files to the game directory
-            foreach (TranslationGameFile tgf in ClientConfiguration.Instance.TranslationGameFiles)
+            ClientConfiguration.Instance.TranslationGameFiles.AsParallel().ForAll(tgf => 
             {
                 string sourcePath = SafePath.CombineFilePath(IniSettings.TranslationFolderPath, tgf.Source);
                 string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
@@ -830,7 +830,7 @@ namespace DTAConfig.OptionPanels
                     if (File.Exists(targetPath))
                         File.Delete(targetPath);
                 }
-            }
+            });
 
 #if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;

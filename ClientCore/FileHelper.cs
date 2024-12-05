@@ -42,7 +42,15 @@ namespace ClientCore
         [SupportedOSPlatform("osx")]
         private static extern int link([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
-        public static void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
+        /// <summary>
+        /// Creates hard link to the source file or copy that file, if got an error.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="fallback"></param>
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="PlatformNotSupportedException"></exception>
+        public static void CreateHardLinkFromSource(string source, string destination, bool fallback = true)
         {
             if (fallback)
             {
