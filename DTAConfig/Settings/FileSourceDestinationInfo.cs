@@ -194,7 +194,7 @@ namespace DTAConfig.Settings
         /// <param name="oldname"></param>
         /// <param name="newname"></param>
         /// <returns>This function returns a value of 0 if it is successful and -1 on failure.</returns>
-        [DllImport("libc.so.6", EntryPoint = "link")]
+        [DllImport("libc", EntryPoint = "link", SetLastError = true)]
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
         private static extern int link([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
@@ -231,7 +231,7 @@ namespace DTAConfig.Settings
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (link(source, destination) != 0)
-                    throw new Exception(string.Format("Unable to create hard link at {0}".L10N("Client:DTAConfig:CreateHardLinkFailed"), destination));
+                    throw new Exception(string.Format("Unable to create hard link at {0} with the following error code: {1}".L10N("Client:DTAConfig:CreateHardLinkFailed"), destination, Marshal.GetLastWin32Error()));
             }
             else
             {
