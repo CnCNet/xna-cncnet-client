@@ -169,8 +169,8 @@ namespace DTAConfig
             if (!string.IsNullOrEmpty(ddrawDLLPath))
             {
                 FileHelper.CreateHardLinkFromSource(ddrawDllSourcePath, ddrawDllTargetPath);
-                new FileInfo(ddrawDllSourcePath).IsReadOnly = false;
-                new FileInfo(ddrawDllTargetPath).IsReadOnly = false;
+                new FileInfo(ddrawDllSourcePath).IsReadOnly = true;
+                new FileInfo(ddrawDllTargetPath).IsReadOnly = true;
             }
             else
             {
