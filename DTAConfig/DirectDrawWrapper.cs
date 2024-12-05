@@ -163,12 +163,20 @@ namespace DTAConfig
         /// </summary>
         public void Apply()
         {
+            string ddrawDllSourcePath = SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ddrawDLLPath);
+            string ddrawDllTargetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "ddraw.dll");
+
             if (!string.IsNullOrEmpty(ddrawDLLPath))
             {
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ddrawDLLPath), SafePath.CombineFilePath(ProgramConstants.GamePath, "ddraw.dll"), true);
+                FileHelper.CreateHardLinkFromSource(ddrawDllSourcePath, ddrawDllTargetPath);
+                new FileInfo(ddrawDllSourcePath).IsReadOnly = false;
+                new FileInfo(ddrawDllTargetPath).IsReadOnly = false;
             }
             else
-                File.Delete(SafePath.CombineFilePath(ProgramConstants.GamePath, "ddraw.dll"));
+            {
+                new FileInfo(ddrawDllTargetPath).IsReadOnly = false;
+                File.Delete(ddrawDllTargetPath);
+            }
 
 
             if (!string.IsNullOrEmpty(ConfigFileName) && !string.IsNullOrEmpty(resConfigFileName)
