@@ -34,10 +34,6 @@
     <PackageReference Include="OpenMcdf" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
-    <PackageReference Include="ThisAssembly.Git">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />

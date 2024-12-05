@@ -558,7 +558,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string clientVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #if DEVELOPMENT_BUILD
-            clientVersion = $"{ThisAssembly.Git.Branch}@{ThisAssembly.Git.Sha}";
+            clientVersion = $"{GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
 #endif
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(

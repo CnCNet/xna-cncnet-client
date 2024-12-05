@@ -93,7 +93,7 @@ namespace DTAClient
 
             string clientVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #if DEVELOPMENT_BUILD
-            clientVersion = $"{ThisAssembly.Git.Branch}@{ThisAssembly.Git.Sha}";
+            clientVersion = $"{GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
 #endif
 
             Logger.Log($"Client version: {clientVersion}");
