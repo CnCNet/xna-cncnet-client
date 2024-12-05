@@ -105,14 +105,13 @@ namespace DTAConfig.Settings
                 case FileOperationOptions.KeepChanges:
                     if (!File.Exists(DestinationPath))
                     {
-                        if (File.Exists(CachedPath))
-                            File.Copy(CachedPath, DestinationPath, false);
-                        else
-                            File.Copy(SourcePath, DestinationPath, false);
+                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
+
+                        if (!File.Exists(CachedPath))
+                            File.Copy(SourcePath, CachedPath, true);
                     }
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
-                    File.Copy(DestinationPath, CachedPath, true);
+                    CreateHardLinkFromSource(CachedPath, DestinationPath, fallback: true);
 
                     break;
 
@@ -120,7 +119,7 @@ namespace DTAConfig.Settings
                     File.Copy(SourcePath, DestinationPath, true);
                     break;
 
-                case FileOperationOptions.AlwaysOverwrite_Link:
+                case FileOperationOptions.LinkAsReadOnly:
                     CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
                     new FileInfo(DestinationPath).IsReadOnly = true;
                     new FileInfo(SourcePath).IsReadOnly = true;
@@ -143,16 +142,20 @@ namespace DTAConfig.Settings
                 case FileOperationOptions.KeepChanges:
                     if (File.Exists(DestinationPath))
                     {
-                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
-                        File.Copy(DestinationPath, CachedPath, true);
+                        string cacheHash = Utilities.CalculateSHA1ForFile(CachedPath);
+                        string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
+                        
+                        if (cacheHash != destinationHash)
+                            File.Copy(DestinationPath, CachedPath, true);
+
                         File.Delete(DestinationPath);
                     }
                     break;
 
+                case FileOperationOptions.LinkAsReadOnly:
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
-                case FileOperationOptions.AlwaysOverwrite_Link:
                     if (File.Exists(DestinationPath))
                     {
                         FileInfo destinationFile = new(DestinationPath);
@@ -160,7 +163,7 @@ namespace DTAConfig.Settings
                         destinationFile.Delete();
                     }
 
-                    if (FileOperationOptions == FileOperationOptions.AlwaysOverwrite_Link)
+                    if (FileOperationOptions == FileOperationOptions.LinkAsReadOnly)
                     {
                         new FileInfo(SourcePath).IsReadOnly = false;
                     }
@@ -251,6 +254,6 @@ namespace DTAConfig.Settings
         OverwriteOnMismatch,
         DontOverwrite,
         KeepChanges,
-        AlwaysOverwrite_Link,
+        LinkAsReadOnly
     }
 }
