@@ -410,7 +410,7 @@ public static class Updater
         if (UpdaterVersion != "N/A")
             httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion));
 
-        httpClient.DefaultRequestHeaders.UserAgent.Add(new("Client", Assembly.GetEntryAssembly().GetName().Version.ToString()));
+        httpClient.DefaultRequestHeaders.UserAgent.Add(new("Client", GitVersionInformation.MajorMinorPatch));
     }
 
     /// <summary>

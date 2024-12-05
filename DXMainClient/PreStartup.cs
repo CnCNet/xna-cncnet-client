@@ -91,13 +91,13 @@ namespace DTAClient
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
 
-            string clientVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            string clientVersion = GitVersionInformation.MajorMinorPatch;
 #if DEVELOPMENT_BUILD
-            clientVersion = $"{GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
+            clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
 #endif
 
             Logger.Log($"Client version: {clientVersion}");
-            Logger.Log(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
+            Logger.Log(GitVersionInformation.InformationalVersion);
 
 #if DEVELOPMENT_BUILD
             Logger.Log("This is a development build of the client. Stability and reliability may not be fully guaranteed.");

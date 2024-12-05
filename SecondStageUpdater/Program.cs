@@ -73,7 +73,7 @@ internal sealed class Program
                 Logger.WriteLogFile = true;
                 Logger.WriteToConsole = false;
                 Logger.Log("CnCNet Client Second-Stage Updater");
-                Logger.Log("Version: " + Assembly.GetAssembly(typeof(Program)).GetName().Version);
+                Logger.Log("Version: " + GitVersionInformation.MajorMinorPatch);
                 Write("Base directory: " + baseDirectory.FullName);
                 Write($"Waiting for the client ({clientExecutable}) to exit..");
 
