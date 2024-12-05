@@ -823,7 +823,7 @@ namespace DTAConfig.OptionPanels
                     string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
 
                     if (sourceHash != destinationHash)
-                        File.Copy(sourcePath, targetPath, true);
+                        FileHelper.CreateHardLinkFromSource(sourcePath, targetPath);
                 }
                 else
                 {
