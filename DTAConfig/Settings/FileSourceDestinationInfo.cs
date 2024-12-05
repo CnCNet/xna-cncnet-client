@@ -188,20 +188,6 @@ namespace DTAConfig.Settings
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         /// <summary>
-        /// Creates a symbolic link.
-        /// <br/>
-        /// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createsymboliclinkw
-        /// </summary>
-        /// <param name="lpSymlinkFileName">The symbolic link to be created.</param>
-        /// <param name="lpTargetFileName">The name of the target for the symbolic link to be created.</param>
-        /// <param name="dwFlags">Indicates whether the link target, lpTargetFileName, is a directory.</param>
-        /// <returns>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.</returns>
-        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateSymbolicLinkW")]
-        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-        [SupportedOSPlatform("windows")]
-        private static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, IntPtr dwFlags);
-
-        /// <summary>
         /// The link function makes a new link to the existing file named by oldname, under the new name newname.
         /// <br/>
         /// https://www.gnu.org/software/libc/manual/html_node/Hard-Links.html
@@ -212,18 +198,6 @@ namespace DTAConfig.Settings
         [SupportedOSPlatform("linux")]
         [SupportedOSPlatform("osx")]
         private static extern int link([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
-
-        /// <summary>
-        /// The symlink function makes a symbolic link to oldname named newname.
-        /// <br/>
-        /// https://www.gnu.org/software/libc/manual/html_node/Symbolic-Links.html
-        /// <param name="oldname"></param>
-        /// <param name="newname"></param>
-        /// <returns>The normal return value from symlink is 0. A return value of -1 indicates an error.</returns>
-        [DllImport("libc.so.6", EntryPoint = "symlink")]
-        [SupportedOSPlatform("linux")]
-        [SupportedOSPlatform("osx")]
-        private static extern int symlink([MarshalAs(UnmanagedType.LPUTF8Str)] string oldname, [MarshalAs(UnmanagedType.LPUTF8Str)] string newname);
 
         private static void CreateHardLinkFromSource(string source, string destination, bool fallback = false)
         {
@@ -263,50 +237,6 @@ namespace DTAConfig.Settings
             {
                 throw new PlatformNotSupportedException();
             }
-        }
-
-        private static void CreateSymlinkFromSource(string source, string destination, bool fallback = false)
-        {
-            if (fallback)
-            {
-                try
-                {
-                    CreateSymlinkFromSource(source, destination, fallback: false);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Failed to create symlink at {destination}. Fallback to copy. {ex.Message}");
-                    File.Copy(source, destination, true);
-                }
-
-                return;
-            }
-
-            if (File.Exists(destination))
-            {
-                FileInfo destinationFile = new(destination);
-                destinationFile.IsReadOnly = false;
-                destinationFile.Delete();
-            }
-
-#if NET6_0_OR_GREATER
-            File.CreateSymbolicLink(destination, source);
-#else
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                if (!CreateSymbolicLink(destination, source, IntPtr.Zero))
-                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                if (symlink(source, destination) != 0)
-                    throw new Exception(string.Format("Unable to create symbolic link at {0}".L10N("Client:DTAConfig:CreateSymlinkFailed"), destination));
-            }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
-#endif
         }
 
     }
