@@ -178,7 +178,7 @@ namespace DTAConfig.Settings
     /// </summary>
     public enum FileOperationOption
     {
-        AlwaysOverwrite,
+        AlwaysOverwrite = 0,
         OverwriteOnMismatch,
         DontOverwrite,
         KeepChanges,
