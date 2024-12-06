@@ -257,7 +257,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void OnJoined()
         {
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModeMaps.GameModes);
+            fhc.CalculateHashes();
 
             gameFilesHash = fhc.GetCompleteHash();
 
@@ -1299,7 +1299,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice("Starting game...".L10N("Client:Main:StartingGame"));
 
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModeMaps.GameModes);
+            fhc.CalculateHashes();
 
             if (gameFilesHash != fhc.GetCompleteHash())
             {
@@ -1456,7 +1456,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
             if (pInfo != null)
-                pInfo.Verified = true;
+                pInfo.HashReceived = true;
             CopyPlayerDataToUI();
 
             if (filesHash != gameFilesHash)

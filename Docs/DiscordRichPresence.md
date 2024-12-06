@@ -13,7 +13,7 @@ XNA client supports showing DRP information customized to your mod/game, provide
 How to set up DRP for your mod/game
 -----------------------------------
 
-> **Note**
+> [!NOTE]
 > You are required to be logged in a Discord account.
 
 1. Go to [Discord developers portal](https://discord.com/developers/applications).
@@ -31,5 +31,5 @@ How to set up DRP for your mod/game
    After you upload the images, click the `Save Changes` button.
 ![ASSETS](Images/drp-assets.png)
 
-> **Note**
+> [!NOTE]
 > It may take some time before Discord updates your application info or assets. If you change the assets and app info while running the client - try restarting the Discord and/or client if they don't apply right away.
