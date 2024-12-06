@@ -20,7 +20,7 @@ namespace DTAClient.Online
 
         private static readonly IReadOnlyList<string> knownTextFileExtensions = [".txt", ".ini", ".json", ".xml"];
 
-        private string[] fileNamesToCheck = new string[]
+        private static readonly IReadOnlyList<string> fileNamesToCheck = new string[]
         {
 #if ARES
             "Ares.dll",
