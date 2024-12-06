@@ -462,7 +462,7 @@ Valid file operation options available for files defined for `FileSettingCheckBo
 - `OverwriteOnMismatch`: Overwrites the destination file with source file only if they are different.
 - `DontOverwrite`: Never overwrites the destination file with source file if destination file is already present.
 - `KeepChanges`: Carries over the destination file with any changes manually made to by caching the file if deleted by disabling the option and then re-enabling it.
-- `LinkAsReadOnly`: Try to make a hard link to the source file, and if you get an error — copy the file. Recommended to use with any binary source files such as `opengl32.dll`, `d3d9.dll`, `dxgi.dll` and don't recommended use option with text files. While link is established, source file and target file has property `Read only` which protects original file and created link from edits. [More details](https://github.com/CnCNet/xna-cncnet-client/pull/590).
+- `AlwaysOverwrite_LinkAsReadOnly`: Try to make a hard link (will look the same as the file but the content of the file will be shared) to the source file (copies the file as a fallback if the linking fails). Recommended to use with any binary source files such as `opengl32.dll`, `d3d9.dll`, `dxgi.dll` and not recommended to use with text files. While link is established, source file and target file has property `Read-only` which protects original file and created link from edits.
 
 ### Dynamic Control Properties
 

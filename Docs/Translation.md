@@ -117,6 +117,9 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 ## Ingame translation setup
 
+> [!IMPORTANT]
+> By default, the translation system will attempt to create a [hard link](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions) to the translation game files, and if linking fails — copy them. While this link is being created, the source and target files can be edited. Be aware, not all editors support editing files from hard link, so better edit the original file from your translation folder. To see links in your Windows Explorer, you can install [extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
+
 The translation system's ingame translation support requires the mod/game author(s) to specify the files which translators can provide in order to translate the game. The files are specified in the the syntax is `GameFileX=path/to/source.file,path/to/destination.file[,checked]` INI key in the `[Translations]` section of `ClientDefinitions.ini` (X is any text you want to add to the key to help sort files), with comma-separated parts of the value meaning the following:
 1) the path to the source file relative to currently selected translation directory;
 2) the destination to copy to, relative to the game root folder;
