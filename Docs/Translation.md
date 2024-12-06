@@ -117,13 +117,15 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 ## Ingame translation setup
 
-> [!IMPORTANT]
-> By default, the translation system will attempt to create a [hard link](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions) to the translation game files, and if linking fails — copy them. While this link is being created, the source and target files **can be edited**. Be aware that if you edit the source file or target link, an editor can either break the hard link or update source file. To see links in your Windows Explorer, you can install [extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
-
 The translation system's ingame translation support requires the mod/game author(s) to specify the files which translators can provide in order to translate the game. The files are specified in the the syntax is `GameFileX=path/to/source.file,path/to/destination.file[,checked]` INI key in the `[Translations]` section of `ClientDefinitions.ini` (X is any text you want to add to the key to help sort files), with comma-separated parts of the value meaning the following:
 1) the path to the source file relative to currently selected translation directory;
 2) the destination to copy to, relative to the game root folder;
 3) (optional) `checked` for the file to be checked by file integrity checks (should be on if this file can be used to cheat), if not specified - this file is not checked.
+
+> [!IMPORTANT]
+> When processing the translation game files, by default, the translation system will attempt to create destination files as [hard links](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions). If creating a hard link is unsuccessful, the system will instead make copies of the files.
+> Translators are advised to always work on files located in the source folder and avoid editing the copies in the destination folder. This is important because when a language is deselected, the client will automatically delete the files in the destination folder. Be aware that even if a source file and the corresponding destination file are hard-linked, editing either file in a text editor might cause one of these two consequences: either both files will be concurrently updated, or the hard link might be broken, causing only the file being edited to receive the updates. This is why it is recommended to always work on the source files.
+> To see links in Windows Explorer, you can install [this extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
 
 > [!WARNING]
 > If you include checked files in your ingame translation files, that means users won't be able to do custom translations if they include those files and you won't be able to use custom components with those files **without triggering the modified files / cheater warning**. This mechanism is made for those games and mods where it's impossible to provide a mechanism to provide translations in a cheat-safe way, so please use it only if you have no other choice, otherwise don't specify this parameter.
