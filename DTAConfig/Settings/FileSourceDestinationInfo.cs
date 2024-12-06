@@ -1,11 +1,8 @@
 ﻿using ClientCore;
-using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 
 namespace DTAConfig.Settings
 {
