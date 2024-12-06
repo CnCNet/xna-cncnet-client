@@ -22,11 +22,11 @@ namespace DTAConfig.Settings
 
         public FileOperationOption FileOperationOption { get; }
 
-        public FileSourceDestinationInfo(string source, string destination, FileOperationOption options)
+        public FileSourceDestinationInfo(string source, string destination, FileOperationOption option)
         {
             sourcePath = source;
             destinationPath = destination;
-            FileOperationOption = options;
+            FileOperationOption = option;
         }
 
         /// <summary>
@@ -40,13 +40,13 @@ namespace DTAConfig.Settings
                 throw new ArgumentException($"{nameof(FileSourceDestinationInfo)}: " +
                     $"Too few parameters specified in parsed value", nameof(value));
 
-            FileOperationOption options = default(FileOperationOption);
+            FileOperationOption option = default(FileOperationOption);
             if (parts.Length >= 3)
-                Enum.TryParse(parts[2], out options);
+                Enum.TryParse(parts[2], out option);
 
             sourcePath = parts[0];
             destinationPath = parts[1];
-            FileOperationOption = options;
+            FileOperationOption = option;
         }
 
         /// <summary>
