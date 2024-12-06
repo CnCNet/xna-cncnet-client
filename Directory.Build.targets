@@ -3,6 +3,14 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
+  <!-- "GetVersion" target is defined in GitVersion package -->
+  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
+    <PropertyGroup>
+      <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
+    </PropertyGroup>
+    <Warning Text="This is a development build of the client. Stability and reliability may not be fully guaranteed." Condition="'$(BuildingInsideVisualStudio)' != 'true'"></Warning>
+  </Target>
+
   <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"

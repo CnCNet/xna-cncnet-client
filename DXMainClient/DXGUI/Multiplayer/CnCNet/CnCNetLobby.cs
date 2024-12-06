@@ -556,9 +556,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCreationPanel.Hide();
 
+            string clientVersion = GitVersionInformation.AssemblySemVer;
+#if DEVELOPMENT_BUILD
+            clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
+#endif
+
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(
-                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
+                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), clientVersion),
                     lbChatMessages.FontIndex)));
+
+            {
+                string developBuildWarningMessage = "This is a development build of the client. Stability and reliability may not be fully guaranteed.".L10N("Client:Main:DevelopmentBuildWarning");
+
+#if DEVELOPMENT_BUILD
+                if (ClientConfiguration.Instance.ShowDevelopmentBuildWarnings)
+                {
+                    connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Red, Renderer.GetSafeString(
+                            developBuildWarningMessage, lbChatMessages.FontIndex)));
+                }
+#endif
+            }
 
             connectionManager.BannedFromChannel += ConnectionManager_BannedFromChannel;
 

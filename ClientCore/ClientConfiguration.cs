@@ -389,6 +389,11 @@ namespace ClientCore
         /// </summary>
         public bool DisallowJoiningIncompatibleGames => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(DisallowJoiningIncompatibleGames), false);
 
+        /// <summary>
+        /// Activates warnings for development builds of XNA Client
+        /// </summary>
+        public bool ShowDevelopmentBuildWarnings => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(ShowDevelopmentBuildWarnings), true);
+
         #endregion
 
         #region Network definitions

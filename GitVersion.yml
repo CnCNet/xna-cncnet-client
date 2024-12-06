@@ -3,23 +3,22 @@
 # This configuration will allow the gitversion msbuild task to auto version our executable. It uses existing tags
 # to determine the next version by auto incrementing the Minor, Patch, or Tag version. The Tag version is calculated
 # by counting the number of commits since the last tag.
-# Minor version is incremented by 1 when a build is created from the develop branch. 
-# Patch version is incremented by 1 when a build is created from the master branch.
+# Patch version is incremented by 1 when a build is created from the develop or master branch.
 #
 # Examples:
 #
 # Latest tag is "2.8.0" - 
-# The next commit on develop branch will start version 2.9.0-beta.1.
-# That increments the Minor by 1. That also increments the beta by 1 for the 1 additional commit.
-# Another commit creates 2.9.0-beta.2 and so on.
+# The next commit on develop branch will start version 2.8.1-beta.1.
+# That increments the Patch by 1. That also increments the beta by 1 for the 1 additional commit.
+# Another commit creates 2.8.1-beta.2 and so on.
 #
 # Latest tag is "2.8.0-beta.1" - 
-# The next commit on develop branch is "2.8.0-beta.2". Minor version is NOT incremented, because the 
+# The next commit on develop branch is "2.8.0-beta.2". Patch version is NOT incremented, because the 
 # base tag of "2.8.0-beta.1" is also a beta.
 # 
 # Latest tag is "2.8.0" -
-# A new commit is added directly to master. The new version is "2.8.1".
-# That increments th Patch, because it is treated as a "hotfix" directly on master.
+# A new commit is added directly to master. The new version is "2.8.1-rc.1".
+# That increments the Patch, because it is treated as a "hotfix" directly on master.
 #
 # Versioning Modes Quick View:
 # 
@@ -37,11 +36,11 @@ branches:
     increment: Patch
     is-mainline: true
     source-branches: [ 'develop' ]
-    tag: ''
+    tag: rc
   
   develop:
     regex: ^develop$
-    increment: Minor
+    increment: Patch
     is-mainline: false
     mode: ContinuousDeployment
     tag: beta
