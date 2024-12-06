@@ -823,12 +823,18 @@ namespace DTAConfig.OptionPanels
                     string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
 
                     if (sourceHash != destinationHash)
+                    {
                         FileHelper.CreateHardLinkFromSource(sourcePath, targetPath);
+                        new FileInfo(targetPath).IsReadOnly = true;
+                    }
                 }
                 else
                 {
                     if (File.Exists(targetPath))
+                    {
+                        new FileInfo(targetPath).IsReadOnly = false;
                         File.Delete(targetPath);
+                    }
                 }
             });
 
