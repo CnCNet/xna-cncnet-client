@@ -747,6 +747,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 				List<Map> allMaps = GameMode?.Maps.ToList() ?? new List<Map>();
 				return allMaps;
 			}
+   
             List<Map> mapList = (GameMode?.Maps.Where(x => x.MaxPlayers == playerCount) ?? Array.Empty<Map>()).ToList();
             if (mapList.Count < 1 && playerCount <= MAX_PLAYER_COUNT)
                 return GetMapList(playerCount + 1);
