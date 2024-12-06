@@ -124,7 +124,9 @@ The translation system's ingame translation support requires the mod/game author
 
 > [!IMPORTANT]
 > When processing the translation game files, by default, the translation system will attempt to create destination files as [hard links](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions). If creating a hard link is unsuccessful, the system will instead make copies of the files.
+>
 > Translators are advised to always work on files located in the source folder and avoid editing the copies in the destination folder. This is important because when a language is deselected, the client will automatically delete the files in the destination folder. Be aware that even if a source file and the corresponding destination file are hard-linked, editing either file in a text editor might cause one of these two consequences: either both files will be concurrently updated, or the hard link might be broken, causing only the file being edited to receive the updates. This is why it is recommended to always work on the source files.
+>
 > To see links in Windows Explorer, you can install [this extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
 
 > [!WARNING]
