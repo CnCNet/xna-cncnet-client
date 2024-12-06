@@ -119,7 +119,7 @@ namespace DTAConfig.Settings
                     File.Copy(SourcePath, DestinationPath, true);
                     break;
 
-                case FileOperationOptions.LinkAsReadOnly:
+                case FileOperationOptions.AlwaysOverwrite_LinkAsReadOnly:
                     FileHelper.CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
                     new FileInfo(DestinationPath).IsReadOnly = true;
                     new FileInfo(SourcePath).IsReadOnly = true;
@@ -152,7 +152,7 @@ namespace DTAConfig.Settings
                     }
                     break;
 
-                case FileOperationOptions.LinkAsReadOnly:
+                case FileOperationOptions.AlwaysOverwrite_LinkAsReadOnly:
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
@@ -163,7 +163,7 @@ namespace DTAConfig.Settings
                         destinationFile.Delete();
                     }
 
-                    if (FileOperationOptions == FileOperationOptions.LinkAsReadOnly)
+                    if (FileOperationOptions == FileOperationOptions.AlwaysOverwrite_LinkAsReadOnly)
                     {
                         new FileInfo(SourcePath).IsReadOnly = false;
                     }
@@ -187,6 +187,6 @@ namespace DTAConfig.Settings
         OverwriteOnMismatch,
         DontOverwrite,
         KeepChanges,
-        LinkAsReadOnly
+        AlwaysOverwrite_LinkAsReadOnly
     }
 }
