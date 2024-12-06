@@ -79,7 +79,7 @@ namespace DTAConfig.Settings
             return SelectedIndex != currentValue;
         }
 
-        public void AddFile(int itemIndex, string source, string destination, FileOperationOptions options)
+        public void AddFile(int itemIndex, string source, string destination, FileOperationOption options)
         {
             if (itemIndex < 0 || itemIndex >= Items.Count)
                 return;
