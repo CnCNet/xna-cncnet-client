@@ -83,7 +83,7 @@ namespace ClientCore
             {
                 if (link(source, destination) != 0)
                     throw new IOException(string.Format("Unable to create hard link at {0} with the following error code: {1}"
-                                                        .L10N("Client:DTAConfig:CreateHardLinkFailed"), destination, Marshal.GetLastWin32Error()));
+                        .L10N("Client:DTAConfig:CreateHardLinkFailed"), destination, Marshal.GetLastWin32Error()));
             }
             else
             {

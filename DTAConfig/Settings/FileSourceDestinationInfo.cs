@@ -164,9 +164,7 @@ namespace DTAConfig.Settings
                     }
 
                     if (FileOperationOptions == FileOperationOptions.AlwaysOverwrite_LinkAsReadOnly)
-                    {
                         new FileInfo(SourcePath).IsReadOnly = false;
-                    }
 
                     break;
 
@@ -187,6 +185,6 @@ namespace DTAConfig.Settings
         OverwriteOnMismatch,
         DontOverwrite,
         KeepChanges,
-        AlwaysOverwrite_LinkAsReadOnly
+        AlwaysOverwrite_LinkAsReadOnly,
     }
 }
