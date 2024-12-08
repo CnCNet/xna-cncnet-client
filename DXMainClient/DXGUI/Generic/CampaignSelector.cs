@@ -10,6 +10,7 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using ClientUpdater;
 using ClientCore.Extensions;
+using DTAClient.Domain.Singleplayer;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -386,7 +387,7 @@ namespace DTAClient.DXGUI.Generic
                 if (!battleIni.SectionExists(battleSection))
                     continue;
 
-                var mission = new Mission(battleIni, battleSection, i);
+                var mission = new Mission(battleIni.GetSection(battleSection));
 
                 Missions.Add(mission);
 
