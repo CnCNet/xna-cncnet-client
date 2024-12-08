@@ -60,6 +60,17 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public List<int> DisallowedPlayerSides = new List<int>();
 
+        /// <summary>
+        /// List of side indices human players cannot select in this game mode.
+        /// </summary>
+        public List<int> DisallowedHumanPlayerSides = new List<int>();
+
+        /// <summary>
+        /// List of side indices computer players cannot select in this game mode.
+        /// </summary>
+        public List<int> DisallowedComputerPlayerSides = new List<int>();
+
+
         /// </summary>
         /// Override for minimum amount of players needed to play any map in this game mode.
         /// </summary>
@@ -99,6 +110,20 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedPlayerSides.Add(int.Parse(sideIndex));
+
+            disallowedSides = forcedOptionsIni
+                .GetStringValue(Name, "DisallowedHumanPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string sideIndex in disallowedSides)
+                DisallowedHumanPlayerSides.Add(int.Parse(sideIndex));
+
+            disallowedSides = forcedOptionsIni
+                .GetStringValue(Name, "DisallowedComputerPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string sideIndex in disallowedSides)
+                DisallowedComputerPlayerSides.Add(int.Parse(sideIndex));
 
             ParseForcedOptions(forcedOptionsIni);
 

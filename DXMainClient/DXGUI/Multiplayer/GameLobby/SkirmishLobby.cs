@@ -52,8 +52,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             LoadSettings();
 
-            CheckDisallowedSides();
-
             CopyPlayerDataToUI();
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
