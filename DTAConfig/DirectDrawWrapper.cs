@@ -174,8 +174,11 @@ namespace DTAConfig
             }
             else
             {
-                new FileInfo(ddrawDllTargetPath).IsReadOnly = false;
-                File.Delete(ddrawDllTargetPath);
+                if (File.Exists(ddrawDllTargetPath))
+                {
+                    new FileInfo(ddrawDllTargetPath).IsReadOnly = false;
+                    File.Delete(ddrawDllTargetPath);
+                }
             }
 
 
