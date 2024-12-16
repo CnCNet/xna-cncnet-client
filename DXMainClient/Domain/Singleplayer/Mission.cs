@@ -43,72 +43,70 @@ namespace DTAClient.Domain.Singleplayer
             BuildOffAlly = section.GetBooleanValue(nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = section.GetBooleanValue(nameof(PlayerAlwaysOnNormalDifficulty), false);
 
-            MissionUnlocks = InitBindings(section, "Unlocks");
-            PreGameBindings = InitBindings(section, "Uses");
-            PostGameBindings = InitBindings(section, "Updates");
+            HomeCell = section.GetStringValue("HomeCell", string.Empty);
+
+            ConfigurableVariables = new List<string>();
+            for(int i = 0; i < 10; i++)
+            {
+                string str = section.GetStringValue("ConfigureVariable" + i, string.Empty);
+                if (str == string.Empty)
+                    break;
+                ConfigurableVariables.Add(str);
+            }
+
+            LocalBindings = ParseVariables(section.GetStringValue("BindLocals", string.Empty));
+            GlobalBindings = ParseVariables(section.GetStringValue("BindGlobals", string.Empty));
+            LocalUpdates = ParseVariables(section.GetStringValue("LocalUpdates", string.Empty));
+            GlobalUpdates = ParseVariables(section.GetStringValue("GlobalUpdates", string.Empty));
         }
 
         public string InternalName { get; }
-        public int CD { get; }
+        public int CD { get; private set; }
         public int CampaignID { get; } = -1;
-        public int Side { get; }
-        public string Scenario { get; }
-        public string GUIName { get; }
-        public string UntranslatedGUIName { get; }
-        public string IconPath { get; }
-        public string GUIDescription { get; }
-        public string FinalMovie { get; }
-        public bool RequiredAddon { get; }
-        public bool Enabled { get; }
-        public bool BuildOffAlly { get; }
+        public int Side { get; private set; }
+        public string Scenario { get; private set; }
+        public string GUIName { get; private set; }
+        public string UntranslatedGUIName { get; private set; }
+        public string IconPath { get; private set; }
+        public string GUIDescription { get; private set; }
+        public string FinalMovie { get; private set; }
+        public bool RequiredAddon { get; private set; }
+        public bool Enabled { get; private set; }
+        public bool BuildOffAlly { get; private set; }
         public bool PlayerAlwaysOnNormalDifficulty { get; }
-
-        /// <summary>
-        /// Does this mission need to be unlocked by playing another mission?
-        /// </summary>
         public bool RequiresUnlocking { get; private set; }
-
-        /// <summary>
-        /// Is this mission currently unlocked?
-        /// </summary>
         public bool IsUnlocked { get; set; }
-
-        /// <summary>
-        /// The best state in which the mission was last completed.
-        /// </summary>
         public CompletionState Rank { get; set; }
+        public string HomeCell { get; }
+        public List<string> ConfigurableVariables { get; }
+        public Dictionary<string, int> LocalBindings { get; }
+        public Dictionary<string, int> GlobalBindings { get; }
+        public Dictionary<string, int> LocalUpdates { get; }
+        public Dictionary<string, int> GlobalUpdates { get; }
 
-        /// <summary>
-        /// A set of bindings defining conditions which will unlock a given mission.
-        /// </summary>
-        public List<CampaignBinding> MissionUnlocks { get; private set; }
-
-        /// <summary>
-        /// A set of bindings used to set in-game variables and include ini files in mission maps.
-        /// </summary>
-        public List<CampaignBinding> PreGameBindings { get; private set; }
-
-        /// <summary>
-        /// A set of bindings used to update career variables after mission completion.
-        /// </summary>
-        public List<CampaignBinding> PostGameBindings { get; private set; }
-
-        private List<CampaignBinding> InitBindings(IniSection section, string prefix)
+        private Dictionary<string, int> ParseVariables(string str)
         {
-            List<CampaignBinding> bindings = new List<CampaignBinding>();
-            foreach (KeyValuePair<string, string> kvp in section.Keys.Where(k => k.Key.StartsWith(prefix)))
+            if (str == string.Empty)
+                return new Dictionary<string, int>();
+
+            Dictionary<string, int> binds = new Dictionary<string, int>();
+
+            string[] vars = str.Split(',');
+
+            foreach (string var in vars)
             {
-                string[] parts = kvp.Key.Split(".");
-                if (parts.Length > 2)
+                string[] parts = var.Split(':');
+                if(parts.Length == 2)
                 {
-                    Logger.Log("Campaign binding key containing more than one /'./' will be skipped: " + kvp.Key);
-                    continue;
+                    binds.Add(parts[0], int.Parse(parts[1]));
                 }
-                CampaignBinding binding = new CampaignBinding(parts[1]);
-                binding.Bind(kvp.Value);
-                bindings.Add(binding);
+                else
+                {
+                    Logger.Log(InternalName + " failed trying to parse client variable: " + var);
+                }
             }
-            return bindings;
+
+            return binds;
         }
     }
 }

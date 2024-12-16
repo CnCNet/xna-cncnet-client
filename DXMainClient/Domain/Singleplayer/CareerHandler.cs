@@ -41,6 +41,7 @@ namespace DTAClient.Domain.Singleplayer
             string filePath = ProgramConstants.GamePath + SP_CAREER_FILE;
             if (!File.Exists(filePath))
             {
+                Logger.Log("Data file for single-player career not found.");
                 return;
             }
 

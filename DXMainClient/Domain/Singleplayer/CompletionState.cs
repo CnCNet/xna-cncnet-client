@@ -9,8 +9,12 @@ namespace DTAClient.Domain.Singleplayer
     public enum CompletionState
     {
         NONE = 0,
-        EASY = 1,
-        NORMAL = 2,
-        HARD = 3
+        INCOMPLETE = 1,
+        EASY = 2,
+        NORMAL = 3,
+        HARD = 4,
+        EASY_PAR = 5,
+        NORMAL_PAR = 6,
+        HARD_PAR = 7
     }
 }
