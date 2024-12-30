@@ -184,6 +184,8 @@ namespace ClientCore
 
         public string LocalGame => clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
 
+        public int SteamGameId => clientDefinitionsIni.GetIntValue(SETTINGS, "SteamGameId", 2229850);
+
         public bool SidebarHack => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
 
         public int MinimumRenderWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderWidth", 1280);

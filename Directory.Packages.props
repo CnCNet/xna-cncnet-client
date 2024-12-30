@@ -25,6 +25,9 @@
     <PackageVersion Include="Rampastring.XNAUI.UniversalGL.Debug" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsXNA.Debug" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.9" />
+    <PackageVersion Include="SteamworksSharp" Version="1.0.8" />
+    <PackageVersion Include="SteamworksSharp.Native" Version="1.0.8" />
+    <PackageVersion Include="SteamworksSharp.Native.Windows_x64" Version="1.0.8" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="$(DotnetLibrariesVersion)" />
@@ -51,7 +54,6 @@
     <!-- and -p:Engine=WindowsDX -f net48 -->
     <PackageReference Include="NETStandard.Library" />
     <PackageVersion Include="NETStandard.Library" Version="2.0.3" />
-
     <PackageReference Include="System.IO.FileSystem" />
     <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
   </ItemGroup>
