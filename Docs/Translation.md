@@ -45,12 +45,12 @@ For example:
 
 The translation folder name is used to match it to the system locale code (as defined by BCP-47), so it is advised to name the translation folders according to that (for example, see how [the locales Windows uses](https://learn.microsoft.com/ru-ru/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c) are coded). That allows the client to choose the appropriate translation based on the system locale and also automatically fetch the name of the translation.
 
-> **Note**
+> [!NOTE]
 > Unless you're aiming for making a translation for a specific country (e.g. `en-US` and `en-GB`), it's advised to use simply a [language code](http://www.loc.gov/standards/iso639-2/php/code_list.php) (for example, `ru`, `de`, `en`, `zh-Hans`, `zh-Hant` etc.)
 
 The folder name doesn't explicitly need to match the existing locale code. However, in that case you would want to provide an explicit name in the translation INI, and the translation won't be automatically picked in any case.
 
-> **Note**
+> [!NOTE]
 > The hardcoded client strings can be overridden using an `en` translation. Because the built-in `en` strings are always available, so it English client language. Even if the client doesn't have any translations, English will still be picked by default. If for some reason you need to override hardcoded strings in your client distribution, you can create a `Resources/Translations/en/Translation.ini` file and override needed values there.
 
 ### Translation INI format
@@ -112,7 +112,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
   - `ClientDefinitions` - self explanatory.
     - `WindowTitle` - self explanatory, only works if set in `ClientDefinitions.ini`
 
-> **Warning**
+> [!WARNING]
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
 
 ## Ingame translation setup
@@ -122,7 +122,14 @@ The translation system's ingame translation support requires the mod/game author
 2) the destination to copy to, relative to the game root folder;
 3) (optional) `checked` for the file to be checked by file integrity checks (should be on if this file can be used to cheat), if not specified - this file is not checked.
 
-> **Warning**
+> [!IMPORTANT]
+> When processing the translation game files, by default, the translation system will attempt to create destination files as [hard links](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions). If creating a hard link is unsuccessful, the system will instead make copies of the files.
+>
+> Translators are advised to always work on files located in the source folder and avoid editing the copies in the destination folder. This is important because when a language is deselected, the client will automatically delete the files in the destination folder. Be aware that even if a source file and the corresponding destination file are hard-linked, editing either file in a text editor might cause one of these two consequences: either both files will be concurrently updated, or the hard link might be broken, causing only the file being edited to receive the updates. This is why it is recommended to always work on the source files.
+>
+> To see links in Windows Explorer, you can install [this extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
+
+> [!WARNING]
 > If you include checked files in your ingame translation files, that means users won't be able to do custom translations if they include those files and you won't be able to use custom components with those files **without triggering the modified files / cheater warning**. This mechanism is made for those games and mods where it's impossible to provide a mechanism to provide translations in a cheat-safe way, so please use it only if you have no other choice, otherwise don't specify this parameter.
 
 Example configuration in `ClientDefinitions.ini`:
@@ -137,7 +144,7 @@ GameFile_DLL_HD=Resources/language_1024x720.dll,Resources/language_1024x720.dll
 
 This will make the `translation.mix` file from current translation folder (say, `Resources/Translations/ru`) copied to game root as `expandmo98.mix` on game start.
 
-> **Warning**
+> [!WARNING]
 > This feature is needed only for *game* files, not *client* files like INIs, theme assets etc.!
 
 ## Suggested translation workflow

@@ -36,7 +36,11 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsInGame { get; set; }
         public virtual string IPAddress { get; set; } = "0.0.0.0";
         public int Port { get; set; }
-        public bool Verified { get; set; }
+
+        /// <summary>
+        /// Whether the file hash information is received from the player, regardless of whether it is consistent with the one calculated by this client.
+        /// </summary>
+        public bool HashReceived { get; set; }
 
         public int Index { get; set; }
 

@@ -126,7 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client.GetStream().Flush();
 
                 var fhc = new FileHashCalculator();
-                fhc.CalculateHashes(gameModes);
+                fhc.CalculateHashes();
                 localFileHash = fhc.GetCompleteHash();
             }
             else
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public void PostJoin()
         {
             var fhc = new FileHashCalculator();
-            fhc.CalculateHashes(gameModes);
+            fhc.CalculateHashes();
             SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
             UpdateDiscordPresence(true);
         }
@@ -475,7 +475,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (hash != localFileHash)
                 AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("Client:Main:PlayerCheating"), sender.Name), Color.Red);
-            sender.Verified = true;
+            sender.HashReceived = true;
         }
 
         private void Server_HandleReadyRequest(LANPlayerInfo sender)

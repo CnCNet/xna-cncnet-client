@@ -16,6 +16,7 @@ namespace ClientCore
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
         private const string TRANSLATIONS = "Translations";
+        private const string USER_DEFAULTS = "UserDefaults";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
@@ -193,7 +194,8 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
-        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions", "1280x720,2560x1440,3840x2160").Split(',');
+        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions",
+            $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}").Split(',');
 
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
             .L10N("INI:ClientDefinitions:WindowTitle");
@@ -397,6 +399,11 @@ namespace ClientCore
         /// </summary>
         public bool DisallowJoiningIncompatibleGames => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(DisallowJoiningIncompatibleGames), false);
 
+        /// <summary>
+        /// Activates warnings for development builds of XNA Client
+        /// </summary>
+        public bool ShowDevelopmentBuildWarnings => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(ShowDevelopmentBuildWarnings), true);
+
         #endregion
 
         #region Network definitions
@@ -415,6 +422,16 @@ namespace ClientCore
 
         #endregion
 
+        #region User default settings
+
+        public bool UserDefault_BorderlessWindowedClient => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "BorderlessWindowedClient", true);
+
+        public bool UserDefault_IntegerScaledClient => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "IntegerScaledClient", false);
+
+        public bool UserDefault_WriteInstallationPathToRegistry => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "WriteInstallationPathToRegistry", true);
+
+        #endregion
+
         public List<string> GetIRCServers()
         {
             List<string> servers = [];
@@ -429,7 +446,7 @@ namespace ClientCore
         }
 
         public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
-        
+
         public OSVersion GetOperatingSystemVersion()
         {
 #if NETFRAMEWORK

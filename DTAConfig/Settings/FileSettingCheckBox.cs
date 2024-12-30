@@ -100,11 +100,11 @@ namespace DTAConfig.Settings
             return Checked != currentValue;
         }
 
-        public void AddEnabledFile(string source, string destination, FileOperationOptions options)
-            => enabledFiles.Add(new FileSourceDestinationInfo(source, destination, options));
+        public void AddEnabledFile(string source, string destination, FileOperationOption option)
+            => enabledFiles.Add(new FileSourceDestinationInfo(source, destination, option));
 
-        public void AddDisabledFile(string source, string destination, FileOperationOptions options)
-            => disabledFiles.Add(new FileSourceDestinationInfo(source, destination, options));
+        public void AddDisabledFile(string source, string destination, FileOperationOption option)
+            => disabledFiles.Add(new FileSourceDestinationInfo(source, destination, option));
 
         public override void Load()
         {
