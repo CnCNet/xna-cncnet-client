@@ -21,8 +21,7 @@ using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 using DTAConfig;
 using System.Collections.Generic;
-using SteamworksSharp.Native;
-using SteamworksSharp;
+using Steamworks;
 
 namespace DTAClient
 {
@@ -155,26 +154,26 @@ namespace DTAClient
                 fhc.CalculateHashes();
             }
 #endif
-            // Load native steam binaries.
-            SteamNative.Initialize();
 
-            if (SteamApi.IsSteamRunning())
+#if ISWINDOWS
+            if (UserINISettings.Instance.SteamIntegration)
             {
-                // Provide appId so it automatically creates a "steam_appid.txt" file.
-                if (SteamApi.Initialize(ClientConfiguration.Instance.SteamGameId))
+                try
                 {
-                    Logger.Log($"Logged in as: {SteamApi.SteamFriends.GetPersonaName()}");
+                    Logger.Log("Steam init called");
+#if YR || ARES
+                    SteamClient.Init(2229850);
+#else
+                    SteamClient.Init(2229880);
+#endif
                 }
-                else
+                catch (System.Exception e)
                 {
-                    Logger.Log("SteamApi failed to initialize.");
+                    Logger.Log("Steam init failed: " + e.Message);
+                    // Couldn't init for some reason (steam is closed etc)
                 }
             }
-            else
-            {
-                Logger.Log("Steam is not running.");
-            }
-
+#endif
             gameClass.Run();
         }
 

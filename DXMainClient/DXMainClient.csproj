@@ -27,14 +27,12 @@
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Facepunch.Steamworks" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenMcdf" />
-    <PackageReference Include="SteamworksSharp" />
-    <PackageReference Include="SteamworksSharp.Native" />
-    <PackageReference Include="SteamworksSharp.Native.Windows_x64" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
   </ItemGroup>
