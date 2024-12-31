@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -21,6 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int ICON_MARGIN = 2;
         private const int FONT_INDEX = 0;
         private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
+        private string[] OnlineGameDifficultyOptions;
 
         public GameListBox(WindowManager windowManager, MapLoader mapLoader,
             string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
@@ -29,7 +34,11 @@ namespace DTAClient.DXGUI.Multiplayer
             this.mapLoader = mapLoader;
             this.localGameIdentifier = localGameIdentifier;
             GameMatchesFilter = gameMatchesFilter;
+
+            OnlineGameDifficultyOptions = ClientConfiguration.Instance.OnlineGameDifficultyOptions.Split(',');
         }
+
+        private List<Texture2D> txGameDifficultyIcons =  new List<Texture2D>();
 
         private int loadedGameTextWidth;
 
@@ -185,6 +194,24 @@ namespace DTAClient.DXGUI.Multiplayer
                 ClientConfiguration.Instance.HoverOnGameColor);
 
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
+
+            InitGameDifficultyIcons();
+        }
+
+        private void InitGameDifficultyIcons()
+        {
+            for (int i = 0; i < OnlineGameDifficultyOptions.Length; i++)
+            {
+                Texture2D gd = AssetLoader.LoadTexture("game_difficulty_" + i + ".png");
+                if (gd != null)
+                {
+                    txGameDifficultyIcons.Add(gd);
+                }
+                else
+                {
+                    Logger.Log($"Failed to load texture for game difficulty index {i}");
+                }
+            }
         }
 
         private bool IsValidGameIndex(int index)
@@ -331,6 +358,19 @@ namespace DTAClient.DXGUI.Multiplayer
                         new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
                         height, txPasswordedGame.Width, txPasswordedGame.Height),
                         Color.White);
+                }
+                else
+                {
+                    Logger.Log("GameDifficulty **  Drawing game difficulty icon: " + hostedGame.GameDifficulty);
+                    Texture2D txGameDifficulty = txGameDifficultyIcons[hostedGame.GameDifficulty];
+
+                    if (txGameDifficulty != null)
+                    {
+                        DrawTexture(txGameDifficulty,
+                            new Rectangle(Width - txGameDifficulty.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                            height, txGameDifficulty.Width, txGameDifficulty.Height),
+                            Color.White);
+                    }
                 }
 
                 var text = lbItem.Text;

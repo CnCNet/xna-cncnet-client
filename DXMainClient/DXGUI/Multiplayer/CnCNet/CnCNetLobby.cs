@@ -925,7 +925,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.GameDifficulty);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1037,7 +1037,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.GameDifficulty);
             gameChannel.UserAdded += GameChannel_UserAdded;
             //gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
@@ -1484,7 +1484,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 11)
+            if (splitMessage.Length != 12)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1514,6 +1514,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
+                int gameDifficulty = int.Parse(splitMessage[11]);
+
+                Logger.Log("GameDifficulty ** Received game difficulty in ctcp: " + gameDifficulty);
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
@@ -1536,6 +1539,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
+                game.GameDifficulty = gameDifficulty;
 
                 if (isClosed)
                 {

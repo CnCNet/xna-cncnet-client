@@ -330,6 +330,8 @@ namespace ClientCore
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
+        public string OnlineGameDifficultyOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "OnlineGameDifficultyOptions", "Any,Beginner,Intermediate,Pro (Competitive)");
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
