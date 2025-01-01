@@ -146,6 +146,14 @@ namespace DTAClient
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
             }
 
+#if DEBUG
+            // Calculate hashes
+            {
+                FileHashCalculator fhc = new();
+                fhc.CalculateHashes();
+            }
+#endif
+
             gameClass.Run();
         }
 

@@ -3,6 +3,14 @@
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
+  <!-- "GetVersion" target is defined in GitVersion package -->
+  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
+    <PropertyGroup>
+      <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
+    </PropertyGroup>
+    <Warning Text="This is a development build of the client. Stability and reliability may not be fully guaranteed." Condition="'$(BuildingInsideVisualStudio)' != 'true'"></Warning>
+  </Target>
+
   <Target Name="RestoreUpdater" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
@@ -88,8 +96,7 @@
       <ExampleClientMaps Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Maps\**\*.*" />
       <ExampleClientIni Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\INI\**\*.*" />
       <ExampleClientMix Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\MIX\**\*.*" />
-      <ExampleClientSettings Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Settings.ini" />
-      <ExampleClientLinuxRun Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\run.sh" />
+      <ExampleClientSettings Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\SUN.ini" />
       <ExampleClientDefinitions Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\ClientDefinitions.ini" />
     </ItemGroup>
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
@@ -97,7 +104,6 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
   </Target>
 
