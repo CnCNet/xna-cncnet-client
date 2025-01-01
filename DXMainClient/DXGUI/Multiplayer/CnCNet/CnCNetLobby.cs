@@ -1108,7 +1108,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             while (true)
             {
-                string channelName = string.Format("{0}-game{1}".L10N("Client:Main:RamdomChannelName"), gameCollection.GetGameChatChannelNameFromIdentifier(localGameID), new Random().Next(1000000, 9999999));
+                string channelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID) + "-game" + new Random().Next(1000000, 9999999);
                 int index = lbGameList.HostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
