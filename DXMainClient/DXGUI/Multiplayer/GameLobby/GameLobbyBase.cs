@@ -74,6 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
 
         protected DiscordHandler discordHandler;
+        protected PrivateMessagingWindow pmWindow;
 
         protected MapLoader MapLoader;
         /// <summary>

@@ -49,8 +49,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameCollection gameCollection, 
             CnCNetUserData cncnetUserData, 
             MapLoader mapLoader, 
-            DiscordHandler discordHandler
-        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler)
+            DiscordHandler discordHandler,
+            PrivateMessagingWindow pmWindow
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
