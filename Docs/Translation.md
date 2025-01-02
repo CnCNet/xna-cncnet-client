@@ -114,6 +114,29 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 > [!WARNING]
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
+> 
+> Available keys to use:
+> * `Text`
+> * `Size`
+> * `Width`
+> * `Height`
+> * `Location`
+> * `X`
+> * `Y`
+> * `DistanceFromRightBorder`
+> * `DistanceFromBottomBorder`
+> * `ToolTip`
+> * `Suggestion`
+> 
+> Example:
+> ```ini
+> Client:DTAConfig:ForceUpdate=Принудительное обновление;Force Update
+> INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Location=320,213
+> INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Size=220,23
+> ```
+
+> [!IMPORTANT]
+> If button have `IdleTexture` key, be sure to place this key as the first key in button's section or you can not resize it from `Translation.ini`, because `IdleTexture` change button's size.
 
 ## Ingame translation setup
 
