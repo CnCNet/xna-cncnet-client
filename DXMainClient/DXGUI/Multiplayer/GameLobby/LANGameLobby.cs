@@ -17,6 +17,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -43,8 +44,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) :
-            base(windowManager, iniName, topBar, mapLoader, discordHandler)
+            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow) :
+            base(windowManager, iniName, topBar, mapLoader, discordHandler, pmWindow)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
