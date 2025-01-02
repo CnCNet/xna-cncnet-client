@@ -68,9 +68,13 @@ Some:Key=Some Value  ; string, see below for explanation
 
 Examples:
 ```ini
-INI:Missions:GDIFS:Description=Act 1: GDI Campaign - Desperate Measures
-INI:Controls:GameOptionsPanel:chkBlackChatBackground:Text=Dark Chat Background
-Client:DTAConfig:FriendsOnly=Only receive game invitations from friends
+INI:HotkeyCategories:Interface=Интерфейс  ; Interface
+INI:Hotkeys:AllToCheer:Description=Приказать вашей пехоте ликовать.  ; Make all of your infantry units cheer.
+INI:Hotkeys:AllToCheer:UIName=Ликовать  ; Cheer
+INI:Controls:CheaterScreen:lblCheater:Text=Обнаружены изменения!  ; Modifications Detected!
+Client:DTAConfig:ForceUpdate=Принудительное обновление  ; Force Update
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Location=320,213
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Size=220,23
 ```
 
 Each key in the `[Values]` section is composed of a few elements, joined using `:`, that have different semantic meaning. The structure can be described like this (with list level denoting the position).
@@ -114,6 +118,9 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 > [!WARNING]
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
+
+> [!IMPORTANT]
+> If the button has an `IdleTexture` key, be sure to place this key as the first key in the button's section, otherwise you will not be able to resize it from `Translation.ini`, because `IdleTexture` changes the size of the button.
 
 ## Ingame translation setup
 
