@@ -68,12 +68,11 @@ Some:Key=Some Value  ; string, see below for explanation
 
 Examples:
 ```ini
-INI:HotkeyCategories:Interface=Интерфейс;Interface
-INI:Hotkeys:AllToCheer:Description=Приказать вашей пехоте ликовать.;Make all of your infantry units cheer.
-INI:Hotkeys:AllToCheer:UIName=Ликовать;Cheer
-Client:DTAConfig:FriendsOnly=Only receive game invitations from friends
-INI:Controls:CheaterScreen:lblCheater:Text=Обнаружены изменения;Modifications Detected!
-Client:DTAConfig:ForceUpdate=Принудительное обновление;Force Update
+INI:HotkeyCategories:Interface=Интерфейс  ; Interface
+INI:Hotkeys:AllToCheer:Description=Приказать вашей пехоте ликовать.  ; Make all of your infantry units cheer.
+INI:Hotkeys:AllToCheer:UIName=Ликовать  ; Cheer
+INI:Controls:CheaterScreen:lblCheater:Text=Обнаружены изменения!  ; Modifications Detected!
+Client:DTAConfig:ForceUpdate=Принудительное обновление  ; Force Update
 INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Location=320,213
 INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Size=220,23
 ```
