@@ -60,7 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameName.ClientRectangle = new Rectangle(Width - 150 - UIDesignConstants.EMPTY_SPACE_SIDES -
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, UIDesignConstants.EMPTY_SPACE_TOP +
                 UIDesignConstants.CONTROL_VERTICAL_MARGIN, 150, 21);
-            tbGameName.Text = string.Format("{0}'s Game".L10N("Client:Main:GameOfPlayer"), ProgramConstants.PLAYERNAME);
+            tbGameName.Text = string.Format("{0}'s Game", ProgramConstants.PLAYERNAME);
 
             lblRoomName = new XNALabel(WindowManager);
             lblRoomName.Name = nameof(lblRoomName);
@@ -180,7 +180,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-            tbGameName.Text = string.Format("{0}'s Game".L10N("Client:Main:GameOfPlayer"), UserINISettings.Instance.PlayerName.Value);
+            tbGameName.Text = string.Format("{0}'s Game", UserINISettings.Instance.PlayerName.Value);
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
