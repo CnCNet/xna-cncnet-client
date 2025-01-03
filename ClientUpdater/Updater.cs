@@ -614,7 +614,7 @@ public static class Updater
 
                 UpdateUserAgent(SharedHttpClient);
 
-                FileInfo downloadFile = SafePath.GetFile(GamePath, FormattableString.Invariant($"{VERSION_FILE}_u"));
+                FileInfo versionFile = SafePath.GetFile(GamePath, FormattableString.Invariant($"{VERSION_FILE}_u"));
 
                 while (currentUpdateMirrorIndex < updateMirrors.Count)
                 {
@@ -622,7 +622,7 @@ public static class Updater
                     {
                         Logger.Log("Updater: Trying to connect to update mirror " + updateMirrors[currentUpdateMirrorIndex].URL);
 
-                        FileStream fileStream = new FileStream(downloadFile.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+                        FileStream fileStream = new FileStream(versionFile.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
                         using (fileStream)
                         {
@@ -651,7 +651,7 @@ public static class Updater
                 }
 
                 Logger.Log("Updater: Downloaded version information.");
-                var version = new IniFile(downloadFile.FullName);
+                var version = new IniFile(versionFile.FullName);
                 string versionString = version.GetStringValue("DTA", "Version", string.Empty);
                 string updaterVersionString = version.GetStringValue("DTA", "UpdaterVersion", "N/A");
                 string manualDownloadURLString = version.GetStringValue("DTA", "ManualDownloadURL", string.Empty);
@@ -723,7 +723,7 @@ public static class Updater
                 if (versionString == GameVersion)
                 {
                     VersionState = VersionState.UPTODATE;
-                    downloadFile.Delete();
+                    versionFile.Delete();
                     DoFileIdentifiersUpdatedEvent();
 
                     if (AreCustomComponentsOutdated())
@@ -737,7 +737,7 @@ public static class Updater
                         VersionState = VersionState.OUTDATED;
                         ManualUpdateRequired = true;
                         ManualDownloadURL = manualDownloadURLString;
-                        downloadFile.Delete();
+                        versionFile.Delete();
                         DoFileIdentifiersUpdatedEvent();
                     }
                     else
@@ -877,6 +877,8 @@ public static class Updater
 
                 FileInfo file = SafePath.GetFile(GamePath, key);
 
+                // TODO
+
                 if (file.Exists)
                     file.MoveTo(SafePath.CombineFilePath(GamePath, newFilename));
             }
@@ -897,6 +899,8 @@ public static class Updater
                 Logger.Log("Updater: " + fileName + ": Renaming directory '" + key + "' to '" + newDirectoryName + "'");
 
                 DirectoryInfo directory = SafePath.GetDirectory(GamePath, key);
+
+                // TODO
 
                 if (directory.Exists)
                     directory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
@@ -922,6 +926,8 @@ public static class Updater
 
                 if (!gameDirectory.Exists)
                     continue;
+
+                // TODO
 
                 if (!directoryToMergeInto.Exists)
                 {
