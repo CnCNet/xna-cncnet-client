@@ -376,8 +376,10 @@ public class CustomComponent
         {
             foreach (string filename in filesToCleanup)
             {
-                if (File.Exists(filename))
+                if (File.Exists(filename)){
+                    new FileInfo(filename).IsReadOnly = false;
                     File.Delete(filename);
+                }
             }
         }
         catch (Exception)

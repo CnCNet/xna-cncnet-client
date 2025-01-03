@@ -886,7 +886,11 @@ namespace DTAConfig.OptionPanels
             {
                 string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 
-                SafePath.DeleteFileIfExists(languageDllDestinationPath);
+                FileInfo fileInfo = SafePath.GetFile(languageDllDestinationPath);
+                if (fileInfo.Exists) {
+                    fileInfo.IsReadOnly = false;
+                    fileInfo.Delete();
+                }
 
                 if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);

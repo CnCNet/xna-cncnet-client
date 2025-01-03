@@ -429,6 +429,7 @@ public static class Updater
         {
             mre.Set();
         };
+        fileInfo.IsReadOnly = false;
         fileInfo.Delete();
         mre.Wait(timeout);
     }
@@ -851,7 +852,12 @@ public static class Updater
 
             try
             {
-                SafePath.DeleteFileIfExists(GamePath, key);
+                FileInfo fileInfo = SafePath.GetFile(GamePath, key);
+
+                if (fileInfo.Exists){
+                    fileInfo.IsReadOnly = false;
+                    fileInfo.Delete();
+                }
             }
             catch (Exception ex)
             {
@@ -959,7 +965,17 @@ public static class Updater
                 {
                     Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "'");
 
-                    SafePath.DeleteDirectoryIfExists(true, GamePath, key);
+                    DirectoryInfo directoryInfo = SafePath.GetDirectory(GamePath, key);
+                    if (directoryInfo.Exists)
+                    {
+                        // Unset read-only attribute from all files in the directory.
+                        foreach (FileInfo file in directoryInfo.GetFiles("*", SearchOption.AllDirectories))
+                        {
+                            file.IsReadOnly = false;
+                        }
+
+                        directoryInfo.Delete(true);
+                    }
                 }
                 catch (Exception ex)
                 {
