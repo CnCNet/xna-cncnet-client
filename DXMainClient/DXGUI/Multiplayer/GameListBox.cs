@@ -356,7 +356,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 else
                 {
                     Texture2D txSkillLevelIcon = txSkillLevelIcons[hostedGame.SkillLevel];
-                    if (txSkillLevelIcon != null)
+                    if (txSkillLevelIcon != null && hostedGame.SkillLevel != 0)
                     {
                         DrawTexture(txSkillLevelIcon,
                             new Rectangle(Width - txSkillLevelIcon.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
