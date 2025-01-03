@@ -833,7 +833,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(";");
                 if (!pInfo.IsAI)
                 {
-                    if (pInfo.AutoReady && !pInfo.IsInGame)
+                    if (pInfo.AutoReady && !pInfo.IsInGame && !LastMapChangeWasInvalid)
                         sb.Append(2);
                     else
                         sb.Append(Convert.ToInt32(pInfo.Ready));
@@ -951,7 +951,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.AutoReady = readyStatus > 1;
 
                     if (pInfo.Name == ProgramConstants.PLAYERNAME)
-                        btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
+                        btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_READY : BTN_LAUNCH_NOT_READY;
 
                     Players.Add(pInfo);
                     i += HUMAN_PLAYER_OPTIONS_LENGTH;

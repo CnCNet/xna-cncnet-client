@@ -108,7 +108,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        private bool lastMapChangeWasInvalid = false;
+        protected bool LastMapChangeWasInvalid { get; set; } = false;
 
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
@@ -1108,10 +1108,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClearReadyStatuses(resetAutoReady);
 
-            if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
+            if ((LastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
                 RequestReadyStatus();
 
-            lastMapChangeWasInvalid = resetAutoReady;
+            LastMapChangeWasInvalid = resetAutoReady;
 
             //if (IsHost)
             //    OnGameOptionChanged();
