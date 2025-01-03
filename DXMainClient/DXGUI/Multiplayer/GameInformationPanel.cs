@@ -30,10 +30,10 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblHost;
         private XNALabel lblPing;
         private XNALabel lblPlayers;
-        private XNALabel lblGameDifficulty;
+        private XNALabel lblSkillLevel;
         private XNALabel[] lblPlayerNames;
 
-        private string[] OnlineGameDifficultyOptions;
+        private string[] SkillLevelOptions;
 
         public override void Initialize()
         {
@@ -60,8 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing = new XNALabel(WindowManager);
             lblPing.ClientRectangle = new Rectangle(6, 126, 0, 0);
 
-            lblGameDifficulty = new XNALabel(WindowManager);
-            lblGameDifficulty.ClientRectangle = new Rectangle(6, 150, 0, 0);
+            lblSkillLevel = new XNALabel(WindowManager);
+            lblSkillLevel.ClientRectangle = new Rectangle(6, 150, 0, 0);
 
             lblPlayers = new XNALabel(WindowManager);
             lblPlayers.ClientRectangle = new Rectangle(6, 178, 0, 0);
@@ -91,13 +91,13 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblPing);
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
-            AddChild(lblGameDifficulty);
+            AddChild(lblSkillLevel);
 
             lblGameInformation.CenterOnParent();
             lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
                 lblGameInformation.Width, lblGameInformation.Height);
 
-            OnlineGameDifficultyOptions = ClientConfiguration.Instance.OnlineGameDifficultyOptions.Split(',');
+            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
 
             base.Initialize();
         }
@@ -143,9 +143,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[i].Visible = false;
             }
 
-            string difficulty = OnlineGameDifficultyOptions[game.GameDifficulty];
-            string localizedDifficulty = difficulty.L10N($"INI:ClientDefinitions:Difficulty:{game.GameDifficulty}");
-            lblGameDifficulty.Text = "Preferred Skill Level: ".L10N("Client:Main:GameInfoDifficulty") + " " + localizedDifficulty;
+            string skillLevel = SkillLevelOptions[game.SkillLevel];
+            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
+            lblSkillLevel.Text = "Preferred Skill Level: ".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
         }
 
         public void ClearInfo()

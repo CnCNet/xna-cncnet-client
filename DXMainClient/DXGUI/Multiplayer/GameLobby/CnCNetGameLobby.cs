@@ -1934,7 +1934,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(0); // LoadedGameId
             sb.Append(";");
-            sb.Append(gameDifficulty); // GameDifficulty
+            sb.Append(gameDifficulty); // SkillLevel
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

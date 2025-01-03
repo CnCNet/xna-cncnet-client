@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int ICON_MARGIN = 2;
         private const int FONT_INDEX = 0;
         private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
-        private string[] OnlineGameDifficultyOptions;
+        private string[] SkillLevelIcons;
 
         public GameListBox(WindowManager windowManager, MapLoader mapLoader,
             string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
@@ -35,10 +35,10 @@ namespace DTAClient.DXGUI.Multiplayer
             this.localGameIdentifier = localGameIdentifier;
             GameMatchesFilter = gameMatchesFilter;
 
-            OnlineGameDifficultyOptions = ClientConfiguration.Instance.OnlineGameDifficultyOptions.Split(',');
+            SkillLevelIcons = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
         }
 
-        private List<Texture2D> txGameDifficultyIcons =  new List<Texture2D>();
+        private List<Texture2D> txSkillLevelIcons =  new List<Texture2D>();
 
         private int loadedGameTextWidth;
 
@@ -195,16 +195,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
 
-            InitGameDifficultyIcons();
+            InitSkillLevelIcons();
         }
 
-        private void InitGameDifficultyIcons()
+        private void InitSkillLevelIcons()
         {
-            for (int i = 1; i < OnlineGameDifficultyOptions.Length; i++)
+            for (int i = 0; i < SkillLevelIcons.Length; i++)
             {
-                Texture2D gd = AssetLoader.LoadTexture($"gameDifficulty{i}.png");
+                Texture2D gd = AssetLoader.LoadTexture($"skillLevel{i}.png");
                 if (gd != null)
-                    txGameDifficultyIcons.Add(gd);
+                    txSkillLevelIcons.Add(gd);
             }
         }
 
@@ -355,7 +355,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 else
                 {
-                    DrawGameDifficultyIcon(hostedGame, height, scrollBarDrawn);
+                    Texture2D txSkillLevelIcon = txSkillLevelIcons[hostedGame.SkillLevel];
+                    if (txSkillLevelIcon != null)
+                    {
+                        DrawTexture(txSkillLevelIcon,
+                            new Rectangle(Width - txSkillLevelIcon.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                            height, txSkillLevelIcon.Width, txSkillLevelIcon.Height),
+                            Color.White);
+                    }
                 }
 
                 var text = lbItem.Text;
@@ -375,27 +382,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 DrawPanelBorders();
 
             DrawChildren(gameTime);
-        }
-
-        private void DrawGameDifficultyIcon(GenericHostedGame hostedGame, int height, bool scrollBarDrawn)
-        {
-            // Skip drawing for "Any" difficulty
-            if (hostedGame.GameDifficulty <= 0 || hostedGame.GameDifficulty > txGameDifficultyIcons.Count)
-                return;
-
-            Texture2D txGameDifficulty = txGameDifficultyIcons[hostedGame.GameDifficulty - 1];
-            if (txGameDifficulty != null)
-            {
-                DrawTexture(
-                    txGameDifficulty,
-                    new Rectangle(
-                        Width - txGameDifficulty.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                        height,
-                        txGameDifficulty.Width,
-                        txGameDifficulty.Height),
-                    Color.White
-                );
-            }
         }
     }
 }

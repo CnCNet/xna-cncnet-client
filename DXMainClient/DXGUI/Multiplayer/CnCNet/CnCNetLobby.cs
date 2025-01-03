@@ -925,7 +925,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.GameDifficulty);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1539,7 +1539,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
-                game.GameDifficulty = gameDifficulty;
+                game.SkillLevel = gameDifficulty;
 
                 if (isClosed)
                 {
