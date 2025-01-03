@@ -916,12 +916,12 @@ public static class Updater
             {
                 Logger.Log("Updater: " + fileName + ": Renaming directory '" + key + "' to '" + newDirectoryName + "'");
 
-                DirectoryInfo directory = SafePath.GetDirectory(GamePath, key);
+                DirectoryInfo srcDirectory = SafePath.GetDirectory(GamePath, key);
 
-                // TODO
-
-                if (directory.Exists)
-                    directory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
+                if (srcDirectory.Exists) {
+                    // TODO readonly
+                    srcDirectory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
+                }
             }
             catch (Exception ex)
             {
@@ -945,10 +945,9 @@ public static class Updater
                 if (!gameDirectory.Exists)
                     continue;
 
-                // TODO
-
                 if (!directoryToMergeInto.Exists)
                 {
+                    // TODO readonly
                     Logger.Log("Updater: " + fileName + ": Destination directory '" + directoryNameToMergeInto + "' does not exist, renaming.");
                     gameDirectory.MoveTo(directoryToMergeInto.FullName);
                 }
@@ -958,18 +957,28 @@ public static class Updater
                     FileInfo[] files = gameDirectory.GetFiles();
                     foreach (FileInfo file in files)
                     {
+                        bool isSrcReadOnly = file.IsReadOnly;
+                        file.IsReadOnly = false;
+
                         FileInfo fileToMergeInto = SafePath.GetFile(directoryToMergeInto.FullName, file.Name);
                         if (fileToMergeInto.Exists)
                         {
                             Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
                                 "' exists, removing original source file " + directoryName + "/" + file.Name);
-                            fileToMergeInto.Delete();
+                            fileToMergeInto.IsReadOnly = false;
+                            fileToMergeInto.Delete(); // what? why?
+
+                            // TODO: resume the read-only property
                         }
                         else
                         {
                             Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
                                 "' does not exist, moving original source file " + directoryName + "/" + file.Name);
                             file.MoveTo(fileToMergeInto.FullName);
+
+                            // Resume the read-only property
+                            fileToMergeInto.Refresh();
+                            fileToMergeInto.IsReadOnly = isSrcReadOnly;
                         }
                     }
                 }
