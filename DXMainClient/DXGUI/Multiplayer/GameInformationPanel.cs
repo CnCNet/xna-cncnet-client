@@ -3,6 +3,9 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
 using ClientCore.Extensions;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
+using System.Net.NetworkInformation;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -28,18 +31,28 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblGameVersion;
         private XNALabel lblHost;
         private XNALabel lblPing;
+        private XNALabel lblPingValue;
         private XNALabel lblPlayers;
         private XNALabel[] lblPlayerNames;
+        private Texture2D[] pingTextures;
+        private GenericHostedGame game = null;
+        private Texture2D mapTexture;
+
+        private int rightColumnPositionX = 0;
+        private int mapPreviewPositionY = 0;
 
         public override void Initialize()
         {
-            ClientRectangle = new Rectangle(0, 0, 235, 264);
+            ClientRectangle = new Rectangle(0, 0, 470, 264); // 235 was original, doubling size for map preview
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblGameInformation = new XNALabel(WindowManager);
             lblGameInformation.FontIndex = 1;
             lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
+
+            rightColumnPositionX = Width / 2 - 10; // Right side, with a margin of 10
+            mapPreviewPositionY = 30 + 48; // 2x Labels down
 
             lblGameMode = new XNALabel(WindowManager);
             lblGameMode.ClientRectangle = new Rectangle(6, 30, 0, 0);
@@ -55,6 +68,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lblPing = new XNALabel(WindowManager);
             lblPing.ClientRectangle = new Rectangle(6, 126, 0, 0);
+
+            lblPingValue = new XNALabel(WindowManager);
+            lblPingValue.ClientRectangle = new Rectangle(lblPing.X + 46, 126, 0, 0); // Enough space for ping texture before value
 
             lblPlayers = new XNALabel(WindowManager);
             lblPlayers.ClientRectangle = new Rectangle(6, 150, 0, 0);
@@ -77,11 +93,21 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
+            pingTextures = new Texture2D[5]
+            {
+                AssetLoader.LoadTexture("ping0.png"),
+                AssetLoader.LoadTexture("ping1.png"),
+                AssetLoader.LoadTexture("ping2.png"),
+                AssetLoader.LoadTexture("ping3.png"),
+                AssetLoader.LoadTexture("ping4.png")
+            };
+
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
             AddChild(lblHost);
             AddChild(lblPing);
+            AddChild(lblPingValue);
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
 
@@ -94,6 +120,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
+            this.game = game;
+
             // we don't have the ID of a map here
             string translatedMapName = string.IsNullOrEmpty(game.Map) 
                 ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(game.Map)
@@ -116,8 +144,11 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
 
-            lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
+            lblPing.Text = "Ping:".L10N("Client: Main: GameInfoPing");
             lblPing.Visible = true;
+
+            lblPingValue.Text = game.Ping > 0 ? game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
+            lblPingValue.Visible = true;
 
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
@@ -145,12 +176,92 @@ namespace DTAClient.DXGUI.Multiplayer
 
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
+
+            if (mapTexture != null && !mapTexture.IsDisposed)
+                mapTexture.Dispose();
         }
 
         public override void Draw(GameTime gameTime)
         {
             if (Alpha > 0.0f)
+            {
                 base.Draw(gameTime);
+
+                if (game != null)
+                {
+                    Texture2D pingTexture = GetTextureForPing(game.Ping);
+                    DrawTexture(pingTexture, new Rectangle(lblPing.ClientRectangle.X + 26, lblPing.Y, pingTexture.Width, pingTexture.Height), Color.White);
+
+                    if (mapLoader != null)
+                    {
+                        mapTexture = mapLoader.GameModeMaps.Find((m) => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+
+                        if (mapTexture != null)
+                        {
+                            RenderMapPreview(mapTexture);
+                        }
+                    }
+                    else
+                    {
+                        Logger.Log($"mapLoader is null {mapLoader}");
+                    }
+                }
+                else
+                {
+                    Logger.Log("PingTextures is null or empty");
+                }
+            }
+        }
+
+        private void RenderMapPreview(Texture2D mapPreview)
+        {
+            // Calculate map preview area based on right half of ClientRectangle
+            double xRatio = (ClientRectangle.Width / 2 - 10) / (double)mapTexture.Width;
+            double yRatio = (ClientRectangle.Height - 20) / (double)mapTexture.Height;
+
+            double ratio;
+
+            int texturePositionX = rightColumnPositionX;
+            int texturePositionY = mapPreviewPositionY; // Align map preview Y position with lblGameMode
+            int textureHeight = 0;
+            int textureWidth = 0;
+
+            if (xRatio > yRatio)
+            {
+                ratio = yRatio;
+                textureHeight = ClientRectangle.Height - 20;
+                textureWidth = (int)(mapTexture.Width * ratio);
+                texturePositionX += (ClientRectangle.Width / 2 - textureWidth) / 2; // Center it in the right side
+            }
+            else
+            {
+                ratio = xRatio;
+                textureWidth = ClientRectangle.Width / 2 - 10;
+                textureHeight = (int)(mapTexture.Height * ratio);
+            }
+
+            DrawTexture(
+                mapTexture,
+                new Rectangle(texturePositionX, texturePositionY, textureWidth, textureHeight),
+                Color.White
+            );
+        }
+
+        private Texture2D GetTextureForPing(int ping)
+        {
+            switch (ping)
+            {
+                case int p when (p > 350):
+                    return pingTextures[4];
+                case int p when (p > 250):
+                    return pingTextures[3];
+                case int p when (p > 100):
+                    return pingTextures[2];
+                case int p when (p >= 0):
+                    return pingTextures[1];
+                default:
+                    return pingTextures[0];
+            }
         }
     }
 }
