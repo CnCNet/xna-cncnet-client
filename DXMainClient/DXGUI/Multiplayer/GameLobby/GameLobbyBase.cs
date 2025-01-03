@@ -1593,6 +1593,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 IniFile mpGlobalCodeIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", "MultiplayerGlobalCode.ini"));
                 MapCodeHelper.ApplyMapCode(mapIni, mpGlobalCodeIni);
             }
+            else
+            {
+                // Avoid writing the original filename to spawnmap.ini MP games, as it may vary between systems, e.g., when a host uploads a map while other players in game might download it with a diffrent filename.
+                // This inconsistency can result in differing spawnmap.ini files among players, causing desyncs in CnCNet YR games.
+                // Theoretically it can be useful for some singleplayer campaign tracking
+                // But it isn't currently used by any CnCNet game or mod
+                // The code below only applies to the single player case
+                string mapIniFileName = Path.GetFileName(mapIni.FileName);
+                mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
+            }
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 checkBox.ApplyMapCode(mapIni, GameMode);
@@ -1602,8 +1612,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
-            string mapIniFileName = Path.GetFileName(mapIni.FileName);
-            mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
             CopySupplementalMapFiles(mapIni);
 
             ManipulateStartingLocations(mapIni, houseInfos);
