@@ -1595,6 +1595,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
+                // Avoid writing the original filename to spawnmap.ini MP games, as it may vary between systems. 
+                // This inconsistency can result in differing spawnmap.ini files among players, causing desyncs in CnCNet YR games.
                 string mapIniFileName = Path.GetFileName(mapIni.FileName);
                 mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
             }
