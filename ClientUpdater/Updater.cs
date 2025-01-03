@@ -919,7 +919,6 @@ public static class Updater
                 DirectoryInfo srcDirectory = SafePath.GetDirectory(GamePath, key);
 
                 if (srcDirectory.Exists) {
-                    // TODO readonly
                     srcDirectory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
                 }
             }
@@ -947,7 +946,6 @@ public static class Updater
 
                 if (!directoryToMergeInto.Exists)
                 {
-                    // TODO readonly
                     Logger.Log("Updater: " + fileName + ": Destination directory '" + directoryNameToMergeInto + "' does not exist, renaming.");
                     gameDirectory.MoveTo(directoryToMergeInto.FullName);
                 }
