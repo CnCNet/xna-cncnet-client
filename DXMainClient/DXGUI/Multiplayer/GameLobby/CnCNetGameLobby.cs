@@ -132,6 +132,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool closed = false;
 
+        private int gameDifficulty = 0;
+
         private bool isCustomPassword = false;
 
         private string gameFilesHash;
@@ -215,7 +217,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
-            CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
+            CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
+            int gameDifficulty)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -230,6 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.hostName = hostName;
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
+            this.gameDifficulty = gameDifficulty;
 
             if (isHost)
             {
@@ -1929,6 +1933,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
+            sb.Append(";");
+            sb.Append(gameDifficulty); // SkillLevel
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
