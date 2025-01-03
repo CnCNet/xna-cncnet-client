@@ -143,9 +143,17 @@ internal sealed class Program
                         try
                         {
                             FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileName);
+                            bool isReadOnly = copiedFile.IsReadOnly;
 
                             Write($"Updating {relativeFileName}");
+
+                            if (isReadOnly)
+                                copiedFile.IsReadOnly = false;
+
                             fileInfo.CopyTo(copiedFile.FullName, true);
+
+                            if (isReadOnly)
+                                copiedFile.IsReadOnly = true;
                         }
                         catch (Exception ex)
                         {
