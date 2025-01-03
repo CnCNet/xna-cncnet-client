@@ -25,6 +25,7 @@ using System.Threading;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -94,6 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer
         MapLoader mapLoader;
 
         DiscordHandler discordHandler;
+        PrivateMessagingWindow pmWindow;
 
         bool initSuccess = false;
 
@@ -237,7 +239,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, chatColors, mapLoader, discordHandler);
+                null, chatColors, mapLoader, discordHandler, pmWindow);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 

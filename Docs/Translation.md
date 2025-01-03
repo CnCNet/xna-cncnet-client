@@ -68,9 +68,13 @@ Some:Key=Some Value  ; string, see below for explanation
 
 Examples:
 ```ini
-INI:Missions:GDIFS:Description=Act 1: GDI Campaign - Desperate Measures
-INI:Controls:GameOptionsPanel:chkBlackChatBackground:Text=Dark Chat Background
-Client:DTAConfig:FriendsOnly=Only receive game invitations from friends
+INI:HotkeyCategories:Interface=Интерфейс  ; Interface
+INI:Hotkeys:AllToCheer:Description=Приказать вашей пехоте ликовать.  ; Make all of your infantry units cheer.
+INI:Hotkeys:AllToCheer:UIName=Ликовать  ; Cheer
+INI:Controls:CheaterScreen:lblCheater:Text=Обнаружены изменения!  ; Modifications Detected!
+Client:DTAConfig:ForceUpdate=Принудительное обновление  ; Force Update
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Location=320,213
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Size=220,23
 ```
 
 Each key in the `[Values]` section is composed of a few elements, joined using `:`, that have different semantic meaning. The structure can be described like this (with list level denoting the position).
@@ -80,7 +84,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
   - `Controls` - denotes all INI-defined control values.
     - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
       - `[control name]` - the name of the control that the value is defined for.
-	      - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
+        - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
           - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
           - `ToolTip` for controls with tooltip;
           - `Suggestion` for suggestion text boxes;
@@ -114,6 +118,9 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 
 > [!WARNING]
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
+
+> [!IMPORTANT]
+> If the button has an `IdleTexture` key, be sure to place this key as the first key in the button's section, otherwise you will not be able to resize it from `Translation.ini`, because `IdleTexture` changes the size of the button.
 
 ## Ingame translation setup
 
