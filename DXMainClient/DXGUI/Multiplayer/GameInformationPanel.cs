@@ -143,8 +143,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[i].Visible = false;
             }
 
-            lblGameDifficulty.Text = "Preferred Skill Level: ".L10N("Client:Main:GameInfoDifficulty") 
-                + " ".L10N($"INI:ClientDefinitions:Difficulty:{game.GameDifficulty}");
+            string difficulty = OnlineGameDifficultyOptions[game.GameDifficulty];
+            string localizedDifficulty = difficulty.L10N($"INI:ClientDefinitions:Difficulty:{game.GameDifficulty}");
+            lblGameDifficulty.Text = "Preferred Skill Level: ".L10N("Client:Main:GameInfoDifficulty") + " " + localizedDifficulty;
         }
 
         public void ClearInfo()
