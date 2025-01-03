@@ -1593,6 +1593,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 IniFile mpGlobalCodeIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", "MultiplayerGlobalCode.ini"));
                 MapCodeHelper.ApplyMapCode(mapIni, mpGlobalCodeIni);
             }
+            else
+            {
+                string mapIniFileName = Path.GetFileName(mapIni.FileName);
+                mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
+            }
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 checkBox.ApplyMapCode(mapIni, GameMode);
@@ -1601,9 +1606,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 dropDown.ApplyMapCode(mapIni, GameMode);
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
-
-            string mapIniFileName = Path.GetFileName(mapIni.FileName);
-            mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
+           
             CopySupplementalMapFiles(mapIni);
 
             ManipulateStartingLocations(mapIni, houseInfos);
