@@ -854,7 +854,8 @@ public static class Updater
             {
                 FileInfo fileInfo = SafePath.GetFile(GamePath, key);
 
-                if (fileInfo.Exists){
+                if (fileInfo.Exists)
+                {
                     fileInfo.IsReadOnly = false;
                     fileInfo.Delete();
                 }
@@ -918,9 +919,8 @@ public static class Updater
 
                 DirectoryInfo srcDirectory = SafePath.GetDirectory(GamePath, key);
 
-                if (srcDirectory.Exists) {
+                if (srcDirectory.Exists)
                     srcDirectory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
-                }
             }
             catch (Exception ex)
             {
