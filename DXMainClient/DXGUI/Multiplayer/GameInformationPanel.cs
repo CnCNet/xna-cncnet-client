@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string skillLevel = SkillLevelOptions[game.SkillLevel];
             string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
-            lblSkillLevel.Text = "Preferred Skill Level: ".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
+            lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
         }
 
         public void ClearInfo()
