@@ -875,12 +875,30 @@ public static class Updater
             {
                 Logger.Log("Updater: " + fileName + ": Renaming file '" + key + "' to '" + newFilename + "'");
 
-                FileInfo file = SafePath.GetFile(GamePath, key);
+                FileInfo srcFile = SafePath.GetFile(GamePath, key);
 
-                // TODO
+                if (srcFile.Exists)
+                {
+                    bool isSrcReadOnly = srcFile.IsReadOnly;
+                    srcFile.IsReadOnly = false;
 
-                if (file.Exists)
-                    file.MoveTo(SafePath.CombineFilePath(GamePath, newFilename));
+                    {
+                        FileInfo destFile = SafePath.GetFile(GamePath, newFilename);
+                        if (destFile.Exists)
+                        {
+                            destFile.IsReadOnly = false;
+                            destFile.Delete();
+                        }
+                    }
+
+                    srcFile.MoveTo(SafePath.CombineFilePath(GamePath, newFilename));
+
+                    if (isSrcReadOnly)
+                    {
+                        FileInfo destFile = SafePath.GetFile(GamePath, newFilename);
+                        destFile.IsReadOnly = true;
+                    }
+                }
             }
             catch (Exception ex)
             {
