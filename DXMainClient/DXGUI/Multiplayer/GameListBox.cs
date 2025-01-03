@@ -200,7 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void InitGameDifficultyIcons()
         {
-            for (int i = 0; i < OnlineGameDifficultyOptions.Length; i++)
+            for (int i = 1; i < OnlineGameDifficultyOptions.Length; i++)
             {
                 Texture2D gd = AssetLoader.LoadTexture($"gameDifficulty{i}.png");
                 if (gd != null)
@@ -355,15 +355,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 else
                 {
-                    Texture2D txGameDifficulty = txGameDifficultyIcons[hostedGame.GameDifficulty];
-
-                    if (txGameDifficulty != null && hostedGame.GameDifficulty > 0) // Don't show GameDifficulty Any
-                    {
-                        DrawTexture(txGameDifficulty,
-                            new Rectangle(Width - txGameDifficulty.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                            height, txGameDifficulty.Width, txGameDifficulty.Height),
-                            Color.White);
-                    }
+                    DrawGameDifficultyIcon(hostedGame, height, scrollBarDrawn);
                 }
 
                 var text = lbItem.Text;
@@ -383,6 +375,27 @@ namespace DTAClient.DXGUI.Multiplayer
                 DrawPanelBorders();
 
             DrawChildren(gameTime);
+        }
+
+        private void DrawGameDifficultyIcon(GenericHostedGame hostedGame, int height, bool scrollBarDrawn)
+        {
+            // Skip drawing for "Any" difficulty
+            if (hostedGame.GameDifficulty <= 0 || hostedGame.GameDifficulty > txGameDifficultyIcons.Count)
+                return;
+
+            Texture2D txGameDifficulty = txGameDifficultyIcons[hostedGame.GameDifficulty - 1];
+            if (txGameDifficulty != null)
+            {
+                DrawTexture(
+                    txGameDifficulty,
+                    new Rectangle(
+                        Width - txGameDifficulty.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                        height,
+                        txGameDifficulty.Width,
+                        txGameDifficulty.Height),
+                    Color.White
+                );
+            }
         }
     }
 }
