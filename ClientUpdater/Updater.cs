@@ -966,8 +966,8 @@ public static class Updater
                             Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
                                 "' exists, removing original source file " + directoryName + "/" + file.Name);
 
-
                             // Note: Previously, the incorrect file was deleted as of commit fc939a06ff978b51daa6563eaa15a28cf48319ec.
+
                             // Remove the original source file
                             file.Delete();
                         }
