@@ -94,8 +94,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddGameDifficulty.ClientRectangle = new Rectangle(tbGameName.X, ddMaxPlayers.Bottom + 20,
                 tbGameName.Width, 21);
 
-            foreach(string difficulty in OnlineGameDifficultyOptions)
-                ddGameDifficulty.AddItem(difficulty);
+            foreach (string difficulty in OnlineGameDifficultyOptions)
+            {
+                string localizedDifficulty = difficulty.L10N($"INI:ClientDefinitions:Difficulty:{difficulty}");
+                ddGameDifficulty.AddItem(localizedDifficulty);
+            }
 
             ddGameDifficulty.SelectedIndex = 0;
 
@@ -228,7 +231,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], 0);
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], ddGameDifficulty.SelectedIndex);
 
             LoadedGameCreated?.Invoke(this, ea);
         }

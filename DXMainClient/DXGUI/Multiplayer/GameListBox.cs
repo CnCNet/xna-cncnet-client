@@ -202,7 +202,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             for (int i = 0; i < OnlineGameDifficultyOptions.Length; i++)
             {
-                Texture2D gd = AssetLoader.LoadTexture("game_difficulty_" + i + ".png");
+                Texture2D gd = AssetLoader.LoadTexture($"gameDifficulty{i}.png");
                 if (gd != null)
                 {
                     txGameDifficultyIcons.Add(gd);
