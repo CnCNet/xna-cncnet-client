@@ -23,7 +23,9 @@ using System.Net.Http;
 using System.Net.Http.Handlers;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClientUpdater.Compression;
+
 using Rampastring.Tools;
 
 /// <summary>
@@ -376,7 +378,8 @@ public class CustomComponent
         {
             foreach (string filename in filesToCleanup)
             {
-                if (File.Exists(filename)) {
+                if (File.Exists(filename))
+                {
                     new FileInfo(filename).IsReadOnly = false;
                     File.Delete(filename);
                 }

@@ -30,7 +30,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClientUpdater.Compression;
+
 using Rampastring.Tools;
 
 public static class Updater
@@ -780,7 +782,7 @@ public static class Updater
         try
         {
             string downloadFile = SafePath.CombineFilePath(GamePath, "updateexec");
-            
+
             FileStream fileStream = new FileStream(downloadFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
             using (fileStream)
@@ -812,7 +814,7 @@ public static class Updater
         try
         {
             string downloadFile = SafePath.CombineFilePath(GamePath, "preupdateexec");
-            
+
             FileStream fileStream = new FileStream(downloadFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
 
             using (fileStream)
