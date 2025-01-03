@@ -965,10 +965,11 @@ public static class Updater
                         {
                             Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
                                 "' exists, removing original source file " + directoryName + "/" + file.Name);
-                            fileToMergeInto.IsReadOnly = false;
-                            fileToMergeInto.Delete(); // what? why?
 
-                            // TODO: resume the read-only property
+                            // Note: previously, the wrong file was deleted, since commit fc939a06ff978b51daa6563eaa15a28cf48319ec.
+
+                            // Remove the original source file
+                            file.Delete();
                         }
                         else
                         {
