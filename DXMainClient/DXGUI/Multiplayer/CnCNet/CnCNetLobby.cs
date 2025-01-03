@@ -200,6 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
+            lbGameList.RightClick += LbGameList_RightClick;
             lbGameList.AllowMultiLineItems = false;
             lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
@@ -781,6 +782,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGame();
+        
+        private void LbGameList_RightClick(object sender, EventArgs e)
+        {
+            lbGameList.SelectedIndex = lbGameList.HoveredIndex;
+
+            var listedGame = (HostedCnCNetGame)lbGameList.SelectedItem?.Tag;
+            if (listedGame == null)
+                return;
+
+            globalContextMenu.Show(listedGame.HostName, GetCursorPoint());
+        }
 
         private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGame(e.HostedGame, e.Password);
 
