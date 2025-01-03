@@ -431,7 +431,8 @@ public static class Updater
         {
             mre.Set();
         };
-        fileInfo.IsReadOnly = false;
+        if (fileInfo.Exists)
+            fileInfo.IsReadOnly = false;
         fileInfo.Delete();
         mre.Wait(timeout);
     }
