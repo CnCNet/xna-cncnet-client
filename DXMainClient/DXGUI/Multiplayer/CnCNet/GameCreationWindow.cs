@@ -94,9 +94,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddGameDifficulty.ClientRectangle = new Rectangle(tbGameName.X, ddMaxPlayers.Bottom + 20,
                 tbGameName.Width, 21);
 
-            foreach (string difficulty in OnlineGameDifficultyOptions)
+            for (int i = 0; i < OnlineGameDifficultyOptions.Length; i++)
             {
-                string localizedDifficulty = difficulty.L10N($"INI:ClientDefinitions:Difficulty:{difficulty}");
+                string difficulty = OnlineGameDifficultyOptions[i];
+                string localizedDifficulty = difficulty.L10N($"INI:ClientDefinitions:Difficulty:{i}");
                 ddGameDifficulty.AddItem(localizedDifficulty);
             }
 
