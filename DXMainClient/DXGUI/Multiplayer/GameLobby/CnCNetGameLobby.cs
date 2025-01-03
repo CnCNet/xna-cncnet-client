@@ -951,7 +951,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.AutoReady = readyStatus > 1;
 
                     if (pInfo.Name == ProgramConstants.PLAYERNAME)
-                        btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_READY : BTN_LAUNCH_NOT_READY;
+                        btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
 
                     Players.Add(pInfo);
                     i += HUMAN_PLAYER_OPTIONS_LENGTH;
