@@ -23,6 +23,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+
 using Rampastring.Tools;
 
 internal sealed class Program
@@ -143,17 +144,20 @@ internal sealed class Program
                         try
                         {
                             FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileName);
-                            bool isReadOnly = copiedFile.IsReadOnly;
 
                             Write($"Updating {relativeFileName}");
 
-                            if (isReadOnly)
+                            // If the file is read-only, we need to remove the read-only attribute before copying it
+                            if (copiedFile.Exists && copiedFile.IsReadOnly)
+                            {
                                 copiedFile.IsReadOnly = false;
-
-                            fileInfo.CopyTo(copiedFile.FullName, true);
-
-                            if (isReadOnly)
+                                fileInfo.CopyTo(copiedFile.FullName, true);
                                 copiedFile.IsReadOnly = true;
+                            }
+                            else
+                            {
+                                fileInfo.CopyTo(copiedFile.FullName, true);
+                            }
                         }
                         catch (Exception ex)
                         {
