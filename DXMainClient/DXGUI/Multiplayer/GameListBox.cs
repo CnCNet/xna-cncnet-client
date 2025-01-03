@@ -204,13 +204,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 Texture2D gd = AssetLoader.LoadTexture($"gameDifficulty{i}.png");
                 if (gd != null)
-                {
                     txGameDifficultyIcons.Add(gd);
-                }
-                else
-                {
-                    Logger.Log($"Failed to load texture for game difficulty index {i}");
-                }
             }
         }
 
@@ -361,10 +355,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 else
                 {
-                    Logger.Log("GameDifficulty **  Drawing game difficulty icon: " + hostedGame.GameDifficulty);
                     Texture2D txGameDifficulty = txGameDifficultyIcons[hostedGame.GameDifficulty];
 
-                    if (txGameDifficulty != null)
+                    if (txGameDifficulty != null && hostedGame.GameDifficulty > 0) // Don't show GameDifficulty Any
                     {
                         DrawTexture(txGameDifficulty,
                             new Rectangle(Width - txGameDifficulty.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
