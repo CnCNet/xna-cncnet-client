@@ -6,6 +6,7 @@ using ClientCore.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using System.Net.NetworkInformation;
+using System;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -198,39 +199,35 @@ namespace DTAClient.DXGUI.Multiplayer
 
                         if (mapTexture != null)
                         {
-                            RenderMapPreview(mapTexture);
+                            RenderMapPreview();
                         }
                     }
                 }
             }
         }
 
-        private void RenderMapPreview(Texture2D mapPreview)
+        private void RenderMapPreview()
         {
+            const int MaxPreviewHeight = 150; // Set your maximum height for the map preview
+
             // Calculate map preview area based on right half of ClientRectangle
             double xRatio = (ClientRectangle.Width / 2 - 10) / (double)mapTexture.Width;
             double yRatio = (ClientRectangle.Height - 20) / (double)mapTexture.Height;
 
-            double ratio;
+            double ratio = Math.Min(xRatio, yRatio); // Choose the smaller ratio for scaling
+            int textureWidth = (int)(mapTexture.Width * ratio);
+            int textureHeight = (int)(mapTexture.Height * ratio);
 
-            int texturePositionX = rightColumnPositionX;
-            int texturePositionY = mapPreviewPositionY; // Align map preview Y position with lblGameMode
-            int textureHeight = 0;
-            int textureWidth = 0;
+            // Apply max height constraint
+            if (textureHeight > MaxPreviewHeight)
+            {
+                ratio = MaxPreviewHeight / (double)mapTexture.Height;
+                textureHeight = MaxPreviewHeight;
+                textureWidth = (int)(mapTexture.Width * ratio); // Recalculate width to maintain aspect ratio
+            }
 
-            if (xRatio > yRatio)
-            {
-                ratio = yRatio;
-                textureHeight = ClientRectangle.Height - 20;
-                textureWidth = (int)(mapTexture.Width * ratio);
-                texturePositionX += (ClientRectangle.Width / 2 - textureWidth) / 2; // Center it in the right side
-            }
-            else
-            {
-                ratio = xRatio;
-                textureWidth = ClientRectangle.Width / 2 - 10;
-                textureHeight = (int)(mapTexture.Height * ratio);
-            }
+            int texturePositionX = rightColumnPositionX + (ClientRectangle.Width / 2 - textureWidth) / 2; // Center in the right column
+            int texturePositionY = mapPreviewPositionY;
 
             DrawTexture(
                 mapTexture,
