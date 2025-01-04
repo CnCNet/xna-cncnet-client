@@ -497,7 +497,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(pInfo.ColorId);
                 sb.Append(pInfo.StartingLocation);
                 sb.Append(pInfo.TeamId);
-                if (pInfo.AutoReady && !pInfo.IsInGame)
+                if (pInfo.AutoReady && !pInfo.IsInGame && !LastMapChangeWasInvalid)
                     sb.Append(2);
                 else
                     sb.Append(Convert.ToInt32(pInfo.IsAI || pInfo.Ready));

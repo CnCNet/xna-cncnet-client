@@ -147,6 +147,7 @@ namespace DTAConfig.OptionPanels
             {
                 if (cc.LocalIdentifier == cc.RemoteIdentifier)
                 {
+                    localFileInfo.IsReadOnly = false;
                     localFileInfo.Delete();
                     btn.Text = "Install".L10N("Client:DTAConfig:Install") + $" ({GetSizeString(cc.RemoteSize)})";
                     return;
