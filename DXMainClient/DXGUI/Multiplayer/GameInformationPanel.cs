@@ -201,14 +201,6 @@ namespace DTAClient.DXGUI.Multiplayer
                             RenderMapPreview(mapTexture);
                         }
                     }
-                    else
-                    {
-                        Logger.Log($"mapLoader is null {mapLoader}");
-                    }
-                }
-                else
-                {
-                    Logger.Log("PingTextures is null or empty");
                 }
             }
         }
