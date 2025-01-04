@@ -3,6 +3,7 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
 using ClientCore.Extensions;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -29,7 +30,10 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblHost;
         private XNALabel lblPing;
         private XNALabel lblPlayers;
+        private XNALabel lblSkillLevel;
         private XNALabel[] lblPlayerNames;
+
+        private string[] SkillLevelOptions;
 
         public override void Initialize()
         {
@@ -56,8 +60,11 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing = new XNALabel(WindowManager);
             lblPing.ClientRectangle = new Rectangle(6, 126, 0, 0);
 
+            lblSkillLevel = new XNALabel(WindowManager);
+            lblSkillLevel.ClientRectangle = new Rectangle(6, 150, 0, 0);
+
             lblPlayers = new XNALabel(WindowManager);
-            lblPlayers.ClientRectangle = new Rectangle(6, 150, 0, 0);
+            lblPlayers.ClientRectangle = new Rectangle(6, 178, 0, 0);
 
             lblPlayerNames = new XNALabel[MAX_PLAYERS];
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
@@ -84,10 +91,13 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblPing);
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
+            AddChild(lblSkillLevel);
 
             lblGameInformation.CenterOnParent();
             lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
                 lblGameInformation.Width, lblGameInformation.Height);
+
+            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
 
             base.Initialize();
         }
@@ -95,11 +105,11 @@ namespace DTAClient.DXGUI.Multiplayer
         public void SetInfo(GenericHostedGame game)
         {
             // we don't have the ID of a map here
-            string translatedMapName = string.IsNullOrEmpty(game.Map) 
+            string translatedMapName = string.IsNullOrEmpty(game.Map)
                 ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(game.Map)
                 ? mapLoader.TranslatedMapNames[game.Map] : game.Map;
 
-            string translatedGameModeName = string.IsNullOrEmpty(game.GameMode) 
+            string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
 
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
@@ -132,6 +142,10 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 lblPlayerNames[i].Visible = false;
             }
+
+            string skillLevel = SkillLevelOptions[game.SkillLevel];
+            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
+            lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
         }
 
         public void ClearInfo()
