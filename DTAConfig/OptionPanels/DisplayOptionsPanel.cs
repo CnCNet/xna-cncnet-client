@@ -425,7 +425,7 @@ namespace DTAConfig.OptionPanels
                     string.Format(("A performance-enhancing compatibility fix for modern Windows versions\n" +
                         "has been included in this version of {0}. Enabling it requires\n" +
                         "administrative priveleges. Would you like to install the compatibility fix?\n\n" +
-                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.").L10N("Client:DTAConfig:TSFixText"),
+                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.").L10N("Client:DTAConfig:TSFixTextV2"),
                         defaultGame));
                 messageBox.YesClickedAction = MessageBox_YesClicked;
                 messageBox.NoClickedAction = MessageBox_NoClicked;
