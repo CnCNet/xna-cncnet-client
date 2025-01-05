@@ -72,7 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer
             mapPreviewPositionY = topStartingPositionY + (rowHeight * 2 + 15); // 2 Labels down, incase map name spills to next line
 
             // Right Column
-            // Includes Game mode, Map name, and the Map preview (See DrawMapPreview for that)
+            // Includes Game mode, Map name, and the Map preview (See RenderMapPreview for that)
             lblGameMode = new XNALabel(WindowManager);
             lblGameMode.ClientRectangle = new Rectangle(rightColumnPositionX, topStartingPositionY, 0, 0);
 
@@ -81,7 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
 
             // Left Column
-            // Includes Host, Crates, Superweapons, Ping, Version, and Players
+            // Includes Host, Ping, Version, and Players
             lblHost = new XNALabel(WindowManager);
             lblHost.ClientRectangle = new Rectangle(leftColumnPositionX, topStartingPositionY, 0, 0);
 
