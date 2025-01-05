@@ -37,7 +37,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblSkillLevel;
 
         private XNALabel[] lblPlayerNames;
-        private Texture2D[] pingTextures;
 
         private GenericHostedGame game = null;
         private Texture2D mapTexture;
@@ -116,15 +115,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
-            pingTextures = new Texture2D[5]
-            {
-                AssetLoader.LoadTexture("ping0.png"),
-                AssetLoader.LoadTexture("ping1.png"),
-                AssetLoader.LoadTexture("ping2.png"),
-                AssetLoader.LoadTexture("ping3.png"),
-                AssetLoader.LoadTexture("ping4.png")
-            };
-
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -195,8 +185,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lblGameInformation.Visible = true;
 
-            pingTexture = GetTextureForPing(game.Ping);
-
             if (mapLoader != null)
             {
                 mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
@@ -261,23 +249,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 new Rectangle(texturePositionX, texturePositionY, textureWidth, textureHeight),
                 Color.White
             );
-        }
-
-        private Texture2D GetTextureForPing(int ping)
-        {
-            switch (ping)
-            {
-                case int p when (p > 350):
-                    return pingTextures[4];
-                case int p when (p > 250):
-                    return pingTextures[3];
-                case int p when (p > 100):
-                    return pingTextures[2];
-                case int p when (p >= 0):
-                    return pingTextures[1];
-                default:
-                    return pingTextures[0];
-            }
         }
     }
 }
