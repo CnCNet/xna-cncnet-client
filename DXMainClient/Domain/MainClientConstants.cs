@@ -12,15 +12,9 @@ namespace DTAClient.Domain
 {
     public static class MainClientConstants
     {
-        public static string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
-
         public static string GAME_NAME_LONG = "CnCNet Client";
         public static string GAME_NAME_SHORT = "CnCNet";
-
-        public static string CREDITS_URL = "http://rampastring.cncnet.org/TS/Credits.txt";
-
         public static string SUPPORT_URL_SHORT = "www.cncnet.org";
-
         public static bool USE_ISOMETRIC_CELLS = true;
         public static int TDRA_WAYPOINT_COEFFICIENT = 128;
         public static int MAP_CELL_SIZE_X = 48;
@@ -87,13 +81,7 @@ namespace DTAClient.Domain
 
             GAME_NAME_SHORT = clientConfiguration.LocalGame;
             GAME_NAME_LONG = clientConfiguration.LongGameName;
-
             SUPPORT_URL_SHORT = clientConfiguration.ShortSupportURL;
-
-            CREDITS_URL = clientConfiguration.CreditsURL;
-
-            CNCNET_TUNNEL_LIST_URL = clientConfiguration.CnCNetTunnelListURL;
-
             USE_ISOMETRIC_CELLS = clientConfiguration.UseIsometricCells;
             TDRA_WAYPOINT_COEFFICIENT = clientConfiguration.WaypointCoefficient;
             MAP_CELL_SIZE_X = clientConfiguration.MapCellSizeX;
