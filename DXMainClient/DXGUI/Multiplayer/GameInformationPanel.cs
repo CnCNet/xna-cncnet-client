@@ -33,7 +33,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblGameVersion;
         private XNALabel lblHost;
         private XNALabel lblPing;
-        private XNALabel lblPingValue;
         private XNALabel lblPlayers;
         private XNALabel lblSkillLevel;
 
@@ -90,9 +89,6 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing = new XNALabel(WindowManager);
             lblPing.ClientRectangle = new Rectangle(leftColumnPositionX, topStartingPositionY + rowHeight, 0, 0);
 
-            lblPingValue = new XNALabel(WindowManager);
-            lblPingValue.ClientRectangle = new Rectangle(leftColumnPositionX + 44, topStartingPositionY + rowHeight, 0, 0); // Enough space for ping texture before value
-
             lblGameVersion = new XNALabel(WindowManager);
             lblGameVersion.ClientRectangle = new Rectangle(leftColumnPositionX, topStartingPositionY + (rowHeight * 2), 0, 0);
 
@@ -134,7 +130,6 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblGameVersion);
             AddChild(lblHost);
             AddChild(lblPing);
-            AddChild(lblPingValue);
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
             AddChild(lblSkillLevel);
@@ -177,11 +172,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
 
-            lblPing.Text = "Ping:".L10N("Client:Main:GameInfoPing");
+            lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
             lblPing.Visible = true;
-
-            lblPingValue.Text = game.Ping > 0 ? game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
-            lblPingValue.Visible = true;
 
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players".L10N("Client:Main:GameInfoPlayers") + " (" + game.Players.Length + " / " + game.MaxPlayers + "):";
@@ -236,14 +228,8 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 base.Draw(gameTime);
 
-                if (game != null)
-                {
-                    if (pingTexture != null)
-                        DrawTexture(pingTexture, new Rectangle(lblPing.ClientRectangle.X + 26, lblPing.Y, pingTexture.Width, pingTexture.Height), Color.White);
-
-                    if (mapTexture != null)
-                        RenderMapPreview();
-                }
+                if (game != null && mapTexture != null)
+                    RenderMapPreview();
             }
         }
 
