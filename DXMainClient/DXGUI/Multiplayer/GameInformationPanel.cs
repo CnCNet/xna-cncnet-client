@@ -43,7 +43,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private GenericHostedGame game = null;
         private Texture2D mapTexture;
         private Texture2D pingTexture;
-        private Texture2D noMapPreviewTexture;
+        private Texture2D noMapPreviewTexture = null;
 
         private int leftColumnPositionX = 0;
         private int rightColumnPositionX = 0;
@@ -65,7 +65,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameInformation.FontIndex = 1;
             lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
 
-            noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
+            if(AssetLoader.AssetExists("noMapPreview.png"))
+                noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
 
             leftColumnPositionX = 10;
             rightColumnPositionX = Width / 2 - 10;
@@ -205,7 +206,11 @@ namespace DTAClient.DXGUI.Multiplayer
             pingTexture = GetTextureForPing(game.Ping);
 
             if (mapLoader != null)
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture() ?? noMapPreviewTexture;
+            {
+                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+                if (mapTexture == null && noMapPreviewTexture != null)
+                    mapTexture = noMapPreviewTexture;
+            }
         }
 
         public void ClearInfo()
@@ -223,9 +228,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapTexture != null && !mapTexture.IsDisposed)
                 mapTexture.Dispose();
-
-            if (pingTexture != null && !pingTexture.IsDisposed)
-                pingTexture.Dispose();
         }
 
         public override void Draw(GameTime gameTime)
