@@ -40,16 +40,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
         private Texture2D mapTexture;
-        private Texture2D pingTexture;
         private Texture2D noMapPreviewTexture = null;
 
-        private int leftColumnPositionX = 0;
+        private const int leftColumnPositionX = 10;
         private int rightColumnPositionX = 0;
-        private int topStartingPositionY = 0;
         private int mapPreviewPositionY = 0;
+        private const int columnMargin = 10;
+        private const int topStartingPositionY = 30;
         private const int rowHeight = 24;
         private const int initialPanelHeight = 260;
         private const int columnWidth = 235;
+        private const int maxPreviewHeight = 150;
+        private const int mapPreviewMargin = 15;
 
         private string[] skillLevelOptions;
 
@@ -66,10 +68,8 @@ namespace DTAClient.DXGUI.Multiplayer
             if(AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
 
-            leftColumnPositionX = 10;
-            rightColumnPositionX = Width / 2 - 10;
-            topStartingPositionY = 30;
-            mapPreviewPositionY = topStartingPositionY + (rowHeight * 2 + 15); // 2 Labels down, incase map name spills to next line
+            rightColumnPositionX = Width / 2 - columnMargin;
+            mapPreviewPositionY = topStartingPositionY + (rowHeight * 2 + mapPreviewMargin); // 2 Labels down, incase map name spills to next line
 
             // Right Column
             // Includes Game mode, Map name, and the Map preview (See RenderMapPreview for that)
@@ -206,8 +206,8 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            if (mapTexture != null && !mapTexture.IsDisposed)
-                mapTexture.Dispose();
+            mapTexture?.Dispose();
+            mapTexture = null;
         }
 
         public override void Draw(GameTime gameTime)
@@ -223,8 +223,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void RenderMapPreview()
         {
-            int maxPreviewHeight = 150;
-
             // Calculate map preview area based on right half of ClientRectangle
             double xRatio = (ClientRectangle.Width / 2 - 10) / (double)mapTexture.Width;
             double yRatio = (ClientRectangle.Height - 20) / (double)mapTexture.Height;
