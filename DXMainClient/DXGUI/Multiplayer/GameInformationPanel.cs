@@ -176,7 +176,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
 
-            lblPing.Text = "Ping:".L10N("Client: Main: GameInfoPing");
+            lblPing.Text = "Ping:".L10N("Client:Main:GameInfoPing");
             lblPing.Visible = true;
 
             lblPingValue.Text = game.Ping > 0 ? game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
