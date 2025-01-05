@@ -143,13 +143,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             });
         }
 
-        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
         private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
 
         private byte[] GetRawTunnelDataOnline()
         {
             WebClient client = new ExtendedWebClient();
-            return client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+            return client.DownloadData(ClientConfiguration.Instance.CnCNetTunnelListURL);
         }
 
         private byte[] GetRawTunnelDataOffline()
