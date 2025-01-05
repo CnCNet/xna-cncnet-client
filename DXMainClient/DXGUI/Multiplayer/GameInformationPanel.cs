@@ -205,13 +205,7 @@ namespace DTAClient.DXGUI.Multiplayer
             pingTexture = GetTextureForPing(game.Ping);
 
             if (mapLoader != null)
-            {
-                mapTexture = mapLoader.GameModeMaps.Find((m) => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
-                if (mapTexture == null)
-                {
-                    mapTexture = noMapPreviewTexture;
-                }
-            }
+                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture() ?? noMapPreviewTexture;
         }
 
         public void ClearInfo()
