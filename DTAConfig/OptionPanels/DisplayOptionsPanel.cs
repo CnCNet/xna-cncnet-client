@@ -422,10 +422,10 @@ namespace DTAConfig.OptionPanels
                 string defaultGame = ClientConfiguration.Instance.LocalGame;
 
                 var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix".L10N("Client:DTAConfig:TSFixTitle"),
-                    string.Format("A performance-enhancing compatibility fix for modern Windows versions\n" +
+                    string.Format(("A performance-enhancing compatibility fix for modern Windows versions\n" +
                         "has been included in this version of {0}. Enabling it requires\n" +
                         "administrative priveleges. Would you like to install the compatibility fix?\n\n" +
-                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.".L10N("Client:DTAConfig:TSFixText"),
+                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.").L10N("Client:DTAConfig:TSFixTextV2"),
                         defaultGame));
                 messageBox.YesClickedAction = MessageBox_YesClicked;
                 messageBox.NoClickedAction = MessageBox_NoClicked;
@@ -812,7 +812,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
             // copy translation files to the game directory
-            foreach (TranslationGameFile tgf in ClientConfiguration.Instance.TranslationGameFiles)
+            ClientConfiguration.Instance.TranslationGameFiles.AsParallel().ForAll(tgf =>
             {
                 string sourcePath = SafePath.CombineFilePath(IniSettings.TranslationFolderPath, tgf.Source);
                 string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
@@ -823,14 +823,20 @@ namespace DTAConfig.OptionPanels
                     string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
 
                     if (sourceHash != destinationHash)
-                        File.Copy(sourcePath, targetPath, true);
+                    {
+                        FileHelper.CreateHardLinkFromSource(sourcePath, targetPath);
+                        new FileInfo(targetPath).IsReadOnly = true;
+                    }
                 }
                 else
                 {
                     if (File.Exists(targetPath))
+                    {
+                        new FileInfo(targetPath).IsReadOnly = false;
                         File.Delete(targetPath);
+                    }
                 }
-            }
+            });
 
 #if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
@@ -880,7 +886,12 @@ namespace DTAConfig.OptionPanels
             {
                 string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 
-                SafePath.DeleteFileIfExists(languageDllDestinationPath);
+                FileInfo fileInfo = SafePath.GetFile(languageDllDestinationPath);
+                if (fileInfo.Exists)
+                {
+                    fileInfo.IsReadOnly = false;
+                    fileInfo.Delete();
+                }
 
                 if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);

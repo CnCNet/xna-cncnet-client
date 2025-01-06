@@ -10,6 +10,8 @@
     <Product>CnCNet Client</Product>
     <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
     <Trademark>CnCNet</Trademark>
+    <!-- GitVersion will rewrite the informational version anyway -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -49,8 +49,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameCollection gameCollection, 
             CnCNetUserData cncnetUserData, 
             MapLoader mapLoader, 
-            DiscordHandler discordHandler
-        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler)
+            DiscordHandler discordHandler,
+            PrivateMessagingWindow pmWindow
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -130,6 +131,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private int playerLimit;
 
         private bool closed = false;
+
+        private int gameDifficulty = 0;
 
         private bool isCustomPassword = false;
 
@@ -214,7 +217,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
-            CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
+            CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
+            int gameDifficulty)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -229,6 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.hostName = hostName;
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
+            this.gameDifficulty = gameDifficulty;
 
             if (isHost)
             {
@@ -257,7 +262,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void OnJoined()
         {
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModeMaps.GameModes);
+            fhc.CalculateHashes();
 
             gameFilesHash = fhc.GetCompleteHash();
 
@@ -832,7 +837,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(";");
                 if (!pInfo.IsAI)
                 {
-                    if (pInfo.AutoReady && !pInfo.IsInGame)
+                    if (pInfo.AutoReady && !pInfo.IsInGame && !LastMapChangeWasInvalid)
                         sb.Append(2);
                     else
                         sb.Append(Convert.ToInt32(pInfo.Ready));
@@ -1299,7 +1304,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice("Starting game...".L10N("Client:Main:StartingGame"));
 
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModeMaps.GameModes);
+            fhc.CalculateHashes();
 
             if (gameFilesHash != fhc.GetCompleteHash())
             {
@@ -1928,6 +1933,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
+            sb.Append(";");
+            sb.Append(gameDifficulty); // SkillLevel
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

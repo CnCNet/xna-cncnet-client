@@ -23,6 +23,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+
 using Rampastring.Tools;
 
 internal sealed class Program
@@ -73,7 +74,7 @@ internal sealed class Program
                 Logger.WriteLogFile = true;
                 Logger.WriteToConsole = false;
                 Logger.Log("CnCNet Client Second-Stage Updater");
-                Logger.Log("Version: " + Assembly.GetAssembly(typeof(Program)).GetName().Version);
+                Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
                 Write("Base directory: " + baseDirectory.FullName);
                 Write($"Waiting for the client ({clientExecutable}) to exit..");
 
@@ -145,7 +146,18 @@ internal sealed class Program
                             FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileName);
 
                             Write($"Updating {relativeFileName}");
-                            fileInfo.CopyTo(copiedFile.FullName, true);
+
+                            // If the file is read-only, we need to remove the read-only attribute before copying it
+                            if (copiedFile.Exists && copiedFile.IsReadOnly)
+                            {
+                                copiedFile.IsReadOnly = false;
+                                fileInfo.CopyTo(copiedFile.FullName, true);
+                                copiedFile.IsReadOnly = true;
+                            }
+                            else
+                            {
+                                fileInfo.CopyTo(copiedFile.FullName, true);
+                            }
                         }
                         catch (Exception ex)
                         {

@@ -68,9 +68,13 @@ Some:Key=Some Value  ; string, see below for explanation
 
 Examples:
 ```ini
-INI:Missions:GDIFS:Description=Act 1: GDI Campaign - Desperate Measures
-INI:Controls:GameOptionsPanel:chkBlackChatBackground:Text=Dark Chat Background
-Client:DTAConfig:FriendsOnly=Only receive game invitations from friends
+INI:HotkeyCategories:Interface=Интерфейс  ; Interface
+INI:Hotkeys:AllToCheer:Description=Приказать вашей пехоте ликовать.  ; Make all of your infantry units cheer.
+INI:Hotkeys:AllToCheer:UIName=Ликовать  ; Cheer
+INI:Controls:CheaterScreen:lblCheater:Text=Обнаружены изменения!  ; Modifications Detected!
+Client:DTAConfig:ForceUpdate=Принудительное обновление  ; Force Update
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Location=320,213
+INI:Controls:UpdaterOptionsPanel:btnForceUpdate:Size=220,23
 ```
 
 Each key in the `[Values]` section is composed of a few elements, joined using `:`, that have different semantic meaning. The structure can be described like this (with list level denoting the position).
@@ -80,7 +84,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
   - `Controls` - denotes all INI-defined control values.
     - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
       - `[control name]` - the name of the control that the value is defined for.
-	      - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
+        - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
           - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
           - `ToolTip` for controls with tooltip;
           - `Suggestion` for suggestion text boxes;
@@ -115,12 +119,22 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 > [!WARNING]
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
 
+> [!IMPORTANT]
+> If the button has an `IdleTexture` key, be sure to place this key as the first key in the button's section, otherwise you will not be able to resize it from `Translation.ini`, because `IdleTexture` changes the size of the button.
+
 ## Ingame translation setup
 
 The translation system's ingame translation support requires the mod/game author(s) to specify the files which translators can provide in order to translate the game. The files are specified in the the syntax is `GameFileX=path/to/source.file,path/to/destination.file[,checked]` INI key in the `[Translations]` section of `ClientDefinitions.ini` (X is any text you want to add to the key to help sort files), with comma-separated parts of the value meaning the following:
 1) the path to the source file relative to currently selected translation directory;
 2) the destination to copy to, relative to the game root folder;
 3) (optional) `checked` for the file to be checked by file integrity checks (should be on if this file can be used to cheat), if not specified - this file is not checked.
+
+> [!IMPORTANT]
+> When processing the translation game files, by default, the translation system will attempt to create destination files as [hard links](https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions). If creating a hard link is unsuccessful, the system will instead make copies of the files.
+>
+> Translators are advised to always work on files located in the source folder and avoid editing the copies in the destination folder. This is important because when a language is deselected, the client will automatically delete the files in the destination folder. Be aware that even if a source file and the corresponding destination file are hard-linked, editing either file in a text editor might cause one of these two consequences: either both files will be concurrently updated, or the hard link might be broken, causing only the file being edited to receive the updates. This is why it is recommended to always work on the source files.
+>
+> To see links in Windows Explorer, you can install [this extension](https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html).
 
 > [!WARNING]
 > If you include checked files in your ingame translation files, that means users won't be able to do custom translations if they include those files and you won't be able to use custom components with those files **without triggering the modified files / cheater warning**. This mechanism is made for those games and mods where it's impossible to provide a mechanism to provide translations in a cheat-safe way, so please use it only if you have no other choice, otherwise don't specify this parameter.
