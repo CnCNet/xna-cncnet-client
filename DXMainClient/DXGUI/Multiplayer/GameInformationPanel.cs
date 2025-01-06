@@ -135,6 +135,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
+            ClearInfo();
+
             this.game = game;
 
             // we don't have the ID of a map here
