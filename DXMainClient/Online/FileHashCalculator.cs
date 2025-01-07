@@ -151,7 +151,7 @@ namespace DTAClient.Online
             {
                 if (path.Exists)
                 {
-                    foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => Path.GetRelativePath(path.FullName, s.FullName)))
+                    foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.FullName.Substring(path.FullName.Length)))
                     {
                         string fileRelativePath = SafePath.CombineFilePath(path.Name, filename);
                         string fileFullPath = SafePath.CombineFilePath(path.FullName, filename);
