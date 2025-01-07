@@ -189,7 +189,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null)
             {
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map && m.Map.IsPreviewTextureCached())?.Map.LoadPreviewTexture();
                 if (mapTexture == null && noMapPreviewTexture != null)
                     mapTexture = noMapPreviewTexture;
             }

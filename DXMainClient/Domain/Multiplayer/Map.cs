@@ -680,6 +680,11 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        public bool IsPreviewTextureCached()
+        {
+            return SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
+        }
+
         /// <summary>
         /// Loads and returns the map preview texture.
         /// </summary>
