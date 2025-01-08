@@ -197,7 +197,8 @@ namespace ClientCore.CnCNet5
             };
 
             // CnCNet chat.
-            CnCNetGame[] otherGames =
+            CnCNetGame[] otherGames = [];
+            /*
             {
                 new()
                 {
@@ -208,6 +209,7 @@ namespace ClientCore.CnCNet5
                     Texture = AssetLoader.TextureFromImage(cncnetIcon)
                 }
             };
+            */
 
             GameList.AddRange(defaultGames);
             GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
