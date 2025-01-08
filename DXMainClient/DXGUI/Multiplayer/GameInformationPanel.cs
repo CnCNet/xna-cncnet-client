@@ -8,6 +8,7 @@ using Rampastring.Tools;
 using System.Net.NetworkInformation;
 using System;
 using ClientCore;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -39,6 +40,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel[] lblPlayerNames;
 
         private GenericHostedGame game = null;
+
+        private bool disposeTextures = true;
         private Texture2D mapTexture;
         private Texture2D noMapPreviewTexture = null;
 
@@ -65,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameInformation.FontIndex = 1;
             lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
 
-            if(AssetLoader.AssetExists("noMapPreview.png"))
+            if (AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
 
             rightColumnPositionX = Width / 2 - columnMargin;
@@ -191,7 +194,15 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
                 if (mapTexture == null && noMapPreviewTexture != null)
+                {
+                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
+                    disposeTextures = false;
+                }
+                else
+                {
+                    disposeTextures = true;
+                }
             }
         }
 
@@ -208,8 +219,12 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            mapTexture?.Dispose();
-            mapTexture = null;
+            if (mapTexture != null && disposeTextures)
+            {
+                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
+                mapTexture.Dispose();
+                mapTexture = null;
+            }
         }
 
         public override void Draw(GameTime gameTime)
