@@ -48,7 +48,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (mapTextures.Count > MaxCacheSize)
                     mapTextures.Clear();
 
-                var missedMapCopy = missedMaps.ToList();
+                var missedMapCopy = missedMaps.ToArray();
                 foreach ((Map missedMap, _) in missedMapCopy)
                 {
                     if (mapTextures.Count > MaxCacheSize)
