@@ -194,7 +194,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null)
             {
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName == game.Map && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
+                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase))?.Map?.LoadPreviewTexture();
                 if (mapTexture == null && noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
