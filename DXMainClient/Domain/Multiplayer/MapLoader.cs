@@ -6,7 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using ClientCore;
+
+using DTAClient.DXGUI.Multiplayer;
+
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
@@ -54,6 +58,13 @@ namespace DTAClient.Domain.Multiplayer
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
+
+        public readonly MapTextureCacheManager MapTextureCacheManager;
+
+        public MapLoader(MapTextureCacheManager mapTextureCacheManager)
+        {
+            MapTextureCacheManager = mapTextureCacheManager;
+        }
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
