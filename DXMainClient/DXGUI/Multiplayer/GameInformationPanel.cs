@@ -1,14 +1,16 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using DTAClient.Domain.Multiplayer;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using System.Net.NetworkInformation;
-using System;
-using ClientCore;
+﻿using System;
 using System.Diagnostics;
+
+using ClientCore;
+using ClientCore.Extensions;
+
+using DTAClient.Domain.Multiplayer;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -41,8 +43,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
 
-        private bool disposeTextures = true;
-        private Texture2D mapTexture;
+        private bool disposeTextures = false;
+        private Texture2D mapTexture = null;
         private Texture2D noMapPreviewTexture = null;
 
         private const int leftColumnPositionX = 10;
