@@ -48,19 +48,23 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (mapTextures.Count > MaxCacheSize)
                     mapTextures.Clear();
 
-                var missedMapCopy = missedMaps.ToArray();
-                foreach ((Map missedMap, _) in missedMapCopy)
+                if (missedMaps.IsEmpty)
                 {
-                    if (mapTextures.Count > MaxCacheSize)
-                        break;
+                    var missedMapCopy = missedMaps.ToArray();
+                    foreach ((Map missedMap, _) in missedMapCopy)
+                    {
+                        if (mapTextures.Count > MaxCacheSize)
+                            break;
 
-                    missedMaps.TryRemove(missedMap, out _);
+                        missedMaps.TryRemove(missedMap, out _);
 
-                    if (mapTextures.ContainsKey(missedMap))
-                        continue;
+                        if (mapTextures.ContainsKey(missedMap))
+                            continue;
 
-                    Image image = await Task.Run(missedMap.ExtractMapPreview);
-                    mapTextures.TryAdd(missedMap, image);
+                        Image image = await Task.Run(missedMap.ExtractMapPreview);
+                        mapTextures.TryAdd(missedMap, image);
+                    }
+
                 }
 
                 await Task.Delay(SleepIntervalMS);
