@@ -504,7 +504,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string.Format("The game host has disabled {0}".L10N("Client:Main:HostDisableSection"), type) :
                 string.Format("The game host has enabled {0}".L10N("Client:Main:HostEnableSection"), type));
 
-        private List<GameModeMap> GetSortedGameModeMaps()
+        protected List<GameModeMap> GetSortedGameModeMaps()
         {
             var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
 
