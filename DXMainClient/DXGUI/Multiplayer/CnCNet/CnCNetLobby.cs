@@ -1270,56 +1270,58 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            GameInformationPanel panelGameInformation;
-            panelGameInformation = new GameInformationPanel(WindowManager, mapLoader);
-            panelGameInformation.Name = nameof(panelGameInformation);
-            panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
-            panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
-            panelGameInformation.IsInvite = true;
-            panelGameInformation.Initialize();
-            panelGameInformation.ClearInfo();
-            panelGameInformation.Enable();
-            panelGameInformation.InputEnabled = true;
-            panelGameInformation.Alpha = 0.5f;
-            panelGameInformation.AlphaRate = 0.5f;
+            GameInvitePanel panelGameInvite;
+            panelGameInvite = new GameInvitePanel(WindowManager, mapLoader);
+            panelGameInvite.Name = nameof(panelGameInvite);
+            panelGameInvite.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
+            panelGameInvite.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+            panelGameInvite.Initialize();
+            panelGameInvite.Enable();
+            panelGameInvite.InputEnabled = true;
+            panelGameInvite.Alpha = 0.5f;
+            panelGameInvite.AlphaRate = 0.5f;
 
             var hostedGame = lbGameList.HostedGames[lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName)];
-            panelGameInformation.SetInfo(hostedGame);
-            WindowManager.AddAndInitializeControl(panelGameInformation);
-            WindowManager.CenterControlOnScreen(panelGameInformation);
+            WindowManager.AddAndInitializeControl(panelGameInvite);
+            WindowManager.CenterControlOnScreen(panelGameInvite);
+            panelGameInvite.SetInfo(hostedGame);
 
             // add the invitation to the index so we can remove it if the target game is closed
             // also lets us silently ignore new invitations from the same person while this one is still outstanding
             invitationIndex[invitationIdentity] =
-                new WeakReference(panelGameInformation);
+                new WeakReference(panelGameInvite);
 
-            panelGameInformation.AcceptInvite += () =>
+            panelGameInvite.AcceptInvite += () =>
             {
                 // Handle accept invite logic
-                // if we're currently in a game lobby, first leave that channel
-                if (isInGameRoom)
+                // if we're currently in a game lobby that differs to the invite, first leave that channel
+                if (isInGameRoom && channelName != gameOfLastJoinAttempt.ChannelName)
                 {
                     gameLobby.LeaveGameLobby();
                 }
 
                 // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
-                if (!JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
+                //if we're in a game room already, it will be the one we're invited to, so don't do anything.
+                if (!isInGameRoom)
                 {
-                    XNAMessageBox.Show(WindowManager,
-                        "Failed to join".L10N("Client:Main:JoinFailedTitle"),
-                        string.Format("Unable to join {0}'s game. The game may be locked, closed, or on a different version.".L10N("Client:Main:JoinFailedText"), sender));
+                    if (!JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
+                    {
+                        XNAMessageBox.Show(WindowManager,
+                            "Failed to join".L10N("Client:Main:JoinFailedTitle"),
+                            string.Format("Unable to join {0}'s game. The game may be locked, closed, or on a different version.".L10N("Client:Main:JoinFailedText"), sender));
+                    }
                 }
 
                 // clean up the index as this invitation no longer exists
                 invitationIndex.Remove(invitationIdentity);
-                WindowManager.RemoveControl(panelGameInformation);
+                WindowManager.RemoveControl(panelGameInvite);
             };
 
-            panelGameInformation.DeclineInvite += () =>
+            panelGameInvite.DeclineInvite += () =>
             {
                 // Handle decline invite logic
                 invitationIndex.Remove(invitationIdentity);
-                WindowManager.RemoveControl(panelGameInformation);
+                WindowManager.RemoveControl(panelGameInvite);
             };
 
             sndGameInviteReceived.Play();
@@ -1703,7 +1705,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (invitationIndex.ContainsKey(invitationIdentity))
             {
-                var invitationNotification = invitationIndex[invitationIdentity].Target as ChoiceNotificationBox;
+                var invitationNotification = invitationIndex[invitationIdentity].Target as GameInvitePanel;
 
                 if (invitationNotification != null)
                 {

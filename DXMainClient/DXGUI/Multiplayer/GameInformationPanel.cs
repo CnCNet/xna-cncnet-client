@@ -4,8 +4,6 @@ using System.Diagnostics;
 using ClientCore;
 using ClientCore.Extensions;
 
-using ClientGUI;
-
 using DTAClient.Domain.Multiplayer;
 
 using Microsoft.Xna.Framework;
@@ -60,27 +58,17 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int maxPreviewHeight = 150;
         private const int mapPreviewMargin = 15;
 
-        private const int buttonWidth = 75;
-        private const int buttonHeight = 30;
-
         private string[] skillLevelOptions;
-
-        private XNAClientButton btnAcceptInvite;
-        private XNAClientButton btnDeclineInvite;
-
-        public bool IsInvite { get; set; } = false;
-
-        public event Action AcceptInvite;
-        public event Action DeclineInvite;
 
         public override void Initialize()
         {
-            ClientRectangle = new Rectangle(0, 0, columnWidth * 2, IsInvite ? initialPanelHeight + buttonHeight : initialPanelHeight);
+            ClientRectangle = new Rectangle(0, 0, columnWidth * 2, initialPanelHeight);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblGameInformation = new XNALabel(WindowManager);
             lblGameInformation.FontIndex = 1;
+            lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
 
             if (AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
@@ -132,23 +120,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
-            // buttons for invites
-            btnAcceptInvite = new XNAClientButton(WindowManager);
-            btnAcceptInvite.Text = "Accept".L10N("Client:Main:InviteAccept");
-            btnAcceptInvite.ClientRectangle = new Rectangle(ClientRectangle.Width / 2 - buttonWidth - (columnMargin / 2), ClientRectangle.Height - buttonHeight - columnMargin, buttonWidth, buttonHeight);
-            btnAcceptInvite.LeftClick += (s, e) => AcceptInvite?.Invoke();
-            btnAcceptInvite.Visible = false;
-            btnAcceptInvite.Name = "btnAcceptInvite";
-            AddChild(btnAcceptInvite);
-
-            btnDeclineInvite = new XNAClientButton(WindowManager);
-            btnDeclineInvite.Text = "Decline".L10N("Client:Main:InviteDecline");
-            btnDeclineInvite.ClientRectangle = new Rectangle(ClientRectangle.Width / 2 + (columnMargin / 2), ClientRectangle.Height - buttonHeight - columnMargin, buttonWidth, buttonHeight);
-            btnDeclineInvite.LeftClick += (s, e) => DeclineInvite?.Invoke();
-            btnDeclineInvite.Visible = false;
-            btnDeclineInvite.Name = "btnDeclineInvite";
-            AddChild(btnDeclineInvite);
-
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -158,6 +129,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblGameInformation);
             AddChild(lblSkillLevel);
 
+            lblGameInformation.CenterOnParent();
             lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
                 lblGameInformation.Width, lblGameInformation.Height);
 
@@ -218,6 +190,8 @@ namespace DTAClient.DXGUI.Multiplayer
             string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
             lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
 
+            lblGameInformation.Visible = true;
+
             if (mapLoader != null)
             {
                 mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase) && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
@@ -232,20 +206,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     disposeTextures = true;
                 }
             }
-
-            if (IsInvite)
-            {
-                lblGameInformation.Text = "GAME INVITATION".L10N("Client:Main:GameInfoInviteTitle");
-            }
-            else
-            {
-                lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
-            }
-
-            lblGameInformation.CenterOnParentHorizontally();
-            lblGameInformation.Visible = true;
-            btnAcceptInvite.Visible = IsInvite;
-            btnDeclineInvite.Visible = IsInvite;
         }
 
         public void ClearInfo()
@@ -267,8 +227,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 mapTexture.Dispose();
                 mapTexture = null;
             }
-            btnAcceptInvite.Visible = false;
-            btnDeclineInvite.Visible = false;
         }
 
         public override void Draw(GameTime gameTime)
@@ -279,8 +237,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (game != null && mapTexture != null)
                     RenderMapPreview();
-
-                DrawChildren(gameTime);
             }
         }
 
