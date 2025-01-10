@@ -2086,6 +2086,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
+        /// Updates the map information labels such as name and author.
+        /// </summary>
+        protected virtual void SetMapLabels()
+        {
+            if (GameMode == null || Map == null)
+            {
+                lblMapName.Text = "Map: Unknown".L10N("Client:Main:MapUnknown");
+                lblMapAuthor.Text = "By Unknown Author".L10N("Client:Main:AuthorByUnknown");
+                lblGameMode.Text = "Game mode: Unknown".L10N("Client:Main:GameModeUnknown");
+                lblMapSize.Text = "Size: Not available".L10N("Client:Main:MapSizeUnknown");
+                return;
+            }
+
+            lblMapName.Text = "Map:".L10N("Client:Main:Map") + " " + Renderer.GetSafeString(Map.Name, lblMapName.FontIndex);
+            lblMapAuthor.Text = "By".L10N("Client:Main:AuthorBy") + " " + Renderer.GetSafeString(Map.Author, lblMapAuthor.FontIndex);
+            lblGameMode.Text = "Game mode:".L10N("Client:Main:GameModeLabel") + " " + GameMode.UIName;
+            lblMapSize.Text = "Size:".L10N("Client:Main:MapSize") + " " + Map.GetSizeString();
+        }
+
+        /// <summary>
         /// Changes the current map and game mode.
         /// </summary>
         /// <param name="gameModeMap">The new game mode map.</param>
@@ -2095,24 +2115,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             _ = UpdateLaunchGameButtonStatus();
 
+            SetMapLabels();
+
             if (GameMode == null || Map == null)
             {
-                lblMapName.Text = "Map: Unknown".L10N("Client:Main:MapUnknown");
-                lblMapAuthor.Text = "By Unknown Author".L10N("Client:Main:AuthorByUnknown");
-                lblGameMode.Text = "Game mode: Unknown".L10N("Client:Main:GameModeUnknown");
-                lblMapSize.Text = "Size: Not available".L10N("Client:Main:MapSizeUnknown");
-
                 MapPreviewBox.GameModeMap = null;
-
                 OnGameOptionChanged();
-
                 return;
             }
-
-            lblMapName.Text = "Map:".L10N("Client:Main:Map") + " " + Renderer.GetSafeString(Map.Name, lblMapName.FontIndex);
-            lblMapAuthor.Text = "By".L10N("Client:Main:AuthorBy") + " " + Renderer.GetSafeString(Map.Author, lblMapAuthor.FontIndex);
-            lblGameMode.Text = "Game mode:".L10N("Client:Main:GameModeLabel") + " " + GameMode.UIName;
-            lblMapSize.Text = "Size:".L10N("Client:Main:MapSize") + " " + Map.GetSizeString();
 
             disableGameOptionUpdateBroadcast = true;
 

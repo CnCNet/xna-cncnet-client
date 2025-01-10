@@ -700,6 +700,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
+
+            SetMapLabels();
         }
 
         private void ShowMapList()
@@ -728,6 +730,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
             ReadINIForControl(btnMapSortAlphabetically);
+
+            SetMapLabels();
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
