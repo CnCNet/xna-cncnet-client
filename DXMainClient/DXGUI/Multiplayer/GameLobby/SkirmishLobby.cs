@@ -331,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
-                int gameModeMapIndex = gameModeMapFilter.GetGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
+                int gameModeMapIndex = GetSortedGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
 
                 if (gameModeMapIndex > -1)
                 {
