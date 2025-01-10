@@ -93,7 +93,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-
             this.game = game;
 
             panelGameInformation.SetInfo(game);
