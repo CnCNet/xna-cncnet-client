@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblInviteHeading.X = (panelGameInformation.Width / 2) - (lblInviteHeading.Width/2);
             lblInviteHeading.Y = ((lblInviteHeading.Height + padding) / 2) - (lblInviteHeading.Height/2);
 
-            ClientRectangle = new Rectangle(0, 0, panelGameInformation.Width, padding + lblInviteHeading.Height  + panelGameInformation.Height  + padding + buttonHeight + padding);
+            ClientRectangle = new Rectangle(0, 0, panelGameInformation.Width, padding + lblInviteHeading.Height  + panelGameInformation.Height + padding + buttonHeight + padding);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
