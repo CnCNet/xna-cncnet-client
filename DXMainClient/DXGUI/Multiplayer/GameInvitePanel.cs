@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI.Multiplayer
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
-        private MapLoader mapLoader;
+        private readonly MapLoader mapLoader;
 
         private GenericHostedGame game = null;
 
