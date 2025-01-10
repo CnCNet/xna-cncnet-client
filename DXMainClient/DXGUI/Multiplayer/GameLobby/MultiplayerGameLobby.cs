@@ -1126,7 +1126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ToggleFavoriteMap();
 
-            if (GameModeMap.IsFavorite || !IsHost)
+            if ((GameModeMap != null && GameModeMap.IsFavorite) || !IsHost)
                 return;
 
             RefreshForFavoriteMapRemoved();

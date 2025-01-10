@@ -643,8 +643,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void ToggleFavoriteMap()
         {
-            GameModeMap.IsFavorite = UserINISettings.Instance.ToggleFavoriteMap(Map.UntranslatedName, GameMode.Name, GameModeMap.IsFavorite);
-            MapPreviewBox.RefreshFavoriteBtn();
+            if (GameModeMap != null)
+            { 
+                GameModeMap.IsFavorite = UserINISettings.Instance.ToggleFavoriteMap(Map.UntranslatedName, GameMode.Name, GameModeMap.IsFavorite);
+                MapPreviewBox.RefreshFavoriteBtn();
+            }
         }
 
         protected void RefreshForFavoriteMapRemoved()
