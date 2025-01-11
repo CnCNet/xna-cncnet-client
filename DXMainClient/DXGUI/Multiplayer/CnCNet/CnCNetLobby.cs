@@ -122,6 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private PasswordRequestWindow passwordRequestWindow;
 
         private bool isInGameRoom = false;
+        private string gameRoomChannelName = "";
         private bool updateDenied = false;
 
         private string localGameID;
@@ -746,6 +747,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             topBar.SwitchToSecondary();
             isInGameRoom = false;
+            gameRoomChannelName = "";
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
@@ -756,6 +758,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             topBar.SwitchToSecondary();
             isInGameRoom = false;
+            gameRoomChannelName = "";
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
@@ -996,6 +999,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
                 ClearGameChannelEvents(gameChannel);
+                gameRoomChannelName = gameChannel.ChannelName;
                 gameLobby.OnJoined();
                 isInGameRoom = true;
                 SetLogOutButtonText();
@@ -1102,9 +1106,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 gameLoadingChannel.UserAdded -= GameLoadingChannel_UserAdded;
                 gameLoadingChannel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_LoadedGame;
-
+                
                 gameLoadingLobby.OnJoined();
                 isInGameRoom = true;
+                gameRoomChannelName = gameLoadingChannel.ChannelName;
                 isJoiningGame = false;
             }
         }
@@ -1241,6 +1246,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!CanReceiveInvitationMessagesFrom(sender))
                 return;
 
+            if (channelName == gameRoomChannelName)
+                return;
+
             var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
 
             // also enforce user preference on whether to accept invitations from non-friends
@@ -1293,17 +1301,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             panelGameInvite.AcceptInvite += () =>
             {
-                // Handle accept invite logic
-                // if we're currently in a game lobby that differs to the invite, first leave that channel
-                if (isInGameRoom && channelName != gameOfLastJoinAttempt.ChannelName)
+                if (channelName != gameRoomChannelName)
                 {
-                    gameLobby.LeaveGameLobby();
-                }
-
-                // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
-                //if we're in a game room already, it will be the one we're invited to, so don't do anything.
-                if (!isInGameRoom)
-                {
+                    // if we're currently in a game lobby that differs to the invite, first leave that channel
+                    if (isInGameRoom)
+                    {
+                        gameLobby.LeaveGameLobby();
+                    }
+                    // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
                     if (!JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
                     {
                         XNAMessageBox.Show(WindowManager,
@@ -1580,12 +1585,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
 
                 // Seek for the game in the internal game list based on the name of its host;
-                // if found, then refresh that game's information, otherwise add as new game
+                // if found, then refresh that game's information and invites, otherwise add as new game
                 int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                 if (gameIndex > -1)
                 {
                     lbGameList.HostedGames[gameIndex] = game;
+                    UpdateInvitations();
                 }
                 else
                 {
@@ -1676,6 +1682,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             return senderGameIcon;
+        }
+        private void UpdateInvitations()
+        {
+            foreach (var invitation in invitationIndex)
+            {
+                var userChannelPair = invitation.Key;
+                if (invitation.Value.Target is GameInvitePanel invitationNotification)
+                {
+                    var game = lbGameList.HostedGames
+                        .OfType<HostedCnCNetGame>()
+                        .FirstOrDefault(hg => hg.HostName == userChannelPair.Item1 && hg.ChannelName == userChannelPair.Item2);
+
+                    if (game != null)
+                    {
+                        invitationNotification.SetInfo(game);
+                    }
+                }
+            }
         }
 
         private void DismissInvalidInvitations()
