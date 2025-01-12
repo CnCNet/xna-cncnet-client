@@ -62,7 +62,8 @@ namespace DTAClient
                 thread.Start();
             }
 
-            GenerateOnlineIdAsync();
+            Thread onlineIdThread = new Thread(GenerateOnlineId);
+            onlineIdThread.Start();
 
 #if ARES
             Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
@@ -329,7 +330,7 @@ namespace DTAClient
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
-        private static async Task GenerateOnlineIdAsync()
+        private static void GenerateOnlineId()
         {
 #if !WINFORMS
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -338,7 +339,6 @@ namespace DTAClient
 #pragma warning disable format
                 try
                 {
-                    await Task.CompletedTask;
                     ManagementObjectCollection mbsList = null;
                     ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
                     mbsList = mbs.Get();
@@ -386,7 +386,7 @@ namespace DTAClient
             {
                 try
                 {
-                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id");
+                    string machineId = File.ReadAllText("/var/lib/dbus/machine-id");
 
                     Connection.SetId(machineId);
                 }
