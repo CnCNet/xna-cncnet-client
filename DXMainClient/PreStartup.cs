@@ -357,7 +357,8 @@ namespace DTAClient
                         }
                         catch (SecurityException)
                         {
-                            //IsInRole may throw when running in Wine
+                            //IsInRole may throw for selected roles when running in Wine, keep iterating other rules 
+                            continue;
                         }
                     }
                 }
