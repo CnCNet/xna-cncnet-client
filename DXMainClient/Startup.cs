@@ -62,6 +62,7 @@ namespace DTAClient
                 thread.Start();
             }
 
+            // Using tasks here causes crashes on Wine for some reason
             Thread onlineIdThread = new Thread(GenerateOnlineId);
             onlineIdThread.Start();
 
