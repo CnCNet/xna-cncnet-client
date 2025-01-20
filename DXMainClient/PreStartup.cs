@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.I18N;
 using System.Globalization;
+using System.Security;
 using System.Transactions;
 
 namespace DTAClient
@@ -345,11 +346,19 @@ namespace DTAClient
                         if (ntAccount == null)
                             continue;
 
-                        if (principal.IsInRole(ntAccount.Value))
+                        try
                         {
-                            if (fsAccessRule.AccessControlType == AccessControlType.Deny)
-                                return false;
-                            isInRoleWithAccess = true;
+                            if (principal.IsInRole(ntAccount.Value))
+                            {
+                                if (fsAccessRule.AccessControlType == AccessControlType.Deny)
+                                    return false;
+                                isInRoleWithAccess = true;
+                            }
+                        }
+                        catch (SecurityException)
+                        {
+                            //IsInRole may throw for selected roles when running in Wine, keep iterating other rules 
+                            continue;
                         }
                     }
                 }
