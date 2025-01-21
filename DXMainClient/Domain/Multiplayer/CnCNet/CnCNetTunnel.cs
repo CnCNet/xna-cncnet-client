@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -33,10 +34,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string[] parts = str.Split(';');
 
                 string address = parts[0];
-                string[] detailedAddress = address.Split(new char[] { ':' });
-                
-                tunnel.Address = detailedAddress[0];
-                tunnel.Port = int.Parse(detailedAddress[1]);
+                string host;
+                int port;
+
+                if (address.Count(c => c == ':') > 1)
+                {
+                    // IPv6 address
+                    int lastColonIndex = address.LastIndexOf(':');
+                    host = address.Substring(0, lastColonIndex);
+                    port = int.Parse(address.Substring(lastColonIndex + 1));
+                }
+                else
+                {
+                    // IPv4 address or hostname
+                    string[] detailedAddress = address.Split(':');
+                    host = detailedAddress[0];
+                    port = int.Parse(detailedAddress[1]);
+                }
+
+                tunnel.Address = host;
+                tunnel.Port = port;
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
                 tunnel.Name = parts[3];
