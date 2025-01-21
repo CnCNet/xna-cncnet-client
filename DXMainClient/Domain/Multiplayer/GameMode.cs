@@ -71,7 +71,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public List<Map> Maps = new List<Map>();
 
-        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
+        public List<KeyValuePair<string, string>> ForcedCheckBoxValues = new List<KeyValuePair<string, string>>();
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>();
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
@@ -126,7 +126,7 @@ namespace DTAClient.Domain.Multiplayer
                 }
                 else
                 {
-                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
+                    ForcedCheckBoxValues.Add(new KeyValuePair<string, string>(key, value));
                 }
             }
         }

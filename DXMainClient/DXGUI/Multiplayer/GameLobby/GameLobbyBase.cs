@@ -2235,21 +2235,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerExtraOptionsPanel?.UpdateForMap(Map);
         }
-
         private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
-            List<KeyValuePair<string, bool>> forcedOptions)
+    List<KeyValuePair<string, string>> forcedOptions)
         {
-            foreach (KeyValuePair<string, bool> option in forcedOptions)
+            foreach (KeyValuePair<string, string> option in forcedOptions)
             {
+                string[] optionParts = option.Value.Split(',');
                 GameLobbyCheckBox checkBox = CheckBoxes.Find(chk => chk.Name == option.Key);
                 if (checkBox != null)
                 {
-                    checkBox.Checked = option.Value;
-                    checkBox.AllowChecking = false;
+                    checkBox.Checked = bool.Parse(optionParts[0]);
+                    checkBox.AllowChecking = optionParts.Length > 1 ? bool.Parse(optionParts[1]) : false;
+
                     optionList.Remove(checkBox);
                 }
             }
         }
+
 
         private void ApplyForcedDropDownOptions(List<GameLobbyDropDown> optionList,
             List<KeyValuePair<string, int>> forcedOptions)

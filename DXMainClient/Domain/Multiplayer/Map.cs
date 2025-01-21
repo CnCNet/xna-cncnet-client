@@ -256,7 +256,7 @@ namespace DTAClient.Domain.Multiplayer
         public bool ExtractCustomPreview { get; set; } = true;
 
         [JsonInclude]
-        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+        public List<KeyValuePair<string, string>> ForcedCheckBoxValues = new List<KeyValuePair<string, string>>(0);
 
         [JsonInclude]
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
@@ -664,7 +664,7 @@ namespace DTAClient.Domain.Multiplayer
                 }
                 else
                 {
-                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
+                    ForcedCheckBoxValues.Add(new KeyValuePair<string, string>(key, value));
                 }
             }
         }
