@@ -113,16 +113,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log($"Contacting tunnel at {Address}:{Port}");
 
                 // Do not use https here as not supported by tunnels
-                string addressString;
-
-                if (Address.Count(c => c == ':') > 1)
-                { //IPV6
-                    addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
-                }
-                else
-                { //IPV4 or hostname
-                    addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
-                }
+                string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
                 using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
