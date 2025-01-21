@@ -41,7 +41,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     // IPv6 address
                     int lastColonIndex = address.LastIndexOf(':');
-                    host = address.Substring(0, lastColonIndex);
+                    host = "[" + address.Substring(0, lastColonIndex) + "]";
                     port = int.Parse(address.Substring(lastColonIndex + 1));
                 }
                 else
@@ -113,7 +113,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log($"Contacting tunnel at {Address}:{Port}");
 
                 // Do not use https here as not supported by tunnels
-                string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
+                string addressString;
+
+                if (Address.Count(c => c == ':') > 1)
+                { //IPV6
+                    addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
+                }
+                else
+                { //IPV4 or hostname
+                    addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
+                }
                 Logger.Log($"Downloading from {addressString}");
 
                 using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
