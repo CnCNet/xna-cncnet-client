@@ -142,7 +142,7 @@ namespace DTAConfig.Settings
                         string cacheHash = Utilities.CalculateSHA1ForFile(CachedPath);
                         string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
 
-                        if (cacheHash != destinationHash)
+                        if (cacheHash != destinationHash && cacheHash != "")
                             File.Copy(DestinationPath, CachedPath, true);
 
                         File.Delete(DestinationPath);
