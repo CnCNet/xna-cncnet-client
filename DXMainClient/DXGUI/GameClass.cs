@@ -1,5 +1,6 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.IME;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
@@ -144,7 +145,10 @@ namespace DTAClient.DXGUI
 #endif
             InitializeUISettings();
 
-            WindowManager wm = new WindowManager(this, graphics);
+            WindowManager wm = new(this, graphics)
+            {
+                IMEHandler = IMEHandler.Create(this),
+            };
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
