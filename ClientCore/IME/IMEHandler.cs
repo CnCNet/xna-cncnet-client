@@ -13,7 +13,7 @@ public abstract class IMEHandler : IIMEHandler
 
     public abstract bool Enabled { get; protected set; }
 
-    public XNAControl IMEFocus { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public XNAControl IMEFocus { get; set; }
 
     public string Composition
     {
@@ -22,7 +22,7 @@ public abstract class IMEHandler : IIMEHandler
         {
             string old = _composition;
             _composition = value;
-            CompositionChanged?.Invoke(null, new(old, value));
+            CompositionChanged?.Invoke(this, new(old, value));
         }
     }
 
@@ -48,5 +48,5 @@ public abstract class IMEHandler : IIMEHandler
     public abstract void StopTextComposition();
 
     protected virtual void OnTextInput(char character)
-    => CharInput?.Invoke(this, new(character));
+        => CharInput?.Invoke(this, new(character));
 }
