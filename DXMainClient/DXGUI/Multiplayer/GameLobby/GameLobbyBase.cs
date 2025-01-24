@@ -1330,11 +1330,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.TeamId = 1;
             }
 
-            var teamStartMappings = new List<TeamStartMapping>(0);
-            if (PlayerExtraOptionsPanel != null)
-            {
+            List<TeamStartMapping> teamStartMappings = [];
+            if (GameMode.ForceTeamStartMappings)
+                teamStartMappings = GameMode.TeamStartMappings;
+            else if (PlayerExtraOptionsPanel != null)
                 teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
-            }
 
             PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings);
 
@@ -2243,7 +2243,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             disableGameOptionUpdateBroadcast = false;
 
-            PlayerExtraOptionsPanel?.UpdateForMap(Map);
+            PlayerExtraOptionsPanel?.UpdateForMap(GameModeMap);
         }
 
         private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
