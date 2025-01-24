@@ -11,6 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 namespace ClientGUI.IME;
 public abstract class IMEHandler : IIMEHandler
 {
+    bool IIMEHandler.TextCompositionEnabled => TextCompositionEnabled;
     public abstract bool TextCompositionEnabled { get; protected set; }
 
     private XNATextBox? _IMEFocus = null;
@@ -94,7 +95,7 @@ public abstract class IMEHandler : IIMEHandler
         SetTextInputRectangle(rect);
     }
 
-    public void OnSelectedChanged(XNATextBox sender)
+    void IIMEHandler.OnSelectedChanged(XNATextBox sender)
     {
         if (sender.WindowManager.SelectedControl == sender)
         {
@@ -126,27 +127,17 @@ public abstract class IMEHandler : IIMEHandler
         // so we do not need to handle this case
     }
 
-    public void RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput)
-    {
+    void IIMEHandler.RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput) =>
         TextBoxHandleChatInputCallbacks.Add(sender, handleCharInput);
-    }
 
-    public void KillXNATextBox(XNATextBox sender)
-    {
+    void IIMEHandler.KillXNATextBox(XNATextBox sender) =>
         TextBoxHandleChatInputCallbacks.Remove(sender);
-    }
 
-    public bool HandleScrollLeftKey(XNATextBox sender)
-    {
-        return !CompositionEmpty;
-    }
+    bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender) => !CompositionEmpty;
 
-    public bool HandleScrollRightKey(XNATextBox sender)
-    {
-        return !CompositionEmpty;
-    }
+    bool IIMEHandler.HandleScrollRightKey(XNATextBox sender) => !CompositionEmpty;
 
-    public bool HandleBackspaceKey(XNATextBox sender)
+    bool IIMEHandler.HandleBackspaceKey(XNATextBox sender)
     {
         bool handled = !LastActionIMEChatInput;
         LastActionIMEChatInput = true;
@@ -154,7 +145,7 @@ public abstract class IMEHandler : IIMEHandler
         return handled;
     }
 
-    public bool HandleDeleteKey(XNATextBox sender)
+    bool IIMEHandler.HandleDeleteKey(XNATextBox sender)
     {
         bool handled = !LastActionIMEChatInput;
         LastActionIMEChatInput = true;
@@ -162,7 +153,7 @@ public abstract class IMEHandler : IIMEHandler
         return handled;
     }
 
-    public bool GetDrawCompositionText(XNATextBox sender, out string composition, out int compositionCursorPosition)
+    bool IIMEHandler.GetDrawCompositionText(XNATextBox sender, out string composition, out int compositionCursorPosition)
     {
         if (IMEFocus != sender || CompositionEmpty)
         {
@@ -176,23 +167,19 @@ public abstract class IMEHandler : IIMEHandler
         return true;
     }
 
-    public bool HandleCharInput(XNATextBox sender, char input)
-    {
-        return TextCompositionEnabled;
-    }
+    bool IIMEHandler.HandleCharInput(XNATextBox sender, char input) =>
+        ((IIMEHandler)this).TextCompositionEnabled;
 
-    public bool HandleEnterKey(XNATextBox sender)
-    {
-        return false;
-    }
+    bool IIMEHandler.HandleEnterKey(XNATextBox sender)
+        => false;
 
-    public bool HandleEscapeKey(XNATextBox sender)
+    bool IIMEHandler.HandleEscapeKey(XNATextBox sender)
     {
         Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
         return IMEEventReceived;
     }
 
-    public void OnTextChanged(XNATextBox sender)
+    void IIMEHandler.OnTextChanged(XNATextBox sender)
     {
     }
 }
