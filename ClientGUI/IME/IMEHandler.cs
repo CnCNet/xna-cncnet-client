@@ -168,7 +168,7 @@ public abstract class IMEHandler : IIMEHandler
     }
 
     bool IIMEHandler.HandleCharInput(XNATextBox sender, char input) =>
-        ((IIMEHandler)this).TextCompositionEnabled;
+        TextCompositionEnabled;
 
     bool IIMEHandler.HandleEnterKey(XNATextBox sender)
         => false;
