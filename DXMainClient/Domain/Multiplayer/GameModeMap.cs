@@ -17,7 +17,7 @@
         }
 
         public override string ToString()
-            => $"{GameMode.Name} - {Map.Name}";
+            => $"{GameMode?.Name} - {Map?.Name}";
 
         protected bool Equals(GameModeMap other) => Equals(GameMode, other.GameMode) && Equals(Map, other.Map);
 
