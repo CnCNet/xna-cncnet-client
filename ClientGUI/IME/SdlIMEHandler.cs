@@ -11,15 +11,6 @@ namespace ClientGUI.IME;
 /// the SDL2 main loop.<br/>
 /// Perhaps this requires some changes in Monogame.
 /// </remarks>
-internal sealed class SdlIMEHandler(Game game) : IMEHandler
+internal sealed class SdlIMEHandler(Game game) : DummyIMEHandler
 {
-    public override bool TextCompositionEnabled { get => false; protected set { } }
-
-    public override void StartTextComposition()
-    {
-    }
-
-    public override void StopTextComposition()
-    {
-    }
 }

@@ -141,11 +141,9 @@ namespace DTAClient.DXGUI
 #endif
             InitializeUISettings();
 
-            WindowManager wm = new(this, graphics)
-            {
-                IMEHandler = IMEHandler.Create(this),
-            };
+            WindowManager wm = new(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+            wm.IMEHandler = IMEHandler.Create(this);
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
