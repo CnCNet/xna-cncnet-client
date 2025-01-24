@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
-using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
@@ -21,8 +20,7 @@ public abstract class IMEHandler : IIMEHandler
             set
             {
                 _lastActionIMEChatInput = value;
-                if (value)
-                    HasEverBeenReceivedIMEChatInput = true;
+                HasEverBeenReceivedIMEChatInput &= value;
             }
         }
 
@@ -30,7 +28,7 @@ public abstract class IMEHandler : IIMEHandler
         public Action<char>? HandleChatInput = null;
     }
 
-    public abstract bool Enabled { get; protected set; }
+    public abstract bool TextCompositionEnabled { get; protected set; }
 
     private XNATextBox? _IMEFocus = null;
     public XNATextBox? IMEFocus
@@ -104,7 +102,7 @@ public abstract class IMEHandler : IIMEHandler
 
     protected virtual void OnIMETextInput(char character)
     {
-        Debug.WriteLine($"OnTextInput: {character} {((byte)character)}; IMEFocus is null? {IMEFocus == null}");
+        Debug.WriteLine($"OnIMETextInput: {character} {((byte)character)}; IMEFocus is null? {IMEFocus == null}");
 
         if (IMEFocus != null)
         {
@@ -116,11 +114,8 @@ public abstract class IMEHandler : IIMEHandler
 
     private void SetIMETextInputRectangle(XNATextBox sender)
     {
-        // Note: Whenever sender.Text is changed, invoke SetIMETextInputRectangle()
         var rect = sender.RenderRectangle();
         rect.X += sender.WindowManager.SceneXPosition;
-        rect.X += (int)Renderer.GetTextDimensions(sender.Text, sender.FontIndex).X;
-        rect.X += 5;
         rect.Y += sender.WindowManager.SceneYPosition;
         SetTextInputRectangle(rect);
     }
@@ -137,15 +132,12 @@ public abstract class IMEHandler : IIMEHandler
             else
                 IMEFocus = sender;
 
-            if (!sender.IMEDisabled)
+            if (!sender.IMEDisabled && sender.Enabled && sender.Visible)
             {
-                if (sender.Enabled && sender.Visible)
-                {
-                    // Update the location of IME based on the textbox
-                    SetIMETextInputRectangle(sender);
+                // Update the location of IME based on the textbox
+                SetIMETextInputRectangle(sender);
 
-                    StartTextComposition();
-                }
+                StartTextComposition();
             }
         }
         else if (sender.WindowManager.SelectedControl is not XNATextBox)
@@ -213,7 +205,7 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool HandleCharInput(XNATextBox sender, char input)
     {
-        return Enabled;
+        return TextCompositionEnabled;
     }
 
     public bool HandleEnterKey(XNATextBox sender)

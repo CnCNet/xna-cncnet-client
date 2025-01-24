@@ -11,7 +11,7 @@ namespace ClientGUI.IME;
 /// </summary>
 internal class WinFormsIMEHandler : IMEHandler
 {
-    public override bool Enabled
+    public override bool TextCompositionEnabled
     {
         get => InputMethod.Enabled;
         protected set => InputMethod.Enabled = value;
@@ -31,13 +31,13 @@ internal class WinFormsIMEHandler : IMEHandler
     public override void StartTextComposition()
     {
         Debug.WriteLine("IME: StartTextComposition");
-        Enabled = true;
+        TextCompositionEnabled = true;
     }
 
     public override void StopTextComposition()
     {
         Debug.WriteLine("IME: StopTextComposition");
-        Enabled = false;
+        TextCompositionEnabled = false;
     }
         
 
