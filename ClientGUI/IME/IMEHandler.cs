@@ -11,12 +11,6 @@ using Rampastring.XNAUI.XNAControls;
 namespace ClientGUI.IME;
 public abstract class IMEHandler : IIMEHandler
 {
-    protected class XNATextBoxIMEStatus
-    {
-        public bool LastActionIMEChatInput = true;
-        public Action<char>? HandleChatInput = null;
-    }
-
     public abstract bool TextCompositionEnabled { get; protected set; }
 
     private XNATextBox? _IMEFocus = null;
@@ -45,33 +39,19 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool CompositionEmpty => string.IsNullOrEmpty(_composition);
 
-    public bool IMEEventReceived = false;
+    protected bool IMEEventReceived = false;
+    protected bool LastActionIMEChatInput = true;
 
     private void OnCompositionChanged(string oldValue, string newValue)
     {
         Debug.WriteLine($"IME: OnCompositionChanged: {newValue.Length - oldValue.Length}");
 
         IMEEventReceived = true;
-        if (IMEFocus != null)
-        {
-            XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(IMEFocus);
-            // It seems that OnIMETextInput() is always triggered after OnCompositionChanged(). We expect such a behavior.
-            status.LastActionIMEChatInput = false;
-        }
+        // It seems that OnIMETextInput() is always triggered after OnCompositionChanged(). We expect such a behavior.
+        LastActionIMEChatInput = false;
     }
 
-    protected Dictionary<XNATextBox, XNATextBoxIMEStatus> IMEStatus = [];
-
-    protected XNATextBoxIMEStatus GetOrNewXNATextBoxIMEStatus(XNATextBox textBox)
-    {
-        if (textBox == null)
-            throw new ArgumentNullException(nameof(textBox));
-
-        if (!IMEStatus.ContainsKey(textBox))
-            IMEStatus[textBox] = new XNATextBoxIMEStatus();
-
-        return IMEStatus[textBox];
-    }
+    protected Dictionary<XNATextBox, Action<char>?> TextBoxHandleChatInputCallbacks = [];
 
     public virtual int CompositionCursorPosition { get; set; }
 
@@ -97,11 +77,12 @@ public abstract class IMEHandler : IIMEHandler
         Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
         IMEEventReceived = true;
+        LastActionIMEChatInput = true;
+
         if (IMEFocus != null)
         {
-            var status = GetOrNewXNATextBoxIMEStatus(IMEFocus);
-            status.LastActionIMEChatInput = true;
-            status.HandleChatInput?.Invoke(character);
+            TextBoxHandleChatInputCallbacks.TryGetValue(IMEFocus, out var handleChatInput);
+            handleChatInput?.Invoke(character);
         }
     }
 
@@ -147,13 +128,12 @@ public abstract class IMEHandler : IIMEHandler
 
     public void RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput)
     {
-        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
-        status.HandleChatInput = handleCharInput;
+        TextBoxHandleChatInputCallbacks.Add(sender, handleCharInput);
     }
 
     public void KillXNATextBox(XNATextBox sender)
     {
-        IMEStatus.Remove(sender);
+        TextBoxHandleChatInputCallbacks.Remove(sender);
     }
 
     public bool HandleScrollLeftKey(XNATextBox sender)
@@ -168,18 +148,16 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool HandleBackspaceKey(XNATextBox sender)
     {
-        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
-        bool handled = !status.LastActionIMEChatInput;
-        status.LastActionIMEChatInput = true;
+        bool handled = !LastActionIMEChatInput;
+        LastActionIMEChatInput = true;
         Debug.WriteLine($"IME: HandleBackspaceKey: handled: {handled}");
         return handled;
     }
 
     public bool HandleDeleteKey(XNATextBox sender)
     {
-        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
-        bool handled = !status.LastActionIMEChatInput;
-        status.LastActionIMEChatInput = true;
+        bool handled = !LastActionIMEChatInput;
+        LastActionIMEChatInput = true;
         Debug.WriteLine($"IME: HandleDeleteKey: handled: {handled}");
         return handled;
     }
@@ -210,7 +188,6 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool HandleEscapeKey(XNATextBox sender)
     {
-        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
         Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
         return IMEEventReceived;
     }
