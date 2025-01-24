@@ -1,10 +1,12 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
@@ -52,7 +54,7 @@ public abstract class IMEHandler : IIMEHandler
         LastActionIMEChatInput = false;
     }
 
-    protected Dictionary<XNATextBox, Action<char>?> TextBoxHandleChatInputCallbacks = [];
+    protected ConcurrentDictionary<XNATextBox, Action<char>?> TextBoxHandleChatInputCallbacks = [];
 
     public virtual int CompositionCursorPosition { get; set; }
 
@@ -92,6 +94,15 @@ public abstract class IMEHandler : IIMEHandler
         var rect = sender.RenderRectangle();
         rect.X += sender.WindowManager.SceneXPosition;
         rect.Y += sender.WindowManager.SceneYPosition;
+
+        // Following the input cursor
+        // This requires SetIMETextInputRectangle() be called whenever InputPosition is changed.
+
+        //var vec = Renderer.GetTextDimensions(
+        //    sender.Text.Substring(sender.TextStartPosition, sender.TextEndPosition - sender.InputPosition),
+        //    sender.FontIndex);
+        //rect.X += (int)vec.X;
+
         SetTextInputRectangle(rect);
     }
 
@@ -128,10 +139,10 @@ public abstract class IMEHandler : IIMEHandler
     }
 
     void IIMEHandler.RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput) =>
-        TextBoxHandleChatInputCallbacks.Add(sender, handleCharInput);
+        TextBoxHandleChatInputCallbacks[sender] = handleCharInput;
 
     void IIMEHandler.KillXNATextBox(XNATextBox sender) =>
-        TextBoxHandleChatInputCallbacks.Remove(sender);
+        TextBoxHandleChatInputCallbacks.TryRemove(sender, out _);
 
     bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender) => !CompositionEmpty;
 
