@@ -102,13 +102,11 @@ namespace DTAConfig.Settings
                 case FileOperationOption.KeepChanges:
                     if (!File.Exists(DestinationPath))
                     {
-                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
-
-                        if (!File.Exists(CachedPath))
-                            File.Copy(SourcePath, CachedPath, true);
+                        if (File.Exists(CachedPath))
+                            File.Move(CachedPath, DestinationPath);
+                        else
+                            File.Copy(SourcePath, DestinationPath, true);
                     }
-
-                    FileHelper.CreateHardLinkFromSource(CachedPath, DestinationPath, fallback: true);
 
                     break;
 
@@ -139,16 +137,10 @@ namespace DTAConfig.Settings
                 case FileOperationOption.KeepChanges:
                     if (File.Exists(DestinationPath))
                     {
-                        string cacheHash = Utilities.CalculateSHA1ForFile(CachedPath);
-                        string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
-                        
-                        if (string.IsNullOrEmpty(cacheHash))
+                        if (!File.Exists(Path.GetDirectoryName(CachedPath)))
                             SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
 
-                        if (cacheHash != destinationHash)
-                            File.Copy(DestinationPath, CachedPath, true);
-
-                        File.Delete(DestinationPath);
+                        File.Move(DestinationPath, CachedPath);
                     }
                     break;
 
