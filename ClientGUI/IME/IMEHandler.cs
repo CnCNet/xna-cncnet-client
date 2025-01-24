@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
@@ -58,7 +59,7 @@ public abstract class IMEHandler : IIMEHandler
 
     private void OnCompositionChanged(string oldValue, string newValue)
     {
-        Debug.WriteLine($"OnCompositionChanged: {newValue.Length - oldValue.Length}");
+        Debug.WriteLine($"IME: OnCompositionChanged: {newValue.Length - oldValue.Length}");
 
         if (IMEFocus != null)
         {
@@ -102,7 +103,7 @@ public abstract class IMEHandler : IIMEHandler
 
     protected virtual void OnIMETextInput(char character)
     {
-        Debug.WriteLine($"OnIMETextInput: {character} {((byte)character)}; IMEFocus is null? {IMEFocus == null}");
+        Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
         if (IMEFocus != null)
         {
@@ -177,7 +178,8 @@ public abstract class IMEHandler : IIMEHandler
     {
         XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
         bool handled = !status.LastActionIMEChatInput;
-        status.LastActionIMEChatInput = false;
+        status.LastActionIMEChatInput = true;
+        Debug.WriteLine($"IME: HandleBackspaceKey: handled: {handled}");
         return handled;
     }
 
@@ -185,7 +187,8 @@ public abstract class IMEHandler : IIMEHandler
     {
         XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
         bool handled = !status.LastActionIMEChatInput;
-        status.LastActionIMEChatInput = false;
+        status.LastActionIMEChatInput = true;
+        Debug.WriteLine($"IME: HandleDeleteKey: handled: {handled}");
         return handled;
     }
 
@@ -216,6 +219,7 @@ public abstract class IMEHandler : IIMEHandler
     public bool HandleEscapeKey(XNATextBox sender)
     {
         XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
+        Debug.WriteLine($"IME: HandleEscapeKey: handled: {status.HasEverBeenReceivedIMEChatInput}");
         return status.HasEverBeenReceivedIMEChatInput;
     }
 
