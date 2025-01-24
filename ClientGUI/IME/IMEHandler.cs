@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
@@ -89,17 +90,26 @@ public abstract class IMEHandler : IIMEHandler
 
     private void SetIMETextInputRectangle(XNATextBox sender)
     {
-        var rect = sender.RenderRectangle();
-        rect.X += sender.WindowManager.SceneXPosition;
-        rect.Y += sender.WindowManager.SceneYPosition;
+        WindowManager windowManager = sender.WindowManager;
 
-        // Following the input cursor
-        // This requires SetIMETextInputRectangle() be called whenever InputPosition is changed.
+        Rectangle textBoxRect = sender.RenderRectangle();
+        double scaleRatio = windowManager.ScaleRatio;
 
+        Rectangle rect = new()
+        {
+            X = (int)(textBoxRect.X * scaleRatio + windowManager.SceneXPosition),
+            Y = (int)(textBoxRect.Y * scaleRatio + windowManager.SceneYPosition),
+            Width = (int)(textBoxRect.Width * scaleRatio),
+            Height = (int)(textBoxRect.Height * scaleRatio)
+        };
+
+        // The following code returns a more accurate location, aware of the input cursor
+        // However, it requires SetIMETextInputRectangle() be called whenever InputPosition is changed.
+        // And therefore, it's commented out for now.
         //var vec = Renderer.GetTextDimensions(
         //    sender.Text.Substring(sender.TextStartPosition, sender.TextEndPosition - sender.InputPosition),
         //    sender.FontIndex);
-        //rect.X += (int)vec.X;
+        //rect.X += (int)(vec.X * scaleRatio);
 
         SetTextInputRectangle(rect);
     }
