@@ -1,12 +1,10 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
-using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
@@ -144,9 +142,11 @@ public abstract class IMEHandler : IIMEHandler
     void IIMEHandler.KillXNATextBox(XNATextBox sender) =>
         TextBoxHandleChatInputCallbacks.TryRemove(sender, out _);
 
-    bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender) => !CompositionEmpty;
+    bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender) =>
+        !CompositionEmpty;
 
-    bool IIMEHandler.HandleScrollRightKey(XNATextBox sender) => !CompositionEmpty;
+    bool IIMEHandler.HandleScrollRightKey(XNATextBox sender) =>
+        !CompositionEmpty;
 
     bool IIMEHandler.HandleBackspaceKey(XNATextBox sender)
     {
