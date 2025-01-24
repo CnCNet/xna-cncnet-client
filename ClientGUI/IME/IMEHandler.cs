@@ -14,14 +14,14 @@ public abstract class IMEHandler : IIMEHandler
 {
     protected class XNATextBoxIMEStatus
     {
-        private bool _lastActionIMEChatInput = false;
+        private bool _lastActionIMEChatInput = true;
         public bool LastActionIMEChatInput
         {
             get => _lastActionIMEChatInput;
             set
             {
                 _lastActionIMEChatInput = value;
-                HasEverBeenReceivedIMEChatInput &= value;
+                HasEverBeenReceivedIMEChatInput |= value;
             }
         }
 
