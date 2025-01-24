@@ -218,4 +218,8 @@ public abstract class IMEHandler : IIMEHandler
         XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
         return status.HasEverBeenReceivedIMEChatInput;
     }
+
+    public void OnTextChanged(XNATextBox sender)
+    {
+    }
 }
