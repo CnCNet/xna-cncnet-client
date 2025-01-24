@@ -5,4 +5,15 @@
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="$(Configuration.Contains('GL'))">
+    <!--Remove WinForm-->
+    <Compile Remove="IME\WinFormsIMEHandler.cs" />
+    <None Include="IME\WinFormsIMEHandler.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(Configuration.Contains('GL'))">
+    <!--Remove SDL-->
+    <Compile Remove="IME\SdlIMEHandler.cs" />
+    <None Include="IME\SdlIMEHandler.cs" />
+    <PackageReference Include="ImeSharp" />
+  </ItemGroup>
 </Project>
