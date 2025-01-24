@@ -141,8 +141,11 @@ namespace DTAConfig.Settings
                     {
                         string cacheHash = Utilities.CalculateSHA1ForFile(CachedPath);
                         string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
+                        
+                        if (string.IsNullOrEmpty(cacheHash))
+                            SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
 
-                        if (cacheHash != destinationHash && !string.IsNullOrEmpty(cacheHash))
+                        if (cacheHash != destinationHash)
                             File.Copy(DestinationPath, CachedPath, true);
 
                         File.Delete(DestinationPath);
