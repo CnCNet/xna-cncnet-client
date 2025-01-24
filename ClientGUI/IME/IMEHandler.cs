@@ -126,18 +126,18 @@ public abstract class IMEHandler : IIMEHandler
         {
             StopTextComposition();
 
-            // Set IMEFocus
-            if (sender.IMEDisabled || !sender.Enabled || !sender.Visible)
-                IMEFocus = null;
-            else
-                IMEFocus = sender;
-
             if (!sender.IMEDisabled && sender.Enabled && sender.Visible)
             {
+                IMEFocus = sender;
+
                 // Update the location of IME based on the textbox
                 SetIMETextInputRectangle(sender);
 
                 StartTextComposition();
+            }
+            else
+            {
+                IMEFocus = null;
             }
         }
         else if (sender.WindowManager.SelectedControl is not XNATextBox)
