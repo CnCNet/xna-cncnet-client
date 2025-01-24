@@ -13,7 +13,7 @@ namespace ClientGUI.IME;
 /// </remarks>
 internal sealed class SdlIMEHandler(Game game) : IMEHandler
 {
-    public override bool Enabled { get => false; protected set => _ = value; }
+    public override bool TextCompositionEnabled { get => false; protected set => _ = value; }
 
     public override void StartTextComposition()
     {
