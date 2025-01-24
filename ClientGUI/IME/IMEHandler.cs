@@ -1,31 +1,54 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
-namespace ClientCore.IME;
-
+namespace ClientGUI.IME;
 public abstract class IMEHandler : IIMEHandler
 {
     protected class XNATextBoxIMEStatus
     {
-        public bool TextCompositionDelay = true;
-        public Action<char> HandleChatInput = null;
+        private bool _lastActionIMEChatInput = false;
+        public bool LastActionIMEChatInput
+        {
+            get => _lastActionIMEChatInput;
+            set
+            {
+                _lastActionIMEChatInput = value;
+                if (value)
+                    HasEverBeenReceivedIMEChatInput = true;
+            }
+        }
+
+        public bool HasEverBeenReceivedIMEChatInput { get; private set; } = false;
+        public Action<char>? HandleChatInput = null;
     }
 
     public abstract bool Enabled { get; protected set; }
 
-    public XNAControl IMEFocus { get; set; }
+    private XNATextBox? _IMEFocus = null;
+    public XNATextBox? IMEFocus
+    {
+        get => _IMEFocus;
+        protected set
+        {
+            _IMEFocus = value;
+            Debug.Assert(!_IMEFocus?.IMEDisabled ?? true, "IME focus should not be assigned from a textbox with IME disabled");
+        }
+    }
 
     private string _composition = string.Empty;
 
     public string Composition
     {
         get => _composition;
-        set
+        protected set
         {
             string old = _composition;
             _composition = value;
@@ -37,20 +60,23 @@ public abstract class IMEHandler : IIMEHandler
 
     private void OnCompositionChanged(string oldValue, string newValue)
     {
-        // TODO: IMEFocus is always XNATextBox (or null)
-        if (IMEFocus is XNATextBox textBox)
-        {
-            XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(textBox);
+        Debug.WriteLine($"OnCompositionChanged: {newValue.Length - oldValue.Length}");
 
-            if (!string.IsNullOrEmpty(oldValue) && string.IsNullOrEmpty(newValue))
-                status.TextCompositionDelay = true;
+        if (IMEFocus != null)
+        {
+            XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(IMEFocus);
+            // It seems that OnIMETextInput() is always triggered after OnCompositionChanged(). We expect such a behavior.
+            status.LastActionIMEChatInput = false;
         }
     }
 
-    protected Dictionary<XNATextBox, XNATextBoxIMEStatus> IMEStatus = new Dictionary<XNATextBox, XNATextBoxIMEStatus>();
+    protected Dictionary<XNATextBox, XNATextBoxIMEStatus> IMEStatus = [];
 
     protected XNATextBoxIMEStatus GetOrNewXNATextBoxIMEStatus(XNATextBox textBox)
     {
+        if (textBox == null)
+            throw new ArgumentNullException(nameof(textBox));
+
         if (!IMEStatus.ContainsKey(textBox))
             IMEStatus[textBox] = new XNATextBoxIMEStatus();
 
@@ -76,80 +102,65 @@ public abstract class IMEHandler : IIMEHandler
 
     public abstract void StopTextComposition();
 
-    protected virtual void OnTextInput(char character)
+    protected virtual void OnIMETextInput(char character)
     {
-        // TODO: IMEFocus is always XNATextBox (or null)
-        if (IMEFocus is XNATextBox textBox)
+        Debug.WriteLine($"OnTextInput: {character} {((byte)character)}; IMEFocus is null? {IMEFocus == null}");
+
+        if (IMEFocus != null)
         {
-            var status = GetOrNewXNATextBoxIMEStatus(textBox);
+            var status = GetOrNewXNATextBoxIMEStatus(IMEFocus);
+            status.LastActionIMEChatInput = true;
             status.HandleChatInput?.Invoke(character);
         }
     }
 
     private void SetIMETextInputRectangle(XNATextBox sender)
     {
+        // Note: Whenever sender.Text is changed, invoke SetIMETextInputRectangle()
         var rect = sender.RenderRectangle();
         rect.X += sender.WindowManager.SceneXPosition;
+        rect.X += (int)Renderer.GetTextDimensions(sender.Text, sender.FontIndex).X;
+        rect.X += 5;
         rect.Y += sender.WindowManager.SceneYPosition;
         SetTextInputRectangle(rect);
     }
 
-    public void OnXNATextBoxSelectedChanged(XNATextBox sender)
+    public void OnSelectedChanged(XNATextBox sender)
     {
-        if (sender.WindowManager.SelectedControl is XNATextBox textBox)
-        {
-            if (textBox.Enabled && textBox.Visible)
-            {
-                if (!Enabled)
-                {
-                    IMEFocus = sender;
-                    StartTextComposition();
-                    SetIMETextInputRectangle(sender);
-                }
-                else
-                {
-                    // do nothing?
-                }
-            }
-            else
-            {
-                // do nothing?
-            }
-        }
-        else
+        if (sender.WindowManager.SelectedControl == sender)
         {
             StopTextComposition();
+
+            // Set IMEFocus
+            if (sender.IMEDisabled || !sender.Enabled || !sender.Visible)
+                IMEFocus = null;
+            else
+                IMEFocus = sender;
+
+            if (!sender.IMEDisabled)
+            {
+                if (sender.Enabled && sender.Visible)
+                {
+                    // Update the location of IME based on the textbox
+                    SetIMETextInputRectangle(sender);
+
+                    StartTextComposition();
+                }
+            }
         }
+        else if (sender.WindowManager.SelectedControl is not XNATextBox)
+        {
+            // Disable IME since the current selected control is not XNATextBox
+            IMEFocus = null;
+            StopTextComposition();
+        }
+
+        // Note: if sender.WindowManager.SelectedControl != sender and is XNATextBox,
+        // another OnSelectedChanged() will be triggered,
+        // so we do not need to handle this case
     }
 
-    public bool ShouldIMEHandleCharacterInput(XNATextBox sender)
-    {
-        return Enabled;
-    }
-
-    public bool ShouldIMEHandleScrollKey(XNATextBox sender)
-    {
-        return !CompositionEmpty;
-    }
-
-    public bool ShouldIMEHandleBackspaceOrDeleteKey_WithSideEffect(XNATextBox sender)
-    {
-        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
-        bool prevCompositionDelay = status.TextCompositionDelay;
-
-        // TODO: properly handle TextCompositionDelay
-        // Note: ShouldIMEHandleBackspaceOrDeleteKey_WithSideEffect() and OnCompositionChanged() may come in different order. We must properly deal with either case.
-
-        // status.TextCompositionDelay = CompositionEmpty;
-        status.TextCompositionDelay = false;
-
-        if (!CompositionEmpty)
-            return true;
-        else
-            return !prevCompositionDelay;
-    }
-
-    public void RegisterXNATextBox(XNATextBox sender, Action<char> handleCharInput)
+    public void RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput)
     {
         XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
         status.HandleChatInput = handleCharInput;
@@ -160,11 +171,37 @@ public abstract class IMEHandler : IIMEHandler
         IMEStatus.Remove(sender);
     }
 
-    public bool ShouldDrawCompositionText(XNATextBox sender, out string composition, out int compositionCursorPosition)
+    public bool HandleScrollLeftKey(XNATextBox sender)
+    {
+        return !CompositionEmpty;
+    }
+
+    public bool HandleScrollRightKey(XNATextBox sender)
+    {
+        return !CompositionEmpty;
+    }
+
+    public bool HandleBackspaceKey(XNATextBox sender)
+    {
+        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
+        bool handled = !status.LastActionIMEChatInput;
+        status.LastActionIMEChatInput = false;
+        return handled;
+    }
+
+    public bool HandleDeleteKey(XNATextBox sender)
+    {
+        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
+        bool handled = !status.LastActionIMEChatInput;
+        status.LastActionIMEChatInput = false;
+        return handled;
+    }
+
+    public bool GetDrawCompositionText(XNATextBox sender, out string composition, out int compositionCursorPosition)
     {
         if (IMEFocus != sender || CompositionEmpty)
         {
-            composition = null;
+            composition = string.Empty;
             compositionCursorPosition = 0;
             return false;
         }
@@ -172,5 +209,21 @@ public abstract class IMEHandler : IIMEHandler
         composition = Composition;
         compositionCursorPosition = CompositionCursorPosition;
         return true;
+    }
+
+    public bool HandleCharInput(XNATextBox sender, char input)
+    {
+        return Enabled;
+    }
+
+    public bool HandleEnterKey(XNATextBox sender)
+    {
+        return false;
+    }
+
+    public bool HandleEscapeKey(XNATextBox sender)
+    {
+        XNATextBoxIMEStatus status = GetOrNewXNATextBoxIMEStatus(sender);
+        return status.HasEverBeenReceivedIMEChatInput;
     }
 }

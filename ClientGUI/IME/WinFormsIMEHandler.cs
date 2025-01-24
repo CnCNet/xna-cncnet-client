@@ -1,8 +1,10 @@
-﻿using ImeSharp;
+﻿using System.Diagnostics;
+
+using ImeSharp;
 
 using Microsoft.Xna.Framework;
 
-namespace ClientCore.IME;
+namespace ClientGUI.IME;
 
 /// <summary>
 /// Integrate IME to XNA framework.
@@ -18,7 +20,7 @@ internal class WinFormsIMEHandler : IMEHandler
     public WinFormsIMEHandler(Game game)
     {
         InputMethod.Initialize(game.Window.Handle);
-        InputMethod.TextInputCallback = OnTextInput;
+        InputMethod.TextInputCallback = OnIMETextInput;
         InputMethod.TextCompositionCallback = (compositionText, cursorPosition) =>
         {
             Composition = compositionText.ToString();
@@ -26,14 +28,18 @@ internal class WinFormsIMEHandler : IMEHandler
         };
     }
 
-
     public override void StartTextComposition()
-        => Enabled = true;
-
+    {
+        Debug.WriteLine("IME: StartTextComposition");
+        Enabled = true;
+    }
 
     public override void StopTextComposition()
-        => Enabled = false;
-
+    {
+        Debug.WriteLine("IME: StopTextComposition");
+        Enabled = false;
+    }
+        
 
     public override void SetTextInputRectangle(Rectangle rect)
         => InputMethod.SetTextInputRect(rect.X, rect.Y, rect.Width, rect.Height);

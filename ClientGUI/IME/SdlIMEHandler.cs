@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace ClientCore.IME;
+namespace ClientGUI.IME;
 
 /// <summary>
 /// Integrate IME to DesktopGL(SDL2) platform.

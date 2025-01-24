@@ -1,7 +1,7 @@
 using ClientCore;
 using ClientCore.CnCNet5;
-using ClientCore.IME;
 using ClientGUI;
+using ClientGUI.IME;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
 using ClientCore.Extensions;
@@ -11,7 +11,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
-using ClientGUI;
+using System.Diagnostics;
+using System.IO;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
@@ -24,13 +25,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
-#if DX || (GL && WINFORMS)
-using System.Diagnostics;
-using System.IO;
-#endif
 #if WINFORMS
 using System.Windows.Forms;
-using System.IO;
 #endif
 
 namespace DTAClient.DXGUI
