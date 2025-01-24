@@ -59,10 +59,19 @@ public abstract class IMEHandler : IIMEHandler
 
     public static IMEHandler Create(Game game)
     {
-#if !GL
+#if DX
         return new WinFormsIMEHandler(game);
-#else
+#elif XNA
+        // Warning: do not enable WinFormsIMEHandler for XNA builds!
+        // Occasionally it could crash for an unknown stack overflow.
+        // It *might* be due to both ImeSharp and XNAUI hook WndProc.
+        // ImeSharp: https://github.com/ryancheung/ImeSharp/blob/dc2243beff9ef48eb37e398c506c905c965f8e68/ImeSharp/InputMethod.cs#L170
+        // XNAUI: https://github.com/Rampastring/Rampastring.XNAUI/blob/9a7d5bb3e47ea50286ee05073d0a6723bc6d764d/Input/KeyboardEventInput.cs#L79
+        return new DummyIMEHandler();
+#elif GL
         return new SdlIMEHandler(game);
+#else
+#error Unknown variant
 #endif
     }
 
