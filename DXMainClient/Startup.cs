@@ -21,6 +21,7 @@ using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 using DTAConfig;
 using System.Collections.Generic;
+using Steamworks;
 
 namespace DTAClient
 {
@@ -156,6 +157,25 @@ namespace DTAClient
             }
 #endif
 
+#if ISWINDOWS
+            if (UserINISettings.Instance.SteamIntegration)
+            {
+                try
+                {
+                    Logger.Log("Steam init called");
+#if YR || ARES
+                    SteamClient.Init(2229850);
+#else
+                    SteamClient.Init(2229880);
+#endif
+                }
+                catch (System.Exception e)
+                {
+                    Logger.Log("Steam init failed: " + e.Message);
+                    // Couldn't init for some reason (steam is closed etc)
+                }
+            }
+#endif
             gameClass.Run();
         }
 
