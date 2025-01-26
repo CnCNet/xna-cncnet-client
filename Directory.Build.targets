@@ -90,7 +90,7 @@
     <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
   </Target>
 
-  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG')) AND '$(MSBuildProjectName)' == 'DXMainClient' AND '$(TargetFramework)' == '' AND ! Exists('$(OutputPath)\Resources\ClientDefinitions.ini')">
+  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG')) AND ( '$(MSBuildProjectName)' == 'ClientCore' OR '$(MSBuildProjectName)' == 'DTAConfig' OR '$(MSBuildProjectName)' == 'DXMainClient' ) AND '$(TargetFramework)' == '' AND ! Exists('$(OutputPath)\Resources\ClientDefinitions.ini')">
     <ItemGroup>
       <ExampleClientResources Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\DTA\**\*.*" />
       <ExampleClientMaps Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\Maps\**\*.*" />
