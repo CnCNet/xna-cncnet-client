@@ -1521,9 +1521,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                string tunnelAddressAndPort = splitMessage[9];
+                string tunnelAddress;
+                int tunnelPort;
+
+                if (tunnelAddressAndPort.Count(c => c == ':') > 1)
+                {
+                    // IPv6 address
+                    int lastColonIndex = tunnelAddressAndPort.LastIndexOf(':');
+                    tunnelAddress = tunnelAddressAndPort.Substring(0, lastColonIndex);
+                    tunnelPort = int.Parse(tunnelAddressAndPort.Substring(lastColonIndex + 1));
+                }
+                else
+                {
+                    // IPv4 address or hostname
+                    string[] detailedAddress = tunnelAddressAndPort.Split(':');
+                    tunnelAddress = detailedAddress[0];
+                    tunnelPort = int.Parse(detailedAddress[1]);
+                }
 
                 string loadedGameId = splitMessage[10];
                 int gameDifficulty = int.Parse(splitMessage[11]);
