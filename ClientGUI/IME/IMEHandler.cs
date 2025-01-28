@@ -62,11 +62,13 @@ public abstract class IMEHandler : IIMEHandler
 #if DX
         return new WinFormsIMEHandler(game);
 #elif XNA
-        // Warning: do not enable WinFormsIMEHandler for XNA builds!
-        // Occasionally it could crash for an unknown stack overflow.
-        // It *might* be due to both ImeSharp and XNAUI hook WndProc.
+        // Warning: Think carefully before enabling WinFormsIMEHandler for XNA builds!
+        // It *might* occasionally crash due to an unknown stack overflow issue.
+        // This *might* be caused by both ImeSharp and XNAUI hooking into WndProc.
         // ImeSharp: https://github.com/ryancheung/ImeSharp/blob/dc2243beff9ef48eb37e398c506c905c965f8e68/ImeSharp/InputMethod.cs#L170
         // XNAUI: https://github.com/Rampastring/Rampastring.XNAUI/blob/9a7d5bb3e47ea50286ee05073d0a6723bc6d764d/Input/KeyboardEventInput.cs#L79
+        //
+        // That said, you can try returning a WinFormsIMEHandler and test if it is stable enough now. Who knows?
         return new DummyIMEHandler();
 #elif GL
         return new SdlIMEHandler(game);
