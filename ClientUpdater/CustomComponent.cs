@@ -283,7 +283,7 @@ public class CustomComponent
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            Logger.Log("Downloaded custom component " + GUIName.L10N($"INI:CustomComponents:{ININame}:UIName") + " verified successfully.");
+            Logger.Log("Downloaded custom component " + GUIName + " verified successfully.");
             File.Copy(finalFileNameTemp, finalFileName, true);
             LocalIdentifier = uniqueIdForFile;
             IsBeingDownloaded = false;
