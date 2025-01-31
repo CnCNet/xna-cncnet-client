@@ -15,7 +15,6 @@
 
 namespace ClientUpdater;
 
-using ClientCore;
 using ClientCore.Extensions;
 
 using System;
@@ -120,7 +119,7 @@ public class CustomComponent
     /// </summary>
     public CustomComponent(string guiName, string iniName, string downloadPath, string localPath, bool isDownloadPathAbsolute = false, bool noArchiveExtensionForDownloadPath = false)
     {
-        GUIName = guiName.L10N($"INI:CustomComponents:{c.ININame}:UIName");
+        GUIName = guiName.L10N($"INI:CustomComponents:{iniName}:UIName");
         ININame = iniName;
         LocalPath = localPath;
         DownloadPath = downloadPath;
