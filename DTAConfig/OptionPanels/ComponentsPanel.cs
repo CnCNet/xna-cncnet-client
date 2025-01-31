@@ -65,7 +65,7 @@ namespace DTAConfig.OptionPanels
                 {
                     Name = "lbl" + c.ININame,
                     ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0),
-                    Text = c.GUIName.L10N($"INI:CustomComponents:{c.ININame}:UIName")
+                    Text = c.GUIName
                 };
 
                 AddChild(btn);
