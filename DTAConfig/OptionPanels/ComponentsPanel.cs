@@ -65,7 +65,7 @@ namespace DTAConfig.OptionPanels
                 {
                     Name = "lbl" + c.ININame,
                     ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0),
-                    Text = c.GUIName.L10N($"INI:CustomComponents:{c.ININame}:UIName")
+                    Text = c.GUIName
                 };
 
                 AddChild(btn);
@@ -166,7 +166,7 @@ namespace DTAConfig.OptionPanels
                         "This will take an additional {1} of disk space, and the download may take some time\n" +
                         "depending on your Internet connection speed. The size of the download is {2}.\n\n" +
                         "You will not be able to play during the download. Do you wish to continue?").L10N("Client:DTAConfig:UpdateConfirmRequiredText"),
-                        cc.GUIName.L10N($"INI:CustomComponents:{cc.ININame}:UIName"), GetSizeString(cc.RemoteSize), GetSizeString(cc.Archived ? cc.RemoteArchiveSize : cc.RemoteSize)),
+                        cc.GUIName, GetSizeString(cc.RemoteSize), GetSizeString(cc.Archived ? cc.RemoteArchiveSize : cc.RemoteSize)),
                     XNAMessageBoxButtons.YesNo);
 
                 msgBox.Tag = btn;
@@ -247,7 +247,7 @@ namespace DTAConfig.OptionPanels
                         string.Format(("Download of optional component {0} failed.\n" +
                         "See client.log for details.\n\n" +
                         "If this problem continues, please contact your mod's authors for support.").L10N("Client:DTAConfig:OptionalComponentDownloadFailedText"),
-                        cc.GUIName.L10N($"INI:CustomComponents:{cc.ININame}:UIName")));
+                        cc.GUIName));
                 }
 
                 btn.Text = "Install".L10N("Client:DTAConfig:Install") + $" ({GetSizeString(cc.RemoteSize)})";
@@ -258,7 +258,7 @@ namespace DTAConfig.OptionPanels
             else
             {
                 XNAMessageBox.Show(WindowManager, "Download Completed".L10N("Client:DTAConfig:DownloadCompleteTitle"),
-                    string.Format("Download of optional component {0} completed succesfully.".L10N("Client:DTAConfig:DownloadCompleteText"), cc.GUIName.L10N($"INI:CustomComponents:{cc.ININame}:UIName")));
+                    string.Format("Download of optional component {0} completed succesfully.".L10N("Client:DTAConfig:DownloadCompleteText"), cc.GUIName));
                 btn.Text = "Uninstall".L10N("Client:DTAConfig:Uninstall");
             }
         }
