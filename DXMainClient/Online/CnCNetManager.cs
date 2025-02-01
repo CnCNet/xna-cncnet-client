@@ -40,6 +40,8 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
+        public event EventHandler UserListInitialized;
+
 
         public event EventHandler<UserEventArgs> UserAdded;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
@@ -113,6 +115,8 @@ namespace DTAClient.Online
         private WindowManager wm;
 
         private bool disconnect = false;
+
+        private bool userListInitialized = false;
 
         public bool IsCnCNetInitialized()
         {
@@ -500,6 +504,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("Client:Main:CncNetDisconnected")));
             connected = false;
+            userListInitialized = false;
 
             UserList.Clear();
 
@@ -619,8 +624,9 @@ namespace DTAClient.Online
             channelUser.IsAdmin = isAdmin;
             channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
+            bool ignoredUser = channelUser.IRCUser.IsIgnored;
             ircUser.Channels.Add(channelName);
-            channel.OnUserJoined(channelUser);
+            channel.OnUserJoined(channelUser, ignoredUser);
 
             //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
         }
@@ -645,7 +651,8 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            channel.OnUserKicked(userName);
+            ChannelUser kickedUser = channel.Users.Find(userName);
+            channel.OnUserKicked(userName, kickedUser.IRCUser.IsIgnored);
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
@@ -770,6 +777,13 @@ namespace DTAClient.Online
             MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
 
             channel.OnUserListReceived(channelUserList);
+
+            // We only need to request user info once, and chat channels only.
+            if (!userListInitialized && channel.IsChatChannel)
+            {
+                channel.RequestUserInfo();
+                userListInitialized = true;
+            }
         }
 
         public void OnUserQuitIRC(string userName)
@@ -946,6 +960,46 @@ namespace DTAClient.Online
                 string.Format(
                     "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
+        }
+
+        public void OnWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            wm.AddCallback(new Action<string, List<Tuple<string, string, string, string>>>(DoWhoQueryComplete), channelName, whoDataList);
+        }
+
+        private void DoWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        {
+            Channel channel = FindChannel(channelName);
+
+            if (channel == null)
+                return;
+
+            if (!channel.IsChatChannel)
+                return;
+
+            var channelUserList = new List<ChannelUser>();
+
+            foreach (var whoData in whoDataList)
+            {
+                (string ident, string host, string userName, string extraInfo) = whoData;
+
+                IRCUser ircUser = new(userName);
+                ircUser.Ident = ident;
+                ircUser.Hostname = host;
+
+                UserList.Add(ircUser);
+
+                var channelUser = new ChannelUser(ircUser);
+                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+
+                channelUserList.Add(channelUser);
+            }
+
+            UserList = UserList.OrderBy(u => u.Name).ToList();
+            MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
+            UserListInitialized?.Invoke(this, EventArgs.Empty);
+
+            channel.OnUserListReceived(channelUserList);
         }
     }
 

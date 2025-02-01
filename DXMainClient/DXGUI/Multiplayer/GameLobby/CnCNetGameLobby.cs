@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using System.Net.NetworkInformation;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -521,6 +522,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
+
+            if (e.User.IRCUser.IsIgnored)
+            {
+                // If this ignored player constantly rejoins, he could cause the host to floodout using the normal RemovePlayer() functionality. 
+                // So lets Ghost kickban from gameroom instead. This should only be needed once per created room
+                GhostBanIgnoredUser(pInfo.Name);
+                return;
+            }
+
             Players.Add(pInfo);
 
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
@@ -1553,6 +1563,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (user != null)
             {
                 AddNotice(string.Format("Banning and kicking {0} from the game...".L10N("Client:Main:BanAndKickPlayer"), pInfo.Name));
+                channel.SendBanMessage(user.Hostname, 8);
+                channel.SendKickMessage(user.Name, 8);
+            }
+        }
+
+        private void GhostBanIgnoredUser(string playerName)
+        {
+            var user = connectionManager.UserList.Find(u => u.Name == playerName);
+
+            if (user != null)
+            {
+                // Informing the host like we do when we kick might be annoying. So keep it on the downlow.
                 channel.SendBanMessage(user.Hostname, 8);
                 channel.SendKickMessage(user.Name, 8);
             }

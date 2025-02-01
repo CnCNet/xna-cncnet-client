@@ -993,6 +993,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Channel gameChannel = (Channel)sender;
 
+            if (e.User.IRCUser.IsIgnored)
+            {
+                // Howboutno
+                Logger.Log("This user is ignored, so we shouldn't let them in");
+                return;
+            }
+
             if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
                 ClearGameChannelEvents(gameChannel);

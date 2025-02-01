@@ -112,14 +112,15 @@ namespace DTAClient.Online
             UserAdded?.Invoke(this, new ChannelUserEventArgs(user));
         }
 
-        public void OnUserJoined(ChannelUser user)
+        public void OnUserJoined(ChannelUser user, bool silentJoin = false)
         {
             AddUser(user);
 
             if (notifyOnUserListChange)
             {
-                AddMessage(new ChatMessage(
-                    string.Format("{0} has joined {1}.".L10N("Client:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
+                if (!silentJoin)
+                    AddMessage(new ChatMessage(
+                        string.Format("{0} has joined {1}.".L10N("Client:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
             }
 
 #if !YR
@@ -152,7 +153,7 @@ namespace DTAClient.Online
             UserListReceived?.Invoke(this, EventArgs.Empty);
         }
 
-        public void OnUserKicked(string userName)
+        public void OnUserKicked(string userName, bool silentKick = false)
         {
             if (users.Remove(userName))
             {
@@ -161,8 +162,9 @@ namespace DTAClient.Online
                     users.Clear();
                 }
 
-                AddMessage(new ChatMessage(
-                    string.Format("{0} has been kicked from {1}.".L10N("Client:Main:PlayerKickedFromChannel"), userName, UIName)));
+                if (!silentKick)
+                    AddMessage(new ChatMessage(
+                        string.Format("{0} has been kicked from {1}.".L10N("Client:Main:PlayerKickedFromChannel"), userName, UIName)));
 
                 UserKicked?.Invoke(this, new UserNameEventArgs(userName));
             }
