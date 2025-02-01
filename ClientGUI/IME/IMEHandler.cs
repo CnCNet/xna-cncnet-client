@@ -77,9 +77,7 @@ public abstract class IMEHandler : IIMEHandler
 #endif
     }
 
-    public virtual void SetTextInputRectangle(Rectangle rectangle)
-    {
-    }
+    public abstract void SetTextInputRectangle(Rectangle rectangle);
 
     public abstract void StartTextComposition();
 

@@ -1,4 +1,6 @@
-﻿namespace ClientGUI.IME
+﻿using Microsoft.Xna.Framework;
+
+namespace ClientGUI.IME
 {
     internal class DummyIMEHandler : IMEHandler
     {
@@ -6,12 +8,8 @@
 
         public override bool TextCompositionEnabled { get => false; protected set { } }
 
-        public override void StartTextComposition()
-        {
-        }
-
-        public override void StopTextComposition()
-        {
-        }
+        public override void SetTextInputRectangle(Rectangle rectangle) { }
+        public override void StartTextComposition() { }
+        public override void StopTextComposition() { }
     }
 }
