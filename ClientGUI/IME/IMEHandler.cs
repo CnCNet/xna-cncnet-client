@@ -155,17 +155,17 @@ public abstract class IMEHandler : IIMEHandler
         // so we do not need to handle this case
     }
 
-    void IIMEHandler.RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput) =>
-        TextBoxHandleChatInputCallbacks[sender] = handleCharInput;
+    void IIMEHandler.RegisterXNATextBox(XNATextBox sender, Action<char>? handleCharInput)
+        => TextBoxHandleChatInputCallbacks[sender] = handleCharInput;
 
-    void IIMEHandler.KillXNATextBox(XNATextBox sender) =>
-        TextBoxHandleChatInputCallbacks.TryRemove(sender, out _);
+    void IIMEHandler.KillXNATextBox(XNATextBox sender)
+        => TextBoxHandleChatInputCallbacks.TryRemove(sender, out _);
 
-    bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender) =>
-        !CompositionEmpty;
+    bool IIMEHandler.HandleScrollLeftKey(XNATextBox sender)
+        => !CompositionEmpty;
 
-    bool IIMEHandler.HandleScrollRightKey(XNATextBox sender) =>
-        !CompositionEmpty;
+    bool IIMEHandler.HandleScrollRightKey(XNATextBox sender)
+        => !CompositionEmpty;
 
     bool IIMEHandler.HandleBackspaceKey(XNATextBox sender)
     {
@@ -197,8 +197,8 @@ public abstract class IMEHandler : IIMEHandler
         return true;
     }
 
-    bool IIMEHandler.HandleCharInput(XNATextBox sender, char input) =>
-        TextCompositionEnabled;
+    bool IIMEHandler.HandleCharInput(XNATextBox sender, char input)
+        => TextCompositionEnabled;
 
     bool IIMEHandler.HandleEnterKey(XNATextBox sender)
         => false;
@@ -209,7 +209,5 @@ public abstract class IMEHandler : IIMEHandler
         return IMEEventReceived;
     }
 
-    void IIMEHandler.OnTextChanged(XNATextBox sender)
-    {
-    }
+    void IIMEHandler.OnTextChanged(XNATextBox sender) { }
 }
