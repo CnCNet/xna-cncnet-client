@@ -99,6 +99,7 @@ public abstract class IMEHandler : IIMEHandler
 
     public void SetIMETextInputRectangle(WindowManager manager)
     {
+        // When the client window resizes, we should call SetIMETextInputRectangle()
         if (manager.SelectedControl is XNATextBox textBox)
             SetIMETextInputRectangle(textBox);
     }
@@ -131,8 +132,6 @@ public abstract class IMEHandler : IIMEHandler
         //    sender.Text.Substring(sender.TextStartPosition, sender.InputPosition),
         //    sender.FontIndex);
         //rect.X += (int)(vec.X * scaleRatio);
-
-        // Similarly, when the client window resizes, we should also call SetIMETextInputRectangle() 
 
         SetTextInputRectangle(rect);
     }
