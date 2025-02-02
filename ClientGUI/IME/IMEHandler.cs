@@ -112,9 +112,15 @@ public abstract class IMEHandler : IIMEHandler
             Height = (int)(textBoxRect.Height * scaleRatio)
         };
 
-        // The following code returns a more accurate location, aware of the input cursor
-        // However, it requires SetIMETextInputRectangle() be called whenever InputPosition is changed.
-        // And therefore, it's commented out for now.
+        // The following code returns a more accurate location based on the current InputPosition.
+        // However, as SetIMETextInputRectangle() does not automatically update with changes in InputPosition
+        // (e.g., due to scrolling or mouse clicks altering the textbox's input position without shifting focus),
+        // accuracy becomes inconsistent. Sometimes it's precise, other times it's off,
+        // which is arguably worse than a consistent but manageable inaccuracy.
+        // This inconsistency could lead to a confusing user experience,
+        // as the input rectangle's position may not reliably reflect the current input position.
+        // Therefore, unless whenever InputPosition is changed, SetIMETextInputRectangle() is raised
+        // -- which requires more time to investigate and test, it's commented out for now.
         //var vec = Renderer.GetTextDimensions(
         //    sender.Text.Substring(sender.TextStartPosition, sender.TextEndPosition - sender.InputPosition),
         //    sender.FontIndex);
