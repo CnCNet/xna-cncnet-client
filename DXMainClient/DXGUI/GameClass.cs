@@ -143,7 +143,8 @@ namespace DTAClient.DXGUI
 
             WindowManager wm = new(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
-            wm.IMEHandler = IMEHandler.Create(this);
+            IMEHandler imeHandler = IMEHandler.Create(this);
+            wm.IMEHandler = imeHandler;
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
@@ -190,6 +191,11 @@ namespace DTAClient.DXGUI
                 //        SetGraphicsMode(wm, currentWindowSize.Width, currentWindowSize.Height, centerOnScreen: false);
                 //    }
                 //};
+
+                wm.WindowSizeChangedByUser += (sender, e) =>
+                {
+                    imeHandler.SetIMETextInputRectangle(wm);
+                };
             }
 #endif
 

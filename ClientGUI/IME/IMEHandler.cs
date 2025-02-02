@@ -97,6 +97,12 @@ public abstract class IMEHandler : IIMEHandler
         }
     }
 
+    public void SetIMETextInputRectangle(WindowManager manager)
+    {
+        if (manager.SelectedControl is XNATextBox textBox)
+            SetIMETextInputRectangle(textBox);
+    }
+
     private void SetIMETextInputRectangle(XNATextBox sender)
     {
         WindowManager windowManager = sender.WindowManager;
@@ -122,7 +128,7 @@ public abstract class IMEHandler : IIMEHandler
         // Therefore, unless whenever InputPosition is changed, SetIMETextInputRectangle() is raised
         // -- which requires more time to investigate and test, it's commented out for now.
         //var vec = Renderer.GetTextDimensions(
-        //    sender.Text.Substring(sender.TextStartPosition, sender.TextEndPosition - sender.InputPosition),
+        //    sender.Text.Substring(sender.TextStartPosition, sender.InputPosition),
         //    sender.FontIndex);
         //rect.X += (int)(vec.X * scaleRatio);
 
