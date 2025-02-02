@@ -126,6 +126,8 @@ public abstract class IMEHandler : IIMEHandler
         //    sender.FontIndex);
         //rect.X += (int)(vec.X * scaleRatio);
 
+        // Similarly, when the client window resizes, we should also call SetIMETextInputRectangle() 
+
         SetTextInputRectangle(rect);
     }
 
