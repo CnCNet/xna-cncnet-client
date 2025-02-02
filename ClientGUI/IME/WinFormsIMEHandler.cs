@@ -38,13 +38,13 @@ internal class WinFormsIMEHandler : IMEHandler
 
     public override void StartTextComposition()
     {
-        Debug.WriteLine("IME: StartTextComposition");
+        //Debug.WriteLine("IME: StartTextComposition");
         TextCompositionEnabled = true;
     }
 
     public override void StopTextComposition()
     {
-        Debug.WriteLine("IME: StopTextComposition");
+        //Debug.WriteLine("IME: StopTextComposition");
         TextCompositionEnabled = false;
     }
 

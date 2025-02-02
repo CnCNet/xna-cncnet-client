@@ -46,7 +46,7 @@ public abstract class IMEHandler : IIMEHandler
 
     private void OnCompositionChanged(string oldValue, string newValue)
     {
-        Debug.WriteLine($"IME: OnCompositionChanged: {newValue.Length - oldValue.Length}");
+        //Debug.WriteLine($"IME: OnCompositionChanged: {newValue.Length - oldValue.Length}");
 
         IMEEventReceived = true;
         // It seems that OnIMETextInput() is always triggered after OnCompositionChanged(). We expect such a behavior.
@@ -85,7 +85,7 @@ public abstract class IMEHandler : IIMEHandler
 
     protected virtual void OnIMETextInput(char character)
     {
-        Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
+        //Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
         IMEEventReceived = true;
         LastActionIMEChatInput = true;
@@ -177,7 +177,7 @@ public abstract class IMEHandler : IIMEHandler
     {
         bool handled = !LastActionIMEChatInput;
         LastActionIMEChatInput = true;
-        Debug.WriteLine($"IME: HandleBackspaceKey: handled: {handled}");
+        //Debug.WriteLine($"IME: HandleBackspaceKey: handled: {handled}");
         return handled;
     }
 
@@ -185,7 +185,7 @@ public abstract class IMEHandler : IIMEHandler
     {
         bool handled = !LastActionIMEChatInput;
         LastActionIMEChatInput = true;
-        Debug.WriteLine($"IME: HandleDeleteKey: handled: {handled}");
+        //Debug.WriteLine($"IME: HandleDeleteKey: handled: {handled}");
         return handled;
     }
 
@@ -211,7 +211,7 @@ public abstract class IMEHandler : IIMEHandler
 
     bool IIMEHandler.HandleEscapeKey(XNATextBox sender)
     {
-        Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
+        //Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
         return IMEEventReceived;
     }
 
