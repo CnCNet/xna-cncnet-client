@@ -34,5 +34,6 @@ Newtonsoft.Json.dll
 OpenMcdf.dll
 Rampastring.Tools.dll
 SixLabors.ImageSharp.dll
+System.CodeDom.dll
 System.Net.Http.Formatting.dll
 TextCopy.dll
