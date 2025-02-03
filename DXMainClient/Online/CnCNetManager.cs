@@ -962,12 +962,12 @@ namespace DTAClient.Online
                     candidateCount, closerCount)));
         }
 
-        public void OnWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        public void OnWhoQueryComplete(string channelName, List<(string ident, string host, string userName, string extraInfo)> whoDataList)
         {
-            wm.AddCallback(new Action<string, List<Tuple<string, string, string, string>>>(DoWhoQueryComplete), channelName, whoDataList);
+            wm.AddCallback(new Action<string, List<(string ident, string host, string userName, string extraInfo)>>(DoWhoQueryComplete), channelName, whoDataList);
         }
 
-        private void DoWhoQueryComplete(string channelName, List<Tuple<string, string, string, string>> whoDataList)
+        private void DoWhoQueryComplete(string channelName, List<(string ident, string host, string userName, string extraInfo)> whoDataList)
         {
             Channel channel = FindChannel(channelName);
 

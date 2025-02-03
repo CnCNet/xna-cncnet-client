@@ -121,7 +121,7 @@ namespace DTAClient.Online
         private static bool idSet = false;
         private static string systemId;
         private static readonly object idLocker = new object();
-        private readonly List<Tuple<string, string, string, string>> whoResponseList = [];
+        private readonly List<(string ident, string host, string userName, string extraInfo)> whoResponseList = [];
 
         public static void SetId(string id)
         {
@@ -620,8 +620,7 @@ namespace DTAClient.Online
                             connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
                             break;
                         case 315: // End of WHO query (RPL_ENDOFWHO)
-                            Logger.Log($"END OF WHO QUERY " + parameters[1] + " COUNT:" + whoResponseList.Count);
-                            connectionManager.OnWhoQueryComplete(parameters[1], new List<Tuple<string, string, string, string>>(whoResponseList));
+                            connectionManager.OnWhoQueryComplete(parameters[1], new List<(string ident, string host, string userName, string extraInfo)>(whoResponseList));
                             whoResponseList.Clear();
                             break;
                         case 433: // Name already in use

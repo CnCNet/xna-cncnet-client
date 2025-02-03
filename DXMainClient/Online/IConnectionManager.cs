@@ -22,7 +22,7 @@ namespace DTAClient.Online
 
         void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo);
 
-        void OnWhoQueryComplete(string channel, List<Tuple<string, string, string, string>> whoList);
+        void OnWhoQueryComplete(string channel, List<(string ident, string host, string userName, string extraInfo)> whoList);
 
         void OnChannelFull(string channelName);
 
