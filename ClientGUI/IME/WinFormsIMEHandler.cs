@@ -1,5 +1,5 @@
 ﻿#nullable enable
-using System.Diagnostics;
+using System;
 
 using ImeSharp;
 
@@ -28,12 +28,7 @@ internal class WinFormsIMEHandler : IMEHandler
     {
         Logger.Log($"Initialize WinFormsIMEHandler.");
         if (game?.Window?.Handle == null)
-        {
-            string errorMessage = "The handle of game window should not be null";
-            Logger.Log(errorMessage);
-            Debug.Assert(false, errorMessage);
-            return;
-        }
+            throw new Exception("The handle of game window should not be null");
 
         InputMethod.Initialize(game.Window.Handle);
         InputMethod.TextInputCallback = OnIMETextInput;
