@@ -1575,8 +1575,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (user != null)
             {
                 // Informing the host like we do when we kick might be annoying. So keep it on the downlow.
-                channel.SendBanMessage(user.Hostname, 8);
-                channel.SendKickMessage(user.Name, 8);
+                channel.SendBanMessage(user.Hostname, priority: 8);
+                channel.SendKickMessage(user.Name, priority: 8);
             }
         }
 
