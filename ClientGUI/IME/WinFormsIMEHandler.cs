@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿#nullable enable
+using System.Diagnostics;
 
 using ImeSharp;
 
@@ -26,7 +27,14 @@ internal class WinFormsIMEHandler : IMEHandler
     public WinFormsIMEHandler(Game game)
     {
         Logger.Log($"Initialize WinFormsIMEHandler.");
-        Debug.Assert(game?.Window?.Handle != null, "The handle of game window should not be null");
+        if (game?.Window?.Handle == null)
+        {
+            string errorMessage = "The handle of game window should not be null";
+            Logger.Log(errorMessage);
+            Debug.Assert(false, errorMessage);
+            return;
+        }
+
         InputMethod.Initialize(game.Window.Handle);
         InputMethod.TextInputCallback = OnIMETextInput;
         InputMethod.TextCompositionCallback = (compositionText, cursorPosition) =>
@@ -47,7 +55,6 @@ internal class WinFormsIMEHandler : IMEHandler
         //Debug.WriteLine("IME: StopTextComposition");
         TextCompositionEnabled = false;
     }
-
 
     public override void SetTextInputRectangle(Rectangle rect)
         => InputMethod.SetTextInputRect(rect.X, rect.Y, rect.Width, rect.Height);
