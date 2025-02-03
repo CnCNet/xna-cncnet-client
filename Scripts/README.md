@@ -29,3 +29,5 @@ You should do this if you have introduced any new NuGet dependencies.
 - If there are other libraries just get **added** in this list, check if such a library has already been shown up in **previous** releases of the client.
     - If so, we should **delete** such a line, because a library showing in this list has a lower priority than the library that is not included in this list.
     - If not, we can keep the changes. This means a commit after the latest release brought another dependency and **forgetting** to update the common assembly list. It's lucky we catch it up before making a new release.
+
+6. Delete the `Compiled` folder since it is produced with `-NoMove` parameter. We should absolutely **not** distribute these files.
