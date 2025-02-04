@@ -40,8 +40,6 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
-        public event EventHandler UserListInitialized;
-
 
         public event EventHandler<UserEventArgs> UserAdded;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
