@@ -613,8 +613,6 @@ namespace DTAClient.Online
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
-                            Logger.Log("Reply to WHO query");
-
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
                         case 311: // Reply to WHOIS NAME query
