@@ -174,6 +174,16 @@ namespace DTAClient.Online
             UserIgnoreToggled?.Invoke(this, new(ident));
         }
 
+        /// <summary>
+        /// Adds a specified user ident to the chat ignore list
+        /// </summary>
+        /// <param name="ident"></param>
+        public void AddIgnoredUser(string ident)
+        {
+            if (!IgnoreList.Contains(ident))
+                IgnoreList.Add(ident);
+        }
+
         public void AddRecentPlayers(IEnumerable<string> recentPlayerNames, string gameName)
         {
             recentPlayerNames = recentPlayerNames.Where(name => name != ProgramConstants.PLAYERNAME);

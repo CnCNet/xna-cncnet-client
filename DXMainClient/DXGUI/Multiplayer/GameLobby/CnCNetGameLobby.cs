@@ -1563,8 +1563,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (user != null)
             {
                 AddNotice(string.Format("Banning and kicking {0} from the game...".L10N("Client:Main:BanAndKickPlayer"), pInfo.Name));
-                channel.SendBanMessage(user.Hostname, 8);
-                channel.SendKickMessage(user.Name, 8);
+                channel.SendBanMessage(user.Hostname, priority: 8);
+                channel.SendKickMessage(user.Name, priority: 8);
+                cncnetUserData.AddIgnoredUser(user.Ident);
             }
         }
 
