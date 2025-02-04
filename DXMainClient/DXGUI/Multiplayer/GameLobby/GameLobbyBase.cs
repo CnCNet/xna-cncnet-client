@@ -2235,6 +2235,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerExtraOptionsPanel?.UpdateForMap(Map);
         }
+        
         private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
     List<KeyValuePair<string, string>> forcedOptions)
         {
@@ -2251,7 +2252,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
         }
-
 
         private void ApplyForcedDropDownOptions(List<GameLobbyDropDown> optionList,
             List<KeyValuePair<string, int>> forcedOptions)
