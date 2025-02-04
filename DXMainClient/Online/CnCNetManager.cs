@@ -961,46 +961,6 @@ namespace DTAClient.Online
                     "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
         }
-
-        public void OnWhoQueryComplete(string channelName, List<(string ident, string host, string userName, string extraInfo)> whoDataList)
-        {
-            wm.AddCallback(new Action<string, List<(string ident, string host, string userName, string extraInfo)>>(DoWhoQueryComplete), channelName, whoDataList);
-        }
-
-        private void DoWhoQueryComplete(string channelName, List<(string ident, string host, string userName, string extraInfo)> whoDataList)
-        {
-            Channel channel = FindChannel(channelName);
-
-            if (channel == null)
-                return;
-
-            if (!channel.IsChatChannel)
-                return;
-
-            var channelUserList = new List<ChannelUser>();
-
-            foreach (var whoData in whoDataList)
-            {
-                (string ident, string host, string userName, string extraInfo) = whoData;
-
-                IRCUser ircUser = new(userName);
-                ircUser.Ident = ident;
-                ircUser.Hostname = host;
-
-                UserList.Add(ircUser);
-
-                var channelUser = new ChannelUser(ircUser);
-                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
-
-                channelUserList.Add(channelUser);
-            }
-
-            UserList = UserList.OrderBy(u => u.Name).ToList();
-            MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
-            UserListInitialized?.Invoke(this, EventArgs.Empty);
-
-            channel.OnUserListReceived(channelUserList);
-        }
     }
 
     public class UserEventArgs : EventArgs

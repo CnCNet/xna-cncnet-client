@@ -121,7 +121,6 @@ namespace DTAClient.Online
         private static bool idSet = false;
         private static string systemId;
         private static readonly object idLocker = new object();
-        private readonly List<(string ident, string host, string userName, string extraInfo)> whoResponseList = [];
 
         public static void SetId(string id)
         {
@@ -614,14 +613,12 @@ namespace DTAClient.Online
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
+                            Logger.Log("Reply to WHO query");
+
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
                         case 311: // Reply to WHOIS NAME query
                             connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
-                            break;
-                        case 315: // End of WHO query (RPL_ENDOFWHO)
-                            connectionManager.OnWhoQueryComplete(parameters[1], new List<(string ident, string host, string userName, string extraInfo)>(whoResponseList));
-                            whoResponseList.Clear();
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
