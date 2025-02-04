@@ -177,7 +177,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Adds a specified user ident to the chat ignore list
         /// </summary>
-        /// <param name="ident"></param>
+        /// <param name="ident">The ident of the IRCUser.</param>
         public void AddIgnoredUser(string ident)
         {
             if (!IgnoreList.Contains(ident))
