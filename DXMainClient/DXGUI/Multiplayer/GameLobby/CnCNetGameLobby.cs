@@ -523,7 +523,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
 
-            if (e.User.IRCUser.IsIgnored)
+            if (IsHost && e.User.IRCUser.IsIgnored)
             {
                 // If this ignored player constantly rejoins, he could cause the host to floodout using the normal RemovePlayer() functionality. 
                 // So lets Ghost kickban from gameroom instead. This should only be needed once per created room
