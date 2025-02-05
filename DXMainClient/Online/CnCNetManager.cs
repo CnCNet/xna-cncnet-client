@@ -622,9 +622,8 @@ namespace DTAClient.Online
             channelUser.IsAdmin = isAdmin;
             channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
-            bool ignoredUser = channelUser.IRCUser.IsIgnored;
             ircUser.Channels.Add(channelName);
-            channel.OnUserJoined(channelUser, ignoredUser);
+            channel.OnUserJoined(channelUser, isSilent: channelUser.IRCUser.IsIgnored);
 
             //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
         }
@@ -650,7 +649,7 @@ namespace DTAClient.Online
                 return;
 
             ChannelUser kickedUser = channel.Users.Find(userName);
-            channel.OnUserKicked(userName, kickedUser.IRCUser.IsIgnored);
+            channel.OnUserKicked(userName, isSilent: kickedUser.IRCUser.IsIgnored);
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
