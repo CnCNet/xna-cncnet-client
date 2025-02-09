@@ -90,7 +90,6 @@ namespace DTAClient
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
 
-
             string clientVersion = GitVersionInformation.AssemblySemVer;
 #if DEVELOPMENT_BUILD
             clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
