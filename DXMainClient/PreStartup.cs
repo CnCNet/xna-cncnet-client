@@ -88,9 +88,8 @@ namespace DTAClient
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
 
-            MainClientConstants.Initialize();
-
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
+
 
             string clientVersion = GitVersionInformation.AssemblySemVer;
 #if DEVELOPMENT_BUILD
@@ -103,6 +102,7 @@ namespace DTAClient
 #if DEVELOPMENT_BUILD
             Logger.Log("This is a development build of the client. Stability and reliability may not be fully guaranteed.");
 #endif
+            MainClientConstants.Initialize();
 
             // Log information about given startup params
             if (parameters.NoAudio)
