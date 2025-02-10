@@ -16,6 +16,9 @@
             IsFavorite = isFavorite;
         }
 
+        public override string ToString()
+            => $"{GameMode?.Name} - {Map?.Name}";
+
         protected bool Equals(GameModeMap other) => Equals(GameMode, other.GameMode) && Equals(Map, other.Map);
 
         public override int GetHashCode()
