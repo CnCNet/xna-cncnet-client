@@ -1,90 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Linq;
+using System.Text;
+using System.Diagnostics;
 
 namespace ClientCore
 {
     public class ProfanityFilter
     {
-        public IList<string> CensoredWords { get; private set; }
-
-        /// <summary>
-        /// Creates a new profanity filter with a default set of censored words.
-        /// </summary>
+        private readonly Regex _combinedRegex;
+        
         public ProfanityFilter()
         {
-            CensoredWords = new List<string>()
+            var defaultWords = new[]
             {
-                "cunt*",
-                "*nigg*",
-                "paki*",
-                "shit",
-                "fuck*",
-                "admin*",
-                "allahu*",
-                "akbar",
-                "twat",
-                "cock",
-                "pussy",
-                "hitler*",
-                "anal"
+                "fuck", "shit", "cunt", "nigger", "cock",
+                "hitler", "pussy", "akbar", "allahu", "paki"
             };
-        }
 
-        public ProfanityFilter(IEnumerable<string> censoredWords)
-        {
-            if (censoredWords == null)
-                throw new ArgumentNullException("censoredWords");
-            CensoredWords = new List<string>(censoredWords);
+            //for each bad word
+            //      for each letter in the bad word,
+            //          match l33tspeak variations (ex: sh!t)
+            //          match repeating letters    (ex: sshhhhi!iiit)
+            //          ignore hyphens/underscores/whitespace after the letter (ex: s_h_!_t)
+            // join into one big, ugly pattern
+
+            var patterns = defaultWords
+                .Select(word => string.Join(
+                    @"[-_\s]*",  //ignore hyphens/underscores/whitespace after the letter (ex: s_h !_t)
+                    word.Select(c => 
+                    {
+                        switch (char.ToLower(c))
+                        {
+                            case 'a': return "[aA4@]+"; //in between [] are leetspeak variations.
+                            case 'b': return "[bB8]+";  //and a + matches repeating letters
+                            case 'e': return "[eE3]+";
+                            case 'g': return "[gG69]+";
+                            case 'i': return "[iI1!]+";
+                            case 'o': return "[oO0]+";
+                            case 's': return "[sS5$]+";
+                            case 't': return "[tT7]+";
+                            case 'z': return "[zZ2]+";
+                            default: return $"[{char.ToLower(c)}{char.ToUpper(c)}]+";
+                        }
+                    })
+                ));
+
+            _combinedRegex = new Regex(
+                $@"(?i)((?:{string.Join("|", patterns)}))",
+                RegexOptions.Compiled
+            );
         }
 
         public bool IsOffensive(string text)
         {
-            string censoredText = text;
-            foreach (string censoredWord in CensoredWords)
-            {
-                string regularExpression = ToRegexPattern(censoredWord);
-                censoredText = Regex.Replace(censoredText, regularExpression, "",
-                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
 
-                if(string.IsNullOrEmpty(censoredText))
-                    return true;
-            }
-            return false;
+            return _combinedRegex.IsMatch(text);
         }
 
         public string CensorText(string text)
         {
-            if (text == null)
-                throw new ArgumentNullException("text");
-            string censoredText = text;
-            foreach (string censoredWord in CensoredWords)
-            {
-                string regularExpression = ToRegexPattern(censoredWord);
-                censoredText = Regex.Replace(censoredText, regularExpression, StarCensoredMatch,
-                  RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-            }
-            return censoredText;
-        }
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
 
-        private static string StarCensoredMatch(Match m)
-        {
-            string word = m.Captures[0].Value;
-            return new string('*', word.Length);
-        }
-
-        private string ToRegexPattern(string wildcardSearch)
-        {
-            string regexPattern = Regex.Escape(wildcardSearch);
-            regexPattern = regexPattern.Replace(@"\*", ".*?");
-            regexPattern = regexPattern.Replace(@"\?", ".");
-            if (regexPattern.StartsWith(".*?"))
-            {
-                regexPattern = regexPattern.Substring(3);
-                regexPattern = @"(^\b)*?" + regexPattern;
-            }
-            regexPattern = @"\b" + regexPattern + @"\b";
-            return regexPattern;
+            return _combinedRegex.Replace(text, match =>
+                new string('*', match.Groups[1].Length)
+            );
         }
     }
 }
