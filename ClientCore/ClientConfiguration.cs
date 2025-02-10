@@ -21,6 +21,7 @@ namespace ClientCore
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
+        private const string NETWORK_DEFS_LOCAL = "NetworkDefinitions.local.ini";
         private const string NETWORK_DEFS = "NetworkDefinitions.ini";
 
         private static ClientConfiguration _instance;
@@ -48,7 +49,17 @@ namespace ClientCore
 
             gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
 
-            networkDefinitionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS));
+            string networkDefsPathLocal = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS_LOCAL);
+            if (File.Exists(networkDefsPathLocal))
+            {
+                networkDefinitionsIni = new IniFile(networkDefsPathLocal);
+                Logger.Log("Loaded network definitions from NetworkDefinitions.local.ini (user override)");
+            }
+            else
+            {
+                string networkDefsPath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS);
+                networkDefinitionsIni = new IniFile(networkDefsPath);
+            }
         }
 
         /// <summary>

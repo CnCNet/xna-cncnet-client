@@ -164,7 +164,7 @@ namespace DTAClient.Domain.Multiplayer
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MAP_FILE_EXTENSION}");
             ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
-            var localMapSHAs = new List<string>();
+            var localMapSHAs = new ConcurrentBag<string>();
 
             var tasks = new List<Task>();
 
