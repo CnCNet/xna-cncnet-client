@@ -114,6 +114,8 @@ namespace DTAClient.Online
 
         private bool disconnect = false;
 
+        private bool userListInitialized = false;
+
         public bool IsCnCNetInitialized()
         {
             return Connection.IsIdSet();
@@ -500,6 +502,7 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("Client:Main:CncNetDisconnected")));
             connected = false;
+            userListInitialized = false;
 
             UserList.Clear();
 
@@ -620,7 +623,7 @@ namespace DTAClient.Online
             channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
             ircUser.Channels.Add(channelName);
-            channel.OnUserJoined(channelUser);
+            channel.OnUserJoined(channelUser, isSilent: channelUser.IRCUser.IsIgnored);
 
             //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
         }
@@ -645,7 +648,8 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            channel.OnUserKicked(userName);
+            ChannelUser kickedUser = channel.Users.Find(userName);
+            channel.OnUserKicked(userName, isSilent: kickedUser.IRCUser.IsIgnored);
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
@@ -770,6 +774,13 @@ namespace DTAClient.Online
             MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
 
             channel.OnUserListReceived(channelUserList);
+
+            // We only need to request user info once, and chat channels only.
+            if (!userListInitialized && channel.IsChatChannel)
+            {
+                channel.RequestUserInfo();
+                userListInitialized = true;
+            }
         }
 
         public void OnUserQuitIRC(string userName)
