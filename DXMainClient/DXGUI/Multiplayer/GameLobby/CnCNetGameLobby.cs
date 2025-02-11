@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
-                new NoParamCommandHandler(LOBBY_NAME_CHANGED, HandleLobbyNameChangeMessage),
+                new StringCommandHandler(LOBBY_NAME_CHANGED, HandleLobbyNameChangeMessage),
                 new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage)
             };
 
@@ -1565,8 +1565,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleCheatDetectedMessage(string sender) =>
             AddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("Client:Main:PlayerModifyFileCheat"), sender), Color.Red);
 
-        private void HandleLobbyNameChangeMessage(string sender) =>
-            AddNotice("The game host has changed the lobby name.".L10N("Client:Main:LobbyNameChanged"));
+        private void HandleLobbyNameChangeMessage(string sender, string newLobbyName)
+        {
+            AddNotice(String.Format("The game host has changed the lobby name to {0}".L10N("Client:Main:LobbyNameChanged"), newLobbyName));
+            channel.UIName = newLobbyName;
+        }
 
         private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
         {
@@ -1909,7 +1912,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AccelerateGameBroadcasting();
 
             //inform the players in the room
-            channel.SendCTCPMessage(LOBBY_NAME_CHANGED, QueuedMessageType.SYSTEM_MESSAGE, priority: 9);
+            channel.SendCTCPMessage(LOBBY_NAME_CHANGED + " " + lobbyName, QueuedMessageType.SYSTEM_MESSAGE, priority: 9);
             AddNotice(String.Format("Lobby name changed to {0}.".L10N("Client:Main:LobbyNameChanged"),lobbyName));
         }
 
