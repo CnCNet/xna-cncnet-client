@@ -1567,7 +1567,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleLobbyNameChangeMessage(string sender, string newLobbyName)
         {
-            AddNotice(String.Format("The game host has changed the lobby name to {0}".L10N("Client:Main:LobbyNameChanged"), newLobbyName));
+            AddNotice(String.Format("The game host has changed the lobby name to {0}".L10N("Client:Main:HostLobbyNameChanged"), newLobbyName));
             channel.UIName = newLobbyName;
         }
 
