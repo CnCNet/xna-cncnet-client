@@ -37,6 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
+        private const string LOBBY_NAME_CHANGED = "LNC";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
@@ -87,6 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
+                new NoParamCommandHandler(LOBBY_NAME_CHANGED, HandleLobbyNameChangeMessage),
                 new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage)
             };
 
@@ -97,6 +99,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO",
                 "View tunnel server information".L10N("Client:Main:TunnelInfoCommand"), false, PrintTunnelServerInformation));
+            AddChatBoxCommand(new ChatBoxCommand("LOBBYNAME",
+                "Change a game lobby's name".L10N("Client:Main:ChangeLobbyNameCommand"), true, s => ChangeLobbyName(s)));
             AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
                 "Change the used CnCNet tunnel server (game host only)".L10N("Client:Main:ChangeTunnelCommand"),
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("Client:Main:SelectTunnelServerCommand"))));
@@ -1561,6 +1565,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleCheatDetectedMessage(string sender) =>
             AddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("Client:Main:PlayerModifyFileCheat"), sender), Color.Red);
 
+        private void HandleLobbyNameChangeMessage(string sender) =>
+            AddNotice("The game host has changed the lobby name.".L10N("Client:Main:LobbyNameChanged"));
+
         private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
         {
             if (sender != hostName)
@@ -1881,6 +1888,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         #endregion
 
         #region Game broadcasting logic
+
+        /// <summary>
+        /// Handles changing the lobby UIName
+        /// </summary>
+        /// <param name="lobbyName">The new name for the lobby.</param>
+        private void ChangeLobbyName(string lobbyName)
+        {
+            var lobbyNameValid = NameValidator.IsLobbyNameValid(lobbyName);
+
+            if (!string.IsNullOrEmpty(lobbyNameValid))
+            {
+                XNAMessageBox.Show(WindowManager, "Invalid lobby name".L10N("Client:Main:GameNameInvalid"),
+                    lobbyNameValid);
+                return;
+            }
+
+            //update the name and broadcast to everyone
+            channel.UIName = lobbyName;
+            AccelerateGameBroadcasting();
+
+            //inform the players in the room
+            channel.SendCTCPMessage(LOBBY_NAME_CHANGED, QueuedMessageType.SYSTEM_MESSAGE, priority: 9);
+            AddNotice(String.Format("Lobby name changed to {0}.".L10N("Client:Main:LobbyNameChanged"),lobbyName));
+        }
 
         /// <summary>
         /// Lowers the time until the next game broadcasting message.

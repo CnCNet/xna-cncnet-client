@@ -8,6 +8,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
+using ClientCore.CnCNet5;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -239,17 +240,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnCreateGame_LeftClick(object sender, EventArgs e)
         {
-            string gameName = tbGameName.Text.Replace(";", string.Empty);
 
-            if (string.IsNullOrEmpty(gameName))
-            {
-                return;
-            }
+            var lobbyName = tbGameName.Text;
+            var lobbyNameValid = NameValidator.IsLobbyNameValid(lobbyName);
 
-            if (new ProfanityFilter().IsOffensive(gameName))
+            if (!string.IsNullOrEmpty(lobbyNameValid))
             {
-                XNAMessageBox.Show(WindowManager, "Offensive game name".L10N("Client:Main:GameNameOffensiveTitle"),
-                    "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText"));
+                XNAMessageBox.Show(WindowManager, "Invalid lobby name".L10N("Client:Main:GameNameInvalid"),
+                    lobbyNameValid);
                 return;
             }
 
@@ -259,7 +257,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             GameCreated?.Invoke(this, 
-                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text), 
+                new GameCreationEventArgs(lobbyName, int.Parse(ddMaxPlayers.SelectedItem.Text), 
                 tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
                 ddSkillLevel.SelectedIndex)
             );

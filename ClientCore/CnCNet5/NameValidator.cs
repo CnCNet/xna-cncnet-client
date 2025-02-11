@@ -60,8 +60,41 @@ namespace ClientCore.CnCNet5
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
                 return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
+
             return validName;
+        }
+
+        /// <summary>
+        /// Checks if a lobby name is valid for CnCNet.
+        /// </summary>
+        /// <param name="lobbyName">Game lobby name.</param>
+        /// <returns>Null if the lobby name is valid, otherwise a string that tells
+        /// what is wrong with the name.</returns>
+        public static string IsLobbyNameValid(string lobbyName)
+        {
+
+            if (string.IsNullOrEmpty(lobbyName))
+            {
+                return "Please enter a lobby name.".L10N("Client:Main:GameNameMissing");
+            }
+
+            char[] disallowedCharacters = { ',', ';' };
+            if (lobbyName.IndexOfAny(disallowedCharacters) != -1)
+            {
+                return "Lobby name contains disallowed characters.".L10N("Client:Main:GameNameDisallowedChars");
+            }
+
+            if (lobbyName.Length > 23)
+            {
+                return "Lobby name is too long.".L10N("Client:Main:GameNameTooLong");
+            }
+
+            if (new ProfanityFilter().IsOffensive(lobbyName))
+            {
+                return "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText");
+            }
+
+            return null;
         }
     }
 }
