@@ -67,7 +67,7 @@ namespace ClientCore.CnCNet5
         /// <summary>
         /// Checks if a game name is valid for CnCNet.
         /// </summary>
-        /// <param name="gameName">Game lobby name.</param>
+        /// <param name="gameName">Game name.</param>
         /// <returns>Null if the game name is valid, otherwise a string that tells
         /// what is wrong with the name.</returns>
         public static string IsGameNameValid(string gameName)
