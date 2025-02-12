@@ -1893,7 +1893,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         #region Game broadcasting logic
 
         /// <summary>
-        /// Handles changing the lobby UIName
+        /// Handles changing the UIName
         /// </summary>
         /// <param name="gameName">The new name for the hosted game.</param>
         private void ChangeGameName(string gameName)
