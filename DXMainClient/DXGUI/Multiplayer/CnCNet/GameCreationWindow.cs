@@ -246,7 +246,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!string.IsNullOrEmpty(gameNameValid))
             {
-                XNAMessageBox.Show(WindowManager, "Invalid game name.".L10N("Client:Main:GameNameInvalid"),
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:GameNameInvalid"),
                     gameNameValid);
                 return;
             }

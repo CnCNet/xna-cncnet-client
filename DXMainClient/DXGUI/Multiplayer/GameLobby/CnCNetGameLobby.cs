@@ -100,7 +100,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO",
                 "View tunnel server information".L10N("Client:Main:TunnelInfoCommand"), false, PrintTunnelServerInformation));
             AddChatBoxCommand(new ChatBoxCommand("GAMENAME",
-                "Change a game's lobby name (game host only).\nExample: \"/gamename 2v2 3v3\"".L10N("Client:Main:ChangeGameNameCommand"), true, s => ChangeGameName(s)));
+                "Change a game's name (game host only).\nExample: \"/gamename 2v2 3v3\"".L10N("Client:Main:ChangeGameNameCommand"), true, s => ChangeGameName(s)));
             AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
                 "Change the used CnCNet tunnel server (game host only)".L10N("Client:Main:ChangeTunnelCommand"),
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("Client:Main:SelectTunnelServerCommand"))));
@@ -1902,7 +1902,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!string.IsNullOrEmpty(gameNameValid))
             {
-                XNAMessageBox.Show(WindowManager, "Invalid game name.".L10N("Client:Main:GameNameInvalid"),
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:GameNameInvalid"),
                     gameNameValid);
                 return;
             }
