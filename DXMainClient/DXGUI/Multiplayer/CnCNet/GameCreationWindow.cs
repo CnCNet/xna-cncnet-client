@@ -241,13 +241,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnCreateGame_LeftClick(object sender, EventArgs e)
         {
 
-            var lobbyName = tbGameName.Text;
-            var lobbyNameValid = NameValidator.IsLobbyNameValid(lobbyName);
+            var gameName = tbGameName.Text;
+            var gameNameValid = NameValidator.IsGameNameValid(gameName);
 
-            if (!string.IsNullOrEmpty(lobbyNameValid))
+            if (!string.IsNullOrEmpty(gameNameValid))
             {
-                XNAMessageBox.Show(WindowManager, "Invalid lobby name".L10N("Client:Main:GameNameInvalid"),
-                    lobbyNameValid);
+                XNAMessageBox.Show(WindowManager, "Invalid game name.".L10N("Client:Main:GameNameInvalid"),
+                    gameNameValid);
                 return;
             }
 
@@ -257,7 +257,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             GameCreated?.Invoke(this, 
-                new GameCreationEventArgs(lobbyName, int.Parse(ddMaxPlayers.SelectedItem.Text), 
+                new GameCreationEventArgs(gameName, int.Parse(ddMaxPlayers.SelectedItem.Text), 
                 tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
                 ddSkillLevel.SelectedIndex)
             );
