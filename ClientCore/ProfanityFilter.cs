@@ -9,6 +9,7 @@ namespace ClientCore
 {
     public class ProfanityFilter
     {
+        private const char CENSOR_CHAR = '*';
         private readonly Regex _combinedRegex;
         
         public ProfanityFilter()
@@ -67,7 +68,7 @@ namespace ClientCore
                 return text;
 
             return _combinedRegex.Replace(text, match =>
-                new string('*', match.Groups[1].Length)
+                new string(CENSOR_CHAR, match.Groups[1].Length)
             );
         }
     }
