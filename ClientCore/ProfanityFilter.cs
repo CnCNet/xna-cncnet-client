@@ -62,8 +62,13 @@ namespace ClientCore
             return _combinedRegex.IsMatch(text);
         }
 
-        public string CensorText(string text)
+        public string CensorText(string text, bool respectSetting)
         {
+            if (respectSetting && !UserINISettings.Instance.FilterProfanity)
+            {
+                return text;
+            }
+
             if (string.IsNullOrWhiteSpace(text))
                 return text;
 

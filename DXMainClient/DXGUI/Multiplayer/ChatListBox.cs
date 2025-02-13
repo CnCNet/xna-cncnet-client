@@ -54,12 +54,12 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
                     message.DateTime.ToShortTimeString(),
-                    message.Message), FontIndex);
+                    message.CensoredMessage), FontIndex);
             }
             else
             {
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
-                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
+                    message.DateTime.ToShortTimeString(), message.SenderName, message.CensoredMessage), FontIndex);
             }
             
             AddItem(listBoxItem);

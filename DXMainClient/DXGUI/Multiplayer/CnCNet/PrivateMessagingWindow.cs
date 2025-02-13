@@ -841,7 +841,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             public void AddMessage(ChatMessage message)
-                => XNAMessageBox.Show(windowManager, "Message".L10N("Client:Main:MessageTitle"), message.Message);
+                => XNAMessageBox.Show(windowManager, "Message".L10N("Client:Main:MessageTitle"), message.CensoredMessage);
         }
     }
 }

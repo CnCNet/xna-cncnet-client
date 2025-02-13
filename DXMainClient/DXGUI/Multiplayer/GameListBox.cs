@@ -44,6 +44,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public List<GenericHostedGame> HostedGames = new();
 
+        private ProfanityFilter profanityFilter ;
+
         public double GameLifetime { get; set; } = 35.0;
 
         /// <summary>
@@ -144,10 +146,10 @@ namespace DTAClient.DXGUI.Multiplayer
             switch ((SortDirection)UserINISettings.Instance.SortState.Value)
             {
                 case SortDirection.Asc:
-                    sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+                    sortedGames = sortedGames.ThenBy(hg => hg.CensoredRoomName);
                     break;
                 case SortDirection.Desc:
-                    sortedGames = sortedGames.ThenByDescending(hg => hg.RoomName);
+                    sortedGames = sortedGames.ThenByDescending(hg => hg.CensoredRoomName);
                     break;
             }
 
@@ -253,12 +255,10 @@ namespace DTAClient.DXGUI.Multiplayer
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
             lbItem.Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
-                hg.RoomName, FontIndex), FontIndex, maxTextWidth);
+                hg.CensoredRoomName, FontIndex), FontIndex, maxTextWidth);
 
             if (hg.Game.InternalName != localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.ActiveSettings.TextColor;
-            //else // made unnecessary by new Rampastring.XNAUI
-            //    lbItem.TextColor = UISettings.ActiveSettings.AltColor;
 
             if (hg.Incompatible || hg.Locked)
             {
