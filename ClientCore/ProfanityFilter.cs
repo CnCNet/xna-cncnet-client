@@ -11,14 +11,20 @@ namespace ClientCore
     {
         private const char CENSOR_CHAR = '*';
         private readonly Regex _combinedRegex;
-        
-        public ProfanityFilter()
-        {
+
+        /// <summary>
+        /// Creates a new profanity filter with a default set of censored words.
+        /// </summary>
+        /// <param name="extraWords">Any extra words to be considered profane.</param>
+        /// 
+        public ProfanityFilter(IEnumerable<string> extraWords = null)
+        {        
             var defaultWords = new[]
             {
-                "fuck", "shit", "cunt", "nigger", "cock",
-                "hitler", "pussy", "akbar", "allahu", "paki"
+                "fuck", "shit", "cunt", "nigger", "nigga", "niggr", "cock",
+                "hitler", "pussy", "akbar", "allahu", "paki", "twat"
             };
+            var allWords = defaultWords.Concat(extraWords ?? Enumerable.Empty<string>());
 
             //for each bad word
             //      for each letter in the bad word,
@@ -27,7 +33,7 @@ namespace ClientCore
             //          ignore hyphens/underscores/whitespace after the letter (ex: s_h_!_t)
             // join into one big, ugly pattern
 
-            var patterns = defaultWords
+            var patterns = allWords
                 .Select(word => string.Join(
                     @"[-_\s]*",  //ignore hyphens/underscores/whitespace after the letter (ex: s_h !_t)
                     word.Select(c => 
@@ -54,6 +60,11 @@ namespace ClientCore
             );
         }
 
+        /// <summary>
+        /// Checks if the text contains profanities.
+        /// </summary>
+        /// <param name="text">The text to be checked for profanities.</param>
+        /// 
         public bool IsOffensive(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -62,6 +73,12 @@ namespace ClientCore
             return _combinedRegex.IsMatch(text);
         }
 
+        /// <summary>
+        /// Censors profane words with asterisks in the provided text.
+        /// </summary>
+        /// <param name="text">The text to be censored.</param>
+        /// <param name="respectSetting">Whether or not to abide by the user's chosen setting for censoring profanity.</param>
+        /// 
         public string CensorText(string text, bool respectSetting)
         {
             if (respectSetting && !UserINISettings.Instance.FilterProfanity)
