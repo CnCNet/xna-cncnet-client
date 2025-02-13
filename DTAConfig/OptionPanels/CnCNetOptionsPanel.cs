@@ -14,6 +14,16 @@ namespace DTAConfig.OptionPanels
 {
     class CnCNetOptionsPanel : XNAOptionsPanel
     {
+        private const int PADDING_X = 12;
+        private const int PADDING_Y = 14;
+        private const int DD_Y_OFFSET = 2;
+        private const int DD_HEIGHT = 22;
+        private const int DD_PM_WIDTH = 65;
+        private const int CHECKBOX_SPACING = 4;
+        private const int GROUP_SPACING_X = 22;
+        private const int LABEL_WIDTH = 200;
+        private const int LABEL_HEIGHT = 20;
+
         public CnCNetOptionsPanel(WindowManager windowManager, UserINISettings iniSettings,
             GameCollection gameCollection)
             : base(windowManager, iniSettings)
@@ -24,16 +34,13 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkPingUnofficialTunnels;
         XNAClientCheckBox chkWriteInstallPathToRegistry;
         XNAClientCheckBox chkPlaySoundOnGameHosted;
-
         XNAClientCheckBox chkNotifyOnUserListChange;
-
         XNAClientCheckBox chkSkipLoginWindow;
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
-
         XNAClientDropDown ddAllowPrivateMessagesFrom;
 
         GameCollection gameCollection;
@@ -51,95 +58,93 @@ namespace DTAConfig.OptionPanels
 
         private void InitOptions()
         {
+            int halfWidth = (Width - (2 * PADDING_X) - GROUP_SPACING_X) / 2;
+
             // LEFT COLUMN
 
-            chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager);
-            chkPingUnofficialTunnels.Name = nameof(chkPingUnofficialTunnels);
-            chkPingUnofficialTunnels.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            chkPingUnofficialTunnels.Text = "Ping unofficial CnCNet tunnels".L10N("Client:DTAConfig:PingUnofficial");
-
+            chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkPingUnofficialTunnels),
+                ClientRectangle = new Rectangle(PADDING_X, PADDING_Y, 0, 0),
+                Text = "Ping unofficial CnCNet tunnels".L10N("Client:DTAConfig:PingUnofficial")
+            };
             AddChild(chkPingUnofficialTunnels);
 
-            chkWriteInstallPathToRegistry = new XNAClientCheckBox(WindowManager);
-            chkWriteInstallPathToRegistry.Name = nameof(chkWriteInstallPathToRegistry);
-            chkWriteInstallPathToRegistry.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.X,
-                chkPingUnofficialTunnels.Bottom + 12, 0, 0);
-            chkWriteInstallPathToRegistry.Text = ("Write game installation path to Windows\n" +
-                "Registry (makes it possible to join\n" +
-                 "other games' game rooms on CnCNet)").L10N("Client:DTAConfig:WriteGameRegistry");
-
+            chkWriteInstallPathToRegistry = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkWriteInstallPathToRegistry),
+                ClientRectangle = new Rectangle(PADDING_X, chkPingUnofficialTunnels.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = ("Write game installation path to Windows\n" +
+                        "Registry (makes it possible to join\n" +
+                        "other games' game rooms on CnCNet)").L10N("Client:DTAConfig:WriteGameRegistry")
+            };
             AddChild(chkWriteInstallPathToRegistry);
 
-            chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
-            chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
-            chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.X,
-                chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
-            chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted");
-
+            chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkPlaySoundOnGameHosted),
+                ClientRectangle = new Rectangle(PADDING_X, chkWriteInstallPathToRegistry.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted")
+            };
             AddChild(chkPlaySoundOnGameHosted);
 
-            chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager);
-            chkNotifyOnUserListChange.Name = nameof(chkNotifyOnUserListChange);
-            chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.X,
-                chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
-            chkNotifyOnUserListChange.Text = ("Show player join / quit messages\n" +
-                "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit");
-
+            chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkNotifyOnUserListChange),
+                ClientRectangle = new Rectangle(PADDING_X, chkPlaySoundOnGameHosted.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = ("Show player join / quit messages\n" +
+                        "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit")
+            };
             AddChild(chkNotifyOnUserListChange);
 
-            chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
-            chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
-            chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
-                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
-            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup");
-
+            chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkDisablePrivateMessagePopup),
+                ClientRectangle = new Rectangle(PADDING_X, chkNotifyOnUserListChange.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Disable popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup")
+            };
             AddChild(chkDisablePrivateMessagePopup);
 
-            InitAllowPrivateMessagesFromDropdown();
+            InitAllowPrivateMessagesFromDropdown(PADDING_X);
 
             // RIGHT COLUMN
 
-            chkSkipLoginWindow = new XNAClientCheckBox(WindowManager);
-            chkSkipLoginWindow.Name = nameof(chkSkipLoginWindow);
-            chkSkipLoginWindow.ClientRectangle = new Rectangle(
-                276,
-                12, 0, 0);
-            chkSkipLoginWindow.Text = "Skip login dialog".L10N("Client:DTAConfig:SkipLoginDialog");
-            chkSkipLoginWindow.CheckedChanged += ChkSkipLoginWindow_CheckedChanged;
+            int rightColumnX = PADDING_X + halfWidth + GROUP_SPACING_X;
 
+            chkSkipLoginWindow = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkSkipLoginWindow),
+                ClientRectangle = new Rectangle(rightColumnX, PADDING_Y, 0, 0),
+                Text = "Skip login dialog".L10N("Client:DTAConfig:SkipLoginDialog")
+            };
+            chkSkipLoginWindow.CheckedChanged += ChkSkipLoginWindow_CheckedChanged;
             AddChild(chkSkipLoginWindow);
 
-            chkPersistentMode = new XNAClientCheckBox(WindowManager);
-            chkPersistentMode.Name = nameof(chkPersistentMode);
-            chkPersistentMode.ClientRectangle = new Rectangle(
-                chkSkipLoginWindow.X,
-                chkSkipLoginWindow.Bottom + 12, 0, 0);
-            chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby".L10N("Client:DTAConfig:StayConnect");
+            chkPersistentMode = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkPersistentMode),
+                ClientRectangle = new Rectangle(rightColumnX, chkSkipLoginWindow.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Stay connected outside of the CnCNet lobby".L10N("Client:DTAConfig:StayConnect"),
+            };
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
-
             AddChild(chkPersistentMode);
 
-            chkConnectOnStartup = new XNAClientCheckBox(WindowManager);
-            chkConnectOnStartup.Name = nameof(chkConnectOnStartup);
-            chkConnectOnStartup.ClientRectangle = new Rectangle(
-                chkSkipLoginWindow.X,
-                chkPersistentMode.Bottom + 12, 0, 0);
-            chkConnectOnStartup.Text = "Connect automatically on client startup".L10N("Client:DTAConfig:ConnectOnStart");
-            chkConnectOnStartup.AllowChecking = false;
+            chkConnectOnStartup = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkConnectOnStartup),
+                ClientRectangle = new Rectangle(rightColumnX, chkPersistentMode.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Connect automatically on client startup".L10N("Client:DTAConfig:ConnectOnStart"),
+                AllowChecking = false
+            };
 
             AddChild(chkConnectOnStartup);
 
-            chkDiscordIntegration = new XNAClientCheckBox(WindowManager);
-            chkDiscordIntegration.Name = nameof(chkDiscordIntegration);
-            chkDiscordIntegration.ClientRectangle = new Rectangle(
-                chkSkipLoginWindow.X,
-                chkConnectOnStartup.Bottom + 12, 0, 0);
-            chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
-
+            chkDiscordIntegration = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkDiscordIntegration),
+                ClientRectangle = new Rectangle(rightColumnX, chkConnectOnStartup.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus")
+            };
             if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
                 chkDiscordIntegration.AllowChecking = false;
@@ -152,32 +157,32 @@ namespace DTAConfig.OptionPanels
 
             AddChild(chkDiscordIntegration);
 
-            chkAllowGameInvitesFromFriendsOnly = new XNAClientCheckBox(WindowManager);
-            chkAllowGameInvitesFromFriendsOnly.Name = nameof(chkAllowGameInvitesFromFriendsOnly);
-            chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
-                chkDiscordIntegration.X,
-                chkDiscordIntegration.Bottom + 12, 0, 0);
-            chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
+            chkAllowGameInvitesFromFriendsOnly = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkAllowGameInvitesFromFriendsOnly),
+                ClientRectangle = new Rectangle(rightColumnX, chkDiscordIntegration.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly")
+            };
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
         }
 
-        private void InitAllowPrivateMessagesFromDropdown()
+        private void InitAllowPrivateMessagesFromDropdown(int xPosition)
         {
-            XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager);
-            lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
-            lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:".L10N("Client:DTAConfig:AllowPMFrom");
-            lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
-                chkDisablePrivateMessagePopup.X,
-                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
+            XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager)
+            {
+                Name = nameof(lblAllPrivateMessagesFrom),
+                Text = "Allow Private Messages from:".L10N("Client:DTAConfig:AllowPMFrom"),
+                ClientRectangle = new Rectangle(xPosition, chkDisablePrivateMessagePopup.Bottom + CHECKBOX_SPACING, LABEL_WIDTH, LABEL_HEIGHT)
+            };
 
             AddChild(lblAllPrivateMessagesFrom);
 
-            ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager);
-            ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
-            ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
-                lblAllPrivateMessagesFrom.Right,
-                lblAllPrivateMessagesFrom.Y - 2, 65, 0);
+            ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager)
+            {
+                Name = nameof(ddAllowPrivateMessagesFrom),
+                ClientRectangle = new Rectangle(xPosition + LABEL_WIDTH, lblAllPrivateMessagesFrom.Y - DD_Y_OFFSET, DD_PM_WIDTH, DD_HEIGHT)
+            };
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
@@ -202,21 +207,6 @@ namespace DTAConfig.OptionPanels
 
         private void InitGameListPanel()
         {
-            const int gameListPanelHeight = 185;
-            XNAPanel gameListPanel = new XNAPanel(WindowManager);
-            gameListPanel.DrawBorders = false;
-            gameListPanel.Name = nameof(gameListPanel);
-            gameListPanel.ClientRectangle = new Rectangle(0, Bottom - gameListPanelHeight, Width, gameListPanelHeight);
-
-            AddChild(gameListPanel);
-
-            var lblFollowedGames = new XNALabel(WindowManager);
-            lblFollowedGames.Name = nameof(lblFollowedGames);
-            lblFollowedGames.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblFollowedGames.Text = "Show game rooms from the following games:".L10N("Client:DTAConfig:ShowRoomFromGame");
-
-            gameListPanel.AddChild(lblFollowedGames);
-
             // Max number of games per column
             const int maxGamesPerColumn = 4;
             // Spacing buffer between columns
@@ -227,6 +217,17 @@ namespace DTAConfig.OptionPanels
             const int gameIconWidth = 16;
             // Spacing buffer between game icon and game check box
             const int gameIconBuffer = 6;
+
+            XNAPanel gameListPanel = new XNAPanel(WindowManager);
+            gameListPanel.DrawBorders = false;
+            gameListPanel.Name = nameof(gameListPanel);
+
+            var lblFollowedGames = new XNALabel(WindowManager);
+            lblFollowedGames.Name = nameof(lblFollowedGames);
+            lblFollowedGames.ClientRectangle = new Rectangle(PADDING_X, PADDING_Y, 0, 0);
+            lblFollowedGames.Text = "Show game rooms from the following games:".L10N("Client:DTAConfig:ShowRoomFromGame");
+
+            gameListPanel.AddChild(lblFollowedGames);
 
             // List of supported games
             IEnumerable<CnCNetGame> supportedGames = gameCollection.GameList
@@ -259,14 +260,14 @@ namespace DTAConfig.OptionPanels
                 })
                 .ToMatrix(maxGamesPerColumn);
 
-
             // Calculate max widths for each column
             List<int> columnWidths = gamePanelMatrix
                 .Select(columnList => columnList.Max(gamePanel => gamePanel.Children.Last().Right + columnBuffer))
                 .ToList();
 
+            int startY = lblFollowedGames.Bottom + PADDING_X;
+
             // Reposition each game panel and then add them to the overall list panel
-            int startY = lblFollowedGames.Bottom + 12;
             for (int col = 0; col < gamePanelMatrix.Count; col++)
             {
                 List<XNAPanel> gamePanelColumn = gamePanelMatrix[col];
@@ -279,6 +280,18 @@ namespace DTAConfig.OptionPanels
                     gameListPanel.AddChild(gamePanel);
                 }
             }
+
+            // Calculate panel height based on content
+            int contentHeight = PADDING_Y +
+                               lblFollowedGames.Height +
+                               PADDING_X +
+                               (Math.Min(supportedGames.Count(), maxGamesPerColumn) * rowBuffer) -
+                               (rowBuffer - gameIconWidth) +
+                               PADDING_Y;
+
+            gameListPanel.ClientRectangle = new Rectangle(0, Height - contentHeight, Width, contentHeight);
+
+            AddChild(gameListPanel);
         }
 
         private void ChkSkipLoginWindow_CheckedChanged(object sender, EventArgs e)
