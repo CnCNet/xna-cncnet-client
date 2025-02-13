@@ -1,10 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using ClientCore;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace DTAClient.Online
 {
     public class ChatMessage
     {
+        ProfanityFilter _profanityFilter = new ProfanityFilter();
+
         /// <summary>
         /// Creates a new ChatMessage instance.
         /// </summary>
@@ -62,7 +65,17 @@ namespace DTAClient.Online
         public string SenderIdent { get; private set; }
         public Color Color { get; private set; }
         public DateTime DateTime { get; private set; }
-        public string Message { get; private set; }
+        private string _message;
+        public string CensoredMessage { get; private set; }
+        public string Message
+        {
+            get => _message;
+            set
+            {
+                _message = value;
+                CensoredMessage = _profanityFilter.CensorText(value, true);
+            }
+        }
         public bool SenderIsAdmin { get; private set; }
 
         public bool IsUser => SenderIdent != null;

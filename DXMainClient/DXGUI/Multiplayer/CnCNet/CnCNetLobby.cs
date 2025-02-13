@@ -627,7 +627,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, string.Format(
-                "Cannot join game {0}, you've been banned by the game host!".L10N("Client:Main:PlayerBannedByHost"), game.RoomName)));
+                "Cannot join game {0}, you've been banned by the game host!".L10N("Client:Main:PlayerBannedByHost"), game.CensoredRoomName)));
 
             isJoiningGame = false;
             if (gameOfLastJoinAttempt != null)
@@ -922,11 +922,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void _JoinGame(HostedCnCNetGame hg, string password)
         {
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-                string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName)));
+                string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.CensoredRoomName)));
             isJoiningGame = true;
             gameOfLastJoinAttempt = hg;
 
-            Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, true, password);
+            Channel gameChannel = connectionManager.CreateChannel(hg.CensoredRoomName, hg.ChannelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
 
             if (hg.IsLoadedGame)
