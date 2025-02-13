@@ -40,6 +40,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
+        XNAClientCheckBox chkFilterProfanity;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
         XNAClientDropDown ddAllowPrivateMessagesFrom;
 
@@ -165,6 +166,15 @@ namespace DTAConfig.OptionPanels
             };
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
+
+            chkFilterProfanity = new XNAClientCheckBox(WindowManager)
+            {
+                Name = nameof(chkFilterProfanity),
+                ClientRectangle = new Rectangle(rightColumnX, chkAllowGameInvitesFromFriendsOnly.Bottom + CHECKBOX_SPACING, 0, 0),
+                Text = "Filter obscene language".L10N("Client:DTAConfig:FilterProfanities")
+            };
+
+            AddChild(chkFilterProfanity);
         }
 
         private void InitAllowPrivateMessagesFromDropdown(int xPosition)
@@ -334,6 +344,7 @@ namespace DTAConfig.OptionPanels
                 && IniSettings.DiscordIntegration;
 
             chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
+            chkFilterProfanity.Checked = IniSettings.FilterProfanity;
 
             string localGame = ClientConfiguration.Instance.LocalGame.ToUpperInvariant();
 
@@ -371,6 +382,7 @@ namespace DTAConfig.OptionPanels
             }
 
             IniSettings.AllowGameInvitesFromFriendsOnly.Value = chkAllowGameInvitesFromFriendsOnly.Checked;
+            IniSettings.FilterProfanity.Value = chkFilterProfanity.Checked;
 
             foreach (var chkBox in followedGameChks)
             {

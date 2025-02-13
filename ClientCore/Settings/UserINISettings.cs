@@ -94,6 +94,7 @@ namespace ClientCore
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
             DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
+            FilterProfanity = new BoolSetting(iniFile, MULTIPLAYER, "FilterProfanity", true);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
             AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
@@ -195,6 +196,7 @@ namespace ClientCore
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
         public BoolSetting DiscordIntegration { get; private set; }
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
+        public BoolSetting FilterProfanity { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
