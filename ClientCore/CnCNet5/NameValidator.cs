@@ -75,23 +75,23 @@ namespace ClientCore.CnCNet5
 
             if (string.IsNullOrEmpty(gameName))
             {
-                return "Please enter a game name.".L10N("Client:Main:GameNameMissing");
+                return "Please enter a game name.".L10N("Client:ClientCore:GameNameMissing");
             }
 
             char[] disallowedCharacters = { ',', ';' };
             if (gameName.IndexOfAny(disallowedCharacters) != -1)
             {
-                return "Game name contains disallowed characters.".L10N("Client:Main:GameNameDisallowedChars");
+                return "Game name contains disallowed characters.".L10N("Client:ClientCore:GameNameDisallowedChars");
             }
 
             if (gameName.Length > 23)
             {
-                return "Game name is too long.".L10N("Client:Main:GameNameTooLong");
+                return "Game name is too long.".L10N("Client:ClientCore:GameNameTooLong");
             }
 
             if (new ProfanityFilter().IsOffensive(gameName))
             {
-                return "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText");
+                return "Please enter a less offensive game name.".L10N("Client:ClientCore:GameNameOffensiveText");
             }
 
             return null;
