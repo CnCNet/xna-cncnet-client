@@ -63,7 +63,7 @@ namespace DTAClient.Online
 
         #region Public members
 
-        public string UIName { get; }
+        public string UIName { get; set; }
 
         public string ChannelName { get; }
 
