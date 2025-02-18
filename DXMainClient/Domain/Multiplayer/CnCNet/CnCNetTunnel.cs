@@ -95,6 +95,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 Logger.Log($"Contacting tunnel at {Address}:{Port}");
 
+                // Do not use https here as not supported by tunnels
                 string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 

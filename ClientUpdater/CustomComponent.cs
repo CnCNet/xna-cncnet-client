@@ -15,6 +15,8 @@
 
 namespace ClientUpdater;
 
+using ClientCore.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +25,9 @@ using System.Net.Http;
 using System.Net.Http.Handlers;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ClientUpdater.Compression;
+
 using Rampastring.Tools;
 
 /// <summary>
@@ -115,7 +119,7 @@ public class CustomComponent
     /// </summary>
     public CustomComponent(string guiName, string iniName, string downloadPath, string localPath, bool isDownloadPathAbsolute = false, bool noArchiveExtensionForDownloadPath = false)
     {
-        GUIName = guiName;
+        GUIName = guiName.L10N($"INI:CustomComponents:{iniName}:UIName");
         ININame = iniName;
         LocalPath = localPath;
         DownloadPath = downloadPath;
@@ -377,7 +381,10 @@ public class CustomComponent
             foreach (string filename in filesToCleanup)
             {
                 if (File.Exists(filename))
+                {
+                    new FileInfo(filename).IsReadOnly = false;
                     File.Delete(filename);
+                }
             }
         }
         catch (Exception)

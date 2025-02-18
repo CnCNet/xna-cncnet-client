@@ -37,6 +37,7 @@ namespace ClientGUI
             int waitTimes = 0;
             while (PreprocessorBackgroundTask.Instance.IsRunning)
             {
+                Logger.Log("The preprocessor background task is still running. Wait for it...");
                 Thread.Sleep(1000);
                 waitTimes++;
                 if (waitTimes > 10)

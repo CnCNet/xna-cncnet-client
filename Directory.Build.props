@@ -39,15 +39,13 @@
     <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <Platforms Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
-    <Platform Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platform>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
@@ -57,7 +55,7 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientUpdater' OR '$(MSBuildProjectName)' == 'SecondStageUpdater'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>

@@ -14,6 +14,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -200,6 +201,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
+            lbGameList.RightClick += LbGameList_RightClick;
             lbGameList.AllowMultiLineItems = false;
             lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
@@ -781,6 +783,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGame();
+        
+        private void LbGameList_RightClick(object sender, EventArgs e)
+        {
+            lbGameList.SelectedIndex = lbGameList.HoveredIndex;
+
+            var listedGame = (HostedCnCNetGame)lbGameList.SelectedItem?.Tag;
+            if (listedGame == null)
+                return;
+
+            globalContextMenu.Show(listedGame.HostName, GetCursorPoint());
+        }
 
         private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGame(e.HostedGame, e.Password);
 
@@ -925,7 +938,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1037,7 +1050,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.GameDifficulty);
             gameChannel.UserAdded += GameChannel_UserAdded;
             //gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
@@ -1105,7 +1118,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             while (true)
             {
-                string channelName = string.Format("{0}-game{1}".L10N("Client:Main:RamdomChannelName"), gameCollection.GetGameChatChannelNameFromIdentifier(localGameID), new Random().Next(1000000, 9999999));
+                string channelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID) + "-game" + new Random().Next(1000000, 9999999);
                 int index = lbGameList.HostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
@@ -1378,6 +1391,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbPlayerList.Clear();
 
+            // Note: IUserCollection.GetFirst() is not guaranteed to be implemented, unless it is a SortedUserCollection
+            Debug.Assert(currentChatChannel.Users is SortedUserCollection<ChannelUser>);
             var current = currentChatChannel.Users.GetFirst();
             while (current != null)
             {
@@ -1484,7 +1499,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 11)
+            if (splitMessage.Length != 12)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1514,6 +1529,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
+                int gameDifficulty = int.Parse(splitMessage[11]);
+
+                Logger.Log("GameDifficulty ** Received game difficulty in ctcp: " + gameDifficulty);
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
@@ -1536,6 +1554,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
+                game.SkillLevel = gameDifficulty;
 
                 if (isClosed)
                 {

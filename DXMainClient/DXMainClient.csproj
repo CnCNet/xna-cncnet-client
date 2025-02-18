@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
+    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
