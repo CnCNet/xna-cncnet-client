@@ -27,7 +27,7 @@
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Facepunch.Steamworks" />
+    <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true"/>
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
@@ -38,5 +38,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
