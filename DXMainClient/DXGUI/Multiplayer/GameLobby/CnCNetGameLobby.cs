@@ -1258,6 +1258,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sender != hostName)
                 return;
 
+            if (Map == null)
+                return;
+
             string[] parts = message.Split(';');
 
             if (parts.Length < 1)
