@@ -559,7 +559,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             //string clientVersion = GitVersionInformation.AssemblySemVer;
-            string clientVersion = "yr/develop, based on the XNA Client Version 2.11.7.0, develop/e5034eb";
+            string clientVersion = "yr/develop, based on the XNA Client Version 2.11.7.0, develop/4498520";
 #if DEVELOPMENT_BUILD
             clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
 #endif
