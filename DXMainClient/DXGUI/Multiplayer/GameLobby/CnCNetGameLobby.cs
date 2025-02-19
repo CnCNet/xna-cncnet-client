@@ -1259,7 +1259,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             if (Map == null)
+            {
+                GameProcessExited();
                 return;
+            }
 
             string[] parts = message.Split(';');
 
