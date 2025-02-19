@@ -540,6 +540,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var isFavoriteMapsSelected = IsFavoriteMapsSelected();
             var maps = GetSortedGameModeMaps();
 
+            bool gameModeMapChanged = false;
+
             for (int i = 0; i < maps.Count; i++)
             {
                 var gameModeMap = maps[i];
@@ -587,11 +589,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 // Preserve the selected map
                 if (gameModeMap == GameModeMap)
+                {
                     mapIndex = i - skippedMapsCount;
+                    gameModeMapChanged = false;
+                }
 
                 // Preserve the selected map, even if the game mode has changed
                 if (mapIndex == -1 && (gameModeMap?.Map?.Equals(GameModeMap?.Map) ?? false))
+                {
                     mapIndex = i - skippedMapsCount;
+                    gameModeMapChanged = true;
+                }
             }
 
             if (mapIndex > -1)
@@ -602,8 +610,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             lbGameModeMapList.SelectedIndexChanged += LbGameModeMapList_SelectedIndexChanged;
+
             // Trigger the event manually to update GameModeMap
-            LbGameModeMapList_SelectedIndexChanged();
+            if (gameModeMapChanged)
+                LbGameModeMapList_SelectedIndexChanged();
         }
 
         protected abstract int GetDefaultMapRankIndex(GameModeMap gameModeMap);
