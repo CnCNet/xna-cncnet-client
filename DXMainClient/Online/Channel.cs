@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using DTAClient.DXGUI;
 using ClientCore.Extensions;
+using System.Diagnostics;
 
 namespace DTAClient.Online
 {
@@ -144,6 +145,9 @@ namespace DTAClient.Online
                     {
                         existingUser.IsAdmin = user.IsAdmin;
                         existingUser.IsFriend = user.IsFriend;
+
+                        // Note: IUserCollection.GetFirst() is not guaranteed to be implemented, unless it is a SortedUserCollection
+                        Debug.Assert(users is SortedUserCollection<ChannelUser>);
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }

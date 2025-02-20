@@ -52,8 +52,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             LoadSettings();
 
-            CheckDisallowedSides();
-
             CopyPlayerDataToUI();
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
@@ -66,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ToggleFavoriteMap();
 
-            if (GameModeMap.IsFavorite)
+            if (GameModeMap != null && GameModeMap.IsFavorite)
                 return;
 
             RefreshForFavoriteMapRemoved();
@@ -331,7 +329,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
-                int gameModeMapIndex = gameModeMapFilter.GetGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
+                int gameModeMapIndex = GetSortedGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
 
                 if (gameModeMapIndex > -1)
                 {

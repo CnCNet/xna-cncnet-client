@@ -1,4 +1,5 @@
 ClientUpdater.dll
+ClientUpdater.pdb
 DiscordRPC.dll
 lzo.net.dll
 Microsoft.Bcl.AsyncInterfaces.dll

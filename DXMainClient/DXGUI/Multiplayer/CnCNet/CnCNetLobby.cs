@@ -14,6 +14,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1390,6 +1391,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbPlayerList.Clear();
 
+            // Note: IUserCollection.GetFirst() is not guaranteed to be implemented, unless it is a SortedUserCollection
+            Debug.Assert(currentChatChannel.Users is SortedUserCollection<ChannelUser>);
             var current = currentChatChannel.Users.GetFirst();
             while (current != null)
             {

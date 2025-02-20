@@ -1,13 +1,16 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using DTAClient.Domain.Multiplayer;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using System.Net.NetworkInformation;
-using System;
+﻿using System;
+using System.Diagnostics;
+
 using ClientCore;
+using ClientCore.Extensions;
+
+using DTAClient.Domain.Multiplayer;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -39,7 +42,9 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel[] lblPlayerNames;
 
         private GenericHostedGame game = null;
-        private Texture2D mapTexture;
+
+        private bool disposeTextures = false;
+        private Texture2D mapTexture = null;
         private Texture2D noMapPreviewTexture = null;
 
         private const int leftColumnPositionX = 10;
@@ -65,7 +70,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameInformation.FontIndex = 1;
             lblGameInformation.Text = "GAME INFORMATION".L10N("Client:Main:GameInfo");
 
-            if(AssetLoader.AssetExists("noMapPreview.png"))
+            if (AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
 
             rightColumnPositionX = Width / 2 - columnMargin;
@@ -189,9 +194,17 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null)
             {
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.Name == game.Map)?.Map.LoadPreviewTexture();
+                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase) && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
                 if (mapTexture == null && noMapPreviewTexture != null)
+                {
+                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
+                    disposeTextures = false;
+                }
+                else
+                {
+                    disposeTextures = true;
+                }
             }
         }
 
@@ -208,8 +221,12 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            mapTexture?.Dispose();
-            mapTexture = null;
+            if (mapTexture != null && disposeTextures)
+            {
+                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
+                mapTexture.Dispose();
+                mapTexture = null;
+            }
         }
 
         public override void Draw(GameTime gameTime)

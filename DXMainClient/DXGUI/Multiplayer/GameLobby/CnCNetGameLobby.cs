@@ -755,7 +755,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (side > 0 && side <= SideCount && disallowedSides[side - 1])
                 return;
 
-            if (Map.CoopInfo != null)
+            if (Map?.CoopInfo != null)
             {
                 if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
@@ -764,7 +764,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
             }
 
-            if (start < 0 || start > Map.MaxPlayers)
+            if (start < 0 || start > Map?.MaxPlayers)
                 return;
 
             if (team < 0 || team > 4)
