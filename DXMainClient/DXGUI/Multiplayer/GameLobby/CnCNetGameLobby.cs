@@ -1747,7 +1747,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "Attempting to upload the map to the CnCNet map database.").L10N("Client:Main:UpdateMapToDBPrompt"),
                 sender, map.Name));
 
-            MapSharer.UploadMap(map, localGame);
+            ChannelUser hostUser = channel.Users.Find(hostName);
+            MapSharer.UploadMap(map, localGame, hostUser.IRCUser.Ident, hostUser.IRCUser.Name);
         }
 
         /// <summary>

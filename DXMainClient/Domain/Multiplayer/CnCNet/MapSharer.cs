@@ -44,7 +44,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         /// <param name="map">The map.</param>
         /// <param name="myGame">The short name of the game that is being played (DTA, TI, MO, etc).</param>
-        public static void UploadMap(Map map, string myGame)
+        /// <param name="uploaderIdent">IRCUser Ident of the uploader.</param>
+        /// <param name="uploaderUsername">Username of the uploader.</param>
+        public static void UploadMap(Map map, string myGame, string uploaderIdent, string uploaderUsername)
         {
             lock (locker)
             {
@@ -60,20 +62,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(Upload);
                     Thread thread = new Thread(pts);
-                    object[] mapAndGame = new object[2];
-                    mapAndGame[0] = map;
-                    mapAndGame[1] = myGame.ToLower();
-                    thread.Start(mapAndGame);
+                    object[] mapAndUploadInfo =
+                    [
+                        map,
+                        myGame.ToLower(),
+                        uploaderIdent,
+                        uploaderUsername,
+                    ];
+                    thread.Start(mapAndUploadInfo);
                 }
             }
         }
 
-        private static void Upload(object mapAndGame)
+        private static void Upload(object mapAndUploadInfo)
         {
-            object[] mapGameArray = (object[])mapAndGame;
+            object[] mapAndUploadInfoArr = (object[])mapAndUploadInfo;
 
-            Map map = (Map)mapGameArray[0];
-            string myGameId = (string)mapGameArray[1];
+            Map map = (Map)mapAndUploadInfoArr[0];
+            string myGameId = (string)mapAndUploadInfoArr[1];
+            string uploaderIdent = (string)mapAndUploadInfoArr[2];
+            string uploaderUsername = (string)mapAndUploadInfoArr[3];
 
             MapUploadStarted?.Invoke(null, new MapEventArgs(map));
 
@@ -86,7 +94,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return;
             }
 
-            string message = MapUpload(ClientConfiguration.Instance.CnCNetMapDBUploadURL, map, myGameId, out bool success);
+            string message = MapUpload(ClientConfiguration.Instance.CnCNetMapDBUploadURL, map, myGameId, uploaderIdent, uploaderUsername, out bool success);
 
             if (success)
             {
@@ -114,10 +122,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     Map nextMap = MapUploadQueue[0];
 
-                    object[] array = new object[2];
-                    array[0] = nextMap;
-                    array[1] = myGameId;
-
+                    object[] array = [nextMap, myGameId, uploaderIdent, uploaderUsername];
                     Logger.Log("MapSharer: There are additional maps in the queue.");
 
                     Upload(array);
@@ -125,7 +130,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static string MapUpload(string _URL, Map map, string gameName, out bool success)
+        private static string MapUpload(string _URL, Map map, string gameName, string uploaderIdent, string uploaderUsername, out bool success)
         {
             ServicePointManager.Expect100Continue = false;
 
@@ -174,9 +179,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     files.Add(file);
 
                     NameValueCollection values = new NameValueCollection
-                {
-                    { "game", gameName.ToLower() },
-                };
+                    {
+                        { 
+                            "game", gameName.ToLower()
+                        },
+                        {
+                            "uploaderIdent", uploaderIdent
+                        },
+                        {
+                            "uploaderUsername", uploaderUsername
+                        }
+                    };
 
                     byte[] responseArray = UploadFiles(_URL, files, values);
                     string response = Encoding.UTF8.GetString(responseArray);
@@ -304,11 +317,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 if (MapDownloadQueue.Count == 1)
                 {
-                    object[] details = new object[3];
-                    details[0] = sha1;
-                    details[1] = myGame.ToLower();
-                    details[2] = mapName;
-
+                    object[] details = [sha1, myGame.ToLower(), mapName];
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(Download);
                     Thread thread = new Thread(pts);
                     thread.Start(details);
