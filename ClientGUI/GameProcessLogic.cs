@@ -32,6 +32,8 @@ namespace ClientGUI
         {
             Logger.Log("About to launch main game executable.");
 
+            Logger.Log($"[Debug] Is background task running? ${PreprocessorBackgroundTask.Instance.IsRunning}");
+
             // In the relatively unlikely event that INI preprocessing is still going on, just wait until it's done.
             // TODO ideally this should be handled in the UI so the client doesn't appear just frozen for the user.
             int waitTimes = 0;
@@ -49,6 +51,7 @@ namespace ClientGUI
                 }
             }
 
+            Logger.Log("[Debug] GetOperatingSystemVersion.");
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
             string gameExecutableName;
@@ -74,7 +77,9 @@ namespace ClientGUI
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TI.LOG");
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TS.LOG");
 
+            Logger.Log("Raising GameProcessStarting event.");
             GameProcessStarting?.Invoke();
+            Logger.Log("[Debug] GameProcessStarting event handled.");
 
             if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

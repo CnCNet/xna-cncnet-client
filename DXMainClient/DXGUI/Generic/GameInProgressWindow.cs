@@ -93,6 +93,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessStarted()
         {
+            Logger.Log("[Debug] GameInProgressWindow.SharedUILogic_GameProcessStarted() started.");
 
 #if ARES
             debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
@@ -125,6 +126,7 @@ namespace DTAClient.DXGUI
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MinimizeWindow();
 #endif
+            Logger.Log("[Debug] GameInProgressWindow.SharedUILogic_GameProcessStarted() ended.");
         }
 
         private void SharedUILogic_GameProcessExited()

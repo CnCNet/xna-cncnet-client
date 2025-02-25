@@ -217,7 +217,7 @@ namespace DTAConfig
         /// </summary>
         /// <returns>A bool that determines whether the 
         /// settings values were changed.</returns>
-        private bool RefreshOptionPanels()
+        private bool RefreshOptionPanels(bool interactive = true)
         {
             bool optionValuesChanged = false;
 
@@ -226,6 +226,12 @@ namespace DTAConfig
 
             if (optionValuesChanged)
             {
+                if (!interactive)
+                {
+                    Logger.Log("Warning. One or more setting values are no longer available and were changed.");
+                    return true;
+                }
+
                 XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed".L10N("Client:DTAConfig:SettingChangedTitle"),
                     ("One or more setting values are\n" +
                     "no longer available and were changed.\n\n" +
@@ -238,17 +244,23 @@ namespace DTAConfig
             return false;
         }
 
-        public void RefreshSettings()
+        public void RefreshSettings(bool interactive = true)
         {
+            Logger.Log("[Debug] RefreshSettings called.");
+
+            Logger.Log("[Debug] RefreshSettings: panel.Load()");
             foreach (var panel in optionsPanels)
                 panel.Load();
 
-            RefreshOptionPanels();
+            Logger.Log("[Debug] RefreshSettings: RefreshOptionPanels()");
+            RefreshOptionPanels(interactive);
 
+            Logger.Log("[Debug] RefreshSettings: panel.Save()");
             foreach (var panel in optionsPanels)
                 panel.Save();
 
             UserINISettings.Instance.SaveSettings();
+            Logger.Log("[Debug] RefreshSettings exited.");
         }
 
         public void Open()
