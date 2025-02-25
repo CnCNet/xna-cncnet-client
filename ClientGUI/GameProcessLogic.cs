@@ -32,6 +32,8 @@ namespace ClientGUI
         {
             Logger.Log("About to launch main game executable.");
 
+            Logger.Log($"[Debug] Is background task running? ${PreprocessorBackgroundTask.Instance.IsRunning}");
+
             // In the relatively unlikely event that INI preprocessing is still going on, just wait until it's done.
             // TODO ideally this should be handled in the UI so the client doesn't appear just frozen for the user.
             int waitTimes = 0;
