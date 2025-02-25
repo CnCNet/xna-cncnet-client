@@ -217,7 +217,7 @@ namespace DTAConfig
         /// </summary>
         /// <returns>A bool that determines whether the 
         /// settings values were changed.</returns>
-        private bool RefreshOptionPanels()
+        private bool RefreshOptionPanels(bool interactive = true)
         {
             bool optionValuesChanged = false;
 
@@ -226,6 +226,10 @@ namespace DTAConfig
 
             if (optionValuesChanged)
             {
+                if (!interactive) {
+                    throw new Exception("Assert failed. One or more setting values are no longer available and were changed.");                    
+                }
+
                 XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed".L10N("Client:DTAConfig:SettingChangedTitle"),
                     ("One or more setting values are\n" +
                     "no longer available and were changed.\n\n" +
@@ -238,12 +242,12 @@ namespace DTAConfig
             return false;
         }
 
-        public void RefreshSettings()
+        public void RefreshSettings(bool interactive = true)
         {
             foreach (var panel in optionsPanels)
                 panel.Load();
 
-            RefreshOptionPanels();
+            RefreshOptionPanels(interactive);
 
             foreach (var panel in optionsPanels)
                 panel.Save();

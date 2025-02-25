@@ -49,6 +49,7 @@ namespace ClientGUI
                 }
             }
 
+            Logger.Log("[Debug] GetOperatingSystemVersion.");
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
             string gameExecutableName;
@@ -74,7 +75,9 @@ namespace ClientGUI
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TI.LOG");
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TS.LOG");
 
+            Logger.Log("Raising GameProcessStarting event.");
             GameProcessStarting?.Invoke();
+            Logger.Log("[Debug] GameProcessStarting event handled.");
 
             if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

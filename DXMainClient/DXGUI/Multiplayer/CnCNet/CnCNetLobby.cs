@@ -641,8 +641,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void SharedUILogic_GameProcessStarted()
         {
+            Logger.Log("[Debug] CnCNetLobby.SharedUILogic_GameProcessStarted() started.");
             connectionManager.SendCustomMessage(new QueuedMessage("AWAY " + (char)58 + "In-game",
                 QueuedMessageType.SYSTEM_MESSAGE, 0));
+            Logger.Log("[Debug] CnCNetLobby.SharedUILogic_GameProcessStarted() ended.");
         }
 
         private void SharedUILogic_GameProcessExited()

@@ -369,11 +369,17 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void SharedUILogic_GameProcessStarting()
         {
+            Logger.Log("[Debug] SharedUILogic_GameProcessStarting() started.");
+            
+            Logger.Log("[Debug] Game process starting. Reloading settings.");
             UserINISettings.Instance.ReloadSettings();
+            Logger.Log("[Debug] Settings reloaded.");
 
             try
             {
-                optionsWindow.RefreshSettings();
+                Logger.Log("[Debug] Refreshing options window settings.");
+                optionsWindow.RefreshSettings(interactive: false);
+                Logger.Log("[Debug] Options window settings refreshed.");
             }
             catch (Exception ex)
             {
@@ -382,6 +388,8 @@ namespace DTAClient.DXGUI.Generic
                 //XNAMessageBox.Show(WindowManager, "Saving settings failed",
                 //    "Saving settings failed! Error message: " + ex.Message);
             }
+
+            Logger.Log("[Debug] SharedUILogic_GameProcessStarting() ended.");
         }
 
         private void Updater_Restart(object sender, EventArgs e) =>
