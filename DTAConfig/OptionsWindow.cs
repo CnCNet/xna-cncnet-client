@@ -246,15 +246,21 @@ namespace DTAConfig
 
         public void RefreshSettings(bool interactive = true)
         {
+            Logger.Log("[Debug] RefreshSettings called.");
+
+            Logger.Log("[Debug] RefreshSettings: panel.Load()");
             foreach (var panel in optionsPanels)
                 panel.Load();
 
+            Logger.Log("[Debug] RefreshSettings: RefreshOptionPanels()");
             RefreshOptionPanels(interactive);
 
+            Logger.Log("[Debug] RefreshSettings: panel.Save()");
             foreach (var panel in optionsPanels)
                 panel.Save();
 
             UserINISettings.Instance.SaveSettings();
+            Logger.Log("[Debug] RefreshSettings exited.");
         }
 
         public void Open()
