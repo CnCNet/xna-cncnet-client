@@ -226,8 +226,10 @@ namespace DTAConfig
 
             if (optionValuesChanged)
             {
-                if (!interactive) {
-                    throw new Exception("Assert failed. One or more setting values are no longer available and were changed.");                    
+                if (!interactive)
+                {
+                    Logger.Log("Warning. One or more setting values are no longer available and were changed.");
+                    return true;
                 }
 
                 XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed".L10N("Client:DTAConfig:SettingChangedTitle"),
