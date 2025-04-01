@@ -698,7 +698,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(";");
             sb.Append(0); // LoadedGameId
             sb.Append(";");
-            sb.Append(0); // default SkillLevel
+            sb.Append(ClientConfiguration.Instance.DefaultSkillLevelIndex); // we don't know the original skill level
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
