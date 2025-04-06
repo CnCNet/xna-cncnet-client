@@ -60,6 +60,8 @@ namespace ClientCore
                 string networkDefsPath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS);
                 networkDefinitionsIni = new IniFile(networkDefsPath);
             }
+
+            RefreshTranslationGameFiles();
         }
 
         /// <summary>
@@ -284,7 +286,15 @@ namespace ClientCore
 
         private List<TranslationGameFile> _translationGameFiles;
 
-        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles ??= ParseTranslationGameFiles();
+        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles;
+
+        /// <summary>
+        /// Force a refresh of the translation game files list.
+        /// </summary>
+        public void RefreshTranslationGameFiles()
+        {
+            _translationGameFiles = ParseTranslationGameFiles();
+        }
 
         /// <summary>
         /// Looks up the list of files to try and copy into the game folder with a translation.
