@@ -267,6 +267,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int pId = 0; pId < Players.Count; pId++)
                 Players[pId].IsInGame = true;
 
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = false;
+
             base.StartGame();
         }
 
@@ -279,6 +282,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             pInfo.IsInGame = false;
+
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = true;
 
             base.GameProcessExited();
 
