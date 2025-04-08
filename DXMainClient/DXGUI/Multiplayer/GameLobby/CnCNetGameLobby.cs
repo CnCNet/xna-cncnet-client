@@ -133,7 +133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool closed = false;
 
-        private int gameDifficulty = 0;
+        private int skillLevel = ClientConfiguration.Instance.DefaultSkillLevelIndex;
 
         private bool isCustomPassword = false;
 
@@ -225,7 +225,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
-            int gameDifficulty)
+            int skillLevel)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -240,7 +240,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.hostName = hostName;
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
-            this.gameDifficulty = gameDifficulty;
+            this.skillLevel = skillLevel;
 
             if (isHost)
             {
@@ -1964,7 +1964,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(0); // LoadedGameId
             sb.Append(";");
-            sb.Append(gameDifficulty); // SkillLevel
+            sb.Append(skillLevel); // SkillLevel
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ddSkillLevel.AddItem(localizedSkillLevel);
             }
 
-            ddSkillLevel.SelectedIndex = 0;
+            ddSkillLevel.SelectedIndex = ClientConfiguration.Instance.DefaultSkillLevelIndex;
 
             lblSkillLevel = new XNALabel(WindowManager);
             lblSkillLevel.Name = nameof(lblSkillLevel);
