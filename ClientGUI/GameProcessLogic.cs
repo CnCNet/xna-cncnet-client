@@ -42,9 +42,11 @@ namespace ClientGUI
                 waitTimes++;
                 if (waitTimes > 10)
                 {
-                    XNAMessageBox.Show(windowManager, "INI preprocessing not complete", "INI preprocessing not complete. Please try " +
+                    XNAMessageBox.Show(windowManager, 
+                        "INI preprocessing not complete".L10N("Client:ClientGUI:INIPreprocessingNotCompleteTitle"),
+                        ("INI preprocessing not complete. Please try " +
                         "launching the game again. If the problem persists, " +
-                        "contact the game or mod authors for support.");
+                        "contact the game or mod authors for support.").L10N("Client:ClientGUI:INIPreprocessingNotCompleteText"));
                     return;
                 }
             }
