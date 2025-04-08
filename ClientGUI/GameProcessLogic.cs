@@ -56,6 +56,11 @@ namespace ClientGUI
             string gameExecutableName;
             string additionalExecutableName = string.Empty;
 
+            string errorLaunchingTitle = "Error launching game".L10N("Client:ClientGUI:ErrorLaunchingTitle");
+            string errorLaunchingText = ("Error launching {0}. Please check that your anti-virus isn't blocking the CnCNet Client. " +
+                        "You can also try running the client as an administrator.\n\nYou are unable to participate in this match. \n\n" +
+                        "Returned error: {1}").L10N("Client:ClientGUI:ErrorLaunchingText");
+
             if (osVersion == OSVersion.UNIX)
                 gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
             else
@@ -101,10 +106,8 @@ namespace ClientGUI
                 {
                     Logger.Log("Error launching QRes: " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
-                        "Error launching game".L10N("Client:ClientGUI:ErrorLaunchQresTitle"),
-                        string.Format(("Error launching {0}. Please check that your anti-virus isn't blocking the CnCNet Client. " +
-                        "You can also try running the client as an administrator.\n\nYou are unable to participate in this match. \n\n" +
-                        "Returned error: {1}").L10N("Client:ClientGUI:ErrorLaunchQresText"), ProgramConstants.QRES_EXECUTABLE, ex.Message));
+                        errorLaunchingTitle,
+                        string.Format(errorLaunchingText, ProgramConstants.QRES_EXECUTABLE, ex.Message));
                     Process_Exited(QResProcess, EventArgs.Empty);
                     return;
                 }
@@ -142,11 +145,8 @@ namespace ClientGUI
                 {
                     Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
-                        "Error launching game".L10N("Client:ClientGUI:ErrorLaunchGameEngineTitle"),
-                        string.Format(("Error launching {0}. Please check that your anti-virus isn't blocking the CnCNet Client. " +
-                        "You can also try running the client as an administrator.\n\n" +
-                        "You are unable to participate in this match.\n\n" +
-                        "Returned error: {1}").L10N("Client:ClientGUI:ErrorLaunchGameEngineText"), gameFileInfo.Name, ex.Message));
+                        errorLaunchingTitle,
+                        string.Format(errorLaunchingTitle, gameFileInfo.Name, ex.Message));
                     Process_Exited(gameProcess, EventArgs.Empty);
                     return;
                 }
