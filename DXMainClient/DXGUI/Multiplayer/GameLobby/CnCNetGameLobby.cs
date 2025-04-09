@@ -1231,6 +1231,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void GameProcessExited()
         {
+            ResetGameState();
+        }
+
+        protected void GameStartAborted()
+        {
+            ResetGameState();
+        }
+
+        protected void ResetGameState() 
+        {
             base.GameProcessExited();
 
             channel.SendCTCPMessage("RETURN", QueuedMessageType.SYSTEM_MESSAGE, 20);
@@ -1260,7 +1270,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map == null)
             {
-                GameProcessExited();
+                GameStartAborted();
                 return;
             }
 
