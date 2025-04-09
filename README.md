@@ -119,5 +119,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+### Additional permission under GNU GPL version 3 section 7
+
+If you modify this program, or any covered work, by linking or combining it with the Steamworks SDK (or a modified version of that library), containing parts covered by the terms of the Steamworks SDK's license, the licensors of this program grant you additional permission to convey the resulting work.
 
 [^install-powershell]: [How To Install PowerShell Core](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows)
