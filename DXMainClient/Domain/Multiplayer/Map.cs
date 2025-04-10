@@ -13,7 +13,6 @@ using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
-using static System.Collections.Specialized.BitVector32;
 using System.Diagnostics;
 
 namespace DTAClient.Domain.Multiplayer
@@ -680,8 +679,11 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsPreviewTextureCached() =>
+        public bool IsPreviewTextureAvailableAsFile() =>
             SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
+
+        public Image ExtractMapPreview() =>
+            MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
 
         /// <summary>
         /// Loads and returns the map preview texture.
@@ -694,7 +696,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = ExtractMapPreview();
 
                 if (preview != null)
                 {
@@ -917,6 +919,6 @@ namespace DTAClient.Domain.Multiplayer
 
         protected bool Equals(Map other) => string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
 
-        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : 0;
+        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : BaseFilePath.GetHashCode();
     }
 }
