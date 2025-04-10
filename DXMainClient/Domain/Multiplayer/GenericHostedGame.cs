@@ -1,4 +1,5 @@
-﻿using ClientCore.CnCNet5;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
 using System;
 
 namespace DTAClient.Domain.Multiplayer
@@ -9,7 +10,20 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public abstract class GenericHostedGame: IEquatable<GenericHostedGame>
     {
-        public string RoomName { get; set; }
+        ProfanityFilter _profanityFilter = new ProfanityFilter();
+        private string _roomName;
+
+        public string RoomName
+        {
+            get => _roomName;
+            set
+            {
+                _roomName = value;
+                CensoredRoomName = _profanityFilter.CensorText(value, true);
+            }
+        }
+
+        public string CensoredRoomName { get; private set; }
         public bool Incompatible { get; set; }
         public bool Locked { get; set; }
         public bool IsLoadedGame { get; set; }

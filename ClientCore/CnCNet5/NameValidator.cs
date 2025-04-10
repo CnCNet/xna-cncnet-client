@@ -13,7 +13,7 @@ namespace ClientCore.CnCNet5
         /// what is wrong with the name.</returns>
         public static string IsNameValid(string name)
         {
-            var profanityFilter = new ProfanityFilter();
+            var profanityFilter = new ProfanityFilter(new[] { "admin" });
 
             if (string.IsNullOrEmpty(name))
                 return "Please enter a name.".L10N("Client:ClientCore:EnterAName");
