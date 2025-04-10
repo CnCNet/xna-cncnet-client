@@ -1429,6 +1429,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
                 channel.SendCTCPMessage("INGM " + playerIndex, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
         }
+
         private void GameStartedNotification(string sender)
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
