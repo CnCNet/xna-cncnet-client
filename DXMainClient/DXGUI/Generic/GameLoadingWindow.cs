@@ -98,7 +98,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            Enabled = false;
+            Disable();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
@@ -140,7 +140,7 @@ namespace DTAClient.DXGUI.Generic
 
             discordHandler.UpdatePresence(sg.GUIName, true);
 
-            Enabled = false;
+            Disable();
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
