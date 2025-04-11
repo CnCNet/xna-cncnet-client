@@ -1909,12 +1909,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             channel.UIName = gameName;
 
-            // games created without a password are assigned a "hidden" password
-            // we'll need to recalculate and let the server know
-            if(!channel.IsCustomPassword)
-            ChangePassword(Rampastring.Tools.Utilities.CalculateSHA1ForString(
-                    channel.ChannelName + gameName).Substring(0, 10));
-
             // broadcast new name to all players
             AccelerateGameBroadcasting();
 
@@ -1923,26 +1917,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // inform ourself
             AddNotice(String.Format("Game name changed to {0}.".L10N("Client:Main:GameNameChanged"), gameName));
-        }
-
-        /// <summary>
-        /// Changes the channel's password by removing the old one and setting a new password on the IRC server.
-        /// </summary>
-        /// <param name="newPassword">The new password for the channel.</param>
-        private void ChangePassword(string newPassword)
-        {
-            // Remove old password
-            connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} -k {1}", channel.ChannelName, channel.Password),
-                QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-            // Set the new password
-            connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} +k {1}", channel.ChannelName, newPassword),
-                QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-            // Update locally
-            channel.Password = newPassword;
         }
 
         /// <summary>
