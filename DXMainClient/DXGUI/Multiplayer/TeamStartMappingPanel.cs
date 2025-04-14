@@ -13,7 +13,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private readonly int _defaultTeamIndex = -1;
 
         private const int ddWidth = 35;
-        // private XNAClientDropDown ddStarts;
+
         private XNAClientDropDown ddTeams;
 
         public event EventHandler OptionsChanged;
