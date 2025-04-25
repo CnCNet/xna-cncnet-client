@@ -283,9 +283,8 @@ namespace DTAConfig
 
         public void PostInit()
         {
-#if TS
-            displayOptionsPanel.PostInit();
-#endif
+            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+                displayOptionsPanel.PostInit();
         }
     }
 }

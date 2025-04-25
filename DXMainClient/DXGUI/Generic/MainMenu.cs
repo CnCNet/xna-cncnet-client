@@ -427,19 +427,27 @@ namespace DTAClient.DXGUI.Generic
                 .FindAll(f => !string.IsNullOrWhiteSpace(f) && !SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (absentFiles.Count > 0)
-                XNAMessageBox.Show(WindowManager, "Missing Files".L10N("Client:Main:MissingFilesTitle"),
-#if ARES
-                    ("You are missing Yuri's Revenge files that are required\n" +
-                    "to play this mod! Yuri's Revenge mods are not standalone,\n" +
-                    "so you need a copy of following Yuri's Revenge (v. 1.001)\n" +
-                    "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares") +
-#else
-                    "The following required files are missing:".L10N("Client:Main:MissingFilesText1NonAres") +
-#endif
-                    Environment.NewLine + Environment.NewLine +
+            {
+                string description = string.Empty;
+                if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR)
+                {
+                    description = ("You are missing Yuri's Revenge files that are required\n" +
+                        "to play this mod! Yuri's Revenge mods are not standalone,\n" +
+                        "so you need a copy of following Yuri's Revenge (v. 1.001)\n" +
+                        "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares");
+                }
+                else
+                {
+                    description = "The following required files are missing:".L10N("Client:Main:MissingFilesText1NonAres");
+                }
+
+                description += Environment.NewLine + Environment.NewLine +
                     String.Join(Environment.NewLine, absentFiles) +
                     Environment.NewLine + Environment.NewLine +
-                    "You won't be able to play without those files.".L10N("Client:Main:MissingFilesText2"));
+                    "You won't be able to play without those files.".L10N("Client:Main:MissingFilesText2");
+
+                XNAMessageBox.Show(WindowManager, "Missing Files".L10N("Client:Main:MissingFilesTitle"), description);
+            }
         }
 
         private void CheckForbiddenFiles()
@@ -448,21 +456,28 @@ namespace DTAClient.DXGUI.Generic
                 .FindAll(f => !string.IsNullOrWhiteSpace(f) && SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (presentFiles.Count > 0)
-                XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("Client:Main:InterferingFilesDetectedTitle"),
-#if TS
-                    ("You have installed the mod on top of a Tiberian Sun\n" +
+            {
+                string description;
+                if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+                {
+                    description = ("You have installed the mod on top of a Tiberian Sun\n" +
                     "copy! This mod is standalone, therefore you have to\n" +
                     "install it in an empty folder. Otherwise the mod won't\n" +
                     "function correctly.\n\n" +
-                    "Please reinstall the mod into an empty folder to play.").L10N("Client:Main:InterferingFilesDetectedTextTS")
-#else
-                    "The following interfering files are present:".L10N("Client:Main:InterferingFilesDetectedTextNonTS1") +
+                    "Please reinstall the mod into an empty folder to play.").L10N("Client:Main:InterferingFilesDetectedTextTS");
+                }
+                else
+                {
+                    description = "The following interfering files are present:".L10N("Client:Main:InterferingFilesDetectedTextNonTS1") +
                     Environment.NewLine + Environment.NewLine +
                     String.Join(Environment.NewLine, presentFiles) +
                     Environment.NewLine + Environment.NewLine +
-                    "The mod won't work correctly without those files removed.".L10N("Client:Main:InterferingFilesDetectedTextNonTS2")
-#endif
-                    );
+                    "The mod won't work correctly without those files removed.".L10N("Client:Main:InterferingFilesDetectedTextNonTS2");
+                }
+
+                XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("Client:Main:InterferingFilesDetectedTitle"), description);
+            }
+
         }
 
         /// <summary>

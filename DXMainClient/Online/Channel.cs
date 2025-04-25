@@ -100,11 +100,10 @@ namespace DTAClient.Online
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-#if YR
-            notifyOnUserListChange = false;
-#else
-            notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
-#endif
+            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR)
+                notifyOnUserListChange = false;
+            else
+                notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
         }
 
         public void AddUser(ChannelUser user)
@@ -123,10 +122,11 @@ namespace DTAClient.Online
                     string.Format("{0} has joined {1}.".L10N("Client:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
             }
 
-#if !YR
-            if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                RequestUserInfo();
-#endif
+            if (ClientConfiguration.Instance.ClientType != ClientConfiguration.ClientTypes.YR)
+            {
+                if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
+                    RequestUserInfo();
+            }
         }
 
         public void OnUserListReceived(List<ChannelUser> userList)
