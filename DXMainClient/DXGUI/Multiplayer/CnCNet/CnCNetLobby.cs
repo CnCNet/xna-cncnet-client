@@ -123,6 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private PasswordRequestWindow passwordRequestWindow;
 
         private bool isInGameRoom = false;
+        private string gameRoomChannelName = "";
         private bool updateDenied = false;
 
         private string localGameID;
@@ -440,7 +441,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
 
-            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode) 
+            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown")
                 : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
 
@@ -747,6 +748,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             topBar.SwitchToSecondary();
             isInGameRoom = false;
+            gameRoomChannelName = "";
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
@@ -757,6 +759,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             topBar.SwitchToSecondary();
             isInGameRoom = false;
+            gameRoomChannelName = "";
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
@@ -783,7 +786,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGame();
-        
+
         private void LbGameList_RightClick(object sender, EventArgs e)
         {
             lbGameList.SelectedIndex = lbGameList.HoveredIndex;
@@ -997,6 +1000,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
                 ClearGameChannelEvents(gameChannel);
+                gameRoomChannelName = gameChannel.ChannelName;
                 gameLobby.OnJoined();
                 isInGameRoom = true;
                 SetLogOutButtonText();
@@ -1103,9 +1107,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 gameLoadingChannel.UserAdded -= GameLoadingChannel_UserAdded;
                 gameLoadingChannel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_LoadedGame;
-
+                
                 gameLoadingLobby.OnJoined();
                 isInGameRoom = true;
+                gameRoomChannelName = gameLoadingChannel.ChannelName;
                 isJoiningGame = false;
             }
         }
@@ -1242,6 +1247,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!CanReceiveInvitationMessagesFrom(sender))
                 return;
 
+            if (channelName == gameRoomChannelName)
+                return;
+
             var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
 
             // also enforce user preference on whether to accept invitations from non-friends
@@ -1271,47 +1279,55 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            var gameInviteChoiceBox = new ChoiceNotificationBox(WindowManager);
+            GameInvitePanel panelGameInvite;
+            panelGameInvite = new GameInvitePanel(WindowManager, mapLoader);
+            panelGameInvite.Name = nameof(panelGameInvite);
+            panelGameInvite.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
+            panelGameInvite.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+            panelGameInvite.Initialize();
+            panelGameInvite.Enable();
+            panelGameInvite.InputEnabled = true;
+            panelGameInvite.Alpha = 0.5f;
+            panelGameInvite.AlphaRate = 0.5f;
 
-            WindowManager.AddAndInitializeControl(gameInviteChoiceBox);
-
-            // show the invitation at top left; it will remain until it is acted upon or the target game is closed
-            gameInviteChoiceBox.Show(
-                "GAME INVITATION".L10N("Client:Main:GameInviteTitle"),
-                GetUserTexture(sender),
-                sender,
-                string.Format("Join {0}?".L10N("Client:Main:GameInviteText"), gameName),
-                "Yes".L10N("Client:Main:ButtonYes"), "No".L10N("Client:Main:ButtonNo"), 0);
+            var hostedGame = lbGameList.HostedGames[lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName)];
+            WindowManager.AddAndInitializeControl(panelGameInvite);
+            WindowManager.CenterControlOnScreen(panelGameInvite);
+            panelGameInvite.SetInfo(hostedGame);
 
             // add the invitation to the index so we can remove it if the target game is closed
             // also lets us silently ignore new invitations from the same person while this one is still outstanding
             invitationIndex[invitationIdentity] =
-                new WeakReference(gameInviteChoiceBox);
+                new WeakReference(panelGameInvite);
 
-            gameInviteChoiceBox.AffirmativeClickedAction = delegate (ChoiceNotificationBox choiceBox)
+            panelGameInvite.AcceptInvite += () =>
             {
-                // if we're currently in a game lobby, first leave that channel
-                if (isInGameRoom)
+                if (channelName != gameRoomChannelName)
                 {
-                    gameLobby.LeaveGameLobby();
-                }
-
-                // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
-                if (!JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
-                {
-                    XNAMessageBox.Show(WindowManager,
-                        "Failed to join".L10N("Client:Main:JoinFailedTitle"),
-                        string.Format("Unable to join {0}'s game. The game may be locked or closed.".L10N("Client:Main:JoinFailedText"), sender));
+                    // if we're currently in a game lobby that differs to the invite, first leave that channel
+                    if (isInGameRoom)
+                    {
+                        gameLobby.LeaveGameLobby();
+                    }
+                    // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
+                    if (!JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
+                    {
+                        XNAMessageBox.Show(WindowManager,
+                            "Failed to join".L10N("Client:Main:JoinFailedTitle"),
+                            string.Format("Unable to join {0}'s game. The game may be locked, closed, or on a different version.".L10N("Client:Main:JoinFailedText"), sender));
+                    }
                 }
 
                 // clean up the index as this invitation no longer exists
                 invitationIndex.Remove(invitationIdentity);
+                WindowManager.RemoveControl(panelGameInvite);
             };
 
-            gameInviteChoiceBox.NegativeClickedAction = delegate (ChoiceNotificationBox choiceBox)
+            panelGameInvite.DeclineInvite += () =>
             {
-                // clean up the index as this invitation no longer exists
+                // Handle decline invite logic
                 invitationIndex.Remove(invitationIdentity);
+                WindowManager.RemoveControl(panelGameInvite);
             };
 
             sndGameInviteReceived.Play();
@@ -1359,7 +1375,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel = (Channel)ddCurrentChannel.SelectedItem?.Tag;
             if (currentChatChannel == null)
                 throw new Exception("Current selected chat channel is null. This should not happen.");
-            
+
             currentChatChannel.UserAdded += RefreshPlayerList;
             currentChatChannel.UserLeft += RefreshPlayerList;
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
@@ -1570,12 +1586,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
 
                 // Seek for the game in the internal game list based on the name of its host;
-                // if found, then refresh that game's information, otherwise add as new game
+                // if found, then refresh that game's information and invites, otherwise add as new game
                 int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                 if (gameIndex > -1)
                 {
                     lbGameList.HostedGames[gameIndex] = game;
+                    UpdateInvitations();
                 }
                 else
                 {
@@ -1667,6 +1684,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             return senderGameIcon;
         }
+        private void UpdateInvitations()
+        {
+            foreach (var invitation in invitationIndex)
+            {
+                var userChannelPair = invitation.Key;
+                if (invitation.Value.Target is GameInvitePanel invitationNotification)
+                {
+                    var game = lbGameList.HostedGames
+                        .OfType<HostedCnCNetGame>()
+                        .FirstOrDefault(hg => hg.HostName == userChannelPair.Item1 && hg.ChannelName == userChannelPair.Item2);
+
+                    if (game != null)
+                    {
+                        invitationNotification.SetInfo(game);
+                    }
+                }
+            }
+        }
 
         private void DismissInvalidInvitations()
         {
@@ -1695,7 +1730,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (invitationIndex.ContainsKey(invitationIdentity))
             {
-                var invitationNotification = invitationIndex[invitationIdentity].Target as ChoiceNotificationBox;
+                var invitationNotification = invitationIndex[invitationIdentity].Target as GameInvitePanel;
 
                 if (invitationNotification != null)
                 {
