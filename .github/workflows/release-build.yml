@@ -70,14 +70,14 @@ jobs:
       run: 7z a -t7z -mx=9 -m0=lzma2 -md=512m -ms=on -r -- ${{ env.ARCHIVE_NAME }} ./artifacts/*
       shell: pwsh
 
-    - uses: actions/upload-artifact@v4
-      name: Upload Final Artifact
-      with:
-        name: ${{ env.ARCHIVE_NAME }}
-        path: ${{ env.ARCHIVE_NAME }}
-        compression-level: 0
+    # - uses: actions/upload-artifact@v4
+    #   name: Upload Final Artifact
+    #   with:
+    #     name: ${{ env.ARCHIVE_NAME }}
+    #     path: ${{ env.ARCHIVE_NAME }}
+    #     compression-level: 0
 
-    - name: Upload Files to the Release
+    - name: Upload Final Artifact to the Release
       uses: softprops/action-gh-release@v2
       with:
         append_body: true
