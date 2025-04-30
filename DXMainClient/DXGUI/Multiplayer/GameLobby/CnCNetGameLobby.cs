@@ -406,7 +406,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Clear();
-            channel.Leave();
+            channel?.Leave();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();

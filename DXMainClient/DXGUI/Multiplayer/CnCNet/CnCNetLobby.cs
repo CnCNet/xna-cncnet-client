@@ -1296,6 +1296,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (isInGameRoom)
                 {
                     gameLobby.LeaveGameLobby();
+                    gameLoadingLobby.Clear();
                 }
 
                 // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
