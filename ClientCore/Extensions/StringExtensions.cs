@@ -1,8 +1,6 @@
 ﻿using System;
 using ClientCore.I18N;
 
-using SharpDX.Direct3D9;
-
 namespace ClientCore.Extensions;
 
 public static class StringExtensions
