@@ -77,7 +77,8 @@ namespace DTAClient.Online
                 "soundmd.ini",
                 "aimd.ini",
                 "shroud.shp"
-            }
+            },
+            _ => new string[] { }
         };
             
         public FileHashCalculator() => ParseConfigFile();
