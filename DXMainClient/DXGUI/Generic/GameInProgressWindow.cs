@@ -6,6 +6,7 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Linq;
@@ -74,7 +75,7 @@ namespace DTAClient.DXGUI
             Visible = false;
             Enabled = false;
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.ARES)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
                 try
                 {
@@ -90,7 +91,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessStarted()
         {
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.ARES)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
                 debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
             }
@@ -164,7 +165,7 @@ namespace DTAClient.DXGUI
 
             DateTime dtn = DateTime.Now;
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.YR)
             {
                 Task.Factory.StartNew(ProcessScreenshots);
 

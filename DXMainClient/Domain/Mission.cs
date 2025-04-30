@@ -1,5 +1,6 @@
 ﻿using System;
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 
@@ -27,8 +28,8 @@ namespace DTAClient.Domain
                 .L10N($"INI:Missions:{sectionName}:LongDescription");
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon),
-               ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR ||
-               ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.ARES ?
+               ClientConfiguration.Instance.ClientGameType == ClientType.YR ||
+               ClientConfiguration.Instance.ClientGameType == ClientType.Ares ?
                 true :  // In case of YR this toggles Ra2Mode instead which should not be default
                 false
             );

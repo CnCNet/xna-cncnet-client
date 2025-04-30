@@ -50,7 +50,7 @@ namespace ClientCore
 
             const string WINDOWED_MODE_KEY = "Video.Windowed";
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);

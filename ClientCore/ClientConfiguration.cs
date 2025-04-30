@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using ClientCore.I18N;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
@@ -83,18 +84,6 @@ namespace ClientCore
         public void RefreshSettings()
         {
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
-        }
-
-        public enum ClientTypes
-        {
-            TS,
-            YR,
-            ARES
-        }
-
-        public static T ParseEnum<T>(string value)
-        {
-            return (T)Enum.Parse(typeof(T), value, true);
         }
 
         #region Client settings
@@ -199,7 +188,7 @@ namespace ClientCore
 
         #region Client definitions
 
-        public ClientTypes ClientType => ParseEnum<ClientTypes>(clientDefinitionsIni.GetStringValue(SETTINGS, "ClientType", "TS"));
+        public ClientType ClientGameType => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", "TS").ToEnum<ClientType>();
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 

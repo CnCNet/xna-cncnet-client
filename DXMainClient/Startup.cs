@@ -12,6 +12,7 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using ClientCore.Enums;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
@@ -66,7 +67,7 @@ namespace DTAClient
             Thread onlineIdThread = new Thread(GenerateOnlineId);
             onlineIdThread.Start();
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.ARES)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
                 Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
 
             Task.Factory.StartNew(MigrateOldLogFiles);

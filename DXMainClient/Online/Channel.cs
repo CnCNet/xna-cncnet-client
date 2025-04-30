@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Enums;
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
@@ -100,7 +101,7 @@ namespace DTAClient.Online
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.YR)
                 notifyOnUserListChange = false;
             else
                 notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
@@ -122,7 +123,7 @@ namespace DTAClient.Online
                     string.Format("{0} has joined {1}.".L10N("Client:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
             }
 
-            if (ClientConfiguration.Instance.ClientType != ClientConfiguration.ClientTypes.YR)
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
             {
                 if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
                     RequestUserInfo();

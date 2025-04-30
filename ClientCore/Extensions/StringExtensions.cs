@@ -1,6 +1,8 @@
 ﻿using System;
 using ClientCore.I18N;
 
+using SharpDX.Direct3D9;
+
 namespace ClientCore.Extensions;
 
 public static class StringExtensions
@@ -77,4 +79,7 @@ public static class StringExtensions
         => string.IsNullOrEmpty(defaultValue)
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notify);
+
+    public static T ToEnum<T>(this string value) where T : Enum 
+        => (T)Enum.Parse(typeof(T), value, true);
 }

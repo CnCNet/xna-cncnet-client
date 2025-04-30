@@ -2,6 +2,7 @@
 using ClientCore.CnCNet5;
 using ClientGUI;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 using DTAConfig.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -93,7 +94,7 @@ namespace DTAConfig.OptionPanels
             lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.Text = "Player Name*:".L10N("Client:DTAConfig:PlayerName");
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
@@ -119,7 +120,7 @@ namespace DTAConfig.OptionPanels
                 AddChild(chkShowHiddenObjects);
             }
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 chkBlackChatBackground = new SettingCheckBox(WindowManager, false, UserINISettings.OPTIONS, "TextBackgroundColor", true, TEXT_BACKGROUND_COLOR_BLACK, TEXT_BACKGROUND_COLOR_TRANSPARENT);
                 chkBlackChatBackground.Name = "chkBlackChatBackground";

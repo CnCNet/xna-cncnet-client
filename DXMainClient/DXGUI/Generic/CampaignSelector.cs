@@ -10,6 +10,7 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using ClientUpdater;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -286,8 +287,8 @@ namespace DTAClient.DXGUI.Generic
                 spawnStreamWriter.WriteLine("CampaignID=" + mission.CampaignID);
                 spawnStreamWriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
 
-                if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR ||
-                    ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.ARES)
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.YR ||
+                    ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
                     spawnStreamWriter.WriteLine("Ra2Mode=" + !mission.RequiredAddon);
                 else
                     spawnStreamWriter.WriteLine("Firestorm=" + mission.RequiredAddon);

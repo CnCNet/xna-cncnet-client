@@ -8,6 +8,7 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.I18N;
+using ClientCore.Enums;
 
 using Rampastring.Tools;
 
@@ -20,9 +21,9 @@ namespace DTAClient.Online
 
         private static readonly IReadOnlyList<string> knownTextFileExtensions = [".txt", ".ini", ".json", ".xml"];
 
-        private string[] fileNamesToCheck = ClientConfiguration.Instance.ClientType switch
+        private string[] fileNamesToCheck = ClientConfiguration.Instance.ClientGameType switch
         {
-            ClientConfiguration.ClientTypes.TS => new string[]
+            ClientType.TS => new string[]
             {
                 "spawner.xdp",
                 "rules.ini",
@@ -39,7 +40,7 @@ namespace DTAClient.Online
                 "INI/AIE.ini",
                 "INI/AIFS.ini"
             },
-            ClientConfiguration.ClientTypes.YR => new string[] 
+            ClientType.YR => new string[] 
             {
                 "spawner.xdp",
                 "spawner2.xdp",
@@ -64,7 +65,7 @@ namespace DTAClient.Online
                 "INI/Map Code/GlobalCode.ini",
                 "INI/Map Code/MultiplayerGlobalCode.ini"
             },
-            ClientConfiguration.ClientTypes.ARES => new string[]
+            ClientType.Ares => new string[]
             {
                 "Ares.dll",
                 "Ares.dll.inj",
@@ -146,7 +147,7 @@ namespace DTAClient.Online
 
             DirectoryInfo[] iniPaths = { SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options") };
             
-            if (ClientConfiguration.Instance.ClientType != ClientConfiguration.ClientTypes.YR)
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
                 iniPaths.Append<DirectoryInfo>(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
 
             foreach (DirectoryInfo path in iniPaths)

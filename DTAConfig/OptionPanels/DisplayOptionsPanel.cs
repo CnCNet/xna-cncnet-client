@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.IO;
 using ClientCore.I18N;
+using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
 
@@ -282,7 +283,7 @@ namespace DTAConfig.OptionPanels
             foreach (var (translation, name) in Translation.GetTranslations())
                 ddTranslation.AddItem(new XNADropDownItem { Text = name, Tag = translation });
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 lblCompatibilityFixes = new XNALabel(WindowManager);
                 lblCompatibilityFixes.Name = "lblCompatibilityFixes";
@@ -709,7 +710,7 @@ namespace DTAConfig.OptionPanels
 
             Debug.Assert(ddTranslation.SelectedIndex > -1, "No translation was selected");
 
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
 
@@ -839,7 +840,7 @@ namespace DTAConfig.OptionPanels
                 }
             }
             
-            if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
             else
                 IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
@@ -881,7 +882,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
-            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL && ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL && ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 

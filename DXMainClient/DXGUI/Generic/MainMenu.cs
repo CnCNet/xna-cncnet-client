@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -429,7 +430,7 @@ namespace DTAClient.DXGUI.Generic
             if (absentFiles.Count > 0)
             {
                 string description = string.Empty;
-                if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.YR)
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.YR)
                 {
                     description = ("You are missing Yuri's Revenge files that are required\n" +
                         "to play this mod! Yuri's Revenge mods are not standalone,\n" +
@@ -458,7 +459,7 @@ namespace DTAClient.DXGUI.Generic
             if (presentFiles.Count > 0)
             {
                 string description;
-                if (ClientConfiguration.Instance.ClientType == ClientConfiguration.ClientTypes.TS)
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 {
                     description = ("You have installed the mod on top of a Tiberian Sun\n" +
                     "copy! This mod is standalone, therefore you have to\n" +
