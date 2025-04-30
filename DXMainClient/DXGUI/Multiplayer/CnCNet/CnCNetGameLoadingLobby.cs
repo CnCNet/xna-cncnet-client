@@ -136,7 +136,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameBroadcastTimer = new XNATimerControl(WindowManager);
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
-            gameBroadcastTimer.Enabled = true;
+            gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
@@ -147,6 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Refresh(isHost);
 
             btnChangeTunnel.Visible = isHost;
+            gameBroadcastTimer.Enabled = isHost;
         }
 
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
