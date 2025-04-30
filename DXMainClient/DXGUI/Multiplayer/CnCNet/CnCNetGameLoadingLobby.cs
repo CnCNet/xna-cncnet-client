@@ -45,7 +45,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             TunnelHandler tunnelHandler,
             MapLoader mapLoader,
             GameCollection gameCollection,
-            DiscordHandler discordHandler
+            DiscordHandler discordHandler,
+            CnCNetUserData cncnetUserData
         ) : base(windowManager, discordHandler)
         {
             this.connectionManager = connectionManager;
@@ -53,6 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.topBar = topBar;
             this.gameCollection = gameCollection;
             this.mapLoader = mapLoader;
+            this.cncnetUserData = cncnetUserData;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -72,6 +74,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private CommandHandlerBase[] ctcpCommandHandlers;
 
         private CnCNetManager connectionManager;
+
+        private CnCNetUserData cncnetUserData;
 
         private List<GameMode> gameModes;
 
@@ -326,10 +330,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            lbChatMessages.AddMessage(e.Message);
-
-            if (e.Message.SenderName != null)
+            if (!string.IsNullOrEmpty(e.Message.SenderIdent) &&
+                cncnetUserData.IsIgnored(e.Message.SenderIdent) &&
+                !e.Message.SenderIsAdmin)
+            {
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, string.Format("Message blocked from - {0}".L10N("Client:Main:PMBlockedFrom"), e.Message.SenderName)));
+            }
+            else
+            {
+                lbChatMessages.AddMessage(e.Message);
                 sndMessageSound.Play();
+            }
         }
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
