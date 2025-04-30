@@ -142,6 +142,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
 
+        public override void Refresh(bool isHost)
+        {
+            base.Refresh(isHost);
+
+            btnChangeTunnel.Visible = isHost;
+        }
+
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
