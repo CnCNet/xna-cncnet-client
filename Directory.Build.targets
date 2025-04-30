@@ -1,6 +1,6 @@
 <Project>
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
+    <Message Importance="high" Text="Engine: $(Engine); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
   <!-- "GetVersion" target is defined in GitVersion package -->
@@ -124,6 +124,6 @@
   </Target>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)Directory.targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.targets')" />
 
 </Project>
