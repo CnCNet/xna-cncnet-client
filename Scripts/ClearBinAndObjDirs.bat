@@ -1,5 +1,6 @@
 @echo off
 
+cd /d %~dp0
 cd ..
 
 for /f "tokens=*" %%f in ('dir ".\" /a:d /b') do (
