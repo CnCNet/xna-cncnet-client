@@ -13,7 +13,7 @@ namespace DTAClient.Domain.Multiplayer
 {
     public class MapLoader
     {
-        public const string MAP_FILE_EXTENSION = ".map";
+        private static string MAP_FILE_EXTENSION => ClientConfiguration.Instance.MapExtension;
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
         private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache");
         private const string MultiMapsSection = "MultiMaps";
