@@ -5,7 +5,7 @@ The information below describes the steps that the default build script (build.p
 Engine configurations
 ---------------------
 
-Client use different technologies to render themselves, called Engine. Engine defines the technology used and the platform where the client can be launched:
+The client uses different APIs to render itself, called Engine. Engine defines the technology used and the platform where the client can be launched:
 
 Any platform (Windows, Linux, macOS):
 * UniversalGL
