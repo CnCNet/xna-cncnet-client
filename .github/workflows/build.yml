@@ -19,7 +19,7 @@ jobs:
       with:
         global-json-file: ./global.json
 
-    - name: Build ${{matrix.Game}}
+    - name: Build
       shell: pwsh
 
     - uses: actions/upload-artifact@v4
