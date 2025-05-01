@@ -69,5 +69,5 @@ Building with Rider
 
 Select desired configuration from list in the top panel:
 
-![RIDERCONF](rider-configuration-dropdown.png)
+![RIDERCONF](Images/rider-configuration-dropdown.png)
 
