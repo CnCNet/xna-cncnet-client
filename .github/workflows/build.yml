@@ -9,13 +9,6 @@ on:
 jobs:
   build-clients:
     runs-on: windows-2022
-    strategy:
-      matrix:
-        Game: 
-          - Ares
-          - TS
-          - YR
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -35,4 +28,3 @@ jobs:
       with:
         name: artifacts-${{matrix.Game}}
         path: ./Compiled/${{matrix.Game}}
-
