@@ -17,7 +17,7 @@ Migrating from older versions
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
 
-- Due to the unification of client builds, it is now possible to define client behavior depending on the game using the `ClientGameType` key in the `ClientDefinitions.ini` file in the `Settings` section.
+- Due to the unification of client builds, it is now required to define client behavior depending on the game using the `ClientGameType` key in the `ClientDefinitions.ini` file in the `Settings` section.
 
 - The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
 
