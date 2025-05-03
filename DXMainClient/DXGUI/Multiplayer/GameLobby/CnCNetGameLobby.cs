@@ -707,6 +707,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (pInfo == null)
+                return;
+
             int readyState = 0;
 
             if (chkAutoReady.Checked)
