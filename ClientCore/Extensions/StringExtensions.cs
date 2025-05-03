@@ -77,4 +77,12 @@ public static class StringExtensions
         => string.IsNullOrEmpty(defaultValue)
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notify);
+
+    public static string DeleteSpecialSymbols(this string defaultValue)
+    {
+        foreach (char ch in "/\\:*?<>|")
+            defaultValue = defaultValue.Replace(ch, ' ');
+
+        return defaultValue;
+    }
 }
