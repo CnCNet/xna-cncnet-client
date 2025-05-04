@@ -183,13 +183,12 @@ namespace DTAConfig.OptionPanels
 
             // Add client resolutions
             {
-                List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-                SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = ScreenResolution.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
                     .. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
                     .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600),
-                    .. scaledRecommendedResolutions
+                    .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
 
@@ -357,13 +356,6 @@ namespace DTAConfig.OptionPanels
             AddChild(ddDetailLevel);
             AddChild(lblIngameResolution);
             AddChild(ddIngameResolution);
-        }
-
-        public static ScreenResolution GetBestRecommendedResolution()
-        {
-            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
-            return scaledRecommendedResolutions.Max();
         }
 
         private void GetRenderers()
