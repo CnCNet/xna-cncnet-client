@@ -134,7 +134,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (zipFile.Exists) zipFile.Delete();
 
-            string mapFileName = map.SHA1 + ClientConfiguration.Instance.MapExtension;
+            string mapFileName = $"{map.SHA1}.{ClientConfiguration.Instance.MapFileExtension}";
 
             File.Copy(SafePath.CombineFilePath(map.CompleteFilePath), SafePath.CombineFilePath(ProgramConstants.GamePath, mapFileName));
 
@@ -370,7 +370,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public static string GetMapFileName(string sha1, string mapName)
-            => mapName.ToWin32FileName() + "_" + sha1 + ClientConfiguration.Instance.MapExtension
+            => $"{mapName.ToWin32FileName()}_{sha1}.{ClientConfiguration.Instance.MapFileExtension}";
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
@@ -381,7 +381,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             // This string is up here so we can check that there isn't already a .map file for this download.
             // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
-            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}{ClientConfiguration.Instance.MapExtension}"));
+            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.{ClientConfiguration.Instance.MapFileExtension}"));
 
             destinationFile.Delete();
             newFile.Delete();
