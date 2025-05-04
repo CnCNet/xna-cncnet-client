@@ -20,6 +20,7 @@ jobs:
         global-json-file: ./global.json
 
     - name: Build
+      run: ./Scripts/build.ps1
       shell: pwsh
 
     - uses: actions/upload-artifact@v4
