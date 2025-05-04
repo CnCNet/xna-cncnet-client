@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -62,10 +63,10 @@ namespace DTAConfig
 
         public bool Fits(ScreenResolution child) => this.Width >= child.Width && this.Height >= child.Height;
 
-        public int CompareTo(ScreenResolution other) => (this.Width, this.Height).CompareTo(other);
+        public int CompareTo(ScreenResolution? other) => (this.Width, this.Height).CompareTo(other);
 
         // Accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
-        private static ScreenResolution _desktopResolution = null;
+        private static ScreenResolution? _desktopResolution = null;
 
         /// <summary>
         /// The resolution of primary monitor.
@@ -76,7 +77,7 @@ namespace DTAConfig
         // The default graphic profile supports resolution up to 4096x4096. The number gets even smaller in practice. Therefore, we select 3840 as the limit.
         public static ScreenResolution HiDefLimitResolution { get; } = "3840x3840";
 
-        private static ScreenResolution _safeMaximumResolution = null;
+        private static ScreenResolution? _safeMaximumResolution = null;
 
         /// <summary>
         /// The resolution of primary monitor, or the maximum resolution supported by the graphic profile, whichever is smaller.
@@ -93,12 +94,12 @@ namespace DTAConfig
             }
         }
 
-        private static ScreenResolution _safeFullScreenResolution = null;
+        private static ScreenResolution? _safeFullScreenResolution = null;
 
         /// <summary>
         /// The maximum resolution supported by the graphic profile, or the largest full screen resolution supported by the primary monitor, whichever is smaller.
         /// </summary>
-        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max();
+        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max ?? SafeMaximumResolution;
 
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
             GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
@@ -186,10 +187,8 @@ namespace DTAConfig
             return scaledRecommendedResolutions;
         }
 
-        public static ScreenResolution GetBestRecommendedResolution()
-        {
-            return GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
-        }
+        public static ScreenResolution GetBestRecommendedResolution() =>
+            GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
 
     }
 }
