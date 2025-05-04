@@ -11,13 +11,12 @@ using System.Collections.Generic;
 #if WINFORMS
 using System.Windows.Forms;
 #endif
-#if TS
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-#endif
 using System.IO;
 using ClientCore.I18N;
+using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
 
@@ -51,7 +50,6 @@ namespace DTAConfig.OptionPanels
         private string defaultRenderer;
         private DirectDrawWrapper selectedRenderer = null;
 
-#if TS
         private XNALabel lblCompatibilityFixes;
         private XNALabel lblGameCompatibilityFix;
         private XNALabel lblMapEditorCompatibilityFix;
@@ -62,7 +60,6 @@ namespace DTAConfig.OptionPanels
         private bool FinalSunCompatFixInstalled = false;
         private bool GameCompatFixDeclined = false;
         //private bool FinalSunCompatFixDeclined = false;
-#endif
 
 
         public override void Initialize()
@@ -286,61 +283,63 @@ namespace DTAConfig.OptionPanels
             foreach (var (translation, name) in Translation.GetTranslations())
                 ddTranslation.AddItem(new XNADropDownItem { Text = name, Tag = translation });
 
-#if TS
-            lblCompatibilityFixes = new XNALabel(WindowManager);
-            lblCompatibilityFixes.Name = "lblCompatibilityFixes";
-            lblCompatibilityFixes.FontIndex = 1;
-            lblCompatibilityFixes.Text = "Compatibility Fixes (advanced):".L10N("Client:DTAConfig:TSCompatibilityFixAdv");
-            AddChild(lblCompatibilityFixes);
-            lblCompatibilityFixes.CenterOnParent();
-            lblCompatibilityFixes.Y = Height - 103;
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+            {
+                lblCompatibilityFixes = new XNALabel(WindowManager);
+                lblCompatibilityFixes.Name = "lblCompatibilityFixes";
+                lblCompatibilityFixes.FontIndex = 1;
+                lblCompatibilityFixes.Text = "Compatibility Fixes (advanced):".L10N("Client:DTAConfig:TSCompatibilityFixAdv");
+                AddChild(lblCompatibilityFixes);
+                lblCompatibilityFixes.CenterOnParent();
+                lblCompatibilityFixes.Y = Height - 103;
 
-            lblGameCompatibilityFix = new XNALabel(WindowManager);
-            lblGameCompatibilityFix.Name = "lblGameCompatibilityFix";
-            lblGameCompatibilityFix.ClientRectangle = new Rectangle(132,
-                lblCompatibilityFixes.Bottom + 20, 0, 0);
-            lblGameCompatibilityFix.Text = "DTA/TI/TS Compatibility Fix:".L10N("Client:DTAConfig:TSCompatibilityFix");
+                lblGameCompatibilityFix = new XNALabel(WindowManager);
+                lblGameCompatibilityFix.Name = "lblGameCompatibilityFix";
+                lblGameCompatibilityFix.ClientRectangle = new Rectangle(132,
+                    lblCompatibilityFixes.Bottom + 20, 0, 0);
+                lblGameCompatibilityFix.Text = "DTA/TI/TS Compatibility Fix:".L10N("Client:DTAConfig:TSCompatibilityFix");
 
-            btnGameCompatibilityFix = new XNAClientButton(WindowManager);
-            btnGameCompatibilityFix.Name = "btnGameCompatibilityFix";
-            btnGameCompatibilityFix.ClientRectangle = new Rectangle(
-                lblGameCompatibilityFix.Right + 20,
-                lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnGameCompatibilityFix.FontIndex = 1;
-            btnGameCompatibilityFix.Text = "Enable".L10N("Client:DTAConfig:Enable");
+                btnGameCompatibilityFix = new XNAClientButton(WindowManager);
+                btnGameCompatibilityFix.Name = "btnGameCompatibilityFix";
+                btnGameCompatibilityFix.ClientRectangle = new Rectangle(
+                    lblGameCompatibilityFix.Right + 20,
+                    lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+                btnGameCompatibilityFix.FontIndex = 1;
+                btnGameCompatibilityFix.Text = "Enable".L10N("Client:DTAConfig:Enable");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
-            else
-                btnGameCompatibilityFix.AllowClick = false;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+                else
+                    btnGameCompatibilityFix.AllowClick = false;
 
-            lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
-            lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
-            lblMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
-                lblGameCompatibilityFix.X,
-                lblGameCompatibilityFix.Bottom + 20, 0, 0);
-            lblMapEditorCompatibilityFix.Text = "FinalSun Compatibility Fix:".L10N("Client:DTAConfig:TSFinalSunFix");
+                lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
+                lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
+                lblMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
+                    lblGameCompatibilityFix.X,
+                    lblGameCompatibilityFix.Bottom + 20, 0, 0);
+                lblMapEditorCompatibilityFix.Text = "FinalSun Compatibility Fix:".L10N("Client:DTAConfig:TSFinalSunFix");
 
-            btnMapEditorCompatibilityFix = new XNAClientButton(WindowManager);
-            btnMapEditorCompatibilityFix.Name = "btnMapEditorCompatibilityFix";
-            btnMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
-                btnGameCompatibilityFix.X,
-                lblMapEditorCompatibilityFix.Y - 4,
-                btnGameCompatibilityFix.Width,
-                btnGameCompatibilityFix.Height);
-            btnMapEditorCompatibilityFix.FontIndex = 1;
-            btnMapEditorCompatibilityFix.Text = "Enable".L10N("Client:DTAConfig:TSButtonEnable");
+                btnMapEditorCompatibilityFix = new XNAClientButton(WindowManager);
+                btnMapEditorCompatibilityFix.Name = "btnMapEditorCompatibilityFix";
+                btnMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
+                    btnGameCompatibilityFix.X,
+                    lblMapEditorCompatibilityFix.Y - 4,
+                    btnGameCompatibilityFix.Width,
+                    btnGameCompatibilityFix.Height);
+                btnMapEditorCompatibilityFix.FontIndex = 1;
+                btnMapEditorCompatibilityFix.Text = "Enable".L10N("Client:DTAConfig:TSButtonEnable");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
-            else
-                btnMapEditorCompatibilityFix.AllowClick = false;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+                else
+                    btnMapEditorCompatibilityFix.AllowClick = false;
 
-            AddChild(lblGameCompatibilityFix);
-            AddChild(btnGameCompatibilityFix);
-            AddChild(lblMapEditorCompatibilityFix);
-            AddChild(btnMapEditorCompatibilityFix);
-#endif
+                AddChild(lblGameCompatibilityFix);
+                AddChild(btnGameCompatibilityFix);
+                AddChild(lblMapEditorCompatibilityFix);
+                AddChild(btnMapEditorCompatibilityFix);
+            }
+            
             AddChild(chkWindowedMode);
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
@@ -405,8 +404,7 @@ namespace DTAConfig.OptionPanels
             GameProcessLogic.UseQres = selectedRenderer.UseQres;
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
         }
-#if TS
-
+      
         /// <summary>
         /// Asks the user whether they want to install the DTA/TI/TS compatibility fix.
         /// </summary>
@@ -577,7 +575,6 @@ namespace DTAConfig.OptionPanels
                     "Installing FinalSun Compatibility Fix failed. Error message:".L10N("Client:DTAConfig:TSFinalSunCompatibilityFixInstalledFailedText") + " " + ex.Message);
             }
         }
-#endif
 
         private void ChkBorderlessMenu_CheckedChanged(object sender, EventArgs e)
         {
@@ -713,51 +710,54 @@ namespace DTAConfig.OptionPanels
 
             Debug.Assert(ddTranslation.SelectedIndex > -1, "No translation was selected");
 
-#if TS
-            chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-            RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
-
-            if (regKey == null)
-                return;
-
-            object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
-            string tsCompatFixString = (string)tsCompatFixValue;
-
-            if (tsCompatFixString == "Yes")
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
-                GameCompatFixInstalled = true;
-                btnGameCompatibilityFix.Text = "Disable".L10N("Client:DTAConfig:TSDisable");
+                chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
+
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    return;
+
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+
+                if (regKey == null)
+                    return;
+
+                object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
+                string tsCompatFixString = (string)tsCompatFixValue;
+
+                if (tsCompatFixString == "Yes")
+                {
+                    GameCompatFixInstalled = true;
+                    btnGameCompatibilityFix.Text = "Disable".L10N("Client:DTAConfig:TSDisable");
+                }
+
+                object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
+                string fsCompatFixString = (string)fsCompatFixValue;
+
+                if (fsCompatFixString == "Yes")
+                {
+                    FinalSunCompatFixInstalled = true;
+                    btnMapEditorCompatibilityFix.Text = "Disable".L10N("Client:DTAConfig:TSDisable");
+                }
+
+                object tsCompatFixDeclinedValue = regKey.GetValue("TSCompatFixDeclined", "No");
+
+                if (((string)tsCompatFixDeclinedValue) == "Yes")
+                {
+                    GameCompatFixDeclined = true;
+                }
+
+                //object fsCompatFixDeclinedValue = regKey.GetValue("FSCompatFixDeclined", "No");
+
+                //if (((string)fsCompatFixDeclinedValue) == "Yes")
+                //{
+                //    FinalSunCompatFixDeclined = true;
+                //}
             }
-
-            object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
-            string fsCompatFixString = (string)fsCompatFixValue;
-
-            if (fsCompatFixString == "Yes")
+            else
             {
-                FinalSunCompatFixInstalled = true;
-                btnMapEditorCompatibilityFix.Text = "Disable".L10N("Client:DTAConfig:TSDisable");
+                chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
             }
-
-            object tsCompatFixDeclinedValue = regKey.GetValue("TSCompatFixDeclined", "No");
-
-            if (((string)tsCompatFixDeclinedValue) == "Yes")
-            {
-                GameCompatFixDeclined = true;
-            }
-
-            //object fsCompatFixDeclinedValue = regKey.GetValue("FSCompatFixDeclined", "No");
-
-            //if (((string)fsCompatFixDeclinedValue) == "Yes")
-            //{
-            //    FinalSunCompatFixDeclined = true;
-            //}
-#else
-            chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
-#endif
         }
 
         public override bool Save()
@@ -839,12 +839,11 @@ namespace DTAConfig.OptionPanels
                     }
                 }
             }
-
-#if TS
-            IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
-#else
-            IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
-#endif
+            
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
+            else
+                IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
 
             if (selectedRenderer != originalRenderer ||
                 !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
@@ -883,8 +882,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
-#if TS
-            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL)
+            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL && ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 
@@ -902,7 +900,6 @@ namespace DTAConfig.OptionPanels
                 else
                     System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
             }
-#endif
 
             return restartRequired;
         }

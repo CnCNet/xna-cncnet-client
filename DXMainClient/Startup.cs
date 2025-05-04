@@ -12,6 +12,7 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using ClientCore.Enums;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
@@ -66,9 +67,9 @@ namespace DTAClient
             Thread onlineIdThread = new Thread(GenerateOnlineId);
             onlineIdThread.Start();
 
-#if ARES
-            Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
-#endif
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
+                Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+
             Task.Factory.StartNew(MigrateOldLogFiles);
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
@@ -159,7 +160,6 @@ namespace DTAClient
             gameClass.Run();
         }
 
-#if ARES
         /// <summary>
         /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
         /// If directory is empty after deleting files, the directory itself will also be deleted.
@@ -203,7 +203,6 @@ namespace DTAClient
                    directory.Name + ". Message: " + ex.ToString());
             }
         }
-#endif
 
         /// <summary>
         /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.

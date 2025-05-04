@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using ClientCore.I18N;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
@@ -186,6 +187,8 @@ namespace ClientCore
         #endregion
 
         #region Client definitions
+
+        public ClientType ClientGameType => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", nameof(ClientType.TS)).ToEnum<ClientType>();
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 

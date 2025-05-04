@@ -1,6 +1,7 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Enums;
 using ClientGUI;
 using DTAConfig.OptionPanels;
 using Microsoft.Xna.Framework;
@@ -283,9 +284,8 @@ namespace DTAConfig
 
         public void PostInit()
         {
-#if TS
-            displayOptionsPanel.PostInit();
-#endif
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                displayOptionsPanel.PostInit();
         }
     }
 }
