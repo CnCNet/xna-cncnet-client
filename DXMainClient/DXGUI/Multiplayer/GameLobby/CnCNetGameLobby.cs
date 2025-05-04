@@ -407,7 +407,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Clear();
-            channel.Leave();
+            channel?.Leave();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -707,6 +707,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (pInfo == null)
+                return;
+
             int readyState = 0;
 
             if (chkAutoReady.Checked)
@@ -1229,6 +1232,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void GameProcessExited()
         {
+            ResetGameState();
+        }
+
+        protected void GameStartAborted()
+        {
+            ResetGameState();
+        }
+
+        protected void ResetGameState() 
+        {
             base.GameProcessExited();
 
             channel.SendCTCPMessage("RETURN", QueuedMessageType.SYSTEM_MESSAGE, 20);
@@ -1255,6 +1268,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (sender != hostName)
                 return;
+
+            if (Map == null)
+            {
+                GameStartAborted();
+                return;
+            }
 
             string[] parts = message.Split(';');
 

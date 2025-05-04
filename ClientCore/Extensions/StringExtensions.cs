@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using ClientCore.I18N;
 
 namespace ClientCore.Extensions;
@@ -78,6 +80,37 @@ public static class StringExtensions
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notify);
 
-    public static T ToEnum<T>(this string value) where T : Enum 
+    /// <summary>
+    /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
+    /// </summary>
+    /// <param name="defaultValue">The default string value.</param>
+    /// <returns>File name without special characters or reserved combinations.</returns>
+    /// <remarks>
+    /// Reference: <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file">Naming Files, Paths, and Namespaces</a>.
+    /// </remarks>
+    public static string ToWin32FileName(this string filename)
+    {
+        foreach (char ch in "/\\:*?<>|")
+            filename = filename.Replace(ch, '_');
+
+        // If the user is somehow using "con" or any other filename that is
+        // reserved by WIN32API, it would be better to rename it.
+
+        HashSet<string> reservedFileNames = new HashSet<string>(new List<string>(){
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
+        if (reservedFileNames.Contains(filename))
+            filename += "_";
+
+        return filename;
+    }
+  
+      public static T ToEnum<T>(this string value) where T : Enum 
         => (T)Enum.Parse(typeof(T), value, true);
 }
