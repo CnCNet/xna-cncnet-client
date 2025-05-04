@@ -188,7 +188,7 @@ namespace DTAConfig
 
         public static ScreenResolution GetBestRecommendedResolution()
         {
-            return GetRecommendedResolutions().DefaultIfEmpty(SafeFullScreenResolution).Max();
+            return GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
         }
 
     }
