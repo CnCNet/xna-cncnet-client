@@ -32,7 +32,7 @@ jobs:
         }
 
     - name: Zip Artifact
-      run: 7z a -t7z -mx=9 -m0=lzma2 -md=512m -ms=on -- ${{ format('xna-cncnet-client-artifacts-{0}.7z', env.GitVersion_SemVer) }} ./artifacts
+      run: 7z a -t7z -mx=9 -m0=lzma2 -ms=on -r -- ${{ format('xna-cncnet-client-artifacts-{0}.7z', env.GitVersion_SemVer) }} ./Compiled/*
       shell: pwsh
 
     - name: Upload Final Artifact to the Release
