@@ -359,13 +359,6 @@ namespace DTAConfig.OptionPanels
             AddChild(ddIngameResolution);
         }
 
-        public static ScreenResolution GetBestRecommendedResolution()
-        {
-            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
-            return scaledRecommendedResolutions.Max();
-        }
-
         private void GetRenderers()
         {
             renderers = new List<DirectDrawWrapper>();

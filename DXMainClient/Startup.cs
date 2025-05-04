@@ -136,7 +136,7 @@ namespace DTAClient
                 // Find the largest recommended resolution as the default windowed resolution
                 List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
                 SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
-                var bestRecommendedResolution = scaledRecommendedResolutions.Max();
+                var bestRecommendedResolution = scaledRecommendedResolutions.Max() ?? ScreenResolution.SafeFullScreenResolution;
 
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
