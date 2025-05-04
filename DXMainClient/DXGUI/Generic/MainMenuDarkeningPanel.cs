@@ -97,7 +97,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 control.Enabled = true;
                 control.Visible = true;
-                control.IgnoreInputOnFrame = true;
+                control.InputIgnoreTime = TimeSpan.FromMilliseconds(1);
             }
         }
 
