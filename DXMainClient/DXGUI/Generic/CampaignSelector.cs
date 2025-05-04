@@ -222,7 +222,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            Enabled = false;
+            Disable();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
@@ -322,7 +322,7 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
             UserINISettings.Instance.SaveSettings();
 
-            ((MainMenuDarkeningPanel)Parent).Hide();
+            Disable();
 
             discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;

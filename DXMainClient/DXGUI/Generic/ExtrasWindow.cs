@@ -12,9 +12,11 @@ namespace DTAClient.DXGUI.Generic
 {
     public class ExtrasWindow : XNAWindow
     {
-        public ExtrasWindow(WindowManager windowManager) : base(windowManager)
-        {
+        private StatisticsWindow statisticsWindow;
 
+        public ExtrasWindow(WindowManager windowManager, StatisticsWindow statisticsWindow) : base(windowManager)
+        {
+            this.statisticsWindow = statisticsWindow;
         }
 
         public override void Initialize()
@@ -59,8 +61,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExStatistics_LeftClick(object sender, EventArgs e)
         {
-            MainMenuDarkeningPanel parent = (MainMenuDarkeningPanel)Parent;
-            parent.Show(parent.StatisticsWindow);
+            Disable();
+            statisticsWindow.Enable();
         }
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
@@ -77,7 +79,7 @@ namespace DTAClient.DXGUI.Generic
 
             mapEditorProcess.Start();
 
-            Enabled = false;
+            Disable();
         }
 
         private void BtnExCredits_LeftClick(object sender, EventArgs e)
@@ -87,7 +89,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExCancel_LeftClick(object sender, EventArgs e)
         {
-            Enabled = false;
+            Disable();
         }
     }
 }
