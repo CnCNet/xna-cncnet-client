@@ -10,6 +10,7 @@ using Rampastring.Tools;
 using ClientCore;
 using System.IO.Compression;
 using System.Linq;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -369,12 +370,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public static string GetMapFileName(string sha1, string mapName)
-           => sha1 + ClientConfiguration.Instance.MapExtension
+            => mapName.ToWin32FileName() + "_" + sha1 + ClientConfiguration.Instance.MapExtension
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
             string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
-
             string mapFileName = GetMapFileName(sha1, mapName);
 
             FileInfo destinationFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.zip"));
