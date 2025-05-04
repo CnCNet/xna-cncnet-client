@@ -1653,7 +1653,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
             string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
-            mapFileName = mapFileName.ToWin32FileName();
             Logger.Log("Map " + mapFileName + " downloaded, parsing.");
             string mapPath = "Maps/Custom/" + mapFileName;
             Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);

@@ -293,8 +293,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public static void DownloadMap(string sha1, string myGame, string mapName)
         {
-            mapName = mapName.ToWin32FileName();
-
             lock (locker)
             {
                 if (MapDownloadQueue.Contains(sha1))
@@ -372,7 +370,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public static string GetMapFileName(string sha1, string mapName)
-            => mapName + "_" + sha1;
+            => mapName.ToWin32FileName() + "_" + sha1;
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
