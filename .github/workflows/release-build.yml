@@ -1,4 +1,4 @@
-name: "Release Build"
+name: "release build"
 
 on:
   release:
@@ -19,8 +19,8 @@ jobs:
       with:
         global-json-file: ./global.json
 
-    - name: Build ${{matrix.Game}}
-      run: ./Scripts/build.ps1 ${{matrix.Game}}
+    - name: Build
+      run: ./Scripts/build.ps1
       shell: pwsh
 
     - name: Development Build Check
