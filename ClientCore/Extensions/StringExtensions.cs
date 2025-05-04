@@ -91,7 +91,7 @@ public static class StringExtensions
     public static string ToWin32FileName(this string filename)
     {
         foreach (char ch in "/\\:*?<>|")
-            filename = filename.Replace(ch, ' ');
+            filename = filename.Replace(ch, '_');
 
         // If the user is somehow using "con" or any other filename that is
         // reserved by WIN32API, it would be better to rename it.
