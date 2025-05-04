@@ -2,8 +2,8 @@
 {
     public enum ClientType
     {
-        TS = 0,
+        TS,
         YR,
-        Ares
+        Ares,
     }
 }
