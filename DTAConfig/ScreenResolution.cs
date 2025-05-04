@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using ClientCore;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -176,5 +178,18 @@ namespace DTAConfig
 
             return windowedResolutions;
         }
+
+        public static SortedSet<ScreenResolution> GetRecommendedResolutions()
+        {
+            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            return scaledRecommendedResolutions;
+        }
+
+        public static ScreenResolution GetBestRecommendedResolution()
+        {
+            return GetRecommendedResolutions().Max() ?? SafeFullScreenResolution;
+        }
+
     }
 }
