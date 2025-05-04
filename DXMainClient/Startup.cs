@@ -163,11 +163,10 @@ namespace DTAClient
                 try
                 {
                     Logger.Log("Steam init called");
-#if YR || ARES
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
                     SteamClient.Init(2229850);
-#else
+                else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                     SteamClient.Init(2229880);
-#endif
                 }
                 catch (System.Exception e)
                 {
