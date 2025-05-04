@@ -691,13 +691,13 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.Enabled = true;
             UpdateInProgress = false;
 
-            // TODO Enable a dummy Window from DarkeningPanel
+            // TODO Enable a dummy Window from DarkeningPanel -- seems not needed. This message box works well.
             XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed".L10N("Client:Main:UpdateFailedTitle"),
                 string.Format(("An error occured while updating. Returned error was: {0}\n\nIf you are connected to the Internet and your firewall isn't blocking\n{1}, and the issue is reproducible, contact us at\n{2} for support.").L10N("Client:Main:UpdateFailedText"),
                 e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
             msgBox.OKClickedAction = (XNAMessageBox messageBox) =>
             {
-                // TODO Disable the dummy Window from DarkeningPanel
+                // TODO Disable the dummy Window from DarkeningPanel -- seems not needed. This message box works well.
             };
             msgBox.Show();
         }
