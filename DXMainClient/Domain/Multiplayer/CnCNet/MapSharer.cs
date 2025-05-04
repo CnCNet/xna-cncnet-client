@@ -293,7 +293,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public static void DownloadMap(string sha1, string myGame, string mapName)
         {
-            mapName = mapName.DeleteSpecialSymbols();
+            mapName = mapName.ToWin32FileName();
 
             lock (locker)
             {

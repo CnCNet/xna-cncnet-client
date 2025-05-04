@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ClientCore.I18N;
 
 namespace ClientCore.Extensions;
@@ -79,6 +79,7 @@ public static class StringExtensions
             : Translation.Instance.LookUp(key, defaultValue, notify);
 
     public static string DeleteSpecialSymbols(this string defaultValue)
+    public static string ToWin32FileName(this string defaultValue)
     {
         foreach (char ch in "/\\:*?<>|")
             defaultValue = defaultValue.Replace(ch, ' ');
