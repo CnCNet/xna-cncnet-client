@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ClientCore.I18N;
 
 namespace ClientCore.Extensions;
@@ -78,11 +78,40 @@ public static class StringExtensions
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notify);
 
-    public static string DeleteSpecialSymbols(this string defaultValue)
+    /// <summary>
+    /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
+    /// </summary>
+    /// <param name="defaultValue">The default string value.</param>
+    /// <returns>File name without special characters or reserved combinations.</returns>
+    /// <remarks>
+    /// Reference: <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file">Naming Files, Paths, and Namespaces</a>.
+    /// </remarks>
     public static string ToWin32FileName(this string defaultValue)
     {
         foreach (char ch in "/\\:*?<>|")
             defaultValue = defaultValue.Replace(ch, ' ');
+
+        // If the user is somehow using "con" or any other filename that is
+        // reserved by WIN32API, it would be better to rename it.
+
+        string[] reservedFileNames = 
+        {
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"
+        };
+
+        foreach(var reserved in reservedFileNames)
+        {
+            if (defaultValue == reserved)
+            {
+                defaultValue += "_map";
+                break;
+            }
+        }
 
         return defaultValue;
     }
