@@ -106,7 +106,7 @@ public static class StringExtensions
         }, StringComparer.InvariantCultureIgnoreCase);
 
         if (reservedFileNames.Contains(filename))
-            filename += "_map";
+            filename += "_";
 
         return filename;
     }
