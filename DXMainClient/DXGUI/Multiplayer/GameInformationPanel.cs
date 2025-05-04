@@ -28,7 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
-        private MapLoader mapLoader;
+        private readonly MapLoader mapLoader;
 
         private XNALabel lblGameInformation;
         private XNALabel lblGameMode;
@@ -43,7 +43,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
 
-        private bool disposeTextures = false;
+        private bool disposeTextures = true;
         private Texture2D mapTexture = null;
         private Texture2D noMapPreviewTexture = null;
 
@@ -194,16 +194,27 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null)
             {
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase) && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
+                Map map = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase))?.Map;
+
+                if (map != null)
+                {
+                    if (map.IsPreviewTextureAvailableAsFile())
+                    {
+                        mapTexture = map.LoadPreviewTexture();
+                        disposeTextures = true;
+                    }
+                    else
+                    {
+                        mapTexture = AssetLoader.TextureFromImage(mapLoader.MapTextureCacheManager.GetMapTextureIfAvailable(map));
+                        disposeTextures = true;
+                    }
+                }
+
                 if (mapTexture == null && noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
                     disposeTextures = false;
-                }
-                else
-                {
-                    disposeTextures = true;
                 }
             }
         }

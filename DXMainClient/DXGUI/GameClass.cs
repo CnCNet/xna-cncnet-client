@@ -261,7 +261,8 @@ namespace DTAClient.DXGUI
                             .AddSingleton<TunnelHandler>()
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
-                            .AddSingleton<MapLoader>();
+                            .AddSingleton<MapLoader>()
+                            .AddSingleton<MapTextureCacheManager>();
 
                         // singleton xna controls - same instance on each request
                         services
