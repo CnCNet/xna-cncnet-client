@@ -14,9 +14,13 @@
     <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Suppress the warning on introducing a manifest file -->
+    <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
     <ApplicationManifest Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">app.SystemAware.manifest</ApplicationManifest>
     <ApplicationManifest Condition="'$(Engine)' != 'UniversalGL' AND '$(Engine)' != 'WindowsGL'">app.PerMonitorV2.manifest</ApplicationManifest>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />
