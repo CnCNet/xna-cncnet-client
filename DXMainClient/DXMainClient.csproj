@@ -27,7 +27,7 @@
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true"/>
+    <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
@@ -35,6 +35,8 @@
     <PackageReference Include="OpenMcdf" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
+    <PackageReference Include="System.Private.Uri" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
