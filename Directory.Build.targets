@@ -25,7 +25,7 @@
   </Target>
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
-    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
+    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries;RemoveUniversalGLMobileBinaries" />
     <CallTarget Targets="MoveCommonBinaries;MoveClientExes;MoveUpdater" Condition="'$(NoMove)' != 'true'" />
   </Target>
 
@@ -40,7 +40,7 @@
   </Target>
 
   <Target Name="RemoveNetFrameworkWindowsGLNative" AfterTargets="PublishNetFrameworkWindowsGLNative">
-    <Message Importance="high" Text="Removing not needed NetFramework WindowsGLNative files" />
+    <Message Importance="high" Text="Removing unnecessary NetFramework WindowsGLNative files" />
     <Delete Files="$(PublishDir)SDL2.dll" />
     <Delete Files="$(PublishDir)soft_oal.dll" />
   </Target>
@@ -60,9 +60,23 @@
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
+  <Target Name="RemoveUniversalGLMobileBinaries" Condition="'$(Engine)' == 'UniversalGL'">    
+    <Message Importance="high" Text="Removing unnecessary UniversalGL files" />
+
+    <!-- Note: You might need to update folders here if the dependency `MonoGame.Framework.DesktopGL` (specifically, its dependency `MonoGame.Library.OpenAL` gets updated. -->
+    <ItemGroup>
+      <!-- https://stackoverflow.com/a/71699878 -->
+      <_UniversalGLAndroidDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'android*', System.IO.SearchOption.TopDirectoryOnly))" />
+      <_UniversalGLIosDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'ios*', System.IO.SearchOption.TopDirectoryOnly))" />
+    </ItemGroup>
+
+    <RemoveDir Directories="@(_UniversalGLAndroidDirectories)" />    
+    <RemoveDir Directories="@(_UniversalGLIosDirectories)" />
+  </Target>
+
   <!-- IMPORTANT: You SHOULD NOT modify the logic here if you don't have to. -->
   <!-- The list of common assemblies has been moved to the `CommonAssemblies.txt` and `CommonAssembliesNetFx.txt` files. -->
-  <!-- And you SHOULD NOT attempt to manually modify these two files at any time! -->
+  <!-- And you SHOULD modify these two files following Scripts/README.md file! -->
   <Target Name="MoveCommonBinaries">
     <PropertyGroup>
       <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
