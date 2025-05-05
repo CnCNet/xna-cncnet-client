@@ -29,6 +29,7 @@
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.10" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
+    <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="$(DotnetLibrariesVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
