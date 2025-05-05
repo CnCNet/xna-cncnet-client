@@ -682,7 +682,7 @@ namespace DTAClient.DXGUI.Generic
                 FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
 
-                wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+                wmaBackupMainMenuMusicFile.MoveTo(wmaMainMenuMusicFile.FullName, true);
             }
         }
 
