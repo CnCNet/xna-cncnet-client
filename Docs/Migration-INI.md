@@ -10,7 +10,7 @@ It is **highly recommended** to make a complete backup of your game/mod before s
 
 Since v2.12, the client has unified different builds among game types. The game type must be defined in `ClientDefinitions.ini` now.
 
-1. Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TS, YR, Ares)
+- Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TS, YR, Ares)
 
 The way the client is launched on Unix systems has changed.
 
