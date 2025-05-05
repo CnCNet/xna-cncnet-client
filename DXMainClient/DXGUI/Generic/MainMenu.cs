@@ -685,7 +685,7 @@ namespace DTAClient.DXGUI.Generic
                 if (wmaMainMenuMusicFile.Exists)
                     wmaMainMenuMusicFile.Delete();
 
-                wmaBackupMainMenuMusicFile.MoveTo(wmaMainMenuMusicFile.FullName,);
+                wmaBackupMainMenuMusicFile.MoveTo(wmaMainMenuMusicFile.FullName);
             }
         }
 
