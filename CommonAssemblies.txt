@@ -1,6 +1,7 @@
 ClientUpdater.dll
 ClientUpdater.pdb
 DiscordRPC.dll
+Facepunch.Steamworks.Win64.dll
 lzo.net.dll
 Microsoft.Extensions.Configuration.Abstractions.dll
 Microsoft.Extensions.Configuration.Binder.dll
@@ -35,5 +36,6 @@ OpenMcdf.dll
 Rampastring.Tools.dll
 SixLabors.ImageSharp.dll
 System.CodeDom.dll
+steam_api64.dll
 System.Net.Http.Formatting.dll
 TextCopy.dll

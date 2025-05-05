@@ -49,11 +49,11 @@ namespace ClientCore
             SettingsIni = iniFile;
 
             const string WINDOWED_MODE_KEY = "Video.Windowed";
-#if TS
-            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
-#else
-            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-#endif
+
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
+            else
+                BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
@@ -94,6 +94,7 @@ namespace ClientCore
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
             DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
+            SteamIntegration = new BoolSetting(iniFile, MULTIPLAYER, "SteamIntegration", true);
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
@@ -196,6 +197,7 @@ namespace ClientCore
         public BoolSetting PersistentMode { get; private set; }
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
         public BoolSetting DiscordIntegration { get; private set; }
+        public BoolSetting SteamIntegration { get; private set; }
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }

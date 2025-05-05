@@ -51,7 +51,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             BaseFilePath = baseFilePath;
             customMapFilePath = isCustomMap
-                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}{MapLoader.MAP_FILE_EXTENSION}"))
+                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}.{ClientConfiguration.Instance.MapFileExtension}"))
                 : null;
             Official = string.IsNullOrWhiteSpace(customMapFilePath);
         }
@@ -136,7 +136,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Includes the game directory in the path.
         /// </summary>
         [JsonIgnore]
-        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
+        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}.{ClientConfiguration.Instance.MapFileExtension}"));
 
         /// <summary>
         /// The file name of the preview image.

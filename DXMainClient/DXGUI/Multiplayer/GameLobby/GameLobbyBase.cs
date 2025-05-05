@@ -540,6 +540,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var isFavoriteMapsSelected = IsFavoriteMapsSelected();
             var maps = GetSortedGameModeMaps();
 
+            bool gameModeMapChanged = false;
+
             for (int i = 0; i < maps.Count; i++)
             {
                 var gameModeMap = maps[i];
@@ -587,11 +589,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 // Preserve the selected map
                 if (gameModeMap == GameModeMap)
+                {
                     mapIndex = i - skippedMapsCount;
+                    gameModeMapChanged = false;
+                }
 
                 // Preserve the selected map, even if the game mode has changed
                 if (mapIndex == -1 && (gameModeMap?.Map?.Equals(GameModeMap?.Map) ?? false))
+                {
                     mapIndex = i - skippedMapsCount;
+                    gameModeMapChanged = true;
+                }
             }
 
             if (mapIndex > -1)
@@ -602,8 +610,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             lbGameModeMapList.SelectedIndexChanged += LbGameModeMapList_SelectedIndexChanged;
+
             // Trigger the event manually to update GameModeMap
-            LbGameModeMapList_SelectedIndexChanged();
+            if (gameModeMapChanged)
+                LbGameModeMapList_SelectedIndexChanged();
         }
 
         protected abstract int GetDefaultMapRankIndex(GameModeMap gameModeMap);
@@ -735,8 +745,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             int random = new Random().Next(0, maps.Count);
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode == GameMode && gmm.Map == maps[random]);
-
+            bool isFavoriteMapsSelected = IsFavoriteMapsSelected();
+            GameModeMap = GameModeMaps.Find(gmm => (gmm.GameMode == GameMode || gmm.IsFavorite && isFavoriteMapsSelected) && gmm.Map == maps[random]);
             Logger.Log("PickRandomMap: Rolled " + random + " out of " + maps.Count + ". Picked map: " + Map.Name);
 
             ChangeMap(GameModeMap);
@@ -747,17 +757,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private List<Map> GetMapList(int playerCount)
         {
-            if (playerCount == 1)
-			{
-				List<Map> allMaps = GameMode?.Maps.ToList() ?? new List<Map>();
-				return allMaps;
-			}
-   
-            List<Map> mapList = (GameMode?.Maps.Where(x => x.MaxPlayers == playerCount) ?? Array.Empty<Map>()).ToList();
-            if (mapList.Count < 1 && playerCount <= MAX_PLAYER_COUNT)
-                return GetMapList(playerCount + 1);
-            else
-                return mapList;
+            List<Map> maps = IsFavoriteMapsSelected()
+                ? GetFavoriteGameModeMaps().Select(gmm => gmm.Map).ToList()
+                : GameMode?.Maps.ToList() ?? new List<Map>();
+
+            if (playerCount != 1)
+            {
+                maps = maps.Where(x => x.MaxPlayers == playerCount).ToList();
+                if (maps.Count < 1 && playerCount <= MAX_PLAYER_COUNT)
+                    return GetMapList(playerCount + 1);
+            }
+
+            return maps;
         }
 
         /// <summary>
@@ -1868,7 +1879,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("GameProcessExited: Parsing statistics.");
 
-            matchStatistics.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame, false);
+            matchStatistics?.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame, false);
 
             Logger.Log("GameProcessExited: Adding match to statistics.");
 

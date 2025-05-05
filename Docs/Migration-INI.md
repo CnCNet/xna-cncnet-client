@@ -11,7 +11,8 @@ It is **highly recommended** to make a complete backup of your game/mod before s
 The way the client is launched on Unix systems has changed.
 
 1. Add `[Settings]->UnixLauncherExe=YRLauncher.sh` (script file name can be anything)
-2. Create `YRLauncher.sh` in game directory:
+2. Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TS, YR, Ares)
+3. Create `YRLauncher.sh` in game directory:
 
 ```sh
 #!/bin/sh
@@ -20,7 +21,7 @@ cd "$(dirname "$0")"
 dotnet Resources/BinariesNET8/UniversalGL/clientogl.dll "$@"
 ```
 
-3. **OPTIONAL** Add these entries in `[Settings]` (fill with your required/forbidden mod files):
+4. **OPTIONAL** Add these entries in `[Settings]` (fill with your required/forbidden mod files):
 
 ```ini
 ; Comma-separated list of files required to run the game / mod that are not included in the installation.

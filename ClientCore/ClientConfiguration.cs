@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using ClientCore.I18N;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
@@ -21,6 +22,7 @@ namespace ClientCore
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
+        private const string NETWORK_DEFS_LOCAL = "NetworkDefinitions.local.ini";
         private const string NETWORK_DEFS = "NetworkDefinitions.ini";
 
         private static ClientConfiguration _instance;
@@ -48,7 +50,19 @@ namespace ClientCore
 
             gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
 
-            networkDefinitionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS));
+            string networkDefsPathLocal = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS_LOCAL);
+            if (File.Exists(networkDefsPathLocal))
+            {
+                networkDefinitionsIni = new IniFile(networkDefsPathLocal);
+                Logger.Log("Loaded network definitions from NetworkDefinitions.local.ini (user override)");
+            }
+            else
+            {
+                string networkDefsPath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS);
+                networkDefinitionsIni = new IniFile(networkDefsPath);
+            }
+
+            RefreshTranslationGameFiles();
         }
 
         /// <summary>
@@ -174,6 +188,8 @@ namespace ClientCore
 
         #region Client definitions
 
+        public ClientType ClientGameType => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", nameof(ClientType.TS)).ToEnum<ClientType>();
+
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
@@ -273,7 +289,15 @@ namespace ClientCore
 
         private List<TranslationGameFile> _translationGameFiles;
 
-        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles ??= ParseTranslationGameFiles();
+        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles;
+
+        /// <summary>
+        /// Force a refresh of the translation game files list.
+        /// </summary>
+        public void RefreshTranslationGameFiles()
+        {
+            _translationGameFiles = ParseTranslationGameFiles();
+        }
 
         /// <summary>
         /// Looks up the list of files to try and copy into the game folder with a translation.
@@ -331,7 +355,9 @@ namespace ClientCore
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
         public string SkillLevelOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "SkillLevelOptions", "Any,Beginner,Intermediate,Pro");
-
+        
+        public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
+        
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
@@ -374,6 +400,11 @@ namespace ClientCore
         /// </summary>
         public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
 
+        /// <summary>
+        /// The main map file extension that is read by the client.
+        /// </summary>
+        public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
+        
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"

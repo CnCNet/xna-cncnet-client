@@ -264,9 +264,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
 
-            for (int pId = 0; pId < Players.Count; pId++)
-                Players[pId].IsInGame = true;
-
             if (UserINISettings.Instance.StopGameLobbyMessageAudio)
                 sndMessageSound.Enabled = false;
 

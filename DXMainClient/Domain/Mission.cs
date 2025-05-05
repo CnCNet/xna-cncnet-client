@@ -1,5 +1,6 @@
 ﻿using System;
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 
@@ -27,11 +28,10 @@ namespace DTAClient.Domain
                 .L10N($"INI:Missions:{sectionName}:LongDescription");
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon),
-#if YR || ARES
-                true  // In case of YR this toggles Ra2Mode instead which should not be default
-#else
+               ClientConfiguration.Instance.ClientGameType == ClientType.YR ||
+               ClientConfiguration.Instance.ClientGameType == ClientType.Ares ?
+                true :  // In case of YR this toggles Ra2Mode instead which should not be default
                 false
-#endif
             );
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);
             BuildOffAlly = iniFile.GetBooleanValue(sectionName, nameof(BuildOffAlly), false);
