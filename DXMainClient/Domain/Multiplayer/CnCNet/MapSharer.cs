@@ -370,7 +370,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public static string GetMapFileName(string sha1, string mapName)
-            => $"{mapName.ToWin32FileName()}_{sha1}.{ClientConfiguration.Instance.MapFileExtension}";
+            => mapName.ToWin32FileName() + "_" + sha1;
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
