@@ -1884,9 +1884,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (loadedMap != null)
             {
                 message = String.Format(
-                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
+                    "The map for ID \"{0}\" is already loaded from \"{1}.{2}\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
                     sha1,
-                    loadedMap.Map.BaseFilePath);
+                    loadedMap.Map.BaseFilePath,
+                    ClientConfiguration.Instance.MapFileExtension);
                 AddNotice(message, Color.Yellow);
                 Logger.Log(message);
                 return;
