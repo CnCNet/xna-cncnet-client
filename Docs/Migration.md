@@ -47,3 +47,5 @@ Migrating from older versions
 - The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) changes the license to GPLv3. This means that if your client is a private fork, you must either stop releasing the modified client or provide the modified source code to public with GPLv3 license.
 
 - `BtnSaveLoadGameOptions` in game lobbies was renamed to `btnSaveLoadGameOptions` for consistency. See [this change](https://github.com/CnCNet/cncnet-ts-client-package/commit/2ac97c68978431e94e320299e0168119f75a849f) to TSC for an example of addressing this.
+
+- Since v2.12, the client has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify 'ClientGameType' in `[Settings]` section of the 'ClientDefinitions.ini' file, e.g., 'ClientGameType=Ares'.
