@@ -39,7 +39,6 @@
     <PackageReference Include="OpenMcdf" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
-    <PackageReference Include="MonoGame.Framework.Content.Pipeline" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
