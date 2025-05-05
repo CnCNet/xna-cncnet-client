@@ -16,7 +16,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotnetLibrariesVersion)" />
-    <PackageVersion Include="OpenMcdf" Version="2.2.1.12" />
+    <PackageVersion Include="OpenMcdf" Version="2.4.1" />
     <PackageVersion Include="Rampastring.Tools" Version="2.0.6" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsDX" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsGL" Version="$(RampastringXNAUIVersion)" />
