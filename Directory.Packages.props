@@ -30,6 +30,7 @@
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="$(DotnetLibrariesVersion)" />
+    <PackageVersion Include="MonoGame.Framework.Content.Pipeline" Version="3.8.0.1641" />
   </ItemGroup>
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
