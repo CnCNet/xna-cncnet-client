@@ -656,9 +656,13 @@ namespace DTAClient.DXGUI.Generic
 
         private void LoadThemeSong()
         {
+#if XNA
+            themeSong = null;
+#else
+
 #if GL
             string songExtension = "ogg";
-#else
+#elif DX
             string songExtension = "wma";
 #endif
 
@@ -670,6 +674,7 @@ namespace DTAClient.DXGUI.Generic
 
             Song song = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
             themeSong = song;
+#endif
         }
 
         private void RevertSwitchMainMenuMusicFormat()
