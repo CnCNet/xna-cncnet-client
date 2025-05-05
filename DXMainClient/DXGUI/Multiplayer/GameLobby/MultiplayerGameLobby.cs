@@ -264,6 +264,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
 
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = false;
+
             base.StartGame();
         }
 
@@ -276,6 +279,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             pInfo.IsInGame = false;
+
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = true;
 
             base.GameProcessExited();
 
