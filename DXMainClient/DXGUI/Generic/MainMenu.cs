@@ -657,7 +657,7 @@ namespace DTAClient.DXGUI.Generic
         private void LoadThemeSong()
         {
 #if XNA
-            themeSong = null;
+            themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 #else
 
 #if GL
