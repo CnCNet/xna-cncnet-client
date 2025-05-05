@@ -62,6 +62,8 @@
 
   <Target Name="RemoveUniversalGLMobileBinaries" Condition="'$(Engine)' == 'UniversalGL'">    
     <Message Importance="high" Text="Removing unnecessary UniversalGL files" />
+
+    <!-- Note: You might need to update folders here if the dependency `MonoGame.Framework.DesktopGL` (specifically, its dependency `MonoGame.Library.OpenAL` gets updated. -->
     <ItemGroup>
       <!-- https://stackoverflow.com/a/71699878 -->
       <_UniversalGLAndroidDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'android*', System.IO.SearchOption.TopDirectoryOnly))" />
