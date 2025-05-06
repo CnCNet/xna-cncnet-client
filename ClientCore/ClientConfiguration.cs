@@ -188,7 +188,9 @@ namespace ClientCore
 
         #region Client definitions
 
-        public ClientType ClientGameType => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", nameof(ClientType.TS)).ToEnum<ClientType>();
+        private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
+        private ClientType? _ClientGameType = null;
+        public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
