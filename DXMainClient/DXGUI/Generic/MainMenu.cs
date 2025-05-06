@@ -626,9 +626,9 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.AddAndInitializeControl(topBar);
             topBar.AddPrimarySwitchable(this);
 
-            SwitchMainMenuMusicFormat();
+            RevertSwitchMainMenuMusicFormat();
 
-            themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+            LoadThemeSong();
 
             PlayMusic();
 
@@ -654,31 +654,44 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
-        private void SwitchMainMenuMusicFormat()
+        private void LoadThemeSong()
         {
-#if GL || DX
-            FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
-                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
+#if XNA
+            themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+#else
 
-            if (!wmaMainMenuMusicFile.Exists)
+#if GL
+            string songExtension = "ogg";
+#elif DX
+            string songExtension = "wma";
+#endif
+
+            FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, 
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.{songExtension}"));
+
+            if (!mainMenuMusicFile.Exists)
                 return;
 
+            Song song = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
+            themeSong = song;
+#endif
+        }
+
+        private void RevertSwitchMainMenuMusicFormat()
+        {
             FileInfo wmaBackupMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.bak"));
 
-            if (!wmaBackupMainMenuMusicFile.Exists)
-                wmaMainMenuMusicFile.CopyTo(wmaBackupMainMenuMusicFile.FullName);
+            if (wmaBackupMainMenuMusicFile.Exists)
+            {
+                FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
 
-#endif
-#if DX
-            wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
-#elif GL
-            FileInfo oggMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
-                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.ogg"));
+                if (wmaMainMenuMusicFile.Exists)
+                    wmaMainMenuMusicFile.Delete();
 
-            if (oggMainMenuMusicFile.Exists)
-                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
-#endif
+                wmaBackupMainMenuMusicFile.MoveTo(wmaMainMenuMusicFile.FullName);
+            }
         }
 
         #region Updating / versioning system
