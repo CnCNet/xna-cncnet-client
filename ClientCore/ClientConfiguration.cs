@@ -360,6 +360,9 @@ namespace ClientCore
         
         public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
         
+
+        public bool CampaignTagSelectorEnabled => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CampaignTagSelectorEnabled", false);
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
@@ -490,6 +493,11 @@ namespace ClientCore
         }
 
         public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
+        
+        public string CustomMissionPath => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPath", "Maps/CustomMissions");
+        public string CustomMissionCsfName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionCsfName", "stringtable99.csf");
+        public string CustomMissionPalName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPalName", "custommission.pal");
+        public string CustomMissionShpName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionShpName", "custommission.shp");
 
         public OSVersion GetOperatingSystemVersion()
         {
