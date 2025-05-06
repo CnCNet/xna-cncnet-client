@@ -25,7 +25,7 @@
   </Target>
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
-    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries;RemoveGLMobileBinaries" />
+    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
     <CallTarget Targets="MoveCommonBinaries;MoveClientExes;MoveUpdater" Condition="'$(NoMove)' != 'true'" />
   </Target>
 
@@ -58,20 +58,6 @@
     <Message Importance="high" Text="Removing unnecessary WindowsGL files" />
     <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
-  </Target>
-
-  <Target Name="RemoveGLMobileBinaries" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And ('$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL')">
-    <Message Importance="high" Text="Removing unnecessary GL files" />
-
-    <!-- Note: You might need to update folders here if the dependency `MonoGame.Framework.DesktopGL` (specifically, its dependency `MonoGame.Library.OpenAL` gets updated. -->
-    <ItemGroup>
-      <!-- https://stackoverflow.com/a/71699878 -->
-      <_GLAndroidDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'android*', System.IO.SearchOption.TopDirectoryOnly))" />
-      <_GLIosDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'ios*', System.IO.SearchOption.TopDirectoryOnly))" />
-    </ItemGroup>
-
-    <RemoveDir Directories="@(_GLAndroidDirectories)" />    
-    <RemoveDir Directories="@(_GLIosDirectories)" />
   </Target>
 
   <!-- IMPORTANT: You SHOULD NOT modify the logic here if you don't have to. -->
