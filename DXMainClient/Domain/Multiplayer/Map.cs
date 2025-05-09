@@ -15,6 +15,7 @@ using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
 using System.Diagnostics;
+using System.Text;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -711,11 +712,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            var mapIni = new IniFile(CompleteFilePath);
+            Encoding encoding = FileHelper.GetEncoding(CompleteFilePath);
+
+            var mapIni = new IniFile(CompleteFilePath, encoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame));
+                string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
+                encoding = FileHelper.GetEncoding(extraIniPath);
+                var extraIni = new IniFile(extraIniPath, encoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 

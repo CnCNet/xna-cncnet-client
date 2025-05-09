@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
+
 #if !NETFRAMEWORK
 using System.Runtime.Loader;
 #endif
@@ -100,6 +102,9 @@ namespace DTAClient
 #endif
         static void Main(string[] args)
         {
+            // https://stackoverflow.com/questions/3967716/how-to-find-encoding-for-1251-codepage
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             InitializeApplicationConfiguration();
 
             bool noAudio = false;
