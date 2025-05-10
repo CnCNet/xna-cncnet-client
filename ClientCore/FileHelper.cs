@@ -93,7 +93,7 @@ namespace ClientCore
 
         public static Encoding GetEncoding(string filename)
         {
-            Encoding encoding = Encoding.UTF8;
+            Encoding encoding = new UTF8Encoding(false);
 
             using (FileStream fs = File.OpenRead(filename))
             {

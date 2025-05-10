@@ -719,7 +719,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!string.IsNullOrEmpty(ExtraININame))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
-                encoding = FileHelper.GetEncoding(extraIniPath);
+                encoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
                 var extraIni = new IniFile(extraIniPath, encoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
