@@ -16,22 +16,13 @@
 
   <PropertyGroup>
     <Configurations>
-      AresWindowsDXDebug;AresUniversalGLDebug;AresWindowsGLDebug;AresWindowsXNADebug;
-      AresWindowsDXRelease;AresUniversalGLRelease;AresWindowsGLRelease;AresWindowsXNARelease;
-      TSWindowsDXDebug;TSUniversalGLDebug;TSWindowsGLDebug;TSWindowsXNADebug;
-      TSWindowsDXRelease;TSUniversalGLRelease;TSWindowsGLRelease;TSWindowsXNARelease;
-      YRWindowsDXDebug;YRUniversalGLDebug;YRWindowsGLDebug;YRWindowsXNADebug;
-      YRWindowsDXRelease;YRUniversalGLRelease;YRWindowsGLRelease;YRWindowsXNARelease
+      UniversalGLDebug;WindowsDXDebug;WindowsGLDebug;WindowsXNADebug;
+      UniversalGLRelease;WindowsDXRelease;WindowsGLRelease;WindowsXNARelease
     </Configurations>
   </PropertyGroup>
 
   <!-- For Internal Logic -->
   <PropertyGroup>
-    <!-- Game -->
-    <Game Condition="$(Configuration.Contains(Ares))">Ares</Game>
-    <Game Condition="$(Configuration.Contains(TS))">TS</Game>
-    <Game Condition="$(Configuration.Contains(YR))">YR</Game>
-
     <!-- Rendering Engine -->
     <Engine Condition="$(Configuration.Contains(WindowsDX))">WindowsDX</Engine>
     <Engine Condition="$(Configuration.Contains(UniversalGL))">UniversalGL</Engine>
@@ -71,18 +62,13 @@
     <DefineConstants Condition="$(Engine.Contains('XNA'))">$(DefineConstants);XNA</DefineConstants>
     <DefineConstants Condition="$(Engine.Contains('Windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(UseWindowsForms)' == 'true'">$(DefineConstants);WINFORMS</DefineConstants>
-
-    <!-- Games-->
-    <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>
-    <DefineConstants Condition="'$(Game)' == 'TS'">$(DefineConstants);TS</DefineConstants>
-    <DefineConstants Condition="'$(Game)' == 'YR'">$(DefineConstants);YR</DefineConstants>
   </PropertyGroup>
 
   <!-- Output Path Hack -->
   <PropertyGroup>
     <ClientConfiguration Condition="$(Configuration.Contains(Debug))">Debug</ClientConfiguration>
     <ClientConfiguration Condition="$(Configuration.Contains(Release))">Release</ClientConfiguration>
-    <OutputPathSuffix>$(ClientConfiguration)\$(Game)\$(Engine)\</OutputPathSuffix>
+    <OutputPathSuffix>$(ClientConfiguration)\$(Engine)\</OutputPathSuffix>
     <OutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseOutputPath)bin\$(OutputPathSuffix)</OutputPath>
     <IntermediateOutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(OutputPathSuffix)</IntermediateOutputPath>
     <ArtifactsPivots>$(OutputPathSuffix)$(TargetFramework)</ArtifactsPivots>
@@ -94,7 +80,7 @@
   </PropertyGroup>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Directory.props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.props')" />
 
   <ItemGroup>
     <CompilerVisibleProperty Include="RootNamespace" />

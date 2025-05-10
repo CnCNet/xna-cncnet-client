@@ -90,5 +90,21 @@ namespace ClientCore
                 throw new PlatformNotSupportedException();
             }
         }
+
+        public static Encoding GetEncoding(string filename)
+        {
+            Encoding encoding = new UTF8Encoding(false);
+
+            using (FileStream fs = File.OpenRead(filename))
+            {
+                Ude.CharsetDetector cdet = new Ude.CharsetDetector();
+                cdet.Feed(fs);
+                cdet.DataEnd();
+                if (cdet.Charset != null)
+                    encoding = Encoding.GetEncoding(cdet.Charset);
+            }
+
+            return encoding;
+        }
     }
 }

@@ -952,6 +952,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
+
+            isJoiningGame = false;
         }
 
         private void GameChannel_TargetChangeTooFast(object sender, MessageEventArgs e)
@@ -1299,6 +1301,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (isInGameRoom)
                 {
                     gameLobby.LeaveGameLobby();
+                    gameLoadingLobby.Clear();
                 }
 
                 // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist

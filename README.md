@@ -43,8 +43,11 @@ When using the included build scripts PowerShell 7.2 or newer is required.[^inst
 <details>
   <summary>Development workarounds</summary>
 
-* If you switch among different solution configurations in Visual Studio (e.g. switch to `TSUniversalGLRelease` from `AresWindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is highly advised to close Visual Studio when building the client using the scripts in `Scripts` folder.
+* If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is highly advised to close Visual Studio when building the client using the scripts in `Scripts` folder.
 * Some dependencies are stored in `References` folder instead of the official NuGet source. This folder is also useful if you are working on modifying a dependency and debugging in your local machine without publishing the modification to NuGet. However, if you have replaced the `.(s)nupkg` files of a package, without altering the package version, be sure to remove the corresponding package from `%USERPROFILE%\.nuget\packages` folder (Windows) to purge the old version. 
+
+Refer to [Docs/Build.md](https://github.com/CnCNet/xna-cncnet-client/blob/develop/Docs/Build.md) for more information about building the client.
+
 </details>
 
 ## End-user usage
@@ -104,7 +107,7 @@ Currently there are only two major active branches. `develop` is where developme
 ## License
 
 CnCNet Client
-Copyright (C) 2022-2024 CnCNet, Rampastring
+Copyright (C) 2013-2025 CnCNet, Rampastring
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -119,6 +122,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+### Additional permission under GNU GPL version 3 section 7
+
+If you modify this program, or any covered work, by linking or combining it with the Steamworks SDK (or a modified version of that library), containing parts covered by the terms of the Steamworks SDK's license, the licensors of this program grant you additional permission to convey the resulting work.
 
 Sponsored by
 ------------
