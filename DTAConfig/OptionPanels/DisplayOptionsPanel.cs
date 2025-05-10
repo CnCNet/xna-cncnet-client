@@ -874,23 +874,26 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
-            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL && ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
-                string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
-
-                FileInfo fileInfo = SafePath.GetFile(languageDllDestinationPath);
-                if (fileInfo.Exists)
+                if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL)
                 {
-                    fileInfo.IsReadOnly = false;
-                    fileInfo.Delete();
-                }
+                    string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 
-                if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
-                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);
-                else if (ingameRes.Width >= 800 && ingameRes.Height >= 600)
-                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), languageDllDestinationPath);
-                else
-                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
+                    FileInfo fileInfo = SafePath.GetFile(languageDllDestinationPath);
+                    if (fileInfo.Exists)
+                    {
+                        fileInfo.IsReadOnly = false;
+                        fileInfo.Delete();
+                    }
+
+                    if (ingameRes.Width >= 1024 && ingameRes.Height >= 720)
+                        File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);
+                    else if (ingameRes.Width >= 800 && ingameRes.Height >= 600)
+                        File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), languageDllDestinationPath);
+                    else
+                        File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
+                }
             }
 
             return restartRequired;
