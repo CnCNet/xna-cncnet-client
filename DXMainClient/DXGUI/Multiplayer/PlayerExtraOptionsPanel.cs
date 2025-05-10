@@ -18,6 +18,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int teamMappingPanelWidth = 50;
         private const int teamMappingPanelHeight = 22;
         private readonly string customPresetName = "Custom".L10N("Client:Main:CustomPresetName");
+        private readonly string gameModeForcedPresetName = "Mode Preset".L10N("Client:Main:GameModeForcedPresetName");
 
         private XNAClientCheckBox chkBoxForceRandomSides;
         private XNAClientCheckBox chkBoxForceRandomTeams;
@@ -32,7 +33,9 @@ namespace DTAClient.DXGUI.Multiplayer
         public EventHandler OptionsChanged;
         public EventHandler OnClose;
 
-        private Map _map;
+        private GameModeMap _gameModeMap;
+        private Map _map => _gameModeMap?.Map;
+        private GameMode _gameMode => _gameModeMap?.GameMode;
 
         public PlayerExtraOptionsPanel(WindowManager windowManager) : base(windowManager)
         {
@@ -57,9 +60,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void ChkBoxUseTeamStartMappings_Changed(object sender, EventArgs e)
         {
+            bool gameModeForceTeamStartMappings = _gameMode?.ForceTeamStartMappings ?? false;
+
             RefreshTeamStartMappingsPanel();
             chkBoxForceRandomTeams.Checked = chkBoxForceRandomTeams.Checked || chkBoxUseTeamStartMappings.Checked;
-            chkBoxForceRandomTeams.AllowChecking = !chkBoxUseTeamStartMappings.Checked;
+            chkBoxForceRandomTeams.AllowChecking = !chkBoxUseTeamStartMappings.Checked && !gameModeForceTeamStartMappings;
 
             // chkBoxForceRandomStarts.Checked = chkBoxForceRandomStarts.Checked || chkBoxUseTeamStartMappings.Checked;
             // chkBoxForceRandomStarts.AllowChecking = !chkBoxUseTeamStartMappings.Checked;
@@ -106,6 +111,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void RefreshTeamStartMappingPanels()
         {
+            bool gameModeForceTeamStartMappings = _gameMode?.ForceTeamStartMappings ?? false;
+
             ClearTeamStartMappingSelections();
             var teamStartMappingPanels = teamStartMappingsPanel.GetTeamStartMappingPanels();
             for (int i = 0; i < teamStartMappingPanels.Count; i++)
@@ -115,9 +122,32 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (!IsUseTeamStartMappings())
                     continue;
 
-                teamStartMappingPanel.EnableControls(_isHost && chkBoxUseTeamStartMappings.Checked && i < _map?.MaxPlayers);
-                RefreshTeamStartMappingPresets(_map?.TeamStartMappingPresets);
+                teamStartMappingPanel.EnableControls(_isHost && chkBoxUseTeamStartMappings.Checked && !gameModeForceTeamStartMappings && i < _map?.MaxPlayers);
             }
+
+            // Note: originally in commit 4cf9b33b03795eb51e445b4907927cb69d82c4bc, RefreshTeamStartMappingPresets() was called in each for loop iteration
+            // This is changed to call it only once after the loop.
+            RefreshTeamStartMappingPresets();
+        }
+
+        private void RefreshTeamStartMappingPresets()
+        {
+            if (_gameMode?.ForceTeamStartMappings ?? false)
+                RefreshTeamStartMappingPresets_Forced(_gameMode.TeamStartMappings);
+            else
+                RefreshTeamStartMappingPresets(_map?.TeamStartMappingPresets);
+        }
+
+        private void RefreshTeamStartMappingPresets_Forced(List<TeamStartMapping> teamStartMappings)
+        {
+            ddTeamStartMappingPreset.Items.Clear();
+            ddTeamStartMappingPreset.AddItem(new XNADropDownItem
+            {
+                Text = gameModeForcedPresetName,
+                Tag = teamStartMappings,
+            });
+            ddTeamStartMappingPreset.SelectedIndex = 0;
+            DdTeamMappingPreset_SelectedIndexChanged();
         }
 
         private void RefreshTeamStartMappingPresets(List<TeamStartMappingPreset> teamStartMappingPresets)
@@ -140,7 +170,8 @@ namespace DTAClient.DXGUI.Multiplayer
             ddTeamStartMappingPreset.SelectedIndex = 1;
         }
 
-        private void DdTeamMappingPreset_SelectedIndexChanged(object sender, EventArgs e)
+        private void DdTeamMappingPreset_SelectedIndexChanged(object sender, EventArgs e) => DdTeamMappingPreset_SelectedIndexChanged();
+        private void DdTeamMappingPreset_SelectedIndexChanged()
         {
             var selectedItem = ddTeamStartMappingPreset.SelectedItem;
             if (selectedItem?.Text == customPresetName)
@@ -153,7 +184,12 @@ namespace DTAClient.DXGUI.Multiplayer
             ignoreMappingChanges = false;
         }
 
-        private void RefreshPresetDropdown() => ddTeamStartMappingPreset.AllowDropDown = _isHost && chkBoxUseTeamStartMappings.Checked;
+        private void RefreshPresetDropdown()
+        {
+            bool gameModeForceTeamStartMappings = _gameMode?.ForceTeamStartMappings ?? false;
+
+            ddTeamStartMappingPreset.AllowDropDown = _isHost && chkBoxUseTeamStartMappings.Checked && !gameModeForceTeamStartMappings;
+        }
 
         public override void Initialize()
         {
@@ -257,12 +293,29 @@ namespace DTAClient.DXGUI.Multiplayer
             );
         }
 
-        public void UpdateForMap(Map map)
+        public void UpdateForMap(GameModeMap gameModeMap)
         {
-            if (_map == map)
+            if (_gameModeMap == gameModeMap)
                 return;
 
-            _map = map;
+            var lastGameModeMap = _gameModeMap;
+            _gameModeMap = gameModeMap;
+
+            if (lastGameModeMap?.GameMode?.ForceTeamStartMappings ?? false)
+            {
+                // Clear player extra options if the last game mode forced them
+                SetPlayerExtraOptions(new PlayerExtraOptions());
+            }
+
+            if (_gameMode?.ForceTeamStartMappings ?? false)
+            {
+                chkBoxUseTeamStartMappings.Checked = true;
+                chkBoxUseTeamStartMappings.AllowChecking = false;
+            }
+            else
+            {
+                chkBoxUseTeamStartMappings.AllowChecking = true;
+            }
 
             RefreshTeamStartMappingPanels();
         }
