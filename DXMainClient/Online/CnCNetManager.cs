@@ -323,46 +323,27 @@ namespace DTAClient.Online
                 return;
 
             Color foreColor;
-
-            // Handle ACTION
-            if (message.Contains("ACTION"))
+            // Color parsing
+            if (message.Contains(Convert.ToString((char)03)))
             {
-                message = message.Remove(0, 7);
-                message = "====> " + senderName + " " + message;
-                senderName = String.Empty;
-
-                // Replace Funky's game identifiers with real game names
-                for (int i = 0; i < gameCollection.GameList.Count; i++)
-                    // TODO localize this or not?
-                    message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
-                        "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
-
-                foreColor = Color.White;
-            }
-            else
-            {
-                // Color parsing
-                if (message.Contains(Convert.ToString((char)03)))
+                if (message.Length < 3)
                 {
-                    if (message.Length < 3)
-                    {
-                        foreColor = cDefaultChatColor;
-                    }
-                    else
-                    {
-                        string colorString = message.Substring(1, 2);
-                        message = message.Remove(0, 3);
-                        int colorIndex = Conversions.IntFromString(colorString, -1);
-                        // Try to parse message color info; if fails, use default color
-                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
-                            foreColor = ircChatColors[colorIndex].XnaColor;
-                        else
-                            foreColor = cDefaultChatColor;
-                    }
+                    foreColor = cDefaultChatColor;
                 }
                 else
-                    foreColor = cDefaultChatColor;
+                {
+                    string colorString = message.Substring(1, 2);
+                    message = message.Remove(0, 3);
+                    int colorIndex = Conversions.IntFromString(colorString, -1);
+                    // Try to parse message color info; if fails, use default color
+                    if (colorIndex < ircChatColors.Length && colorIndex > -1)
+                        foreColor = ircChatColors[colorIndex].XnaColor;
+                    else
+                        foreColor = cDefaultChatColor;
+                }
             }
+            else
+                foreColor = cDefaultChatColor;
 
             if (message.Length > 1 && message[message.Length - 1] == '\u001f')
                 message = message.Remove(message.Length - 1);
