@@ -17,6 +17,8 @@ Migrating from older versions
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
 
+- Due to the unification of client builds, it is now required to define client behavior depending on the game using the `ClientGameType` key in the `ClientDefinitions.ini` file in the `Settings` section.
+
 - The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
 
 - The MonoGame MCGB editor will convert the MainMenuTheme to `MainMenuTheme.wma` when publishing for MonoGame WindowsDX. MonoGame DesktopGL only supports the `*.ogg` format. To ensure the MainMenuTheme is available on both the WindowsDX & DesktopGL client versions you need to manually convert and add the missing ogg format file to each theme. Each theme should then contain both `MainMenuTheme.wma` and `MainMenuTheme.ogg` files. The client will then switch out the correct MainMenuTheme format at runtime.
@@ -45,3 +47,5 @@ Migrating from older versions
 - The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) changes the license to GPLv3. This means that if your client is a private fork, you must either stop releasing the modified client or provide the modified source code to public with GPLv3 license.
 
 - `BtnSaveLoadGameOptions` in game lobbies was renamed to `btnSaveLoadGameOptions` for consistency. See [this change](https://github.com/CnCNet/cncnet-ts-client-package/commit/2ac97c68978431e94e320299e0168119f75a849f) to TSC for an example of addressing this.
+
+- Since v2.12, the client has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify 'ClientGameType' in `[Settings]` section of the 'ClientDefinitions.ini' file, e.g., 'ClientGameType=Ares'.

@@ -31,6 +31,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
+        XNAClientCheckBox chkSteamIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
 
@@ -160,6 +161,16 @@ namespace DTAConfig.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
+
+
+            chkSteamIntegration = new XNAClientCheckBox(WindowManager);
+            chkSteamIntegration.Name = nameof(chkSteamIntegration);
+            chkSteamIntegration.ClientRectangle = new Rectangle(
+                chkAllowGameInvitesFromFriendsOnly.X,
+                chkAllowGameInvitesFromFriendsOnly.Bottom + 12, 0, 0);
+            chkSteamIntegration.Text = "Show the game being played in Steam".L10N("Client:DTAConfig:SteamStatus");
+
+            AddChild(chkSteamIntegration);
         }
 
         private void InitAllowPrivateMessagesFromDropdown()
@@ -316,6 +327,7 @@ namespace DTAConfig.OptionPanels
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
+            chkSteamIntegration.Checked = IniSettings.SteamIntegration;
 
             chkDiscordIntegration.Checked = !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled
                 && IniSettings.DiscordIntegration;
@@ -351,6 +363,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
+            IniSettings.SteamIntegration.Value = chkSteamIntegration.Checked;
 
             if (!ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {

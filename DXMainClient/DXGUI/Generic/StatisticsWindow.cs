@@ -79,6 +79,8 @@ namespace DTAClient.DXGUI.Generic
 
         private List<MultiplayerColor> mpColors;
 
+        private bool initialized = false;
+
         public override void Initialize()
         {
             sm = StatisticsManager.Instance;
@@ -94,6 +96,7 @@ namespace DTAClient.DXGUI.Generic
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
             ClientRectangle = new Rectangle(0, 0, 700, 521);
+            VisibleChanged += StatisticsWindow_VisibleChanged;
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
@@ -415,9 +418,15 @@ namespace DTAClient.DXGUI.Generic
 
             ReadStatistics();
             ListGameModes();
-            ListGames();
 
             StatisticsManager.Instance.GameAdded += Instance_GameAdded;
+
+            initialized = true;
+        }
+
+        private void StatisticsWindow_VisibleChanged(object sender, EventArgs e)
+        {
+            ListGames();
         }
 
         private void Instance_GameAdded(object sender, EventArgs e)
@@ -613,6 +622,9 @@ namespace DTAClient.DXGUI.Generic
 
         private void ListGames()
         {
+            if (!Visible || !initialized)
+                return;
+
             lbGameList.SelectedIndex = -1;
             lbGameList.SetTopIndex(0);
 
@@ -1009,9 +1021,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
-            // To hide the control, just set Enabled=false
-            // and MainMenuDarkeningPanel will deal with the rest
-            Enabled = false;
+            Disable();
         }
 
         private void BtnClearStatistics_LeftClick(object sender, EventArgs e)

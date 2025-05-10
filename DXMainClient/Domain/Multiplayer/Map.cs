@@ -15,6 +15,7 @@ using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
 using System.Diagnostics;
+using System.Text;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -49,9 +50,11 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map(string baseFilePath, bool isCustomMap)
         {
+            Debug.Assert(!baseFilePath.EndsWith(ClientConfiguration.Instance.MapFileExtension, StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {baseFilePath}. It should not end with the map extension.");
+
             BaseFilePath = baseFilePath;
             customMapFilePath = isCustomMap
-                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}{MapLoader.MAP_FILE_EXTENSION}"))
+                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}.{ClientConfiguration.Instance.MapFileExtension}"))
                 : null;
             Official = string.IsNullOrWhiteSpace(customMapFilePath);
         }
@@ -136,7 +139,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Includes the game directory in the path.
         /// </summary>
         [JsonIgnore]
-        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
+        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}.{ClientConfiguration.Instance.MapFileExtension}"));
 
         /// <summary>
         /// The file name of the preview image.
@@ -709,11 +712,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            var mapIni = new IniFile(CompleteFilePath);
+            Encoding encoding = FileHelper.GetEncoding(CompleteFilePath);
+
+            var mapIni = new IniFile(CompleteFilePath, encoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame));
+                string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
+                encoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
+                var extraIni = new IniFile(extraIniPath, encoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 
