@@ -39,7 +39,7 @@
   </ItemGroup>
   <!-- Polyfill -->
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-    <GlobalPackageReference Include="Polyfill" Version="6.14.0" />
+    <GlobalPackageReference Include="Polyfill" Version="2.2.0" />
     <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Memory" Condition="$(TargetFrameworkIdentifier) == '.NETStandard' or $(TargetFrameworkIdentifier) == '.NETFramework' or $(TargetFramework.StartsWith('netcoreapp2'))" />
