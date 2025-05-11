@@ -38,7 +38,7 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <!-- Polyfill on .NET 4.8 (SecondStageUpdater excluded) -->
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater' And $(TargetFrameworkIdentifier) == '.NETFramework'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' And $(TargetFrameworkIdentifier) == '.NETFramework'">
     <GlobalPackageReference Include="Polyfill" Version="2.2.0" />
     <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
