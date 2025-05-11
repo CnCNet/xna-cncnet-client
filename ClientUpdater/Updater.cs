@@ -1351,6 +1351,8 @@ public static class Updater
                             }
 
                             // copy SecondStageUpdater dependencies
+                            // warning: for unknown reasons, `System.Runtime.CompilerServices.Unsafe.dll` file is not listed here.
+                            // Therefore, Polyfill (requiring this dll file) is turned off in the second-stage updater.
                             AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterExecutable.FullName).GetReferencedAssemblies();
 
                             foreach (AssemblyName assembly in assemblies)
