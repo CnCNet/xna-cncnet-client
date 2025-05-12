@@ -210,7 +210,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 throw new Exception(string.Format(("It seems the client configuration was not migrated to accommodate " +
                                                    "for the 'Tiberian Sun Client v6 Changes'.\n\n" +
-                                                   "Please refer to {0} for more details. The full link can be found in the log file.\n\n" +
+                                                   "Please refer to {0} for more details. This link can also be found in the log file.\n\n" +
                                                    "Error message: {1}").L10N("Client:Main:NotMigratedClientException"),
                                                    "https://github.com/CnCNet/xna-cncnet-client/blob/888d3f025dd689d3e407de8f606bd1769296d6e0/Docs/Migration-INI.md",
                                                    ex.Message));
