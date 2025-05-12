@@ -1,11 +1,12 @@
 ﻿
 namespace ClientCore.Enums
 {
-    public enum Rank
+    // Used class instead of Enum to reduce (int) calls.
+    public static class Rank
     {
-        None = 0,
-        Easy = 1,
-        Medium = 2,
-        Hard = 3,
+        public const int None = 0;
+        public const int Easy = 1;
+        public const int Medium = 2;
+        public const int Hard = 3;
     }
 }
