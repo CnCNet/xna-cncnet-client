@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text;
 
 namespace ClientCore.Extensions
 {
@@ -14,6 +16,15 @@ namespace ClientCore.Extensions
         public static T First<T>(this T src) where T : Enum
         {
             return GetValues(src)[0];
+        }
+
+        public static string GetNames<T>(this T src) where T : Enum
+        {
+            StringBuilder sb = new StringBuilder();
+
+            GetValues(src).ToList().ForEach(elem => sb.Append(elem.ToString()).Append(", "));
+
+            return sb.Remove(sb.Length - 2, 2).ToString();
         }
 
         private static T[] GetValues<T>(T src) where T : Enum
