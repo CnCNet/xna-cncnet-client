@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.CnCNet5;
@@ -41,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
         private readonly CnCNetManager cncnetManager;
         private readonly IServiceProvider serviceProvider;
 
-        private string[] randomTextures;
+        private List<string> randomTextures;
 
         public override void Initialize()
         {
@@ -74,12 +76,30 @@ namespace DTAClient.DXGUI.Generic
         {
             base.GetINIAttributes(iniFile);
 
-            string tmp = iniFile.GetStringValue(Name, "RandomTextures", string.Empty).Trim();
+            string value = iniFile.GetStringValue(Name, "RandomTextures", string.Empty).Trim();
 
-            randomTextures = tmp == string.Empty ? null : tmp.Split(',');
+            randomTextures = value == string.Empty ? null : value.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            
+            int len = randomTextures.Count;
 
-            if (randomTextures != null)
-                BackgroundTexture = AssetLoader.LoadTexture(randomTextures[new Random().Next(randomTextures.Length)]);
+            for (int i = 0; i < len; i++)
+            {
+                randomTextures[i] = randomTextures[i].Trim();
+                if (randomTextures[i] == string.Empty)
+                {
+                    randomTextures.RemoveAt(i);
+                    len -= 1;
+                }
+            }
+
+            if (randomTextures == null)
+                return;
+
+            if (randomTextures.Count == 0)
+                return;
+
+            BackgroundTexture = AssetLoader.LoadTexture(randomTextures[new Random().Next(randomTextures.Count)]);
+
         }
 
         private void InitUpdater()
