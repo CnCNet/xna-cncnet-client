@@ -78,7 +78,7 @@ namespace DTAClient.DXGUI.Generic
         {
             base.GetINIAttributes(iniFile);
 
-            randomTextures = iniFile.GetSection(Name).GetListValue("RandomTextures", ',', s => s.Trim());
+            randomTextures = iniFile.GetSection(Name).GetListValue("RandomTextures", ',', s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList();
 
             if (randomTextures.Count == 0)
                 return;
