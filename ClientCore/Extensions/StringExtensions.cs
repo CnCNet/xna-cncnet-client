@@ -113,7 +113,4 @@ public static class StringExtensions
   
     public static T ToEnum<T>(this string value) where T : Enum 
         => (T)Enum.Parse(typeof(T), value, true);
-
-    public static bool IsNullOrEmpty(this string value)
-        => value == null ? true : value == string.Empty;
 }
