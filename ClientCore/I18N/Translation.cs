@@ -176,7 +176,12 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
+        {
             result = new CultureInfo(localeCode).DisplayName;
+
+            // Make first letter in uppercase for .NET 8
+            result = result[0].ToString().ToUpperInvariant() + result.Remove(0, 1);
+        }
 
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;
