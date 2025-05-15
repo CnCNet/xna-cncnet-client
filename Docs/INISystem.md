@@ -493,7 +493,7 @@ $Height=100
 $Height=MY_HEIGHT_CONSTANT
 ```
 
-## Window properties
+## Window Properties
 
 Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAWindow.cs) that define their own properties.
 
