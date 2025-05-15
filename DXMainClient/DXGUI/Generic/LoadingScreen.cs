@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Extensions;
+
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
@@ -78,19 +80,7 @@ namespace DTAClient.DXGUI.Generic
 
             string value = iniFile.GetStringValue(Name, "RandomTextures", string.Empty).Trim();
 
-            randomTextures = value == string.Empty ? null : value.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-            
-            int len = randomTextures.Count;
-
-            for (int i = 0; i < len; i++)
-            {
-                randomTextures[i] = randomTextures[i].Trim();
-                if (randomTextures[i] == string.Empty)
-                {
-                    randomTextures.RemoveAt(i);
-                    len -= 1;
-                }
-            }
+            randomTextures = value == string.Empty ? null : value.Split(',').Select(s => s.Trim()).Where(s => s.IsNullOrEmpty()).ToList();
 
             if (randomTextures == null)
                 return;
@@ -99,7 +89,6 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             BackgroundTexture = AssetLoader.LoadTexture(randomTextures[new Random().Next(randomTextures.Count)]);
-
         }
 
         private void InitUpdater()
