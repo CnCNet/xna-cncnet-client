@@ -26,6 +26,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : INItializableWindow
     {
+        protected enum Rank
+        {
+            None = 0,
+            Easy = 1,
+            Medium = 2,
+            Hard = 3,
+        }
+
         protected const int MAX_PLAYER_COUNT = 8;
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
@@ -36,11 +44,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected readonly string BTN_LAUNCH_NOT_READY = "Not Ready".L10N("Client:Main:ButtonNotReady");
 
         private readonly string FavoriteMapsLabel = "Favorite Maps".L10N("Client:Main:FavoriteMaps");
-
-        private const int RANK_NONE = 0;
-        private const int RANK_EASY = 1;
-        private const int RANK_MEDIUM = 2;
-        private const int RANK_HARD = 3;
 
         /// <summary>
         /// Creates a new instance of the game lobby base.
@@ -450,7 +453,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             CheckDisallowedSides();
 
-            btnLaunchGame.SetRank(GetRank());
+            btnLaunchGame.SetRank((int)GetRank());
         }
 
         protected void DdGameModeMapFilter_SelectedIndexChanged(object sender, EventArgs e)
@@ -1964,7 +1967,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
-            btnLaunchGame.SetRank(GetRank());
+            btnLaunchGame.SetRank((int)GetRank());
 
             if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
                 UpdateDiscordPresence();
@@ -2344,27 +2347,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return GameType.TeamGame;
         }
 
-        protected int GetRank()
+        protected Rank GetRank()
         {
             if (GameMode == null || Map == null)
-                return RANK_NONE;
+                return Rank.None;
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
                 if ((checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && checkBox.Checked) ||
                     (checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenUnchecked && !checkBox.Checked))
                 {
-                    return RANK_NONE;
+                    return Rank.None;
                 }
             }
 
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
 
             if (localPlayer == null)
-                return RANK_NONE;
+                return Rank.None;
 
             if (IsPlayerSpectator(localPlayer))
-                return RANK_NONE;
+                return Rank.None;
 
             // These variables are used by both the skirmish and multiplayer code paths
             int[] teamMemberCounts = new int[5];
@@ -2390,7 +2393,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (isMultiplayer)
             {
                 if (Players.Count == 1)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 // PvP stars for 2-player and 3-player maps
                 if (Map.MaxPlayers <= 3)
@@ -2398,42 +2401,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     List<PlayerInfo> filteredPlayers = Players.Where(p => !IsPlayerSpectator(p)).ToList();
 
                     if (AIPlayers.Count > 0)
-                        return RANK_NONE;
+                        return Rank.None;
 
                     if (filteredPlayers.Count != Map.MaxPlayers)
-                        return RANK_NONE;
+                        return Rank.None;
 
                     int localTeamIndex = localPlayer.TeamId;
                     if (localTeamIndex > 0 && filteredPlayers.Count(p => p.TeamId == localTeamIndex) > 1)
-                        return RANK_NONE;
+                        return Rank.None;
 
-                    return RANK_HARD;
+                    return Rank.Hard;
                 }
 
                 // Coop stars for maps with 4 or more players
                 // See the code in StatisticsManager.GetRankForCoopMatch for the conditions
 
                 if (Players.Find(p => IsPlayerSpectator(p)) != null)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 if (AIPlayers.Count == 0)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 if (Players.Find(p => p.TeamId != localPlayer.TeamId) != null)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 if (Players.Find(p => p.TeamId == 0) != null)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 if (AIPlayers.Find(p => p.TeamId == 0) != null)
-                    return RANK_NONE;
+                    return Rank.None;
 
                 teamMemberCounts[localPlayer.TeamId] += Players.Count;
 
                 if (lowestEnemyAILevel < highestAllyAILevel)
                 {
                     // Check that the player's AI allies aren't stronger
-                    return RANK_NONE;
+                    return Rank.None;
                 }
 
                 // Check that all teams have at least as many players
@@ -2448,11 +2451,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (teamMemberCounts[i] > 0)
                     {
                         if (teamMemberCounts[i] < allyCount)
-                            return RANK_NONE;
+                            return Rank.None;
                     }
                 }
 
-                return lowestEnemyAILevel + 1;
+                return (Rank)(lowestEnemyAILevel + 1);
             }
 
             // *********
@@ -2460,14 +2463,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // *********
 
             if (AIPlayers.Count != Map.MaxPlayers - 1)
-                return RANK_NONE;
+                return Rank.None;
 
             teamMemberCounts[localPlayer.TeamId]++;
 
             if (lowestEnemyAILevel < highestAllyAILevel)
             {
                 // Check that the player's AI allies aren't stronger
-                return RANK_NONE;
+                return Rank.None;
             }
 
             if (localPlayer.TeamId > 0)
@@ -2484,7 +2487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (teamMemberCounts[i] > 0)
                     {
                         if (teamMemberCounts[i] < allyCount)
-                            return RANK_NONE;
+                            return Rank.None;
                     }
                 }
 
@@ -2503,10 +2506,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 if (!pass)
-                    return RANK_NONE;
+                    return Rank.None;
             }
 
-            return lowestEnemyAILevel + 1;
+            return (Rank)(lowestEnemyAILevel + 1);
         }
 
         protected string AddGameOptionPreset(string name)
