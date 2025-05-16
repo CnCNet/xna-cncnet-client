@@ -237,7 +237,7 @@ namespace DTAClient
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
-            Logger.Log("Stacktrace: " + stackTraceOverride ?? ex.StackTrace);
+            Logger.Log("Stacktrace: " + (stackTraceOverride ?? ex.StackTrace));
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
