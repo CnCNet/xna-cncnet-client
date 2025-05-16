@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = "GameLoadingWindow";
+            Name = nameof(GameLoadingWindow);
             BackgroundTexture = AssetLoader.LoadTexture("loadmissionbg.png");
 
             ClientRectangle = new Rectangle(0, 0, 600, 380);

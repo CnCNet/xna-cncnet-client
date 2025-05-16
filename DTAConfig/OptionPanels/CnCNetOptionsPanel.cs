@@ -44,7 +44,7 @@ namespace DTAConfig.OptionPanels
         public override void Initialize()
         {
             base.Initialize();
-            Name = "CnCNetOptionsPanel";
+            Name = nameof(CnCNetOptionsPanel);
 
             InitOptions();
             InitGameListPanel();

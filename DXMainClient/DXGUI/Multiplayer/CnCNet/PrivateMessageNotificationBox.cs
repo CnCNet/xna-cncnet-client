@@ -43,13 +43,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
-            Name = "PrivateMessageNotificationBox";
+            Name = nameof(PrivateMessageNotificationBox);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 1, 1);
             ClientRectangle = new Rectangle(WindowManager.RenderResolutionX - 300, -100, 300, 100);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             XNALabel lblHeader = new XNALabel(WindowManager);
-            lblHeader.Name = "lblHeader";
+            lblHeader.Name = nameof(lblHeader);
             lblHeader.FontIndex = 1;
             lblHeader.Text = "PRIVATE MESSAGE".L10N("Client:Main:PMHeader");
             AddChild(lblHeader);
@@ -58,11 +58,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 6, lblHeader.Width, lblHeader.Height);
 
             XNAPanel linePanel = new XNAPanel(WindowManager);
-            linePanel.Name = "linePanel";
+            linePanel.Name = nameof(linePanel);
             linePanel.ClientRectangle = new Rectangle(0, Height - 20, Width, 1);
 
             XNALabel lblHint = new XNALabel(WindowManager);
-            lblHint.Name = "lblHint";
+            lblHint.Name = nameof(lblHint);
             lblHint.RemapColor = UISettings.ActiveSettings.SubtleTextColor;
             lblHint.Text = "Press F4 to respond".L10N("Client:Main:F4ToRespond");
 
@@ -73,7 +73,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lblHint.Width, lblHint.Height);
 
             gameIconPanel = new XNAPanel(WindowManager);
-            gameIconPanel.Name = "gameIconPanel";
+            gameIconPanel.Name = nameof(gameIconPanel);
             gameIconPanel.ClientRectangle = new Rectangle(12, 30, 16, 16);
             gameIconPanel.DrawBorders = false;
 
@@ -84,14 +84,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);
 
             lblSender = new XNALabel(WindowManager);
-            lblSender.Name = "lblSender";
+            lblSender.Name = nameof(lblSender);
             lblSender.FontIndex = 1;
             lblSender.ClientRectangle = new Rectangle(gameIconPanel.Right + 3,
                 gameIconPanel.Y, 0, 0);
             lblSender.Text = "Rampastring:";
 
             lblMessage = new XNALabel(WindowManager);
-            lblMessage.Name = "lblMessage";
+            lblMessage.Name = nameof(lblMessage);
             lblMessage.ClientRectangle = new Rectangle(12, lblSender.Bottom + 6, 0, 0);
             lblMessage.RemapColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
             lblMessage.Text = "This is a test message.";

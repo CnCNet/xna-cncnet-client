@@ -34,12 +34,12 @@ namespace DTAConfig
 
         public override void Initialize()
         {
-            Name = "OptionsWindow";
+            Name = nameof(OptionsWindow);
             ClientRectangle = new Rectangle(0, 0, 576, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
             tabControl = new XNAClientTabControl(WindowManager);
-            tabControl.Name = "tabControl";
+            tabControl.Name = nameof(tabControl);
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
@@ -52,14 +52,14 @@ namespace DTAConfig
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.Name = "btnCancel";
+            btnCancel.Name = nameof(btnCancel);
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
                 Height - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel".L10N("Client:DTAConfig:ButtonCancel");
             btnCancel.LeftClick += BtnBack_LeftClick;
 
             var btnSave = new XNAClientButton(WindowManager);
-            btnSave.Name = "btnSave";
+            btnSave.Name = nameof(btnSave);
             btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnSave.Text = "Save".L10N("Client:DTAConfig:ButtonSave");
             btnSave.LeftClick += BtnSave_LeftClick;

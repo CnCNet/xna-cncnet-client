@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = "UpdateWindow";
+            Name = nameof(UpdateWindow);
             ClientRectangle = new Rectangle(0, 0, 446, 270);
             BackgroundTexture = AssetLoader.LoadTexture("updaterbg.png");
 

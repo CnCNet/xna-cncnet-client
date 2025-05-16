@@ -26,29 +26,29 @@ namespace DTAConfig.OptionPanels
         {
             base.Initialize();
 
-            Name = "UpdaterOptionsPanel";
+            Name = nameof(UpdaterOptionsPanel);
 
             var lblDescription = new XNALabel(WindowManager);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblDescription.Text = ("To change download server priority, select a server from the list and\nuse the Move Up / Down buttons to change its priority.").L10N("Client:DTAConfig:ServerPriorityTip");
 
             lbUpdateServerList = new XNAListBox(WindowManager);
-            lbUpdateServerList.Name = "lblUpdateServerList";
+            lbUpdateServerList.Name = nameof(lbUpdateServerList);
             lbUpdateServerList.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 12, Width - 24, 100);
             lbUpdateServerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             lbUpdateServerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             var btnMoveUp = new XNAClientButton(WindowManager);
-            btnMoveUp.Name = "btnMoveUp";
+            btnMoveUp.Name = nameof(btnMoveUp);
             btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.X,
                 lbUpdateServerList.Bottom + 12, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMoveUp.Text = "Move Up".L10N("Client:DTAConfig:MoveUp");
             btnMoveUp.LeftClick += btnMoveUp_LeftClick;
 
             var btnMoveDown = new XNAClientButton(WindowManager);
-            btnMoveDown.Name = "btnMoveDown";
+            btnMoveDown.Name = nameof(btnMoveDown);
             btnMoveDown.ClientRectangle = new Rectangle(
                 lbUpdateServerList.Right - UIDesignConstants.BUTTON_WIDTH_133,
                 btnMoveUp.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
@@ -56,13 +56,13 @@ namespace DTAConfig.OptionPanels
             btnMoveDown.LeftClick += btnMoveDown_LeftClick;
 
             chkAutoCheck = new XNAClientCheckBox(WindowManager);
-            chkAutoCheck.Name = "chkAutoCheck";
+            chkAutoCheck.Name = nameof(chkAutoCheck);
             chkAutoCheck.ClientRectangle = new Rectangle(lblDescription.X,
                 btnMoveUp.Bottom + 24, 0, 0);
             chkAutoCheck.Text = "Check for updates automatically".L10N("Client:DTAConfig:AutoCheckUpdate");
 
             btnForceUpdate = new XNAClientButton(WindowManager);
-            btnForceUpdate.Name = "btnForceUpdate";
+            btnForceUpdate.Name = nameof(btnForceUpdate);
             btnForceUpdate.ClientRectangle = new Rectangle(btnMoveDown.X, btnMoveDown.Bottom + 24, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnForceUpdate.Text = "Force Update".L10N("Client:DTAConfig:ForceUpdate");
             btnForceUpdate.LeftClick += BtnForceUpdate_LeftClick;

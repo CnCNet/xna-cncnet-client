@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         public StarDisplay(WindowManager windowManager, Texture2D[] rankTextures) : base(windowManager)
         {
-            Name = "StarDisplay";
+            Name = nameof(StarDisplay);
             this.rankTextures = rankTextures;
             Width = rankTextures[1].Width;
             Height = rankTextures[1].Height;

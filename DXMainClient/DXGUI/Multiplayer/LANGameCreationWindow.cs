@@ -31,12 +31,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Initialize()
         {
-            Name = "LANGameCreationWindow";
+            Name = nameof(LANGameCreationWindow);
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
             ClientRectangle = new Rectangle(0, 0, 447, 77);
 
             lblDescription = new XNALabel(WindowManager);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
             lblDescription.FontIndex = 1;
             lblDescription.Text = "SELECT SESSION TYPE".L10N("Client:Main:SelectMissionType");
 
@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblDescription.Height);
 
             btnNewGame = new XNAButton(WindowManager);
-            btnNewGame.Name = "btnNewGame";
+            btnNewGame.Name = nameof(btnNewGame);
             btnNewGame.ClientRectangle = new Rectangle(12, 42, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -60,7 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnLoadGame = new XNAButton(WindowManager);
-            btnLoadGame.Name = "btnLoadGame";
+            btnLoadGame.Name = nameof(btnLoadGame);
             btnLoadGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadGame.IdleTexture = btnNewGame.IdleTexture;
@@ -71,7 +71,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
             btnCancel = new XNAButton(WindowManager);
-            btnCancel.Name = "btnCancel";
+            btnCancel.Name = nameof(btnCancel);
             btnCancel.ClientRectangle = new Rectangle(btnLoadGame.Right + 12,
                 btnNewGame.Y, 133, 23);
             btnCancel.IdleTexture = btnNewGame.IdleTexture;

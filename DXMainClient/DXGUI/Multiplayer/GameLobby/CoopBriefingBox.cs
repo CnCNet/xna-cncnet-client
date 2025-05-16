@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
-            Name = "CoopBriefingBox";
+            Name = nameof(CoopBriefingBox);
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
             ClientRectangle = new Rectangle(0, 0, 400, 300);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;

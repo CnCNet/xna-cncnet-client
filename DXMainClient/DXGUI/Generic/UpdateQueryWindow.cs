@@ -30,7 +30,7 @@ namespace DTAClient.DXGUI.Generic
         {
             changelogUrl = ClientConfiguration.Instance.ChangelogURL;
 
-            Name = "UpdateQueryWindow";
+            Name = nameof(UpdateQueryWindow);
             ClientRectangle = new Rectangle(0, 0, 251, 140);
             BackgroundTexture = AssetLoader.LoadTexture("updatequerybg.png");
 
