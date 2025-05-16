@@ -26,6 +26,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : INItializableWindow
     {
+        protected enum Rank
+        {
+            None = 0,
+            Easy = 1,
+            Medium = 2,
+            Hard = 3,
+        }
+
         protected const int MAX_PLAYER_COUNT = 8;
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
@@ -442,7 +450,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             CheckDisallowedSides();
 
-            btnLaunchGame.SetRank(GetRank());
+            btnLaunchGame.SetRank((int)GetRank());
         }
 
         protected void DdGameModeMapFilter_SelectedIndexChanged(object sender, EventArgs e)
@@ -1956,7 +1964,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
-            btnLaunchGame.SetRank(GetRank());
+            btnLaunchGame.SetRank((int)GetRank());
 
             if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
                 UpdateDiscordPresence();
@@ -2336,7 +2344,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return GameType.TeamGame;
         }
 
-        protected int GetRank()
+        protected Rank GetRank()
         {
             if (GameMode == null || Map == null)
                 return Rank.None;
@@ -2444,7 +2452,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
 
-                return lowestEnemyAILevel + 1;
+                return (Rank)(lowestEnemyAILevel + 1);
             }
 
             // *********
@@ -2498,7 +2506,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return Rank.None;
             }
 
-            return lowestEnemyAILevel + 1;
+            return (Rank)(lowestEnemyAILevel + 1);
         }
 
         protected string AddGameOptionPreset(string name)
