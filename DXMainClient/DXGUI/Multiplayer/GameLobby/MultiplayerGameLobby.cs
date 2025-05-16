@@ -944,7 +944,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void TooManyPlayersNotification()
         {
             Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
-            AddNotice(string.Format("Unable to launch game:  {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotification1"),
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotification1"),
                 GameModeMap.ToString(), GameModeMap.MaxPlayers));
         }
 
