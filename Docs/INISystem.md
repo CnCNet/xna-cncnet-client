@@ -502,6 +502,6 @@ Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop
 ```ini
 ; LoadingScreen.ini
 [LoadingScreen]
-RandomTextures=  ; comma-separated list of strings,
-                 ; paths of files to use randomly as BackgroundTexture
+RandomBackgroundTextures=  ; comma-separated list of strings,
+                           ; paths of files to use randomly as BackgroundTexture
 ```
