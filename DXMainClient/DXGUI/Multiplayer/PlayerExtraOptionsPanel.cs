@@ -293,7 +293,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
                 "This is best used with random teams and random starts. However, only random teams is required.\n" +
                 "Manually specified starts will take precedence.").L10N("Client:Main:AutoAllyingText1") + "\n\n" +
-                $"{TeamStartMapping.NO_PLAYER} : " + "Block this location from being assigned to a player.".L10N("Client:Main:AutoAllyingTextNoPlayer") + "\n" +
+                $"{TeamStartMapping.NO_PLAYER} : " + "Block this location from being randomly assigned to a player if there are spare locations.".L10N("Client:Main:AutoAllyingTextNoPlayerV2") + "\n" +
                 $"{TeamStartMapping.NO_TEAM} : " + "Allow a player here, but don't assign a team.".L10N("Client:Main:AutoAllyingTextNoTeamV2")
             );
         }
