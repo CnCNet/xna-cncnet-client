@@ -35,7 +35,7 @@ namespace DTAClient
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.HandleException(null, ex);
+                    PreStartup.HandleException(null, ex, Environment.StackTrace);
                 }
             }
         }
