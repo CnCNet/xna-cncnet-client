@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, 800, 600);
-            Name = "LoadingScreen";
+            Name = nameof(LoadingScreen);
             BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
 
             base.Initialize();

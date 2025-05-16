@@ -66,7 +66,7 @@ namespace DTAConfig.OptionPanels
         {
             base.Initialize();
 
-            Name = "DisplayOptionsPanel";
+            Name = nameof(DisplayOptionsPanel);
 
             var lblIngameResolution = new XNALabel(WindowManager);
             lblIngameResolution.Name = nameof(lblIngameResolution);

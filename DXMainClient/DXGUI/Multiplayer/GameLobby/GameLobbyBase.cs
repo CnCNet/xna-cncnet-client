@@ -842,7 +842,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = MAX_PLAYER_COUNT - 1; i > -1; i--)
             {
                 var ddPlayerName = new XNAClientDropDown(WindowManager);
-                ddPlayerName.Name = "ddPlayerName" + i;
+                ddPlayerName.Name = nameof(ddPlayerName) + i;
                 ddPlayerName.ClientRectangle = new Rectangle(locationX,
                     locationY + (DROP_DOWN_HEIGHT + playerOptionVecticalMargin) * i,
                     playerNameWidth, DROP_DOWN_HEIGHT);
@@ -854,7 +854,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.Tag = true;
 
                 var ddPlayerSide = new XNAClientDropDown(WindowManager);
-                ddPlayerSide.Name = "ddPlayerSide" + i;
+                ddPlayerSide.Name = nameof(ddPlayerSide) + i;
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
@@ -872,7 +872,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.Tag = true;
 
                 var ddPlayerColor = new XNAClientDropDown(WindowManager);
-                ddPlayerColor.Name = "ddPlayerColor" + i;
+                ddPlayerColor.Name = nameof(ddPlayerColor) + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, colorWidth, DROP_DOWN_HEIGHT);
@@ -884,7 +884,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColor.Tag = false;
 
                 var ddPlayerTeam = new XNAClientDropDown(WindowManager);
-                ddPlayerTeam.Name = "ddPlayerTeam" + i;
+                ddPlayerTeam.Name = nameof(ddPlayerTeam) + i;
                 ddPlayerTeam.ClientRectangle = new Rectangle(
                     ddPlayerColor.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, teamWidth, DROP_DOWN_HEIGHT);
@@ -895,7 +895,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeam.Tag = true;
 
                 var ddPlayerStart = new XNAClientDropDown(WindowManager);
-                ddPlayerStart.Name = "ddPlayerStart" + i;
+                ddPlayerStart.Name = nameof(ddPlayerStart) + i;
                 ddPlayerStart.ClientRectangle = new Rectangle(
                     ddPlayerTeam.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, startWidth, DROP_DOWN_HEIGHT);

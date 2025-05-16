@@ -207,18 +207,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             string temp = lbChatMessages.Name;
 
-            lbChatMessages.Name = "lbChatMessages_Host";
+            lbChatMessages.Name = nameof(lbChatMessages) + "_Host";
             ReadINIForControl(lbChatMessages);
-            lbChatMessages.Name = "lbChatMessages_Player";
+            lbChatMessages.Name = nameof(lbChatMessages) + "_Player";
             ReadINIForControl(lbChatMessages);
             lbChatMessages.Name = temp;
             ReadINIForControl(lbChatMessages);
 
             temp = tbChatInput.Name;
 
-            tbChatInput.Name = "tbChatInput_Host";
+            tbChatInput.Name = nameof(tbChatInput) + "_Host";
             ReadINIForControl(tbChatInput);
-            tbChatInput.Name = "tbChatInput_Player";
+            tbChatInput.Name = nameof(tbChatInput) + "_Player";
             ReadINIForControl(tbChatInput);
             tbChatInput.Name = temp;
             ReadINIForControl(tbChatInput);
@@ -679,13 +679,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HideMapList()
         {
-            lbChatMessages.Name = "lbChatMessages_Player";
-            tbChatInput.Name = "tbChatInput_Player";
-            MapPreviewBox.Name = "MapPreviewBox";
-            lblMapName.Name = "lblMapName";
-            lblMapAuthor.Name = "lblMapAuthor";
-            lblGameMode.Name = "lblGameMode";
-            lblMapSize.Name = "lblMapSize";
+            lbChatMessages.Name = nameof(lbChatMessages) + "_Player";
+            tbChatInput.Name = nameof(tbChatInput) + "_Player";
+            MapPreviewBox.Name = nameof(MapPreviewBox);
+            lblMapName.Name = nameof(lblMapName);
+            lblMapAuthor.Name = nameof(lblMapAuthor);
+            lblGameMode.Name = nameof(lblGameMode);
+            lblMapSize.Name = nameof(lblMapSize);
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
@@ -709,13 +709,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ShowMapList()
         {
-            lbChatMessages.Name = "lbChatMessages_Host";
-            tbChatInput.Name = "tbChatInput_Host";
-            MapPreviewBox.Name = "MapPreviewBox";
-            lblMapName.Name = "lblMapName";
-            lblMapAuthor.Name = "lblMapAuthor";
-            lblGameMode.Name = "lblGameMode";
-            lblMapSize.Name = "lblMapSize";
+            lbChatMessages.Name = nameof(lbChatMessages) + "_Host";
+            tbChatInput.Name = nameof(tbChatInput) + "_Host";
+            MapPreviewBox.Name = nameof(MapPreviewBox);
+            lblMapName.Name = nameof(lblMapName);
+            lblMapAuthor.Name = nameof(lblMapAuthor);
+            lblGameMode.Name = nameof(lblGameMode);
+            lblMapSize.Name = nameof(lblMapSize);
 
             ddGameModeMapFilter.Enable();
             lblGameModeSelect.Enable();

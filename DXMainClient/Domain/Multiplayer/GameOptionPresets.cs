@@ -91,7 +91,7 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public class GameOptionPresets
     {
-        private const string IniFileName = "GameOptionsPresets.ini";
+        private const string IniFileName = nameof(GameOptionPresets) + ".ini";
         private const string PresetDefinitionsSectionName = "Presets";
 
         private GameOptionPresets() { }

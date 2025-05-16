@@ -26,30 +26,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
-            Name = "PasswordRequestWindow";
+            Name = nameof(PasswordRequestWindow);
             BackgroundTexture = AssetLoader.LoadTexture("passwordquerybg.png");
 
             var lblDescription = new XNALabel(WindowManager);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblDescription.Text = "Please enter the password for the game and click OK.".L10N("Client:Main:EnterPasswordAndHitOK");
 
             ClientRectangle = new Rectangle(0, 0, lblDescription.Width + 24, 110);
 
             tbPassword = new XNATextBox(WindowManager);
-            tbPassword.Name = "tbPassword";
+            tbPassword.Name = nameof(tbPassword);
             tbPassword.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 12, Width - 24, 21);
 
             var btnOK = new XNAClientButton(WindowManager);
-            btnOK.Name = "btnOK";
+            btnOK.Name = nameof(btnOK);
             btnOK.ClientRectangle = new Rectangle(lblDescription.X,
                 ClientRectangle.Bottom - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnOK.Text = "OK".L10N("Client:Main:ButtonOK");
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.Name = "btnCancel";
+            btnCancel.Name = nameof(btnCancel);
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
                 btnOK.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");

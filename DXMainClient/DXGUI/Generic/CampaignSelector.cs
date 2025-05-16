@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
-            Name = "CampaignSelector";
+            Name = nameof(CampaignSelector);
 
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = nameof(lblSelectCampaign);

@@ -21,7 +21,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = "ExtrasWindow";
+            Name = nameof(ExtrasWindow);
             ClientRectangle = new Rectangle(0, 0, 284, 190);
             BackgroundTexture = AssetLoader.LoadTexture("extrasMenu.png");
 

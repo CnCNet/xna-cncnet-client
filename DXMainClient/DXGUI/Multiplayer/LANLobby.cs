@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Initialize()
         {
-            Name = "LANLobby";
+            Name = nameof(LANLobby);
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX - 64,
                 WindowManager.RenderResolutionY - 64);
@@ -111,27 +111,27 @@ namespace DTAClient.DXGUI.Multiplayer
                 g => g.InternalName.ToUpper() == localGame.ToUpper());
 
             btnNewGame = new XNAClientButton(WindowManager);
-            btnNewGame.Name = "btnNewGame";
+            btnNewGame.Name = nameof(btnNewGame);
             btnNewGame.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnNewGame.Text = "Create Game".L10N("Client:Main:CreateGame");
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new XNAClientButton(WindowManager);
-            btnJoinGame.Name = "btnJoinGame";
+            btnJoinGame.Name = nameof(btnJoinGame);
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnJoinGame.Text = "Join Game".L10N("Client:Main:JoinGame");
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnMainMenu = new XNAClientButton(WindowManager);
-            btnMainMenu.Name = "btnMainMenu";
+            btnMainMenu.Name = nameof(btnMainMenu);
             btnMainMenu.ClientRectangle = new Rectangle(Width - 145,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMainMenu.Text = "Main Menu".L10N("Client:Main:MainMenu");
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 
             lbGameList = new GameListBox(WindowManager, mapLoader, localGame);
-            lbGameList.Name = "lbGameList";
+            lbGameList.Name = nameof(lbGameList);
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
                 41, btnJoinGame.Right - btnNewGame.X,
                 btnNewGame.Y - 53);
@@ -142,7 +142,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbGameList.AllowMultiLineItems = false;
 
             lbPlayerList = new XNAListBox(WindowManager);
-            lbPlayerList.Name = "lbPlayerList";
+            lbPlayerList.Name = nameof(lbPlayerList);
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 lbGameList.Y, 190,
                 lbGameList.Height);
@@ -151,7 +151,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbPlayerList.LineHeight = 16;
 
             lbChatMessages = new ChatListBox(WindowManager);
-            lbChatMessages.Name = "lbChatMessages";
+            lbChatMessages.Name = nameof(lbChatMessages);
             lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12,
                 lbGameList.Y,
                 lbPlayerList.X - lbGameList.Right - 24,
@@ -161,7 +161,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.LineHeight = 16;
 
             tbChatInput = new XNAChatTextBox(WindowManager);
-            tbChatInput.Name = "tbChatInput";
+            tbChatInput.Name = nameof(tbChatInput);
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 btnNewGame.Y, lbChatMessages.Width,
                 btnNewGame.Height);
@@ -170,13 +170,13 @@ namespace DTAClient.DXGUI.Multiplayer
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             lblColor = new XNALabel(WindowManager);
-            lblColor.Name = "lblColor";
+            lblColor.Name = nameof(lblColor);
             lblColor.ClientRectangle = new Rectangle(lbChatMessages.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:".L10N("Client:Main:YourColor");
 
             ddColor = new XNAClientDropDown(WindowManager);
-            ddColor.Name = "ddColor";
+            ddColor.Name = nameof(ddColor);
             ddColor.ClientRectangle = new Rectangle(lblColor.X + 95, 12,
                 150, 21);
 
