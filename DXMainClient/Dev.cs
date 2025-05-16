@@ -28,7 +28,16 @@ namespace DTAClient
             }
 
             if (!condition)
-                PreStartup.HandleException(null, new Exception($"Assert failed. {message}"));
+            {
+                try
+                {
+                    throw new AssertFailedException($"Assert failed. {message}");
+                }
+                catch (Exception ex)
+                {
+                    PreStartup.HandleException(null, ex);
+                }
+            }
         }
     }
 }
