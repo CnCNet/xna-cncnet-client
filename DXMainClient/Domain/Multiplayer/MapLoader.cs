@@ -110,7 +110,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 var map = new Map(mapFilePathValue, false);
 
-                if (!map.SetInfoFromMpMapsINI(mpMapsIni))
+                if (!map.InitializeFromMpMapsINI(mpMapsIni))
                     continue;
 
                 maps.Add(map);
@@ -183,7 +183,7 @@ namespace DTAClient.Domain.Multiplayer
                         .Replace(Path.AltDirectorySeparatorChar, '/'), true);
                     map.CalculateSHA();
                     localMapSHAs.Add(map.SHA1);
-                    if (!customMapCache.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
+                    if (!customMapCache.ContainsKey(map.SHA1) && map.InitializeFromCustomMap())
                         customMapCache.TryAdd(map.SHA1, map);
                 }));
             }
@@ -272,7 +272,7 @@ namespace DTAClient.Domain.Multiplayer
 
             var map = new Map(mapPath, true);
 
-            if (map.SetInfoFromCustomMap())
+            if (map.InitializeFromCustomMap())
             {
                 foreach (GameMode gm in GameModes)
                 {

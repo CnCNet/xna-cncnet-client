@@ -9,9 +9,9 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const char LIST_SEPARATOR = ',';
 
-        public const string NO_TEAM = "x";
-        public const string RANDOM_TEAM = "-";
-        public static readonly List<string> TEAMS = new List<string>() { NO_TEAM, RANDOM_TEAM }.Concat(ProgramConstants.TEAMS).ToList();
+        public const string NO_PLAYER = "x";
+        public const string NO_TEAM = "-";
+        public static readonly List<string> TEAMS = new List<string>() { NO_PLAYER, NO_TEAM }.Concat(ProgramConstants.TEAMS).ToList();
 
         [JsonInclude]
         [JsonPropertyName("t")]
@@ -34,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer
         public int StartingWaypoint => Start - 1;
 
         [JsonIgnore]
-        public bool IsBlock => Team == NO_TEAM;
+        public bool IsBlock => Team == NO_PLAYER;
 
         /// <summary>
         /// Write these out in a delimited list.
