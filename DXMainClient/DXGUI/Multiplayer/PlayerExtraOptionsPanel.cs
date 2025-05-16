@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public bool IsForcedRandomSides
         {
             get => chkBoxForceRandomSides.Checked;
-            set => chkBoxForceNoTeams.Checked = value;
+            set => chkBoxForceRandomSides.Checked = value;
         }
 
         public bool IsForcedNoTeams
