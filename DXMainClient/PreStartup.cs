@@ -205,6 +205,8 @@ namespace DTAClient
                 MainClientConstants.DisplayErrorAction(null, error, true);
             }
 
+            Dev.Initialize();
+
             Startup startup = new();
 #if DEBUG
             startup.Execute();
@@ -234,14 +236,14 @@ namespace DTAClient
             Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
-            Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
+            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
         }
 
-        static void HandleException(object sender, Exception ex)
+        public static void HandleException(object sender, Exception ex)
         {
             LogException(ex);
 

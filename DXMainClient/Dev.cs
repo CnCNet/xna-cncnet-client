@@ -1,0 +1,34 @@
+﻿#nullable enable
+using System;
+using System.Diagnostics;
+
+using ClientCore;
+
+namespace DTAClient
+{
+    public static class Dev
+    {
+        public static bool IsDev { get; private set; } = false;
+
+        public static void Initialize()
+        {
+            IsDev = IsDev || ClientConfiguration.Instance.ModMode;
+
+#if DEVELOPMENT_BUILD
+            IsDev = IsDev || ClientConfiguration.Instance.ShowDevelopmentBuildWarnings;
+#endif
+        }
+
+        public static void Assert(bool condition, string message)
+        {
+            if (!IsDev)
+            {
+                Debug.Assert(condition, message);
+                return;
+            }
+
+            if (!condition)
+                PreStartup.HandleException(null, new Exception($"Assert failed. {message}"));
+        }
+    }
+}
