@@ -652,6 +652,19 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+
+            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
+            {
+                new XNAMessageBox(WindowManager, title, error, XNAMessageBoxButtons.OK)
+                {
+                    OKClickedAction = _ =>
+                    {
+                        if (exit)
+                            Environment.Exit(1);
+                    },
+
+                }.Show();
+            };
         }
 
         private void LoadThemeSong()
