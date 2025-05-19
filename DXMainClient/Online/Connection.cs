@@ -242,6 +242,12 @@ namespace DTAClient.Online
                     break;
                 }
 
+                if (!serverStream.DataAvailable)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
+
                 int bytesRead;
 
                 try
