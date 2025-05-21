@@ -176,7 +176,7 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
-            result = new CultureInfo(localeCode).DisplayName;
+            result = new CultureInfo(localeCode).NativeName;
 
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;

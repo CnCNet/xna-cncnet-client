@@ -255,9 +255,9 @@ namespace DTAClient.Domain.Multiplayer
         /// <returns>The map if loading it was successful, otherwise false.</returns>
         public Map LoadCustomMap(string mapPath, out string resultMessage)
         {
-            Debug.Assert(!mapPath.EndsWith(ClientConfiguration.Instance.MapFileExtension, StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {mapPath}. It should not end with the map extension.");
+            Debug.Assert(!mapPath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {mapPath}. It should not end with the map extension.");
 
-            string customMapFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{mapPath}{ClientConfiguration.Instance.MapFileExtension}"));
+            string customMapFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}"));
             FileInfo customMapFile = SafePath.GetFile(customMapFilePath);
 
             if (!customMapFile.Exists)

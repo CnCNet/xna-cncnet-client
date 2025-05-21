@@ -366,7 +366,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //return;
             }
 
-            bool AIAllowed = !(Map.MultiplayerOnly || GameMode.MultiplayerOnly) || !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
+            bool AIAllowed = !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
             foreach (string key in keys)
             {
                 if (!AIAllowed) break;
