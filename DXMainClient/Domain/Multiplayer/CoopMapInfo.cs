@@ -1,7 +1,8 @@
-﻿using Rampastring.Tools;
-using System;
+﻿#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -19,31 +20,15 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public List<int> DisallowedPlayerColors = new List<int>();
 
-        public void SetHouseInfos(IniSection iniSection)
+        public CoopMapInfo() { }
+
+        public void Initialize(IniSection section)
         {
-            EnemyHouses = GetGenericHouseInfo(iniSection, "EnemyHouse");
-            AllyHouses = GetGenericHouseInfo(iniSection, "AllyHouse");
+            DisallowedPlayerSides = section.GetListValue<int>("DisallowedPlayerSides", ',', int.Parse);
+            DisallowedPlayerColors = section.GetListValue<int>("DisallowedPlayerColors", ',', int.Parse);
+            EnemyHouses = CoopHouseInfo.GetGenericHouseInfoList(section, "EnemyHouse");
+            AllyHouses = CoopHouseInfo.GetGenericHouseInfoList(section, "AllyHouse");
         }
 
-        private List<CoopHouseInfo> GetGenericHouseInfo(IniSection iniSection, string keyName)
-        {
-            var houseList = new List<CoopHouseInfo>();
-
-            for (int i = 0; ; i++)
-            {
-                string[] houseInfo = iniSection.GetStringValue(keyName + i, string.Empty).Split(
-                    new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (houseInfo.Length == 0)
-                    break;
-
-                int[] info = Conversions.IntArrayFromStringArray(houseInfo);
-                var chInfo = new CoopHouseInfo(info[0], info[1], info[2]);
-
-                houseList.Add(new CoopHouseInfo(info[0], info[1], info[2]));
-            }
-
-            return houseList;
-        }
     }
 }
