@@ -645,7 +645,7 @@ public static class Updater
                     }
                     catch (Exception e)
                     {
-                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.Message);
+                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.ToString());
                         Logger.Log("Updater: Seeking other mirrors...");
                         currentUpdateMirrorIndex++;
 
