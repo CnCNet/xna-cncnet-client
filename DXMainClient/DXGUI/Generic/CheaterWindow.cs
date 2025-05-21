@@ -7,9 +7,9 @@ using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class CheaterScreen : XNAWindow
+    public class CheaterWindow : XNAWindow
     {
-        public CheaterScreen(WindowManager windowManager) : base(windowManager)
+        public CheaterWindow(WindowManager windowManager) : base(windowManager)
         {
         }
 
@@ -17,7 +17,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = nameof(CheaterScreen);
+            Name = nameof(CheaterWindow);
             ClientRectangle = new Rectangle(0, 0, 334, 453);
             BackgroundTexture = AssetLoader.LoadTexture("cheaterbg.png");
 
