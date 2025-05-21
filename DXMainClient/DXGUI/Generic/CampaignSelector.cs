@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Generic
         private XNATextBlock tbMissionDescription;
         private XNATrackbar trbDifficultySelector;
 
-        private CheaterWindow cheaterWindow;
+        private CheaterScreen cheaterWindow;
 
         private string[] filesToCheck = new string[]
         {
@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Generic
 
             ReadMissionList();
 
-            cheaterWindow = new CheaterWindow(WindowManager);
+            cheaterWindow = new CheaterScreen(WindowManager);
             var dp = new DarkeningPanel(WindowManager);
             dp.AddChild(cheaterWindow);
             AddChild(dp);
