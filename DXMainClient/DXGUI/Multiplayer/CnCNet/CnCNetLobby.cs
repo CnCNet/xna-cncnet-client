@@ -926,8 +926,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             isJoiningGame = true;
             gameOfLastJoinAttempt = hg;
 
-            Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, true, password);
-            connectionManager.AddChannel(gameChannel);
+            if (connectionManager.FindChannel(hg.ChannelName) == null)
+            {
+                Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, true, password);
+                connectionManager.AddChannel(gameChannel);
+            }
 
             if (hg.IsLoadedGame)
             {
