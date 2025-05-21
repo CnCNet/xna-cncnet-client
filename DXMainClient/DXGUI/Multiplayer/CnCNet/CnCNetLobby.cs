@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
             GameCollection gameCollection, CnCNetUserData cncnetUserData,
-            OptionsWindow optionsWindow, MapLoader mapLoader)
+            OptionsWindow optionsWindow, MapLoader mapLoader, Random random)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -52,6 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.cncnetUserData = cncnetUserData;
             this.optionsWindow = optionsWindow;
             this.mapLoader = mapLoader;
+            this.random = random;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -140,6 +141,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private InvitationIndex invitationIndex;
 
         private GameFiltersPanel panelGameFilters;
+        
+        private Random random; 
 
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
@@ -1118,9 +1121,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns>A random channel name based on the currently played game.</returns>
         private string RandomizeChannelName()
         {
+            // TODO: handle the case where the randomization keeps failing for multiple (e.g., 1000) times
             while (true)
             {
-                string channelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID) + "-game" + new Random().Next(1000000, 9999999);
+                string channelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID) + "-game" + random.Next(1000000, 9999999);
                 int index = lbGameList.HostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
