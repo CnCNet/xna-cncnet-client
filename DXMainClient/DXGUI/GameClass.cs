@@ -249,7 +249,7 @@ namespace DTAClient.DXGUI
             var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             byte[] intBytes = new byte[sizeof(int)];
             rng.GetBytes(intBytes);
-            int seed = BitConverter.ToInt32(intBytes, 0) & 0x7FFFFFFF; // Ensure non-negative
+            int seed = BitConverter.ToInt32(intBytes, 0);
             return new Random(seed);
         }
 
