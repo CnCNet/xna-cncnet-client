@@ -198,8 +198,8 @@ namespace DTAConfig.OptionPanels
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
-                Text = "All (current channel only)".L10N("Client:DTAConfig:PMAllCurrentChannel"),
-                Tag = AllowPrivateMessagesFromEnum.AllCurrentChannel,
+                Text = "Current channel".L10N("Client:DTAConfig:PMlCurrentChannel"),
+                Tag = AllowPrivateMessagesFromEnum.CurrentChannel,
             });
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()

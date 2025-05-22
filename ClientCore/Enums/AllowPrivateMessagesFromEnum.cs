@@ -3,7 +3,7 @@
     public enum AllowPrivateMessagesFromEnum
     {
         All = 1,
-        AllCurrentChannel = 4,
+        CurrentChannel = 4,
         Friends = 2,
         None = 3,
     }
