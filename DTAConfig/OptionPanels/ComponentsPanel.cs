@@ -27,7 +27,7 @@ namespace DTAConfig.OptionPanels
         {
             base.Initialize();
 
-            Name = "ComponentsPanel";
+            Name = nameof(ComponentsPanel);
 
             int componentIndex = 0;
 

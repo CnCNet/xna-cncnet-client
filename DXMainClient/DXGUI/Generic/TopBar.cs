@@ -126,7 +126,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = "TopBar";
+            Name = nameof(TopBar);
             ClientRectangle = new Rectangle(0, -39, WindowManager.RenderResolutionX, 39);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(Color.Black, 1, 1);
@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Generic
             btnOptions.LeftClick += BtnOptions_LeftClick;
 
             lblConnectionStatus = new XNALabel(WindowManager);
-            lblConnectionStatus.Name = "lblConnectionStatus";
+            lblConnectionStatus.Name = nameof(lblConnectionStatus);
             lblConnectionStatus.FontIndex = 1;
             lblConnectionStatus.Text = "OFFLINE".L10N("Client:Main:StatusOffline");
 
@@ -197,11 +197,11 @@ namespace DTAClient.DXGUI.Generic
             if (ClientConfiguration.Instance.DisplayPlayerCountInTopBar)
             {
                 lblCnCNetStatus = new XNALabel(WindowManager);
-                lblCnCNetStatus.Name = "lblCnCNetStatus";
+                lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
                 lblCnCNetStatus.FontIndex = 1;
                 lblCnCNetStatus.Text = ClientConfiguration.Instance.LocalGame.ToUpper() + " " + "PLAYERS ONLINE:".L10N("Client:Main:OnlinePlayersNumber");
                 lblCnCNetPlayerCount = new XNALabel(WindowManager);
-                lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
+                lblCnCNetPlayerCount.Name = nameof(lblCnCNetPlayerCount);
                 lblCnCNetPlayerCount.FontIndex = 1;
                 lblCnCNetPlayerCount.Text = "-";
                 lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnOptions.X - 50, 11, lblCnCNetPlayerCount.Width, lblCnCNetPlayerCount.Height);

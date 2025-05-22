@@ -55,7 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
 
-            Name = "GameCreationWindow";
+            Name = nameof(GameCreationWindow);
             Width = lbTunnelList.Width + UIDesignConstants.EMPTY_SPACE_SIDES * 2 +
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN * 2;
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
@@ -267,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnDisplayAdvancedOptions_LeftClick(object sender, EventArgs e)
         {
-            Name = "GameCreationWindow_Advanced";
+            Name = nameof(GameCreationWindow) + "_Advanced";
 
             btnCreateGame.ClientRectangle = new Rectangle(btnCreateGame.X,
                 lbTunnelList.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3,

@@ -26,7 +26,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            Name = "ManualUpdateQueryWindow";
+            Name = nameof(ManualUpdateQueryWindow);
             ClientRectangle = new Rectangle(0, 0, 251, 140);
             BackgroundTexture = AssetLoader.LoadTexture("updatequerybg.png");
 

@@ -31,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (Initialized)
                 return;
 
-            Name = "TunnelSelectionWindow";
+            Name = nameof(TunnelSelectionWindow);
 
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;

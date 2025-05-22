@@ -17,6 +17,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
+            // Retained like this to backward compatibility with old configs
             Name = "CheaterScreen";
             ClientRectangle = new Rectangle(0, 0, 334, 453);
             BackgroundTexture = AssetLoader.LoadTexture("cheaterbg.png");

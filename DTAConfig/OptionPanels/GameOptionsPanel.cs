@@ -13,7 +13,6 @@ namespace DTAConfig.OptionPanels
 {
     class GameOptionsPanel : XNAOptionsPanel
     {
-
         private const string TEXT_BACKGROUND_COLOR_TRANSPARENT = "0";
         private const string TEXT_BACKGROUND_COLOR_BLACK = "12";
         private const int MAX_SCROLL_RATE = 6;
@@ -44,7 +43,7 @@ namespace DTAConfig.OptionPanels
         {
             base.Initialize();
 
-            Name = "GameOptionsPanel";
+            Name = nameof(GameOptionsPanel);
 
             var lblScrollRate = new XNALabel(WindowManager);
             lblScrollRate.Name = nameof(lblScrollRate);

@@ -21,7 +21,7 @@ namespace ClientGUI
 
         public override void Initialize()
         {
-            Name = "DarkeningPanel";
+            Name = nameof(DarkeningPanel);
 
             SetPositionAndSize();
             
