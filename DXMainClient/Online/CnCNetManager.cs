@@ -46,11 +46,11 @@ namespace DTAClient.Online
         public event EventHandler<UserNameIndexEventArgs> UserRemoved;
         public event EventHandler MultipleUsersAdded;
 
-        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData)
+        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData, Random random)
         {
             gameCollection = gc;
             this.cncNetUserData = cncNetUserData;
-            connection = new Connection(this);
+            connection = new Connection(this, random);
 
             this.wm = wm;
 

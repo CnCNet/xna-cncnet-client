@@ -24,12 +24,15 @@ namespace DTAClient.Online
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
 
-        public Connection(IConnectionManager connectionManager)
+        public Connection(IConnectionManager connectionManager, Random random)
         {
             this.connectionManager = connectionManager;
+            this.Rng = random;
         }
 
         IConnectionManager connectionManager;
+
+        public Random Rng;
 
         private static IList<Server> _servers = null;
         /// <summary>
@@ -68,12 +71,6 @@ namespace DTAClient.Online
         public bool AttemptingConnection
         {
             get { return _attemptingConnection; }
-        }
-
-        Random _rng = new Random();
-        public Random Rng
-        {
-            get { return _rng; }
         }
 
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
@@ -904,7 +901,7 @@ namespace DTAClient.Online
         /// <param name="data">Just a dummy parameter so that this matches the delegate System.Threading.TimerCallback.</param>
         private void AutoPing(object data)
         {
-            SendMessage("PING LAG" + new Random().Next(100000, 999999));
+            SendMessage("PING LAG" + Rng.Next(100000, 999999));
         }
 
         /// <summary>
