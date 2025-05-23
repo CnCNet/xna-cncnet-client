@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -23,6 +23,7 @@ namespace DTAClient.Online
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int BYTE_ARRAY_MSG_LEN = 1024;
 
         public Connection(IConnectionManager connectionManager, Random random)
         {
@@ -222,7 +223,7 @@ namespace DTAClient.Online
         private void HandleComm()
         {
             int errorTimes = 0;
-            byte[] message = new byte[1024];
+            byte[] message = new byte[BYTE_ARRAY_MSG_LEN];
 
             Register();
 
@@ -243,7 +244,7 @@ namespace DTAClient.Online
 
                 try
                 {
-                    bytesRead = serverStream.Read(message, 0, 1024);
+                    bytesRead = serverStream.Read(message, 0, BYTE_ARRAY_MSG_LEN);
                 }
                 catch (Exception ex)
                 {
