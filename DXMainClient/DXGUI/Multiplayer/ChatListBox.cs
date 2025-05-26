@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using System;
 using ClientCore;
 using ClientCore.Extensions;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -14,9 +15,11 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public class ChatListBox : XNAListBox, IMessageView
     {
+        private string? link = null;
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
             DoubleLeftClick += ChatListBox_DoubleLeftClick;
+            MiddleClick += ChatListBox_MiddleClick;
         }
 
         private void ChatListBox_DoubleLeftClick(object sender, EventArgs e)
@@ -24,11 +27,35 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            var link = Items[SelectedIndex].Text?.GetLink();
+            link = Items[SelectedIndex].Text?.GetLink();
+            if (link == null)
+                return;
+
+            var msgBox = new XNAMessageBox(WindowManager, 
+                "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
+                string.Format("Would you like to view the following website in a browser?\n{0}".L10N("Client:Main:OpenLinkConfirmationText"), link), 
+                XNAMessageBoxButtons.YesNo);
+            msgBox.Show();
+            msgBox.YesClickedAction = OpenLinkConfirmation_YesClicked;
+        }
+
+        private void OpenLinkConfirmation_YesClicked(XNAMessageBox messageBox)
+        {
+            ProcessLauncher.StartShellProcess(link);
+            link = null;
+        }
+
+        private void ChatListBox_MiddleClick(object sender, EventArgs e)
+        {
+            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
+                return;
+
+            link = Items[SelectedIndex].Text?.GetLink();
             if (link == null)
                 return;
 
             ProcessLauncher.StartShellProcess(link);
+            link = null;
         }
 
         public void AddMessage(string message)
