@@ -26,12 +26,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : INItializableWindow
     {
-        protected enum Rank
+        protected struct Rank
         {
-            None = 0,
-            Easy = 1,
-            Medium = 2,
-            Hard = 3,
+            readonly int rank;
+
+            public static readonly Rank None = 0;
+            public static readonly Rank Easy = 1;
+            public static readonly Rank Medium = 2;
+            public static readonly Rank Hard = 3;
+
+            private Rank(int rank) => this.rank = rank;
+
+            public static implicit operator int(Rank value) => value.rank;
+
+            public static implicit operator Rank(int value) => new Rank(value);
         }
 
         protected const int MAX_PLAYER_COUNT = 8;
@@ -450,7 +458,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             CheckDisallowedSides();
 
-            btnLaunchGame.SetRank((int)GetRank());
+            btnLaunchGame.SetRank(GetRank());
         }
 
         protected void DdGameModeMapFilter_SelectedIndexChanged(object sender, EventArgs e)
@@ -1964,7 +1972,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
-            btnLaunchGame.SetRank((int)GetRank());
+            btnLaunchGame.SetRank(GetRank());
 
             if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
                 UpdateDiscordPresence();
@@ -2452,7 +2460,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
 
-                return (Rank)(lowestEnemyAILevel + 1);
+                return lowestEnemyAILevel + 1;
             }
 
             // *********
@@ -2506,7 +2514,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return Rank.None;
             }
 
-            return (Rank)(lowestEnemyAILevel + 1);
+            return lowestEnemyAILevel + 1;
         }
 
         protected string AddGameOptionPreset(string name)
