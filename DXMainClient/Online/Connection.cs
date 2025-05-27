@@ -264,18 +264,11 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    errorTimes++;
-
-                    if (errorTimes > MAX_ERROR_COUNT)
-                    {
-                        const string errorMessage = "Disconnected from CnCNet due to an internal error.";
-                        Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
-                        failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
-                        break;
-                    }
-                    
-                    continue;
+                    const string errorMessage = "Disconnected from CnCNet due to an internal error.";
+                    Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
+                    failedServerIPs.Add(currentConnectedServerIP);
+                    connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
+                    break;
                 }
 
                 if (bytesRead == 0)
