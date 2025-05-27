@@ -24,17 +24,21 @@ namespace DTAClient.DXGUI.Generic
             CnCNetManager cncnetManager,
             WindowManager windowManager,
             IServiceProvider serviceProvider,
-            MapLoader mapLoader
+            MapLoader mapLoader,
+            Random random
         ) : base(windowManager)
         {
             this.cncnetManager = cncnetManager;
             this.serviceProvider = serviceProvider;
             this.mapLoader = mapLoader;
+            this.random = random;
         }
 
         private static readonly object locker = new object();
 
         private MapLoader mapLoader;
+
+        private Random random;
 
         private PrivateMessagingPanel privateMessagingPanel;
 
@@ -87,7 +91,7 @@ namespace DTAClient.DXGUI.Generic
             if (randomTextures.Count == 0)
                 return;
 
-            BackgroundTexture = AssetLoader.LoadTexture(randomTextures[new Random().Next(randomTextures.Count)]);
+            BackgroundTexture = AssetLoader.LoadTexture(randomTextures[random.Next(randomTextures.Count)]);
         }
 
         private void InitUpdater()

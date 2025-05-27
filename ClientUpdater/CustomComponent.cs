@@ -164,7 +164,11 @@ public class CustomComponent
 #if NETFRAMEWORK
             progressMessageHandler = new(new HttpClientHandler
             {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+                    System.Security.Authentication.SslProtocols.Tls11 |
+                    System.Security.Authentication.SslProtocols.Tls12 |
+                    System.Security.Authentication.SslProtocols.Tls13,
             });
 
             using var httpClient = new HttpClient(progressMessageHandler, true);

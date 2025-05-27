@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -19,17 +19,21 @@ namespace DTAClient.Online
     /// </summary>
     public class Connection
     {
-        private const int MAX_RECONNECT_COUNT = 8;
+        private const int MAX_RECONNECT_COUNT = 20;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int BYTE_ARRAY_MSG_LEN = 1024;
 
-        public Connection(IConnectionManager connectionManager)
+        public Connection(IConnectionManager connectionManager, Random random)
         {
             this.connectionManager = connectionManager;
+            this.Rng = random;
         }
 
         IConnectionManager connectionManager;
+
+        public Random Rng;
 
         private static IList<Server> _servers = null;
         /// <summary>
@@ -68,12 +72,6 @@ namespace DTAClient.Online
         public bool AttemptingConnection
         {
             get { return _attemptingConnection; }
-        }
-
-        Random _rng = new Random();
-        public Random Rng
-        {
-            get { return _rng; }
         }
 
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
@@ -225,7 +223,7 @@ namespace DTAClient.Online
         private void HandleComm()
         {
             int errorTimes = 0;
-            byte[] message = new byte[1024];
+            byte[] message = new byte[BYTE_ARRAY_MSG_LEN];
 
             Register();
 
@@ -246,7 +244,7 @@ namespace DTAClient.Online
 
                 try
                 {
-                    bytesRead = serverStream.Read(message, 0, 1024);
+                    bytesRead = serverStream.Read(message, 0, BYTE_ARRAY_MSG_LEN);
                 }
                 catch (Exception ex)
                 {
@@ -904,7 +902,7 @@ namespace DTAClient.Online
         /// <param name="data">Just a dummy parameter so that this matches the delegate System.Threading.TimerCallback.</param>
         private void AutoPing(object data)
         {
-            SendMessage("PING LAG" + new Random().Next(100000, 999999));
+            SendMessage("PING LAG" + Rng.Next(100000, 999999));
         }
 
         /// <summary>
