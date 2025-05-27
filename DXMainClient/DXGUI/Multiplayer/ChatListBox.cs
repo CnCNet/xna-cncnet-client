@@ -31,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (link == null)
                 return;
 
-            bool regExpResult = new Regex(ClientConfiguration.Instance.HardcodeTrustedLinksRegExp).Match(link).Success ||
+            bool regExpResult = new Regex(ClientConfiguration.Instance.AlwaysTrustedLinksRegExp).Match(link).Success ||
                 new Regex(ClientConfiguration.Instance.TrustedLinksRegExp).Match(link).Success;
 
             if (regExpResult)
