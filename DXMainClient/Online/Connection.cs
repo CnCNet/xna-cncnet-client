@@ -255,8 +255,8 @@ namespace DTAClient.Online
 
                     if (errorTimes > MAX_ERROR_COUNT)
                     {
-                        const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
-                        Logger.Log(errorMessage + "Message: " + ex.ToString());
+                        const string errorMessage = "Disconnected from CnCNet after not receiving a packet for too long.";
+                        Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
                         failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
                         break;
@@ -271,7 +271,7 @@ namespace DTAClient.Online
                     if (errorTimes > MAX_ERROR_COUNT)
                     {
                         const string errorMessage = "Disconnected from CnCNet due to an internal error.";
-                        Logger.Log(errorMessage + "Message: " + ex.ToString());
+                        Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
                         failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
                         break;
