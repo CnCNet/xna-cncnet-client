@@ -26,9 +26,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : INItializableWindow
     {
-        protected struct Rank
+        protected record Rank
         {
-            readonly int rank;
+            public readonly int rank;
 
             public static readonly Rank None = 0;
             public static readonly Rank Easy = 1;
