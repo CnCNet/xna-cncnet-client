@@ -1,5 +1,7 @@
 using ClientCore;
 using ClientCore.Extensions;
+using DiscordRPC.Message;
+
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,8 @@ namespace DTAClient.Online
     /// </summary>
     public class Connection
     {
-        private const int MAX_RECONNECT_COUNT = 20;
+        private const int MAX_RECONNECT_COUNT = 8;
+        private const int MAX_ERROR_COUNT = 30;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
@@ -240,23 +243,52 @@ namespace DTAClient.Online
                     break;
                 }
 
-                int bytesRead;
+                int bytesRead = 0;
 
                 try
                 {
                     bytesRead = serverStream.Read(message, 0, BYTE_ARRAY_MSG_LEN);
                 }
-                catch (Exception ex)
+                catch (IOException ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.ToString());
                     errorTimes++;
 
-                    if (errorTimes > MAX_RECONNECT_COUNT)
+                    if (errorTimes > MAX_ERROR_COUNT)
                     {
                         const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
-                        Logger.Log(errorMessage);
+                        Logger.Log(errorMessage + "Message: " + ex.ToString());
                         failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
+                        break;
+                    }
+
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    errorTimes++;
+
+                    if (errorTimes > MAX_ERROR_COUNT)
+                    {
+                        const string errorMessage = "Disconnected from CnCNet due to an internal error.";
+                        Logger.Log(errorMessage + "Message: " + ex.ToString());
+                        failedServerIPs.Add(currentConnectedServerIP);
+                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
+                        break;
+                    }
+                    
+                    continue;
+                }
+
+                if (bytesRead == 0)
+                {
+                    errorTimes++;
+
+                    if (errorTimes > MAX_ERROR_COUNT)
+                    {
+                        Logger.Log("Disconnected from CnCNet.");
+                        failedServerIPs.Add(currentConnectedServerIP);
+                        connectionManager.OnConnectionLost("Server disconnected.".L10N("Client:Main:ServerDisconnected"));
                         break;
                     }
 
