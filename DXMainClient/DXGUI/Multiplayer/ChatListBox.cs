@@ -31,6 +31,15 @@ namespace DTAClient.DXGUI.Multiplayer
             if (link == null)
                 return;
 
+            bool regExpResult = new Regex(ClientConfiguration.Instance.HardcodeTrustedLinksRegExp).Match(link).Success ||
+                new Regex(ClientConfiguration.Instance.TrustedLinksRegExp).Match(link).Success;
+
+            if (regExpResult)
+            {
+                ProcessLink(link);
+                return;
+            }
+
             var msgBox = new XNAMessageBox(WindowManager, 
                 "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
                 """
@@ -43,15 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 """.L10N("Client:Main:OpenLinkConfirmationText")
                 + Environment.NewLine + Environment.NewLine + link, 
                 XNAMessageBoxButtons.YesNo);
-            
             msgBox.YesClickedAction = (msgBox) => ProcessLink(link);
-
-            if (new Regex(ClientConfiguration.Instance.TrustedLinksRegExp).Match(link).Success)
-            {
-                ProcessLink(link);
-                return;
-            }
-
             msgBox.Show();
         }
 
