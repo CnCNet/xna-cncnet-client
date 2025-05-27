@@ -1,7 +1,5 @@
 using ClientCore;
 using ClientCore.Extensions;
-using DiscordRPC.Message;
-
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
