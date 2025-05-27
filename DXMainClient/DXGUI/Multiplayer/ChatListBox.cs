@@ -33,7 +33,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var msgBox = new XNAMessageBox(WindowManager, 
                 "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
-                string.Format("Would you like to view the following website in a browser?\n{0}".L10N("Client:Main:OpenLinkConfirmationText"), link), 
+                string.Format(("You are trying to open an unchecked link from the online chat.\n" +
+                               "CnCNet is not responsible for the content on the site to which the link leads.\n" +
+                               "Would you like to open the following link in a browser?\n\n" +
+                               "Link: {0}").L10N("Client:Main:OpenLinkConfirmationText"), link), 
                 XNAMessageBoxButtons.YesNo);
             msgBox.Show();
             msgBox.YesClickedAction = OpenLinkConfirmation_YesClicked;
