@@ -938,6 +938,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameChannel.UserAdded += GameLoadingChannel_UserAdded;
                 //gameChannel.MessageAdded += GameLoadingChannel_MessageAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_LoadedGame;
+                isJoiningGame = false;
             }
             else
             {
@@ -951,8 +952,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
-
-            isJoiningGame = false;
         }
 
         private void GameChannel_TargetChangeTooFast(object sender, MessageEventArgs e)
