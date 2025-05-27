@@ -3,6 +3,7 @@ using Rampastring.XNAUI;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using System;
+using System.Text.RegularExpressions;
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
@@ -38,14 +39,27 @@ namespace DTAClient.DXGUI.Multiplayer
                                "Would you like to open the following link in a browser?\n\n" +
                                "Link: {0}").L10N("Client:Main:OpenLinkConfirmationText"), link), 
                 XNAMessageBoxButtons.YesNo);
-            msgBox.Show();
             msgBox.YesClickedAction = OpenLinkConfirmation_YesClicked;
+
+            if (new Regex(ClientConfiguration.Instance.TrustedLinksRegExp).Match(link).Success)
+            {
+                ProcessLink();
+                return;
+            }
+
+            msgBox.Show();
         }
 
         private void OpenLinkConfirmation_YesClicked(XNAMessageBox messageBox)
+            => ProcessLink();
+
+        private void ProcessLink()
         {
-            ProcessLauncher.StartShellProcess(link);
-            link = null;
+            if (link != null)
+            {
+                ProcessLauncher.StartShellProcess(link);
+                link = null;
+            }
         }
 
         private void ChatListBox_MiddleClick(object sender, EventArgs e)

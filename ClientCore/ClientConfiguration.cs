@@ -260,6 +260,8 @@ namespace ClientCore
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
+        public string TrustedLinksRegExp => clientDefinitionsIni.GetStringValue(SETTINGS, "TrustedLinksRegExp", @"^((http)|(https))((://)|(://www\.))((cncnet\.org)|(discord\.com/invite)|(steamcommunity\.com)|(youtube\.com)|(youtu.be))");
+
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
         /// <summary>
