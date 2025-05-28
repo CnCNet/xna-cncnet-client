@@ -286,17 +286,30 @@ namespace DTAClient.DXGUI.Generic
 
             spawnIni.AddSection(spawnIniSettings);
 
-            if (mission.IsCustomMission && mission.CustomMission_MissionMdIniSection is not null)
+            bool hasGameMissionData = false;
+            string scenarioPath = SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario);
+
+            if (!mission.IsCustomMission && File.Exists(scenarioPath)) 
+            {
+                var mapIni = new IniFile(scenarioPath);
+                mission.GameMissionConfigSection = mapIni.GetSection("GameMissionConfig");
+
+                if (mission.GameMissionConfigSection is not null)
+                    hasGameMissionData = true;
+            }
+
+            if (mission.IsCustomMission && mission.GameMissionConfigSection is not null || hasGameMissionData)
             {
                 // copy an IniSection
                 IniSection spawnIniMissionIniSection = new(scenario);
-                foreach (var kvp in mission.CustomMission_MissionMdIniSection.Keys)
+                foreach (var kvp in mission.GameMissionConfigSection.Keys)
                 {
                     spawnIniMissionIniSection.AddKey(kvp.Key, kvp.Value);
                 }
 
                 // append the new IniSection
                 spawnIni.AddSection(spawnIniMissionIniSection);
+                spawnIniSettings.AddKey("ReadMissionSection", "Yes");
             }
 
             spawnIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"));
@@ -306,7 +319,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (copyMapsToSpawnmapINI)
             {
-                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
+                var mapIni = new IniFile(scenarioPath);
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
             }
@@ -380,15 +393,16 @@ namespace DTAClient.DXGUI.Generic
             {
                 var mapFile = new IniFile(mapFilePath);
 
-                IniSection missionSection = mapFile.GetSection("CNCNET:MISSION:BATTLE.INI");
-                if (missionSection is null)
+                IniSection clientMissionDataSection = mapFile.GetSection("ClientMissionConfig");
+
+                if (clientMissionDataSection is null)
                     continue;
 
-                IniSection? missionMdIniSection = mapFile.GetSection("CNCNET:MISSION:MISSION.INI");
+                IniSection? gameMissionDataSection = mapFile.GetSection("GameMissionConfig");
 
                 string filename = new FileInfo(mapFilePath).Name;
                 string scenario = SafePath.CombineFilePath(ClientConfiguration.Instance.CustomMissionPath, filename);
-                Mission mission = Mission.NewCustomMission(missionSection, missionCodeName: filename.ToUpperInvariant(), scenario, missionMdIniSection);
+                Mission mission = Mission.NewCustomMission(clientMissionDataSection, missionCodeName: filename.ToUpperInvariant(), scenario, gameMissionDataSection);
                 AddMission(mission);
             }
         }

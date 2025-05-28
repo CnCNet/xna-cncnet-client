@@ -52,13 +52,13 @@ namespace DTAClient.Domain
             CustomMissionID = ComputeCustomMissionID(missionCodeName);
         }
 
-        public static Mission NewCustomMission(IniSection missionSection, string missionCodeName, string scenario, IniSection? missionMdIniSection)
+        public static Mission NewCustomMission(IniSection clientMissionConfigSection, string missionCodeName, string scenario, IniSection? gameMissionConfigSection)
         {
-            var mission = new Mission(missionSection, missionCodeName)
+            var mission = new Mission(clientMissionConfigSection, missionCodeName)
             {
                 IsCustomMission = true,
                 Scenario = scenario,
-                CustomMission_MissionMdIniSection = missionMdIniSection,
+                GameMissionConfigSection = gameMissionConfigSection,
                 Tags = ["CUSTOM"],
             };
             return mission;
@@ -105,6 +105,6 @@ namespace DTAClient.Domain
         /// </summary>
         public bool IsCustomMission { get; private set; }
 
-        public IniSection? CustomMission_MissionMdIniSection { get; private set; }
+        public IniSection? GameMissionConfigSection { get; set; }
     }
 }
