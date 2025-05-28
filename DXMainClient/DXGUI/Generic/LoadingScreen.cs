@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Extensions;
+
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
@@ -22,17 +24,21 @@ namespace DTAClient.DXGUI.Generic
             CnCNetManager cncnetManager,
             WindowManager windowManager,
             IServiceProvider serviceProvider,
-            MapLoader mapLoader
+            MapLoader mapLoader,
+            Random random
         ) : base(windowManager)
         {
             this.cncnetManager = cncnetManager;
             this.serviceProvider = serviceProvider;
             this.mapLoader = mapLoader;
+            this.random = random;
         }
 
         private static readonly object locker = new object();
 
         private MapLoader mapLoader;
+
+        private Random random;
 
         private PrivateMessagingPanel privateMessagingPanel;
 
@@ -43,11 +49,12 @@ namespace DTAClient.DXGUI.Generic
         private readonly CnCNetManager cncnetManager;
         private readonly IServiceProvider serviceProvider;
 
+        private List<string> randomTextures;
+
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, 800, 600);
             Name = "LoadingScreen";
-
             BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
 
             base.Initialize();
@@ -69,6 +76,22 @@ namespace DTAClient.DXGUI.Generic
                 Cursor.Visible = false;
                 visibleSpriteCursor = true;
             }
+        }
+
+        protected override void GetINIAttributes(IniFile iniFile)
+        {
+            base.GetINIAttributes(iniFile);
+
+            randomTextures = iniFile.GetStringValue(Name, "RandomBackgroundTextures", string.Empty)
+                .Split(',')
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+
+            if (randomTextures.Count == 0)
+                return;
+
+            BackgroundTexture = AssetLoader.LoadTexture(randomTextures[random.Next(randomTextures.Count)]);
         }
 
         private void InitUpdater()

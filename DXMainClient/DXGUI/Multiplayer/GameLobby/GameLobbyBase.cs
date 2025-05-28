@@ -55,16 +55,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string iniName,
             MapLoader mapLoader,
             bool isMultiplayer,
-            DiscordHandler discordHandler
+            DiscordHandler discordHandler,
+            Random random
         ) : base(windowManager)
         {
             _iniSectionName = iniName;
             MapLoader = mapLoader;
             this.isMultiplayer = isMultiplayer;
             this.discordHandler = discordHandler;
+            this.random = random;
         }
 
         private string _iniSectionName;
+
+        private Random random;
 
         protected XNAPanel PlayerOptionsPanel;
 
@@ -208,8 +212,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("It seems the client configuration was not migrated to accommodate for the 'Tiberian Sun Client v6 Changes'.\n\nPlease refer to {0} for more details.\n\nError message: {1}".L10N("Client:Main:NotMigratedClientException"),
-                                                  "https://github.com/CnCNet/xna-cncnet-client/blob/122b2de962afc404e203290d0618363d83c4264a/Docs/Migration-INI.md",
+                throw new Exception(string.Format(("It seems the client configuration was not migrated to accommodate " +
+                                                   "for the 'Tiberian Sun Client v6 Changes'.\n\n" +
+                                                   "Please refer to documentation of the client {0} for more details. This link can also be found in the log file.\n\n" +
+                                                   "Error message: {1}").L10N("Client:Main:NotMigratedClientException"),
+                                                   "https://github.com/CnCNet/xna-cncnet-client/",
                                                    ex.Message));
             }
 
@@ -744,10 +751,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (maps.Count < 1)
                 return;
 
-            int random = new Random().Next(0, maps.Count);
+            int randomValue = random.Next(0, maps.Count);
             bool isFavoriteMapsSelected = IsFavoriteMapsSelected();
-            GameModeMap = GameModeMaps.Find(gmm => (gmm.GameMode == GameMode || gmm.IsFavorite && isFavoriteMapsSelected) && gmm.Map == maps[random]);
-            Logger.Log("PickRandomMap: Rolled " + random + " out of " + maps.Count + ". Picked map: " + Map.Name);
+            GameModeMap = GameModeMaps.Find(gmm => (gmm.GameMode == GameMode || gmm.IsFavorite && isFavoriteMapsSelected) && gmm.Map == maps[randomValue]);
+            Logger.Log("PickRandomMap: Rolled " + randomValue + " out of " + maps.Count + ". Picked map: " + Map.Name);
 
             ChangeMap(GameModeMap);
             tbMapSearch.Text = string.Empty;
@@ -1330,7 +1337,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Randomize options
 
-            Random random = new Random(RandomSeed);
+            Random pseudoRandom = new Random(RandomSeed);
 
             for (int i = 0; i < totalPlayerCount; i++)
             {
@@ -1349,10 +1356,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     disallowedSides = GetDisallowedSidesForGroup(forHumanPlayers:false);
                 }
 
-                pHouseInfo.RandomizeSide(pInfo, SideCount, random, disallowedSides, RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, SideCount, pseudoRandom, disallowedSides, RandomSelectors, RandomSelectorCount);
 
-                pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                pHouseInfo.RandomizeStart(pInfo, random, freeStartingLocations, takenStartingLocations, teamStartMappings.Any());
+                pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, pseudoRandom);
+                pHouseInfo.RandomizeStart(pInfo, pseudoRandom, freeStartingLocations, takenStartingLocations, teamStartMappings.Any());
             }
 
             return houseInfos;

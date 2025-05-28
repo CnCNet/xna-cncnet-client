@@ -51,7 +51,7 @@ namespace ClientGUI
 
         private void CycleState(object sender, EventArgs e)
         {
-            _state = _state.Next();
+            _state = _state.CycleNext();
             UpdateStateTexture();
         }
 
