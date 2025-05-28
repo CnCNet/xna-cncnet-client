@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -20,16 +20,21 @@ namespace DTAClient.Online
     public class Connection
     {
         private const int MAX_RECONNECT_COUNT = 8;
+        private const int MAX_ERROR_COUNT = 30;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int BYTE_ARRAY_MSG_LEN = 1024;
 
-        public Connection(IConnectionManager connectionManager)
+        public Connection(IConnectionManager connectionManager, Random random)
         {
             this.connectionManager = connectionManager;
+            this.Rng = random;
         }
 
         IConnectionManager connectionManager;
+
+        public Random Rng;
 
         private static IList<Server> _servers = null;
         /// <summary>
@@ -68,12 +73,6 @@ namespace DTAClient.Online
         public bool AttemptingConnection
         {
             get { return _attemptingConnection; }
-        }
-
-        Random _rng = new Random();
-        public Random Rng
-        {
-            get { return _rng; }
         }
 
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
@@ -225,7 +224,7 @@ namespace DTAClient.Online
         private void HandleComm()
         {
             int errorTimes = 0;
-            byte[] message = new byte[1024];
+            byte[] message = new byte[BYTE_ARRAY_MSG_LEN];
 
             Register();
 
@@ -242,23 +241,45 @@ namespace DTAClient.Online
                     break;
                 }
 
-                int bytesRead;
+                int bytesRead = 0;
 
                 try
                 {
-                    bytesRead = serverStream.Read(message, 0, 1024);
+                    bytesRead = serverStream.Read(message, 0, BYTE_ARRAY_MSG_LEN);
+                }
+                catch (IOException ex)
+                {
+                    errorTimes++;
+
+                    if (errorTimes > MAX_ERROR_COUNT)
+                    {
+                        const string errorMessage = "Disconnected from CnCNet after not receiving a packet for too long.";
+                        Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
+                        failedServerIPs.Add(currentConnectedServerIP);
+                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
+                        break;
+                    }
+
+                    continue;
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.ToString());
+                    const string errorMessage = "Disconnected from CnCNet due to an internal error.";
+                    Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
+                    failedServerIPs.Add(currentConnectedServerIP);
+                    connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
+                    break;
+                }
+
+                if (bytesRead == 0)
+                {
                     errorTimes++;
 
-                    if (errorTimes > MAX_RECONNECT_COUNT)
+                    if (errorTimes > MAX_ERROR_COUNT)
                     {
-                        const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
-                        Logger.Log(errorMessage);
+                        Logger.Log("Disconnected from CnCNet.");
                         failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
+                        connectionManager.OnConnectionLost("Server disconnected.".L10N("Client:Main:ServerDisconnected"));
                         break;
                     }
 
@@ -904,7 +925,7 @@ namespace DTAClient.Online
         /// <param name="data">Just a dummy parameter so that this matches the delegate System.Threading.TimerCallback.</param>
         private void AutoPing(object data)
         {
-            SendMessage("PING LAG" + new Random().Next(100000, 999999));
+            SendMessage("PING LAG" + Rng.Next(100000, 999999));
         }
 
         /// <summary>

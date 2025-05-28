@@ -152,7 +152,11 @@ public static class Updater
 #if NETFRAMEWORK
     private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
     {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+            System.Security.Authentication.SslProtocols.Tls11 |
+            System.Security.Authentication.SslProtocols.Tls12 |
+            System.Security.Authentication.SslProtocols.Tls13,
     });
 
     private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
@@ -641,7 +645,7 @@ public static class Updater
                     }
                     catch (Exception e)
                     {
-                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.Message);
+                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.ToString());
                         Logger.Log("Updater: Seeking other mirrors...");
                         currentUpdateMirrorIndex++;
 
