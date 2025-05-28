@@ -363,6 +363,8 @@ namespace ClientCore
 
         public bool CampaignTagSelectorEnabled => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CampaignTagSelectorEnabled", false);
 
+        public bool ReturnToMainMenuOnMissionLaunch => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ReturnToMainMenuOnMissionLaunch", true);
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');

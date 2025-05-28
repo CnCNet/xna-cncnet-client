@@ -44,10 +44,11 @@ namespace DTAClient.DXGUI.Generic
         private List<Mission> lbCampaignListMissions = new List<Mission>();
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
+        private XNAClientButton btnCancel;
+        private XNAClientButton btnReturn;
         private XNATextBlock tbMissionDescription;
         private XNATrackbar trbDifficultySelector;
-        private List<SettingCheckBox> settingCheckBoxes;
-        private SettingCheckBox chkHardcoreMode;
+        private List<IUserSetting> userSettings = new List<IUserSetting>();
 
         private CheaterWindow cheaterWindow;
 
@@ -119,25 +120,21 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            var btnCancel = FindChild<XNAClientButton>("btnCancel");
+            btnCancel = FindChild<XNAClientButton>("btnCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
-                var btnReturn = FindChild<XNAClientButton>("btnReturn");
+                btnReturn = FindChild<XNAClientButton>("btnReturn");
                 btnReturn.LeftClick += BtnReturn_LeftClick;
             }
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
-            settingCheckBoxes = Children.Where(c => c is SettingCheckBox chk).Cast<SettingCheckBox>().ToList();
-            chkHardcoreMode = settingCheckBoxes.Find(c => c.Name == "HardcoreMode");
-
-            if (chkHardcoreMode != null)
+            foreach (var cb in userSettings)
             {
-                chkHardcoreMode.Checked = false;
-                chkHardcoreMode.Save();
-            }            
+                cb.Load();
+            }
 
             ReadMissionList();
 
@@ -192,7 +189,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
-            settingCheckBoxes.ForEach(c => c.Save());
+            userSettings.ForEach(c => c.Save());
 
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
@@ -327,12 +324,34 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
             UserINISettings.Instance.SaveSettings();
 
-            Disable();
+            if (ClientConfiguration.Instance.ReturnToMainMenuOnMissionLaunch)
+                Disable();
+            else
+                ToggleControls(false);
 
             discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
+        }
+
+        private void ToggleControls(bool enabled)
+        {
+            btnLaunch.AllowClick = enabled;
+            btnCancel.AllowClick = enabled;
+            lbCampaignList.Enabled = enabled;
+            trbDifficultySelector.Enabled = enabled;
+
+            if (btnReturn is not null)
+                btnReturn.AllowClick = enabled;
+
+            foreach (IUserSetting setting in userSettings)
+            {
+                if (setting is SettingCheckBoxBase cb)
+                    cb.AllowChecking = enabled;
+                else if (setting is SettingDropDownBase dd)
+                    dd.AllowDropDown = enabled;
+            }
         }
 
         private int GetComputerDifficulty() =>
@@ -342,10 +361,17 @@ namespace DTAClient.DXGUI.Generic
         {
             WindowManager.AddCallback(new Action(GameProcessExited), null);
 
-            if (chkHardcoreMode != null)
+            foreach (IUserSetting setting in userSettings)
             {
-                chkHardcoreMode.Checked = false;
-                chkHardcoreMode.Save();
+                if (!setting.ResetToDefaultOnGameExit)
+                    continue;
+
+                if (setting is SettingCheckBoxBase cb)
+                    cb.Checked = cb.DefaultValue;
+                else if (setting is SettingDropDownBase dd)
+                    dd.SelectedIndex = dd.DefaultValue;
+
+                setting.Save();
             }
 
         }
@@ -358,6 +384,9 @@ namespace DTAClient.DXGUI.Generic
 
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
             discordHandler.UpdatePresence();
+
+            if (!ClientConfiguration.Instance.ReturnToMainMenuOnMissionLaunch)
+                ToggleControls(true);
         }
 
         private void ReadMissionList()
