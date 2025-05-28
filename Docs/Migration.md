@@ -5,7 +5,19 @@ This document lists all the breaking changes and how to address them. Each secti
 
 ## 2.12.0
 
-- The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/master/ClientCore/Enums/ClientType.cs) for a list of available values on the latest stable version.
+- The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/0554d7974cb741170c881116568144265e6cbabb/ClientCore/Enums/ClientType.cs) for a list of available values on the latest stable version.
+
+- The `trbScrollRate` component in `GameOptionsPanel` was mistakenly named as `trbClientVolume` in the INI configuration file from the beginning. This has been fixed. No action is needed unless this component was explicitly modified in your configuration (rare).
+
+## 2.11.7.0
+- The new [map preview in game preview feature](https://github.com/CnCNet/xna-cncnet-client/pull/611) introduces a new texture (in `Resources` folder and/or theme subfolders):
+  - `noMapPreview.png`, available [here](https://github.com/CnCNet/xna-cncnet-client/blob/d658c28b0ee4538701f5c3ec0bcf7d06ce3720e8/DXMainClient/Resources/DTA/noMapPreview.png)
+
+## 2.11.6.0
+- The new [preferred skill level feature](https://github.com/CnCNet/xna-cncnet-client/pull/598) introduces the following new textures (in `Resources` folder and/or theme subfolders):
+  - `skillLevel1.png`, available [here](https://github.com/CnCNet/xna-cncnet-client/blob/95d43c27ca383c6addb4c33ab437d3dee0b735cf/DXMainClient/Resources/DTA/skillLevel1.png)
+  - `skillLevel2.png`, available [here](https://github.com/CnCNet/xna-cncnet-client/blob/95d43c27ca383c6addb4c33ab437d3dee0b735cf/DXMainClient/Resources/DTA/skillLevel2.png)
+  - `skillLevel3.png`, available [here](https://github.com/CnCNet/xna-cncnet-client/blob/95d43c27ca383c6addb4c33ab437d3dee0b735cf/DXMainClient/Resources/DTA/skillLevel3.png)
 
 ## 2.11.0.0 and earlier
 
@@ -22,6 +34,8 @@ This document lists all the breaking changes and how to address them. Each secti
 - Second-stage updater is now automatically copied to `Resources/Binaries/Updater` folder by build scripts.
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod +x wine-dta.sh` once to allow it to be launched.
+
+- Due to the unification of client builds, it is now required to define client behavior depending on the game using the `ClientGameType` key in the `ClientDefinitions.ini` file in the `Settings` section.
 
 - The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
 
