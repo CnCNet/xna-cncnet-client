@@ -252,7 +252,7 @@ namespace DTAClient.DXGUI.Generic
             if (copyMapsToSpawnmapINI)
                 spawnIniSettings.AddKey("Scenario", "spawnmap.ini");
             else
-                spawnIniSettings.AddKey("Scenario", scenario);
+                spawnIniSettings.AddKey("Scenario", scenario.ToUpperInvariant());
 
             // No one wants to play missions on Fastest, so we'll change it to Faster
             if (UserINISettings.Instance.GameSpeed == 0)
@@ -301,7 +301,7 @@ namespace DTAClient.DXGUI.Generic
             if (mission.IsCustomMission && mission.GameMissionConfigSection is not null || hasGameMissionData)
             {
                 // copy an IniSection
-                IniSection spawnIniMissionIniSection = new(scenario);
+                IniSection spawnIniMissionIniSection = new(scenario.ToUpperInvariant());
                 foreach (var kvp in mission.GameMissionConfigSection.Keys)
                 {
                     spawnIniMissionIniSection.AddKey(kvp.Key, kvp.Value);
