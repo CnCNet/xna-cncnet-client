@@ -509,11 +509,13 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
 # Global Config Files
 
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
+> [!NOTE]
+> _TODO work in progress_
 
 The `ClientDefinitions.ini` file defines the client's global settings, including the game type, recommended resolutions and the executable file used to launch the game.
 
+In `ClientDefinitions.ini`:
 ```ini
-; ClientDefinitions.ini
 [Settings]
 TrustedDomains=  ; comma-separated list of strings,
                  ; domain names to match links and prevent the message box from appearing before they open by default browser
