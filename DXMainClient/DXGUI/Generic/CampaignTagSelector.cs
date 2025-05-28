@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI.Generic
         protected XNAClientButton btnShowCustomMission;
         public override void Initialize()
         {
-            CampaignSelector = new CampaignSelector(WindowManager, discordHandler);
+            CampaignSelector = new CampaignSelector(WindowManager, discordHandler, this);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, CampaignSelector);
             CampaignSelector.Disable();
 
@@ -52,8 +52,7 @@ namespace DTAClient.DXGUI.Generic
             btnShowAllMission.LeftClick += (sender, e) =>
             {
                 CampaignSelector.LoadMissionsWithFilter(null, disableCustomMissions: false, disableOfficialMissions: false);
-                CampaignSelector.Enable();
-                Disable();
+                NoFadeSwitch();
             };
 
             // The following codes are disabled, in favor of a `ButtonTag_CUSTOM` button.
@@ -73,8 +72,7 @@ namespace DTAClient.DXGUI.Generic
                 tagButton.LeftClick += (sender, e) =>
                 {
                     CampaignSelector.LoadMissionsWithFilter(new HashSet<string>() { tagName }, disableCustomMissions: false, disableOfficialMissions: false);
-                    CampaignSelector.Enable();
-                    Disable();
+                    NoFadeSwitch();
                 };
             }
         }
@@ -90,6 +88,28 @@ namespace DTAClient.DXGUI.Generic
                 Enable();
             else
                 CampaignSelector.Enable();
+        }
+
+        public void NoFadeSwitch()
+        {
+            var dp = CampaignSelector.Parent as DarkeningPanel;
+            dp?.ToggleFade(false);
+
+             if (Visible)
+                CampaignSelector.Enable();
+            else
+                CampaignSelector.Disable();
+
+            dp?.ToggleFade(true);
+            dp = Parent as DarkeningPanel;
+            dp?.ToggleFade(false);
+
+            if (Visible)
+                Disable();
+            else
+                Enable();
+
+            dp?.ToggleFade(true);
         }
 
         private CampaignSelector CampaignSelector;

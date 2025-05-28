@@ -32,12 +32,14 @@ namespace DTAClient.DXGUI.Generic
             "INI/Map Code/Difficulty Hard.ini"
         };
 
-        public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
+        public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler, CampaignTagSelector campaignTagSelector) : base(windowManager)
         {
             this.discordHandler = discordHandler;
+            this.campaignTagSelector = campaignTagSelector;
         }
 
         private DiscordHandler discordHandler;
+        private CampaignTagSelector campaignTagSelector;
 
         private List<Mission> lbCampaignListMissions = new List<Mission>();
         private XNAListBox lbCampaignList;
