@@ -122,6 +122,12 @@ namespace DTAClient.DXGUI.Generic
             var btnCancel = FindChild<XNAClientButton>("btnCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+            if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
+            {
+                var btnReturn = FindChild<XNAClientButton>("btnReturn");
+                btnReturn.LeftClick += BtnReturn_LeftClick;
+            }
+
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
             settingCheckBoxes = Children.Where(c => c is SettingCheckBox chk).Cast<SettingCheckBox>().ToList();
@@ -131,7 +137,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 chkHardcoreMode.Checked = false;
                 chkHardcoreMode.Save();
-            }                
+            }            
 
             ReadMissionList();
 
@@ -177,6 +183,11 @@ namespace DTAClient.DXGUI.Generic
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             Disable();
+        }
+
+        private void BtnReturn_LeftClick(object sender, EventArgs e)
+        {
+            campaignTagSelector.NoFadeSwitch();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
