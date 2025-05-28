@@ -5,8 +5,6 @@ This document lists all the breaking changes and how to address them. Each secti
 
 ## 2.12.0.0
 
-- `BtnSaveLoadGameOptions` in game lobbies was renamed to `btnSaveLoadGameOptions` for consistency. See [this change](https://github.com/CnCNet/cncnet-ts-client-package/commit/2ac97c68978431e94e320299e0168119f75a849f) to TSC for an example of addressing this.
-
 - The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/master/ClientCore/Enums/ClientType.cs) for a list of available values on the latest stable version.
 
 ## 2.11.0.0 and earlier
@@ -53,3 +51,5 @@ This document lists all the breaking changes and how to address them. Each secti
     - `statusError.png`;
 
 - The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) changes the license to GPLv3. This means that if your client is a private fork, you must either stop releasing the modified client or provide the modified source code to public with GPLv3 license.
+
+- `BtnSaveLoadGameOptions` in game lobbies was renamed to `btnSaveLoadGameOptions` for consistency. See [this change](https://github.com/CnCNet/cncnet-ts-client-package/commit/2ac97c68978431e94e320299e0168119f75a849f) to TSC for an example of addressing this.
