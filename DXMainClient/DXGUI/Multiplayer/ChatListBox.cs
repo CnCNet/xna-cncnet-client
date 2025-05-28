@@ -21,7 +21,6 @@ namespace DTAClient.DXGUI.Multiplayer
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
             DoubleLeftClick += ChatListBox_DoubleLeftClick;
-            MiddleClick += ChatListBox_MiddleClick;
         }
         
         private void ChatListBox_DoubleLeftClick(object sender, EventArgs e)
@@ -72,18 +71,6 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (link != null)
                 ProcessLauncher.StartShellProcess(link);
-        }
-
-        private void ChatListBox_MiddleClick(object sender, EventArgs e)
-        {
-            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
-                return;
-
-            var link = Items[SelectedIndex].Text?.GetLink();
-            if (link == null)
-                return;
-
-            ProcessLauncher.StartShellProcess(link);
         }
 
         public void AddMessage(string message)
