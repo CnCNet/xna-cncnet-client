@@ -515,6 +515,7 @@ The `ClientDefinitions.ini` file defines the client's global settings, including
 ```ini
 ; ClientDefinitions.ini
 [Settings]
-TrustedLinksRegExp=  ; regular expression to match links and prevent the message box from appearing before they open by default browser
-                     ; defaults to ^((http)|(https))((://)|(://www\.))((github\.com)|(moddb\.com))
+TrustedDomains=  ; comma-separated list of strings,
+                 ; domain names to match links and prevent the message box from appearing before they open by default browser
+                 ; example: cncnet.org,github.com,moddb.com
 ```

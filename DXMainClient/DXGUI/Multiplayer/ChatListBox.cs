@@ -16,6 +16,8 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public class ChatListBox : XNAListBox, IMessageView
     {
+        private Regex _regexp = new Regex(ClientConfiguration.Instance.AlwaysTrustedLinksRegExp);
+
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
             DoubleLeftClick += ChatListBox_DoubleLeftClick;
@@ -31,8 +33,18 @@ namespace DTAClient.DXGUI.Multiplayer
             if (link == null)
                 return;
 
-            bool regExpResult = new Regex(ClientConfiguration.Instance.AlwaysTrustedLinksRegExp).Match(link).Success ||
-                new Regex(ClientConfiguration.Instance.TrustedLinksRegExp).Match(link).Success;
+            bool regExpResult = _regexp.Match(link).Success;
+
+            foreach (var elem in ClientConfiguration.Instance.TrustedDomains)
+            {
+                if (string.IsNullOrEmpty(elem))
+                    continue;
+
+                regExpResult = regExpResult || link.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
+
+                if (regExpResult)
+                    break;
+            }
 
             if (regExpResult)
             {
