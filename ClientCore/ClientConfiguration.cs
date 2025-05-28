@@ -262,7 +262,7 @@ namespace ClientCore
 
         public string[] TrustedDomains => clientDefinitionsIni.GetStringValue(SETTINGS, "TrustedDomains", string.Empty).Split(',');
 
-        public string AlwaysTrustedLinksRegExp = @"^((http)|(https))((://)|(://www\.))((cncnet\.org)|(gamesurge\.net)|(dronebl\.org)|(discord\.com)|(steamcommunity\.com)|(youtube\.com)|(youtu.be))";
+        public string AlwaysTrustedLinksRegExp = @"^((http)|(https))((://)|(://www\.))((cncnet\.org)|(mapdb\.cncnet\.org)|(gamesurge\.net)|(dronebl\.org)|(discord\.com)|(steamcommunity\.com)|(youtube\.com)|(youtu.be))";
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
