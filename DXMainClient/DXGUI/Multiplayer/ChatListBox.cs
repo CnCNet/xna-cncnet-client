@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -33,24 +34,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             bool result = false;
+            string linkDomain = domainExtractRegExp.Match(link).Groups[0].Value;
 
-            foreach (var elem in ClientConfiguration.Instance.AlwaysTrustedDomains)
+            foreach (var elem in ClientConfiguration.Instance.TrustedDomains.ToList().Concat(ClientConfiguration.Instance.AlwaysTrustedDomains))
             {
                 if (string.IsNullOrEmpty(elem))
                     continue;
 
-                result = result || link.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
-
-                if (result)
-                    break;
-            }
-
-            foreach (var elem in ClientConfiguration.Instance.TrustedDomains)
-            {
-                if (string.IsNullOrEmpty(elem))
-                    continue;
-
-                result = result || domainExtractRegExp.Match(link).Groups[0].Value.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
+                result = result || linkDomain.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
 
                 if (result)
                     break;
