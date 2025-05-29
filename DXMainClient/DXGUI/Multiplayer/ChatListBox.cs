@@ -37,11 +37,13 @@ namespace DTAClient.DXGUI.Multiplayer
             try
             {
                 string domain = new Uri(link).Host;
-                if (ClientConfiguration.Instance.TrustedDomains.Contains(domain) || ClientConfiguration.Instance.AlwaysTrustedDomains.Contains(domain))
+                var trustedDomains = ClientConfiguration.Instance.TrustedDomains.Concat(ClientConfiguration.Instance.AlwaysTrustedDomains);
+                if (trustedDomains.Any(trustedDomain => domain.EndsWith(trustedDomain)))
                     isTrusted = true;
             }
             catch (Exception ex)
             {
+                isTrusted = false;
                 Logger.Log($"Error in parsing the URL \"{link}\": {ex.ToString()}");
             }
 
