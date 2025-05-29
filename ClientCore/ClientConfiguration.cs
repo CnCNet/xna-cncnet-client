@@ -262,7 +262,7 @@ namespace ClientCore
 
         public string[] TrustedDomains => clientDefinitionsIni.GetStringValue(SETTINGS, "TrustedDomains", string.Empty).Split(',');
 
-        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.com", "discord.com", "youtube.com", "youtu.be"};
+        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "youtube.com", "youtu.be"};
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
