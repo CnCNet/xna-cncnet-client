@@ -91,7 +91,7 @@ namespace ClientCore
             }
         }
 
-        public static Encoding GetEncoding(string filename)
+        public static Encoding GetEncoding(string filename, float minimalConfidence = 0.5f)
         {
             Encoding encoding = new UTF8Encoding(false);
 
@@ -100,8 +100,13 @@ namespace ClientCore
                 Ude.CharsetDetector cdet = new Ude.CharsetDetector();
                 cdet.Feed(fs);
                 cdet.DataEnd();
-                if (cdet.Charset != null)
-                    encoding = Encoding.GetEncoding(cdet.Charset);
+                if (cdet.Charset != null && cdet.Confidence > minimalConfidence)
+                {
+                    Encoding detectedEncoding = Encoding.GetEncoding(cdet.Charset);
+
+                    if (detectedEncoding is not UTF8Encoding and not ASCIIEncoding)
+                        encoding = detectedEncoding;
+                }
             }
 
             return encoding;
