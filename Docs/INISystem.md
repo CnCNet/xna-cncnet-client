@@ -505,3 +505,19 @@ Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop
 RandomBackgroundTextures=  ; comma-separated list of strings,
                            ; paths of files to use randomly as BackgroundTexture
 ```
+
+# Global Config Files
+
+## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
+> [!NOTE]
+> _TODO work in progress_
+
+The `ClientDefinitions.ini` file defines the client's global settings, including the game type, recommended resolutions and the executable file used to launch the game.
+
+In `ClientDefinitions.ini`:
+```ini
+[Settings]
+TrustedDomains=  ; comma-separated list of strings,
+                 ; domain names to match links and prevent the message box from appearing before they open by default browser
+                 ; example: cncnet.org,github.com,moddb.com
+```
