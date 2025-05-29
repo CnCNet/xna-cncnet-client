@@ -623,7 +623,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount,
-            int aiPlayerCount, bool isCoop, CoopMapInfo coopInfo, int coopDifficultyLevel, Random random, int sideCount)
+            int aiPlayerCount, bool isCoop, CoopMapInfo coopInfo, int coopDifficultyLevel, Random pseudoRandom, int sideCount)
         {
             foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
                 spawnIni.SetStringValue("Settings", key.Key, key.Value);
@@ -639,7 +639,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (isCoop)
             {
-                int NextRandomSide() => random.Next(0, sideCount);
+                int NextRandomSide() => pseudoRandom.Next(0, sideCount);
 
                 var allyHouses = coopInfo.AllyHouses;
                 var enemyHouses = coopInfo.EnemyHouses;

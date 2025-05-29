@@ -1395,7 +1395,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Writes spawn.ini. Returns the player house info returned from the randomizer.
         /// </summary>
-        private PlayerHouseInfo[] WriteSpawnIni(Random random)
+        private PlayerHouseInfo[] WriteSpawnIni(Random pseudoRandom)
         {
             Logger.Log("Writing spawn.ini");
 
@@ -1424,7 +1424,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
             }
 
-            PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings, random);
+            PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings, pseudoRandom);
 
             IniFile spawnIni = new IniFile(spawnerSettingsFile.FullName);
 
@@ -1475,7 +1475,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
             Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
-                AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, random, SideCount); // Forced options from the map
+                AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, pseudoRandom, SideCount); // Forced options from the map
 
             // Player options
 
@@ -1661,7 +1661,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Writes spawnmap.ini.
         /// </summary>
-        private void WriteMap(PlayerHouseInfo[] houseInfos, Random random)
+        private void WriteMap(PlayerHouseInfo[] houseInfos, Random pseudoRandom)
         {
             FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
 
@@ -1676,7 +1676,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             IniFile globalCodeIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", "GlobalCode.ini"));
 
-            foreach (IniFile iniFile in GameMode.GetMapRulesIniFiles(random))
+            foreach (IniFile iniFile in GameMode.GetMapRulesIniFiles(pseudoRandom))
             {
                 MapCodeHelper.ApplyMapCode(mapIni, iniFile);
             }
@@ -1905,11 +1905,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected virtual void StartGame()
         {
-            Random random = new Random(RandomSeed);
+            Random pseudoRandom = new Random(RandomSeed);
 
-            PlayerHouseInfo[] houseInfos = WriteSpawnIni(random);
+            PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
             InitializeMatchStatistics(houseInfos);
-            WriteMap(houseInfos, random);
+            WriteMap(houseInfos, pseudoRandom);
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
