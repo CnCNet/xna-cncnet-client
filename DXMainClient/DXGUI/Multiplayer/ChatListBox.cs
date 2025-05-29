@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public class ChatListBox : XNAListBox, IMessageView
     {
-        private Regex _regexp = new Regex(ClientConfiguration.Instance.AlwaysTrustedLinksRegExp);
+        private readonly Regex domainExtractRegExp = new Regex(@"(?<=(http[s]?://(www\\.)?))((.*?/)|(.*))");
 
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
@@ -28,24 +28,35 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            var link = Items[SelectedIndex].Text?.GetLink();
+            var link = Items[SelectedIndex].Text?.GetLink()?.ToLowerInvariant();
             if (link == null)
                 return;
 
-            bool regExpResult = _regexp.Match(link).Success;
+            bool result = false;
+
+            foreach (var elem in ClientConfiguration.Instance.AlwaysTrustedDomains)
+            {
+                if (string.IsNullOrEmpty(elem))
+                    continue;
+
+                result = result || link.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
+
+                if (result)
+                    break;
+            }
 
             foreach (var elem in ClientConfiguration.Instance.TrustedDomains)
             {
                 if (string.IsNullOrEmpty(elem))
                     continue;
 
-                regExpResult = regExpResult || link.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
+                result = result || domainExtractRegExp.Match(link).Groups[0].Value.Contains(elem, StringComparison.CurrentCultureIgnoreCase);
 
-                if (regExpResult)
+                if (result)
                     break;
             }
 
-            if (regExpResult)
+            if (result)
             {
                 ProcessLink(link);
                 return;
