@@ -150,7 +150,7 @@ namespace DTAClient.Domain.Multiplayer
                 spawnIni.SetStringValue("Settings", key.Key, key.Value);
         }
 
-        public List<IniFile> GetMapRulesIniFiles(Random random)
+        public List<IniFile> GetMapRulesIniFiles(Random pseudoRandom)
         {
             var mapRules = new List<IniFile>() { new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame)) };
             if (randomizedMapCodeININames.Count == 0)
@@ -159,7 +159,7 @@ namespace DTAClient.Domain.Multiplayer
             Dictionary<string, int> randomOrder = new();
             foreach (string name in randomizedMapCodeININames)
             {
-                randomOrder[name] = random.Next();
+                randomOrder[name] = pseudoRandom.Next();
             }
 
             mapRules.AddRange(
