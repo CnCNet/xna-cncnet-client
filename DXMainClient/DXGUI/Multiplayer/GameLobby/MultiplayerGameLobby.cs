@@ -29,10 +29,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow)
-            : base(windowManager, iniName, mapLoader, true, discordHandler)
+            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow, Random random)
+            : base(windowManager, iniName, mapLoader, true, discordHandler, random)
         {
             TopBar = topBar;
+            this.random = random;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
@@ -61,6 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
         protected XNAClientCheckBox chkAutoReady;
+
+        private Random random;
 
         protected bool IsHost = false;
 
@@ -523,7 +526,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int[] results = new int[dieCount];
-            Random random = new Random();
             for (int i = 0; i < dieCount; i++)
             {
                 results[i] = random.Next(1, dieSides + 1);

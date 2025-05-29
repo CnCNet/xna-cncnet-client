@@ -26,25 +26,25 @@ namespace DTAClient.DXGUI.Generic
             BackgroundTexture = AssetLoader.LoadTexture("extrasMenu.png");
 
             var btnExStatistics = new XNAClientButton(WindowManager);
-            btnExStatistics.Name = "btnExStatistics";
+            btnExStatistics.Name = nameof(btnExStatistics);
             btnExStatistics.ClientRectangle = new Rectangle(76, 17, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnExStatistics.Text = "Statistics".L10N("Client:Main:Statistics");
             btnExStatistics.LeftClick += BtnExStatistics_LeftClick;
 
             var btnExMapEditor = new XNAClientButton(WindowManager);
-            btnExMapEditor.Name = "btnExMapEditor";
+            btnExMapEditor.Name = nameof(btnExMapEditor);
             btnExMapEditor.ClientRectangle = new Rectangle(76, 59, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnExMapEditor.Text = "Map Editor".L10N("Client:Main:MapEditor");
             btnExMapEditor.LeftClick += BtnExMapEditor_LeftClick;
 
             var btnExCredits = new XNAClientButton(WindowManager);
-            btnExCredits.Name = "btnExCredits";
+            btnExCredits.Name = nameof(btnExCredits);
             btnExCredits.ClientRectangle = new Rectangle(76, 101, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnExCredits.Text = "Credits".L10N("Client:Main:Credits");
             btnExCredits.LeftClick += BtnExCredits_LeftClick;
 
             var btnExCancel = new XNAClientButton(WindowManager);
-            btnExCancel.Name = "btnExCancel";
+            btnExCancel.Name = nameof(btnExCancel);
             btnExCancel.ClientRectangle = new Rectangle(76, 160, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnExCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnExCancel.LeftClick += BtnExCancel_LeftClick;
