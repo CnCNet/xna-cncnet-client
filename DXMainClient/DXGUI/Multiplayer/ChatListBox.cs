@@ -38,7 +38,8 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 string domain = new Uri(link).Host;
                 var trustedDomains = ClientConfiguration.Instance.TrustedDomains.Concat(ClientConfiguration.Instance.AlwaysTrustedDomains);
-                if (trustedDomains.Contains(domain) || trustedDomains.Any(trustedDomain => domain.EndsWith("." + trustedDomain)))
+                if (trustedDomains.Contains(domain, StringComparer.InvariantCultureIgnoreCase) ||
+                    trustedDomains.Any(trustedDomain => domain.EndsWith("." + trustedDomain, StringComparison.InvariantCultureIgnoreCase)))
                     isTrusted = true;
             }
             catch (Exception ex)
