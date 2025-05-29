@@ -28,7 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         protected record Rank
         {
-            public readonly int rank;
+            private readonly int rank;
 
             public static readonly Rank None = 0;
             public static readonly Rank Easy = 1;
