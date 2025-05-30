@@ -547,9 +547,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 var gameModeMap = maps[i];
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
-                    string promptUpper = tbMapSearch.Text.ToUpperInvariant();
-                    bool mapMatches = gameModeMap.Map.Name.ToUpperInvariant().Contains(promptUpper)
-                        || gameModeMap.Map.UntranslatedName.ToUpperInvariant().Contains(promptUpper);
+                    string[] searchWords = tbMapSearch.Text
+                        .ToUpperInvariant()
+                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    bool mapMatches = searchWords.All(word =>
+                        gameModeMap.Map.Name.ToUpperInvariant().Contains(word) ||
+                        gameModeMap.Map.UntranslatedName.ToUpperInvariant().Contains(word));
 
                     if (!mapMatches)
                     {
