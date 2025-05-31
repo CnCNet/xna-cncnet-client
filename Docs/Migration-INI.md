@@ -904,7 +904,7 @@ Location=12,189
 
 ## Appendix
 
-For completion's sake, below are additional steps required for a complete migration (beyond INI changes) to client version [2.11.0.0][client] from pre-2.11.0.0.
+For completion's sake, below are additional steps required for a complete migration (beyond INI changes) to client version [2.11.0.0][client_2.11] from pre-2.11.0.0.
 
 ### Update client binary files
 
