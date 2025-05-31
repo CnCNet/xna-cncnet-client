@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ClientCore.Extensions;
+using ClientCore.PlatformShim;
 
 using Rampastring.Tools;
 
@@ -93,7 +94,7 @@ namespace ClientCore
 
         public static Encoding GetEncoding(string filename, float minimalConfidence = 0.5f)
         {
-            Encoding encoding = new UTF8Encoding(false);
+            Encoding encoding = EncodingExt.UTF8NoBOM;
 
             using (FileStream fs = File.OpenRead(filename))
             {
