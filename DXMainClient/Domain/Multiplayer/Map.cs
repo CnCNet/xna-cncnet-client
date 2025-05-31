@@ -712,15 +712,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            Encoding mapIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(CompleteFilePath) : new UTF8Encoding(false);
+            Encoding encoding = FileHelper.GetEncoding(CompleteFilePath);
 
-            var mapIni = new IniFile(CompleteFilePath, mapIniEncoding);
+            var mapIni = new IniFile(CompleteFilePath, encoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
-                Encoding extraIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
-                var extraIni = new IniFile(extraIniPath, extraIniEncoding);
+                encoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
+                var extraIni = new IniFile(extraIniPath, encoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 

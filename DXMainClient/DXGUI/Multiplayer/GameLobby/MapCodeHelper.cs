@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using ClientCore;
-
 using DTAClient.Domain.Multiplayer;
-
 using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -21,20 +17,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public static void ApplyMapCode(IniFile mapIni, string customIniPath, GameMode gameMode)
         {
-            string associatedIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath);
-            Encoding associatedIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(associatedIniPath) : new UTF8Encoding(false);
-            IniFile associatedIni = new IniFile(associatedIniPath, associatedIniEncoding);
+            IniFile associatedIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath));
             string extraIniName = null;
             if (gameMode != null)
                 extraIniName = associatedIni.GetStringValue("GameModeIncludes", gameMode.Name, null);
             associatedIni.EraseSectionKeys("GameModeIncludes");
             ApplyMapCode(mapIni, associatedIni);
             if (!String.IsNullOrEmpty(extraIniName))
-            {
-                string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName);
-                Encoding extraIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
-                ApplyMapCode(mapIni, new IniFile(extraIniPath, extraIniEncoding));
-            }
+                ApplyMapCode(mapIni, new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName)));
         }
 
         /// <summary>
