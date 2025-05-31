@@ -454,7 +454,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
-            if (UserINISettings.Instance.AllowPrivateMessagesFromState == (int)AllowPrivateMessagesFromEnum.Friends && !cncnetUserData.IsFriend(pmUser.IrcUser.Name))
+            bool isFriend = cncnetUserData.IsFriend(pmUser.IrcUser.Name);
+            if (UserINISettings.Instance.AllowPrivateMessagesFromState == (int)AllowPrivateMessagesFromEnum.Friends && !isFriend)
+                return;
+
+            // Exclude messages from users not in the current channel
+            if (!isFriend &&
+                UserINISettings.Instance.AllowPrivateMessagesFromState != (int)AllowPrivateMessagesFromEnum.All &&
+                connectionManager.MainChannel.Users.Find(e.Sender) == null)
                 return;
 
             ChatMessage message = new ChatMessage(e.Sender, otherUserMessageColor, DateTime.Now, e.Message);
