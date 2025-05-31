@@ -14,6 +14,7 @@ using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using System.Diagnostics;
 using System.Text;
+using ClientCore.PlatformShim;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -607,15 +608,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            Encoding encoding = FileHelper.GetEncoding(CompleteFilePath);
+            Encoding mapIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(CompleteFilePath) : EncodingExt.UTF8NoBOM;
 
-            var mapIni = new IniFile(CompleteFilePath, encoding);
+            var mapIni = new IniFile(CompleteFilePath, mapIniEncoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
-                encoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
-                var extraIni = new IniFile(extraIniPath, encoding);
+                Encoding extraIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : EncodingExt.UTF8NoBOM;
+                var extraIni = new IniFile(extraIniPath, extraIniEncoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 
