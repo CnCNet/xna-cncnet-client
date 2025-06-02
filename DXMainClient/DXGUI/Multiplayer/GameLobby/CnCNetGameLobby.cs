@@ -119,6 +119,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private CnCNetManager connectionManager;
         private string localGame;
 
+        private Random random;
+        private readonly GameHostInactiveCheck gameHostInactiveCheck;
+
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
