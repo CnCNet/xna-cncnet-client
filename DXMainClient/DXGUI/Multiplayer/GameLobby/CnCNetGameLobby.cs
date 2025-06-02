@@ -61,7 +61,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
             this.random = random;
-            gameHostInactiveCheck = new GameHostInactiveCheck(WindowManager);
+            
+            gameHostInactiveCheck = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveCheck(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -178,7 +179,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
 
-            MouseMove += (sender, args) => gameHostInactiveCheck.Reset();
+            if (gameHostInactiveCheck != null)
+            {
+                MouseMove += (sender, args) => gameHostInactiveCheck.Reset();
+                gameHostInactiveCheck.CloseEvent += GameHostInactiveCheck_CloseEvent;
+            }
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
@@ -188,8 +193,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
-
-            gameHostInactiveCheck.CloseEvent += GameHostInactiveCheckCloseEvent;
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
@@ -271,16 +274,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
 
-        private void GameHostInactiveCheckCloseEvent(object sender, EventArgs e) => LeaveGameLobby();
+        private void GameHostInactiveCheck_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
 
         public void StartInactiveCheck()
         {
-            if (!ClientConfiguration.Instance.InactiveHostKickEnabled || isCustomPassword)
+            if (isCustomPassword)
                 return;
-            gameHostInactiveCheck.Start();
+
+            gameHostInactiveCheck?.Start();
         }
 
-        public void StopInactiveCheck() => gameHostInactiveCheck.Stop();
+        public void StopInactiveCheck() => gameHostInactiveCheck?.Stop();
 
         public void OnJoined()
         {
@@ -1284,7 +1288,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
-
                 StartInactiveCheck();
 
                 if (Players.Count < playerLimit)
