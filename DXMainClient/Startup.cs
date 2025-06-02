@@ -47,7 +47,7 @@ namespace DTAClient
 
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "version_u");
 
-            InitUpdater();
+            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
 
             Logger.Log("OSDescription: " + RuntimeInformation.OSDescription);
             Logger.Log("OSArchitecture: " + RuntimeInformation.OSArchitecture);
@@ -274,31 +274,6 @@ namespace DTAClient
                     currentDirectory.Name + " to " +
                     newDirectory.Name + ". Message: " + ex.ToString());
             }
-        }
-
-        private void InitUpdater()
-        {
-            CheckUpdateConfigFile();
-            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
-        }
-
-        /**
-         * Check to see if there is already a "base" version of the updateconfig.ini file.
-         * If there is not, check to see if there is a "default" version of the file.
-         * If the "default" version of the file exists and the "base" does not,
-         * copy the "default" to the "base".
-         */
-        private void CheckUpdateConfigFile()
-        {
-            string updateConfigIniPath = ProgramConstants.GamePath + "updateconfig.ini";
-            if (File.Exists(updateConfigIniPath))
-                return;
-
-            string updateConfigDefaultIniPath = ProgramConstants.GamePath + "updateconfig.default.ini";
-            if (!File.Exists(updateConfigDefaultIniPath))
-                return;
-
-            File.Copy(updateConfigDefaultIniPath, updateConfigIniPath);
         }
 
         /// <summary>
