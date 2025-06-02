@@ -125,11 +125,15 @@ namespace DTAClient.DXGUI.Generic
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
-                btnReturn = FindChild<XNAClientButton>("btnReturn");
-                btnReturn.LeftClick += BtnReturn_LeftClick;
+                btnReturn = FindChild<XNAClientButton>("btnReturn", true);
+
+                if (btnReturn is not null)
+                    btnReturn.LeftClick += BtnReturn_LeftClick;
             }
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
+
+            userSettings.AddRange(Children.OfType<IUserSetting>());
 
             foreach (var cb in userSettings)
             {
@@ -282,32 +286,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             spawnIni.AddSection(spawnIniSettings);
-
-            bool hasGameMissionData = false;
-            string scenarioPath = SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario);
-
-            if (!mission.IsCustomMission && File.Exists(scenarioPath)) 
-            {
-                var mapIni = new IniFile(scenarioPath);
-                mission.GameMissionConfigSection = mapIni.GetSection("GameMissionConfig");
-
-                if (mission.GameMissionConfigSection is not null)
-                    hasGameMissionData = true;
-            }
-
-            if (mission.IsCustomMission && mission.GameMissionConfigSection is not null || hasGameMissionData)
-            {
-                // copy an IniSection
-                IniSection spawnIniMissionIniSection = new(scenario.ToUpperInvariant());
-                foreach (var kvp in mission.GameMissionConfigSection.Keys)
-                {
-                    spawnIniMissionIniSection.AddKey(kvp.Key, kvp.Value);
-                }
-
-                // append the new IniSection
-                spawnIni.AddSection(spawnIniMissionIniSection);
-                spawnIniSettings.AddKey("ReadMissionSection", "Yes");
-            }
+            WriteMissionSectionToSpawnIni(spawnIni, mission);
 
             spawnIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"));
 
@@ -316,7 +295,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (copyMapsToSpawnmapINI)
             {
-                var mapIni = new IniFile(scenarioPath);
+                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
             }
@@ -333,6 +312,35 @@ namespace DTAClient.DXGUI.Generic
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
+        }
+
+        public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
+        {
+            bool hasGameMissionData = false;
+            string scenarioPath = SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario);
+
+            if (!mission.IsCustomMission && File.Exists(scenarioPath))
+            {
+                var mapIni = new IniFile(scenarioPath);
+                mission.GameMissionConfigSection = mapIni.GetSection("GameMissionConfig");
+
+                if (mission.GameMissionConfigSection is not null)
+                    hasGameMissionData = true;
+            }
+
+            if (mission.IsCustomMission && mission.GameMissionConfigSection is not null || hasGameMissionData)
+            {
+                // copy an IniSection
+                IniSection spawnIniMissionIniSection = new(mission.Scenario.ToUpperInvariant());
+                foreach (var kvp in mission.GameMissionConfigSection.Keys)
+                {
+                    spawnIniMissionIniSection.AddKey(kvp.Key, kvp.Value);
+                }
+
+                // append the new IniSection
+                spawnIni.AddSection(spawnIniMissionIniSection);
+                spawnIni.SetStringValue("Settings", "ReadMissionSection", "Yes");
+            }
         }
 
         private void ToggleControls(bool enabled)
@@ -360,20 +368,6 @@ namespace DTAClient.DXGUI.Generic
         private void GameProcessExited_Callback()
         {
             WindowManager.AddCallback(new Action(GameProcessExited), null);
-
-            foreach (IUserSetting setting in userSettings)
-            {
-                if (!setting.ResetToDefaultOnGameExit)
-                    continue;
-
-                if (setting is SettingCheckBoxBase cb)
-                    cb.Checked = cb.DefaultValue;
-                else if (setting is SettingDropDownBase dd)
-                    dd.SelectedIndex = dd.DefaultValue;
-
-                setting.Save();
-            }
-
         }
 
         protected virtual void GameProcessExited()
@@ -387,6 +381,25 @@ namespace DTAClient.DXGUI.Generic
 
             if (!ClientConfiguration.Instance.ReturnToMainMenuOnMissionLaunch)
                 ToggleControls(true);
+
+            bool altered = false;
+
+            foreach (IUserSetting setting in userSettings)
+            {
+                if (!setting.ResetToDefaultOnGameExit)
+                    continue;
+
+                if (setting is SettingCheckBoxBase cb)
+                    cb.Checked = cb.DefaultValue;
+                else if (setting is SettingDropDownBase dd)
+                    dd.SelectedIndex = dd.DefaultValue;
+
+                setting.Save();
+                altered = true;
+            }
+
+            if (altered)
+                UserINISettings.Instance.SaveSettings();
         }
 
         private void ReadMissionList()
