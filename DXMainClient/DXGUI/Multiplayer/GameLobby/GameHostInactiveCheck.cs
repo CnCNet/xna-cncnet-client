@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Timers;
 using ClientCore;
+using ClientCore.Extensions;
 using ClientGUI;
 using Rampastring.XNAUI;
 
@@ -64,14 +65,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Stop();
             CloseEvent?.Invoke(this, null);
         }
-
         private void ShowWarning()
         {
             warningShown = true;
             XNAMessageBox hostInactiveWarningMessageBox = new XNAMessageBox(
-                windowManager,
-                ClientConfiguration.Instance.InactiveHostWarningTitle,
-                ClientConfiguration.Instance.InactiveHostWarningMessage,
+            windowManager,
+                "Are you still here?".L10N("Client:Main:InactiveHostWarningTitle"),
+                "Your game may be closed due to inactivity.".L10N("Client:Main:InactiveHostWarningText"),
                 XNAMessageBoxButtons.OK
             );
             hostInactiveWarningMessageBox.OKClickedAction = box => Reset();
