@@ -48,8 +48,8 @@
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+      <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
   </ItemGroup>
 </Project>
