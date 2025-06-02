@@ -561,8 +561,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCreationPanel.Hide();
 
-            //string clientVersion = GitVersionInformation.AssemblySemVer;
-            string clientVersion = "yr/develop, based on the XNA Client Version 2.12.2, develop/0718826";
+            string clientVersion = GitVersionInformation.AssemblySemVer;
 #if DEVELOPMENT_BUILD
             clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
 #endif
@@ -837,9 +836,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (hg.Incompatible && ClientConfiguration.Instance.DisallowJoiningIncompatibleGames)
                 return "Cannot join game. The host is on a different game version than you.".L10N("Client:Main:DisallowJoiningIncompatibleGames");
-
-            if (hg.Incompatible && ClientConfiguration.Instance.DisallowJoiningIncompatibleGames)
-                return "Cannot join game. The host is on a different game version than you.".L10N("UI:Main:DisallowJoiningIncompatibleGames");
 
             if (hg.Locked)
                 return "The selected game is locked!".L10N("Client:Main:GameLocked");
@@ -1198,8 +1194,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Enabled = true;
 
             Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            if (cncnetChannel != null)
-                cncnetChannel.Join();
+            cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             connectionManager.FindChannel(localGameChatChannelName).Join();
