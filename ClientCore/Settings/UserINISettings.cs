@@ -280,9 +280,7 @@ namespace ClientCore
             => SettingsIni.GetIntValue(section, key, defaultValue);
 
         public bool IsGameFollowed(string gameName)
-        {
-            return SettingsIni.GetBooleanValue("Channels", gameName, false);
-        }
+            => SettingsIni.GetBooleanValue("Channels", gameName, false);
 
         public bool ToggleFavoriteMap(string mapName, string gameModeName, bool isFavorite)
         {
@@ -334,10 +332,7 @@ namespace ClientCore
 
         private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
 
-        public void ReloadSettings()
-        {
-            SettingsIni.Reload();
-        }
+        public void ReloadSettings() => SettingsIni.Reload();
 
         public void ApplyDefaults()
         {
@@ -359,13 +354,11 @@ namespace ClientCore
         }
 
         public bool IsGameFiltersApplied()
-        {
-            return ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
-                   HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
-                   HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
-                   HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
-                   MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
-        }
+            => ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
+               HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
+               HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
+               HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
+               MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
 
         public void ResetGameFilters()
         {
@@ -380,9 +373,7 @@ namespace ClientCore
         /// Used to remove old sections/keys to avoid confusion when viewing the ini file directly.
         /// </summary>
         private void CleanUpLegacySettings()
-        {
-            SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
-        }
+            => SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
 
         /// <summary>
         /// Previously, favorite maps were stored under a single key under the [Options] section.
