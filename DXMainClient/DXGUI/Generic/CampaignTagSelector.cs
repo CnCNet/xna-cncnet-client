@@ -12,6 +12,7 @@ namespace DTAClient.DXGUI.Generic
     {
         private const int DEFAULT_WIDTH = 576;
         private const int DEFAULT_HEIGHT = 475;
+        private string _iniSectionName = nameof(CampaignTagSelector);
         private DiscordHandler discordHandler;
 
         public CampaignTagSelector(WindowManager windowManager, DiscordHandler discordHandler)
@@ -31,7 +32,8 @@ namespace DTAClient.DXGUI.Generic
             CampaignSelector = new CampaignSelector(WindowManager, discordHandler, this);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, CampaignSelector);
             CampaignSelector.Disable();
-            Name = nameof(CampaignTagSelector);
+
+            Name = _iniSectionName;
 
             if (!ClientConfiguration.Instance.CampaignTagSelectorEnabled)
                 return;
