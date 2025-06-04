@@ -197,7 +197,7 @@ namespace ClientCore.CnCNet5
             };
 
             // CnCNet chat.
-            CnCNetGame[] otherGames = 
+            CnCNetGame[] otherGames =
             {
                 new()
                 {
