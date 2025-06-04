@@ -120,7 +120,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private CnCNetManager connectionManager;
         private string localGame;
 
-        private Random random;
         private readonly GameHostInactiveChecker gameHostInactiveChecker;
 
         private GameCollection gameCollection;
@@ -150,6 +149,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<string> chatCommandDownloadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
+
+        private Random random;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
