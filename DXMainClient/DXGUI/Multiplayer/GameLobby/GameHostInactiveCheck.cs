@@ -12,7 +12,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private readonly WindowManager windowManager;
         private readonly Timer timer;
         private bool isWarningShown;
-        private DateTime dttmStart;
+        private DateTime startTime;
         private static int WarningSeconds => ClientConfiguration.Instance.InactiveHostWarningMessageSeconds;
         private static int CloseSeconds => ClientConfiguration.Instance.InactiveHostKickSeconds;
 
@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
-            double secondsElapsed = (DateTime.UtcNow - dttmStart).TotalSeconds;
+            double secondsElapsed = (DateTime.UtcNow - startTime).TotalSeconds;
 
             if (secondsElapsed > WarningSeconds && !isWarningShown)
                 ShowWarning();
@@ -46,7 +46,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void Reset()
         {
-            dttmStart = DateTime.UtcNow;
+            startTime = DateTime.UtcNow;
             isWarningShown = false;
         }
 
