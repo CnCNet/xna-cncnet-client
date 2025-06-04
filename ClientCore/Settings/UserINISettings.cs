@@ -354,11 +354,11 @@ namespace ClientCore
         }
 
         public bool IsGameFiltersApplied()
-            => ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
-               HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
-               HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
-               HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
-               MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+            => ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES
+               || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
+               || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES 
+               || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
+               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
 
         public void ResetGameFilters()
         {
