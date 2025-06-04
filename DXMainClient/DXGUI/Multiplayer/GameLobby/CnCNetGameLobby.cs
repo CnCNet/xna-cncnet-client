@@ -62,7 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.pmWindow = pmWindow;
             this.random = random;
             
-            gameHostInactiveCheck = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveCheck(WindowManager) : null;
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -121,7 +121,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string localGame;
 
         private Random random;
-        private readonly GameHostInactiveCheck gameHostInactiveCheck;
+        private readonly GameHostInactiveChecker gameHostInactiveChecker;
 
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
@@ -179,10 +179,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
 
-            if (gameHostInactiveCheck != null)
+            if (gameHostInactiveChecker != null)
             {
-                MouseMove += (sender, args) => gameHostInactiveCheck.Reset();
-                gameHostInactiveCheck.CloseEvent += GameHostInactiveCheck_CloseEvent;
+                MouseMove += (sender, args) => gameHostInactiveChecker.Reset();
+                gameHostInactiveChecker.CloseEvent += GameHostInactiveChecker_CloseEvent;
             }
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
@@ -274,17 +274,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
 
-        private void GameHostInactiveCheck_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
+        private void GameHostInactiveChecker_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
 
         public void StartInactiveCheck()
         {
             if (isCustomPassword)
                 return;
 
-            gameHostInactiveCheck?.Start();
+            gameHostInactiveChecker?.Start();
         }
 
-        public void StopInactiveCheck() => gameHostInactiveCheck?.Stop();
+        public void StopInactiveCheck() => gameHostInactiveChecker?.Stop();
 
         public void OnJoined()
         {

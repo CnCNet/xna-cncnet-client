@@ -7,7 +7,7 @@ using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class GameHostInactiveCheck
+    public class GameHostInactiveChecker
     {
         private readonly WindowManager windowManager;
         private readonly Timer timer;
@@ -18,7 +18,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public event EventHandler CloseEvent;
 
-        public GameHostInactiveCheck(WindowManager windowManager)
+        public GameHostInactiveChecker(WindowManager windowManager)
         {
             this.windowManager = windowManager;
             timer = new Timer();
