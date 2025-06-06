@@ -50,8 +50,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CnCNetUserData cncnetUserData, 
             MapLoader mapLoader, 
             DiscordHandler discordHandler,
-            PrivateMessagingWindow pmWindow
-        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow)
+            PrivateMessagingWindow pmWindow,
+            Random random
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow, random)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -59,6 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
+            this.random = random;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -143,6 +145,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<string> chatCommandDownloadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
+
+        private Random random;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -238,7 +242,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
             }
@@ -407,7 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Clear();
-            channel.Leave();
+            channel?.Leave();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -1232,6 +1236,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void GameProcessExited()
         {
+            ResetGameState();
+        }
+
+        protected void GameStartAborted()
+        {
+            ResetGameState();
+        }
+
+        protected void ResetGameState() 
+        {
             base.GameProcessExited();
 
             channel.SendCTCPMessage("RETURN", QueuedMessageType.SYSTEM_MESSAGE, 20);
@@ -1239,7 +1253,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 OnGameOptionChanged();
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
@@ -1258,6 +1272,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (sender != hostName)
                 return;
+
+            if (Map == null)
+            {
+                GameStartAborted();
+                return;
+            }
 
             string[] parts = message.Split(';');
 
@@ -1868,9 +1888,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (loadedMap != null)
             {
                 message = String.Format(
-                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
+                    "The map for ID \"{0}\" is already loaded from \"{1}.{2}\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
                     sha1,
-                    loadedMap.Map.BaseFilePath);
+                    loadedMap.Map.BaseFilePath,
+                    ClientConfiguration.Instance.MapFileExtension);
                 AddNotice(message, Color.Yellow);
                 Logger.Log(message);
                 return;

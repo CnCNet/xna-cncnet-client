@@ -131,12 +131,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             return Task.Factory.StartNew(() =>
             {
-                CurrentTunnel.UpdatePing();
+                var tunnel = CurrentTunnel;
+                if (tunnel == null) return;
+
+                tunnel.UpdatePing();
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
                 {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == tunnel.Address && t.Port == tunnel.Port);
                     if (tunnelIndex > -1)
                         DoTunnelPinged(tunnelIndex);
                 }

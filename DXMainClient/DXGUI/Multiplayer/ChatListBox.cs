@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework;
 using System;
 using ClientCore;
 using ClientCore.Extensions;
+using ClientGUI;
+using System.Linq;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -24,11 +27,53 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            var link = Items[SelectedIndex].Text?.GetLink();
+            // Get the clicked link
+            string link = Items[SelectedIndex].Text?.GetLink();
             if (link == null)
                 return;
 
-            ProcessLauncher.StartShellProcess(link);
+            // Determine if the link is trusted
+            bool isTrusted = false;
+            try
+            {
+                string domain = new Uri(link).Host;
+                var trustedDomains = ClientConfiguration.Instance.TrustedDomains.Concat(ClientConfiguration.Instance.AlwaysTrustedDomains);
+                isTrusted = trustedDomains.Contains(domain, StringComparer.InvariantCultureIgnoreCase)
+                    || trustedDomains.Any(trustedDomain => domain.EndsWith("." + trustedDomain, StringComparison.InvariantCultureIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                isTrusted = false;
+                Logger.Log($"Error in parsing the URL \"{link}\": {ex.ToString()}");
+            }
+
+            if (isTrusted)
+            {
+                ProcessLink(link);
+                return;
+            }
+
+            // Show the warning if the link is not trusted
+            var msgBox = new XNAMessageBox(WindowManager,
+                "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
+                """
+                You're about to open a link shared in chat.
+
+                Please note that this link hasn't been verified,
+                and CnCNet is not responsible for its content.
+
+                Would you like to open the following link in your browser?
+                """.L10N("Client:Main:OpenLinkConfirmationText")
+                + Environment.NewLine + Environment.NewLine + link,
+                XNAMessageBoxButtons.YesNo);
+            msgBox.YesClickedAction = (msgBox) => ProcessLink(link);
+            msgBox.Show();
+        }
+
+        private void ProcessLink(string link)
+        {
+            if (link != null)
+                ProcessLauncher.StartShellProcess(link);
         }
 
         public void AddMessage(string message)
@@ -49,7 +94,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 Selectable = true,
                 Tag = message
             };
-            
+
             if (message.SenderName == null)
             {
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
@@ -61,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
                     message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
             }
-            
+
             AddItem(listBoxItem);
 
             if (LastIndex >= Items.Count - 2)

@@ -8,6 +8,7 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.I18N;
+using ClientCore.Enums;
 
 using Rampastring.Tools;
 
@@ -20,60 +21,66 @@ namespace DTAClient.Online
 
         private static readonly IReadOnlyList<string> knownTextFileExtensions = [".txt", ".ini", ".json", ".xml"];
 
-        private string[] fileNamesToCheck = new string[]
+        private string[] fileNamesToCheck = ClientConfiguration.Instance.ClientGameType switch
         {
-#if ARES
-            "Ares.dll",
-            "Ares.dll.inj",
-            "Ares.mix",
-            "Syringe.exe",
-            "cncnet5.dll",
-            "rulesmd.ini",
-            "artmd.ini",
-            "soundmd.ini",
-            "aimd.ini",
-            "shroud.shp",
-#elif YR
-            "spawner.xdp",
-            "spawner2.xdp",
-            "artmd.ini",
-            "soundmd.ini",
-            "aimd.ini",
-            "shroud.shp",
-            "INI/Map Code/Cooperative.ini",
-            "INI/Map Code/Free For All.ini",
-            "INI/Map Code/Land Rush.ini",
-            "INI/Map Code/Meat Grinder.ini",
-            "INI/Map Code/Megawealth.ini",
-            "INI/Map Code/Naval War.ini",
-            "INI/Map Code/Standard.ini",
-            "INI/Map Code/Team Alliance.ini",
-            "INI/Map Code/Unholy Alliance.ini",
-            "INI/Game Options/Allies Allowed.ini",
-            "INI/Game Options/Brutal AI.ini",
-            "INI/Game Options/No Dog Engi Eat.ini",
-            "INI/Game Options/No Spawn Previews.ini",
-            "INI/Game Options/RA2 Classic Mode.ini",
-            "INI/Map Code/GlobalCode.ini",
-            "INI/Map Code/MultiplayerGlobalCode.ini",
-#elif TS
-            "spawner.xdp",
-            "rules.ini",
-            "ai.ini",
-            "art.ini",
-            "shroud.shp",
-            "INI/Rules.ini",
-            "INI/Enhance.ini",
-            "INI/Firestrm.ini",
-            "INI/Art.ini",
-            "INI/ArtE.ini",
-            "INI/ArtFS.ini",
-            "INI/AI.ini",
-            "INI/AIE.ini",
-            "INI/AIFS.ini",
-#endif
+            ClientType.TS => new string[]
+            {
+                "spawner.xdp",
+                "rules.ini",
+                "ai.ini",
+                "art.ini",
+                "shroud.shp",
+                "INI/Rules.ini",
+                "INI/Enhance.ini",
+                "INI/Firestrm.ini",
+                "INI/Art.ini",
+                "INI/ArtE.ini",
+                "INI/ArtFS.ini",
+                "INI/AI.ini",
+                "INI/AIE.ini",
+                "INI/AIFS.ini"
+            },
+            ClientType.YR => new string[] 
+            {
+                "spawner.xdp",
+                "spawner2.xdp",
+                "artmd.ini",
+                "soundmd.ini",
+                "aimd.ini",
+                "shroud.shp",
+                "INI/Map Code/Cooperative.ini",
+                "INI/Map Code/Free For All.ini",
+                "INI/Map Code/Land Rush.ini",
+                "INI/Map Code/Meat Grinder.ini",
+                "INI/Map Code/Megawealth.ini",
+                "INI/Map Code/Naval War.ini",
+                "INI/Map Code/Standard.ini",
+                "INI/Map Code/Team Alliance.ini",
+                "INI/Map Code/Unholy Alliance.ini",
+                "INI/Game Options/Allies Allowed.ini",
+                "INI/Game Options/Brutal AI.ini",
+                "INI/Game Options/No Dog Engi Eat.ini",
+                "INI/Game Options/No Spawn Previews.ini",
+                "INI/Game Options/RA2 Classic Mode.ini",
+                "INI/Map Code/GlobalCode.ini",
+                "INI/Map Code/MultiplayerGlobalCode.ini"
+            },
+            ClientType.Ares => new string[]
+            {
+                "Ares.dll",
+                "Ares.dll.inj",
+                "Ares.mix",
+                "Syringe.exe",
+                "cncnet5.dll",
+                "rulesmd.ini",
+                "artmd.ini",
+                "soundmd.ini",
+                "aimd.ini",
+                "shroud.shp"
+            },
+            _ => new string[] { }
         };
-
+            
         public FileHashCalculator() => ParseConfigFile();
 
         private string finalHash = string.Empty;
@@ -139,13 +146,10 @@ namespace DTAClient.Online
                     Logger.Log("Hash for " + relativePath + ": " + hash);
             }
 
-            DirectoryInfo[] iniPaths =
-            {
-#if !YR
-               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"),
-#endif
-               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")
-            };
+            DirectoryInfo[] iniPaths = { SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options") };
+            
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
+                iniPaths.Append<DirectoryInfo>(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
 
             foreach (DirectoryInfo path in iniPaths)
             {

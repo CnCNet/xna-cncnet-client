@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using ClientCore.I18N;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
@@ -187,6 +188,10 @@ namespace ClientCore
 
         #region Client definitions
 
+        private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
+        private ClientType? _ClientGameType = null;
+        public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
+
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
@@ -254,6 +259,10 @@ namespace ClientCore
         public bool CopyResolutionDependentLanguageDLL => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyResolutionDependentLanguageDLL", true);
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
+
+        public string[] TrustedDomains => clientDefinitionsIni.GetStringValue(SETTINGS, "TrustedDomains", string.Empty).Split(',');
+
+        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
@@ -397,6 +406,11 @@ namespace ClientCore
         /// </summary>
         public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
 
+        /// <summary>
+        /// The main map file extension that is read by the client.
+        /// </summary>
+        public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
+        
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"

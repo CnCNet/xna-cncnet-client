@@ -34,7 +34,7 @@ _NOTE: Constants can only be used in [dynamic control properties](#dynamic-contr
 - The `comma-separated strings` is a string, but separated with `,` character without spaces e.g., `one,two,three`.
 <!-- - The `comma separated integers` or `comma separated floats` is a `integer` or `float` type, but separated with `,` character without spaces e.g., `0,0` or `0.0,0.0` respectively. -->
 
-## Control properties
+## Control Properties
 
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
 
@@ -313,7 +313,7 @@ MaximumTextLength=2147483647 ; integer, set maximum input string length.
 
 #### [XNASuggestionTextBox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNASuggestionTextBox.cs)
 
-_(inherits [XNAControl](#XNATextBox))_
+_(inherits [XNATextBox](#XNATextBox))_
 
 ```ini
 [SOMESUGGESTIONTEXTBOX] ; XNASuggestionTextBox
@@ -491,4 +491,33 @@ $Width=100
 $Width=MY_WIDTH_CONSTANT
 $Height=100
 $Height=MY_HEIGHT_CONSTANT
+```
+
+## Window Properties
+
+Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAWindow.cs) that define their own properties.
+
+### [LoadingScreen](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/LoadingScreen.cs)
+
+```ini
+; LoadingScreen.ini
+[LoadingScreen]
+RandomBackgroundTextures=  ; comma-separated list of strings,
+                           ; paths of files to use randomly as BackgroundTexture
+```
+
+# Global Config Files
+
+## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
+> [!NOTE]
+> _TODO work in progress_
+
+The `ClientDefinitions.ini` file defines the client's global settings, including the game type, recommended resolutions and the executable file used to launch the game.
+
+In `ClientDefinitions.ini`:
+```ini
+[Settings]
+TrustedDomains=  ; comma-separated list of strings,
+                 ; domain names to match links and prevent the message box from appearing before they open by default browser
+                 ; example: cncnet.org,github.com,moddb.com
 ```

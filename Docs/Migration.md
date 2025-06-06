@@ -1,7 +1,15 @@
 Migrating from older versions
 -----------------------------
 
-## Migrating from pre-2.11.0.0
+This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
+
+## 2.12.0
+
+- The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/0554d7974cb741170c881116568144265e6cbabb/ClientCore/Enums/ClientType.cs) for a list of available values.
+
+- The `trbScrollRate` component in `GameOptionsPanel` was mistakenly named as `trbClientVolume` in the INI configuration file from the beginning. This has been fixed. No action is needed unless this component was explicitly modified in your configuration (rare).
+
+## 2.11.0.0 and earlier
 
 - `CustomSettingFileCheckBox` and `CustomSettingFileDropDown` have been renamed to simply `FileSettingCheckBox` and `FileSettingDropDown`. This requires adjusting the control names in `OptionsWindow.ini`. `FileSettingCheckBox` has a fallback to legacy behaviour if the control has any files defined with `FileX`.
 
@@ -11,11 +19,11 @@ Migrating from older versions
 
 - Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` for .NET 4.8 and has been moved from base folder to `Resources/Binaries/Updater`.
 
-    - **Note:** If you want end-users to be able to update via the old client, it is necessary to preserve a copy of the old second-stage updater (`clientupdt.dat`) in the client base directory. In other words, *don't* modify or delete `clientupdt.dat` with either of the [update server scripts](https://github.com/CnCNet/xna-cncnet-client/blob/develop/Docs/Updater.md).
+    - **Note:** If you want end-users to be able to update via the old client, it is necessary to preserve a copy of the old second-stage updater (`clientupdt.dat`) in the client base directory. In other words, *don't* modify or delete `clientupdt.dat` with either of the [update server scripts](/Docs/Updater.md).
 
 - Second-stage updater is now automatically copied to `Resources/Binaries/Updater` folder by build scripts.
 
-- To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
+- To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod +x wine-dta.sh` once to allow it to be launched.
 
 - The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
 
