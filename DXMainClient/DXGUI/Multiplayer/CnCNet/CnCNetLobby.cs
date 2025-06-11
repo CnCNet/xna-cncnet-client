@@ -1194,7 +1194,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Enabled = true;
 
             Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            cncnetChannel.Join();
+            cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             connectionManager.FindChannel(localGameChatChannelName).Join();
