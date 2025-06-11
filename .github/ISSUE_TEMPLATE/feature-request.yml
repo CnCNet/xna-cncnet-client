@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this feature request! If you need real-time help, join us on the [C&C Mod Haven Discord](https://discord.gg/an3bDxtksM) server in the __#xna-client-chat__ channel.
+        Thanks for taking the time to fill out this feature request! If you need real-time help, join us on the [C&C Mod Haven Discord](https://discord.gg/Smv4JC8BUG) server in the __#xna-client-chat__ channel.
 
   - type: textarea
     id: description
