@@ -257,9 +257,9 @@ public static class Updater
 
         if (sectionKeys != null)
         {
+            char[] separator = new char[] { ',' };
             foreach (string str in sectionKeys)
             {
-                char[] separator = new char[] { ',' };
                 string[] strArray = file.GetStringValue("FileVersions", str, string.Empty).Split(separator);
                 string[] strArrayArch = file.GetStringValue("ArchivedFiles", str, string.Empty).Split(separator);
                 bool archiveAvailable = strArrayArch is { Length: >= 2 };

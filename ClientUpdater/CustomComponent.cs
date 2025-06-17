@@ -212,7 +212,7 @@ public class CustomComponent
             }
 
             var version = new IniFile(versionFileName);
-            string[] tmp = version.GetStringValue("AddOns", ININame, string.Empty).Split(',');
+            string[] tmp = version.GetListValue("AddOns", ININame, string.Empty);
             Updater.GetArchiveInfo(version, LocalPath, out string archiveID, out int archiveSize);
             UpdaterFileInfo info = Updater.CreateFileInfo(finalFileName, tmp[0], Conversions.IntFromString(tmp[1], 0), archiveID, archiveSize);
 
