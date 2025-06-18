@@ -17,6 +17,7 @@ using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
 using TextCopy;
+using System.Reflection;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -115,6 +116,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UpdateDiscordPresence();
             }
         }
+
+        private MapPreviewPanel panelMapPreview;
 
         protected Map Map => GameModeMap?.Map;
         protected GameMode GameMode => GameModeMap?.GameMode;
@@ -230,6 +233,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                                                    "https://github.com/CnCNet/xna-cncnet-client/",
                                                    ex.Message));
             }
+
+            panelMapPreview = new MapPreviewPanel(WindowManager, this.MapLoader);
+            panelMapPreview.Initialize();
+            panelMapPreview.ClearInfo();
+            panelMapPreview.Disable();
+            panelMapPreview.InputEnabled = false;
+            AddChild(panelMapPreview);
 
             btnLeaveGame = FindChild<XNAClientButton>(nameof(btnLeaveGame));
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
@@ -743,6 +753,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (lbGameModeMapList.HoveredIndex < 0 || lbGameModeMapList.HoveredIndex >= lbGameModeMapList.ItemCount)
             {
                 mapListTooltip.Text = string.Empty;
+                panelMapPreview.Disable();
                 return;
             }
 
@@ -752,6 +763,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 mapListTooltip.Text = "Original name:".L10N("Client:Main:OriginalMapName") + " " + gmm.Map.UntranslatedName;
             else
                 mapListTooltip.Text = string.Empty;
+
+                ShowMapPreviewPanelForIndex(lbGameModeMapList.HoveredIndex);
+        }
+        private void ShowMapPreviewPanelForIndex(int index)
+        {
+            if (index < 0 || index > lbGameModeMapList.ItemCount)
+            {
+                panelMapPreview.Disable();
+                return;
+            }
+            panelMapPreview.Enable();
+            panelMapPreview.X = lbGameModeMapList.X + lbGameModeMapList.Width;
+            panelMapPreview.Y = lbGameModeMapList.Y;
+
+            XNAListBoxItem item = lbGameModeMapList.GetItem(1, index);
+
+            GameModeMap gameModeMap = (GameModeMap)item.Tag;
+
+            panelMapPreview.SetInfo(gameModeMap);
         }
 
         private void PickRandomMap()
