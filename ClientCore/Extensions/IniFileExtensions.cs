@@ -28,10 +28,10 @@ namespace ClientCore.Extensions
 
         public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
         {
-            separators ??= new char[] { ',' };
+            separators ??= [','];
             IniSection iniSection = iniFile.GetSection(section);
 
-            return (iniSection?.iniSection.GetStringValue(key, defaultValue) ?? defaultValue)
+            return (iniSection?.GetStringValue(key, defaultValue) ?? defaultValue)
                 .Split(separators)
                 .ToList()
                 .Select(s => s.Trim())
