@@ -132,9 +132,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
+            Name = "LoadOrSaveGameOptionPresetWindow";
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
-            
+
             base.Initialize();
         }
 
