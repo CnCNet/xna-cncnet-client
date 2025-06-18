@@ -1047,7 +1047,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 List<int> randomSides = new List<int>();
                 try
                 {
-                    string[] tmp = GameOptionsIni.GetListValue("RandomSelectors", randomSelector, string.Empty);
+                    string[] tmp = GameOptionsIni.GetStringListValue("RandomSelectors", randomSelector, string.Empty);
                     randomSides = Array.ConvertAll(tmp, int.Parse).Distinct().ToList();
                     randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }

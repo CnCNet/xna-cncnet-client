@@ -26,7 +26,7 @@ namespace ClientCore.Extensions
                 iniSection.RemoveKey(iniSectionKey.Key);
         }
 
-        public static string[] GetListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
+        public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
         {
             separators ??= new char[] { ',' };
             IniSection iniSection = iniFile.GetSection(section);

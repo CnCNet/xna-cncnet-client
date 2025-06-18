@@ -586,12 +586,12 @@ namespace DTAClient.Domain.Multiplayer
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
-                    string[] disallowedSides = iniFile.GetListValue("Basic", "DisallowedPlayerSides", string.Empty);
+                    string[] disallowedSides = iniFile.GetStringListValue("Basic", "DisallowedPlayerSides", string.Empty);
 
                     foreach (string sideIndex in disallowedSides)
                         CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex, CultureInfo.InvariantCulture));
 
-                    string[] disallowedColors = iniFile.GetListValue("Basic", "DisallowedPlayerColors", string.Empty);
+                    string[] disallowedColors = iniFile.GetStringListValue("Basic", "DisallowedPlayerColors", string.Empty);
 
                     foreach (string colorIndex in disallowedColors)
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex, CultureInfo.InvariantCulture));

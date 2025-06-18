@@ -51,7 +51,7 @@ namespace ClientCore.INIProcessing
             var keys = iniFile.GetSectionKeys(ProcessedINIsSection);
             foreach (string key in keys)
             {
-                string[] values = iniFile.GetListValue(ProcessedINIsSection, key, string.Empty);
+                string[] values = iniFile.GetStringListValue(ProcessedINIsSection, key, string.Empty);
 
                 if (values.Length != 3)
                 {

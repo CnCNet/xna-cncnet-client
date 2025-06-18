@@ -55,7 +55,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in colorKeys)
             {
-                string[] values = gameOptionsIni.GetListValue("MPColors", key, "255,255,255,0");
+                string[] values = gameOptionsIni.GetStringListValue("MPColors", key, "255,255,255,0");
 
                 try
                 {

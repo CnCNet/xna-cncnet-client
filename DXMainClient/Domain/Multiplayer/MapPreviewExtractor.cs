@@ -44,7 +44,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            string[] previewSizes = mapIni.GetListValue("Preview", "Size", string.Empty);
+            string[] previewSizes = mapIni.GetStringListValue("Preview", "Size", string.Empty);
             int previewWidth = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[2], -1) : -1;
             int previewHeight = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[3], -1) : -1;
 

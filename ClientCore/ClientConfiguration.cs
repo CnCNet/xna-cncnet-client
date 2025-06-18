@@ -214,7 +214,7 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
-        public string[] RecommendedResolutions => clientDefinitionsIni.GetListValue(SETTINGS, "RecommendedResolutions",
+        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
             $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
 
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
@@ -262,7 +262,7 @@ namespace ClientCore
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
-        public string[] TrustedDomains => clientDefinitionsIni.GetListValue(SETTINGS, "TrustedDomains", string.Empty);
+        public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
 
         public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
 
@@ -326,7 +326,7 @@ namespace ClientCore
                     continue;
 
                 string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
-                string[] parts = clientDefinitionsIni.GetListValue(TRANSLATIONS, key, string.Empty);
+                string[] parts = clientDefinitionsIni.GetStringListValue(TRANSLATIONS, key, string.Empty);
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
@@ -374,7 +374,7 @@ namespace ClientCore
         
         public string GetGameExecutableName()
         {
-            string[] exeNames = clientDefinitionsIni.GetListValue(SETTINGS, "GameExecutableNames", "Game.exe");
+            string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "GameExecutableNames", "Game.exe");
 
             return exeNames[0];
         }
@@ -407,12 +407,12 @@ namespace ClientCore
         /// <summary>
         /// List of files that are not distributed but required to play.
         /// </summary>
-        public string[] RequiredFiles => clientDefinitionsIni.GetListValue(SETTINGS, "RequiredFiles", String.Empty);
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "RequiredFiles", String.Empty);
 
         /// <summary>
         /// List of files that can interfere with the mod functioning.
         /// </summary>
-        public string[] ForbiddenFiles => clientDefinitionsIni.GetListValue(SETTINGS, "ForbiddenFiles", String.Empty);
+        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "ForbiddenFiles", String.Empty);
 
         /// <summary>
         /// The main map file extension that is read by the client.
