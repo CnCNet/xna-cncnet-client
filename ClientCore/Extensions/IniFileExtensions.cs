@@ -31,7 +31,7 @@ namespace ClientCore.Extensions
             separators ??= new char[] { ',' };
             IniSection iniSection = iniFile.GetSection(section);
 
-            return (iniSection == null ? defaultValue : iniSection.GetStringValue(key, string.Empty))
+            return (iniSection?.iniSection.GetStringValue(key, defaultValue) ?? defaultValue)
                 .Split(separators)
                 .ToList()
                 .Select(s => s.Trim())
