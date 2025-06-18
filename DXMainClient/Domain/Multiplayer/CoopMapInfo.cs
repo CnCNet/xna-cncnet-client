@@ -24,8 +24,8 @@ namespace DTAClient.Domain.Multiplayer
 
         public void Initialize(IniSection section)
         {
-            DisallowedPlayerSides = section.GetListValue<int>("DisallowedPlayerSides", ',', int.Parse);
-            DisallowedPlayerColors = section.GetListValue<int>("DisallowedPlayerColors", ',', int.Parse);
+            DisallowedPlayerSides = section.GetListValue("DisallowedPlayerSides", ',', int.Parse);
+            DisallowedPlayerColors = section.GetListValue("DisallowedPlayerColors", ',', int.Parse);
             EnemyHouses = CoopHouseInfo.GetGenericHouseInfoList(section, "EnemyHouse");
             AllyHouses = CoopHouseInfo.GetGenericHouseInfoList(section, "AllyHouse");
         }
