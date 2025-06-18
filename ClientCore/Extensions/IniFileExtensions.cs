@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
 using Rampastring.Tools;
 
 namespace ClientCore.Extensions
@@ -21,6 +24,19 @@ namespace ClientCore.Extensions
             var keys = new List<KeyValuePair<string, string>>(iniSection.Keys);
             foreach (KeyValuePair<string, string> iniSectionKey in keys)
                 iniSection.RemoveKey(iniSectionKey.Key);
+        }
+
+        public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
+        {
+            separators ??= [','];
+            IniSection iniSection = iniFile.GetSection(section);
+
+            return (iniSection?.GetStringValue(key, defaultValue) ?? defaultValue)
+                .Split(separators)
+                .ToList()
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToArray();
         }
     }
 }
