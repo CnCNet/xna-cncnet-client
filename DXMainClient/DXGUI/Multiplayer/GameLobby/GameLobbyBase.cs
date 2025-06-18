@@ -553,28 +553,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbGameModeMapList.SelectedIndex = -1;
 
             int mapIndex = -1;
-            int skippedMapsCount = 0;
 
             var isFavoriteMapsSelected = IsFavoriteMapsSelected();
             var maps = GetSortedGameModeMaps();
 
             bool gameModeMapChanged = false;
 
-            for (int i = 0; i < maps.Count; i++)
-            {
-                var gameModeMap = maps[i];
-                if (tbMapSearch.Text != tbMapSearch.Suggestion)
-                {
-                    string promptUpper = tbMapSearch.Text.ToUpperInvariant();
-                    bool mapMatches = gameModeMap.Map.Name.ToUpperInvariant().Contains(promptUpper)
-                        || gameModeMap.Map.UntranslatedName.ToUpperInvariant().Contains(promptUpper);
+            List<GameModeMap> filteredMaps;
 
-                    if (!mapMatches)
-                    {
-                        skippedMapsCount++;
-                        continue;
-                    }
-                }
+            if (tbMapSearch.Text != tbMapSearch.Suggestion)
+            {
+                var search = tbMapSearch.Text.ToUpperInvariant();
+                var searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // exact match
+                var exactMatches = maps.Where(gmm =>
+                    gmm.Map.Name.ToUpperInvariant().Contains(search) ||
+                    gmm.Map.UntranslatedName.ToUpperInvariant().Contains(search)).ToList();
+
+                // matches with "AND" logic: Word1 AND Word2 AND Word3
+                var partialMatches = maps.Except(exactMatches).Where(gmm =>
+                {
+                    bool allInTranslated = searchWords.All(word =>
+                        gmm.Map.Name.ToUpperInvariant().Contains(word));
+
+                    bool allInUntranslated = searchWords.All(word =>
+                        gmm.Map.UntranslatedName.ToUpperInvariant().Contains(word));
+
+                    return allInTranslated || allInUntranslated;
+                }).ToList();
+
+                filteredMaps = exactMatches.Concat(partialMatches).ToList();
+            }
+            else
+            {
+                filteredMaps = maps;
+            }
+
+            for (int i = 0; i < filteredMaps.Count; i++)
+            {
+                var gameModeMap = filteredMaps[i];
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
                 if (gameModeMap.Map.IsCoop)
@@ -599,23 +617,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 mapNameItem.Tag = gameModeMap;
 
                 XNAListBoxItem[] mapInfoArray = {
-                    rankItem,
-                    mapNameItem,
-                };
+        rankItem,
+        mapNameItem,
+    };
 
                 lbGameModeMapList.AddItem(mapInfoArray);
 
                 // Preserve the selected map
                 if (gameModeMap == GameModeMap)
                 {
-                    mapIndex = i - skippedMapsCount;
+                    mapIndex = i;
                     gameModeMapChanged = false;
                 }
 
-                // Preserve the selected map, even if the game mode has changed
                 if (mapIndex == -1 && (gameModeMap?.Map?.Equals(GameModeMap?.Map) ?? false))
                 {
-                    mapIndex = i - skippedMapsCount;
+                    mapIndex = i;
                     gameModeMapChanged = true;
                 }
             }
@@ -633,6 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (gameModeMapChanged)
                 LbGameModeMapList_SelectedIndexChanged();
         }
+
 
         protected abstract int GetDefaultMapRankIndex(GameModeMap gameModeMap);
 
