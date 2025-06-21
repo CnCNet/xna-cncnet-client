@@ -9,12 +9,13 @@ namespace DTAConfig.Settings
     {
         public SettingCheckBoxBase(WindowManager windowManager) : base(windowManager) { }
 
-        public SettingCheckBoxBase(WindowManager windowManager, bool defaultValue, string settingSection, string settingKey, bool restartRequired = false) : base(windowManager)
+        public SettingCheckBoxBase(WindowManager windowManager, bool defaultValue, string settingSection, string settingKey, bool restartRequired = false, bool resetPerGameSession = false) : base(windowManager)
         {
             DefaultValue = defaultValue;
             SettingSection = settingSection;
             SettingKey = settingKey;
             RestartRequired = restartRequired;
+            ResetToDefaultOnGameExit = resetPerGameSession;
         }
 
         public bool DefaultValue { get; set; }
@@ -34,6 +35,7 @@ namespace DTAConfig.Settings
         }
 
         public bool RestartRequired { get; set; }
+        public bool ResetToDefaultOnGameExit { get; set; }
 
         private string _parentCheckBoxName;
         /// <summary>
@@ -94,6 +96,9 @@ namespace DTAConfig.Settings
                     return;
                 case "ParentCheckBoxRequiredValue":
                     ParentCheckBoxRequiredValue = Conversions.BooleanFromString(value, true);
+                    return;
+                case "ResetToDefaultOnGameExit":
+                    ResetToDefaultOnGameExit = Conversions.BooleanFromString(value, false);
                     return;
             }
 
