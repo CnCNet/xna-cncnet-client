@@ -17,7 +17,7 @@ This guide outlines the steps for updating the XNA CnCNet Client version for any
 3. **Paste files into the package repository:**
    - Go to your local game/mod repo or working folder.
    - Unarchive `Resources` folder from `[xna-cncnet-client-X.Y.Z.7z]` file downloaded earlier inside the "game root" folder.
-   - You **must** get a prompt to replace `package/Resources/` folder and files inside it. If not, you're in the wrong directory.
+   - You **must** get a prompt to replace `Resources/` folder and files inside it. If not, you're in the wrong directory.
 
 4. **Apply the migration steps:**
    - If updating to next version: follow the instructions from release notes mentioned in step 1.
