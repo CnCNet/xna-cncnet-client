@@ -1,4 +1,4 @@
-Build & Package Workflow
+# Build & Package Workflow
 
 This guide outlines the steps for updating, building, and packaging the `xna-cncnet-client` release for Red Alert 2: Yuri’s Revenge and publishing a new version of the client for players.
 
