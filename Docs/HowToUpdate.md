@@ -1,4 +1,4 @@
-# Build & Package Workflow
+# How to update your mod to latest client version
 
 This guide outlines the steps for updating the XNA CnCNet Client version for any mod or game package that is using it (like, for example, Tiberian Sun Client, CnCNet YR, YR Mod Base or any mod that derives from them etc.).
 
