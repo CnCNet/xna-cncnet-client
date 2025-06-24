@@ -17,6 +17,7 @@ using static System.Collections.Specialized.BitVector32;
 using System.Diagnostics;
 using System.Text;
 using ClientCore.PlatformShim;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -711,14 +712,14 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            Encoding mapIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(CompleteFilePath) : EncodingExt.UTF8NoBOM;
+            Encoding mapIniEncoding = MapCodeHelper.GetMapEncoding(CompleteFilePath);
 
             var mapIni = new IniFile(CompleteFilePath, mapIniEncoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
-                Encoding extraIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : EncodingExt.UTF8NoBOM;
+                Encoding extraIniEncoding = MapCodeHelper.GetMapEncoding(extraIniPath);
                 var extraIni = new IniFile(extraIniPath, extraIniEncoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
