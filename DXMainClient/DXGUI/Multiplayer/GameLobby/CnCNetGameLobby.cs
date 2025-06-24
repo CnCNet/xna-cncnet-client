@@ -61,6 +61,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
             this.random = random;
+            
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -117,6 +119,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private Channel channel;
         private CnCNetManager connectionManager;
         private string localGame;
+
+        private readonly GameHostInactiveChecker gameHostInactiveChecker;
 
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
@@ -175,6 +179,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
+
+            if (gameHostInactiveChecker != null)
+            {
+                MouseMove += (sender, args) => gameHostInactiveChecker.Reset();
+                gameHostInactiveChecker.CloseEvent += GameHostInactiveChecker_CloseEvent;
+            }
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
@@ -245,6 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = random.Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+                StartInactiveCheck();
             }
             else
             {
@@ -263,6 +274,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
+
+        private void GameHostInactiveChecker_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
+
+        public void StartInactiveCheck()
+        {
+            if (isCustomPassword)
+                return;
+
+            gameHostInactiveChecker?.Start();
+        }
+
+        public void StopInactiveCheck() => gameHostInactiveChecker?.Stop();
 
         public void OnJoined()
         {
@@ -406,6 +429,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (IsHost)
             {
+                StopInactiveCheck();
                 closed = true;
                 BroadcastGame();
             }
@@ -755,9 +779,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (color < 0 || color > MPColors.Count)
                 return;
 
-            var disallowedSides = GetDisallowedSides();
+            // Disallowed sides from client, maps, or game modes do not take random selectors into account
+            // So, we need to insert "false" for each random at the beginning of this list AFTER getting them
+            // from client, maps, or game modes.
+            var randomDisallowedSides = new List<bool>(RandomSelectorCount);
+            for (int i = 0; i < RandomSelectorCount; i++)
+                randomDisallowedSides.Add(false);
 
-            if (side > 0 && side <= SideCount && disallowedSides[side - 1])
+            var disallowedSides = randomDisallowedSides.Concat(GetDisallowedSides()).ToArray();
+
+            if (0 < side && side < SideCount && disallowedSides[side])
                 return;
 
             if (Map?.CoopInfo != null)
@@ -1259,6 +1290,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
+                StartInactiveCheck();
 
                 if (Players.Count < playerLimit)
                     UnlockGame(true);
@@ -1334,6 +1366,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
 
+            StopInactiveCheck();
             channel.SendCTCPMessage("STRTD", QueuedMessageType.SYSTEM_MESSAGE, 20);
 
             base.StartGame();

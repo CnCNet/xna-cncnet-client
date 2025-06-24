@@ -104,23 +104,19 @@ namespace DTAClient.Domain.Multiplayer
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
 
-            string[] disallowedSides = forcedOptionsIni
-                .GetStringValue(Name, "DisallowedPlayerSides", string.Empty)
-                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] disallowedSides = forcedOptionsIni.GetStringListValue(Name, "DisallowedPlayerSides", string.Empty);
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
             disallowedSides = forcedOptionsIni
-                .GetStringValue(Name, "DisallowedHumanPlayerSides", string.Empty)
-                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                .GetStringListValue(Name, "DisallowedHumanPlayerSides", string.Empty);
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedHumanPlayerSides.Add(int.Parse(sideIndex));
 
             disallowedSides = forcedOptionsIni
-                .GetStringValue(Name, "DisallowedComputerPlayerSides", string.Empty)
-                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                .GetStringListValue(Name, "DisallowedComputerPlayerSides", string.Empty);
 
             foreach (string sideIndex in disallowedSides)
                 DisallowedComputerPlayerSides.Add(int.Parse(sideIndex));

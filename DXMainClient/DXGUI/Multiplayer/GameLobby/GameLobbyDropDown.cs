@@ -61,7 +61,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 case "Items":
                     string[] items = value.Split(',');
-                    string[] itemLabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
+                    string[] itemLabels = iniFile.GetStringListValue(Name, "ItemLabels", "");
                     for (int i = 0; i < items.Length; i++)
                     {
                         bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);

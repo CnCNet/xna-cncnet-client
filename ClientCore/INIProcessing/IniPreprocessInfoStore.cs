@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using ClientCore.Extensions;
 
 namespace ClientCore.INIProcessing
 {
@@ -50,8 +51,7 @@ namespace ClientCore.INIProcessing
             var keys = iniFile.GetSectionKeys(ProcessedINIsSection);
             foreach (string key in keys)
             {
-                string[] values = iniFile.GetStringValue(ProcessedINIsSection, key, string.Empty).Split(
-                    new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] values = iniFile.GetStringListValue(ProcessedINIsSection, key, string.Empty);
 
                 if (values.Length != 3)
                 {
