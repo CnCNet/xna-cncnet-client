@@ -5,7 +5,6 @@ using ClientCore.Extensions;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -24,6 +23,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private readonly string JOIN = "Join".L10N("Client:Main:Join");
         private readonly string COPY_LINK = "Copy Link".L10N("Client:Main:CopyLink");
         private readonly string OPEN_LINK = "Open Link".L10N("Client:Main:OpenLink");
+        private readonly int LINK_LENGTH = 30;
+        private readonly Rectangle STD_SIZE = new Rectangle(0, 0, 150, 2);
+        private readonly Rectangle LNK_SIZE = new Rectangle(0, 0, 300, 2);
 
         private readonly CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
@@ -32,8 +34,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAContextMenuItem toggleIgnoreItem;
         private XNAContextMenuItem invitePlayerItem;
         private XNAContextMenuItem joinPlayerItem;
-        private XNAContextMenuItem copyLinkItem;
-        private XNAContextMenuItem openLinkItem;
 
         protected readonly CnCNetManager connectionManager;
         protected GlobalContextMenuData contextMenuData;
@@ -52,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.pmWindow = pmWindow;
 
             Name = nameof(GlobalContextMenu);
-            ClientRectangle = new Rectangle(0, 0, 150, 2);
+            ClientRectangle = STD_SIZE;
             Enabled = false;
             Visible = false;
         }
@@ -85,23 +85,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 SelectAction = () => JoinEvent?.Invoke(this, new JoinUserEventArgs(GetIrcUser()))
             };
 
-            copyLinkItem = new XNAContextMenuItem()
-            {
-                Text = COPY_LINK
-            };
-
-            openLinkItem = new XNAContextMenuItem()
-            {
-                Text = OPEN_LINK
-            };
-
             AddItem(privateMessageItem);
             AddItem(toggleFriendItem);
             AddItem(toggleIgnoreItem);
             AddItem(invitePlayerItem);
             AddItem(joinPlayerItem);
-            AddItem(copyLinkItem);
-            AddItem(openLinkItem);
         }
 
         private void Invite()
@@ -153,24 +141,46 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void UpdateMessageBasedButtons()
         {
-            var link = contextMenuData?.ChatMessage?.Message?.GetLink();
+            var links = contextMenuData?.ChatMessage?.Message?.GetLinks();
 
-            copyLinkItem.Visible = link != null;
-            openLinkItem.Visible = link != null;
-
-            copyLinkItem.SelectAction = () =>
+            if (links == null)
             {
-                if (link == null)
-                    return;
-                CopyLink(link);
-            };
-            openLinkItem.SelectAction = () =>
-            {
-                if (link == null)
-                    return;
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    if (!(Items[i].Text.Contains(COPY_LINK) || Items[i].Text.Contains(OPEN_LINK)))
+                        continue;
 
-                ProcessLauncher.StartShellProcess(link);
-            };
+                    i--;
+                }
+
+                ClientRectangle = STD_SIZE;
+                return;
+            }
+
+            ClientRectangle = LNK_SIZE;
+
+            foreach (string link in links)
+            {
+                string linkToDisplay = LINK_LENGTH > link.Length ? link.Substring(0, link.Length) : link.Substring(0, LINK_LENGTH) + "...";
+
+                if (Items.Where(item => item.Text.Contains(linkToDisplay)).ToList().Count > 0)
+                    continue;
+
+                var copyLinkItem = new XNAContextMenuItem()
+                {
+                    Text = string.Format("{0} {1}", COPY_LINK, linkToDisplay),
+                    SelectAction = () => CopyLink(link)
+                };
+
+                var openLinkItem = new XNAContextMenuItem()
+                {
+                    Text = string.Format("{0} {1}", OPEN_LINK, linkToDisplay),
+                    SelectAction = () => ProcessLauncher.StartShellProcess(link)
+                };
+
+                AddItem(copyLinkItem);
+                AddItem(openLinkItem);
+            }
         }
 
         private void CopyLink(string link)
@@ -181,7 +191,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             catch (Exception)
             {
-                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy link".L10N("Client:Main:ClipboardCopyLinkFailed"));
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy links".L10N("Client:Main:ClipboardCopyLinkFailed"));
             }
         }
 
