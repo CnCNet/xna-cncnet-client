@@ -141,18 +141,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void UpdateMessageBasedButtons()
         {
+            RemoveLinks();
+
             var links = contextMenuData?.ChatMessage?.Message?.GetLinks();
 
             if (links == null)
             {
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    if (!(Items[i].Text.Contains(COPY_LINK) || Items[i].Text.Contains(OPEN_LINK)))
-                        continue;
-
-                    i--;
-                }
-
                 ClientRectangle = STD_SIZE;
                 return;
             }
@@ -231,6 +225,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return connectionManager.UserList.Find(u => u.Name == contextMenuData.ChatMessage.SenderName);
 
             return null;
+        }
+
+        public void RemoveLinks()
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                if (!(Items[i].Text.Contains(COPY_LINK) || Items[i].Text.Contains(OPEN_LINK)))
+                    continue;
+
+                Items.RemoveAt(i);
+
+                i--;
+            }
         }
 
         public void Show(string playerName, Point cursorPoint)
