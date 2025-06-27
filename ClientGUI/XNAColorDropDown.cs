@@ -12,18 +12,21 @@ namespace ClientGUI
 {
     public class XNAColorDropDown : XNAClientDropDown
     {
-        private const int PADDING = 3;
-        public ItemsKind ItemsDrawMode { get; set; } = ItemsKind.TextAndIcon;
+        private const int VERTICAL_PADDING = 3;
+        private const int HORIZONTAL_PADDING = 2;
+        public ItemsKind ItemsDrawMode { get; private set; } = ItemsKind.TextAndIcon;
 
-        public int ColorTextureWidth;
-        public int ColorTextureHeigth;
+        public int ColorTextureWidth { get; private set; }
+        public int ColorTextureHeigth { get; private set; }
         public Texture2D RandomColorTexture { get; private set; }
+        public Texture2D DisabledItemTexture { get; private set; }
 
         public XNAColorDropDown(WindowManager windowManager) : base(windowManager) 
         {
-            ColorTextureWidth = Height - PADDING;
-            ColorTextureHeigth = Height - PADDING;
+            ColorTextureWidth = Height - VERTICAL_PADDING;
+            ColorTextureHeigth = Height - HORIZONTAL_PADDING;
             RandomColorTexture = AssetLoader.LoadTexture("randomicon.png");
+            DisabledItemTexture = AssetLoader.CreateTexture(DisabledItemColor, ColorTextureWidth, ColorTextureHeigth);
         }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -43,17 +46,21 @@ namespace ClientGUI
                             });
                             break;
                         case ItemsKind.Icon:
+                            ColorTextureWidth = Width - VERTICAL_PADDING;
+                            ColorTextureHeigth = Height - HORIZONTAL_PADDING;
+                            
                             Items.ForEach(item =>
                             {
                                 if (!item.Text.Contains("Random".L10N("Client:Main:RandomColor")))
                                     item.Texture = AssetLoader.CreateTexture(
-                                        item.TextColor ?? AssetLoader.GetColorFromString("255,255,255"),
-                                        Width - PADDING,
-                                        Height - PADDING);
+                                        item.TextColor ?? Color.White,
+                                        ColorTextureWidth,
+                                        ColorTextureHeigth);
 
                                 item.Text = string.Empty;
                             });
-                            FixLastItemLength();
+                            
+                            DisabledItemTexture = AssetLoader.CreateTexture(DisabledItemColor, Width - VERTICAL_PADDING, Height - HORIZONTAL_PADDING);
 
                             break;
                         case ItemsKind.TextAndIcon:
@@ -95,16 +102,6 @@ namespace ClientGUI
                 item.Texture = RandomColorTexture;
 
             Items.Add(item);
-        }
-
-        public void FixLastItemLength(int _padding = 2)
-        {
-            var lastItem = Items[Items.Count - 1];
-            lastItem.Texture = AssetLoader.CreateTexture(
-                        lastItem.TextColor ?? AssetLoader.GetColorFromString("255,255,255"),
-                        lastItem.Texture.Width,
-                        lastItem.Texture.Height - _padding);
-            Items[Items.Count - 1] = lastItem;
         }
 
         public enum ItemsKind

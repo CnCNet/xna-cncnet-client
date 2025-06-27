@@ -18,6 +18,7 @@ using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
 using TextCopy;
 
+
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
@@ -121,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientDropDown[] ddPlayerNames;
         protected XNAClientDropDown[] ddPlayerSides;
-        protected XNAClientDropDown[] ddPlayerColors;
+        protected XNAColorDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
 
@@ -827,7 +828,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             ddPlayerNames = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerSides = new XNAClientDropDown[MAX_PLAYER_COUNT];
-            ddPlayerColors = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerColors = new XNAColorDropDown[MAX_PLAYER_COUNT];
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
@@ -2238,7 +2239,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Enable all colors by default
             foreach (var ddColor in ddPlayerColors)
             {
-                ddColor.Items.ForEach(item => item.Selectable = true);
+                ddColor.Items.ForEach(item => 
+                { 
+                    item.Selectable = true;
+                    
+                    // Random color has its own texture
+                    if (ddColor.Items[0] == item) return;
+
+                    if (ddColor.ItemsDrawMode == XNAColorDropDown.ItemsKind.Text) return;
+
+                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeigth); 
+                });
             }
 
             // Apply starting locations
@@ -2286,8 +2297,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (disallowedColorIndex >= MPColors.Count)
                         continue;
 
-                    foreach (XNADropDown ddColor in ddPlayerColors)
+                    foreach (var ddColor in ddPlayerColors)
+                    {
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
+                        if (ddColor.ItemsDrawMode == XNAColorDropDown.ItemsKind.Text) 
+                            continue;
+                        if (!ddColor.Items[disallowedColorIndex + 1].Text.Contains("Random".L10N("Client:Main:RandomColor")))
+                            ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;
+                    }
 
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {
