@@ -13,7 +13,7 @@ namespace ClientGUI
     public class XNAColorDropDown : XNAClientDropDown
     {
         private const int PADDING = 3;
-        public ItemsKind ItemsDrawMode { get; set; } = ItemsKind.Text;
+        public ItemsKind ItemsDrawMode { get; set; } = ItemsKind.TextAndIcon;
 
         public int ColorTextureWidth;
         public int ColorTextureHeigth;
@@ -53,8 +53,11 @@ namespace ClientGUI
 
                                 item.Text = string.Empty;
                             });
+                            FixLastItemLength();
+
                             break;
                         case ItemsKind.TextAndIcon:
+                            break;
                         default:
                             break;
                     }
@@ -92,6 +95,16 @@ namespace ClientGUI
                 item.Texture = RandomColorTexture;
 
             Items.Add(item);
+        }
+
+        public void FixLastItemLength(int _padding = 2)
+        {
+            var lastItem = Items[Items.Count - 1];
+            lastItem.Texture = AssetLoader.CreateTexture(
+                        lastItem.TextColor ?? AssetLoader.GetColorFromString("255,255,255"),
+                        lastItem.Texture.Width,
+                        lastItem.Texture.Height - _padding);
+            Items[Items.Count - 1] = lastItem;
         }
 
         public enum ItemsKind
