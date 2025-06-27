@@ -82,14 +82,14 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public bool? ForceNoTeams { get; private set; }
 
-        protected void InitializeBaseSettingsFromIniSection(IniSection section)
+        protected void InitializeBaseSettingsFromIniSection(IniSection section, bool isCustomMap)
         {
             // MinPlayers
-            MinPlayers = section.GetIntValueOrNull("MinPlayers");
+            MinPlayers = section.GetIntValueOrNull(isCustomMap ? "MinPlayer" : "MinPlayers");
 
             // MaxPlayers
-            if (section.KeyExists("ClientMaxPlayer"))
-                MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer");
+            if (isCustomMap)
+                MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer") ?? section.GetIntValueOrNull("MaxPlayer");
             else
                 MaxPlayers = section.GetIntValueOrNull("MaxPlayers");
 
@@ -99,7 +99,7 @@ namespace DTAClient.Domain.Multiplayer
             // AllowedStartingLocations
             List<int>? rawAllowedStartingLocations = section.GetListValueOrNull<int>("AllowedStartingLocations", ',', int.Parse);
 
-            if (rawAllowedStartingLocations != null)
+            if (rawAllowedStartingLocations != null && rawAllowedStartingLocations.Count > 0)
             {
                 // In configuration files, the number starts from 0. While in the code, the number starts from 1.
                 AllowedStartingLocations = rawAllowedStartingLocations.Select(x => x + 1).Distinct().OrderBy(x => x).ToList();
@@ -119,7 +119,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             // MultiplayerOnly
-            MultiplayerOnly = section.GetBooleanValueOrNull("MultiplayerOnly");
+            MultiplayerOnly = section.GetBooleanValueOrNull(isCustomMap ? "ClientMultiplayerOnly" : "MultiplayerOnly");
 
             // HumanPlayersOnly
             HumanPlayersOnly = section.GetBooleanValueOrNull("HumanPlayersOnly");

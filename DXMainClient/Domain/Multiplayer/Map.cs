@@ -243,7 +243,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 CalculateSHA();
 
-                InitializeBaseSettingsFromIniSection(section);
+                InitializeBaseSettingsFromIniSection(section, isCustomMap: false);
 
                 Credits = section.GetIntValue("Credits", -1);
                 UnitCount = section.GetIntValue("UnitCount", -1);
@@ -478,7 +478,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 CalculateSHA();
 
-                InitializeBaseSettingsFromIniSection(basicSection);
+                InitializeBaseSettingsFromIniSection(basicSection, isCustomMap: true);
 
                 Credits = basicSection.GetIntValue("Credits", -1);
                 UnitCount = basicSection.GetIntValue("UnitCount", -1);

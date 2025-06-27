@@ -2276,7 +2276,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 ddStart.AddItem("???");
 
-                int maxLocation = GameModeMap.AllowedStartingLocations.Max() == GameModeMap.MaxPlayers ? GameModeMap.MaxPlayers : MAX_PLAYER_COUNT;
+                int maxLocation = GameModeMap.MaxPlayers == 0 ? 0 : (GameModeMap.AllowedStartingLocations.Max() == GameModeMap.MaxPlayers ? GameModeMap.MaxPlayers : MAX_PLAYER_COUNT);
                 for (int i = 1; i <= maxLocation; i++)
                 {
                     if (GameModeMap.AllowedStartingLocations.Contains(i))

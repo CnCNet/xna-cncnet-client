@@ -83,7 +83,7 @@ namespace DTAClient.Domain.Multiplayer
             UntranslatedUIName = section.GetStringValue("UIName", Name);
             UIName = UntranslatedUIName.L10N($"INI:GameModes:{Name}:UIName");
 
-            InitializeBaseSettingsFromIniSection(forcedOptionsIni.GetSection(Name));
+            InitializeBaseSettingsFromIniSection(forcedOptionsIni.GetSection(Name), isCustomMap: false);
 
             MinPlayersOverride = section.GetIntValueOrNull("MinPlayersOverride");
             MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
