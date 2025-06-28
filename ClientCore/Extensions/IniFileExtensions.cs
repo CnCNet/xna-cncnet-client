@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 using Rampastring.Tools;
 
@@ -26,7 +28,7 @@ namespace ClientCore.Extensions
                 iniSection.RemoveKey(iniSectionKey.Key);
         }
 
-        public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
+        public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[]? separators = null)
         {
             separators ??= [','];
             IniSection iniSection = iniFile.GetSection(section);
@@ -38,5 +40,18 @@ namespace ClientCore.Extensions
                 .Where(s => !string.IsNullOrEmpty(s))
                 .ToArray();
         }
+        
+        public static string? GetStringValueOrNull(this IniSection section, string key) =>
+            section.KeyExists(key) ? section.GetStringValue(key, string.Empty) : null;
+
+        public static int? GetIntValueOrNull(this IniSection section, string key) =>
+            section.KeyExists(key) ? section.GetIntValue(key, 0) : null;
+
+        public static bool? GetBooleanValueOrNull(this IniSection section, string key) =>
+            section.KeyExists(key) ? section.GetBooleanValue(key, false) : null;
+
+        public static List<T>? GetListValueOrNull<T>(this IniSection section, string key, char separator, Func<string, T> converter) =>
+            section.KeyExists(key) ? section.GetListValue<T>(key, separator, converter) : null;
+
     }
 }
