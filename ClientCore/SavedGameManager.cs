@@ -5,12 +5,10 @@ using Rampastring.Tools;
 
 namespace ClientCore
 {
-    /// <summary>
-    /// A class for handling saved multiplayer games.
-    /// </summary>
     public static class SavedGameManager
     {
         private const string SAVED_GAMES_DIRECTORY = "Saved Games";
+        private const int MAX_SAVED_GAMES = 1000;
 
         private static bool saveRenameInProgress = false;
 
@@ -21,15 +19,15 @@ namespace ClientCore
             if (!AreSavedGamesAvailable())
                 return 0;
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < MAX_SAVED_GAMES; i++)
             {
-                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
+                if (!SafePath.GetFile(saveGameDirectory, $"SVGM_{i:D3}.NET").Exists)
                 {
                     return i;
                 }
             }
 
-            return 1000;
+            return MAX_SAVED_GAMES;
         }
 
         public static List<string> GetSaveGameTimestamps()
@@ -42,7 +40,7 @@ namespace ClientCore
 
             for (int i = 0; i < saveGameCount; i++)
             {
-                FileInfo sgFile = SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                FileInfo sgFile = SafePath.GetFile(saveGameDirectory, $"SVGM_{i:D3}.NET");
 
                 DateTime dt = sgFile.LastWriteTime;
 
@@ -54,10 +52,7 @@ namespace ClientCore
 
         public static bool AreSavedGamesAvailable()
         {
-            if (Directory.Exists(GetSaveGameDirectoryPath()))
-                return true;
-
-            return false;
+            return Directory.Exists(GetSaveGameDirectoryPath());
         }
 
         private static string GetSaveGameDirectoryPath()
@@ -65,9 +60,6 @@ namespace ClientCore
             return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
         }
 
-        /// <summary>
-        /// Initializes saved MP games for a match.
-        /// </summary>
         public static bool InitSavedGames()
         {
             bool success = EraseSavedGames();
@@ -112,22 +104,22 @@ namespace ClientCore
 
             int saveGameId = 0;
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < MAX_SAVED_GAMES; i++)
             {
-                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
+                if (!SafePath.GetFile(saveGameDirectory, $"SVGM_{i:D3}.NET").Exists)
                 {
                     saveGameId = i;
                     break;
                 }
             }
 
-            if (saveGameId == 999)
+            if (saveGameId == (MAX_SAVED_GAMES - 1))
             {
-                if (SafePath.GetFile(saveGameDirectory, "SVGM_999.NET").Exists)
-                    Logger.Log("1000 saved games exceeded! Overwriting previous MP save.");
+                if (SafePath.GetFile(saveGameDirectory, $"SVGM_{MAX_SAVED_GAMES - 1:D3}.NET").Exists)
+                    Logger.Log($"{MAX_SAVED_GAMES} saved games exceeded! Overwriting previous MP save.");
             }
 
-            string sgPath = SafePath.CombineFilePath(saveGameDirectory, string.Format("SVGM_{0}.NET", saveGameId.ToString("D3")));
+            string sgPath = SafePath.CombineFilePath(saveGameDirectory, $"SVGM_{saveGameId:D3}.NET");
 
             int tryCount = 0;
 
@@ -165,9 +157,9 @@ namespace ClientCore
 
             try
             {
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < MAX_SAVED_GAMES; i++)
                 {
-                    SafePath.DeleteFileIfExists(GetSaveGameDirectoryPath(), string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                    SafePath.DeleteFileIfExists(GetSaveGameDirectoryPath(), $"SVGM_{i:D3}.NET");
                 }
             }
             catch (Exception ex)
