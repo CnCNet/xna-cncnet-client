@@ -122,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientDropDown[] ddPlayerNames;
         protected XNAClientDropDown[] ddPlayerSides;
-        protected XNAColorDropDown[] ddPlayerColors;
+        protected XNAClientColorDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
 
@@ -828,7 +828,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             ddPlayerNames = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerSides = new XNAClientDropDown[MAX_PLAYER_COUNT];
-            ddPlayerColors = new XNAColorDropDown[MAX_PLAYER_COUNT];
+            ddPlayerColors = new XNAClientColorDropDown[MAX_PLAYER_COUNT];
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
@@ -887,7 +887,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
 
-                var ddPlayerColor = new XNAColorDropDown(WindowManager);
+                var ddPlayerColor = new XNAClientColorDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.Right + playerOptionHorizontalMargin,
@@ -2246,7 +2246,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // Random color has its own texture
                     if (ddColor.Items[0] == item) return;
 
-                    if (ddColor.ItemsDrawMode == XNAColorDropDown.ItemsKind.Text) return;
+                    if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) return;
 
                     item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeigth); 
                 });
@@ -2300,7 +2300,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     foreach (var ddColor in ddPlayerColors)
                     {
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
-                        if (ddColor.ItemsDrawMode == XNAColorDropDown.ItemsKind.Text) 
+                        if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) 
                             continue;
                         if (!ddColor.Items[disallowedColorIndex + 1].Text.Contains("Random".L10N("Client:Main:RandomColor")))
                             ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;

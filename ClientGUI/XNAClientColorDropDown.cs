@@ -10,7 +10,7 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI
 {
-    public class XNAColorDropDown : XNAClientDropDown
+    public class XNAClientColorDropDown : XNAClientDropDown
     {
         private const int VERTICAL_PADDING = 3;
         private const int HORIZONTAL_PADDING = 2;
@@ -21,7 +21,7 @@ namespace ClientGUI
         public Texture2D RandomColorTexture { get; private set; }
         public Texture2D DisabledItemTexture { get; private set; }
 
-        public XNAColorDropDown(WindowManager windowManager) : base(windowManager) 
+        public XNAClientColorDropDown(WindowManager windowManager) : base(windowManager) 
         {
             ColorTextureWidth = Height - VERTICAL_PADDING;
             ColorTextureHeigth = Height - HORIZONTAL_PADDING;
