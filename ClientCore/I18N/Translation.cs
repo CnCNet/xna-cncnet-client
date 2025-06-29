@@ -261,7 +261,6 @@ public class Translation : ICloneable
 
         general.AddKey(nameof(Author), Author);
 
-        // To find a name that can be passed to the GetEncoding method, use the WebName property.
         general.AddKey(nameof(MapEncoding), EncodingExt.EncodingWithAutoToString(MapEncoding));
 
         ini.AddSection(nameof(Values));
