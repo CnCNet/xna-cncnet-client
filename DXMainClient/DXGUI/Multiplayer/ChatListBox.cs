@@ -14,8 +14,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-using static System.Windows.Forms.LinkLabel;
-
 namespace DTAClient.DXGUI.Multiplayer
 {
     /// <summary>
