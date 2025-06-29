@@ -51,7 +51,7 @@ namespace ClientGUI
                             
                             Items.ForEach(item =>
                             {
-                                if (!item.Text.Contains("Random".L10N("Client:Main:RandomColor")))
+                                if (Items[0] != item)
                                     item.Texture = AssetLoader.CreateTexture(
                                         item.TextColor ?? Color.White,
                                         ColorTextureWidth,
@@ -78,10 +78,7 @@ namespace ClientGUI
                     break;
                 case nameof(RandomColorTexture):
                     RandomColorTexture = AssetLoader.LoadTexture(value);
-                    Items
-                        .Where(item => item.Text.Contains("Random".L10N("Client:Main:RandomColor")))
-                        .ToList()
-                        .ForEach(item => item.Texture = RandomColorTexture);
+                    Items[0].Texture = RandomColorTexture;
                     break;
                 default:
                     base.ParseControlINIAttribute(iniFile, key, value);
@@ -96,7 +93,7 @@ namespace ClientGUI
             item.Text = text;
             item.TextColor = color;
 
-            if (!text.Contains("Random".L10N("Client:Main:RandomColor")))
+            if (Items.Count > 1)
                 item.Texture = AssetLoader.CreateTexture(color, ColorTextureWidth, ColorTextureHeigth);
             else
                 item.Texture = RandomColorTexture;

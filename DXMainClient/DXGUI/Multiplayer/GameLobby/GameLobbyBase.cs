@@ -2302,7 +2302,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
                         if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) 
                             continue;
-                        if (!ddColor.Items[disallowedColorIndex + 1].Text.Contains("Random".L10N("Client:Main:RandomColor")))
+                        if (ddColor.Items[disallowedColorIndex + 1] != ddColor.Items[0])
                             ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;
                     }
 
