@@ -34,20 +34,16 @@ namespace ClientCore
         public ProfanityFilter(IEnumerable<string> censoredWords)
         {
             if (censoredWords == null)
-                throw new ArgumentNullException("censoredWords");
+               throw new ArgumentNullException(nameof(censoredWords));
             CensoredWords = new List<string>(censoredWords);
         }
 
         public bool IsOffensive(string text)
         {
-            string censoredText = text;
             foreach (string censoredWord in CensoredWords)
             {
                 string regularExpression = ToRegexPattern(censoredWord);
-                censoredText = Regex.Replace(censoredText, regularExpression, "",
-                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-                if(string.IsNullOrEmpty(censoredText))
+                 if (Regex.IsMatch(text, regularExpression, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                     return true;
             }
             return false;
@@ -56,7 +52,7 @@ namespace ClientCore
         public string CensorText(string text)
         {
             if (text == null)
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             string censoredText = text;
             foreach (string censoredWord in CensoredWords)
             {
