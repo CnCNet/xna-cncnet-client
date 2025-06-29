@@ -223,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             catch (Exception)
             {
-                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy links".L10N("Client:Main:ClipboardCopyLinkFailed"));
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy link".L10N("Client:Main:ClipboardCopyLinkFailed"));
             }
         }
 
