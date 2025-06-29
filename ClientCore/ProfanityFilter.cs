@@ -55,7 +55,6 @@ namespace ClientCore
                 "zoophile",
                 "zoophilia",
                 "chingchong",
-                "chink",
                 "slanty",
                 "zipperhead",
                 "gook",
