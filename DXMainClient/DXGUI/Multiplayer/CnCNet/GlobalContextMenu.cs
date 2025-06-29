@@ -194,17 +194,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                         // Show the warning if the links is not trusted
                         var msgBox = new XNAMessageBox(WindowManager,
-                            "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
-                            """
-                            You're about to open a link shared in chat.
+                        "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
+                        """
+                        You're about to open a link shared in chat.
 
-                            Please note that this link hasn't been verified,
-                            and CnCNet is not responsible for its content.
+                        Please note that this link hasn't been verified,
+                        and CnCNet is not responsible for its content.
 
-                            Would you like to open the following link in your browser?
-                            """.L10N("Client:Main:OpenLinkConfirmationText")
-                            + Environment.NewLine + Environment.NewLine + link,
-                            XNAMessageBoxButtons.YesNo);
+                        Would you like to open the following link in your browser?
+                        """.L10N("Client:Main:OpenLinkConfirmationText")
+                        + Environment.NewLine + Environment.NewLine + link,
+                        XNAMessageBoxButtons.YesNo);
                         msgBox.YesClickedAction = (msgBox) => ProcessLauncher.StartShellProcess(link);
                         msgBox.Show();
                     }
