@@ -169,7 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 var openLinkItem = new XNAContextMenuItem()
                 {
-                    Text = string.Format("{0} {1}", OPEN_LINK, linkToDisplay),
+                    Text = $"{OPEN_LINK} {linkToDisplay}",
                     SelectAction = () =>
                     {
                         bool isTrusted = false;
