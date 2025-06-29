@@ -163,7 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 var copyLinkItem = new XNAContextMenuItem()
                 {
-                    Text = string.Format("{0} {1}", COPY_LINK, linkToDisplay),
+                    Text = $"{COPY_LINK} {linkToDisplay}",
                     SelectAction = () => CopyLink(link)
                 };
 
