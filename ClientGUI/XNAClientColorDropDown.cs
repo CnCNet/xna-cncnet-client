@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-using ClientCore.Extensions;
+﻿using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -17,16 +15,16 @@ namespace ClientGUI
         public ItemsKind ItemsDrawMode { get; private set; } = ItemsKind.TextAndIcon;
 
         public int ColorTextureWidth { get; private set; }
-        public int ColorTextureHeigth { get; private set; }
+        public int ColorTextureHeight { get; private set; }
         public Texture2D RandomColorTexture { get; private set; }
         public Texture2D DisabledItemTexture { get; private set; }
 
         public XNAClientColorDropDown(WindowManager windowManager) : base(windowManager) 
         {
             ColorTextureWidth = Height - VERTICAL_PADDING;
-            ColorTextureHeigth = Height - HORIZONTAL_PADDING;
+            ColorTextureHeight = Height - HORIZONTAL_PADDING;
             RandomColorTexture = AssetLoader.LoadTexture("randomicon.png");
-            DisabledItemTexture = AssetLoader.CreateTexture(DisabledItemColor, ColorTextureWidth, ColorTextureHeigth);
+            DisabledItemTexture = AssetLoader.CreateTexture(DisabledItemColor, ColorTextureWidth, ColorTextureHeight);
         }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -47,7 +45,7 @@ namespace ClientGUI
                             break;
                         case ItemsKind.Icon:
                             ColorTextureWidth = Width - VERTICAL_PADDING;
-                            ColorTextureHeigth = Height - HORIZONTAL_PADDING;
+                            ColorTextureHeight = Height - HORIZONTAL_PADDING;
                             
                             Items.ForEach(item =>
                             {
@@ -55,7 +53,7 @@ namespace ClientGUI
                                     item.Texture = AssetLoader.CreateTexture(
                                         item.TextColor ?? Color.White,
                                         ColorTextureWidth,
-                                        ColorTextureHeigth);
+                                        ColorTextureHeight);
 
                                 item.Text = string.Empty;
                             });
@@ -73,8 +71,8 @@ namespace ClientGUI
                 case nameof(ColorTextureWidth):
                     ColorTextureWidth = Conversions.IntFromString(value, ColorTextureWidth);
                     break;
-                case nameof(ColorTextureHeigth):
-                    ColorTextureHeigth = Conversions.IntFromString(value, ColorTextureHeigth);
+                case nameof(ColorTextureHeight):
+                    ColorTextureHeight = Conversions.IntFromString(value, ColorTextureHeight);
                     break;
                 case nameof(RandomColorTexture):
                     RandomColorTexture = AssetLoader.LoadTexture(value);
@@ -94,7 +92,7 @@ namespace ClientGUI
             item.TextColor = color;
 
             if (Items.Count > 1)
-                item.Texture = AssetLoader.CreateTexture(color, ColorTextureWidth, ColorTextureHeigth);
+                item.Texture = AssetLoader.CreateTexture(color, ColorTextureWidth, ColorTextureHeight);
             else
                 item.Texture = RandomColorTexture;
 

@@ -2248,7 +2248,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) return;
 
-                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeigth); 
+                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeight); 
                 });
             }
 
