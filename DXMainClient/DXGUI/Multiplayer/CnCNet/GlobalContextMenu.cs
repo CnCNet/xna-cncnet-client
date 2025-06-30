@@ -32,7 +32,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private readonly string JOIN = "Join".L10N("Client:Main:Join");
         private readonly string COPY_LINK = "Copy Link".L10N("Client:Main:CopyLink");
         private readonly string OPEN_LINK = "Open Link".L10N("Client:Main:OpenLink");
-        private readonly int LINK_LENGTH = 30;
+
+        private readonly int SHORT_LINK_MINIMAL_LENGTH = 40;
+        private readonly int SHORT_LINK_PREFIX_LENGTH = 30;
+        private readonly int SHORT_LINK_SUFFIX_LENGTH = 5;
+
         private readonly Rectangle STD_SIZE = new Rectangle(0, 0, 150, 2);
         private readonly Rectangle LNK_SIZE = new Rectangle(0, 0, 300, 2);
 
@@ -165,7 +169,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (string link in links)
             {
-                string linkToDisplay = LINK_LENGTH > link.Length ? link.Substring(0, link.Length) : link.Substring(0, LINK_LENGTH) + "...";
+                // Shorten the links if it's too long
+                string linkToDisplay = link;
+                if (link.Length > SHORT_LINK_MINIMAL_LENGTH)
+                    linkToDisplay = link[..SHORT_LINK_PREFIX_LENGTH] + "..." + link[^SHORT_LINK_SUFFIX_LENGTH..];
 
                 if (Items.Where(item => item.Text.Contains(linkToDisplay)).ToList().Count > 0)
                     continue;
