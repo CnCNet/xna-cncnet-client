@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Linq;
 
-using ClientCore;
 using ClientCore.Extensions;
 
-using ClientGUI;
-
+using DTAClient.DXGUI.Generic;
 using DTAClient.Online;
 
 using Microsoft.Xna.Framework;
 
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -34,57 +30,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
             // Get the clicked links
             string[] links = Items[SelectedIndex].Text?.GetLinks();
-            
-            if (links == null) 
+
+            if (links == null)
                 return;
 
             if (links.Length == 0 || links.Length > 1)
                 return;
 
             string link = links[0];
-
-            // Determine if the links is trusted
-            bool isTrusted = false;
-            try
-            {
-                string domain = new Uri(link).Host;
-                var trustedDomains = ClientConfiguration.Instance.TrustedDomains.Concat(ClientConfiguration.Instance.AlwaysTrustedDomains);
-                isTrusted = trustedDomains.Contains(domain, StringComparer.InvariantCultureIgnoreCase)
-                    || trustedDomains.Any(trustedDomain => domain.EndsWith("." + trustedDomain, StringComparison.InvariantCultureIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                isTrusted = false;
-                Logger.Log($"Error in parsing the URL \"{link}\": {ex.ToString()}");
-            }
-
-            if (isTrusted)
-            {
-                ProcessLink(link);
-                return;
-            }
-
-            // Show the warning if the links is not trusted
-            var msgBox = new XNAMessageBox(WindowManager,
-                "Open Link Confirmation".L10N("Client:Main:OpenLinkConfirmationTitle"),
-                """
-                    You're about to open a link shared in chat.
-
-                    Please note that this link hasn't been verified,
-                    and CnCNet is not responsible for its content.
-
-                    Would you like to open the following link in your browser?
-                    """.L10N("Client:Main:OpenLinkConfirmationText")
-                + Environment.NewLine + Environment.NewLine + link,
-                XNAMessageBoxButtons.YesNo);
-            msgBox.YesClickedAction = (msgBox) => ProcessLink(link);
-            msgBox.Show();
-        }
-
-        private void ProcessLink(string link)
-        {
-            if (link != null)
-                ProcessLauncher.StartShellProcess(link);
+            URLHandler.OpenLink(WindowManager, link);
         }
 
         public void AddMessage(string message)
