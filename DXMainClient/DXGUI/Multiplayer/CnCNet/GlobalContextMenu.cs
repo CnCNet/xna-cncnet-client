@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore;
@@ -48,6 +49,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public EventHandler<JoinUserEventArgs> JoinEvent;
 
+        private IReadOnlyList<XNAContextMenuItem> DefaultMenuItems = [];
+
         public GlobalContextMenu(
             WindowManager windowManager,
             CnCNetManager connectionManager,
@@ -93,11 +96,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 SelectAction = () => JoinEvent?.Invoke(this, new JoinUserEventArgs(GetIrcUser()))
             };
 
-            AddItem(privateMessageItem);
-            AddItem(toggleFriendItem);
-            AddItem(toggleIgnoreItem);
-            AddItem(invitePlayerItem);
-            AddItem(joinPlayerItem);
+            DefaultMenuItems = [privateMessageItem, toggleFriendItem, toggleIgnoreItem, invitePlayerItem, joinPlayerItem];
+
+            foreach (var item in DefaultMenuItems)
+                AddItem(item);
         }
 
         private void Invite()
@@ -149,7 +151,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void UpdateMessageBasedButtons()
         {
-            RemoveLinks();
+            Items = DefaultMenuItems.ToList();
 
             var links = contextMenuData?.ChatMessage?.Message?.GetLinks();
 
@@ -233,19 +235,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return connectionManager.UserList.Find(u => u.Name == contextMenuData.ChatMessage.SenderName);
 
             return null;
-        }
-
-        public void RemoveLinks()
-        {
-            for (int i = 0; i < Items.Count; i++)
-            {
-                if (!(Items[i].Text.Contains(COPY_LINK) || Items[i].Text.Contains(OPEN_LINK)))
-                    continue;
-
-                Items.RemoveAt(i);
-
-                i--;
-            }
         }
 
         public void Show(string playerName, Point cursorPoint)
