@@ -180,8 +180,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     SelectAction = () => URLHandler.OpenLink(WindowManager, link)
                 };
 
-                AddItem(copyLinkItem);
                 AddItem(openLinkItem);
+                AddItem(copyLinkItem);
             }
         }
 
