@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
 using ClientCore.I18N;
@@ -7,22 +8,23 @@ namespace ClientCore.Extensions;
 
 public static class StringExtensions
 {
-    public static string GetLink(this string text)
+    private static Regex extractLinksRE = new Regex(@"((http[s]?)|(ftp))\S+");
+
+    public static string[] GetLinks(this string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
-        int index = text.IndexOf("http://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("ftp://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("https://", StringComparison.Ordinal);
+        var matches = extractLinksRE.Matches(text);
 
-        if (index == -1)
+        if (matches.Count == 0)
             return null; // No link found
 
-        string link = text.Substring(index);
-        return link.Split(' ')[0]; // Nuke any words coming after the link
+        string[] links = new string[matches.Count];
+        for (int i = 0; i < links.Length; i++)
+            links[i] = matches[i].Value.Trim();
+            
+        return links;
     }
 
     private const string ESCAPED_INI_NEWLINE_PATTERN = $"\\{ProgramConstants.INI_NEWLINE_PATTERN}";
