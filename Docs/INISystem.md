@@ -531,6 +531,7 @@ The `ClientDefinitions.ini` file defines the client's global settings, including
 In `ClientDefinitions.ini`:
 ```ini
 [Settings]
+ExtractURLFromMessage= ; boolean, whether to enable URL recognition from a user message
 TrustedDomains=  ; comma-separated list of strings,
                  ; domain names to match links and prevent the message box from appearing before they open by default browser
                  ; example: cncnet.org,github.com,moddb.com
