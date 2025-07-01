@@ -262,8 +262,6 @@ namespace ClientCore
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
-        public bool ExtractURLFromMessage => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ExtractURLFromMessage", true);
-
         public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
 
         public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};

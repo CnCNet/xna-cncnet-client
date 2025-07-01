@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             var links = contextMenuData?.ChatMessage?.Message?.GetLinks();
 
-            if (links == null || !ClientConfiguration.Instance.ExtractURLFromMessage)
+            if (links == null)
             {
                 ClientRectangle = STD_SIZE;
                 return;

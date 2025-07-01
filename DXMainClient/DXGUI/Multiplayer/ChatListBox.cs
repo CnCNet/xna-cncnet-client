@@ -1,6 +1,5 @@
 ﻿using System;
 
-using ClientCore;
 using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Generic;
@@ -32,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer
             // Get the clicked links
             string[] links = Items[SelectedIndex].Text?.GetLinks();
 
-            if (links == null || !ClientConfiguration.Instance.ExtractURLFromMessage)
+            if (links == null)
                 return;
 
             if (links.Length == 0 || links.Length > 1)
