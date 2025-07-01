@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -17,6 +17,7 @@ using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
 using TextCopy;
+
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -121,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientDropDown[] ddPlayerNames;
         protected XNAClientDropDown[] ddPlayerSides;
-        protected XNAClientDropDown[] ddPlayerColors;
+        protected XNAClientColorDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
 
@@ -827,7 +828,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             ddPlayerNames = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerSides = new XNAClientDropDown[MAX_PLAYER_COUNT];
-            ddPlayerColors = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerColors = new XNAClientColorDropDown[MAX_PLAYER_COUNT];
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
@@ -886,7 +887,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
 
-                var ddPlayerColor = new XNAClientDropDown(WindowManager);
+                var ddPlayerColor = new XNAClientColorDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.Right + playerOptionHorizontalMargin,
@@ -2238,7 +2239,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Enable all colors by default
             foreach (var ddColor in ddPlayerColors)
             {
-                ddColor.Items.ForEach(item => item.Selectable = true);
+                ddColor.Items.ForEach(item => 
+                { 
+                    item.Selectable = true;
+                    
+                    // Random color has its own texture
+                    if (ddColor.Items[0] == item) return;
+
+                    if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) return;
+
+                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeight); 
+                });
             }
 
             // Apply starting locations
@@ -2286,8 +2297,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (disallowedColorIndex >= MPColors.Count)
                         continue;
 
-                    foreach (XNADropDown ddColor in ddPlayerColors)
+                    foreach (var ddColor in ddPlayerColors)
+                    {
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
+                        if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) 
+                            continue;
+                        if (ddColor.Items[disallowedColorIndex + 1] != ddColor.Items[0])
+                            ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;
+                    }
 
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {
