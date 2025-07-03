@@ -173,10 +173,10 @@ namespace ClientGUI
 
                     if (child is ICompositeControl composite)
                     {
-                        foreach (var c in composite.SubControls)
+                        foreach (var sc in composite.SubControls)
                         {
-                            ReadINIForControl(child);
-                            child.Initialize();
+                            ReadINIForControl(sc);
+                            sc.Initialize();
                         }
                     }
                 }
