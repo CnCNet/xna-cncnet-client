@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <UseAppHost>false</UseAppHost>
+    </PropertyGroup>
+    <PropertyGroup>
+        <Title>CnCNet.MigratioTool</Title>
+        <Description>CnCNet Client Migration Tool</Description>
+        <Product>CnCNet.MigratioTool</Product>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Rampastring.Tools" />
+    </ItemGroup>
+</Project>
