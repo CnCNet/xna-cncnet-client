@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using Rampastring.Tools;
 
 namespace MigrationTool;
@@ -9,7 +12,6 @@ internal sealed class Program
     private enum Version
     {
         Begin,
-        V_2_8_x_x,
         V_2_11_0,
         V_2_11_1,
         V_2_11_2,
@@ -26,7 +28,6 @@ internal sealed class Program
         Ares
     }
 
-    private static Version currentConfigVersion = Version.V_2_8_x_x;
     private static ConsoleColor defaultColor = Console.ForegroundColor;
 
     private static void Main(string[] args)

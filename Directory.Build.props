@@ -50,6 +50,11 @@
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
+    
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
 
   <!-- For Constants -->
   <PropertyGroup>
