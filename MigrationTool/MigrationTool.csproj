@@ -4,9 +4,9 @@
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   <PropertyGroup>
-    <Title>CnCNet.MigratioTool</Title>
+    <Title>CnCNet.MigrationTool</Title>
     <Description>CnCNet Client Migration Tool</Description>
-    <Product>CnCNet.MigratioTool</Product>
+    <Product>CnCNet.MigrationTool</Product>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" />
