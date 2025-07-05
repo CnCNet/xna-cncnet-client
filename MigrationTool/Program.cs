@@ -18,6 +18,7 @@ internal sealed class Program
         V_2_12_0,
         V_2_12_1,
         V_2_12_5,
+        Latest,
         End
     }
 
@@ -115,6 +116,7 @@ internal sealed class Program
         DirectoryInfo resouresDir = SafePath.GetDirectory(SafePath.CombineFilePath(path, "Resources"));
 
         IniFile clientDefsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "ClientDefinitions.ini"));
+        IniFile gmLobbyBaseIni = null;
 
         for (int i = (int)Version.Begin; i != (int)Version.End; i++)
         {
@@ -142,9 +144,9 @@ internal sealed class Program
                     var listExtraXMLs = new List<string>(2) { "ClientUpdater.xml", "SecondStageUpdater.xml" };
                     Log("Remove ClientUpdater.xml and SecondStageUpdater.xml");
 
-                    foreach (var item in listExtraXMLs)
+                    foreach (var extraXml in listExtraXMLs)
                     {
-                        Directory.GetFiles(resouresDir.FullName, item, SearchOption.AllDirectories)
+                        Directory.GetFiles(resouresDir.FullName, extraXml, SearchOption.AllDirectories)
                             .ToList()
                             .ForEach(elem => SafePath.DeleteFileIfExists(elem));
                     }
@@ -208,7 +210,7 @@ internal sealed class Program
                     // Add ClientDefinitions.ini->[Settings]->TrustedDomains
                     if (clientDefsIni.KeyExists("Settings", "TrustedDomains"))
                     {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->TrustedDomains, reason: already exist");
+                        Log("Update ClientDefinitions.ini: Skip add [Settings]->TrustedDomains, reason: already exist");
                         continue;
                     }
 
@@ -216,6 +218,28 @@ internal sealed class Program
                     Log($"Update ClientDefinitions.ini: Add [Settings]->TrustedDomains={td}");
                     clientDefsIni.GetSection("Settings").AddKey("TrustedDomains", td);
                     clientDefsIni.WriteIniFile();
+                    continue;
+
+                case (Version.Latest):
+                    // Add GameLobbyBase.ini->[ddPlayerColorX]->ItemsDrawMode
+                    gmLobbyBaseIni ??= new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GameLobbyBase.ini"));
+                    string ddPlayerColor = nameof(ddPlayerColor);
+                    foreach (var n in new int[] { 0, 1, 2, 3, 4, 5, 6, 7 })
+                    {
+                        if (gmLobbyBaseIni.KeyExists(ddPlayerColor + n, "ItemsDrawMode"))
+                        {
+                            Log($"Update GameLobbyBase.ini: Skip add [{ddPlayerColor + n}]->ItemsDrawMode, reason: already exist");
+                            continue;
+                        }
+
+                        Log($"Update GameLobbyBase.ini: Add [{ddPlayerColor + n}]->ItemsDrawMode=Text");
+
+                        if (!gmLobbyBaseIni.SectionExists(ddPlayerColor + n))
+                            gmLobbyBaseIni.AddSection(ddPlayerColor + n);
+
+                        gmLobbyBaseIni.GetSection(ddPlayerColor + n).AddKey("ItemsDrawMode", "Text");
+                        gmLobbyBaseIni.WriteIniFile();
+                    }
                     continue;
 
                 default:
