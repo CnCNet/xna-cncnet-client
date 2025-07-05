@@ -15,7 +15,6 @@ internal sealed class Program
         V_2_11_0,
         V_2_11_1,
         V_2_11_2,
-        V_2_12_0,
         V_2_12_1,
         Latest,
         End
@@ -148,6 +147,12 @@ internal sealed class Program
             {
                 case (Version.V_2_11_0):
 
+                    // Remove Rampastring.Tools from Resources directory (not recursive)
+                    Log("Remove Resources\\Rampastring.Tools.* (* -- dll, pdb, xml)");
+                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.dll");
+                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.pdb");
+                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.xml");
+
                     // Add GlobalThemeSettings.ini
                     IniFile globalThemeSettingsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GlobalThemeSettings.ini"));
                     Dictionary<string, int> gtsKeys = new()
@@ -234,14 +239,6 @@ internal sealed class Program
                     // Add ClientDefinitions.ini->[Settings]->ShowDevelopmentBuildWarnings
                     AddKeyWithLog(clientDefsIni, "Settings", "ShowDevelopmentBuildWarnings", "true");
                     clientDefsIni.WriteIniFile();
-                    continue;
-
-                case (Version.V_2_12_0): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.0
-                    // Remove Rampastring.Tools from Resources directory (not recursive)
-                    Log("Remove Resources/Rampastring.Tools.* (* -- dll, pdb, xml)");
-                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.dll");
-                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.pdb");
-                    SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.xml");
                     continue;
 
                 case (Version.V_2_12_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.1
