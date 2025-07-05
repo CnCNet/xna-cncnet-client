@@ -112,7 +112,7 @@ internal sealed class Program
     {
         if (src.KeyExists(section, key))
         {
-            Log($"Update {src.FileName}.ini: Skip add [{section}]->{key}, reason: already exist");
+            Log($"Update {src.FileName}.ini: Skip adding [{section}]->{key}, reason: already exist");
         }
         else
         {
@@ -258,7 +258,7 @@ internal sealed class Program
                     // Add GameLobbyBase.ini->[ddPlayerColorX]->ItemsDrawMode
                     gmLobbyBaseIni ??= new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GameLobbyBase.ini"));
                     string ddPlayerColor = nameof(ddPlayerColor);
-                    foreach (var n in new int[] { 0, 1, 2, 3, 4, 5, 6, 7 })
+                    foreach (var n in Enumerable.Range(0, 8))
                     {
                         if (!gmLobbyBaseIni.SectionExists(ddPlayerColor + n))
                             gmLobbyBaseIni.AddSection(ddPlayerColor + n);
