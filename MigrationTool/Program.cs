@@ -123,6 +123,8 @@ internal sealed class Program
             switch ((Version)i)
             {
                 case (Version.V_2_11_0):
+
+
                     continue;
 
                 case (Version.V_2_11_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.1.0
@@ -130,13 +132,38 @@ internal sealed class Program
                     if (clientDefsIni.KeyExists("Settings", "RecommendedResolutions"))
                     {
                         Log($"Update ClientDefinitions.ini: Skip add [Settings]->RecommendedResolutions, reason: already exist");
-                        continue;
+                    }
+                    else
+                    {
+                        var rr = "1280x720";
+                        Log($"Update ClientDefinitions.ini: Add [Settings]->RecommendedResolutions={rr}");
+                        clientDefsIni.GetSection("Settings").AddKey("RecommendedResolutions", rr);
                     }
 
-                    var rr = "1280x720";
-                    Log($"Update ClientDefinitions.ini: Add [Settings]->RecommendedResolutions={rr}");
-                    clientDefsIni.GetSection("Settings").AddKey("RecommendedResolutions", rr);
+                    if (clientDefsIni.KeyExists("Settings", "MaximumRenderWidth"))
+                    {
+                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->MaximumRenderWidth, reason: already exist");
+                    }
+                    else
+                    {
+                        var mrw = 1280;
+                        Log($"Update ClientDefinitions.ini: Add [Settings]->MaximumRenderWidth={mrw}");
+                        clientDefsIni.GetSection("Settings").AddKey("MaximumRenderWidth", mrw.ToString());
+                    }
+
+                    if (clientDefsIni.KeyExists("Settings", "MaximumRenderHeight"))
+                    {
+                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->MaximumRenderHeight, reason: already exist");
+                    }
+                    else
+                    {
+                        var mrh = 720;
+                        Log($"Update ClientDefinitions.ini: Add [Settings]->MaximumRenderHeight={mrh}");
+                        clientDefsIni.GetSection("Settings").AddKey("MaximumRenderHeight", mrh.ToString());
+                    }
+
                     clientDefsIni.WriteIniFile();
+
                     continue;
 
                 case (Version.V_2_11_2): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.2.0
