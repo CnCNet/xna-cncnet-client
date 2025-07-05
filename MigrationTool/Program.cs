@@ -217,10 +217,12 @@ internal sealed class Program
                     continue;
 
                 case (Version.V_2_11_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.1.0
-                    // Add ClientDefinitions.ini->[Settings]->RecommendedResolutions
-                    AddKeyWithLog(clientDefsIni, "Settings", "RecommendedResolutions", "1280x720");
+                    // Add ClientDefinitions.ini->[Settings]->RecommendedResolutions, MaximumRenderWidth, MaximumRenderHeight
                     AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderWidth", "1280");
                     AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderHeight", "720");
+                    var width = clientDefsIni.GetStringValue("Settings", "MaximumRenderWidth", "1280");
+                    var height = clientDefsIni.GetStringValue("Settings", "MaximumRenderHeight", "720");
+                    AddKeyWithLog(clientDefsIni, "Settings", "RecommendedResolutions", $"{width}x{height}");
                     clientDefsIni.WriteIniFile();
                     continue;
 
