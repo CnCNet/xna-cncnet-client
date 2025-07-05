@@ -17,7 +17,6 @@ internal sealed class Program
         V_2_11_2,
         V_2_12_0,
         V_2_12_1,
-        V_2_12_5,
         Latest,
         End
     }
@@ -110,6 +109,19 @@ internal sealed class Program
         Console.WriteLine(text);
     }
 
+    private static void AddKeyWithLog(IniFile src, string section, string key, string value)
+    {
+        if (src.KeyExists(section, key))
+        {
+            Log($"Update {src.FileName}.ini: Skip add [{section}]->{key}, reason: already exist");
+        }
+        else
+        {
+            Log($"Update {src.FileName}.ini: Add [{section}]->{key}={value}");
+            src.GetSection(section).AddKey(key, value);
+        }
+    }
+
     private static void Migrate(string path)
     {
         DirectoryInfo clientDir = SafePath.GetDirectory(path);
@@ -118,50 +130,63 @@ internal sealed class Program
         IniFile clientDefsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "ClientDefinitions.ini"));
         IniFile gmLobbyBaseIni = null;
 
+        // Predict client type by guessing game engine files
+        var clientGameType = ClientGameType.TS;
+        if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "Ares.dll")).Exists
+            && SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "gamemd-spawn.exe")).Exists)
+        {
+            clientGameType = ClientGameType.YR;
+        }
+        else if (SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "Ares.dll")).Exists)
+        {
+            clientGameType = ClientGameType.Ares;
+        }
+
         for (int i = (int)Version.Begin; i != (int)Version.End; i++)
         {
             switch ((Version)i)
             {
                 case (Version.V_2_11_0):
 
+                    // Add GlobalThemeSettings.ini
+                    IniFile globalThemeSettingsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GlobalThemeSettings.ini"));
+                    Dictionary<string, int> gtsKeys = new()
+                    {
+                        { "DEFAULT_LBL_HEIGHT", 12 },
+                        { "DEFAULT_CONTROL_HEIGHT", 21 },
+                        { "DEFAULT_BUTTON_HEIGHT", 23 },
+                        { "BUTTON_WIDTH_133", 133 },
+                        { "OPEN_BUTTON_WIDTH", 18 },
+                        { "OPEN_BUTTON_HEIGHT", 22 },
+                        { "EMPTY_SPACE_TOP", 12 },
+                        { "EMPTY_SPACE_BOTTOM", 12 },
+                        { "EMPTY_SPACE_SIDES", 12 },
+                        { "BUTTON_SPACING", 12 },
+                        { "LABEL_SPACING", 6 },
+                        { "CHECKBOX_SPACING", 24 },
+                        { "LOBBY_EMPTY_SPACE_SIDES", 12 },
+                        { "LOBBY_PANEL_SPACING", 10 },
+                        { "GAME_OPTION_COLUMN_SPACING", 160 },
+                        { "GAME_OPTION_ROW_SPACING", 6 },
+                        { "GAME_OPTION_DD_WIDTH", 132 },
+                        { "GAME_OPTION_DD_HEIGHT", 22 }
+                    };
+
+                    if (!globalThemeSettingsIni.SectionExists("ParserConstants"))
+                        globalThemeSettingsIni.AddSection("ParserConstants");
+
+                    foreach (var key in gtsKeys)
+                        AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", key.Key, key.Value.ToString());
+
+                    globalThemeSettingsIni.WriteIniFile();
 
                     continue;
 
                 case (Version.V_2_11_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.1.0
                     // Add ClientDefinitions.ini->[Settings]->RecommendedResolutions
-                    if (clientDefsIni.KeyExists("Settings", "RecommendedResolutions"))
-                    {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->RecommendedResolutions, reason: already exist");
-                    }
-                    else
-                    {
-                        var rr = "1280x720";
-                        Log($"Update ClientDefinitions.ini: Add [Settings]->RecommendedResolutions={rr}");
-                        clientDefsIni.GetSection("Settings").AddKey("RecommendedResolutions", rr);
-                    }
-
-                    if (clientDefsIni.KeyExists("Settings", "MaximumRenderWidth"))
-                    {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->MaximumRenderWidth, reason: already exist");
-                    }
-                    else
-                    {
-                        var mrw = 1280;
-                        Log($"Update ClientDefinitions.ini: Add [Settings]->MaximumRenderWidth={mrw}");
-                        clientDefsIni.GetSection("Settings").AddKey("MaximumRenderWidth", mrw.ToString());
-                    }
-
-                    if (clientDefsIni.KeyExists("Settings", "MaximumRenderHeight"))
-                    {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->MaximumRenderHeight, reason: already exist");
-                    }
-                    else
-                    {
-                        var mrh = 720;
-                        Log($"Update ClientDefinitions.ini: Add [Settings]->MaximumRenderHeight={mrh}");
-                        clientDefsIni.GetSection("Settings").AddKey("MaximumRenderHeight", mrh.ToString());
-                    }
-
+                    AddKeyWithLog(clientDefsIni, "Settings", "RecommendedResolutions", "1280x720");
+                    AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderWidth", "1280");
+                    AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderHeight", "720");
                     clientDefsIni.WriteIniFile();
 
                     continue;
@@ -179,15 +204,7 @@ internal sealed class Program
                     }
 
                     // Add ClientDefinitions.ini->[Settings]->ShowDevelopmentBuildWarnings
-                    if (clientDefsIni.KeyExists("Settings", "ShowDevelopmentBuildWarnings"))
-                    {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->ShowDevelopmentBuildWarnings, reason: already exist");
-                        continue;
-                    }
-
-                    var sdbw = true;
-                    Log($"Update ClientDefinitions.ini: Add [Settings]->ShowDevelopmentBuildWarnings={sdbw.ToString()}");
-                    clientDefsIni.GetSection("Settings").AddKey("ShowDevelopmentBuildWarnings", sdbw.ToString());
+                    AddKeyWithLog(clientDefsIni, "Settings", "ShowDevelopmentBuildWarnings", "true");
                     clientDefsIni.WriteIniFile();
                     continue;
 
@@ -200,27 +217,7 @@ internal sealed class Program
                     break;
 
                 case (Version.V_2_12_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.1
-                    // Predict client type by guessing game engine files
                     // And add ClientDefinitions.ini->[Settings]->ClientGameType
-                    if (clientDefsIni.KeyExists("Settings", "ClientGameType"))
-                    {
-                        Log($"Update ClientDefinitions.ini: Skip add [Settings]->ClientGameType, reason: already exist");
-                        continue;
-                    }
-
-                    var clientGameType = ClientGameType.TS;
-
-                    if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "Ares.dll")).Exists
-                        && SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "gamemd-spawn.exe")).Exists)
-                    {
-                        clientGameType = ClientGameType.YR;
-                    }
-                    else if (SafePath.GetFile(SafePath.CombineFilePath(clientDir.FullName, "Ares.dll")).Exists)
-                    {
-                        clientGameType = ClientGameType.Ares;
-                    }
-
-                    clientDefsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "ClientDefinitions.ini"));
                     string cgt = clientGameType switch
                     {
                         ClientGameType.Ares => "Ares",
@@ -228,22 +225,7 @@ internal sealed class Program
                         _ => "TS"
                     };
 
-                    Log($"Update ClientDefinitions.ini: Add [Settings]->ClientGameType={cgt}");
-                    clientDefsIni.GetSection("Settings").AddKey("ClientGameType", cgt);
-                    clientDefsIni.WriteIniFile();
-                    continue;
-
-                case (Version.V_2_12_5): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.5
-                    // Add ClientDefinitions.ini->[Settings]->TrustedDomains
-                    if (clientDefsIni.KeyExists("Settings", "TrustedDomains"))
-                    {
-                        Log("Update ClientDefinitions.ini: Skip add [Settings]->TrustedDomains, reason: already exist");
-                        continue;
-                    }
-
-                    var td = "moddb.com";
-                    Log($"Update ClientDefinitions.ini: Add [Settings]->TrustedDomains={td}");
-                    clientDefsIni.GetSection("Settings").AddKey("TrustedDomains", td);
+                    AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", cgt);
                     clientDefsIni.WriteIniFile();
                     continue;
 
@@ -253,18 +235,10 @@ internal sealed class Program
                     string ddPlayerColor = nameof(ddPlayerColor);
                     foreach (var n in new int[] { 0, 1, 2, 3, 4, 5, 6, 7 })
                     {
-                        if (gmLobbyBaseIni.KeyExists(ddPlayerColor + n, "ItemsDrawMode"))
-                        {
-                            Log($"Update GameLobbyBase.ini: Skip add [{ddPlayerColor + n}]->ItemsDrawMode, reason: already exist");
-                            continue;
-                        }
-
-                        Log($"Update GameLobbyBase.ini: Add [{ddPlayerColor + n}]->ItemsDrawMode=Text");
-
                         if (!gmLobbyBaseIni.SectionExists(ddPlayerColor + n))
                             gmLobbyBaseIni.AddSection(ddPlayerColor + n);
 
-                        gmLobbyBaseIni.GetSection(ddPlayerColor + n).AddKey("ItemsDrawMode", "Text");
+                        AddKeyWithLog(gmLobbyBaseIni, ddPlayerColor + n, "ItemsDrawMode", "Text");
                         gmLobbyBaseIni.WriteIniFile();
                     }
                     continue;
