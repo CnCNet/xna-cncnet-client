@@ -146,7 +146,6 @@ internal sealed class Program
             switch ((Version)currentVersion)
             {
                 case (Version.V_2_11_0):
-
                     // Remove Rampastring.Tools from Resources directory (not recursive)
                     Log("Remove Resources\\Rampastring.Tools.* (* -- dll, pdb, xml)");
                     SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.dll");
@@ -213,6 +212,13 @@ internal sealed class Program
                     AddKeyWithLog(playerExtraOptionsPanelIni, "ddTeamStartMappingPreset",   "Location", "65,154");
                     AddKeyWithLog(playerExtraOptionsPanelIni, "ddTeamStartMappingPreset",   "Size",     "157,21");
                     AddKeyWithLog(playerExtraOptionsPanelIni, "teamStartMappingsPanel",     "Location", "12,189");
+                    playerExtraOptionsPanelIni.WriteIniFile();
+
+                    // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
+                    var genericWindowIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GenericWindow.ini"));
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "GenericWindow", "DrawBorders", "false");
+
+
 
                     continue;
 
@@ -245,12 +251,7 @@ internal sealed class Program
 
                 case (Version.V_2_12_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.1
                     // And add ClientDefinitions.ini->[Settings]->ClientGameType
-                    string cgt = clientGameType switch
-                    {
-                        ClientGameType.Ares => "Ares",
-                        ClientGameType.YR => "YR",
-                        _ => "TS"
-                    };
+                    string cgt = clientGameType.ToString();
 
                     AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", cgt);
                     clientDefsIni.WriteIniFile();
