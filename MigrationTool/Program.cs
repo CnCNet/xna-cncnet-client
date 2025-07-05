@@ -142,9 +142,9 @@ internal sealed class Program
             clientGameType = ClientGameType.Ares;
         }
 
-        for (int i = (int)Version.Begin; i != (int)Version.End; i++)
+        for (int currentVersion = (int)Version.Begin; currentVersion != (int)Version.End; currentVersion++)
         {
-            switch ((Version)i)
+            switch ((Version)currentVersion)
             {
                 case (Version.V_2_11_0):
 
@@ -180,6 +180,35 @@ internal sealed class Program
 
                     globalThemeSettingsIni.WriteIniFile();
 
+                    // Add PlayerExtraOptionsPanel.ini
+                    IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
+                    var peopSections = new List<string>() 
+                    { 
+                      "btnClose", "lblHeader", "chkBoxForceRandomSides", 
+                      "chkBoxForceRandomColors", "chkBoxForceRandomTeams", 
+                      "chkBoxForceRandomStarts", "chkBoxUseTeamStartMappings",
+                      "btnHelp", "lblPreset", "ddTeamStartMappingPreset", 
+                      "teamStartMappingsPanel" 
+                    };
+
+                    foreach (var section in peopSections)
+                        if (!playerExtraOptionsPanelIni.SectionExists(section))
+                            playerExtraOptionsPanelIni.AddSection(section);
+
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "btnClose",                   "Location", "220,0");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "btnClose",                   "Size",     "18,18");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "lblHeader",                  "Location", "12,6");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "chkBoxForceRandomSides",     "Location", "12,28");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "chkBoxForceRandomColors",    "Location", "12,50");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "chkBoxForceRandomTeams",     "Location", "12,72");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "chkBoxForceRandomStarts",    "Location", "12,94");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "chkBoxUseTeamStartMappings", "Location", "12,130");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "btnHelp",                    "Location", "160,130");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "lblPreset",                  "Location", "12,156");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "ddTeamStartMappingPreset",   "Location", "65,154");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "ddTeamStartMappingPreset",   "Size",     "157,21");
+                    AddKeyWithLog(playerExtraOptionsPanelIni, "teamStartMappingsPanel",     "Location", "12,189");
+
                     continue;
 
                 case (Version.V_2_11_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.1.0
@@ -188,7 +217,6 @@ internal sealed class Program
                     AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderWidth", "1280");
                     AddKeyWithLog(clientDefsIni, "Settings", "MaximumRenderHeight", "720");
                     clientDefsIni.WriteIniFile();
-
                     continue;
 
                 case (Version.V_2_11_2): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.2.0
@@ -214,7 +242,7 @@ internal sealed class Program
                     SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.dll");
                     SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.pdb");
                     SafePath.DeleteFileIfExists(resouresDir.FullName, "Rampastring.Tools.xml");
-                    break;
+                    continue;
 
                 case (Version.V_2_12_1): // https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.1
                     // And add ClientDefinitions.ini->[Settings]->ClientGameType
