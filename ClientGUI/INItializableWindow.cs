@@ -212,6 +212,28 @@ namespace ClientGUI
                         throw new FormatException("Invalid format for AnchorPoint: " + kvp.Value);
                     ((XNALabel)control).AnchorPoint = new Vector2(Parser.Instance.GetExprValue(parts[0], control), Parser.Instance.GetExprValue(parts[1], control));
                 }
+                else if (kvp.Key == "$OverscrollMargin" && control is XNAScrollPanel scrollPanel)
+                {
+                    string[] parts = kvp.Value.Split(',');
+                    (int X, int Y) values = parts
+                        .Select(s => Parser.Instance.GetExprValue(s, control))
+                        .ToArray().AsTuple2();
+                    scrollPanel.OverscrollMargin = new(values.X, values.Y);
+                }
+                else if (kvp.Key == "$OverscrollMarginX" && control is XNAScrollPanel scrollPanel1)
+                {
+                    scrollPanel1.OverscrollMargin = scrollPanel1.OverscrollMargin with
+                    {
+                        X = Parser.Instance.GetExprValue(kvp.Value, control)
+                    };
+                }
+                else if (kvp.Key == "$OverscrollMarginY" && control is XNAScrollPanel scrollPanel2)
+                {
+                    scrollPanel2.OverscrollMargin = scrollPanel2.OverscrollMargin with
+                    {
+                        Y = Parser.Instance.GetExprValue(kvp.Value, control)
+                    };
+                }
                 else if (kvp.Key == "$LeftClickAction")
                 {
                     if (kvp.Value == "Disable")
