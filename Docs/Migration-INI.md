@@ -806,6 +806,8 @@ Location=470,137
 Location=0,200
 
 [btnForceUpdate]
+Location=407,213
+Size=133,23
 ```
 
 2. **OPTIONAL** Add sections:

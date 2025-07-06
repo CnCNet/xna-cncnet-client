@@ -112,13 +112,12 @@ internal sealed class Program
     {
         if (src.KeyExists(section, key))
         {
-            Log($"Update {src.FileName}.ini: Skip adding [{section}]->{key}, reason: already exist");
+            Log($"Update {src.FileName}: Skip adding [{section}]->{key}, reason: already exist", ConsoleColor.Red);
         }
         else
         {
-            Log($"Update {src.FileName}.ini: Add [{section}]->{key}={value}");
-            if (!src.SectionExists(section))
-                src.AddSection(section);
+            Log($"Update {src.FileName}: Add [{section}]->{key}={value}", ConsoleColor.Green);
+            if (!src.SectionExists(section)) src.AddSection(section);
             src.GetSection(section).AddKey(key, value);
         }
     }
@@ -156,51 +155,28 @@ internal sealed class Program
 
                     // Add GlobalThemeSettings.ini
                     IniFile globalThemeSettingsIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GlobalThemeSettings.ini"));
-                    Dictionary<string, int> gtsKeys = new()
-                    {
-                        { "DEFAULT_LBL_HEIGHT", 12 },
-                        { "DEFAULT_CONTROL_HEIGHT", 21 },
-                        { "DEFAULT_BUTTON_HEIGHT", 23 },
-                        { "BUTTON_WIDTH_133", 133 },
-                        { "OPEN_BUTTON_WIDTH", 18 },
-                        { "OPEN_BUTTON_HEIGHT", 22 },
-                        { "EMPTY_SPACE_TOP", 12 },
-                        { "EMPTY_SPACE_BOTTOM", 12 },
-                        { "EMPTY_SPACE_SIDES", 12 },
-                        { "BUTTON_SPACING", 12 },
-                        { "LABEL_SPACING", 6 },
-                        { "CHECKBOX_SPACING", 24 },
-                        { "LOBBY_EMPTY_SPACE_SIDES", 12 },
-                        { "LOBBY_PANEL_SPACING", 10 },
-                        { "GAME_OPTION_COLUMN_SPACING", 160 },
-                        { "GAME_OPTION_ROW_SPACING", 6 },
-                        { "GAME_OPTION_DD_WIDTH", 132 },
-                        { "GAME_OPTION_DD_HEIGHT", 22 }
-                    };
-
-                    if (!globalThemeSettingsIni.SectionExists("ParserConstants"))
-                        globalThemeSettingsIni.AddSection("ParserConstants");
-
-                    foreach (var key in gtsKeys)
-                        AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", key.Key, key.Value.ToString());
-
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "DEFAULT_LBL_HEIGHT",         "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "DEFAULT_CONTROL_HEIGHT",     "21");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "DEFAULT_BUTTON_HEIGHT",      "23");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "BUTTON_WIDTH_133",           "133");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "OPEN_BUTTON_WIDTH",          "18");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "OPEN_BUTTON_HEIGHT",         "22");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "EMPTY_SPACE_TOP",            "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "EMPTY_SPACE_BOTTOM",         "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "EMPTY_SPACE_SIDES",          "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "BUTTON_SPACING",             "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "LABEL_SPACING",              "6");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "CHECKBOX_SPACING",           "24");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "LOBBY_EMPTY_SPACE_SIDES",    "12");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "LOBBY_PANEL_SPACING",        "10");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "GAME_OPTION_COLUMN_SPACING", "160");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "GAME_OPTION_ROW_SPACING",    "6");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "GAME_OPTION_DD_WIDTH",       "132");
+                    AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", "GAME_OPTION_DD_HEIGHT",      "22");
                     globalThemeSettingsIni.WriteIniFile();
 
                     // Add PlayerExtraOptionsPanel.ini
                     IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
-                    var peopSections = new List<string>() 
-                    { 
-                      "btnClose", "lblHeader", "chkBoxForceRandomSides", 
-                      "chkBoxForceRandomColors", "chkBoxForceRandomTeams", 
-                      "chkBoxForceRandomStarts", "chkBoxUseTeamStartMappings",
-                      "btnHelp", "lblPreset", "ddTeamStartMappingPreset", 
-                      "teamStartMappingsPanel" 
-                    };
-
-                    foreach (var section in peopSections)
-                        if (!playerExtraOptionsPanelIni.SectionExists(section))
-                            playerExtraOptionsPanelIni.AddSection(section);
-
                     AddKeyWithLog(playerExtraOptionsPanelIni, "btnClose",                   "Location", "220,0");
                     AddKeyWithLog(playerExtraOptionsPanelIni, "btnClose",                   "Size",     "18,18");
                     AddKeyWithLog(playerExtraOptionsPanelIni, "lblHeader",                  "Location", "12,6");
@@ -219,6 +195,7 @@ internal sealed class Program
                     // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
                     var genericWindowIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GenericWindow.ini"));
                     AddKeyWithLog(playerExtraOptionsPanelIni, "GenericWindow", "DrawBorders", "false");
+                    genericWindowIni.WriteIniFile();
 
                     // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
                     IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "OptionsWindow.ini"));
@@ -237,6 +214,22 @@ internal sealed class Program
                                 continue;
                             }
                         }
+
+                    // Add new sections into OptionsWindow.ini
+                    AddKeyWithLog(optionsWindowIni, "lblPlayerName",                      "Location", "12,195");
+                    AddKeyWithLog(optionsWindowIni, "tbPlayerName",                       "Location", "113,193");
+                    AddKeyWithLog(optionsWindowIni, "lblNotice",                          "Location", "12,220");
+                    AddKeyWithLog(optionsWindowIni, "btnConfigureHotkeys",                "Location", "12,290");
+                    AddKeyWithLog(optionsWindowIni, "chkDisablePrivateMessagePopup",      "Location", "12,138");
+                    AddKeyWithLog(optionsWindowIni, "chkDisablePrivateMessagePopup",      "Text",     "Disable private message pop-ups");
+                    AddKeyWithLog(optionsWindowIni, "chkAllowGameInvitesFromFriendsOnly", "Location", "276,68");
+                    AddKeyWithLog(optionsWindowIni, "chkAllowGameInvitesFromFriendsOnly", "Text",     "Only receive game invitations@from friends");
+                    AddKeyWithLog(optionsWindowIni, "lblAllPrivateMessagesFrom",          "Location", "276,138");
+                    AddKeyWithLog(optionsWindowIni, "ddAllowPrivateMessagesFrom",         "Location", "470,137");
+                    AddKeyWithLog(optionsWindowIni, "gameListPanel",                      "Location", "0,200");
+                    AddKeyWithLog(optionsWindowIni, "btnForceUpdate",                     "Location", "407,213");
+                    AddKeyWithLog(optionsWindowIni, "btnForceUpdate",                     "Size",     "133,23");
+
                     optionsWindowIni.WriteIniFile();
                     // Add new texture files
 
