@@ -66,7 +66,6 @@ internal class Patch_v2_11_0 : Patch
             addKey("btnForceUpdate",                     "Location", "407,213");
             addKey("btnForceUpdate",                     "Size",     "133,23");
         }
-        
         optionsWindowIni.WriteIniFile();
         
         // Add GlobalThemeSettings.ini
@@ -115,7 +114,43 @@ internal class Patch_v2_11_0 : Patch
             addKey("teamStartMappingsPanel",     "Location", "12,189");
             playerExtraOptionsPanelIni.WriteIniFile();
         }
-        
+
+        // Rework skirmish/lan/cncnet lobbies ini's
+        if (!File.Exists(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini")))
+        {
+            // Old configs
+            IniFile skirmishLobbyIni_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "SkirmishLobby.ini"));
+            IniFile multiplayerGameLobby_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "MultiplayerGameLobby.ini"));
+            IniFile gameOptionsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameOptions.ini"));
+
+            // New configs
+            IniFile gameLobbyBaseIni        = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini"));
+            IniFile skirmishLobbyIni        = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "SkirmishLobby_New.ini"));
+            IniFile multiplayerGameLobbyIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "MultiplayerGameLobby_New.ini"));
+            IniFile lanGameLobbyIni         = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "LANGameLobby.ini"));
+            IniFile cncnetGameLobbyIni      = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "CnCNetGameLobby.ini"));
+
+            // Add inheritance
+            AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow");
+            AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", "GameLobbyBase");
+            AddKeyWithLog(multiplayerGameLobbyIni, "INISystem", "BasedOn", "GameLobbyBase");
+            AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", "MultiplayerGameLobby");
+            AddKeyWithLog(cncnetGameLobbyIni,      "INISystem", "BasedOn", "MultiplayerGameLobby");
+
+            // Configure CnCNetGameLobby.ini
+            AddKeyWithLog(cncnetGameLobbyIni, "MultiplayerGameLobby", "$CCMP99", "btnChangeTunnel:XNAClientButton");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",      "$Width",  "133");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",      "$X",      "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",      "$Y",      "getY(btnLaunchGame)");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",      "Text",    "Change Tunnel");
+
+            // Replace new configs and delete placeholders
+            skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FileName));
+            multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobby_old.FileName));
+            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, "SkirmishLobby_New.ini"));
+            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, "MultiplayerGameLobby_New.ini"));
+        }
+
         // Add new texture files
 
         return this;
