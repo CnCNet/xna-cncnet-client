@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -117,6 +117,8 @@ internal sealed class Program
         else
         {
             Log($"Update {src.FileName}.ini: Add [{section}]->{key}={value}");
+            if (!src.SectionExists(section))
+                src.AddSection(section);
             src.GetSection(section).AddKey(key, value);
         }
     }
@@ -235,7 +237,7 @@ internal sealed class Program
                                 continue;
                             }
                         }
-
+                    optionsWindowIni.WriteIniFile();
                     // Add new texture files
 
                     continue;
