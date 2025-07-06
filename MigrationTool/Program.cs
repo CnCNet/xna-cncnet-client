@@ -218,7 +218,25 @@ internal sealed class Program
                     var genericWindowIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "GenericWindow.ini"));
                     AddKeyWithLog(playerExtraOptionsPanelIni, "GenericWindow", "DrawBorders", "false");
 
+                    // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
+                    IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(resouresDir.FullName, "OptionsWindow.ini"));
+                    foreach (var section in optionsWindowIni.GetSections())
+                        foreach (var pair in optionsWindowIni.GetSection(section).Keys)
+                        {
+                            if (pair.Value.Contains(":CustomSettingFileCheckBox"))
+                            {
+                                pair.Value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox");
+                                continue;
+                            }
 
+                            if (pair.Value.Contains(":CustomSettingFileDropDown"))
+                            {
+                                pair.Value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown");
+                                continue;
+                            }
+                        }
+
+                    // Add new texture files
 
                     continue;
 
