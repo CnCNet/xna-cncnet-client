@@ -9,20 +9,18 @@ namespace MigrationTool;
 
 public enum Version
 {
-    Begin,
     v2_11_0,
     v2_11_1,
     v2_11_2,
     v2_12_1,
     Latest,
-    End
 }
 
 public enum ClientGameType
 {
     TS,
     YR,
-    Ares
+    Ares,
 }
 
 internal sealed class Program
