@@ -20,7 +20,7 @@ internal class Patch_v2_11_0 : Patch
         base.Apply();
 
         // Remove Rampastring.Tools from Resources directory (not recursive)
-        Log("Remove Resources\\Rampastring.Tools.* (* -- dll, pdb, xml)");
+        Logger.Log("Remove Resources\\Rampastring.Tools.* (* -- dll, pdb, xml)");
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.dll");
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.pdb");
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.xml");

@@ -20,7 +20,7 @@ internal class Patch_v2_11_2 : Patch
         // Remove ClientUpdater.xml and SecondStageUpdater.xml
         IniFile clientDefsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "ClientDefinitions.ini"));
         var listExtraXMLs = new List<string>(2) { "ClientUpdater.xml", "SecondStageUpdater.xml" };
-        Log("Remove ClientUpdater.xml and SecondStageUpdater.xml");
+        Logger.Log("Remove ClientUpdater.xml and SecondStageUpdater.xml");
 
         foreach (var extraXml in listExtraXMLs)
         {

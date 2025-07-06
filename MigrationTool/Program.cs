@@ -25,7 +25,13 @@ public enum ClientGameType
 
 internal sealed class Program
 {
-    private static ConsoleColor defaultColor = Console.ForegroundColor;
+    private const string errMsg = "Unknown arguments detected. Use -h argument to print help information.";
+    private const string helpMsg =
+        """
+        CnCNet Client Migration Tool.
+        
+        Execute this file with path to the unmigrated client directory as first argument.
+        """;
 
     private static void Main(string[] args)
     {
@@ -37,6 +43,7 @@ internal sealed class Program
         Logger.WriteToConsole = false;
         Logger.Log("CnCNet Client Migration Tool");
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
+        Logger.WriteToConsole = true;
 
         // Check arguments
         switch (args.Length)
@@ -50,66 +57,43 @@ internal sealed class Program
                     || arg == "/?"
                     || arg == "/h")
                 {
-                    PrintHelp();
+                    Console.WriteLine(helpMsg);
                     return;
                 }
 
                 if (!SafePath.GetDirectory(arg).Exists)
                 {
-                    PrintArgsError();
+                    Console.WriteLine(errMsg);
                     return;
                 }
 
                 if (!SafePath.GetFile(SafePath.CombineFilePath(arg, "Resources", "ClientDefinitions.ini")).Exists)
                 {
-                    Log("Unable to find Resources/ClientDefinitions.ini. Migration aborted.", ConsoleColor.Red);
+                    Logger.Log("Unable to find Resources/ClientDefinitions.ini. Migration aborted.");
                     return;
                 }
 
                 Patch patch = null;
                 try
                 {
-                    patch = new Patch_v2_11_0(arg).Apply();
-                    patch = new Patch_v2_11_1(arg).Apply();
-                    patch = new Patch_v2_11_2(arg).Apply();
-                    patch = new Patch_v2_12_1(arg).Apply();
+                    patch = new Patch_v2_11_0(arg).Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_11_1(arg).Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_11_2(arg).Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_12_1(arg).Apply(); Console.WriteLine("");
                     patch = new Patch_Latest(arg).Apply();
                 }
                 catch (Exception ex)
                 {
-                    Log($"Unable to apply migration patch for client version {patch.ClientVersion.ToString().Replace('_', '.')} due to internal error. Message: " + ex.Message, ConsoleColor.Red);
-                    Log("Migration to the latest client version has been failed", ConsoleColor.Red);
+                    Logger.Log("");
+                    Logger.Log($"Unable to apply migration patch for client version {patch.ClientVersion.ToString().Replace('_', '.')} due to internal error. Message: " + ex.Message);
+                    Logger.Log("Migration to the latest client version has been failed");
                 }
 
                 break;
             case 0:
             default:
-                PrintArgsError();
+                Console.WriteLine(errMsg);
                 break;
         }
-    }
-
-    private static void Log(string text, ConsoleColor? color = null, bool echoToConsole = true)
-    {
-        Console.ForegroundColor = color ?? defaultColor;
-        Logger.Log(text);
-
-        if (echoToConsole)
-            Console.WriteLine(text);
-    }
-
-    private static void PrintArgsError()
-        => Log("Unknown arguments detected. Use -h argument to print help information", ConsoleColor.Red);
-
-    private static void PrintHelp()
-    {
-        string text =
-            """
-            CnCNet Client Migration Tool.
-
-            Execute this file with path to the unmigrated client directory as first argument.
-            """;
-
-        Console.WriteLine(text);
     }
 }
