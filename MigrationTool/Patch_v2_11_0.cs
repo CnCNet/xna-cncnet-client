@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,11 +144,11 @@ internal class Patch_v2_11_0 : Patch
             AddKeyWithLog(gameOptionsIni, "General", "RandomColor", "168,168,168");
 
             // Add inheritance
-            AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow");
-            AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", $"{GameLobbyBase}");
-            AddKeyWithLog(multiplayerGameLobbyIni, "INISystem", "BasedOn", $"{GameLobbyBase}");
-            AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", $"{MultiplayerGameLobby}");
-            AddKeyWithLog(cncnetGameLobbyIni,      "INISystem", "BasedOn", $"{MultiplayerGameLobby}");
+            AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow.ini");
+            AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
+            AddKeyWithLog(multiplayerGameLobbyIni, "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
+            AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
+            AddKeyWithLog(cncnetGameLobbyIni,      "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
 
             // Configure GameLobbyBase.ini
             {
