@@ -26,13 +26,15 @@ internal class Patch_v2_11_0 : Patch
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.dll");
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.pdb");
         SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.xml");
-        
+
         // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
-        var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-        AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
-        if (genericWindowIni.SectionExists("ExtraControls"))
-            genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
-        genericWindowIni.WriteIniFile();
+        {
+            var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
+            AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+            if (genericWindowIni.SectionExists("ExtraControls"))
+                genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
+            genericWindowIni.WriteIniFile();
+        }
         
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
@@ -157,13 +159,13 @@ internal class Patch_v2_11_0 : Patch
             {
                 TransferKeys(skirmishLobbyIni_old, $"{ExtraControls}", skirmishLobbyIni, $"${ExtraControls}");
                 skirmishLobbyIni_old.RemoveSection($"{ExtraControls}");
-            }
 
-            foreach (var key in skirmishLobbyIni.GetSectionKeys($"${ExtraControls}"))
-            {
-                var value = skirmishLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
-                TransferKeys(skirmishLobbyIni_old, value, skirmishLobbyIni);
-                skirmishLobbyIni_old.RemoveSection(value);
+                foreach (var key in skirmishLobbyIni.GetSectionKeys($"${ExtraControls}"))
+                {
+                    var section = skirmishLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
+                    TransferKeys(skirmishLobbyIni_old, section, skirmishLobbyIni);
+                    skirmishLobbyIni_old.RemoveSection(section);
+                }
             }
 
             // Configure GameLobbyBase.ini
