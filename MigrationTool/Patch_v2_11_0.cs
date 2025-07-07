@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Rampastring.Tools;
-
 namespace MigrationTool;
 
 internal class Patch_v2_11_0 : Patch
@@ -176,11 +175,15 @@ internal class Patch_v2_11_0 : Patch
                 {
                     var item = items[i];
                     AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", $"$CC_{i + outerIndex}", $"{item}:{itemType}");
-                    gameOptionsIni.GetSectionKeys(item)
-                        .ForEach(key => AddKeyWithLog(gameLobbyBaseIni, item, key, gameOptionsIni.GetStringValue(item, key, string.Empty)));
+                    TransferKeys(gameOptionsIni, item, gameLobbyBaseIni);
                 }
 
                 outerIndex += items.Length;
+            }
+
+            foreach (var section in skirmishLobbyIni_old.GetSections())
+            {
+
             }
 
             // Configure MultiplayerGameLobby.ini

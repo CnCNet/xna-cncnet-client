@@ -1,9 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
+﻿using System.IO;
 
 using Rampastring.Tools;
 namespace MigrationTool;
+
+#nullable enable
 
 internal abstract class Patch
 {
@@ -36,7 +36,7 @@ internal abstract class Patch
         return this;
     }
 
-    public void AddKeyWithLog(IniFile src, string section, string key, string value)
+    public Patch AddKeyWithLog(IniFile src, string section, string key, string value)
     {
         if (src.KeyExists(section, key))
         {
@@ -48,6 +48,18 @@ internal abstract class Patch
             if (!src.SectionExists(section)) src.AddSection(section);
             src.GetSection(section).AddKey(key, value);
         }
+
+        return this;
+    }
+
+    public Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)
+    {
+        desSection ??= srcSection;
+
+        srcIni.GetSectionKeys(srcSection)
+            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty)));
+
+        return this;
     }
 
     public bool TryApply()
