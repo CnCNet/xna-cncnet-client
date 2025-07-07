@@ -126,7 +126,7 @@ internal class Patch_v2_11_0 : Patch
             string MultiplayerGameLobby = nameof(MultiplayerGameLobby);
             string SkirmishLobby = nameof(SkirmishLobby);
             string ExtraControls = nameof(ExtraControls);
-            List<string> keysWithControlsInGameOptionsIni = new() { "CheckBoxes", "DropDowns", "Labels" };
+            List<string> gameOptionsIniControlKeys = new() { "CheckBoxes", "DropDowns", "Labels" };
 
             // Old configs
             IniFile skirmishLobbyIni_old     = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
@@ -173,7 +173,7 @@ internal class Patch_v2_11_0 : Patch
 
                 // Transfer checkboxes, dropdowns, labels from GameOptions.ini to GameLobbyBase.ini->[SkirmishLobby]
                 int outerIndex = 0;
-                foreach (var itemName in keysWithControlsInGameOptionsIni)
+                foreach (var itemName in gameOptionsIniControlKeys)
                 {
                     string itemType = itemName switch
                     {
@@ -209,7 +209,7 @@ internal class Patch_v2_11_0 : Patch
             {
                 AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", "$BaseSection", $"{SkirmishLobby}");
 
-                // Add keys if into [MultiplayerGameLobby] if values are new
+                // Add keys into [MultiplayerGameLobby] if values are changed with comparison to [SkirmishLobby]
                 foreach (var key in gameLobbyBaseIni.GetSectionKeys($"{SkirmishLobby}").Where(elem => !elem.StartsWith("$")))
                 {
                     var valueSkirmish = gameLobbyBaseIni.GetStringValue($"{SkirmishLobby}", key, string.Empty);
@@ -219,12 +219,37 @@ internal class Patch_v2_11_0 : Patch
                         AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", key, valueMultiplayer);
                 }
 
-                // Add new controls for [MultiplayerGameLobby] only
+                // Find controls to exclude and include
+                List<string> skirmishControls = new(); 
+                List<string> multiplayerControls = new();
+                gameOptionsIniControlKeys.ForEach(x => skirmishControls.AddRange(gameOptionsIni.GetStringValue($"{SkirmishLobby}", x, string.Empty).Split(',')));
+                gameOptionsIniControlKeys.ForEach(x => multiplayerControls.AddRange(gameOptionsIni.GetStringValue($"{MultiplayerGameLobby}", x, string.Empty).Split(',')));
+                var excludeControls = skirmishControls.Except(multiplayerControls).ToList();
+                var addControls = multiplayerControls.Except(skirmishControls).ToList();
 
+                // Disable skirmish lobby only controls
+                excludeControls.ForEach(x => 
+                    AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false")
+                    .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
+                
+                // Add multiplayer lobby only controls
+                addControls.ForEach(x => 
+                    AddKeyWithLog(
+                        multiplayerGameLobbyIni,
+                        "GameOptionsPanel",
+                        $"$CC-M{addControls.IndexOf(x)}",
+                        x + ':' + x.Substring(0, 3) switch
+                        {
+                            "chk" => "GameLobbyCheckBox",
+                            "cmb" => "GameLobbyDropDown",
+                            "lbl" => "XNALabel",
+                            _ => throw new Exception($"GameOptions.ini contains unknown type of contol with name {x}")
+                        })
+                    .TransferKeys(gameOptionsIni, x, multiplayerGameLobbyIni));
             }
 
             // Configure CnCNetGameLobby.ini
-            AddKeyWithLog(cncnetGameLobbyIni, $"{MultiplayerGameLobby}", "$CCMP99", "btnChangeTunnel:XNAClientButton");
+            AddKeyWithLog(cncnetGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP99", "btnChangeTunnel:XNAClientButton");
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Width",  "133");
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$X",      "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Y",      "getY(btnLaunchGame)");
@@ -232,9 +257,9 @@ internal class Patch_v2_11_0 : Patch
 
             // Replace old configs with new one, delete placeholders, delete redundant sections
             var sb = new StringBuilder();
-            keysWithControlsInGameOptionsIni
+            gameOptionsIniControlKeys
                 .ForEach(x => sb.Append(gameOptionsIni.GetStringValue($"{SkirmishLobby}", x, string.Empty)).Append(','));
-            keysWithControlsInGameOptionsIni
+            gameOptionsIniControlKeys
                 .ForEach(x => sb.Append(gameOptionsIni.GetStringValue($"{MultiplayerGameLobby}", x, string.Empty)).Append(','));
             sb.ToString()
                 .Split(',')
