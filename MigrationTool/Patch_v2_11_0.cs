@@ -1,11 +1,13 @@
-using System;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 using Rampastring.Tools;
+
+using static System.Collections.Specialized.BitVector32;
 namespace MigrationTool;
 
 internal class Patch_v2_11_0 : Patch
@@ -129,9 +131,9 @@ internal class Patch_v2_11_0 : Patch
             List<string> gameOptionsIniControlKeys = new() { "CheckBoxes", "DropDowns", "Labels" };
 
             // Old configs
-            IniFile skirmishLobbyIni_old     = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
-            IniFile multiplayerGameLobby_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
-            IniFile gameOptionsIni           = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameOptions.ini"));
+            IniFile skirmishLobbyIni_old        = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
+            IniFile multiplayerGameLobbyIni_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
+            IniFile gameOptionsIni              = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameOptions.ini"));
 
             // New configs
             IniFile gameLobbyBaseIni         = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{GameLobbyBase}.ini"));
@@ -150,28 +152,44 @@ internal class Patch_v2_11_0 : Patch
             AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
             AddKeyWithLog(cncnetGameLobbyIni,      "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
 
+            // Transfer old SkirmishLobby.ini->[ExtraControls] to new SkirmishLobby.ini->[$ExtraControls]
+            if (skirmishLobbyIni_old.SectionExists($"{ExtraControls}"))
+            {
+                TransferKeys(skirmishLobbyIni_old, $"{ExtraControls}", skirmishLobbyIni, $"${ExtraControls}");
+                skirmishLobbyIni_old.RemoveSection($"{ExtraControls}");
+            }
+
+            foreach (var key in skirmishLobbyIni.GetSectionKeys($"${ExtraControls}"))
+            {
+                var value = skirmishLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
+                TransferKeys(skirmishLobbyIni_old, value, skirmishLobbyIni);
+                skirmishLobbyIni_old.RemoveSection(value);
+            }
+
             // Configure GameLobbyBase.ini
             {
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerOptionLocationX",        gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerOptionLocationX", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerOptionLocationY",        gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerOptionLocationY", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerOptionVerticalMargin",   gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerOptionVerticalMargin", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerOptionHorizontalMargin", gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerOptionHorizontalMargin", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerOptionCaptionLocationY", gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerOptionCaptionLocationY", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "PlayerNameWidth",              gameOptionsIni.GetStringValue($"{SkirmishLobby}", "PlayerNameWidth", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "SideWidth",                    gameOptionsIni.GetStringValue($"{SkirmishLobby}", "SideWidth", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "ColorWidth",                   gameOptionsIni.GetStringValue($"{SkirmishLobby}", "ColorWidth", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "StartWidth",                   gameOptionsIni.GetStringValue($"{SkirmishLobby}", "StartWidth", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "TeamWidth",                    gameOptionsIni.GetStringValue($"{SkirmishLobby}", "TeamWidth", string.Empty));
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "$CC-GOP",                      "GameOptionsPanel:XNAPanel");
+                // Add [SkirmishLobby]
+                {
+                    var addKey = (string key) => AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", key, gameOptionsIni.GetStringValue($"{SkirmishLobby}", key, string.Empty));
+                    addKey("PlayerOptionLocationX");
+                    addKey("PlayerOptionLocationY");
+                    addKey("PlayerOptionVerticalMargin");
+                    addKey("PlayerOptionHorizontalMargin");
+                    addKey("PlayerOptionCaptionLocationY");
+                    addKey("PlayerNameWidth");
+                    addKey("SideWidth");
+                    addKey("ColorWidth");
+                    addKey("StartWidth");
+                    addKey("TeamWidth");
+                }
+                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "$CC-SK-GOP", "GameOptionsPanel:XNAPanel");
+                TransferKeys(skirmishLobbyIni_old, $"{SkirmishLobby}", gameLobbyBaseIni);
+                skirmishLobbyIni_old.RemoveSection($"{SkirmishLobby}");
 
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "SolidColorBackgroundTexture", "0,0,0,192");
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "DrawBorders",                 "yes");
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "$Width",                      "427");
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "$Height",                     "266");
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "$X",                          "getWidth($ParentControl) - getWidth($Self) - EMPTY_SPACE_SIDES");
-                AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", "$Y",                          "EMPTY_SPACE_TOP");
+                TransferKeys(skirmishLobbyIni_old, "GameOptionsPanel", gameLobbyBaseIni);
+                skirmishLobbyIni_old.RemoveSection("GameOptionsPanel");
 
-                // Transfer checkboxes, dropdowns, labels from GameOptions.ini to GameLobbyBase.ini->[SkirmishLobby]
+                // Transfer checkboxes, dropdowns, labels from GameOptions.ini to GameLobbyBase.ini->[GameOptionsPanel]
                 int outerIndex = 0;
                 foreach (var itemName in gameOptionsIniControlKeys)
                 {
@@ -193,16 +211,51 @@ internal class Patch_v2_11_0 : Patch
 
                     outerIndex += items.Length;
                 }
+
+                // Add other elements in GameLobbyBase.ini->[SkirmishLobby]
+                {
+                    var addControl = (string controlKey, string section, string controlType) =>
+                    {
+                        AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", controlKey, $"{section}:{controlType}");
+                        TransferKeys(skirmishLobbyIni_old, section, gameLobbyBaseIni);
+                        skirmishLobbyIni_old.RemoveSection(section);
+                    };
+
+                    addControl("$CC-SK00", "btnLaunchGame",      "GameLaunchButton");
+                    addControl("$CC-SK01", "MapPreviewBox",      "MapPreviewBox");
+                    addControl("$CC-SK02", "PlayerOptionsPanel", "XNAPanel");
+                    addControl("$CC-SK03", "ddGameMode",         "XNAClientDropDown");
+                    addControl("$CC-SK04", "tbMapSearch",        "XNASuggestionTextBox");
+                    addControl("$CC-SK05", "btnPickRandomMap",   "XNAClientButton");
+                    addControl("$CC-SK06", "lblGameModeSelect",  "XNALabel");
+                    addControl("$CC-SK07", "lbMapList",          "XNAMultiColumnListBox");
+                    addControl("$CC-SK08", "lblMapSize",         "XNALabel");
+                    addControl("$CC-SK09", "lblGameMode",        "XNALabel");
+                    addControl("$CC-SK10", "lblMapAuthor",       "XNALabel");
+                    addControl("$CC-SK11", "lblMapName",         "XNALabel");
+                    addControl("$CC-SK12", "btnLeaveGame",       "XNAClientButton");
+
+                    AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}",       "$CC-SK13",     "btnSaveLoadGameOptions:XNAClientButton");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "IdleTexture",  "comboBoxArrow.png");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "HoverTexture", "comboBoxArrow.png");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Width",       "18");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Height",      "21");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$X",           "getRight(GameOptionsPanel) - getWidth($Self) - 1");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Y",           "getY(GameOptionsPanel) + 1");
+
+                    skirmishLobbyIni_old.GetSections().ForEach(x => TransferKeys(skirmishLobbyIni_old, x, gameLobbyBaseIni));
+                }
             }
 
-            // Transfer SkirmishLobby.ini->[ExtraControls] to SkirmishLobby.ini->[$ExtraControls]
-            if (skirmishLobbyIni_old.SectionExists($"{ExtraControls}"))
-                TransferKeys(skirmishLobbyIni_old, $"{ExtraControls}", skirmishLobbyIni, $"${ExtraControls}");
+            // Transfer old MultiplayerGameLobby.ini->[ExtraControls] to new MultiplayerGameLobby.ini->[$ExtraControls]
+            if (multiplayerGameLobbyIni_old.SectionExists($"{ExtraControls}"))
+                TransferKeys(multiplayerGameLobbyIni_old, $"{ExtraControls}", multiplayerGameLobbyIni, $"${ExtraControls}");
 
-            foreach (var key in skirmishLobbyIni.GetSectionKeys($"${ExtraControls}"))
+            foreach (var key in multiplayerGameLobbyIni.GetSectionKeys($"${ExtraControls}"))
             {
-                var value = skirmishLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
-                TransferKeys(skirmishLobbyIni_old, value, skirmishLobbyIni);
+                var value = multiplayerGameLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
+                TransferKeys(multiplayerGameLobbyIni_old, value, multiplayerGameLobbyIni);
+                multiplayerGameLobbyIni_old.RemoveSection(value);
             }
 
             // Configure MultiplayerGameLobby.ini
@@ -250,10 +303,10 @@ internal class Patch_v2_11_0 : Patch
 
             // Configure CnCNetGameLobby.ini
             AddKeyWithLog(cncnetGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP99", "btnChangeTunnel:XNAClientButton");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Width",  "133");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$X",      "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Y",      "getY(btnLaunchGame)");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "Text",    "Change Tunnel");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Width",   "133");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$X",       "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Y",       "getY(btnLaunchGame)");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "Text",     "Change Tunnel");
 
             // Replace old configs with new one, delete placeholders, delete redundant sections
             var sb = new StringBuilder();
@@ -271,14 +324,15 @@ internal class Patch_v2_11_0 : Patch
 
             gameOptionsIni.RemoveSection($"{SkirmishLobby}");
             gameOptionsIni.RemoveSection($"{MultiplayerGameLobby}");
+            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
+            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
             skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FileName));
-            multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobby_old.FileName));
+            multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobbyIni_old.FileName));
+            
             gameOptionsIni.WriteIniFile();
             gameLobbyBaseIni.WriteIniFile();
             lanGameLobbyIni.WriteIniFile();
             cncnetGameLobbyIni.WriteIniFile();
-            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}_New.ini"));
-            SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}_New.ini"));
         }
 
         // Add new texture files
