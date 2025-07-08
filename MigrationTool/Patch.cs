@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 
 using Rampastring.Tools;
 namespace MigrationTool;
@@ -50,6 +52,66 @@ internal abstract class Patch
         }
 
         return this;
+    }
+
+    public void CalculatePositions(IniFile ini, string parent, string child)
+    {
+        int parentX, parentY, childX, childY;
+        parentX = parentY = childX = childY = 0;
+
+        var parentKeys = ini.GetSectionKeys(parent);
+        var childKeys = ini.GetSectionKeys(child);
+
+        var positionKeys = new List<string>() { "$X", "$Y", "X", "Y", "Location" };
+
+        Logger.Log($"Update {ini.FileName}: Fix position for {child} control in {parent}");
+
+        foreach (var control in new List<List<string>>() { parentKeys, childKeys })
+        {
+            int tmpX, tmpY;
+            tmpX = tmpY = 0;
+
+            foreach (var key in control.Where(key => positionKeys.Contains(key)))
+            {
+                switch (key)
+                {
+                    case ("$X"):
+                    case ("X"):
+                        tmpX = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpX);
+                        continue;
+                    case ("$Y"):
+                    case ("Y"):
+                        tmpY = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpY);
+                        continue;
+                    case ("Location"):
+                        var value = ini.GetStringValue(control == parentKeys ? parent : child, key, string.Empty).Split(',');
+                        tmpX = Conversions.IntFromString(value[0], tmpX);
+                        tmpY = Conversions.IntFromString(value[1], tmpY);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (control == parentKeys)
+            {
+                parentX = tmpX;
+                parentY = tmpY;
+            }
+            else
+            {
+                childX = tmpX;
+                childY = tmpY;
+            }
+        }
+
+        positionKeys.ForEach(key => ini.RemoveKey(child, key));
+
+        childX = childX - parentX;
+        childY = childY - parentY;
+
+        ini.GetSection(child).AddKey("$X", $"{childX}");
+        ini.GetSection(child).AddKey("$Y", $"{childY}");
     }
 
     public Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)

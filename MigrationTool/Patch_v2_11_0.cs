@@ -218,6 +218,7 @@ internal class Patch_v2_11_0 : Patch
                         var item = items[i];
                         AddKeyWithLog(gameLobbyBaseIni, "GameOptionsPanel", $"$CC_{i + outerIndex}", $"{item}:{itemType}");
                         TransferKeys(gameOptionsIni, item, gameLobbyBaseIni);
+                        CalculatePositions(gameLobbyBaseIni, "GameOptionsPanel", item);
                     }
 
                     outerIndex += items.Length;
@@ -306,19 +307,20 @@ internal class Patch_v2_11_0 : Patch
                     .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
                 
                 // Add multiplayer lobby only controls from GameOptions.ini
-                addControls.ForEach(x => 
+                addControls.ForEach(control => 
                     AddKeyWithLog(
                         multiplayerGameLobbyIni,
                         "GameOptionsPanel",
-                        $"$CC-M{addControls.IndexOf(x)}",
-                        x + ':' + x.Substring(0, 3) switch
+                        $"$CC-M{addControls.IndexOf(control)}",
+                        control + ':' + control.Substring(0, 3) switch
                         {
                             "chk" => "GameLobbyCheckBox",
                             "cmb" => "GameLobbyDropDown",
                             "lbl" => "XNALabel",
-                            _ => throw new Exception($"GameOptions.ini contains unknown type of contol with name {x}")
+                            _ => throw new Exception($"GameOptions.ini contains unknown type of contol with name {control}")
                         })
-                    .TransferKeys(gameOptionsIni, x, multiplayerGameLobbyIni));
+                    .TransferKeys(gameOptionsIni, control, multiplayerGameLobbyIni)
+                    .CalculatePositions(multiplayerGameLobbyIni, "GameOptionsPanel", control));
 
                 // Add other elements in MultiplayerGameLobby.ini->[MultiplayerGameLobby]
                 {
