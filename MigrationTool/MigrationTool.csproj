@@ -9,6 +9,16 @@
     <Product>CnCNet.MigrationTool</Product>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Pictures\statusAI.png" />
+    <EmbeddedResource Include="Pictures\statusClear.png" />
+    <EmbeddedResource Include="Pictures\statusEmpty.png" />
+    <EmbeddedResource Include="Pictures\statusError.png" />
+    <EmbeddedResource Include="Pictures\statusInProgress.png" />
+    <EmbeddedResource Include="Pictures\statusOk.png" />
+    <EmbeddedResource Include="Pictures\statusUnavailable.png" />
+    <EmbeddedResource Include="Pictures\statusWarning.png" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Rampastring.Tools" />
   </ItemGroup>
 </Project>
