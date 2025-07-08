@@ -38,21 +38,25 @@ internal class Patch_v2_11_0 : Patch
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
         foreach (var section in optionsWindowIni.GetSections())
-            foreach (var pair in optionsWindowIni.GetSection(section).Keys)
+        {
+            foreach (var key in optionsWindowIni.GetSectionKeys(section))
             {
-                if (pair.Value.Contains(":CustomSettingFileCheckBox"))
+                var value = optionsWindowIni.GetStringValue(section, key, string.Empty);
+
+                if (value.Contains(":CustomSettingFileCheckBox"))
                 {
-                    pair.Value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox");
+                    optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox"));
                     continue;
                 }
-        
-                if (pair.Value.Contains(":CustomSettingFileDropDown"))
+
+                if (value.Contains(":CustomSettingFileDropDown"))
                 {
-                    pair.Value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown");
+                    optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown"));
                     continue;
                 }
             }
-
+        }
+        
         // Add new sections into OptionsWindow.ini
         {
             var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
@@ -146,6 +150,12 @@ internal class Patch_v2_11_0 : Patch
             // Add random color to the GameOptions.ini
             AddKeyWithLog(gameOptionsIni, "General", "RandomColor", "168,168,168");
 
+            // Delete old inheritance
+            if (skirmishLobbyIni_old.SectionExists("INISystem"))
+                skirmishLobbyIni_old.RemoveSection("INISystem");
+            if (multiplayerGameLobbyIni_old.SectionExists("INISystem"))
+                multiplayerGameLobbyIni_old.RemoveSection("INISystem");
+
             // Add inheritance
             //AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow.ini");
             AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
@@ -218,7 +228,14 @@ internal class Patch_v2_11_0 : Patch
                     var addControl = (string controlKey, string section, string controlType) =>
                     {
                         AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", controlKey, $"{section}:{controlType}");
-                        TransferKeys(skirmishLobbyIni_old, section, gameLobbyBaseIni);
+                        try
+                        {
+                            TransferKeys(skirmishLobbyIni_old, section, gameLobbyBaseIni);
+                        }
+                        catch
+                        {
+                            gameLobbyBaseIni.AddSection(section);
+                        }
                         skirmishLobbyIni_old.RemoveSection(section);
                     };
 
@@ -250,13 +267,15 @@ internal class Patch_v2_11_0 : Patch
 
             // Transfer old MultiplayerGameLobby.ini->[ExtraControls] to new MultiplayerGameLobby.ini->[$ExtraControls]
             if (multiplayerGameLobbyIni_old.SectionExists($"{ExtraControls}"))
-                TransferKeys(multiplayerGameLobbyIni_old, $"{ExtraControls}", multiplayerGameLobbyIni, $"${ExtraControls}");
-
-            foreach (var key in multiplayerGameLobbyIni.GetSectionKeys($"${ExtraControls}"))
             {
-                var value = multiplayerGameLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
-                TransferKeys(multiplayerGameLobbyIni_old, value, multiplayerGameLobbyIni);
-                multiplayerGameLobbyIni_old.RemoveSection(value);
+                TransferKeys(multiplayerGameLobbyIni_old, $"{ExtraControls}", multiplayerGameLobbyIni, $"${ExtraControls}");
+                multiplayerGameLobbyIni_old.RemoveSection($"{ExtraControls}");
+                foreach (var key in multiplayerGameLobbyIni.GetSectionKeys($"${ExtraControls}"))
+                {
+                    var value = multiplayerGameLobbyIni.GetStringValue($"${ExtraControls}", key, string.Empty).Split(':')[0];
+                    TransferKeys(multiplayerGameLobbyIni_old, value, multiplayerGameLobbyIni);
+                    multiplayerGameLobbyIni_old.RemoveSection(value);
+                }
             }
 
             // Configure MultiplayerGameLobby.ini
@@ -281,12 +300,12 @@ internal class Patch_v2_11_0 : Patch
                 var excludeControls = skirmishControls.Except(multiplayerControls).ToList();
                 var addControls = multiplayerControls.Except(skirmishControls).ToList();
 
-                // Disable skirmish lobby only controls
+                // Disable skirmish lobby only controls from GameOptions.ini
                 excludeControls.ForEach(x => 
                     AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false")
                     .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
                 
-                // Add multiplayer lobby only controls
+                // Add multiplayer lobby only controls from GameOptions.ini
                 addControls.ForEach(x => 
                     AddKeyWithLog(
                         multiplayerGameLobbyIni,
@@ -306,7 +325,14 @@ internal class Patch_v2_11_0 : Patch
                     var addControl = (string controlKey, string section, string controlType) =>
                     {
                         AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", controlKey, $"{section}:{controlType}");
-                        TransferKeys(multiplayerGameLobbyIni_old, section, multiplayerGameLobbyIni);
+                        try
+                        {
+                            TransferKeys(multiplayerGameLobbyIni_old, section, multiplayerGameLobbyIni);
+                        }
+                        catch
+                        {
+                            multiplayerGameLobbyIni.AddSection(section);
+                        }
                         multiplayerGameLobbyIni_old.RemoveSection(section);
                     };
 
