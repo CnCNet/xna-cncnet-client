@@ -724,7 +724,7 @@ DrawBorders=true
 Size=1230,750
 ```
 
-## Edit `GlobalThemeSettings.ini`
+## Edit `DTACnCNetClient.ini`
 
 This file now also contains the `ParserConstants` section, which lists user-defined constants used for positioning controls within panels and windows. **Without this section, the client will crash with new `GameLobbyBase.ini` layout**.
 
