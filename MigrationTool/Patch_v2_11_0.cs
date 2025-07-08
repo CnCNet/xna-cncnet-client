@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 using Rampastring.Tools;
 
-using static System.Collections.Specialized.BitVector32;
 namespace MigrationTool;
 
 internal class Patch_v2_11_0 : Patch
@@ -374,6 +373,22 @@ internal class Patch_v2_11_0 : Patch
         }
 
         // Add new texture files
+        var assembly = Assembly.GetExecutingAssembly();
+        foreach (var exefile in assembly.GetManifestResourceNames())
+            using (Stream resourceStream = assembly.GetManifestResourceStream(exefile))
+            {
+                var filename = exefile.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
+                var filepath = SafePath.CombineFilePath(ResouresDir.FullName, filename);
+
+                if (!File.Exists(filepath))
+                {
+                    using (FileStream fileStream = new FileStream(filepath, FileMode.Create))
+                    {
+                        Logger.Log($"Copy {filename} to the {ResouresDir.FullName}");
+                        resourceStream.CopyTo(fileStream);
+                    }
+                }
+            }
 
         return this;
     }
