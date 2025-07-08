@@ -85,7 +85,7 @@ internal sealed class Program
                 catch (Exception ex)
                 {
                     Logger.Log("");
-                    Logger.Log($"Unable to apply migration patch for client version {patch.ClientVersion.ToString().Replace('_', '.')} due to internal error. Message: {ex.Message}");
+                    Logger.Log($"Unable to apply migration patch for client version {patch.ClientVersion.ToString().Replace('_', '.')} due to internal error. Message: {ex.ToString()}");
                     Logger.Log("Migration to the latest client version has been failed");
                 }
 
