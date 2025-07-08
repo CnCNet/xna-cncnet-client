@@ -76,11 +76,11 @@ internal sealed class Program
                 Patch patch = null;
                 try
                 {
-                    patch = new Patch_v2_11_0(arg).Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_11_1(arg).Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_11_2(arg).Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_12_1(arg).Apply(); Console.WriteLine("");
-                    patch = new Patch_Latest(arg).Apply();
+                    patch = new Patch_v2_11_0(arg); patch.Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_11_1(arg); patch.Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_11_2(arg); patch.Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_12_1(arg); patch.Apply(); Console.WriteLine("");
+                    patch = new Patch_Latest(arg); patch.Apply();
                 }
                 catch (Exception ex)
                 {
