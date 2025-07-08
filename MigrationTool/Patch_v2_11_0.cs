@@ -148,7 +148,7 @@ internal class Patch_v2_11_0 : Patch
             AddKeyWithLog(gameOptionsIni, "General", "RandomColor", "168,168,168");
 
             // Add inheritance
-            AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow.ini");
+            //AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow.ini");
             AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
             AddKeyWithLog(multiplayerGameLobbyIni, "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
             AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
@@ -184,8 +184,8 @@ internal class Patch_v2_11_0 : Patch
                     addKey("StartWidth");
                     addKey("TeamWidth");
                 }
-                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "$CC-SK-GOP", "GameOptionsPanel:XNAPanel");
                 TransferKeys(skirmishLobbyIni_old, $"{SkirmishLobby}", gameLobbyBaseIni);
+                AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "$CC-SK-GOP", "GameOptionsPanel:XNAPanel");
                 skirmishLobbyIni_old.RemoveSection($"{SkirmishLobby}");
 
                 TransferKeys(skirmishLobbyIni_old, "GameOptionsPanel", gameLobbyBaseIni);
@@ -301,6 +301,25 @@ internal class Patch_v2_11_0 : Patch
                             _ => throw new Exception($"GameOptions.ini contains unknown type of contol with name {x}")
                         })
                     .TransferKeys(gameOptionsIni, x, multiplayerGameLobbyIni));
+
+                // Add other elements in MultiplayerGameLobby.ini->[MultiplayerGameLobby]
+                {
+                    var addControl = (string controlKey, string section, string controlType) =>
+                    {
+                        AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", controlKey, $"{section}:{controlType}");
+                        TransferKeys(multiplayerGameLobbyIni_old, section, multiplayerGameLobbyIni);
+                        multiplayerGameLobbyIni_old.RemoveSection(section);
+                    };
+
+                    addControl("$CC-MP01", "btnLockGame",           "XNAClientButton");
+                    addControl("$CC-MP02", "lbChatMessages_Host",   "ChatListBox");
+                    addControl("$CC-MP03", "lbChatMessages_Player", "ChatListBox");
+                    addControl("$CC-MP04", "tbChatInput_Host",      "XNAChatTextBox");
+                    addControl("$CC-MP05", "tbChatInput_Player",    "XNAChatTextBox");
+                    addControl("$CC-MP06", "chkAutoReady",          "XNAClientCheckBox");
+
+                    multiplayerGameLobbyIni_old.GetSections().ForEach(x => TransferKeys(multiplayerGameLobbyIni_old, x, multiplayerGameLobbyIni));
+                }
             }
 
             // Configure CnCNetGameLobby.ini
