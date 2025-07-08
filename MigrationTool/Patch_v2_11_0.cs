@@ -72,11 +72,11 @@ internal class Patch_v2_11_0 : Patch
             addKey("btnForceUpdate",                     "Size",     "133,23");
         }
         optionsWindowIni.WriteIniFile();
-        
-        // Add GlobalThemeSettings.ini
+
+        // Add DTACnCNetClient.ini
         {
-            IniFile globalThemeSettingsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GlobalThemeSettings.ini"));
-            var addKey = (string key, string value) => AddKeyWithLog(globalThemeSettingsIni, "ParserConstants", key, value);
+            IniFile dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "DTACnCNetClient.ini"));
+            var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
             addKey("DEFAULT_LBL_HEIGHT",         "12");
             addKey("DEFAULT_CONTROL_HEIGHT",     "21");
             addKey("DEFAULT_BUTTON_HEIGHT",      "23");
@@ -95,7 +95,7 @@ internal class Patch_v2_11_0 : Patch
             addKey("GAME_OPTION_ROW_SPACING",    "6");
             addKey("GAME_OPTION_DD_WIDTH",       "132");
             addKey("GAME_OPTION_DD_HEIGHT",      "22");
-            globalThemeSettingsIni.WriteIniFile();
+            dtaCnCNetClientIni.WriteIniFile();
         }
 
         // Add PlayerExtraOptionsPanel.ini
