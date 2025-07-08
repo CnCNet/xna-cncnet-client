@@ -29,7 +29,7 @@ internal class Patch_v2_11_0 : Patch
         // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
         {
             var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-            AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+            AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "true");
             if (genericWindowIni.SectionExists("ExtraControls"))
                 genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
             genericWindowIni.WriteIniFile();
