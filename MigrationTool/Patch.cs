@@ -18,15 +18,15 @@ internal abstract class Patch
         ResouresDir = SafePath.GetDirectory(SafePath.CombineFilePath(clientPath, "Resources"));
 
         // Predict client type by guessing game engine files
-        var Game = ClientGameType.TS;
-        if (!SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "Ares.dll")).Exists
-            && SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "gamemd-spawn.exe")).Exists)
-        {
-            Game = ClientGameType.YR;
-        }
-        else if (SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "Ares.dll")).Exists)
+        Game = ClientGameType.TS;
+
+        if (SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "Ares.dll")).Exists)
         {
             Game = ClientGameType.Ares;
+        }
+        else if (SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "gamemd-spawn.dll")).Exists)
+        {
+            Game = ClientGameType.YR;
         }
     }
 
