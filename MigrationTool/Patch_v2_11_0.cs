@@ -318,6 +318,11 @@ internal class Patch_v2_11_0 : Patch
                     addControl("$CC-MP05", "tbChatInput_Player",    "XNAChatTextBox");
                     addControl("$CC-MP06", "chkAutoReady",          "XNAClientCheckBox");
 
+                    AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP07", "lbChatMessages:ChatListBox");
+                    AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP08", "tbChatInput:XNAChatTextBox");
+                    TransferKeys(multiplayerGameLobbyIni, "lbChatMessages_Player", multiplayerGameLobbyIni, "lbChatMessages");
+                    TransferKeys(multiplayerGameLobbyIni, "tbChatInput_Player",    multiplayerGameLobbyIni, "tbChatInput");
+
                     multiplayerGameLobbyIni_old.GetSections().ForEach(x => TransferKeys(multiplayerGameLobbyIni_old, x, multiplayerGameLobbyIni));
                 }
             }
@@ -328,6 +333,18 @@ internal class Patch_v2_11_0 : Patch
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$X",       "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Y",       "getY(btnLaunchGame)");
             AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "Text",     "Change Tunnel");
+
+            // Remove empty keys
+            foreach (var ini in new List<IniFile>() { gameLobbyBaseIni, multiplayerGameLobbyIni, skirmishLobbyIni, lanGameLobbyIni, cncnetGameLobbyIni })
+            {
+                foreach (var section in ini.GetSections())
+                {
+                    ini.GetSectionKeys(section)
+                        .Where(key => string.IsNullOrWhiteSpace(ini.GetStringValue(section, key, string.Empty)))
+                        .ToList()
+                        .ForEach(key => ini.RemoveKey(section, key));
+                }
+            }
 
             // Replace old configs with new one, delete placeholders, delete redundant sections
             var sb = new StringBuilder();
