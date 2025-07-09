@@ -198,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 new LANColor("Pink".L10N("Client:Main:ColorDeepPink"), Color.DeepPink),
                 new LANColor("Purple".L10N("Client:Main:ColorMediumPurple"), Color.MediumPurple),
                 new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.SkyBlue),
-                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.Blue),
+                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.RoyalBlue),
                 new LANColor("Brown".L10N("Client:Main:ColorSaddleBrown"), Color.SaddleBrown),
                 new LANColor("Teal".L10N("Client:Main:ColorTeal"), Color.Teal)
             };
