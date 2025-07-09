@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using ClientCore;
+using ClientCore.I18N;
 using ClientCore.PlatformShim;
 
 using DTAClient.Domain.Multiplayer;
@@ -14,6 +15,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public static class MapCodeHelper
     {
+        public static Encoding GetMapEncoding(string filepath) => Translation.Instance.MapEncoding ?? FileHelper.GetEncoding(filepath);
+
         /// <summary>
         /// Applies code from a component custom INI file to a map INI file.
         /// </summary>
@@ -23,7 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public static void ApplyMapCode(IniFile mapIni, string customIniPath, GameMode gameMode)
         {
             string associatedIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath);
-            Encoding associatedIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(associatedIniPath) : EncodingExt.UTF8NoBOM;
+            Encoding associatedIniEncoding = GetMapEncoding(associatedIniPath);
             IniFile associatedIni = new IniFile(associatedIniPath, associatedIniEncoding);
             string extraIniName = null;
             if (gameMode != null)
@@ -33,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!String.IsNullOrEmpty(extraIniName))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName);
-                Encoding extraIniEncoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : EncodingExt.UTF8NoBOM;
+                Encoding extraIniEncoding = GetMapEncoding(extraIniPath);
                 ApplyMapCode(mapIni, new IniFile(extraIniPath, extraIniEncoding));
             }
         }
