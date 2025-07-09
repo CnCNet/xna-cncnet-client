@@ -599,9 +599,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 mapNameItem.Tag = gameModeMap;
 
                 XNAListBoxItem[] mapInfoArray = {
-        rankItem,
-        mapNameItem,
-    };
+                    rankItem,
+                    mapNameItem,
+                };
 
                 lbGameModeMapList.AddItem(mapInfoArray);
 
@@ -632,7 +632,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (gameModeMapChanged)
                 LbGameModeMapList_SelectedIndexChanged();
         }
-
 
         protected abstract int GetDefaultMapRankIndex(GameModeMap gameModeMap);
 
