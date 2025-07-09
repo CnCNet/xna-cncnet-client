@@ -59,7 +59,7 @@ The folder name doesn't explicitly need to match the existing locale code. Howev
 [General]          ; translation metadata
 Name=Some Language ; string, used instead of a system-provided name if set
 Author=Someone     ; string
-MapEncoding=Auto   ; string, defines the name of the map encoding to be used to load the map files to the spawnmap.ini file. The 'Auto' option means that the client will try to guess the encoding.
+MapEncoding=UTF-8  ; string, defines the name of the map encoding to be used to load the map files to the spawnmap.ini file. The 'Auto' option means that the client will try to guess the encoding. Please omit this field by default. Only specify `Auto` or an encoding different from `UTF-8` if you really know what you are doing.
 
 [Values]             ; the key-values for translation
 Some:Key=Some Value  ; string, see below for explanation
