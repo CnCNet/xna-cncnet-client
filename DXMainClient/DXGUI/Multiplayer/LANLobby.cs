@@ -39,15 +39,19 @@ namespace DTAClient.DXGUI.Multiplayer
             WindowManager windowManager,
             GameCollection gameCollection,
             MapLoader mapLoader,
-            DiscordHandler discordHandler
+            DiscordHandler discordHandler,
+            Random random
         ) : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.mapLoader = mapLoader;
             this.discordHandler = discordHandler;
+            this.random = random;
         }
 
         public event EventHandler Exited;
+
+        private Random random;
 
         XNAListBox lbPlayerList;
         ChatListBox lbChatMessages;
@@ -194,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 new LANColor("Pink".L10N("Client:Main:ColorDeepPink"), Color.DeepPink),
                 new LANColor("Purple".L10N("Client:Main:ColorMediumPurple"), Color.MediumPurple),
                 new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.SkyBlue),
-                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.Blue),
+                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.RoyalBlue),
                 new LANColor("Brown".L10N("Client:Main:ColorSaddleBrown"), Color.SaddleBrown),
                 new LANColor("Teal".L10N("Client:Main:ColorTeal"), Color.Teal)
             };
@@ -239,7 +243,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, chatColors, mapLoader, discordHandler, pmWindow);
+                null, chatColors, mapLoader, discordHandler, pmWindow, random);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 

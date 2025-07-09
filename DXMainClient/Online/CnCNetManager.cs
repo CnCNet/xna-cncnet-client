@@ -46,11 +46,11 @@ namespace DTAClient.Online
         public event EventHandler<UserNameIndexEventArgs> UserRemoved;
         public event EventHandler MultipleUsersAdded;
 
-        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData)
+        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData, Random random)
         {
             gameCollection = gc;
             this.cncNetUserData = cncNetUserData;
-            connection = new Connection(this);
+            connection = new Connection(this, random);
 
             this.wm = wm;
 
@@ -70,7 +70,7 @@ namespace DTAClient.Online
                 new IRCColor("Lime Green".L10N("Client:Main:ColorLime"), true, Color.Lime, 9),
                 new IRCColor("Turquoise".L10N("Client:Main:ColorTurquoise"), true, Color.Turquoise, 10),
                 new IRCColor("Sky Blue".L10N("Client:Main:ColorLightSkyBlue"), true, Color.LightSkyBlue, 11),
-                new IRCColor("Blue".L10N("Client:Main:ColorRoyalBlue"), true, Color.RoyalBlue, 12),
+                new IRCColor("Blue".L10N("Client:Main:ColorBlue"), true, Color.RoyalBlue, 12),
                 new IRCColor("Pink".L10N("Client:Main:ColorFuchsia"), true, Color.Fuchsia, 13),
                 new IRCColor("Gray".L10N("Client:Main:ColorLightGray"), true, Color.LightGray, 14),
                 new IRCColor("Gray #2".L10N("Client:Main:ColorGray2"), false, Color.Gray, 15)

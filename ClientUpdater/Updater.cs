@@ -32,6 +32,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ClientUpdater.Compression;
+using ClientCore.Extensions;
 
 using Rampastring.Tools;
 
@@ -152,7 +153,11 @@ public static class Updater
 #if NETFRAMEWORK
     private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
     {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+            System.Security.Authentication.SslProtocols.Tls11 |
+            System.Security.Authentication.SslProtocols.Tls12 |
+            System.Security.Authentication.SslProtocols.Tls13,
     });
 
     private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
@@ -253,11 +258,11 @@ public static class Updater
 
         if (sectionKeys != null)
         {
+            char[] separator = new char[] { ',' };
             foreach (string str in sectionKeys)
             {
-                char[] separator = new char[] { ',' };
-                string[] strArray = file.GetStringValue("FileVersions", str, string.Empty).Split(separator);
-                string[] strArrayArch = file.GetStringValue("ArchivedFiles", str, string.Empty).Split(separator);
+                string[] strArray = file.GetStringListValue("FileVersions", str, string.Empty, separator);
+                string[] strArrayArch = file.GetStringListValue("ArchivedFiles", str, string.Empty, separator);
                 bool archiveAvailable = strArrayArch is { Length: >= 2 };
 
                 if (strArray.Length >= 2)
@@ -641,7 +646,7 @@ public static class Updater
                     }
                     catch (Exception e)
                     {
-                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.Message);
+                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.ToString());
                         Logger.Log("Updater: Seeking other mirrors...");
                         currentUpdateMirrorIndex++;
 
@@ -1351,6 +1356,8 @@ public static class Updater
                             }
 
                             // copy SecondStageUpdater dependencies
+                            // warning: for unknown reasons, `System.Runtime.CompilerServices.Unsafe.dll` file is not listed here.
+                            // Therefore, Polyfill (requiring this dll file) is excluded from the second-stage updater.
                             AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterExecutable.FullName).GetReferencedAssemblies();
 
                             foreach (AssemblyName assembly in assemblies)

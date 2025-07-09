@@ -6,7 +6,8 @@
     <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
-    <Description>CnCNet Main Client Library</Description>
+    <Description>CnCNet Main Client</Description>
+    <AssemblyTitle>CnCNet Client</AssemblyTitle>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
     <ApplicationHighDpiMode Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">SystemAware</ApplicationHighDpiMode>
@@ -14,9 +15,13 @@
     <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Suppress the warning on introducing a manifest file -->
+    <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
     <ApplicationManifest Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">app.SystemAware.manifest</ApplicationManifest>
     <ApplicationManifest Condition="'$(Engine)' != 'UniversalGL' AND '$(Engine)' != 'WindowsGL'">app.PerMonitorV2.manifest</ApplicationManifest>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />
@@ -27,6 +32,7 @@
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
@@ -34,9 +40,16 @@
     <PackageReference Include="OpenMcdf" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.DirectoryServices" />
+    <PackageReference Include="System.Private.Uri" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

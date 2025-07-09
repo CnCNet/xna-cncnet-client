@@ -181,9 +181,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 AddChild(btnLoadMPGame);
             AddChild(btnCancel);
 
-            base.Initialize();
-
             Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
+
+            base.Initialize();
 
             CenterOnParent();
 

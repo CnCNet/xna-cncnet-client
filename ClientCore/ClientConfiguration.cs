@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Rampastring.Tools;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using ClientCore.I18N;
+
+using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.I18N;
+
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -187,6 +190,10 @@ namespace ClientCore
 
         #region Client definitions
 
+        private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
+        private ClientType? _ClientGameType = null;
+        public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
+
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
@@ -207,8 +214,8 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
-        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions",
-            $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}").Split(',');
+        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
+            $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
 
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
             .L10N("INI:ClientDefinitions:WindowTitle");
@@ -254,6 +261,10 @@ namespace ClientCore
         public bool CopyResolutionDependentLanguageDLL => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyResolutionDependentLanguageDLL", true);
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
+
+        public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
+
+        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
@@ -315,7 +326,7 @@ namespace ClientCore
                     continue;
 
                 string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
-                string[] parts = value.Split(',');
+                string[] parts = clientDefinitionsIni.GetStringListValue(TRANSLATIONS, key, string.Empty);
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
@@ -351,13 +362,19 @@ namespace ClientCore
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
+        public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 0);
+
+        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 0) + InactiveHostWarningMessageSeconds;
+
+        public bool InactiveHostKickEnabled => InactiveHostWarningMessageSeconds > 0 && InactiveHostKickSeconds > 0;
+
         public string SkillLevelOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "SkillLevelOptions", "Any,Beginner,Intermediate,Pro");
         
         public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
         
         public string GetGameExecutableName()
         {
-            string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
+            string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "GameExecutableNames", "Game.exe");
 
             return exeNames[0];
         }
@@ -373,7 +390,7 @@ namespace ClientCore
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
         /// <summary>
-        /// The name of the executable in the main game directory that selects 
+        /// The name of the executable in the main game directory that selects
         /// the correct main client executable.
         /// For example, DTA.exe in case of DTA.
         /// </summary>
@@ -390,13 +407,18 @@ namespace ClientCore
         /// <summary>
         /// List of files that are not distributed but required to play.
         /// </summary>
-        public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "RequiredFiles", String.Empty);
 
         /// <summary>
         /// List of files that can interfere with the mod functioning.
         /// </summary>
-        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
+        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "ForbiddenFiles", String.Empty);
 
+        /// <summary>
+        /// The main map file extension that is read by the client.
+        /// </summary>
+        public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
+        
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"

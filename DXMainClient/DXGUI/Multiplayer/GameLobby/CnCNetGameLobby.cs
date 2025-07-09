@@ -50,8 +50,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CnCNetUserData cncnetUserData, 
             MapLoader mapLoader, 
             DiscordHandler discordHandler,
-            PrivateMessagingWindow pmWindow
-        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow)
+            PrivateMessagingWindow pmWindow,
+            Random random
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler, pmWindow, random)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -59,6 +60,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
+            this.random = random;
+            
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -116,6 +120,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private CnCNetManager connectionManager;
         private string localGame;
 
+        private readonly GameHostInactiveChecker gameHostInactiveChecker;
+
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
@@ -144,6 +150,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
 
+        private Random random;
+
         /// <summary>
         /// The SHA1 of the latest selected map.
         /// Used for map sharing.
@@ -171,6 +179,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
+
+            if (gameHostInactiveChecker != null)
+            {
+                MouseMove += (sender, args) => gameHostInactiveChecker.Reset();
+                gameHostInactiveChecker.CloseEvent += GameHostInactiveChecker_CloseEvent;
+            }
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
@@ -238,9 +252,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+                StartInactiveCheck();
             }
             else
             {
@@ -259,6 +274,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
+
+        private void GameHostInactiveChecker_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
+
+        public void StartInactiveCheck()
+        {
+            if (isCustomPassword)
+                return;
+
+            gameHostInactiveChecker?.Start();
+        }
+
+        public void StopInactiveCheck() => gameHostInactiveChecker?.Stop();
 
         public void OnJoined()
         {
@@ -402,12 +429,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (IsHost)
             {
+                StopInactiveCheck();
                 closed = true;
                 BroadcastGame();
             }
 
             Clear();
-            channel.Leave();
+            channel?.Leave();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -751,9 +779,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (color < 0 || color > MPColors.Count)
                 return;
 
-            var disallowedSides = GetDisallowedSides();
+            // Disallowed sides from client, maps, or game modes do not take random selectors into account
+            // So, we need to insert "false" for each random at the beginning of this list AFTER getting them
+            // from client, maps, or game modes.
+            var randomDisallowedSides = new List<bool>(RandomSelectorCount);
+            for (int i = 0; i < RandomSelectorCount; i++)
+                randomDisallowedSides.Add(false);
 
-            if (side > 0 && side <= SideCount && disallowedSides[side - 1])
+            var disallowedSides = randomDisallowedSides.Concat(GetDisallowedSides()).ToArray();
+
+            if (0 < side && side < SideCount && disallowedSides[side])
                 return;
 
             if (Map?.CoopInfo != null)
@@ -1232,6 +1267,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void GameProcessExited()
         {
+            ResetGameState();
+        }
+
+        protected void GameStartAborted()
+        {
+            ResetGameState();
+        }
+
+        protected void ResetGameState() 
+        {
             base.GameProcessExited();
 
             channel.SendCTCPMessage("RETURN", QueuedMessageType.SYSTEM_MESSAGE, 20);
@@ -1239,12 +1284,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 OnGameOptionChanged();
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
+                StartInactiveCheck();
 
                 if (Players.Count < playerLimit)
                     UnlockGame(true);
@@ -1258,6 +1304,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (sender != hostName)
                 return;
+
+            if (Map == null)
+            {
+                GameStartAborted();
+                return;
+            }
 
             string[] parts = message.Split(';');
 
@@ -1314,6 +1366,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
 
+            StopInactiveCheck();
             channel.SendCTCPMessage("STRTD", QueuedMessageType.SYSTEM_MESSAGE, 20);
 
             base.StartGame();
@@ -1868,9 +1921,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (loadedMap != null)
             {
                 message = String.Format(
-                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
+                    "The map for ID \"{0}\" is already loaded from \"{1}.{2}\", delete the existing file before trying again.".L10N("Client:Main:DownloadMapCommandSha1AlreadyExists"),
                     sha1,
-                    loadedMap.Map.BaseFilePath);
+                    loadedMap.Map.BaseFilePath,
+                    ClientConfiguration.Instance.MapFileExtension);
                 AddNotice(message, Color.Yellow);
                 Logger.Log(message);
                 return;

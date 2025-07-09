@@ -16,4 +16,6 @@ public static class EncodingExt
     /// ANSI doesn't mean a specific codepage, it means the default non-Unicode codepage which can be changed from Control Panel.
     /// </summary>
     public static Encoding ANSI { get; }
+
+    public static Encoding UTF8NoBOM { get; } = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 }

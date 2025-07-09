@@ -44,8 +44,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow) :
-            base(windowManager, iniName, topBar, mapLoader, discordHandler, pmWindow)
+            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow, Random random) :
+            base(windowManager, iniName, topBar, mapLoader, discordHandler, pmWindow, random)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -77,6 +77,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             localGame = ClientConfiguration.Instance.LocalGame;
 
             WindowManager.GameClosing += WindowManager_GameClosing;
+
+            this.random = random;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -123,6 +125,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string localFileHash;
 
+        private Random random;
+
         public override void Initialize()
         {
             IniNameOverride = nameof(LANGameLobby);
@@ -139,7 +143,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
 
@@ -669,7 +673,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 OnGameOptionChanged();
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();

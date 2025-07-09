@@ -164,7 +164,11 @@ public class CustomComponent
 #if NETFRAMEWORK
             progressMessageHandler = new(new HttpClientHandler
             {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+                    System.Security.Authentication.SslProtocols.Tls11 |
+                    System.Security.Authentication.SslProtocols.Tls12 |
+                    System.Security.Authentication.SslProtocols.Tls13,
             });
 
             using var httpClient = new HttpClient(progressMessageHandler, true);
@@ -208,7 +212,7 @@ public class CustomComponent
             }
 
             var version = new IniFile(versionFileName);
-            string[] tmp = version.GetStringValue("AddOns", ININame, string.Empty).Split(',');
+            string[] tmp = version.GetStringListValue("AddOns", ININame, string.Empty);
             Updater.GetArchiveInfo(version, LocalPath, out string archiveID, out int archiveSize);
             UpdaterFileInfo info = Updater.CreateFileInfo(finalFileName, tmp[0], Conversions.IntFromString(tmp[1], 0), archiveID, archiveSize);
 

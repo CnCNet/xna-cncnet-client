@@ -1,10 +1,10 @@
 <Project>
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
+    <Message Importance="high" Text="Engine: $(Engine); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
   <!-- "GetVersion" target is defined in GitVersion package -->
-  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0 OR $(GitVersion_BranchName) != 'master')">
+  <Target Name="NonReleaseBuildWarning" AfterTargets="GetVersion" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'DXMainClient' AND ($(GitVersion_CommitsSinceVersionSource) != 0)">
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
     </PropertyGroup>
@@ -25,7 +25,7 @@
   </Target>
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
-    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries" />
+    <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries;RemoveGLMobileBinaries" />
     <CallTarget Targets="MoveCommonBinaries;MoveClientExes;MoveUpdater" Condition="'$(NoMove)' != 'true'" />
   </Target>
 
@@ -40,7 +40,7 @@
   </Target>
 
   <Target Name="RemoveNetFrameworkWindowsGLNative" AfterTargets="PublishNetFrameworkWindowsGLNative">
-    <Message Importance="high" Text="Removing not needed NetFramework WindowsGLNative files" />
+    <Message Importance="high" Text="Removing unnecessary NetFramework WindowsGLNative files" />
     <Delete Files="$(PublishDir)SDL2.dll" />
     <Delete Files="$(PublishDir)soft_oal.dll" />
   </Target>
@@ -60,9 +60,23 @@
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
+  <Target Name="RemoveGLMobileBinaries" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And ('$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL')">
+    <Message Importance="high" Text="Removing unnecessary GL files" />
+
+    <!-- Note: You might need to update folders here if the dependency `MonoGame.Framework.DesktopGL` (specifically, its dependency `MonoGame.Library.OpenAL`) gets updated. -->
+    <ItemGroup>
+      <!-- https://stackoverflow.com/a/71699878 -->
+      <_GLAndroidDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'android*', System.IO.SearchOption.TopDirectoryOnly))" />
+      <_GLIosDirectories Include="$([System.IO.Directory]::GetDirectories($(PublishDir)runtimes/, 'ios*', System.IO.SearchOption.TopDirectoryOnly))" />
+    </ItemGroup>
+
+    <RemoveDir Directories="@(_GLAndroidDirectories)" Condition="'@(_GLAndroidDirectories)' != ''" />    
+    <RemoveDir Directories="@(_GLIosDirectories)" Condition="'@(_GLIosDirectories)' != ''" />
+  </Target>
+
   <!-- IMPORTANT: You SHOULD NOT modify the logic here if you don't have to. -->
   <!-- The list of common assemblies has been moved to the `CommonAssemblies.txt` and `CommonAssembliesNetFx.txt` files. -->
-  <!-- And you SHOULD NOT attempt to manually modify these two files at any time! -->
+  <!-- And you SHOULD modify these two files following Scripts/README.md file! -->
   <Target Name="MoveCommonBinaries">
     <PropertyGroup>
       <_CommonAssembliesFilePath Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(MSBuildThisFileDirectory)CommonAssemblies.txt</_CommonAssembliesFilePath>
@@ -90,6 +104,7 @@
     <Move SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.pdb')" />
   </Target>
 
+  <!-- Note: only the debug build should be started with the debugger, release builds will fail with a 'Could not find Resource directory' error -->
   <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
     <ItemGroup>
       <ExampleClientResources Include="$(MSBuildThisFileDirectory)\DXMainClient\Resources\DTA\**\*.*" />
@@ -124,6 +139,6 @@
   </Target>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)Directory.targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.targets')" />
 
 </Project>
