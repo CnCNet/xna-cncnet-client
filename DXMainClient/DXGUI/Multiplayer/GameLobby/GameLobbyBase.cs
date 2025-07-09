@@ -565,7 +565,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return allInTranslated || allInUntranslated;
                 }).ToList();
 
-                filteredMaps = exactMatches.Concat(partialMatches).ToList();
+                filteredMaps = [.. exactMatches, .. partialMatches];
             }
             else
             {
