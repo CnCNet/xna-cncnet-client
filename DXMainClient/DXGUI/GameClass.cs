@@ -148,18 +148,6 @@ namespace DTAClient.DXGUI
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
-            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
-            {
-                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
-                {
-                    OKClickedAction = _ =>
-                    {
-                        if (exit)
-                            Environment.Exit(1);
-                    }
-                }.Show();
-            };
-
             SetGraphicsMode(wm);
 
 #if WINFORMS
