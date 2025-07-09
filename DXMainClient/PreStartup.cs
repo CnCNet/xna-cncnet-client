@@ -224,7 +224,7 @@ namespace DTAClient
 
         }
 
-        public static void LogException(Exception ex, bool innerException = false, string stackTraceOverride = null)
+        public static void LogException(Exception ex, bool innerException = false)
         {
             if (!innerException)
                 Logger.Log("KABOOOOOOM!!! Info:");
@@ -235,15 +235,15 @@ namespace DTAClient
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
-            Logger.Log("Stacktrace: " + (stackTraceOverride ?? ex.StackTrace));
+            Logger.Log("Stacktrace: " + ex.StackTrace);
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
         }
 
-        public static void HandleException(object sender, Exception ex, string stackTraceOverride = null)
+        public static void HandleException(object sender, Exception ex)
         {
-            LogException(ex, innerException: false, stackTraceOverride);
+            LogException(ex, innerException: false);
 
             string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
