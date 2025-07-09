@@ -197,7 +197,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase) && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
                 if (mapTexture == null && noMapPreviewTexture != null)
                 {
-                    Dev.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
+                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
                     disposeTextures = false;
                 }
@@ -223,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapTexture != null && disposeTextures)
             {
-                Dev.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
+                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
                 mapTexture.Dispose();
                 mapTexture = null;
             }

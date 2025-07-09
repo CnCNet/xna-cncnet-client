@@ -205,8 +205,6 @@ namespace DTAClient
                 MainClientConstants.DisplayErrorAction(null, error, true);
             }
 
-            Dev.Initialize();
-
             Startup startup = new();
 #if DEBUG
             startup.Execute();
