@@ -567,13 +567,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 var search = tbMapSearch.Text;
                 var searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // exact match
+                // Equals entire search string
                 var exactMatches = maps.Where(gmm =>
+                    gmm.Map.Name.Equals(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    gmm.Map.UntranslatedName.Equals(search, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                // Contains entire search string
+                var substringMatches = maps.Except(exactMatches).Where(gmm =>
                     gmm.Map.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
                     gmm.Map.UntranslatedName.Contains(search, StringComparison.InvariantCultureIgnoreCase)).ToList();
 
-                // matches with "AND" logic: Word1 AND Word2 AND Word3
-                var partialMatches = maps.Except(exactMatches).Where(gmm =>
+                // Contains all search words. It matches with "AND" logic: Word1 AND Word2 AND Word3
+                var multiWordMatches = maps.Except(exactMatches).Except(substringMatches).Where(gmm =>
                 {
                     bool allInTranslated = searchWords.All(word =>
                         gmm.Map.Name.Contains(word, StringComparison.CurrentCultureIgnoreCase));
@@ -584,7 +589,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return allInTranslated || allInUntranslated;
                 }).ToList();
 
-                filteredMaps = [.. exactMatches, .. partialMatches];
+                filteredMaps = [.. exactMatches, .. substringMatches, .. multiWordMatches];
             }
             else
             {
