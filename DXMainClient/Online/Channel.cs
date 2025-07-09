@@ -149,6 +149,7 @@ namespace DTAClient.Online
 
                         // Note: IUserCollection.Reinsert() is not guaranteed to be implemented, unless it is a SortedUserCollection
                         Dev.Assert(users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
+
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }

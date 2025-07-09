@@ -6,7 +6,8 @@
     <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
-    <Description>CnCNet Main Client Library</Description>
+    <Description>CnCNet Main Client</Description>
+    <AssemblyTitle>CnCNet Client</AssemblyTitle>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
     <ApplicationHighDpiMode Condition="'$(Engine)' == 'UniversalGL' OR '$(Engine)' == 'WindowsGL'">SystemAware</ApplicationHighDpiMode>

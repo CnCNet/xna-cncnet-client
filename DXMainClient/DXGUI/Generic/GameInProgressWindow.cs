@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI
 
             DateTime dtn = DateTime.Now;
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.YR)
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
                 Task.Factory.StartNew(ProcessScreenshots);
 
