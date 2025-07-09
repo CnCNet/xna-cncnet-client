@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -17,6 +17,7 @@ using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
 using TextCopy;
+
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -121,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientDropDown[] ddPlayerNames;
         protected XNAClientDropDown[] ddPlayerSides;
-        protected XNAClientDropDown[] ddPlayerColors;
+        protected XNAClientColorDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
 
@@ -553,28 +554,51 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbGameModeMapList.SelectedIndex = -1;
 
             int mapIndex = -1;
-            int skippedMapsCount = 0;
 
             var isFavoriteMapsSelected = IsFavoriteMapsSelected();
             var maps = GetSortedGameModeMaps();
 
             bool gameModeMapChanged = false;
 
-            for (int i = 0; i < maps.Count; i++)
-            {
-                var gameModeMap = maps[i];
-                if (tbMapSearch.Text != tbMapSearch.Suggestion)
-                {
-                    string promptUpper = tbMapSearch.Text.ToUpperInvariant();
-                    bool mapMatches = gameModeMap.Map.Name.ToUpperInvariant().Contains(promptUpper)
-                        || gameModeMap.Map.UntranslatedName.ToUpperInvariant().Contains(promptUpper);
+            List<GameModeMap> filteredMaps;
 
-                    if (!mapMatches)
-                    {
-                        skippedMapsCount++;
-                        continue;
-                    }
-                }
+            if (tbMapSearch.Text != tbMapSearch.Suggestion)
+            {
+                string search = tbMapSearch.Text.Trim();
+                string[] searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Equals entire search string
+                var exactMatches = maps.Where(gmm =>
+                    gmm.Map.Name.Equals(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    gmm.Map.UntranslatedName.Equals(search, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                // Contains entire search string
+                var substringMatches = maps.Except(exactMatches).Where(gmm =>
+                    gmm.Map.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    gmm.Map.UntranslatedName.Contains(search, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                // Contains all search words. It matches with "AND" logic: Word1 AND Word2 AND Word3
+                var multiWordMatches = maps.Except(exactMatches).Except(substringMatches).Where(gmm =>
+                {
+                    bool allInTranslated = searchWords.All(word =>
+                        gmm.Map.Name.Contains(word, StringComparison.CurrentCultureIgnoreCase));
+
+                    bool allInUntranslated = searchWords.All(word =>
+                        gmm.Map.UntranslatedName.Contains(word, StringComparison.InvariantCultureIgnoreCase));
+
+                    return allInTranslated || allInUntranslated;
+                }).ToList();
+
+                filteredMaps = [.. exactMatches, .. substringMatches, .. multiWordMatches];
+            }
+            else
+            {
+                filteredMaps = maps;
+            }
+
+            for (int i = 0; i < filteredMaps.Count; i++)
+            {
+                var gameModeMap = filteredMaps[i];
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
                 if (gameModeMap.Map.IsCoop)
@@ -608,14 +632,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Preserve the selected map
                 if (gameModeMap == GameModeMap)
                 {
-                    mapIndex = i - skippedMapsCount;
+                    mapIndex = i;
                     gameModeMapChanged = false;
                 }
 
-                // Preserve the selected map, even if the game mode has changed
                 if (mapIndex == -1 && (gameModeMap?.Map?.Equals(GameModeMap?.Map) ?? false))
                 {
-                    mapIndex = i - skippedMapsCount;
+                    mapIndex = i;
                     gameModeMapChanged = true;
                 }
             }
@@ -827,7 +850,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             ddPlayerNames = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerSides = new XNAClientDropDown[MAX_PLAYER_COUNT];
-            ddPlayerColors = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerColors = new XNAClientColorDropDown[MAX_PLAYER_COUNT];
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
@@ -886,7 +909,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
 
-                var ddPlayerColor = new XNAClientDropDown(WindowManager);
+                var ddPlayerColor = new XNAClientColorDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.Right + playerOptionHorizontalMargin,
@@ -2238,7 +2261,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Enable all colors by default
             foreach (var ddColor in ddPlayerColors)
             {
-                ddColor.Items.ForEach(item => item.Selectable = true);
+                ddColor.Items.ForEach(item => 
+                { 
+                    item.Selectable = true;
+                    
+                    // Random color has its own texture
+                    if (ddColor.Items[0] == item) return;
+
+                    if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) return;
+
+                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeight); 
+                });
             }
 
             // Apply starting locations
@@ -2286,8 +2319,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (disallowedColorIndex >= MPColors.Count)
                         continue;
 
-                    foreach (XNADropDown ddColor in ddPlayerColors)
+                    foreach (var ddColor in ddPlayerColors)
+                    {
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
+                        if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) 
+                            continue;
+                        if (ddColor.Items[disallowedColorIndex + 1] != ddColor.Items[0])
+                            ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;
+                    }
 
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {

@@ -147,8 +147,8 @@ namespace DTAClient.Online
                         existingUser.IsAdmin = user.IsAdmin;
                         existingUser.IsFriend = user.IsFriend;
 
-                        // Note: IUserCollection.GetFirst() is not guaranteed to be implemented, unless it is a SortedUserCollection
-                        Debug.Assert(users is SortedUserCollection<ChannelUser>);
+                        // Note: IUserCollection.Reinsert() is not guaranteed to be implemented, unless it is a SortedUserCollection
+                        Debug.Assert(users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }

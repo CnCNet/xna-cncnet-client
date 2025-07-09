@@ -442,7 +442,7 @@ namespace DTAClient.DXGUI.Generic
                 {
                     description = ("You are missing Yuri's Revenge files that are required\n" +
                         "to play this mod! Yuri's Revenge mods are not standalone,\n" +
-                        "so you need a copy of following Yuri's Revenge (v. 1.001)\n" +
+                        "so you need a copy of following Yuri's Revenge (v.1.001)\n" +
                         "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares");
                 }
                 else
@@ -652,6 +652,19 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+
+            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
+            {
+                new XNAMessageBox(WindowManager, title, error, XNAMessageBoxButtons.OK)
+                {
+                    OKClickedAction = _ =>
+                    {
+                        if (exit)
+                            Environment.Exit(1);
+                    },
+
+                }.Show();
+            };
         }
 
         private void LoadThemeSong()
