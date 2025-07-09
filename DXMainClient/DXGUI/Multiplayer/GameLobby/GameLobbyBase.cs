@@ -564,8 +564,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (tbMapSearch.Text != tbMapSearch.Suggestion)
             {
-                var search = tbMapSearch.Text;
-                var searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                string search = tbMapSearch.Text.Trim();
+                string[] searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Equals entire search string
                 var exactMatches = maps.Where(gmm =>
