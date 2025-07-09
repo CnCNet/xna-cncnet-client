@@ -545,22 +545,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (tbMapSearch.Text != tbMapSearch.Suggestion)
             {
-                var search = tbMapSearch.Text.ToUpperInvariant();
+                var search = tbMapSearch.Text;
                 var searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // exact match
                 var exactMatches = maps.Where(gmm =>
-                    gmm.Map.Name.ToUpperInvariant().Contains(search) ||
-                    gmm.Map.UntranslatedName.ToUpperInvariant().Contains(search)).ToList();
+                    gmm.Map.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    gmm.Map.UntranslatedName.Contains(search, StringComparison.InvariantCultureIgnoreCase)).ToList();
 
                 // matches with "AND" logic: Word1 AND Word2 AND Word3
                 var partialMatches = maps.Except(exactMatches).Where(gmm =>
                 {
                     bool allInTranslated = searchWords.All(word =>
-                        gmm.Map.Name.ToUpperInvariant().Contains(word));
+                        gmm.Map.Name.Contains(word, StringComparison.CurrentCultureIgnoreCase));
 
                     bool allInUntranslated = searchWords.All(word =>
-                        gmm.Map.UntranslatedName.ToUpperInvariant().Contains(word));
+                        gmm.Map.UntranslatedName.Contains(word, StringComparison.InvariantCultureIgnoreCase));
 
                     return allInTranslated || allInUntranslated;
                 }).ToList();
