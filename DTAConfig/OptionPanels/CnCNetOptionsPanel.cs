@@ -188,7 +188,7 @@ namespace DTAConfig.OptionPanels
             ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
             ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 lblAllPrivateMessagesFrom.Right,
-                lblAllPrivateMessagesFrom.Y - 2, 65, 0);
+                lblAllPrivateMessagesFrom.Y - 2, 110, 0);
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
