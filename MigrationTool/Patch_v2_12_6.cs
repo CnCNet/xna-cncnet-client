@@ -21,6 +21,12 @@ internal class Patch_v2_12_6 : Patch
         Enumerable.Range(0, 8).ToList().ForEach(i => AddKeyWithLog(gmLobbyBaseIni, ddPlayerColor + i, "ItemsDrawMode", "Text"));
         gmLobbyBaseIni.WriteIniFile();
 
+        // Remove GenericWindow.ini->{ GameCreationWindow; GameCreationWindow_Advanced }->Size
+        IniFile genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
+        genericWindowIni.GetSection("GameCreationWindow").RemoveKey("Size");
+        genericWindowIni.GetSection("GameCreationWindow_Advanced").RemoveKey("Size");
+        genericWindowIni.WriteIniFile();
+
         return this;
     }
 }
