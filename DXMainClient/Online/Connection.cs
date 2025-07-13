@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
@@ -20,39 +20,48 @@ namespace DTAClient.Online
     public class Connection
     {
         private const int MAX_RECONNECT_COUNT = 8;
+        private const int MAX_ERROR_COUNT = 30;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int BYTE_ARRAY_MSG_LEN = 1024;
 
-        public Connection(IConnectionManager connectionManager)
+        public Connection(IConnectionManager connectionManager, Random random)
         {
             this.connectionManager = connectionManager;
+            this.Rng = random;
         }
 
         IConnectionManager connectionManager;
 
+        public Random Rng;
+
+        private static IList<Server> _servers = null;
         /// <summary>
         /// The list of CnCNet / GameSurge IRC servers to connect to.
         /// </summary>
-        private static readonly IList<Server> Servers = new List<Server>
+        private static IList<Server> Servers
         {
-            new Server("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new int[3] { 6667, 6668, 7000 }),
-            new Server("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new int[7] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA", new int[4] { 6666, 6667, 6668, 6669 }),
-            new Server("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new int[2] { 6667, 5960 }),
-            new Server("Portlane.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new int[7] { 5960, 6660, 6666, 6667, 6668, 6669, 6697 }),
-            new Server("TAL.DE.EU.GameSurge.net", "GameSurge Wuppertal, Germany", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("208.167.237.120", "GameSurge IP 208.167.237.120", new int[7] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("192.223.27.109", "GameSurge IP 192.223.27.109", new int[7] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("108.174.48.100", "GameSurge IP 108.174.48.100", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("208.146.35.105", "GameSurge IP 208.146.35.105", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("195.8.250.180", "GameSurge IP 195.8.250.180", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("91.217.189.76", "GameSurge IP 91.217.189.76", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("195.68.206.250", "GameSurge IP 195.68.206.250", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
-        }.AsReadOnly();
+            get
+            {
+                if (_servers is not null)
+                    return _servers;
+
+                IEnumerable<string> serversList;
+                if (ClientConfiguration.Instance.IRCServers.Count > 0)
+                    serversList = ClientConfiguration.Instance.IRCServers;
+                else
+                {
+                    // fallback to the hardcoded servers list
+                    serversList = [
+                        "irc.gamesurge.net|GameSurge|6667,6660,6666,6668,6669",
+                    ];
+                }
+
+                _servers = serversList.Select(Server.Deserialize).ToList();
+                return _servers;
+            }
+        }
 
         bool _isConnected = false;
         public bool IsConnected
@@ -64,12 +73,6 @@ namespace DTAClient.Online
         public bool AttemptingConnection
         {
             get { return _attemptingConnection; }
-        }
-
-        Random _rng = new Random();
-        public Random Rng
-        {
-            get { return _rng; }
         }
 
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
@@ -207,7 +210,7 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Unable to connect to the server. " + ex.Message);
+                    Logger.Log("Unable to connect to the server. " + ex.ToString());
                 }
             }
 
@@ -221,7 +224,7 @@ namespace DTAClient.Online
         private void HandleComm()
         {
             int errorTimes = 0;
-            byte[] message = new byte[1024];
+            byte[] message = new byte[BYTE_ARRAY_MSG_LEN];
 
             Register();
 
@@ -238,29 +241,45 @@ namespace DTAClient.Online
                     break;
                 }
 
-                if (!serverStream.DataAvailable)
-                {
-                    Thread.Sleep(10);
-                    continue;
-                }
-
-                int bytesRead;
+                int bytesRead = 0;
 
                 try
                 {
-                    bytesRead = serverStream.Read(message, 0, 1024);
+                    bytesRead = serverStream.Read(message, 0, BYTE_ARRAY_MSG_LEN);
+                }
+                catch (IOException ex)
+                {
+                    errorTimes++;
+
+                    if (errorTimes > MAX_ERROR_COUNT)
+                    {
+                        const string errorMessage = "Disconnected from CnCNet after not receiving a packet for too long.";
+                        Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
+                        failedServerIPs.Add(currentConnectedServerIP);
+                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
+                        break;
+                    }
+
+                    continue;
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                    const string errorMessage = "Disconnected from CnCNet due to an internal error.";
+                    Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
+                    failedServerIPs.Add(currentConnectedServerIP);
+                    connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
+                    break;
+                }
+
+                if (bytesRead == 0)
+                {
                     errorTimes++;
 
-                    if (errorTimes > MAX_RECONNECT_COUNT)
+                    if (errorTimes > MAX_ERROR_COUNT)
                     {
-                        const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
-                        Logger.Log(errorMessage);
+                        Logger.Log("Disconnected from CnCNet.");
                         failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
+                        connectionManager.OnConnectionLost("Server disconnected.".L10N("Client:Main:ServerDisconnected"));
                         break;
                     }
 
@@ -349,7 +368,7 @@ namespace DTAClient.Online
                     }
                     catch (SocketException ex)
                     {
-                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.Message}");
+                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.ToString()}");
                     }
 
                     return _serverInfos;
@@ -441,7 +460,7 @@ namespace DTAClient.Online
                         }
                         catch (PingException ex)
                         {
-                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.Message}");
+                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.ToString()}");
 
                             return new Tuple<Server, long>(server, long.MaxValue);
                         }
@@ -906,7 +925,7 @@ namespace DTAClient.Online
         /// <param name="data">Just a dummy parameter so that this matches the delegate System.Threading.TimerCallback.</param>
         private void AutoPing(object data)
         {
-            SendMessage("PING LAG" + new Random().Next(100000, 999999));
+            SendMessage("PING LAG" + Rng.Next(100000, 999999));
         }
 
         /// <summary>
@@ -968,7 +987,7 @@ namespace DTAClient.Online
                 }
                 catch (IOException ex)
                 {
-                    Logger.Log("Sending message to the server failed! Reason: " + ex.Message);
+                    Logger.Log("Sending message to the server failed! Reason: " + ex.ToString());
                 }
             }
         }

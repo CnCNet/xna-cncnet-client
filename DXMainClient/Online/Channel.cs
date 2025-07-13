@@ -1,9 +1,11 @@
 ﻿using ClientCore;
+using ClientCore.Enums;
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
 using DTAClient.DXGUI;
 using ClientCore.Extensions;
+using System.Diagnostics;
 
 namespace DTAClient.Online
 {
@@ -99,11 +101,10 @@ namespace DTAClient.Online
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-#if YR
-            notifyOnUserListChange = false;
-#else
-            notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
-#endif
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.YR)
+                notifyOnUserListChange = false;
+            else
+                notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
         }
 
         public void AddUser(ChannelUser user)
@@ -122,10 +123,11 @@ namespace DTAClient.Online
                     string.Format("{0} has joined {1}.".L10N("Client:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
             }
 
-#if !YR
-            if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                RequestUserInfo();
-#endif
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
+            {
+                if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
+                    RequestUserInfo();
+            }
         }
 
         public void OnUserListReceived(List<ChannelUser> userList)
@@ -144,6 +146,9 @@ namespace DTAClient.Online
                     {
                         existingUser.IsAdmin = user.IsAdmin;
                         existingUser.IsFriend = user.IsFriend;
+
+                        // Note: IUserCollection.Reinsert() is not guaranteed to be implemented, unless it is a SortedUserCollection
+                        Debug.Assert(users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }

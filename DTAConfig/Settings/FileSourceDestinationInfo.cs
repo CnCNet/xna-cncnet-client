@@ -16,17 +16,17 @@ namespace DTAConfig.Settings
         public string DestinationPath => SafePath.CombineFilePath(ProgramConstants.GamePath, destinationPath);
         /// <summary>
         /// A path where the files edited by user are saved if
-        /// <see cref="FileOperationOptions"/> is set to <see cref="FileOperationOptions.KeepChanges"/>.
+        /// <see cref="FileOperationOption"/> is set to <see cref="FileOperationOption.KeepChanges"/>.
         /// </summary>
         public string CachedPath => SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "SettingsCache", sourcePath);
 
-        public FileOperationOptions FileOperationOptions { get; }
+        public FileOperationOption FileOperationOption { get; }
 
-        public FileSourceDestinationInfo(string source, string destination, FileOperationOptions options)
+        public FileSourceDestinationInfo(string source, string destination, FileOperationOption option)
         {
             sourcePath = source;
             destinationPath = destination;
-            FileOperationOptions = options;
+            FileOperationOption = option;
         }
 
         /// <summary>
@@ -40,13 +40,13 @@ namespace DTAConfig.Settings
                 throw new ArgumentException($"{nameof(FileSourceDestinationInfo)}: " +
                     $"Too few parameters specified in parsed value", nameof(value));
 
-            FileOperationOptions options = default(FileOperationOptions);
+            FileOperationOption option = default(FileOperationOption);
             if (parts.Length >= 3)
-                Enum.TryParse(parts[2], out options);
+                Enum.TryParse(parts[2], out option);
 
             sourcePath = parts[0];
             destinationPath = parts[1];
-            FileOperationOptions = options;
+            FileOperationOption = option;
         }
 
         /// <summary>
@@ -78,13 +78,13 @@ namespace DTAConfig.Settings
 
         /// <summary>
         /// Performs file operations from <see cref="SourcePath"/> to
-        /// <see cref="DestinationPath"/> according to <see cref="FileOperationOptions"/>.
+        /// <see cref="DestinationPath"/> according to <see cref="FileOperationOption"/>.
         /// </summary>
         public void Apply()
         {
-            switch (FileOperationOptions)
+            switch (FileOperationOption)
             {
-                case FileOperationOptions.OverwriteOnMismatch:
+                case FileOperationOption.OverwriteOnMismatch:
                     string sourceHash = Utilities.CalculateSHA1ForFile(SourcePath);
                     string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
 
@@ -93,62 +93,76 @@ namespace DTAConfig.Settings
 
                     break;
 
-                case FileOperationOptions.DontOverwrite:
+                case FileOperationOption.DontOverwrite:
                     if (!File.Exists(DestinationPath))
                         File.Copy(SourcePath, DestinationPath, false);
 
                     break;
 
-                case FileOperationOptions.KeepChanges:
+                case FileOperationOption.KeepChanges:
                     if (!File.Exists(DestinationPath))
                     {
                         if (File.Exists(CachedPath))
-                            File.Copy(CachedPath, DestinationPath, false);
+                            File.Move(CachedPath, DestinationPath);
                         else
-                            File.Copy(SourcePath, DestinationPath, false);
+                            File.Copy(SourcePath, DestinationPath, true);
                     }
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
-                    File.Copy(DestinationPath, CachedPath, true);
 
                     break;
 
-                case FileOperationOptions.AlwaysOverwrite:
+                case FileOperationOption.AlwaysOverwrite:
                     File.Copy(SourcePath, DestinationPath, true);
+                    break;
+
+                case FileOperationOption.AlwaysOverwrite_LinkAsReadOnly:
+                    FileHelper.CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
+                    new FileInfo(DestinationPath).IsReadOnly = true;
+                    new FileInfo(SourcePath).IsReadOnly = true;
                     break;
 
                 default:
                     throw new InvalidOperationException($"{nameof(FileSourceDestinationInfo)}: " +
-                        $"Invalid {nameof(FileOperationOptions)} value of {FileOperationOptions}");
+                        $"Invalid {nameof(FileOperationOption)} value of {FileOperationOption}");
             }
         }
 
         /// <summary>
         /// Performs file operations to undo changes made by <see cref="Apply"/>
-        /// to <see cref="DestinationPath"/> according to <see cref="FileOperationOptions"/>.
+        /// to <see cref="DestinationPath"/> according to <see cref="FileOperationOption"/>.
         /// </summary>
         public void Revert()
         {
-            switch (FileOperationOptions)
+            switch (FileOperationOption)
             {
-                case FileOperationOptions.KeepChanges:
+                case FileOperationOption.KeepChanges:
                     if (File.Exists(DestinationPath))
                     {
-                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
-                        File.Copy(DestinationPath, CachedPath, true);
-                        File.Delete(DestinationPath);
+                        if (!File.Exists(Path.GetDirectoryName(CachedPath)))
+                            SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
+
+                        File.Move(DestinationPath, CachedPath);
                     }
                     break;
 
-                case FileOperationOptions.OverwriteOnMismatch:
-                case FileOperationOptions.DontOverwrite:
-                case FileOperationOptions.AlwaysOverwrite:
-                    File.Delete(DestinationPath);
+                case FileOperationOption.AlwaysOverwrite_LinkAsReadOnly:
+                case FileOperationOption.OverwriteOnMismatch:
+                case FileOperationOption.DontOverwrite:
+                case FileOperationOption.AlwaysOverwrite:
+                    if (File.Exists(DestinationPath))
+                    {
+                        FileInfo destinationFile = new(DestinationPath);
+                        destinationFile.IsReadOnly = false;
+                        destinationFile.Delete();
+                    }
+
+                    if (FileOperationOption == FileOperationOption.AlwaysOverwrite_LinkAsReadOnly)
+                        new FileInfo(SourcePath).IsReadOnly = false;
+
                     break;
 
                 default:
                     throw new InvalidOperationException($"{nameof(FileSourceDestinationInfo)}: " +
-                        $"Invalid {nameof(FileOperationOptions)} value of {FileOperationOptions}");
+                        $"Invalid {nameof(FileOperationOption)} value of {FileOperationOption}");
             }
         }
     }
@@ -157,11 +171,12 @@ namespace DTAConfig.Settings
     /// Defines the expected behavior of file operations performed with
     /// <see cref="FileSourceDestinationInfo"/>.
     /// </summary>
-    public enum FileOperationOptions
+    public enum FileOperationOption
     {
-        AlwaysOverwrite,
+        AlwaysOverwrite = 0,
         OverwriteOnMismatch,
         DontOverwrite,
-        KeepChanges
+        KeepChanges,
+        AlwaysOverwrite_LinkAsReadOnly,
     }
 }

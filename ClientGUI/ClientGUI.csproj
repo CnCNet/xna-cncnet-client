@@ -1,28 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Title>CnCNet Client</Title>
     <Description>CnCNet Client UI Library</Description>
-    <Company>CnCNet</Company>
-    <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2022</Copyright>
-    <Trademark>CnCNet</Trademark>
-    <Version>2.1.0.1</Version>
-    <FileVersion>2.1.0.1</FileVersion>
-    <InformationalVersion>2.1.0.1</InformationalVersion>
-    <AssemblyName>ClientGUI</AssemblyName>
-    <RootNamespace>ClientGUI</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+  <ItemGroup Condition="$(Configuration.Contains('GL'))">
+    <!--Remove WinForm-->
+    <Compile Remove="IME\WinFormsIMEHandler.cs" />
+    <None Include="IME\WinFormsIMEHandler.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  <ItemGroup Condition="!$(Configuration.Contains('GL'))">
+    <!--Remove SDL-->
+    <Compile Remove="IME\SdlIMEHandler.cs" />
+    <None Include="IME\SdlIMEHandler.cs" />
+    <PackageReference Include="ImeSharp" />
   </ItemGroup>
 </Project>

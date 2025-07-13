@@ -12,6 +12,7 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using ClientCore.Enums;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
@@ -19,6 +20,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
+using DTAConfig;
+using System.Collections.Generic;
+using Steamworks;
 
 namespace DTAClient
 {
@@ -49,7 +53,6 @@ namespace DTAClient
             Logger.Log("OSArchitecture: " + RuntimeInformation.OSArchitecture);
             Logger.Log("ProcessArchitecture: " + RuntimeInformation.ProcessArchitecture);
             Logger.Log("FrameworkDescription: " + RuntimeInformation.FrameworkDescription);
-            Logger.Log("RuntimeIdentifier: " + RuntimeInformation.RuntimeIdentifier);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId);
             Logger.Log("Current culture: " + CultureInfo.CurrentCulture);
 
@@ -61,11 +64,13 @@ namespace DTAClient
                 thread.Start();
             }
 
-            GenerateOnlineIdAsync();
+            // Using tasks here causes crashes on Wine for some reason
+            Thread onlineIdThread = new Thread(GenerateOnlineId);
+            onlineIdThread.Start();
 
-#if ARES
-            Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
-#endif
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
+                Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+
             Task.Factory.StartNew(MigrateOldLogFiles);
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
@@ -127,16 +132,51 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
 
-            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            if (!UserINISettings.Instance.BorderlessWindowedClient)
+            {
+                // Find the largest recommended resolution as the default windowed resolution
+                var bestRecommendedResolution = ScreenResolution.GetBestRecommendedResolution();
 
-            UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", currentWidth);
-            UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", currentHeight);
+                UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
+                UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
+            }
+            else
+            {
+                // Find the largest fullscreen resolution as the default fullscreen resolution
+                var resolution = ScreenResolution.SafeFullScreenResolution;
+                UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
+                UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
+            }
 
+#if DEBUG
+            // Calculate hashes
+            {
+                FileHashCalculator fhc = new();
+                fhc.CalculateHashes();
+            }
+#endif
+
+#if ISWINDOWS
+            if (UserINISettings.Instance.SteamIntegration)
+            {
+                try
+                {
+                    Logger.Log("Steam init called");
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
+                    SteamClient.Init(2229850);
+                else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                    SteamClient.Init(2229880);
+                }
+                catch (System.Exception e)
+                {
+                    Logger.Log("Steam init failed: " + e.Message);
+                    // Couldn't init for some reason (steam is closed etc)
+                }
+            }
+#endif
             gameClass.Run();
         }
 
-#if ARES
         /// <summary>
         /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
         /// If directory is empty after deleting files, the directory itself will also be deleted.
@@ -162,10 +202,10 @@ namespace DTAClient
                             if (fileInfo.CreationTime <= pruneThresholdTime)
                                 fileInfo.Delete();
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
                             Logger.Log("PruneFiles: Could not delete file " + fsEntry.Name +
-                                ". Error message: " + e.Message);
+                                ". Error message: " + ex.ToString());
                             continue;
                         }
                     }
@@ -177,10 +217,9 @@ namespace DTAClient
             catch (Exception ex)
             {
                 Logger.Log("PruneFiles: An error occurred while pruning files from " +
-                   directory.Name + ". Message: " + ex.Message);
+                   directory.Name + ". Message: " + ex.ToString());
             }
         }
-#endif
 
         /// <summary>
         /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.
@@ -233,7 +272,7 @@ namespace DTAClient
             {
                 Logger.Log("MigrateLogFiles: An error occured while moving log files from " +
                     currentDirectory.Name + " to " +
-                    newDirectory.Name + ". Message: " + ex.Message);
+                    newDirectory.Name + ". Message: " + ex.ToString());
             }
         }
 
@@ -308,7 +347,7 @@ namespace DTAClient
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
-        private static async Task GenerateOnlineIdAsync()
+        private static void GenerateOnlineId()
         {
 #if !WINFORMS
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -317,7 +356,6 @@ namespace DTAClient
 #pragma warning disable format
                 try
                 {
-                    await Task.CompletedTask;
                     ManagementObjectCollection mbsList = null;
                     ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
                     mbsList = mbs.Get();
@@ -365,7 +403,7 @@ namespace DTAClient
             {
                 try
                 {
-                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id");
+                    string machineId = File.ReadAllText("/var/lib/dbus/machine-id");
 
                     Connection.SetId(machineId);
                 }

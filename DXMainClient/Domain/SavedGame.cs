@@ -57,7 +57,7 @@ namespace DTAClient.Domain
             catch (Exception ex)
             {
                 Logger.Log("An error occured while parsing saved game " + FileName + ":" +
-                    ex.Message);
+                    ex.ToString());
                 return false;
             }
         }

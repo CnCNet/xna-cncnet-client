@@ -15,6 +15,7 @@ using System.Text;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -27,10 +28,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
-            : base(windowManager, iniName, mapLoader, true, discordHandler)
+            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow, Random random)
+            : base(windowManager, iniName, mapLoader, true, discordHandler, random)
         {
             TopBar = topBar;
+            this.random = random;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
@@ -38,11 +40,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => HideMapList()),
                 new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
                     s => ShowMapList()),
-                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), true,
+                new ChatBoxCommand("FRAMESENDRATE", string.Format("Change order lag / FrameSendRate (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelpV2"), ClientConfiguration.Instance.DefaultFrameSendRate), true,
                     s => SetFrameSendRate(s)),
-                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), true,
+                new ChatBoxCommand("MAXAHEAD", string.Format("Change MaxAhead (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelpV2"), ClientConfiguration.Instance.DefaultMaxAhead), true,
                     s => SetMaxAhead(s)),
-                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelp"), true,
+                new ChatBoxCommand("PROTOCOLVERSION", string.Format("Change ProtocolVersion (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelpV2"), ClientConfiguration.Instance.DefaultProtocolVersion), true,
                     s => SetProtocolVersion(s)),
                 new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("Client:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
@@ -59,6 +61,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
         protected XNAClientCheckBox chkAutoReady;
+
+        private Random random;
 
         protected bool IsHost = false;
 
@@ -90,7 +94,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected TopBar TopBar;
 
-        protected int FrameSendRate { get; set; } = 7;
+        protected int FrameSendRate { get; set; }
 
         /// <summary>
         /// Controls the MaxAhead parameter. The default value of 0 means that 
@@ -99,7 +103,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected int MaxAhead { get; set; }
 
-        protected int ProtocolVersion { get; set; } = 2;
+        protected int ProtocolVersion { get; set; }
 
         protected List<ChatBoxCommand> chatBoxCommands;
 
@@ -107,7 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        private bool lastMapChangeWasInvalid = false;
+        protected bool LastMapChangeWasInvalid { get; set; } = false;
 
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
@@ -120,6 +124,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
+
+            // Init default game network settings
+            FrameSendRate = ClientConfiguration.Instance.DefaultFrameSendRate;
+            ProtocolVersion = ClientConfiguration.Instance.DefaultProtocolVersion;
+            MaxAhead = ClientConfiguration.Instance.DefaultMaxAhead;
 
             // DisableSpectatorReadyChecking = GameOptionsIni.GetBooleanValue("General", "DisableSpectatorReadyChecking", false);
 
@@ -258,8 +267,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
 
-            for (int pId = 0; pId < Players.Count; pId++)
-                Players[pId].IsInGame = true;
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = false;
 
             base.StartGame();
         }
@@ -273,6 +282,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             pInfo.IsInGame = false;
+
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = true;
 
             base.GameProcessExited();
 
@@ -513,7 +525,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int[] results = new int[dieCount];
-            Random random = new Random();
             for (int i = 0; i < dieCount; i++)
             {
                 results[i] = random.Next(1, dieSides + 1);
@@ -616,7 +627,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 ShowMapList();
-                BtnSaveLoadGameOptions?.Enable();
+                btnSaveLoadGameOptions?.Enable();
 
                 btnLockGame.Text = "Lock Game".L10N("Client:Main:ButtonLockGame");
                 btnLockGame.Enabled = true;
@@ -640,7 +651,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 HideMapList();
-                BtnSaveLoadGameOptions?.Disable();
+                btnSaveLoadGameOptions?.Disable();
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
@@ -694,6 +705,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
+
+            SetMapLabels();
         }
 
         private void ShowMapList()
@@ -722,6 +735,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
             ReadINIForControl(btnMapSortAlphabetically);
+
+            SetMapLabels();
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -843,7 +858,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (player.Name == ProgramConstants.PLAYERNAME)
                     continue;
 
-                if (!player.Verified)
+                if (!player.HashReceived)
                 {
                     NotVerifiedNotification(iId - 1);
                     return;
@@ -998,7 +1013,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Player statuses
             for (int pId = 0; pId < Players.Count; pId++)
             {
-                /* if (pId != 0 && !Players[pId].Verified) // If player is not verified (not counting the host)
+                /* if (pId != 0 && !Players[pId].HashReceived) // If player is not verified (not counting the host)
                 {
                     StatusIndicators[pId].SwitchTexture("error");
                 }
@@ -1107,10 +1122,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClearReadyStatuses(resetAutoReady);
 
-            if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
+            if ((LastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
                 RequestReadyStatus();
 
-            lastMapChangeWasInvalid = resetAutoReady;
+            LastMapChangeWasInvalid = resetAutoReady;
 
             //if (IsHost)
             //    OnGameOptionChanged();
@@ -1120,7 +1135,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ToggleFavoriteMap();
 
-            if (GameModeMap.IsFavorite || !IsHost)
+            if ((GameModeMap != null && GameModeMap.IsFavorite) || !IsHost)
                 return;
 
             RefreshForFavoriteMapRemoved();

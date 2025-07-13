@@ -1,6 +1,7 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Enums;
 using ClientGUI;
 using DTAConfig.OptionPanels;
 using Microsoft.Xna.Framework;
@@ -191,7 +192,7 @@ namespace DTAConfig
             }
             catch (Exception ex)
             {
-                Logger.Log("Saving settings failed! Error message: " + ex.Message);
+                Logger.Log("Saving settings failed! Error message: " + ex.ToString());
                 XNAMessageBox.Show(WindowManager, "Saving Settings Failed".L10N("Client:DTAConfig:SaveSettingFailTitle"),
                     "Saving settings failed! Error message:".L10N("Client:DTAConfig:SaveSettingFailText") + " " + ex.Message);
             }
@@ -283,9 +284,8 @@ namespace DTAConfig
 
         public void PostInit()
         {
-#if TS
-            displayOptionsPanel.PostInit();
-#endif
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                displayOptionsPanel.PostInit();
         }
     }
 }

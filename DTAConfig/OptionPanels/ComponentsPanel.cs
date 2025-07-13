@@ -65,7 +65,7 @@ namespace DTAConfig.OptionPanels
                 {
                     Name = "lbl" + c.ININame,
                     ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0),
-                    Text = c.GUIName.L10N($"INI:CustomComponents:{c.ININame}:UIName")
+                    Text = c.GUIName
                 };
 
                 AddChild(btn);
@@ -147,6 +147,7 @@ namespace DTAConfig.OptionPanels
             {
                 if (cc.LocalIdentifier == cc.RemoteIdentifier)
                 {
+                    localFileInfo.IsReadOnly = false;
                     localFileInfo.Delete();
                     btn.Text = "Install".L10N("Client:DTAConfig:Install") + $" ({GetSizeString(cc.RemoteSize)})";
                     return;

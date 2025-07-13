@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
@@ -28,10 +28,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNATextBox tbGameName;
         private XNAClientDropDown ddMaxPlayers;
+        private XNAClientDropDown ddSkillLevel;
         private XNATextBox tbPassword;
 
         private XNALabel lblRoomName;
         private XNALabel lblMaxPlayers;
+        private XNALabel lblSkillLevel;
         private XNALabel lblPassword;
 
         private XNALabel lblTunnelServer;
@@ -44,10 +46,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private TunnelHandler tunnelHandler;
 
+        private string[] SkillLevelOptions;
+
         public override void Initialize()
         {
             lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
             lbTunnelList.Name = nameof(lbTunnelList);
+
+            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
 
             Name = "GameCreationWindow";
             Width = lbTunnelList.Width + UIDesignConstants.EMPTY_SPACE_SIDES * 2 +
@@ -60,7 +66,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameName.ClientRectangle = new Rectangle(Width - 150 - UIDesignConstants.EMPTY_SPACE_SIDES -
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, UIDesignConstants.EMPTY_SPACE_TOP +
                 UIDesignConstants.CONTROL_VERTICAL_MARGIN, 150, 21);
-            tbGameName.Text = string.Format("{0}'s Game".L10N("Client:Main:GameOfPlayer"), ProgramConstants.PLAYERNAME);
+            tbGameName.Text = string.Format("{0}'s Game", ProgramConstants.PLAYERNAME);
 
             lblRoomName = new XNALabel(WindowManager);
             lblRoomName.Name = nameof(lblRoomName);
@@ -82,10 +88,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, ddMaxPlayers.Y + 1, 0, 0);
             lblMaxPlayers.Text = "Maximum number of players:".L10N("Client:Main:GameMaxPlayerCount");
 
+            // Skill Level selector
+            ddSkillLevel = new XNAClientDropDown(WindowManager);
+            ddSkillLevel.Name = nameof(ddSkillLevel);
+            ddSkillLevel.ClientRectangle = new Rectangle(tbGameName.X, ddMaxPlayers.Bottom + 20,
+                tbGameName.Width, 21);
+
+            for (int i = 0; i < SkillLevelOptions.Length; i++)
+            {
+                string skillLevel = SkillLevelOptions[i];
+                string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{i}");
+                ddSkillLevel.AddItem(localizedSkillLevel);
+            }
+
+            ddSkillLevel.SelectedIndex = ClientConfiguration.Instance.DefaultSkillLevelIndex;
+
+            lblSkillLevel = new XNALabel(WindowManager);
+            lblSkillLevel.Name = nameof(lblSkillLevel);
+            lblSkillLevel.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, ddSkillLevel.Y + 1, 0, 0);
+            lblSkillLevel.Text = "Select preferred skill level of players:".L10N("Client:Main:SelectSkillLevel");
+
             tbPassword = new XNATextBox(WindowManager);
             tbPassword.Name = nameof(tbPassword);
             tbPassword.MaximumTextLength = 20;
-            tbPassword.ClientRectangle = new Rectangle(tbGameName.X, ddMaxPlayers.Bottom + 20,
+            tbPassword.ClientRectangle = new Rectangle(tbGameName.X, ddSkillLevel.Bottom + 20,
                 tbGameName.Width, 21);
 
             lblPassword = new XNALabel(WindowManager);
@@ -142,6 +169,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRoomName);
             AddChild(ddMaxPlayers);
             AddChild(lblMaxPlayers);
+            AddChild(ddSkillLevel);
+            AddChild(lblSkillLevel);
             AddChild(tbPassword);
             AddChild(lblPassword);
             AddChild(btnDisplayAdvancedOptions);
@@ -152,9 +181,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 AddChild(btnLoadMPGame);
             AddChild(btnCancel);
 
-            base.Initialize();
-
             Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
+
+            base.Initialize();
 
             CenterOnParent();
 
@@ -180,7 +209,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-            tbGameName.Text = string.Format("{0}'s Game".L10N("Client:Main:GameOfPlayer"), UserINISettings.Instance.PlayerName.Value);
+            tbGameName.Text = string.Format("{0}'s Game", UserINISettings.Instance.PlayerName.Value);
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -203,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]);
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], ddSkillLevel.SelectedIndex);
 
             LoadedGameCreated?.Invoke(this, ea);
         }
@@ -229,9 +258,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            GameCreated?.Invoke(this, new GameCreationEventArgs(gameName,
-                int.Parse(ddMaxPlayers.SelectedItem.Text), tbPassword.Text,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]));
+            GameCreated?.Invoke(this, 
+                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text), 
+                tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
+                ddSkillLevel.SelectedIndex)
+            );
         }
 
         private void BtnDisplayAdvancedOptions_LeftClick(object sender, EventArgs e)

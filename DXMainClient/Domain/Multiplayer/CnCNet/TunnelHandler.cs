@@ -131,17 +131,79 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             return Task.Factory.StartNew(() =>
             {
-                CurrentTunnel.UpdatePing();
+                var tunnel = CurrentTunnel;
+                if (tunnel == null) return;
+
+                tunnel.UpdatePing();
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
                 {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == tunnel.Address && t.Port == tunnel.Port);
                     if (tunnelIndex > -1)
                         DoTunnelPinged(tunnelIndex);
                 }
             });
         }
+
+        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
+        private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
+
+        private byte[] GetRawTunnelDataOnline()
+        {
+            WebClient client = new ExtendedWebClient();
+            return client.DownloadData(ClientConfiguration.Instance.CnCNetTunnelListURL);
+        }
+
+        private byte[] GetRawTunnelDataOffline()
+        {
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
+            return File.ReadAllBytes(tunnelCacheFile.FullName);
+        }
+
+        private byte[] GetRawTunnelData(int retryCount = 2)
+        {
+            Logger.Log("Fetching tunnel server info.");
+
+            if (OnlineTunnelDataAvailable)
+            {
+                for (int i = 0; i < retryCount; i++)
+                {
+                    try
+                    {
+                        byte[] data = GetRawTunnelDataOnline();
+                        return data;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log("Error when downloading tunnel server info: " + ex.Message);
+                        if (i < retryCount - 1)
+                            Logger.Log("Retrying.");
+                        else
+                            Logger.Log("Fetching tunnel server list failed.");
+                    }
+                }
+            }
+            else
+            {
+                // Don't fetch the latest tunnel list if it is explicitly disabled
+                // For example, the official CnCNet server might be unavailable/unstable in a country with Internet censorship,
+                // where players might either establish a substitute server or manually distribute the tunnel cache file
+                Logger.Log("Fetching tunnel server list online is disabled.");
+            }
+
+            if (OfflineTunnelDataAvailable)
+            {
+                Logger.Log("Using cached tunnel data.");
+                byte[] data = GetRawTunnelDataOffline();
+                return data;
+            }
+            else
+                Logger.Log("Tunnel cache file doesn't exist!");
+
+            return null;
+        }
+
 
         /// <summary>
         /// Downloads and parses the list of CnCNet tunnels.
@@ -149,42 +211,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A list of tunnel servers.</returns>
         private List<CnCNetTunnel> RefreshTunnels()
         {
-            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
-
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
 
-            WebClient client = new WebClient();
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
-            byte[] data;
-
-            Logger.Log("Fetching tunnel server info.");
-
-            try
-            {
-                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error when downloading tunnel server info: " + ex.Message);
-                Logger.Log("Retrying.");
-                try
-                {
-                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
-                }
-                catch
-                {
-                    if (!tunnelCacheFile.Exists)
-                    {
-                        Logger.Log("Tunnel cache file doesn't exist!");
-                        return returnValue;
-                    }
-                    else
-                    {
-                        Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                        data = File.ReadAllBytes(tunnelCacheFile.FullName);
-                    }
-                }
-            }
+            byte[] data = GetRawTunnelData();
+            if (data is null)
+                return returnValue;
 
             string convertedData = Encoding.Default.GetString(data);
 
@@ -210,7 +243,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.Message);
+                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.ToString());
                 }
             }
 
@@ -230,10 +263,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
+                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.ToString());
                 }
             }
 
+            Logger.Log($"Successfully refreshed tunnel cache with {returnValue.Count} servers.");
             return returnValue;
         }
 

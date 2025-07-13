@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Reflection;
-#if WINFORMS
-using System.Windows.Forms;
-#endif
 using Rampastring.Tools;
 using ClientCore.Extensions;
 
@@ -20,11 +18,7 @@ namespace ClientCore
 
         public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.FullName);
 
-#if DEBUG
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.FullName);
-#else
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.Parent.FullName);
-#endif
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(GetGamePath(StartupPath));
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
 
@@ -32,7 +26,7 @@ namespace ClientCore
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R10";
+        public const string CNCNET_PROTOCOL_REVISION = "R12";
         public const string LAN_PROTOCOL_REVISION = "RL7";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
@@ -61,6 +55,15 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
+
+#if NETFRAMEWORK
+        private static bool? isMono;
+
+        /// <summary>
+        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
+        /// </summary>
+        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
+#endif
 
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
@@ -113,19 +116,37 @@ namespace ClientCore
         public static string LogFileName { get; set; }
 
         /// <summary>
-        /// Gets or sets the action to perform to notify the user of an error.
+        /// This method finds the "Resources" directory by traversing the directory tree upwards from the startup path.
         /// </summary>
-        public static Action<string, string, bool> DisplayErrorAction { get; set; } = (title, error, exit) =>
+        /// <remarks>
+        /// This method is needed by both ClientCore and DXMainClient. However, since it is usually called at the very beginning,
+        /// where DXMainClient could not refer to ClientCore, this method is copied to both projects.
+        /// Remember to keep <see cref="ClientCore.ProgramConstants.SearchResourcesDir"/> and <see cref="DTAClient.Program.SearchResourcesDir"/> consistent if you have modified its source codes.
+        /// </remarks>
+        private static string SearchResourcesDir(string startupPath)
         {
-            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
-#if WINFORMS
-            MessageBox.Show(error, title, MessageBoxButtons.OK);
-#else
-            ProcessLauncher.StartShellProcess(LogFileName);
-#endif
+            DirectoryInfo currentDir = new(startupPath);
+            for (int i = 0; i < 3; i++)
+            {
+                // Determine if currentDir is the "Resources" folder
+                if (currentDir.Name.ToLowerInvariant() == "Resources".ToLowerInvariant())
+                    return currentDir.FullName;
 
-            if (exit)
-                Environment.Exit(1);
-        };
+                // Additional check. This makes developers to debug the client inside Visual Studio a little bit easier.
+                DirectoryInfo resourcesDir = currentDir.GetDirectories("Resources", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                if (resourcesDir is not null)
+                    return resourcesDir.FullName;
+
+                currentDir = currentDir.Parent;
+            }
+
+            throw new Exception("Could not find Resources directory.");
+        }
+
+        private static string GetGamePath(string startupPath)
+        {
+            string resourceDir = SearchResourcesDir(startupPath);
+            return new DirectoryInfo(resourceDir).Parent.FullName;
+        }
     }
 }

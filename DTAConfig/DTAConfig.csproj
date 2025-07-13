@@ -1,29 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Title>CnCNet Client</Title>
     <Description>CnCNet Config Library</Description>
-    <Company>CnCNet</Company>
-    <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2022</Copyright>
-    <Trademark>CnCNet</Trademark>
-    <Version>2.2.0.0</Version>
-    <FileVersion>2.2.0.0</FileVersion>
-    <InformationalVersion>2.2.0.0</InformationalVersion>
-    <AssemblyName>DTAConfig</AssemblyName>
-    <RootNamespace>DTAConfig</RootNamespace>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
-  <ItemGroup>
-    <PackageReference Include="CnCNet.ClientUpdater" Version="1.0.15" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
 </Project>

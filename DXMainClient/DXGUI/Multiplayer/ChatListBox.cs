@@ -1,10 +1,14 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using DTAClient.Online;
-using Microsoft.Xna.Framework;
-using System;
-using ClientCore;
+﻿using System;
+
 using ClientCore.Extensions;
+
+using DTAClient.DXGUI.Generic;
+using DTAClient.Online;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -24,11 +28,17 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            var link = Items[SelectedIndex].Text?.GetLink();
-            if (link == null)
+            // Get the clicked links
+            string[] links = Items[SelectedIndex].Text?.GetLinks();
+
+            if (links == null)
                 return;
 
-            ProcessLauncher.StartShellProcess(link);
+            if (links.Length == 0 || links.Length > 1)
+                return;
+
+            string link = links[0];
+            URLHandler.OpenLink(WindowManager, link);
         }
 
         public void AddMessage(string message)
@@ -49,7 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 Selectable = true,
                 Tag = message
             };
-            
+
             if (message.SenderName == null)
             {
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
@@ -61,7 +71,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
                     message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
             }
-            
+
             AddItem(listBoxItem);
 
             if (LastIndex >= Items.Count - 2)
