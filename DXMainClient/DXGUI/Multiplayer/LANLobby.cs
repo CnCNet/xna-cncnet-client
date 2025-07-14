@@ -25,6 +25,7 @@ using System.Threading;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -38,15 +39,19 @@ namespace DTAClient.DXGUI.Multiplayer
             WindowManager windowManager,
             GameCollection gameCollection,
             MapLoader mapLoader,
-            DiscordHandler discordHandler
+            DiscordHandler discordHandler,
+            Random random
         ) : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.mapLoader = mapLoader;
             this.discordHandler = discordHandler;
+            this.random = random;
         }
 
         public event EventHandler Exited;
+
+        private Random random;
 
         XNAListBox lbPlayerList;
         ChatListBox lbChatMessages;
@@ -94,6 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer
         MapLoader mapLoader;
 
         DiscordHandler discordHandler;
+        PrivateMessagingWindow pmWindow;
 
         bool initSuccess = false;
 
@@ -182,18 +188,18 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 new LANColor("Gray".L10N("Client:Main:ColorGray"), Color.Gray),
                 new LANColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), Color.LightGray),
-                new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.Green),
+                new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.ForestGreen),
                 new LANColor("Lime Green".L10N("Client:Main:ColorLimeGreen"), Color.LimeGreen),
                 new LANColor("Green Yellow".L10N("Client:Main:ColorGreenYellow"), Color.GreenYellow),
                 new LANColor("Goldenrod".L10N("Client:Main:ColorGoldenrod"), Color.Goldenrod),
                 new LANColor("Yellow".L10N("Client:Main:ColorYellow"), Color.Yellow),
                 new LANColor("Orange".L10N("Client:Main:ColorOrange"), Color.Orange),
                 new LANColor("Red".L10N("Client:Main:ColorRed"), Color.Red),
-                new LANColor("Pink".L10N("Client:Main:ColorDeepPink"), Color.DeepPink),
-                new LANColor("Purple".L10N("Client:Main:ColorMediumPurple"), Color.MediumPurple),
-                new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.SkyBlue),
-                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.Blue),
-                new LANColor("Brown".L10N("Client:Main:ColorSaddleBrown"), Color.SaddleBrown),
+                new LANColor("Pink".L10N("Client:Main:ColorPink"), Color.DeepPink),
+                new LANColor("Purple".L10N("Client:Main:ColorPurple"), Color.MediumPurple),
+                new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.LightSkyBlue),
+                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.RoyalBlue),
+                new LANColor("Brown".L10N("Client:Main:ColorBrown"), Color.SaddleBrown),
                 new LANColor("Teal".L10N("Client:Main:ColorTeal"), Color.Teal)
             };
 
@@ -237,7 +243,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, chatColors, mapLoader, discordHandler);
+                null, chatColors, mapLoader, discordHandler, pmWindow, random);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 
@@ -353,7 +359,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (SocketException ex)
             {
-                Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
+                Logger.Log("Creating LAN socket failed! Message: " + ex.ToString());
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message:".L10N("Client:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
@@ -405,7 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("LAN socket listener: exception: " + ex.Message);
+                Logger.Log("LAN socket listener: exception: " + ex.ToString());
             }
         }
 
@@ -419,8 +425,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string command = commandAndParams[0];
 
             string[] parameters = data.Substring(command.Length + 1).Split(
-                new char[] { ProgramConstants.LAN_DATA_SEPARATOR },
-                StringSplitOptions.RemoveEmptyEntries);
+                new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
             LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
 

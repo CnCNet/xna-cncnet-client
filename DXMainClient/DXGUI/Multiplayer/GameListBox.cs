@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -21,6 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int ICON_MARGIN = 2;
         private const int FONT_INDEX = 0;
         private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
+        private readonly string[] SkillLevelOptions;
 
         public GameListBox(WindowManager windowManager, MapLoader mapLoader,
             string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
@@ -29,7 +34,11 @@ namespace DTAClient.DXGUI.Multiplayer
             this.mapLoader = mapLoader;
             this.localGameIdentifier = localGameIdentifier;
             GameMatchesFilter = gameMatchesFilter;
+
+            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
         }
+
+        private List<Texture2D?> txSkillLevelIcons =  new();
 
         private int loadedGameTextWidth;
 
@@ -91,7 +100,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var selectedItem = SelectedItem;
             var hoveredItem = HoveredItem;
 
-            Items.Clear();
+            Clear();
 
             GetSortedAndFilteredGames()
                 .ToList()
@@ -128,7 +137,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var sortedGames =
                 HostedGames
                     .OrderBy(hg => hg.Locked)
-                    .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
+                    .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.InvariantCultureIgnoreCase))
                     .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
                     .ThenBy(hg => hg.Passworded);
 
@@ -185,6 +194,20 @@ namespace DTAClient.DXGUI.Multiplayer
                 ClientConfiguration.Instance.HoverOnGameColor);
 
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
+
+            InitSkillLevelIcons();
+        }
+
+        private void InitSkillLevelIcons()
+        {
+            for (int i = 0; i < SkillLevelOptions.Length; i++)
+            {
+                string fileName = $"skillLevel{i}.png";
+                    
+                txSkillLevelIcons.Add(AssetLoader.AssetExists(fileName)
+                    ? AssetLoader.LoadTexture(fileName)
+                    : null);
+            }
         }
 
         private bool IsValidGameIndex(int index)
@@ -331,6 +354,17 @@ namespace DTAClient.DXGUI.Multiplayer
                         new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
                         height, txPasswordedGame.Width, txPasswordedGame.Height),
                         Color.White);
+                }
+                else
+                {
+                    Texture2D txSkillLevelIcon = txSkillLevelIcons[hostedGame.SkillLevel];
+                    if (txSkillLevelIcon != null)
+                    {
+                        DrawTexture(txSkillLevelIcon,
+                            new Rectangle(Width - txSkillLevelIcon.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                            height, txSkillLevelIcon.Width, txSkillLevelIcon.Height),
+                            Color.White);
+                    }
                 }
 
                 var text = lbItem.Text;

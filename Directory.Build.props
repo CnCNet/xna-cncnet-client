@@ -1,40 +1,88 @@
 <Project>
   <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
-    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
-    <AnalysisMode Condition="$(Configuration.Contains(Debug))">All</AnalysisMode>
-    <EnforceCodeStyleInBuild Condition="$(Configuration.Contains(Debug))">true</EnforceCodeStyleInBuild>
-    <AnalysisMode Condition="!$(Configuration.Contains(Debug))">Recommended</AnalysisMode>
-    <AnalysisModeDocumentation Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeDocumentation>
-    <AnalysisModeNaming Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeNaming>
-    <AnalysisModeStyle Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeStyle>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <Title>CnCNet Client</Title>
+    <Company>CnCNet</Company>
+    <Product>CnCNet Client</Product>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
+    <Trademark>CnCNet</Trademark>
+    <!-- GitVersion will rewrite the informational version anyway -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)build\VSCompatibleLayer.props" Condition="'$(BuildingInsideVisualStudio)' == 'True'" />
-  <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
+  <PropertyGroup>
+    <Configurations>
+      UniversalGLDebug;WindowsDXDebug;WindowsGLDebug;WindowsXNADebug;
+      UniversalGLRelease;WindowsDXRelease;WindowsGLRelease;WindowsXNARelease
+    </Configurations>
+  </PropertyGroup>
+
+  <!-- For Internal Logic -->
+  <PropertyGroup>
+    <!-- Rendering Engine -->
+    <Engine Condition="$(Configuration.Contains(WindowsDX))">WindowsDX</Engine>
+    <Engine Condition="$(Configuration.Contains(UniversalGL))">UniversalGL</Engine>
+    <Engine Condition="$(Configuration.Contains(WindowsGL))">WindowsGL</Engine>
+    <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
+    <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
+
+    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <!-- XNA only supports x86, but the other engines support any CPU. -->
+    <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
+    <!-- WinForms Auto Configure -->
+    <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <!-- For Constants -->
+  <PropertyGroup>
+    <!-- Is Debug -->
+    <DefineConstants Condition="$(Configuration.Contains(Debug))">$(DefineConstants);DEBUG</DefineConstants>
+
+    <!-- Engines -->
+    <DefineConstants Condition="$(Engine.Contains('DX'))">$(DefineConstants);DX</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('GL'))">$(DefineConstants);GL</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('XNA'))">$(DefineConstants);XNA</DefineConstants>
+    <DefineConstants Condition="$(Engine.Contains('Windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(UseWindowsForms)' == 'true'">$(DefineConstants);WINFORMS</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Output Path Hack -->
+  <PropertyGroup>
+    <ClientConfiguration Condition="$(Configuration.Contains(Debug))">Debug</ClientConfiguration>
+    <ClientConfiguration Condition="$(Configuration.Contains(Release))">Release</ClientConfiguration>
+    <OutputPathSuffix>$(ClientConfiguration)\$(Engine)\</OutputPathSuffix>
+    <OutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseOutputPath)bin\$(OutputPathSuffix)</OutputPath>
+    <IntermediateOutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(OutputPathSuffix)</IntermediateOutputPath>
+    <ArtifactsPivots>$(OutputPathSuffix)$(TargetFramework)</ArtifactsPivots>
+  </PropertyGroup>
+
+  <!-- Support WindowsXNA 32bit debugging in VS -->
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86' And '$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <RunCommand Condition="Exists('$(MSBuildProgramFiles32)\dotnet\dotnet.exe')">$(MSBuildProgramFiles32)\dotnet\dotnet.exe</RunCommand>
+  </PropertyGroup>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props')"/>
-
-  <!-- Visual Studio -->
-  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'True'">
-    <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Game)\$(Engine)\</OutputPath>
-    <IntermediateOutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(_OutputConfiguration)\$(Game)\$(Engine)\</IntermediateOutputPath>
-  </PropertyGroup>
-
-  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
-  </Target>
+  <Import Project="$(MSBuildThisFileDirectory)Directory.props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.props')" />
 
   <ItemGroup>
-    <PackageReference Condition="$(Configuration.Contains(Debug))" Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <CompilerVisibleProperty Include="RootNamespace"/>
+    <CompilerVisibleProperty Include="RootNamespace" />
   </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.I18N;
 using System.Globalization;
+using System.Security;
 using System.Transactions;
 
 namespace DTAClient
@@ -64,26 +65,43 @@ namespace DTAClient
 
             Environment.CurrentDirectory = gameDirectory.FullName;
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
+
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
             ProgramConstants.LogFileName = clientLogFile.FullName;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CheckPermissions();
-
             if (clientLogFile.Exists)
-                File.Move(clientLogFile.FullName, SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log").FullName, true);
+            {
+                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
+                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
+                if (clientPrevLogFile.Exists)
+                    File.Delete(clientPrevLogFile.FullName);
+                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
+            }
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
+            MainClientConstants.LoggerInitialized = true;
 
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
 
-            MainClientConstants.Initialize();
-
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
-            Logger.Log("Client version: " + Assembly.GetAssembly(typeof(PreStartup)).GetName().Version);
+
+            string clientVersion = GitVersionInformation.AssemblySemVer;
+#if DEVELOPMENT_BUILD
+            clientVersion = $"{GitVersionInformation.CommitDate} {GitVersionInformation.BranchName}@{GitVersionInformation.ShortSha}";
+#endif
+
+            Logger.Log($"Client version: {clientVersion}");
+            Logger.Log(GitVersionInformation.InformationalVersion);
+
+#if DEVELOPMENT_BUILD
+            Logger.Log("This is a development build of the client. Stability and reliability may not be fully guaranteed.");
+#endif
+            MainClientConstants.Initialize();
 
             // Log information about given startup params
             if (parameters.NoAudio)
@@ -132,7 +150,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to load the translation file. " + ex.Message);
+                Logger.Log("Failed to load the translation file. " + ex.ToString());
                 Translation.Instance = new Translation(UserINISettings.Instance.Translation);
             }
 
@@ -158,12 +176,13 @@ namespace DTAClient
                     ClientCore.Generated.TranslationNotifier.Register();
                     ClientGUI.Generated.TranslationNotifier.Register();
                     DTAConfig.Generated.TranslationNotifier.Register();
+                    ClientUpdater.Generated.TranslationNotifier.Register();
                     DTAClient.Generated.TranslationNotifier.Register();
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to generate the translation stub: " + ex.Message);
+                Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
             // Delete obsolete files from old target project versions
@@ -179,19 +198,30 @@ namespace DTAClient
             {
                 LogException(ex);
 
-                string error = "Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again."
-                    + Environment.NewLine + Environment.NewLine +
-                    "Message: " + ex.Message;
+                string error = ("Deleting wsock32.dll failed! Please close any " +
+                    "applications that could be using the file, and then start the client again." + "\n\n" +
+                    "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
 
-                ProgramConstants.DisplayErrorAction(null, error, true);
+                MainClientConstants.DisplayErrorAction(null, error, true);
             }
 
-#if WINFORMS
-            ApplicationConfiguration.Initialize();
+            Startup startup = new();
+#if DEBUG
+            startup.Execute();
+#else
+            try
+            {
+                startup.Execute();
+            }
+            catch (Exception ex)
+            {
+                // MainClientConstants.DisplayErrorAction might have been overriden by XNA messagebox, which might be unable to display an error message.
+                // Fallback to MessageBox.
+                MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
+                HandleException(startup, ex);
+            }
 #endif
 
-            new Startup().Execute();
         }
 
         public static void LogException(Exception ex, bool innerException = false)
@@ -204,16 +234,16 @@ namespace DTAClient
             Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
-            Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
+            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
         }
 
-        static void HandleException(object sender, Exception ex)
+        public static void HandleException(object sender, Exception ex)
         {
-            LogException(ex);
+            LogException(ex, innerException: false);
 
             string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
@@ -240,7 +270,7 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
+            MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
         [SupportedOSPlatform("windows")]
@@ -251,18 +281,27 @@ namespace DTAClient
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
-                "Would you like to restart the client with administrative rights?\n\n" +
-                "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
+                "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
+                MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("Client:Main:AdminRequiredTitle"), error, false);
+            string question = "Would you like to restart the client with administrative rights?".L10N("Client:Main:AdminRequiredRestartPrompt");
 
-            using var _ = Process.Start(new ProcessStartInfo
+            string title = "Administrative privileges required".L10N("Client:Main:AdminRequiredTitle");
+
+#if WINFORMS && NETFRAMEWORK
+            DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (result == DialogResult.Yes)
             {
-                FileName = "dotnet",
-                Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                Verb = "runas",
-                CreateNoWindow = true
-            });
+                using var _ = Process.Start(new ProcessStartInfo
+                {
+                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
+                    Verb = "runas",
+                    UseShellExecute = true,
+                });
+            }
+#else
+            MainClientConstants.DisplayErrorAction(title, error, true);
+#endif
             Environment.Exit(1);
         }
 
@@ -307,11 +346,19 @@ namespace DTAClient
                         if (ntAccount == null)
                             continue;
 
-                        if (principal.IsInRole(ntAccount.Value))
+                        try
                         {
-                            if (fsAccessRule.AccessControlType == AccessControlType.Deny)
-                                return false;
-                            isInRoleWithAccess = true;
+                            if (principal.IsInRole(ntAccount.Value))
+                            {
+                                if (fsAccessRule.AccessControlType == AccessControlType.Deny)
+                                    return false;
+                                isInRoleWithAccess = true;
+                            }
+                        }
+                        catch (SecurityException)
+                        {
+                            //IsInRole may throw for selected roles when running in Wine, keep iterating other rules 
+                            continue;
                         }
                     }
                 }

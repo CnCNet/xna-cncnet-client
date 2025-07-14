@@ -19,13 +19,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 
-        public SkirmishLobby(WindowManager windowManager, TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
-            : base(windowManager, "SkirmishLobby", mapLoader, false, discordHandler)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, Random random)
+            : base(windowManager, "SkirmishLobby", mapLoader, false, discordHandler, random)
         {
             this.topBar = topBar;
+            this.random = random;
         }
 
         public event EventHandler Exited;
+
+        private Random random;
 
         TopBar topBar;
 
@@ -33,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.Initialize();
 
-            RandomSeed = new Random().Next();
+            RandomSeed = random.Next();
 
             //InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
             InitPlayerOptionDropdowns();
@@ -52,8 +55,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             LoadSettings();
 
-            CheckDisallowedSides();
-
             CopyPlayerDataToUI();
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
@@ -66,7 +67,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ToggleFavoriteMap();
 
-            if (GameModeMap.IsFavorite)
+            if (GameModeMap != null && GameModeMap.IsFavorite)
                 return;
 
             RefreshForFavoriteMapRemoved();
@@ -181,10 +182,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
         {
-            this.Enabled = false;
-            this.Visible = false;
-
             Exited?.Invoke(this, EventArgs.Empty);
+
+            PlayerExtraOptionsPanel?.Disable();
+            Disable();
 
             topBar.RemovePrimarySwitchable(this);
             ResetDiscordPresence();
@@ -231,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
 
-            RandomSeed = new Random().Next();
+            RandomSeed = random.Next();
         }
 
         public void Open()
@@ -296,7 +297,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                Logger.Log("Saving skirmish settings failed! Reason: " + ex.Message);
+                Logger.Log("Saving skirmish settings failed! Reason: " + ex.ToString());
             }
         }
 
@@ -331,7 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
-                int gameModeMapIndex = gameModeMapFilter.GetGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
+                int gameModeMapIndex = GetSortedGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
 
                 if (gameModeMapIndex > -1)
                 {
@@ -368,7 +369,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //return;
             }
 
-            bool AIAllowed = !(Map.MultiplayerOnly || GameMode.MultiplayerOnly) || !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
+            bool AIAllowed = !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
             foreach (string key in keys)
             {
                 if (!AIAllowed) break;

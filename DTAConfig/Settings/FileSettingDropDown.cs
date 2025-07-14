@@ -79,7 +79,7 @@ namespace DTAConfig.Settings
             return SelectedIndex != currentValue;
         }
 
-        public void AddFile(int itemIndex, string source, string destination, FileOperationOptions options)
+        public void AddFile(int itemIndex, string source, string destination, FileOperationOption option)
         {
             if (itemIndex < 0 || itemIndex >= Items.Count)
                 return;
@@ -87,7 +87,7 @@ namespace DTAConfig.Settings
             if (itemFilesList.Count < itemIndex + 1)
                 itemFilesList.Add(new List<FileSourceDestinationInfo>());
 
-            itemFilesList[itemIndex].Add(new FileSourceDestinationInfo(source, destination, options));
+            itemFilesList[itemIndex].Add(new FileSourceDestinationInfo(source, destination, option));
         }
 
         public override void Load()

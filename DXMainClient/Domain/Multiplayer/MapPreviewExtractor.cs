@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using lzo.net;
 using SixLabors.ImageSharp;
@@ -43,7 +44,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            string[] previewSizes = mapIni.GetStringValue("Preview", "Size", "").Split(',');
+            string[] previewSizes = mapIni.GetStringListValue("Preview", "Size", string.Empty);
             int previewWidth = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[2], -1) : -1;
             int previewHeight = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[3], -1) : -1;
 
@@ -134,9 +135,9 @@ namespace DTAClient.Domain.Multiplayer
                 errorMessage = null;
                 return dataDest;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered decompressing preview data. Message: " + e.Message;
+                errorMessage = "Error encountered decompressing preview data. Message: " + ex.Message;
                 return null;
             }
         }
@@ -213,9 +214,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 return image;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered creating preview bitmap. Message: " + e.Message;
+                errorMessage = "Error encountered creating preview bitmap. Message: " + ex.Message;
                 return null;
             }
         }

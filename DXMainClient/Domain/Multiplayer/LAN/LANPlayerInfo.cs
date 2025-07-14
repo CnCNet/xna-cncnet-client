@@ -151,7 +151,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 catch (Exception ex)
                 {
                     //a socket error has occured
-                    Logger.Log("Socket error with client " + Name + "; removing. Message: " + ex.Message);
+                    Logger.Log("Socket error with client " + Name + "; removing. Message: " + ex.ToString());
                     ConnectionLost?.Invoke(this, EventArgs.Empty);
                     break;
                 }
@@ -206,7 +206,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 }
                 catch (PingException ex)
                 {
-                    Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.Message}");
+                    Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.ToString()}");
                 }
             }
         }

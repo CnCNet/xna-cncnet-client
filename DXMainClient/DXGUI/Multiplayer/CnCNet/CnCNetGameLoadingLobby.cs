@@ -45,7 +45,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             TunnelHandler tunnelHandler,
             MapLoader mapLoader,
             GameCollection gameCollection,
-            DiscordHandler discordHandler
+            DiscordHandler discordHandler,
+            CnCNetUserData cncnetUserData
         ) : base(windowManager, discordHandler)
         {
             this.connectionManager = connectionManager;
@@ -53,6 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.topBar = topBar;
             this.gameCollection = gameCollection;
             this.mapLoader = mapLoader;
+            this.cncnetUserData = cncnetUserData;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -72,6 +74,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private CommandHandlerBase[] ctcpCommandHandlers;
 
         private CnCNetManager connectionManager;
+
+        private CnCNetUserData cncnetUserData;
 
         private List<GameMode> gameModes;
 
@@ -136,13 +140,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameBroadcastTimer = new XNATimerControl(WindowManager);
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
-            gameBroadcastTimer.Enabled = true;
+            gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
 
-        private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
+        public override void Refresh(bool isHost)
+        {
+            base.Refresh(isHost);
+
+            btnChangeTunnel.Visible = isHost;
+            gameBroadcastTimer.Enabled = isHost;
+        }
+
+        private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("Client:Main:SelectTunnelServer"));
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
@@ -230,7 +242,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void OnJoined()
         {
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(gameModes);
+            fhc.CalculateHashes();
 
             if (IsHost)
             {
@@ -318,10 +330,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            lbChatMessages.AddMessage(e.Message);
-
-            if (e.Message.SenderName != null)
+            if (!string.IsNullOrEmpty(e.Message.SenderIdent) &&
+                cncnetUserData.IsIgnored(e.Message.SenderIdent) &&
+                !e.Message.SenderIsAdmin)
+            {
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, string.Format("Message blocked from - {0}".L10N("Client:Main:PMBlockedFrom"), e.Message.SenderName)));
+            }
+            else
+            {
+                lbChatMessages.AddMessage(e.Message);
                 sndMessageSound.Play();
+            }
         }
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
@@ -416,17 +435,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!IsHost)
                 return;
 
+            PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+            if (pInfo == null)
+                return;
+
+            pInfo.HashReceived = true;
+
             if (fileHash != gameFilesHash)
-            {
-                PlayerInfo pInfo = Players.Find(p => p.Name == sender);
-
-                if (pInfo == null)
-                    return;
-
-                pInfo.Verified = true;
-
                 HandleCheaterNotification(hostName, sender); // This is kinda hacky
-            }
         }
 
         private void HandleCheaterNotification(string sender, string cheaterName)
@@ -700,6 +716,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
+            sb.Append(";");
+            sb.Append(ClientConfiguration.Instance.DefaultSkillLevelIndex); // we don't know the original skill level
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

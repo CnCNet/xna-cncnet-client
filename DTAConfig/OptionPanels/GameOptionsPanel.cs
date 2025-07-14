@@ -2,6 +2,7 @@
 using ClientCore.CnCNet5;
 using ClientGUI;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 using DTAConfig.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -13,10 +14,8 @@ namespace DTAConfig.OptionPanels
     class GameOptionsPanel : XNAOptionsPanel
     {
 
-#if TS
         private const string TEXT_BACKGROUND_COLOR_TRANSPARENT = "0";
         private const string TEXT_BACKGROUND_COLOR_BLACK = "12";
-#endif
         private const int MAX_SCROLL_RATE = 6;
 
         public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings, XNAControl topBar)
@@ -31,12 +30,9 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkTargetLines;
         private XNAClientCheckBox chkScrollCoasting;
         private XNAClientCheckBox chkTooltips;
-#if TS
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
-#else
         private XNAClientCheckBox chkShowHiddenObjects;
-#endif
 
         private XNAControl topBar;
 
@@ -51,13 +47,13 @@ namespace DTAConfig.OptionPanels
             Name = "GameOptionsPanel";
 
             var lblScrollRate = new XNALabel(WindowManager);
-            lblScrollRate.Name = "lblScrollRate";
+            lblScrollRate.Name = nameof(lblScrollRate);
             lblScrollRate.ClientRectangle = new Rectangle(12,
                 14, 0, 0);
             lblScrollRate.Text = "Scroll Rate:".L10N("Client:DTAConfig:ScrollRate");
 
             lblScrollRateValue = new XNALabel(WindowManager);
-            lblScrollRateValue.Name = "lblScrollRateValue";
+            lblScrollRateValue.Name = nameof(lblScrollRateValue);
             lblScrollRateValue.FontIndex = 1;
             lblScrollRateValue.Text = "0";
             lblScrollRateValue.ClientRectangle = new Rectangle(
@@ -65,7 +61,7 @@ namespace DTAConfig.OptionPanels
                 lblScrollRate.Y, 0, 0);
 
             trbScrollRate = new XNATrackbar(WindowManager);
-            trbScrollRate.Name = "trbClientVolume";
+            trbScrollRate.Name = nameof(trbScrollRate);
             trbScrollRate.ClientRectangle = new Rectangle(
                 lblScrollRate.Right + 32,
                 lblScrollRate.Y - 2,
@@ -77,83 +73,87 @@ namespace DTAConfig.OptionPanels
             trbScrollRate.ValueChanged += TrbScrollRate_ValueChanged;
 
             chkScrollCoasting = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ScrollMethod", true, "0", "1");
-            chkScrollCoasting.Name = "chkScrollCoasting";
+            chkScrollCoasting.Name = nameof(chkScrollCoasting);
             chkScrollCoasting.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 trbScrollRate.Bottom + 20, 0, 0);
             chkScrollCoasting.Text = "Scroll Coasting".L10N("Client:DTAConfig:ScrollCoasting");
 
             chkTargetLines = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "UnitActionLines");
-            chkTargetLines.Name = "chkTargetLines";
+            chkTargetLines.Name = nameof(chkTargetLines);
             chkTargetLines.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 chkScrollCoasting.Bottom + 24, 0, 0);
             chkTargetLines.Text = "Target Lines".L10N("Client:DTAConfig:TargetLines");
 
             chkTooltips = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ToolTips");
-            chkTooltips.Name = "chkTooltips";
+            chkTooltips.Name = nameof(chkTooltips);
             chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
 
             var lblPlayerName = new XNALabel(WindowManager);
-            lblPlayerName.Name = "lblPlayerName";
+            lblPlayerName.Name = nameof(lblPlayerName);
             lblPlayerName.Text = "Player Name*:".L10N("Client:DTAConfig:PlayerName");
 
-#if TS
-            chkTooltips.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkTargetLines.Bottom + 24, 0, 0);
-#else
-            chkShowHiddenObjects = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ShowHidden");
-            chkShowHiddenObjects.Name = "chkShowHiddenObjects";
-            chkShowHiddenObjects.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkTargetLines.Bottom + 24, 0, 0);
-            chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("Client:DTAConfig:YRShowHidden");
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+            {
+                chkTooltips.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkTargetLines.Bottom + 24, 0, 0);
+            }
+            else
+            {
+                chkShowHiddenObjects = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ShowHidden");
+                chkShowHiddenObjects.Name = nameof(chkShowHiddenObjects);
+                chkShowHiddenObjects.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkTargetLines.Bottom + 24, 0, 0);
+                chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("Client:DTAConfig:YRShowHidden");
 
-            chkTooltips.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkShowHiddenObjects.Bottom + 24, 0, 0);
+                chkTooltips.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkShowHiddenObjects.Bottom + 24, 0, 0);
 
-            lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkTooltips.Bottom + 30, 0, 0);
+                lblPlayerName.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkTooltips.Bottom + 30, 0, 0);
 
-            AddChild(chkShowHiddenObjects);
-#endif
+                AddChild(chkShowHiddenObjects);
+            }
 
-#if TS
-            chkBlackChatBackground = new SettingCheckBox(WindowManager, false, UserINISettings.OPTIONS, "TextBackgroundColor", true, TEXT_BACKGROUND_COLOR_BLACK, TEXT_BACKGROUND_COLOR_TRANSPARENT);
-            chkBlackChatBackground.Name = "chkBlackChatBackground";
-            chkBlackChatBackground.ClientRectangle = new Rectangle(
-                chkScrollCoasting.X,
-                chkTooltips.Bottom + 24, 0, 0);
-            chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("Client:DTAConfig:TSUseBlackBackgroundChat");
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+            {
+                chkBlackChatBackground = new SettingCheckBox(WindowManager, false, UserINISettings.OPTIONS, "TextBackgroundColor", true, TEXT_BACKGROUND_COLOR_BLACK, TEXT_BACKGROUND_COLOR_TRANSPARENT);
+                chkBlackChatBackground.Name = nameof(chkBlackChatBackground);
+                chkBlackChatBackground.ClientRectangle = new Rectangle(
+                    chkScrollCoasting.X,
+                    chkTooltips.Bottom + 24, 0, 0);
+                chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("Client:DTAConfig:TSUseBlackBackgroundChat");
 
-            AddChild(chkBlackChatBackground);
+                AddChild(chkBlackChatBackground);
 
-            chkAltToUndeploy = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "MoveToUndeploy");
-            chkAltToUndeploy.Name = "chkAltToUndeploy";
-            chkAltToUndeploy.ClientRectangle = new Rectangle(
-                chkScrollCoasting.X,
-                chkBlackChatBackground.Bottom + 24, 0, 0);
-            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TSUndeployAltKey");
+                chkAltToUndeploy = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "MoveToUndeploy");
+                chkAltToUndeploy.Name = nameof(chkAltToUndeploy);
+                chkAltToUndeploy.ClientRectangle = new Rectangle(
+                    chkScrollCoasting.X,
+                    chkBlackChatBackground.Bottom + 24, 0, 0);
+                chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TSUndeployAltKey");
 
-            AddChild(chkAltToUndeploy);
+                AddChild(chkAltToUndeploy);
 
-            lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkAltToUndeploy.Bottom + 30, 0, 0);
-#endif
+                lblPlayerName.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkAltToUndeploy.Bottom + 30, 0, 0);
+            }
 
             tbPlayerName = new XNATextBox(WindowManager);
-            tbPlayerName.Name = "tbPlayerName";
+            tbPlayerName.Name = nameof(tbPlayerName);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
             tbPlayerName.ClientRectangle = new Rectangle(trbScrollRate.X,
                 lblPlayerName.Y - 2, 200, 19);
             tbPlayerName.Text = ProgramConstants.PLAYERNAME;
 
             var lblNotice = new XNALabel(WindowManager);
-            lblNotice.Name = "lblNotice";
+            lblNotice.Name = nameof(lblNotice);
             lblNotice.ClientRectangle = new Rectangle(lblPlayerName.X,
                 lblPlayerName.Bottom + 30, 0, 0);
             lblNotice.Text = ("* If you are currently connected to CnCNet, you need to log out and reconnect\nfor your new name to be applied.").L10N("Client:DTAConfig:ReconnectAfterRename");
@@ -163,7 +163,7 @@ namespace DTAConfig.OptionPanels
             hotkeyConfigWindow.Disable();
 
             var btnConfigureHotkeys = new XNAClientButton(WindowManager);
-            btnConfigureHotkeys.Name = "btnConfigureHotkeys";
+            btnConfigureHotkeys.Name = nameof(btnConfigureHotkeys);
             btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnConfigureHotkeys.Text = "Configure Hotkeys".L10N("Client:DTAConfig:ConfigureHotkeys");
             btnConfigureHotkeys.LeftClick += BtnConfigureHotkeys_LeftClick;

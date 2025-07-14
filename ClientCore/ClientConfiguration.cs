@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Rampastring.Tools;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using ClientCore.I18N;
+
+using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.I18N;
+
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -17,16 +19,20 @@ namespace ClientCore
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
         private const string TRANSLATIONS = "Translations";
+        private const string USER_DEFAULTS = "UserDefaults";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
+        private const string NETWORK_DEFS_LOCAL = "NetworkDefinitions.local.ini";
+        private const string NETWORK_DEFS = "NetworkDefinitions.ini";
 
         private static ClientConfiguration _instance;
 
         private IniFile gameOptions_ini;
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
+        private IniFile networkDefinitionsIni;
 
         protected ClientConfiguration()
         {
@@ -37,7 +43,7 @@ namespace ClientCore
 
             FileInfo clientDefinitionsFile = SafePath.GetFile(baseResourceDirectory.FullName, CLIENT_DEFS);
 
-            if (clientDefinitionsFile is null)
+            if (!(clientDefinitionsFile?.Exists ?? false))
                 throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory}. Please verify that you're running the client from the correct directory.");
 
             clientDefinitionsIni = new IniFile(clientDefinitionsFile.FullName);
@@ -45,6 +51,20 @@ namespace ClientCore
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
 
             gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
+
+            string networkDefsPathLocal = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS_LOCAL);
+            if (File.Exists(networkDefsPathLocal))
+            {
+                networkDefinitionsIni = new IniFile(networkDefsPathLocal);
+                Logger.Log("Loaded network definitions from NetworkDefinitions.local.ini (user override)");
+            }
+            else
+            {
+                string networkDefsPath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), NETWORK_DEFS);
+                networkDefinitionsIni = new IniFile(networkDefsPath);
+            }
+
+            RefreshTranslationGameFiles();
         }
 
         /// <summary>
@@ -100,7 +120,7 @@ namespace ClientCore
 
         public string AltUIBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
 
-        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128"); 
+        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
 
         public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
 
@@ -170,6 +190,10 @@ namespace ClientCore
 
         #region Client definitions
 
+        private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
+        private ClientType? _ClientGameType = null;
+        public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
+
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
@@ -190,7 +214,8 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
-        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions", "1280x720,2560x1440,3840x2160").Split(',');
+        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
+            $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
 
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
             .L10N("INI:ClientDefinitions:WindowTitle");
@@ -209,13 +234,13 @@ namespace ClientCore
 
         public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
 
-        public string LongSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "http://www.moddb.com/members/rampastring");
+        public string LongSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "https://www.moddb.com/members/rampastring");
 
         public string ShortSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ShortSupportURL", "www.moddb.com/members/rampastring");
 
-        public string ChangelogURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
+        public string ChangelogURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "https://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
 
-        public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
+        public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "https://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
         public string ManualDownloadURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ManualDownloadURL", string.Empty);
 
@@ -236,6 +261,10 @@ namespace ClientCore
         public bool CopyResolutionDependentLanguageDLL => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyResolutionDependentLanguageDLL", true);
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
+
+        public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
+
+        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
@@ -268,7 +297,15 @@ namespace ClientCore
 
         private List<TranslationGameFile> _translationGameFiles;
 
-        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles ??= ParseTranslationGameFiles();
+        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles;
+
+        /// <summary>
+        /// Force a refresh of the translation game files list.
+        /// </summary>
+        public void RefreshTranslationGameFiles()
+        {
+            _translationGameFiles = ParseTranslationGameFiles();
+        }
 
         /// <summary>
         /// Looks up the list of files to try and copy into the game folder with a translation.
@@ -278,24 +315,30 @@ namespace ClientCore
         private List<TranslationGameFile> ParseTranslationGameFiles()
         {
             List<TranslationGameFile> gameFiles = new();
+            if (!clientDefinitionsIni.SectionExists(TRANSLATIONS))
+                return gameFiles;
 
-            for (int i = 0; clientDefinitionsIni.KeyExists(TRANSLATIONS, $"GameFile{i}"); i++)
+            foreach (string key in clientDefinitionsIni.GetSectionKeys(TRANSLATIONS))
             {
                 // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
-                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
-                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+                // where X can be any text or number
+                if (!key.StartsWith("GameFile"))
+                    continue;
+
+                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
+                string[] parts = clientDefinitionsIni.GetStringListValue(TRANSLATIONS, key, string.Empty);
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
                     || (parts.Length == 3 && parts[2].ToUpperInvariant() != "CHECKED"))
                 {
-                    throw new IniParseException($"Invalid syntax for value of GameFile{i}! " +
+                    throw new IniParseException($"Invalid syntax for value of {key}! " +
                         $"Expected path/to/source.file,path/to/destination.file[,checked], read {value}.");
                 }
 
                 bool isChecked = parts.Length == 3 && parts[2].ToUpperInvariant() == "CHECKED";
 
-                gameFiles.Add(new(Source: parts[0], Target: parts[1], isChecked));
+                gameFiles.Add(new(Source: parts[0].Trim(), Target: parts[1].Trim(), isChecked));
             }
 
             return gameFiles;
@@ -319,9 +362,19 @@ namespace ClientCore
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
+        public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 0);
+
+        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 0) + InactiveHostWarningMessageSeconds;
+
+        public bool InactiveHostKickEnabled => InactiveHostWarningMessageSeconds > 0 && InactiveHostKickSeconds > 0;
+
+        public string SkillLevelOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "SkillLevelOptions", "Any,Beginner,Intermediate,Pro");
+        
+        public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
+        
         public string GetGameExecutableName()
         {
-            string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
+            string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "GameExecutableNames", "Game.exe");
 
             return exeNames[0];
         }
@@ -337,7 +390,7 @@ namespace ClientCore
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
         /// <summary>
-        /// The name of the executable in the main game directory that selects 
+        /// The name of the executable in the main game directory that selects
         /// the correct main client executable.
         /// For example, DTA.exe in case of DTA.
         /// </summary>
@@ -354,13 +407,18 @@ namespace ClientCore
         /// <summary>
         /// List of files that are not distributed but required to play.
         /// </summary>
-        public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "RequiredFiles", String.Empty);
 
         /// <summary>
         /// List of files that can interfere with the mod functioning.
         /// </summary>
-        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
+        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringListValue(SETTINGS, "ForbiddenFiles", String.Empty);
 
+        /// <summary>
+        /// The main map file extension that is read by the client.
+        /// </summary>
+        public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
+        
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"
@@ -378,19 +436,122 @@ namespace ClientCore
         /// </summary>
         public bool DisallowJoiningIncompatibleGames => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(DisallowJoiningIncompatibleGames), false);
 
+        /// <summary>
+        /// Activates warnings for development builds of XNA Client
+        /// </summary>
+        public bool ShowDevelopmentBuildWarnings => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(ShowDevelopmentBuildWarnings), true);
+
         #endregion
+
+        #region Network definitions
+
+        public string CnCNetTunnelListURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetTunnelListURL", "https://cncnet.org/master-list");
+
+        public string CnCNetPlayerCountURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetPlayerCountURL", "https://api.cncnet.org/status");
+
+        public string CnCNetMapDBDownloadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBDownloadURL", "https://mapdb.cncnet.org");
+
+        public string CnCNetMapDBUploadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBUploadURL", "https://mapdb.cncnet.org/upload");
+
+        public bool DisableDiscordIntegration => networkDefinitionsIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
+
+        public List<string> IRCServers => GetIRCServers();
+
+        #endregion
+
+        #region User default settings
+
+        public bool UserDefault_BorderlessWindowedClient => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "BorderlessWindowedClient", true);
+
+        public bool UserDefault_IntegerScaledClient => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "IntegerScaledClient", false);
+
+        public bool UserDefault_WriteInstallationPathToRegistry => clientDefinitionsIni.GetBooleanValue(USER_DEFAULTS, "WriteInstallationPathToRegistry", true);
+
+        #endregion
+
+        #region Game networking defaults
+
+        /// <summary>
+        /// Default value for FrameSendRate setting written in spawn.ini.
+        /// </summary>
+        public int DefaultFrameSendRate => clientDefinitionsIni.GetIntValue(SETTINGS, nameof(DefaultFrameSendRate), 7);
+
+        /// <summary>
+        /// Default value for Protocol setting written in spawn.ini.
+        /// </summary>
+        public int DefaultProtocolVersion => clientDefinitionsIni.GetIntValue(SETTINGS, nameof(DefaultProtocolVersion), 2);
+
+        /// <summary>
+        /// Default value for MaxAhead setting written in spawn.ini.
+        /// </summary>
+        public int DefaultMaxAhead => clientDefinitionsIni.GetIntValue(SETTINGS, nameof(DefaultMaxAhead), 0);
+
+        #endregion
+
+        public List<string> GetIRCServers()
+        {
+            List<string> servers = [];
+
+            IniSection serversSection = networkDefinitionsIni.GetSection("IRCServers");
+            if (serversSection != null)
+                foreach ((_, string value) in serversSection.Keys)
+                    if (!string.IsNullOrWhiteSpace(value))
+                        servers.Add(value);
+
+            return servers;
+        }
+
+        public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
 
         public OSVersion GetOperatingSystemVersion()
         {
+#if NETFRAMEWORK
+            // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                Version osVersion = Environment.OSVersion.Version;
+
+                if (osVersion.Major <= 4)
+                    return OSVersion.UNKNOWN;
+
+                if (osVersion.Major == 5)
+                    return OSVersion.WINXP;
+
+                if (osVersion.Major == 6 && osVersion.Minor == 0)
+                    return OSVersion.WINVISTA;
+
+                if (osVersion.Major == 6 && osVersion.Minor <= 1)
+                    return OSVersion.WIN7;
+
+                return OSVersion.WIN810;
+            }
+
+            if (ProgramConstants.ISMONO)
+                return OSVersion.UNIX;
+
+            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
+            int p = (int)Environment.OSVersion.Platform;
+            if (p == 4 || p == 6 || p == 128)
+                return OSVersion.UNIX;
+
+            return OSVersion.UNKNOWN;
+#else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 2))
                     return OSVersion.WIN810;
-
-                return OSVersion.WIN7;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    return OSVersion.WIN7;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(6, 0))
+                    return OSVersion.WINVISTA;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(5, 0))
+                    return OSVersion.WINXP;
+                else
+                    return OSVersion.UNKNOWN;
             }
 
             return OSVersion.UNIX;
+#endif
         }
     }
 

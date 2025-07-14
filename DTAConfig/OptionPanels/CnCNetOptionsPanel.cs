@@ -31,6 +31,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
+        XNAClientCheckBox chkSteamIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
 
@@ -140,7 +141,7 @@ namespace DTAConfig.OptionPanels
                 chkConnectOnStartup.Bottom + 12, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
 
-            if (String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
                 chkDiscordIntegration.AllowChecking = false;
                 chkDiscordIntegration.Checked = false;
@@ -160,6 +161,16 @@ namespace DTAConfig.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
+
+
+            chkSteamIntegration = new XNAClientCheckBox(WindowManager);
+            chkSteamIntegration.Name = nameof(chkSteamIntegration);
+            chkSteamIntegration.ClientRectangle = new Rectangle(
+                chkAllowGameInvitesFromFriendsOnly.X,
+                chkAllowGameInvitesFromFriendsOnly.Bottom + 12, 0, 0);
+            chkSteamIntegration.Text = "Show the game being played in Steam".L10N("Client:DTAConfig:SteamStatus");
+
+            AddChild(chkSteamIntegration);
         }
 
         private void InitAllowPrivateMessagesFromDropdown()
@@ -177,24 +188,30 @@ namespace DTAConfig.OptionPanels
             ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
             ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 lblAllPrivateMessagesFrom.Right,
-                lblAllPrivateMessagesFrom.Y - 2, 65, 0);
+                lblAllPrivateMessagesFrom.Y - 2, 110, 0);
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "All".L10N("Client:DTAConfig:PMAll"),
-                Tag = AllowPrivateMessagesFromEnum.All
+                Tag = AllowPrivateMessagesFromEnum.All,
+            });
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "Current channel".L10N("Client:DTAConfig:PMCurrentChannel"),
+                Tag = AllowPrivateMessagesFromEnum.CurrentChannel,
             });
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "Friends".L10N("Client:DTAConfig:PMFriends"),
-                Tag = AllowPrivateMessagesFromEnum.Friends
+                Tag = AllowPrivateMessagesFromEnum.Friends,
             });
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "None".L10N("Client:DTAConfig:PMNone"),
-                Tag = AllowPrivateMessagesFromEnum.None
+                Tag = AllowPrivateMessagesFromEnum.None,
             });
 
             AddChild(ddAllowPrivateMessagesFrom);
@@ -316,8 +333,9 @@ namespace DTAConfig.OptionPanels
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
+            chkSteamIntegration.Checked = IniSettings.SteamIntegration;
 
-            chkDiscordIntegration.Checked = !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId)
+            chkDiscordIntegration.Checked = !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled
                 && IniSettings.DiscordIntegration;
 
             chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
@@ -351,8 +369,9 @@ namespace DTAConfig.OptionPanels
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
+            IniSettings.SteamIntegration.Value = chkSteamIntegration.Checked;
 
-            if (!String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            if (!ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
                 IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
             }

@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+
 using ClientCore.Extensions;
+using ClientCore.PlatformShim;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
@@ -50,6 +54,9 @@ public class Translation : ICloneable
     /// <summary>The author(s) of the translation.</summary>
     public string Author { get; private set; } = string.Empty;
 
+    /// <summary>Override the default encoding used for reading/writing map files. Null ("Auto") means detecting the encoding from each file (sometimes unreliable). </summary>
+    public Encoding MapEncoding = EncodingExt.UTF8NoBOM;
+
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
     private Dictionary<string, string> Values { get; } = new();
 
@@ -88,11 +95,14 @@ public class Translation : ICloneable
     public Translation(IniFile ini, string localeCode)
         : this(localeCode)
     {
-        ArgumentNullException.ThrowIfNull(ini);
+        if (ini is null)
+            throw new ArgumentNullException(nameof(ini));
 
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
         Author = metadataSection?.GetStringValue(nameof(Author), string.Empty);
+
+        MapEncoding = EncodingExt.GetEncodingWithAuto(metadataSection?.GetStringValue(nameof(MapEncoding), null));
 
         string cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
         if (cultureName is not null)
@@ -121,6 +131,7 @@ public class Translation : ICloneable
         _name = other._name;
         _culture = other._culture;
         Author = other.Author;
+        MapEncoding = other.MapEncoding;
 
         foreach (var (key, value) in other.Values)
             Values.Add(key, value);
@@ -175,7 +186,7 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
-            result = new CultureInfo(localeCode).DisplayName;
+            result = new CultureInfo(localeCode).NativeName;
 
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;
@@ -190,7 +201,7 @@ public class Translation : ICloneable
     /// <returns>Locale code -> display name pairs.</returns>
     public static Dictionary<string, string> GetTranslations()
     {
-        var translations = new Dictionary<string, string>
+        var translations = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
             // Add default localization so that we always have it in the list even if the localization does not exist
             [ProgramConstants.HARDCODED_LOCALE_CODE] = GetLanguageName(ProgramConstants.HARDCODED_LOCALE_CODE)
@@ -223,6 +234,7 @@ public class Translation : ICloneable
         {
             string translation = culture.Name;
 
+            // the keys in 'translations' are case-insensitive
             if (translations.ContainsKey(translation))
                 return translation;
         }
@@ -248,6 +260,8 @@ public class Translation : ICloneable
             general.AddKey(nameof(Culture), _culture.Name);
 
         general.AddKey(nameof(Author), Author);
+
+        general.AddKey(nameof(MapEncoding), EncodingExt.EncodingWithAutoToString(MapEncoding));
 
         ini.AddSection(nameof(Values));
         IniSection translation = ini.GetSection(nameof(Values));
