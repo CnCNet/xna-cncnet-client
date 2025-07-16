@@ -212,7 +212,7 @@ internal class Patch_v2_11_0 : Patch
                         _            => throw new Exception($"Unknown type of elements {itemName}")
                     };
 
-                    var items = gameOptionsIni.GetStringValue($"{SkirmishLobby}", itemName, string.Empty).Split(',');
+                    string[] items = gameOptionsIni.GetStringValue($"{SkirmishLobby}", itemName, string.Empty).Split([","], StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < items.Length; i++)
                     {
                         var item = items[i];
