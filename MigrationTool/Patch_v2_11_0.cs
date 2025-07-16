@@ -402,10 +402,10 @@ internal class Patch_v2_11_0 : Patch
 
         // Add new texture files
         var assembly = Assembly.GetExecutingAssembly();
-        foreach (var exefile in assembly.GetManifestResourceNames())
-            using (Stream resourceStream = assembly.GetManifestResourceStream(exefile))
+        foreach (var resourceName in assembly.GetManifestResourceNames())
+            using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
             {
-                var filename = exefile.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
+                var filename = resourceName.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
                 var filepath = SafePath.CombineFilePath(ResouresDir.FullName, filename);
 
                 if (!File.Exists(filepath))
