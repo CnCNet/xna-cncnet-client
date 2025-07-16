@@ -73,7 +73,7 @@ internal sealed class Program
                     return;
                 }
 
-                Patch patch = null;
+                Patch? patch = null;
                 try
                 {
                     patch = new Patch_v2_11_0(arg); patch.Apply(); Console.WriteLine("");
@@ -85,7 +85,7 @@ internal sealed class Program
                 catch (Exception ex)
                 {
                     Logger.Log("");
-                    Logger.Log($"Unable to apply migration patch for client version {patch.ClientVersion.ToString().Replace('_', '.')} due to internal error. Message: {ex.ToString()}");
+                    Logger.Log($"Unable to apply migration patch for client version {patch?.ClientVersion.ToString().Replace('_', '.')} due to an internal error. Message: {ex.ToString()}");
                     Logger.Log("Migration to the latest client version has been failed");
                 }
 
