@@ -36,45 +36,47 @@ internal class Patch_v2_11_0 : Patch
         }
 
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
-        IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
-        foreach (var section in optionsWindowIni.GetSections())
         {
-            foreach (var key in optionsWindowIni.GetSectionKeys(section))
+            IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
+            foreach (var section in optionsWindowIni.GetSections())
             {
-                var value = optionsWindowIni.GetStringValue(section, key, string.Empty);
-
-                if (value.Contains(":CustomSettingFileCheckBox"))
+                foreach (var key in optionsWindowIni.GetSectionKeys(section))
                 {
-                    optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox"));
-                    continue;
-                }
+                    var value = optionsWindowIni.GetStringValue(section, key, string.Empty);
 
-                if (value.Contains(":CustomSettingFileDropDown"))
-                {
-                    optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown"));
-                    continue;
+                    if (value.Contains(":CustomSettingFileCheckBox"))
+                    {
+                        optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox"));
+                        continue;
+                    }
+
+                    if (value.Contains(":CustomSettingFileDropDown"))
+                    {
+                        optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown"));
+                        continue;
+                    }
                 }
             }
-        }
 
-        // Add new sections into OptionsWindow.ini
-        {
-            var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
-            addKey("lblPlayerName", "Location", "12,195");
-            addKey("tbPlayerName", "Location", "113,193");
-            addKey("lblNotice", "Location", "12,220");
-            addKey("btnConfigureHotkeys", "Location", "12,290");
-            addKey("chkDisablePrivateMessagePopup", "Location", "12,138");
-            addKey("chkDisablePrivateMessagePopup", "Text", "Disable private message pop-ups");
-            addKey("chkAllowGameInvitesFromFriendsOnly", "Location", "276,68");
-            addKey("chkAllowGameInvitesFromFriendsOnly", "Text", "Only receive game invitations@from friends");
-            addKey("lblAllPrivateMessagesFrom", "Location", "276,138");
-            addKey("ddAllowPrivateMessagesFrom", "Location", "470,137");
-            addKey("gameListPanel", "Location", "0,200");
-            addKey("btnForceUpdate", "Location", "407,213");
-            addKey("btnForceUpdate", "Size", "133,23");
+            // Add new sections into OptionsWindow.ini
+            {
+                var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
+                addKey("lblPlayerName", "Location", "12,195");
+                addKey("tbPlayerName", "Location", "113,193");
+                addKey("lblNotice", "Location", "12,220");
+                addKey("btnConfigureHotkeys", "Location", "12,290");
+                addKey("chkDisablePrivateMessagePopup", "Location", "12,138");
+                addKey("chkDisablePrivateMessagePopup", "Text", "Disable private message pop-ups");
+                addKey("chkAllowGameInvitesFromFriendsOnly", "Location", "276,68");
+                addKey("chkAllowGameInvitesFromFriendsOnly", "Text", "Only receive game invitations@from friends");
+                addKey("lblAllPrivateMessagesFrom", "Location", "276,138");
+                addKey("ddAllowPrivateMessagesFrom", "Location", "470,137");
+                addKey("gameListPanel", "Location", "0,200");
+                addKey("btnForceUpdate", "Location", "407,213");
+                addKey("btnForceUpdate", "Size", "133,23");
+            }
+            optionsWindowIni.WriteIniFile();
         }
-        optionsWindowIni.WriteIniFile();
 
         // Add DTACnCNetClient.ini
         {
