@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 
 using Rampastring.Tools;
+using ClientCore.Extensions;
 
 namespace MigrationTool;
 
@@ -47,6 +47,8 @@ internal sealed class Program
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
+        args = new string[] { @"D:\_Downloads\MO" };
+
         // Check arguments
         switch (args.Length)
         {
@@ -80,16 +82,15 @@ internal sealed class Program
                 try
                 {
                     // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
-                    assembly.GetTypes()
-                        .Where(type => type.BaseType == typeof(Patch))
-                        .OrderBy(type => type.FullName) // Used to order patches by their names
-                        .ToList()
-                        .ForEach(type => 
-                        {
-                            var patch = (Patch)Activator.CreateInstance(type, arg);
-                            patch?.Apply();
-                            Console.WriteLine("");
-                        });
+                    var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
+                    var patchNames = Enum.GetValues(typeof(Version));
+                    foreach (var patchName in patchNames)
+                    {
+                        Type type = patches.Where(t => t.FullName.Contains(patchName.ToString())).First();
+                        patch = (Patch)Activator.CreateInstance(type, arg);
+                        patch?.Apply();
+                        Console.WriteLine("");
+                    }
                 }
                 catch (Exception ex)
                 {

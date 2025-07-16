@@ -52,7 +52,8 @@
   </PropertyGroup>
     
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
-    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
