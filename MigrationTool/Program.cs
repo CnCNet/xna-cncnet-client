@@ -52,11 +52,11 @@ internal sealed class Program
             case 1:
                 string arg = args[0].Trim();
 
-                if (arg == "-h"
-                    || arg == "--help"
-                    || arg == "-?"
-                    || arg == "/?"
-                    || arg == "/h")
+                if (arg is "-h"
+                    or "--help"
+                    or "-?"
+                    or "/?"
+                    or "/h")
                 {
                     Console.WriteLine(helpMsg);
                     return;
