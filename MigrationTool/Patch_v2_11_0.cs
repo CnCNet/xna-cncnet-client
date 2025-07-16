@@ -381,7 +381,7 @@ internal class Patch_v2_11_0 : Patch
                 .ForEach(x => sb.Append(gameOptionsIni.GetStringValue($"{MultiplayerGameLobby}", x, string.Empty)).Append(','));
             sb.ToString()
                 .Split(',')
-                .ToHashSet()
+                .Distinct()
                 .Select(x => x = x.Trim())
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToList()

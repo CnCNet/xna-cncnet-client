@@ -13,6 +13,7 @@ public enum Version
     v2_11_1,
     v2_11_2,
     v2_12_1,
+    v2_12_6,
     Latest,
 }
 
@@ -80,6 +81,7 @@ internal sealed class Program
                     patch = new Patch_v2_11_1(arg); patch.Apply(); Console.WriteLine("");
                     patch = new Patch_v2_11_2(arg); patch.Apply(); Console.WriteLine("");
                     patch = new Patch_v2_12_1(arg); patch.Apply(); Console.WriteLine("");
+                    patch = new Patch_v2_12_6(arg); patch.Apply(); Console.WriteLine("");
                     patch = new Patch_Latest(arg); patch.Apply();
                 }
                 catch (Exception ex)

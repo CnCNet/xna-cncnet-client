@@ -22,6 +22,24 @@ internal class Patch_v2_11_1 : Patch
         AddKeyWithLog(clientDefsIni, "Settings", "RecommendedResolutions", $"{width}x{height}");
         clientDefsIni.WriteIniFile();
 
+        // Rename GameLobbyBase.ini->[SkirmishLobby]->BtnSaveLoadGameOptions to btnSaveLoadGameOptions
+        Logger.Log("Update name from BtnSaveLoadGameOptions to btnSaveLoadGameOptions in GameLobbyBase.ini->[SkirmishLobby]");
+        IniFile glb = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini"));
+        var presets = glb.GetSection("BtnSaveLoadGameOptions");
+
+        if (presets == null)
+            return this;
+
+        presets.SectionName = "btnSaveLoadGameOptions";
+
+        foreach (var pair in glb.GetSection("SkirmishLobby").Keys)
+        {
+            if (pair.Value.Contains("BtnSaveLoadGameOptions"))
+                pair.Value.Replace("BtnSaveLoadGameOptions", "btnSaveLoadGameOptions");
+        }
+
+        glb.WriteIniFile();
+
         return this;
     }
 }
