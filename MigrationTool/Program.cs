@@ -31,8 +31,6 @@ internal sealed class Program
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
-        args = new string[] { @"D:\_Downloads\MO" };
-
         // Check arguments
         switch (args.Length)
         {
