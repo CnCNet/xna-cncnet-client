@@ -13,7 +13,7 @@ internal class Patch_v2_11_2 : Patch
         ClientVersion = Version.v2_11_2;
     }
 
-    public override Patch Apply()
+    public override void Apply()
     {
         base.Apply();
 
@@ -33,6 +33,5 @@ internal class Patch_v2_11_2 : Patch
         AddKeyWithLog(clientDefsIni, "Settings", "ShowDevelopmentBuildWarnings", "true");
         clientDefsIni.WriteIniFile();
 
-        return this;
     }
 }

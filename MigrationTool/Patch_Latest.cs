@@ -11,13 +11,12 @@ internal class Patch_Latest : Patch
         ClientVersion = Version.Latest;
     }
 
-    public override Patch Apply()
+    public override void Apply()
     {
         base.Apply();
 
         // Write latest patch there
 
-        return this;
     }
 }
 

@@ -14,7 +14,7 @@ internal class Patch_v2_12_1 : Patch
     {
         ClientVersion = Version.v2_12_1;
     }
-    public override Patch Apply()
+    public override void Apply()
     {
         base.Apply();
 
@@ -23,6 +23,5 @@ internal class Patch_v2_12_1 : Patch
         AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", Game.ToString());
         clientDefsIni.WriteIniFile();
 
-        return this;
     }
 }

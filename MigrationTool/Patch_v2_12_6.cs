@@ -11,7 +11,7 @@ internal class Patch_v2_12_6 : Patch
         ClientVersion = Version.v2_12_6;
     }
 
-    public override Patch Apply()
+    public override void Apply()
     {
         base.Apply();
 
@@ -27,7 +27,6 @@ internal class Patch_v2_12_6 : Patch
         genericWindowIni.GetSection("GameCreationWindow_Advanced").RemoveKey("Size");
         genericWindowIni.WriteIniFile();
 
-        return this;
     }
 }
 

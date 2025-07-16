@@ -30,10 +30,9 @@ internal abstract class Patch
         }
     }
 
-    public virtual Patch Apply()
+    public virtual void Apply()
     {
         Logger.Log($"Applying patch for client version {ClientVersion.ToString().Replace('_', '.')}...");
-        return this;
     }
 
     public Patch AddKeyWithLog(IniFile src, string section, string key, string value)
