@@ -4,9 +4,9 @@ using Rampastring.Tools;
 
 namespace MigrationTool;
 
-internal class Patch_vLatest : Patch
+internal class Patch_Latest : Patch
 {
-    public Patch_vLatest(string clientPath) : base(clientPath)
+    public Patch_Latest(string clientPath) : base(clientPath)
     {
         ClientVersion = Version.Latest;
     }

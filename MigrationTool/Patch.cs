@@ -3,12 +3,13 @@ using System.Linq;
 using System.Collections.Generic;
 
 using Rampastring.Tools;
+using ClientCore.Enums;
 namespace MigrationTool;
 
 internal abstract class Patch
 {
     public Version ClientVersion { get; protected set; }
-    public ClientGameType Game { get; protected set; }
+    public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
     public DirectoryInfo ResouresDir { get; protected set; }
 
@@ -18,15 +19,15 @@ internal abstract class Patch
         ResouresDir = SafePath.GetDirectory(SafePath.CombineFilePath(clientPath, "Resources"));
 
         // Predict client type by guessing game engine files
-        Game = ClientGameType.TS;
+        Game = ClientType.TS;
 
         if (SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "Ares.dll")).Exists)
         {
-            Game = ClientGameType.Ares;
+            Game = ClientType.Ares;
         }
         else if (SafePath.GetFile(SafePath.CombineFilePath(ClientDir.FullName, "gamemd-spawn.dll")).Exists)
         {
-            Game = ClientGameType.YR;
+            Game = ClientType.YR;
         }
     }
 
