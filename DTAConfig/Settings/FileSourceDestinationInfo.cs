@@ -1,5 +1,7 @@
 ﻿using ClientCore;
+
 using Rampastring.Tools;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +44,12 @@ namespace DTAConfig.Settings
 
             FileOperationOption option = default(FileOperationOption);
             if (parts.Length >= 3)
-                Enum.TryParse(parts[2], out option);
+            {
+                bool success = Enum.TryParse(parts[2], out option);
+                if (!success)
+                    throw new ArgumentException($"{nameof(FileSourceDestinationInfo)}: " +
+                    $"Error parsing FileOperationOption enum", nameof(value));
+            }
 
             sourcePath = parts[0];
             destinationPath = parts[1];
