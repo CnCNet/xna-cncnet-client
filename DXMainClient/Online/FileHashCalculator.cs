@@ -40,7 +40,7 @@ namespace DTAClient.Online
                 "INI/AIE.ini",
                 "INI/AIFS.ini"
             },
-            ClientType.YR => new string[] 
+            ClientType.YR => new string[]
             {
                 "spawner.xdp",
                 "spawner2.xdp",
@@ -80,7 +80,7 @@ namespace DTAClient.Online
             },
             _ => new string[] { }
         };
-            
+
         public FileHashCalculator() => ParseConfigFile();
 
         private string finalHash = string.Empty;
@@ -146,10 +146,10 @@ namespace DTAClient.Online
                     Logger.Log("Hash for " + relativePath + ": " + hash);
             }
 
-            DirectoryInfo[] iniPaths = { SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options") };
-            
+            List<DirectoryInfo> iniPaths = [SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")];
+
             if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
-                iniPaths.Append<DirectoryInfo>(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
+                iniPaths.Add(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
 
             foreach (DirectoryInfo path in iniPaths)
             {

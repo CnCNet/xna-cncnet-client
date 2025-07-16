@@ -104,7 +104,7 @@ namespace ClientGUI
             ConfigIni = new CCIniFile(configIniPath);
 
             if (Parser.Instance == null)
-                new Parser(WindowManager);
+                _ = new Parser(WindowManager); // Note: Parser.Instance will be set by calling new Parser()
 
             Parser.Instance.SetPrimaryControl(this);
             ReadINIForControl(this);
