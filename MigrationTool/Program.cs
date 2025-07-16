@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using Rampastring.Tools;
 
@@ -74,15 +75,21 @@ internal sealed class Program
                     return;
                 }
 
+                var assembly = Assembly.GetExecutingAssembly();
                 Patch? patch = null;
                 try
                 {
-                    patch = new Patch_v2_11_0(arg); patch.Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_11_1(arg); patch.Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_11_2(arg); patch.Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_12_1(arg); patch.Apply(); Console.WriteLine("");
-                    patch = new Patch_v2_12_6(arg); patch.Apply(); Console.WriteLine("");
-                    patch = new Patch_Latest(arg); patch.Apply();
+                    // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
+                    assembly.GetTypes()
+                        .Where(type => type.BaseType == typeof(Patch))
+                        .OrderBy(type => type.FullName) // Used to order patches by their names
+                        .ToList()
+                        .ForEach(type => 
+                        {
+                            var patch = (Patch)Activator.CreateInstance(type, arg);
+                            patch?.Apply();
+                            Console.WriteLine("");
+                        });
                 }
                 catch (Exception ex)
                 {
