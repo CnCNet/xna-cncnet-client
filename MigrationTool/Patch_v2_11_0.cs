@@ -410,7 +410,7 @@ internal class Patch_v2_11_0 : Patch
 
                 if (!File.Exists(filepath))
                 {
-                    using (FileStream fileStream = new FileStream(filepath, FileMode.Create))
+                    using (FileStream fileStream = new FileStream(filepath, FileMode.CreateNew))
                     {
                         Logger.Log($"Copy {filename} to the {ResouresDir.FullName}");
                         resourceStream.CopyTo(fileStream);
