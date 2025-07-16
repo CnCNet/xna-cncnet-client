@@ -23,6 +23,19 @@
       Projects="$(MSBuildThisFileDirectory)SecondStageUpdater\SecondStageUpdater.csproj"
       Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
   </Target>
+    
+  <Target Name="RestoreMigrationTool" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)MigrationTool\MigrationTool.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier="
+      Targets="Restore" />
+  </Target>
+
+  <Target Name="BuildMigrationTool" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)MigrationTool\MigrationTool.csproj"
+      Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
+  </Target>
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <CallTarget Targets="PublishNetFrameworkWindowsGLNative;RemoveNetFrameworkWindowsGLNative;RemoveWindowsDXNonWindowsBinaries;RemoveWindowsGLNonWindowsBinaries;RemoveGLMobileBinaries" />
@@ -136,6 +149,22 @@
     <Message Importance="high" Text="Moving updater executables" />
     <Move SourceFiles="%(CNCNetUpdaterOutputFile.Identity)" DestinationFolder="$(CNCNetUpdaterCopyTo)" Condition="!Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
     <Delete Files="%(CNCNetUpdaterOutputFile.Identity)" Condition="Exists('$(CNCNetUpdaterCopyTo)%(CNCNetUpdaterOutputFile.Identity)')" />
+  </Target>
+
+  <Target Name="CopyMigrationTool" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'MigrationTool'">
+    <PropertyGroup>
+      <CNCNetMigrationToolCopyTo>$(PublishDir)\..\MigrationTool\</CNCNetMigrationToolCopyTo>
+    </PropertyGroup>
+    <ItemGroup>
+        <CNCNetMigrationToolOutputFile Include="$(OutputPath)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CNCNetMigrationToolOutputFile)" DestinationFolder="$(CNCNetMigrationToolCopyTo)" />
+  </Target>
+
+  <Target Name="MoveMigrationTool" Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <Message Importance="high" Text="Moving migration tool executables" />
+    <Move SourceFiles="%(CNCNetMigrationToolOutputFile.Identity)" DestinationFolder="$(CNCNetMigrationToolCopyTo)" Condition="!Exists('$(CNCNetMigrationToolCopyTo)%(CNCNetMigrationToolOutputFile.Identity)')" />
+    <Delete Files="%(CNCNetMigrationToolOutputFile.Identity)" Condition="Exists('$(CNCNetMigrationToolCopyTo)%(CNCNetMigrationToolOutputFile.Identity)')" />
   </Target>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
