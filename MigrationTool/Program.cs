@@ -68,7 +68,7 @@ internal sealed class Program
                     var patchNames = Enum.GetValues(typeof(Version));
                     foreach (var patchName in patchNames)
                     {
-                        Type type = patches.Where(t => t.FullName.Contains(patchName.ToString())).First();
+                        Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
                         patch = (Patch)Activator.CreateInstance(type, arg);
                         patch?.Apply();
                         Console.WriteLine("");
