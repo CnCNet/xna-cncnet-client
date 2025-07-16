@@ -71,7 +71,7 @@ body:
         Attach additional files or links to content related to the bug report here, like:
         - images/gifs/videos to illustrate the bug;
         - files or ini configs that are needed to reproduce the bug;
-        - a debug log, crash dump and exception file (mandatory if you're submitting a crash report).
+        - a client log (mandatory if you're submitting a crash report).
 
   - type: checkboxes
     id: checks
