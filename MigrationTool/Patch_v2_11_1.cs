@@ -35,7 +35,7 @@ internal class Patch_v2_11_1 : Patch
         foreach (var pair in glb.GetSection("SkirmishLobby").Keys)
         {
             if (pair.Value.Contains("BtnSaveLoadGameOptions"))
-                pair.Value.Replace("BtnSaveLoadGameOptions", "btnSaveLoadGameOptions");
+                glb.SetStringValue("SkirmishLobby", pair.Key, pair.Value.Replace("BtnSaveLoadGameOptions", "btnSaveLoadGameOptions"));
         }
 
         glb.WriteIniFile();
