@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using Rampastring.Tools;
 namespace MigrationTool;
 
-#nullable enable
-
 internal abstract class Patch
 {
     public Version ClientVersion { get; protected set; }

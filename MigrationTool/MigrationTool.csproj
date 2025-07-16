@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <UseAppHost>false</UseAppHost>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
   <PropertyGroup>
     <Title>CnCNet.MigrationTool</Title>
