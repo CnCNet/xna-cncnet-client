@@ -11,7 +11,7 @@ namespace MigrationTool;
 
 internal class Patch_v2_11_0 : Patch
 {
-    public Patch_v2_11_0 (string clientPath) : base (clientPath)
+    public Patch_v2_11_0(string clientPath) : base(clientPath)
     {
         ClientVersion = Version.v2_11_0;
     }
@@ -34,7 +34,7 @@ internal class Patch_v2_11_0 : Patch
                 genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
             genericWindowIni.WriteIniFile();
         }
-        
+
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
         foreach (var section in optionsWindowIni.GetSections())
@@ -56,23 +56,23 @@ internal class Patch_v2_11_0 : Patch
                 }
             }
         }
-        
+
         // Add new sections into OptionsWindow.ini
         {
             var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
-            addKey("lblPlayerName",                      "Location", "12,195");
-            addKey("tbPlayerName",                       "Location", "113,193");
-            addKey("lblNotice",                          "Location", "12,220");
-            addKey("btnConfigureHotkeys",                "Location", "12,290");
-            addKey("chkDisablePrivateMessagePopup",      "Location", "12,138");
-            addKey("chkDisablePrivateMessagePopup",      "Text",     "Disable private message pop-ups");
+            addKey("lblPlayerName", "Location", "12,195");
+            addKey("tbPlayerName", "Location", "113,193");
+            addKey("lblNotice", "Location", "12,220");
+            addKey("btnConfigureHotkeys", "Location", "12,290");
+            addKey("chkDisablePrivateMessagePopup", "Location", "12,138");
+            addKey("chkDisablePrivateMessagePopup", "Text", "Disable private message pop-ups");
             addKey("chkAllowGameInvitesFromFriendsOnly", "Location", "276,68");
-            addKey("chkAllowGameInvitesFromFriendsOnly", "Text",     "Only receive game invitations@from friends");
-            addKey("lblAllPrivateMessagesFrom",          "Location", "276,138");
-            addKey("ddAllowPrivateMessagesFrom",         "Location", "470,137");
-            addKey("gameListPanel",                      "Location", "0,200");
-            addKey("btnForceUpdate",                     "Location", "407,213");
-            addKey("btnForceUpdate",                     "Size",     "133,23");
+            addKey("chkAllowGameInvitesFromFriendsOnly", "Text", "Only receive game invitations@from friends");
+            addKey("lblAllPrivateMessagesFrom", "Location", "276,138");
+            addKey("ddAllowPrivateMessagesFrom", "Location", "470,137");
+            addKey("gameListPanel", "Location", "0,200");
+            addKey("btnForceUpdate", "Location", "407,213");
+            addKey("btnForceUpdate", "Size", "133,23");
         }
         optionsWindowIni.WriteIniFile();
 
@@ -80,24 +80,24 @@ internal class Patch_v2_11_0 : Patch
         {
             IniFile dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "DTACnCNetClient.ini"));
             var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
-            addKey("DEFAULT_LBL_HEIGHT",         "12");
-            addKey("DEFAULT_CONTROL_HEIGHT",     "21");
-            addKey("DEFAULT_BUTTON_HEIGHT",      "23");
-            addKey("BUTTON_WIDTH_133",           "133");
-            addKey("OPEN_BUTTON_WIDTH",          "18");
-            addKey("OPEN_BUTTON_HEIGHT",         "22");
-            addKey("EMPTY_SPACE_TOP",            "12");
-            addKey("EMPTY_SPACE_BOTTOM",         "12");
-            addKey("EMPTY_SPACE_SIDES",          "12");
-            addKey("BUTTON_SPACING",             "12");
-            addKey("LABEL_SPACING",              "6");
-            addKey("CHECKBOX_SPACING",           "24");
-            addKey("LOBBY_EMPTY_SPACE_SIDES",    "12");
-            addKey("LOBBY_PANEL_SPACING",        "10");
+            addKey("DEFAULT_LBL_HEIGHT", "12");
+            addKey("DEFAULT_CONTROL_HEIGHT", "21");
+            addKey("DEFAULT_BUTTON_HEIGHT", "23");
+            addKey("BUTTON_WIDTH_133", "133");
+            addKey("OPEN_BUTTON_WIDTH", "18");
+            addKey("OPEN_BUTTON_HEIGHT", "22");
+            addKey("EMPTY_SPACE_TOP", "12");
+            addKey("EMPTY_SPACE_BOTTOM", "12");
+            addKey("EMPTY_SPACE_SIDES", "12");
+            addKey("BUTTON_SPACING", "12");
+            addKey("LABEL_SPACING", "6");
+            addKey("CHECKBOX_SPACING", "24");
+            addKey("LOBBY_EMPTY_SPACE_SIDES", "12");
+            addKey("LOBBY_PANEL_SPACING", "10");
             addKey("GAME_OPTION_COLUMN_SPACING", "160");
-            addKey("GAME_OPTION_ROW_SPACING",    "6");
-            addKey("GAME_OPTION_DD_WIDTH",       "132");
-            addKey("GAME_OPTION_DD_HEIGHT",      "22");
+            addKey("GAME_OPTION_ROW_SPACING", "6");
+            addKey("GAME_OPTION_DD_WIDTH", "132");
+            addKey("GAME_OPTION_DD_HEIGHT", "22");
             dtaCnCNetClientIni.WriteIniFile();
         }
 
@@ -105,19 +105,19 @@ internal class Patch_v2_11_0 : Patch
         {
             IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
             var addKey = (string section, string key, string value) => AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
-            addKey("btnClose",                   "Location", "220,0");
-            addKey("btnClose",                   "Size",     "18,18");
-            addKey("lblHeader",                  "Location", "12,6");
-            addKey("chkBoxForceRandomSides",     "Location", "12,28");
-            addKey("chkBoxForceRandomColors",    "Location", "12,50");
-            addKey("chkBoxForceRandomTeams",     "Location", "12,72");
-            addKey("chkBoxForceRandomStarts",    "Location", "12,94");
+            addKey("btnClose", "Location", "220,0");
+            addKey("btnClose", "Size", "18,18");
+            addKey("lblHeader", "Location", "12,6");
+            addKey("chkBoxForceRandomSides", "Location", "12,28");
+            addKey("chkBoxForceRandomColors", "Location", "12,50");
+            addKey("chkBoxForceRandomTeams", "Location", "12,72");
+            addKey("chkBoxForceRandomStarts", "Location", "12,94");
             addKey("chkBoxUseTeamStartMappings", "Location", "12,130");
-            addKey("btnHelp",                    "Location", "160,130");
-            addKey("lblPreset",                  "Location", "12,156");
-            addKey("ddTeamStartMappingPreset",   "Location", "65,154");
-            addKey("ddTeamStartMappingPreset",   "Size",     "157,21");
-            addKey("teamStartMappingsPanel",     "Location", "12,189");
+            addKey("btnHelp", "Location", "160,130");
+            addKey("lblPreset", "Location", "12,156");
+            addKey("ddTeamStartMappingPreset", "Location", "65,154");
+            addKey("ddTeamStartMappingPreset", "Size", "157,21");
+            addKey("teamStartMappingsPanel", "Location", "12,189");
             playerExtraOptionsPanelIni.WriteIniFile();
         }
 
@@ -136,16 +136,16 @@ internal class Patch_v2_11_0 : Patch
             List<string> gameOptionsIniControlKeys = new() { "CheckBoxes", "DropDowns", "Labels" };
 
             // Old configs
-            IniFile skirmishLobbyIni_old        = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
+            IniFile skirmishLobbyIni_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
             IniFile multiplayerGameLobbyIni_old = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
-            IniFile gameOptionsIni              = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameOptions.ini"));
+            IniFile gameOptionsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameOptions.ini"));
 
             // New configs
-            IniFile gameLobbyBaseIni         = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{GameLobbyBase}.ini"));
-            IniFile skirmishLobbyIni         = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}_New.ini"));
-            IniFile multiplayerGameLobbyIni  = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}_New.ini"));
-            IniFile lanGameLobbyIni          = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "LANGameLobby.ini"));
-            IniFile cncnetGameLobbyIni       = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "CnCNetGameLobby.ini"));
+            IniFile gameLobbyBaseIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{GameLobbyBase}.ini"));
+            IniFile skirmishLobbyIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}_New.ini"));
+            IniFile multiplayerGameLobbyIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}_New.ini"));
+            IniFile lanGameLobbyIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "LANGameLobby.ini"));
+            IniFile cncnetGameLobbyIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "CnCNetGameLobby.ini"));
 
             // Add random color to the GameOptions.ini
             AddKeyWithLog(gameOptionsIni, "General", "RandomColor", "168,168,168");
@@ -158,10 +158,10 @@ internal class Patch_v2_11_0 : Patch
 
             // Add inheritance
             //AddKeyWithLog(gameLobbyBaseIni,        "INISystem", "BasedOn", "GenericWindow.ini");
-            AddKeyWithLog(skirmishLobbyIni,        "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
+            AddKeyWithLog(skirmishLobbyIni, "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
             AddKeyWithLog(multiplayerGameLobbyIni, "INISystem", "BasedOn", $"{GameLobbyBase}.ini");
-            AddKeyWithLog(lanGameLobbyIni,         "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
-            AddKeyWithLog(cncnetGameLobbyIni,      "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
+            AddKeyWithLog(lanGameLobbyIni, "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
+            AddKeyWithLog(cncnetGameLobbyIni, "INISystem", "BasedOn", $"{MultiplayerGameLobby}.ini");
 
             // Transfer old SkirmishLobby.ini->[ExtraControls] to new SkirmishLobby.ini->[$ExtraControls]
             if (skirmishLobbyIni_old.SectionExists($"{ExtraControls}"))
@@ -207,9 +207,9 @@ internal class Patch_v2_11_0 : Patch
                     string itemType = itemName switch
                     {
                         "CheckBoxes" => "GameLobbyCheckBox",
-                        "DropDowns"  => "GameLobbyDropDown",
-                        "Labels"     => "XNALabel",
-                        _            => throw new Exception($"Unknown type of elements {itemName}")
+                        "DropDowns" => "GameLobbyDropDown",
+                        "Labels" => "XNALabel",
+                        _ => throw new Exception($"Unknown type of elements {itemName}")
                     };
 
                     string[] items = gameOptionsIni.GetStringValue($"{SkirmishLobby}", itemName, string.Empty).Split([","], StringSplitOptions.RemoveEmptyEntries);
@@ -240,27 +240,27 @@ internal class Patch_v2_11_0 : Patch
                         skirmishLobbyIni_old.RemoveSection(section);
                     };
 
-                    addControl("$CC-SK00", "btnLaunchGame",      "GameLaunchButton");
-                    addControl("$CC-SK01", "MapPreviewBox",      "MapPreviewBox");
+                    addControl("$CC-SK00", "btnLaunchGame", "GameLaunchButton");
+                    addControl("$CC-SK01", "MapPreviewBox", "MapPreviewBox");
                     addControl("$CC-SK02", "PlayerOptionsPanel", "XNAPanel");
-                    addControl("$CC-SK03", "ddGameMode",         "XNAClientDropDown");
-                    addControl("$CC-SK04", "tbMapSearch",        "XNASuggestionTextBox");
-                    addControl("$CC-SK05", "btnPickRandomMap",   "XNAClientButton");
-                    addControl("$CC-SK06", "lblGameModeSelect",  "XNALabel");
-                    addControl("$CC-SK07", "lbMapList",          "XNAMultiColumnListBox");
-                    addControl("$CC-SK08", "lblMapSize",         "XNALabel");
-                    addControl("$CC-SK09", "lblGameMode",        "XNALabel");
-                    addControl("$CC-SK10", "lblMapAuthor",       "XNALabel");
-                    addControl("$CC-SK11", "lblMapName",         "XNALabel");
-                    addControl("$CC-SK12", "btnLeaveGame",       "XNAClientButton");
+                    addControl("$CC-SK03", "ddGameMode", "XNAClientDropDown");
+                    addControl("$CC-SK04", "tbMapSearch", "XNASuggestionTextBox");
+                    addControl("$CC-SK05", "btnPickRandomMap", "XNAClientButton");
+                    addControl("$CC-SK06", "lblGameModeSelect", "XNALabel");
+                    addControl("$CC-SK07", "lbMapList", "XNAMultiColumnListBox");
+                    addControl("$CC-SK08", "lblMapSize", "XNALabel");
+                    addControl("$CC-SK09", "lblGameMode", "XNALabel");
+                    addControl("$CC-SK10", "lblMapAuthor", "XNALabel");
+                    addControl("$CC-SK11", "lblMapName", "XNALabel");
+                    addControl("$CC-SK12", "btnLeaveGame", "XNAClientButton");
 
-                    AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}",       "$CC-SK13",     "btnSaveLoadGameOptions:XNAClientButton");
-                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "IdleTexture",  "comboBoxArrow.png");
+                    AddKeyWithLog(gameLobbyBaseIni, $"{SkirmishLobby}", "$CC-SK13", "btnSaveLoadGameOptions:XNAClientButton");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "IdleTexture", "comboBoxArrow.png");
                     AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "HoverTexture", "comboBoxArrow.png");
-                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Width",       "18");
-                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Height",      "21");
-                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$X",           "getRight(GameOptionsPanel) - getWidth($Self) - 1");
-                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Y",           "getY(GameOptionsPanel) + 1");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Width", "18");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Height", "21");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$X", "getRight(GameOptionsPanel) - getWidth($Self) - 1");
+                    AddKeyWithLog(gameLobbyBaseIni, "btnSaveLoadGameOptions", "$Y", "getY(GameOptionsPanel) + 1");
 
                     skirmishLobbyIni_old.GetSections().ForEach(x => TransferKeys(skirmishLobbyIni_old, x, gameLobbyBaseIni));
                 }
@@ -294,7 +294,7 @@ internal class Patch_v2_11_0 : Patch
                 }
 
                 // Find controls to exclude and include
-                List<string> skirmishControls = new(); 
+                List<string> skirmishControls = new();
                 List<string> multiplayerControls = new();
                 gameOptionsIniControlKeys.ForEach(x => skirmishControls.AddRange(gameOptionsIni.GetStringValue($"{SkirmishLobby}", x, string.Empty).Split(',')));
                 gameOptionsIniControlKeys.ForEach(x => multiplayerControls.AddRange(gameOptionsIni.GetStringValue($"{MultiplayerGameLobby}", x, string.Empty).Split(',')));
@@ -302,12 +302,12 @@ internal class Patch_v2_11_0 : Patch
                 var addControls = multiplayerControls.Except(skirmishControls).ToList();
 
                 // Disable skirmish lobby only controls from GameOptions.ini
-                excludeControls.ForEach(x => 
+                excludeControls.ForEach(x =>
                     AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false")
                     .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
-                
+
                 // Add multiplayer lobby only controls from GameOptions.ini
-                addControls.ForEach(control => 
+                addControls.ForEach(control =>
                     AddKeyWithLog(
                         multiplayerGameLobbyIni,
                         "GameOptionsPanel",
@@ -338,17 +338,17 @@ internal class Patch_v2_11_0 : Patch
                         multiplayerGameLobbyIni_old.RemoveSection(section);
                     };
 
-                    addControl("$CC-MP01", "btnLockGame",           "XNAClientButton");
-                    addControl("$CC-MP02", "lbChatMessages_Host",   "ChatListBox");
+                    addControl("$CC-MP01", "btnLockGame", "XNAClientButton");
+                    addControl("$CC-MP02", "lbChatMessages_Host", "ChatListBox");
                     addControl("$CC-MP03", "lbChatMessages_Player", "ChatListBox");
-                    addControl("$CC-MP04", "tbChatInput_Host",      "XNAChatTextBox");
-                    addControl("$CC-MP05", "tbChatInput_Player",    "XNAChatTextBox");
-                    addControl("$CC-MP06", "chkAutoReady",          "XNAClientCheckBox");
+                    addControl("$CC-MP04", "tbChatInput_Host", "XNAChatTextBox");
+                    addControl("$CC-MP05", "tbChatInput_Player", "XNAChatTextBox");
+                    addControl("$CC-MP06", "chkAutoReady", "XNAClientCheckBox");
 
                     AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP07", "lbChatMessages:ChatListBox");
                     AddKeyWithLog(multiplayerGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP08", "tbChatInput:XNAChatTextBox");
                     TransferKeys(multiplayerGameLobbyIni, "lbChatMessages_Player", multiplayerGameLobbyIni, "lbChatMessages");
-                    TransferKeys(multiplayerGameLobbyIni, "tbChatInput_Player",    multiplayerGameLobbyIni, "tbChatInput");
+                    TransferKeys(multiplayerGameLobbyIni, "tbChatInput_Player", multiplayerGameLobbyIni, "tbChatInput");
 
                     multiplayerGameLobbyIni_old.GetSections().ForEach(x => TransferKeys(multiplayerGameLobbyIni_old, x, multiplayerGameLobbyIni));
                 }
@@ -356,10 +356,10 @@ internal class Patch_v2_11_0 : Patch
 
             // Configure CnCNetGameLobby.ini
             AddKeyWithLog(cncnetGameLobbyIni, $"{MultiplayerGameLobby}", "$CC-MP99", "btnChangeTunnel:XNAClientButton");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Width",   "133");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$X",       "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "$Y",       "getY(btnLaunchGame)");
-            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel",         "Text",     "Change Tunnel");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel", "$Width", "133");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel", "$X", "getX(btnLeaveGame) - getWidth($Self) - BUTTON_SPACING");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel", "$Y", "getY(btnLaunchGame)");
+            AddKeyWithLog(cncnetGameLobbyIni, "btnChangeTunnel", "Text", "Change Tunnel");
 
             // Remove empty keys
             foreach (var ini in new List<IniFile>() { gameLobbyBaseIni, multiplayerGameLobbyIni, skirmishLobbyIni, lanGameLobbyIni, cncnetGameLobbyIni })
@@ -393,7 +393,7 @@ internal class Patch_v2_11_0 : Patch
             SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
             skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FileName));
             multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobbyIni_old.FileName));
-            
+
             gameOptionsIni.WriteIniFile();
             gameLobbyBaseIni.WriteIniFile();
             lanGameLobbyIni.WriteIniFile();
