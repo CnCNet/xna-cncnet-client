@@ -41,7 +41,7 @@ namespace DTAClient.Online
         /// </summary>
         public event EventHandler<MessageEventArgs> TargetChangeTooFast;
 
-        public Channel(string uiName, string channelName, bool persistent, bool isChatChannel, string password, Connection connection)
+        public Channel(string uiName, string channelName, bool persistent, bool isChatChannel, string password, bool isCustomPassword, Connection connection)
         {
             if (isChatChannel)
                 users = new SortedUserCollection<ChannelUser>(ChannelUser.ChannelUserComparison);
@@ -53,6 +53,7 @@ namespace DTAClient.Online
             Persistent = persistent;
             IsChatChannel = isChatChannel;
             Password = password;
+            IsCustomPassword = isCustomPassword;
             this.connection = connection;
 
             if (persistent)
@@ -64,7 +65,7 @@ namespace DTAClient.Online
 
         #region Public members
 
-        public string UIName { get; }
+        public string UIName { get; set; }
 
         public string ChannelName { get; }
 
@@ -72,7 +73,8 @@ namespace DTAClient.Online
 
         public bool IsChatChannel { get; }
 
-        public string Password { get; private set; }
+        public string Password { get; set; }
+        public bool IsCustomPassword { get; private set; }
 
         private readonly Connection connection;
 
