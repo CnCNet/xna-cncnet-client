@@ -63,6 +63,9 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public CoopMapInfo? CoopInfo { get; private set; }
 
+        /// <summary>
+        /// AI difficulty level for co-op maps.
+        /// </summary>
         [JsonInclude]
         public int? CoopDifficultyLevel { get; set; }
 

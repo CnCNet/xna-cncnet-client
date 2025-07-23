@@ -708,6 +708,7 @@ namespace DTAClient.DXGUI.Multiplayer
             sb.Append(Convert.ToInt32(started || Players.Count == SGPlayers.Count));
             sb.Append(1); // IsLoadedGame
             sb.Append(string.Empty); // MapHash
+            sb.Append(CoopDifficulty);
 
             GameBroadcast?.Invoke(this, new GameBroadcastEventArgs(sb.ToString()));
         }
