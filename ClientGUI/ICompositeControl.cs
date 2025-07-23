@@ -14,9 +14,8 @@ public interface ICompositeControl
     /// </summary>
     /// <remarks>
     /// All the sub-controls should have their names set to something
-    /// unique to each composite control. This can be done in the beginning
-    /// of an <see cref="XNAControl.Initialize"/> override as by then the
-    /// name of the composite control is usually set.
+    /// unique to each composite control. Utilise <see cref="XNAControl.NameChanged"/>
+    /// event to set the names of the sub-controls.
     /// </remarks>
     IReadOnlyList<XNAControl> SubControls { get; }
 }
