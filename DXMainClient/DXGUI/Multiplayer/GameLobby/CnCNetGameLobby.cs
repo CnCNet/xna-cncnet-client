@@ -1,25 +1,30 @@
-using ClientCore;
-using ClientGUI;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain;
-using DTAClient.DXGUI.Generic;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
-using DTAClient.Online;
-using DTAClient.Online.EventArguments;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using DTAClient.Domain.Multiplayer.CnCNet;
+
+using ClientCore;
 using ClientCore.Extensions;
+
+using ClientGUI;
+
+using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Online;
+using DTAClient.Online.EventArguments;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using System.Net;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -1880,7 +1885,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(RandomSeed);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
             sb.Append(Map?.UntranslatedName ?? string.Empty);
-            sb.Append((int)_tunnelMode);
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
         }
@@ -2055,6 +2059,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(parts[partIndex + 7],
                 Convert.ToInt32(RemoveStartingLocations)));
             SetRandomStartingLocations(removeStartingLocations);
+
+            if (GameMode != null && GameMode.UseDifficultyDropDown == true && ddDifficulty != null)
+            {
+                int newIndex = Conversions.IntFromString(parts[partIndex + 9], ddDifficulty.SelectedIndex);
+                ddDifficulty.SelectedIndex = newIndex;
+
+                if (ddDifficulty.SelectedIndex >= 0)
+                    AddNotice(string.Format("The game host has set {0} to {1}".L10N("Client:Main:HostSetOption"), "Difficulty".L10N("Client:Main:DifficultyOptionName"), ddDifficulty.SelectedItem.Text));
+            }
 
             RandomSeed = randomSeed;
 
@@ -3126,9 +3139,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string gameOptionValues = GetPackedGameOptionValuesString();
             sb.Append(";");
             sb.Append(gameOptionValues);
+            sb.Append(";");
+            sb.Append(ddDifficulty?.SelectedIndex ?? -1);
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
+
 
         #endregion
 
