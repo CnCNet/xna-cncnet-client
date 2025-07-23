@@ -16,6 +16,8 @@ using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
 using System.Diagnostics;
 using System.Text;
+using ClientCore.PlatformShim;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -398,7 +400,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (string.IsNullOrEmpty(waypoint))
                         break;
 
-                    Debug.Assert(int.TryParse(waypoint, out _), $"waypoint should be a number, got {waypoint}");
+                    Debug.Assert(int.TryParse(waypoint.Split(',')[0], out _), $"waypoint should be a number, got {waypoint}");
                     waypoints.Add(waypoint);
                 }
 
@@ -585,14 +587,12 @@ namespace DTAClient.Domain.Multiplayer
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
-                    string[] disallowedSides = iniFile.GetStringValue("Basic", "DisallowedPlayerSides", string.Empty).Split(
-                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] disallowedSides = iniFile.GetStringListValue("Basic", "DisallowedPlayerSides", string.Empty);
 
                     foreach (string sideIndex in disallowedSides)
                         CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex, CultureInfo.InvariantCulture));
 
-                    string[] disallowedColors = iniFile.GetStringValue("Basic", "DisallowedPlayerColors", string.Empty).Split(
-                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] disallowedColors = iniFile.GetStringListValue("Basic", "DisallowedPlayerColors", string.Empty);
 
                     foreach (string colorIndex in disallowedColors)
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex, CultureInfo.InvariantCulture));
@@ -712,15 +712,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            Encoding encoding = FileHelper.GetEncoding(CompleteFilePath);
+            Encoding mapIniEncoding = MapCodeHelper.GetMapEncoding(CompleteFilePath);
 
-            var mapIni = new IniFile(CompleteFilePath, encoding);
+            var mapIni = new IniFile(CompleteFilePath, mapIniEncoding);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
                 string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame);
-                encoding = ClientConfiguration.Instance.ClientGameType == ClientCore.Enums.ClientType.TS ? FileHelper.GetEncoding(extraIniPath) : new UTF8Encoding(false);
-                var extraIni = new IniFile(extraIniPath, encoding);
+                Encoding extraIniEncoding = MapCodeHelper.GetMapEncoding(extraIniPath);
+                var extraIni = new IniFile(extraIniPath, extraIniEncoding);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 

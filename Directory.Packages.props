@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <RampastringXNAUIVersion>2.7.8</RampastringXNAUIVersion>
+    <RampastringXNAUIVersion>2.7.10</RampastringXNAUIVersion>
     <DotnetLibrariesVersion>8.0.0</DotnetLibrariesVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageVersion Include="DiscordRichPresence" Version="1.2.1.24" />
     <PackageVersion Include="Facepunch.Steamworks" Version="2.4.1" />
-    <PackageVersion Include="ImeSharp" Version="1.4.0" />
+    <PackageVersion Include="ImeSharp" Version="1.4.1" />
     <PackageVersion Include="lzo.net" Version="0.0.6" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />

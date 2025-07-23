@@ -1194,7 +1194,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Enabled = true;
 
             Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            cncnetChannel.Join();
+            cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             connectionManager.FindChannel(localGameChatChannelName).Join();
@@ -1400,7 +1400,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.Clear();
 
             // Note: IUserCollection.GetFirst() is not guaranteed to be implemented, unless it is a SortedUserCollection
-            Debug.Assert(currentChatChannel.Users is SortedUserCollection<ChannelUser>);
+            Debug.Assert(currentChatChannel.Users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
             var current = currentChatChannel.Users.GetFirst();
             while (current != null)
             {

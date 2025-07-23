@@ -288,6 +288,21 @@ _(inherits XNADropDown)_
 ToolTip=            ; text, tooltip for dropdown.
 ```
 
+#### [XNAColorDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAColorDropDown.cs)
+
+_(inherits XNAClientDropDown)_
+
+```ini
+[SOMECOLORDROPDOWN] ; XNAColorDropDown
+ItemsDrawMode=TextAndIcon         ; enum (Text | Icon | TextAndIcon),
+                                  ; this will set what combination of texture and text should client use.
+RandomColorTexture=randomicon.png ; string, the file to load as texture for random color.
+DisabledItemTexture=              ; string, the file to load as texture for disabled items, defaults to texture generated from disabled item color
+ColorTextureHeight=               ; int, color icon height in pixels.
+ColorTextureWidth=                ; int, color icon width in pixels.
+```
+
+
 #### [XNATabControl](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNATabControl.cs)
 
 _(inherits [XNAControl](#XNAControl))_
@@ -504,4 +519,20 @@ Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop
 [LoadingScreen]
 RandomBackgroundTextures=  ; comma-separated list of strings,
                            ; paths of files to use randomly as BackgroundTexture
+```
+
+# Global Config Files
+
+## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
+> [!NOTE]
+> _TODO work in progress_
+
+The `ClientDefinitions.ini` file defines the client's global settings, including the game type, recommended resolutions and the executable file used to launch the game.
+
+In `ClientDefinitions.ini`:
+```ini
+[Settings]
+TrustedDomains=  ; comma-separated list of strings,
+                 ; domain names to match links and prevent the message box from appearing before they open by default browser
+                 ; example: cncnet.org,github.com,moddb.com
 ```
