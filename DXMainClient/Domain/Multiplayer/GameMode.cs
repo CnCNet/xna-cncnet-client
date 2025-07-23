@@ -87,13 +87,22 @@ namespace DTAClient.Domain.Multiplayer
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
+        /// <summary>
+        /// AI difficulty level for co-op style maps.
+        /// </summary>
         public int CoopDifficultyLevel { get; set; }
+
+        /// <summary>
+        /// Use difficulty dropdown in game lobby instead of <see cref="CoopDifficultyLevel"/> for AI difficulty.
+        /// </summary>
+        public bool UseDifficultyDropDown { get; set; }
 
         public void Initialize()
         {
             IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
+            UseDifficultyDropDown = forcedOptionsIni.GetBooleanValue(Name, "UseDifficultyDropDown", false);
             UntranslatedUIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
             UIName = UntranslatedUIName.L10N($"INI:GameModes:{Name}:UIName");
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
