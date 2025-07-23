@@ -164,6 +164,9 @@ namespace DTAClient.DXGUI.Multiplayer
             string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
 
+            if (game.Difficulty >= 0 && game.Difficulty < ProgramConstants.DIFFICULTY_NAMES.Count)
+                translatedGameModeName += $" ({ProgramConstants.DIFFICULTY_NAMES[game.Difficulty]})";
+
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
                lblGameMode.FontIndex, Width - lblGameMode.X);
             lblGameMode.Visible = true;

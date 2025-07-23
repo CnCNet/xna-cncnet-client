@@ -28,8 +28,6 @@ namespace DTAClient.DXGUI.Campaign
 
         private const string SETTINGS_PATH = "Client/CampaignSettings.ini";
 
-        private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
-
         private static string[] DifficultyIniPaths = new string[]
         {
             "INI/Map Code/Difficulty Easy.ini",
@@ -364,7 +362,7 @@ namespace DTAClient.DXGUI.Campaign
             spawnIni.WriteIniFile();
 
             var difficultyIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, DifficultyIniPaths[trbDifficultySelector.Value]));
-            string difficultyName = DifficultyNames[trbDifficultySelector.Value];
+            string difficultyName = ProgramConstants.DIFFICULTY_NAMES[trbDifficultySelector.Value];
 
             if (copyMapsToSpawnmapINI)
             {

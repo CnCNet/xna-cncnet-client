@@ -24,7 +24,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class LANGameLobby : MultiplayerGameLobby
     {
-        private const int GAME_OPTION_SPECIAL_FLAG_COUNT = 5;
+        private const int GAME_OPTION_SPECIAL_FLAG_COUNT = 6;
 
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
@@ -577,6 +577,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(GameMode?.Name ?? string.Empty);
             sb.Append(FrameSendRate);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
+            sb.Append(ddDifficulty?.SelectedIndex ?? -1);
 
             BroadcastMessage(sb.ToString());
         }
@@ -760,6 +761,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(Convert.ToInt32(Locked));
             sb.Append(0); // IsLoadedGame
             sb.Append(Map?.SHA1);
+            sb.Append(ddDifficulty?.SelectedIndex ?? -1);
+
 
             GameBroadcast?.Invoke(this, new GameBroadcastEventArgs(sb.ToString()));
         }
@@ -1063,6 +1066,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     AddNotice(string.Format("The game host has set {0} to {1}".L10N("Client:Main:HostSetOption"), ddName, dd.SelectedItem.Text));
                 }
+            }
+
+            if (GameMode != null && GameMode.UseDifficultyDropDown && ddDifficulty != null)
+            {
+                ddDifficulty.SelectedIndex = Conversions.IntFromString(parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 5)], ddDifficulty.SelectedIndex);
+
+                if (ddDifficulty.SelectedIndex >= 0)
+                    AddNotice(string.Format("The game host has set {0} to {1}".L10N("Client:Main:HostSetOption"), "Difficulty".L10N("Client:Main:DifficultyOptionName"), ddDifficulty.SelectedItem.Text));
             }
         }
 

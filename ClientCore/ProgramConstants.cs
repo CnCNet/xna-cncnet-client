@@ -26,8 +26,8 @@ namespace ClientCore
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R13";
-        public const string LAN_PROTOCOL_REVISION = "RL8";
+        public const string CNCNET_PROTOCOL_REVISION = "R14";
+        public const string LAN_PROTOCOL_REVISION = "RL9";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
         public const int LAN_LOBBY_PORT = 1232;
@@ -112,6 +112,7 @@ namespace ClientCore
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
         public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("Client:Main:EasyAIName"), "Medium AI".L10N("Client:Main:MediumAIName"), "Hard AI".L10N("Client:Main:HardAIName") };
+        public static List<string> DIFFICULTY_NAMES => new List<string> { "Easy".L10N("Client:Main:DifficultyEasy"), "Medium".L10N("Client:Main:DifficultyMedium"), "Hard".L10N("Client:Main:DifficultyHard") };
 
         public static string LogFileName { get; set; }
 

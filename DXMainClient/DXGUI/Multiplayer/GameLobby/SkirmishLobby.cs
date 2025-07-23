@@ -281,6 +281,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 skirmishSettingsIni.SetStringValue("Settings", "Map", Map.SHA1);
                 skirmishSettingsIni.SetStringValue("Settings", "GameModeMapFilter", ddGameModeMapFilter.SelectedItem?.Text);
+                skirmishSettingsIni.SetIntValue("Settings", "Difficulty", PreviousSelectedDifficulty);
 
                 if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
                 {
@@ -331,6 +332,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GameModeMap = gameModeMap;
 
                 ddGameModeMapFilter.SelectedIndex = ddGameModeMapFilter.Items.FindIndex(i => i.Tag == gameModeMapFilter);
+                PreviousSelectedDifficulty = skirmishSettingsIni.GetIntValue("Settings", "Difficulty", 0);
+
+                if (GameModeMap.GameMode != null && GameModeMap.GameMode.UseDifficultyDropDown && ddDifficulty != null)
+                    ddDifficulty.SelectedIndex = PreviousSelectedDifficulty;
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
