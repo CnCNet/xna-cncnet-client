@@ -707,6 +707,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
 
+            if (ddDifficulty != null)
+                ddDifficulty.Disable();
+            if (lblDifficulty != null)
+                lblDifficulty.Disable();
+
             SetMapLabels();
         }
 
@@ -736,6 +741,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
             ReadINIForControl(btnMapSortAlphabetically);
+
+            if (ddDifficulty != null)
+                ddDifficulty.Enable();
+            if (lblDifficulty != null)
+                lblDifficulty.Enable();
 
             SetMapLabels();
         }
@@ -1062,6 +1072,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 StatusIndicators[i].SwitchTexture(PlayerSlotState.Empty);
             }
+        }
+
+        protected override void UpdateDifficultyDropdown()
+        {
+            base.UpdateDifficultyDropdown();
+
+            if (!IsHost && ddDifficulty != null)
+                ddDifficulty.AllowDropDown = false;
         }
 
         protected virtual void ClearPingIndicators()
