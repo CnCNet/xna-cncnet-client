@@ -7,10 +7,11 @@
     <EmbeddedResource Include="Resources\*.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.Tools" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="Ude.NetStandard" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.XNAUI.csproj" />
   </ItemGroup>
 </Project>
