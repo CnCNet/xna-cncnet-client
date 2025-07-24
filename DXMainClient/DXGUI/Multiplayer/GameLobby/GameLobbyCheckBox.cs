@@ -190,12 +190,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            // FIXME there's a discrepancy with how base XNAUI handles this
+            // it doesn't set handled if changing the setting is not allowed
+            inputEventArgs.Handled = true;
+            
             if (!AllowChanges)
                 return;
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
             UserChecked = Checked;
         }
     }
