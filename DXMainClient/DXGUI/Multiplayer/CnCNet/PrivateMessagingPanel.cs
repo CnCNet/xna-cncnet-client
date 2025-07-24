@@ -13,25 +13,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
-            bool hideControl = true;
-
-            foreach (var child in Children)
-            {
-                if (child.IsActive)
-                {
-                    hideControl = false;
-                    break;
-                }
-            }
-
-            if (hideControl)
+            inputEventArgs.Handled = true;
+            
+            if (GetActiveChild() == null)
                 Hide();
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
-
-
     }
 }

@@ -227,7 +227,7 @@ namespace ClientGUI
                 if (char.IsWhiteSpace(c))
                     break;
 
-                if (!char.IsLetterOrDigit(c) && c != '_' && c != '$')
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != '$' && c != '.')
                     break;
 
                 identifierName += c.ToString();
