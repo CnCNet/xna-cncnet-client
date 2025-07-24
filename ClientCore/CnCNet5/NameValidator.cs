@@ -60,8 +60,41 @@ namespace ClientCore.CnCNet5
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
                 return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
+
             return validName;
+        }
+
+        /// <summary>
+        /// Checks if a game name is valid for CnCNet.
+        /// </summary>
+        /// <param name="gameName">Game name.</param>
+        /// <returns>Null if the game name is valid, otherwise a string that tells
+        /// what is wrong with the name.</returns>
+        public static string IsGameNameValid(string gameName)
+        {
+
+            if (string.IsNullOrEmpty(gameName))
+            {
+                return "Please enter a game name.".L10N("Client:ClientCore:GameNameMissing");
+            }
+
+            char[] disallowedCharacters = { ',', ';' };
+            if (gameName.IndexOfAny(disallowedCharacters) != -1)
+            {
+                return "Game name contains disallowed characters.".L10N("Client:ClientCore:GameNameDisallowedChars");
+            }
+
+            if (gameName.Length > 23)
+            {
+                return "Game name is too long.".L10N("Client:ClientCore:GameNameTooLong");
+            }
+
+            if (new ProfanityFilter().IsOffensive(gameName))
+            {
+                return "Please enter a less offensive game name.".L10N("Client:ClientCore:GameNameOffensiveText");
+            }
+
+            return null;
         }
     }
 }
