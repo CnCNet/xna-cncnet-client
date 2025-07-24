@@ -617,8 +617,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.OnMouseLeave();
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+            
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
@@ -627,7 +629,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
 
         public override void Draw(GameTime gameTime)
