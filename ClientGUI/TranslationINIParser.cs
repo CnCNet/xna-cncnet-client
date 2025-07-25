@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using ClientCore;
 using ClientCore.Extensions;
 using ClientCore.I18N;
+
 using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
@@ -27,7 +31,7 @@ public class TranslationINIParser : IControlINIAttributeParser
         switch (key)
         {
             case "Text":
-                control.Text = Localize(control, key, value.FromIniString());
+                control.Text = ArabicFixerSafe.Fix(Localize(control, key, value.FromIniString()));
                 return true;
             case "Size":
                 string[] size = Localize(control, key, value, notify: false).Split(',');
@@ -81,13 +85,44 @@ public class TranslationINIParser : IControlINIAttributeParser
                 }
                 return true;
             case "ToolTip" when control is IToolTipContainer controlWithToolTip:
-                controlWithToolTip.ToolTipText = Localize(control, key, value.FromIniString());
+                controlWithToolTip.ToolTipText = ArabicFixerSafe.Fix(Localize(control, key, value.FromIniString()));
                 return true;
             case "Suggestion" when control is XNASuggestionTextBox suggestionTextBox:
-                suggestionTextBox.Suggestion = Localize(control, key, value.FromIniString());
+                suggestionTextBox.Suggestion = ArabicFixerSafe.Fix(Localize(control, key, value.FromIniString()));
                 return true;
         }
 
         return false;
+    }
+}
+public static class ArabicFixerSafe
+{
+    private static readonly Regex PlaceholderRegex = new(@"{\d+}", RegexOptions.Compiled);
+
+    public static string Fix(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        // Replace {0}, {1}, ... with invisible markers (U+E000 private use)
+        var placeholders = new List<string>();
+        string temp = PlaceholderRegex.Replace(input, match =>
+        {
+            placeholders.Add(match.Value);
+            // Use a private use Unicode char unlikely to interfere with layout
+            return ((char)('\uE000' + placeholders.Count - 1)).ToString();
+        });
+
+        // Apply Arabic shaping + RTL fixing (your existing logic)
+        string fixedText = ArabicSupports.ArabicFixer.Fix(temp, true, false);
+
+        // Replace invisible markers back with placeholders
+        for (int i = 0; i < placeholders.Count; i++)
+        {
+            char marker = (char)('\uE000' + i);
+            fixedText = fixedText.Replace(marker.ToString(), placeholders[i]);
+        }
+
+        return fixedText;
     }
 }
