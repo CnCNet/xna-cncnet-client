@@ -28,7 +28,7 @@
         /// The dropdown value is filename of a mapcode INI file, which will be applied to the map. 
         /// Nothing is written to spawn INI.
         /// </summary>
-        MAPCODE
+        MAPCODE,
 
         /// <summary>
         /// The dropdown will support spawninioption values and spawninivalues being set based on their index.
