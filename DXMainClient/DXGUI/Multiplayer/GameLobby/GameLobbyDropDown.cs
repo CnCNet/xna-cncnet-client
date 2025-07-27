@@ -24,11 +24,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
 
-        private string[] spawnIniOptionValues = Array.Empty<string>(); // New field to store SpawnIniOption values
-
         private string spawnIniOption = string.Empty;
 
         private int defaultIndex;
+
+        private bool[] spawnIniBooleans;
 
         public override void Initialize()
         {
@@ -83,14 +83,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         dataWriteMode = DropDownDataWriteMode.BOOLEAN;
                     else if (value.ToUpper() == "MAPCODE")
                         dataWriteMode = DropDownDataWriteMode.MAPCODE;
+                    else if (value.ToUpper() == "BOOLEAN_MAPCODE")
+                        dataWriteMode = DropDownDataWriteMode.BOOLEAN_MAPCODE;
                     else
                         dataWriteMode = DropDownDataWriteMode.STRING;
                     return;
                 case "SpawnIniOption":
-                    spawnIniOption = value;                  // still key name
+                    spawnIniOption = value;
                     return;
-                case "SpawnIniOptionValues":
-                    spawnIniOptionValues = value.Split(',');
+                case "SpawnIniValues":
+                    string[] strValues = value.Split(',');
+                    spawnIniBooleans = new bool[strValues.Length];
+                    for (int i = 0; i < strValues.Length; i++)
+                    {
+                        bool.TryParse(strValues[i].Trim(), out spawnIniBooleans[i]);
+                    }
                     return;
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
@@ -112,10 +119,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            if (string.IsNullOrEmpty(spawnIniOption))
+            if (String.IsNullOrEmpty(spawnIniOption))
             {
                 Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
                 return;
@@ -130,22 +137,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
                     break;
                 case DropDownDataWriteMode.STRING:
-                    if (SelectedIndex < spawnIniOptionValues.Length)
-                    {
-                        string value = spawnIniOptionValues[SelectedIndex].Trim();
-                        // Try parsing as boolean first
-                        if (bool.TryParse(value, out bool boolValue))
-                            spawnIni.SetBooleanValue("Settings", spawnIniOption, boolValue);
-                        else
-                            spawnIni.SetStringValue("Settings", spawnIniOption, value);
-                    }
-                    else
-                    {
-                        Logger.Log($"GameLobbyDropDown.ApplySpawnIniCode: Invalid index {SelectedIndex} for SpawnIniOption values in {Name}");
-                    }
+                    spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
                     break;
-                case DropDownDataWriteMode.MAPCODE:
-                    // MAPCODE does not write to spawn.ini
+                case DropDownDataWriteMode.BOOLEAN_MAPCODE:
+                    if (spawnIniBooleans == null || SelectedIndex >= spawnIniBooleans.Length)
+                    {
+                        Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has invalid SpawnIniValues for BOOLEAN_MAPCODE mode!");
+                        return;
+                    }
+                    spawnIni.SetBooleanValue("Settings", spawnIniOption, spawnIniBooleans[SelectedIndex]);
                     break;
             }
         }
@@ -157,11 +157,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
-            if ((dataWriteMode != DropDownDataWriteMode.MAPCODE && dataWriteMode != DropDownDataWriteMode.STRING) ||
-                SelectedIndex < 0 || SelectedIndex >= Items.Count)
-                return;
+            if (dataWriteMode != DropDownDataWriteMode.MAPCODE && dataWriteMode != DropDownDataWriteMode.BOOLEAN_MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
 
-            string customIniPath = Items[SelectedIndex].Tag.ToString();
+            string customIniPath;
+            customIniPath = Items[SelectedIndex].Tag.ToString();
+
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
@@ -173,5 +173,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.OnLeftClick();
             UserSelectedIndex = SelectedIndex;
         }
+    }
+
+    public enum DropDownDataWriteMode
+    {
+        BOOLEAN,
+        INDEX,
+        STRING,
+        MAPCODE,
+        BOOLEAN_MAPCODE
     }
 }
