@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         INDEX,
         STRING,
         MAPCODE,
-        SPAWN_SPAWNMAP // New combined behavior
+        SPAWN_SPAWNMAP // Combined: write to spawn.ini and merge ini to spawnmap.ini
     }
 
     public class GameLobbyDropDown : XNAClientDropDown
@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int defaultIndex;
 
-        private List<bool> spawnIniValues;
+        private List<string> spawnIniValues;
 
         public override void Initialize()
         {
@@ -76,10 +76,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
 
                 case "SpawnIniValues":
-                    string[] rawValues = value.Split(',');
-                    spawnIniValues = new List<bool>();
-                    foreach (var v in rawValues)
-                        spawnIniValues.Add(bool.TryParse(v, out bool result) && result);
+                    spawnIniValues = new List<string>(value.Split(','));
                     return;
 
                 case "DataWriteMode":
@@ -133,9 +130,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (!string.IsNullOrEmpty(spawnIniOption))
                     {
                         bool boolValue = SelectedIndex > 0;
-                        if (spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
-                            boolValue = spawnIniValues[SelectedIndex];
-
                         spawnIni.SetBooleanValue("Settings", spawnIniOption, boolValue);
                     }
                     return;
@@ -155,13 +149,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
 
                 case DropDownDataWriteMode.SPAWN_SPAWNMAP:
-                    if (!string.IsNullOrEmpty(spawnIniOption))
+                    if (!string.IsNullOrEmpty(spawnIniOption) && spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
                     {
-                        bool boolValue = SelectedIndex > 0;
-                        if (spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
-                            boolValue = spawnIniValues[SelectedIndex];
-
-                        spawnIni.SetBooleanValue("Settings", spawnIniOption, boolValue);
+                        spawnIni.SetStringValue("Settings", spawnIniOption, spawnIniValues[SelectedIndex]);
                     }
 
                     string itemIniPath = Items[SelectedIndex].Tag as string;
