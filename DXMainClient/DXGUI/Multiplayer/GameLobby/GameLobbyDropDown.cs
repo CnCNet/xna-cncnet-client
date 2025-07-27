@@ -7,6 +7,7 @@ using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using ClientCore.Extensions;
 using ClientCore.I18N;
+using System.IO;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -148,14 +149,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string itemIniPath = Items[SelectedIndex].Tag as string;
                     if (!string.IsNullOrEmpty(itemIniPath))
                     {
-                        IniFile additionalIni = new IniFile();
-                        if (additionalIni.Load(itemIniPath))
+                        if (!File.Exists(itemIniPath))
                         {
-                            spawnIni.Merge(additionalIni);
+                            Logger.Log($"GameLobbyDropDown: Failed to load {itemIniPath} for dropdown {Name}");
                         }
                         else
                         {
-                            Logger.Log($"GameLobbyDropDown: Failed to load {itemIniPath} for dropdown {Name}");
+                            IniFile additionalIni = new IniFile(itemIniPath);
+                            spawnIni.MergeWith(additionalIni);
                         }
                     }
                     return;
