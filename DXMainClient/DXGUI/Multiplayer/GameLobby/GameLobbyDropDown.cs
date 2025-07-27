@@ -111,7 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni)
+        public void ApplySpawnIniCode(IniFile spawnIni, IniFile spawnmapIni)
         {
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         else
                         {
                             IniFile additionalIni = new IniFile(itemIniPath);
-                            IniFile.ConsolidateIniFiles(spawnIni, additionalIni);
+                            IniFile.ConsolidateIniFiles(spawnmapIni, additionalIni);
                         }
                     }
                     return;
