@@ -67,8 +67,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
                         XNADropDownItem item = new()
                         {
-                            Text = Localize(this, $"Item{i}",
-                                hasLabel ? itemLabels[i] : items[i]),
+                            Text = ArabicSupports.ArabicFixer.Fix(Localize(this, $"Item{i}",
+                                hasLabel ? itemLabels[i] : items[i]), true, false),
                             Tag = items[i],
                         };
                         AddItem(item);

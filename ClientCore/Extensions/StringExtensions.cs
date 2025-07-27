@@ -78,9 +78,9 @@ public static class StringExtensions
     /// source code to match.
     /// </remarks>
     public static string L10N(this string defaultValue, string key, bool notify = true)
-        => string.IsNullOrEmpty(defaultValue)
+        => ArabicFixerSafe.Fix(string.IsNullOrEmpty(defaultValue)
             ? defaultValue
-            : Translation.Instance.LookUp(key, defaultValue, notify);
+            : Translation.Instance.LookUp(key, defaultValue, notify));
 
     /// <summary>
     /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
@@ -115,4 +115,33 @@ public static class StringExtensions
   
     public static T ToEnum<T>(this string value) where T : Enum 
         => (T)Enum.Parse(typeof(T), value, true);
+}
+public static class ArabicFixerSafe
+{
+    private static readonly Regex PlaceholderRegex = new(@"{\d+}", RegexOptions.Compiled);
+
+    public static string Fix(string input)
+    {
+
+        if (string.IsNullOrEmpty(input) || input == "إصدار تجريبي")
+            return input;
+
+
+        var placeholders = new List<string>();
+        string temp = PlaceholderRegex.Replace(input, match =>
+        {
+            placeholders.Add(match.Value);
+            return ((char)('\uE000' + placeholders.Count - 1)).ToString();
+        });
+
+        string fixedText = ArabicSupports.ArabicFixer.Fix(temp, true, false);
+
+        for (int i = 0; i < placeholders.Count; i++)
+        {
+            char marker = (char)('\uE000' + i);
+            fixedText = fixedText.Replace(marker.ToString(), placeholders[i]);
+        }
+
+        return fixedText;
+    }
 }

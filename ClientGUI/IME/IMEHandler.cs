@@ -83,20 +83,53 @@ public abstract class IMEHandler : IIMEHandler
 
     public abstract void StopTextComposition();
 
+    private string imeText = "";
+    private string Storedtext = string.Empty;
     protected virtual void OnIMETextInput(char character)
     {
         //Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
-        IMEEventReceived = true;
-        LastActionIMEChatInput = true;
 
-        if (IMEFocus != null)
+        if (IMEFocus == null)
         {
-            TextBoxHandleChatInputCallbacks.TryGetValue(IMEFocus, out var handleChatInput);
-            handleChatInput?.Invoke(character);
+            CleanUpIME();
+            return;
+        }
+        if (character == '\b')
+        {
+            if (imeText.Length > 0)
+                imeText = imeText.Remove(imeText.Length - 1);
+        }
+        else
+        {
+            imeText += character;
+        }
+
+        Storedtext = ArabicSupports.ArabicFixer.Fix(imeText, true, false);
+        IMEFocus.Text = string.Empty;
+        if (TextBoxHandleChatInputCallbacks.TryGetValue(IMEFocus, out var handleChatInput))
+        {
+            foreach (char c in Storedtext)
+            {
+                handleChatInput?.Invoke(c);
+            }
+            if (character == '\n' || character == '\r')
+            {
+                CommitIMEInput();
+            }
         }
     }
-
+    private void CommitIMEInput()
+    {
+        CleanUpIME();
+    }
+    private void CleanUpIME()
+    {
+        imeText = string.Empty;
+        IMEEventReceived = false;
+        LastActionIMEChatInput = false;
+        Storedtext = string.Empty;
+    }
     public void SetIMETextInputRectangle(WindowManager manager)
     {
         // When the client window resizes, we should call SetIMETextInputRectangle()

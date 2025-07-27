@@ -27,7 +27,7 @@ public class TranslationINIParser : IControlINIAttributeParser
         switch (key)
         {
             case "Text":
-                control.Text = Localize(control, key, value.FromIniString());
+                control.Text = ArabicSupports.ArabicFixer.Fix(Localize(control, key, value.FromIniString()), true, false);
                 return true;
             case "Size":
                 string[] size = Localize(control, key, value, notify: false).Split(',');
@@ -81,10 +81,10 @@ public class TranslationINIParser : IControlINIAttributeParser
                 }
                 return true;
             case "ToolTip" when control is IToolTipContainer controlWithToolTip:
-                controlWithToolTip.ToolTipText = Localize(control, key, value.FromIniString());
+                controlWithToolTip.ToolTipText = ArabicSupports.ArabicFixer.Fix(Localize(control, key, value.FromIniString()), true, false);
                 return true;
             case "Suggestion" when control is XNASuggestionTextBox suggestionTextBox:
-                suggestionTextBox.Suggestion = Localize(control, key, value.FromIniString());
+                suggestionTextBox.Suggestion = ArabicSupports.ArabicFixer.Fix(Localize(control, key, value.FromIniString()), true, false);
                 return true;
         }
 
