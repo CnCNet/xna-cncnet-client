@@ -143,7 +143,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 case DropDownDataWriteMode.SPAWN_SPAWNMAP:
                     if (!string.IsNullOrEmpty(spawnIniOption) && spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
                     {
-                        spawnIni.SetStringValue("Settings", spawnIniOption, spawnIniValues[SelectedIndex]);
+                        // Write the corresponding SpawnIniValues value to the spawnIniOption in spawn.ini
+                        string spawnIniValue = spawnIniValues[SelectedIndex];
+                        if (bool.TryParse(spawnIniValue, out bool boolResult))
+                        {
+                            spawnIni.SetBooleanValue("Settings", spawnIniOption, boolResult);
+                        }
+                        else
+                        {
+                            spawnIni.SetStringValue("Settings", spawnIniOption, spawnIniValue);
+                        }
                     }
 
                     string itemIniPath = Items[SelectedIndex].Tag as string;
@@ -155,6 +164,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         }
                         else
                         {
+                            // Load and consolidate the .ini file specified in Items to spawnmap.ini
                             IniFile additionalIni = new IniFile(itemIniPath);
                             IniFile.ConsolidateIniFiles(spawnmapIni, additionalIni);
                         }
