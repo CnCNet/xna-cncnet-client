@@ -29,5 +29,12 @@
         /// Nothing is written to spawn INI.
         /// </summary>
         MAPCODE
+
+        /// <summary>
+        /// The dropdown will support spawninioption values and spawninivalues being set based on their index.
+        /// Also writes ini file content to spawnmap.ini based on the index selected.
+        /// </summary>
+        SPAWN_SPAWNMAP,
+
     }
 }

@@ -10,15 +10,6 @@ using ClientCore.I18N;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public enum DropDownDataWriteMode
-    {
-        BOOLEAN,
-        INDEX,
-        STRING,
-        MAPCODE,
-        SPAWN_SPAWNMAP // Combined: write to spawn.ini and merge ini to spawnmap.ini
-    }
-
     public class GameLobbyDropDown : XNAClientDropDown
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
