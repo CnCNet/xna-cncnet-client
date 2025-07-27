@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         else
                         {
                             IniFile additionalIni = new IniFile(itemIniPath);
-                            spawnIni.MergeWith(additionalIni);
+                            IniFile.ConsolidateIniFiles(spawnIni, additionalIni);
                         }
                     }
                     return;
