@@ -174,13 +174,4 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UserSelectedIndex = SelectedIndex;
         }
     }
-
-    public enum DropDownDataWriteMode
-    {
-        BOOLEAN,
-        INDEX,
-        STRING,
-        MAPCODE,
-        BOOLEAN_MAPCODE
-    }
 }
