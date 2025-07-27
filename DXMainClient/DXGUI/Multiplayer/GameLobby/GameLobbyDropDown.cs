@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -9,9 +10,15 @@ using ClientCore.I18N;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    /// <summary>
-    /// A game option drop-down for the game lobby.
-    /// </summary>
+    public enum DropDownDataWriteMode
+    {
+        BOOLEAN,
+        INDEX,
+        STRING,
+        MAPCODE,
+        SPAWN_SPAWNMAP // New combined behavior
+    }
+
     public class GameLobbyDropDown : XNAClientDropDown
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
@@ -28,23 +35,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int defaultIndex;
 
+        private List<bool> spawnIniValues;
+
         public override void Initialize()
         {
-            // Find the game lobby that this control belongs to and register ourselves as a game option.
-
             XNAControl parent = Parent;
-            while (true)
+            while (parent != null)
             {
-                if (parent == null)
-                    break;
-
-                // oh no, we have a circular class reference here!
                 if (parent is GameLobbyBase gameLobby)
                 {
                     gameLobby.DropDowns.Add(this);
                     break;
                 }
-
                 parent = parent.Parent;
             }
 
@@ -53,7 +55,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
-            // shorthand for localization function
             static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
                 => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
@@ -67,32 +68,52 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
                         XNADropDownItem item = new()
                         {
-                            Text = Localize(this, $"Item{i}",
-                                hasLabel ? itemLabels[i] : items[i]),
+                            Text = Localize(this, $"Item{i}", hasLabel ? itemLabels[i] : items[i]),
                             Tag = items[i],
                         };
                         AddItem(item);
                     }
                     return;
-                case "DataWriteMode":
-                    if (value.ToUpper() == "INDEX")
-                        dataWriteMode = DropDownDataWriteMode.INDEX;
-                    else if (value.ToUpper() == "BOOLEAN")
-                        dataWriteMode = DropDownDataWriteMode.BOOLEAN;
-                    else if (value.ToUpper() == "MAPCODE")
-                        dataWriteMode = DropDownDataWriteMode.MAPCODE;
-                    else
-                        dataWriteMode = DropDownDataWriteMode.STRING;
+
+                case "SpawnIniValues":
+                    string[] rawValues = value.Split(',');
+                    spawnIniValues = new List<bool>();
+                    foreach (var v in rawValues)
+                        spawnIniValues.Add(bool.TryParse(v, out bool result) && result);
                     return;
+
+                case "DataWriteMode":
+                    switch (value.ToUpper())
+                    {
+                        case "INDEX":
+                            dataWriteMode = DropDownDataWriteMode.INDEX;
+                            break;
+                        case "BOOLEAN":
+                            dataWriteMode = DropDownDataWriteMode.BOOLEAN;
+                            break;
+                        case "MAPCODE":
+                            dataWriteMode = DropDownDataWriteMode.MAPCODE;
+                            break;
+                        case "SPAWN_SPAWNMAP":
+                            dataWriteMode = DropDownDataWriteMode.SPAWN_SPAWNMAP;
+                            break;
+                        default:
+                            dataWriteMode = DropDownDataWriteMode.STRING;
+                            break;
+                    }
+                    return;
+
                 case "SpawnIniOption":
                     spawnIniOption = value;
                     return;
+
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
                     defaultIndex = SelectedIndex;
                     HostSelectedIndex = SelectedIndex;
                     UserSelectedIndex = SelectedIndex;
                     return;
+
                 case "OptionName":
                     OptionName = Localize(this, "OptionName", value);
                     return;
@@ -101,49 +122,71 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        /// <summary>
-        /// Applies the drop down's associated code to spawn.ini.
-        /// </summary>
-        /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
-
-            if (String.IsNullOrEmpty(spawnIniOption))
-            {
-                Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
-                return;
-            }
 
             switch (dataWriteMode)
             {
                 case DropDownDataWriteMode.BOOLEAN:
-                    spawnIni.SetBooleanValue("Settings", spawnIniOption, SelectedIndex > 0);
-                    break;
-                case DropDownDataWriteMode.INDEX:
-                    spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
-                    break;
-                default:
-                case DropDownDataWriteMode.STRING:
-                    spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
-                    break;
-            }
+                    if (!string.IsNullOrEmpty(spawnIniOption))
+                    {
+                        bool boolValue = SelectedIndex > 0;
+                        if (spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
+                            boolValue = spawnIniValues[SelectedIndex];
 
+                        spawnIni.SetBooleanValue("Settings", spawnIniOption, boolValue);
+                    }
+                    return;
+
+                case DropDownDataWriteMode.INDEX:
+                    if (!string.IsNullOrEmpty(spawnIniOption))
+                    {
+                        spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
+                    }
+                    return;
+
+                case DropDownDataWriteMode.STRING:
+                    if (!string.IsNullOrEmpty(spawnIniOption))
+                    {
+                        spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
+                    }
+                    return;
+
+                case DropDownDataWriteMode.SPAWN_SPAWNMAP:
+                    if (!string.IsNullOrEmpty(spawnIniOption))
+                    {
+                        bool boolValue = SelectedIndex > 0;
+                        if (spawnIniValues != null && SelectedIndex < spawnIniValues.Count)
+                            boolValue = spawnIniValues[SelectedIndex];
+
+                        spawnIni.SetBooleanValue("Settings", spawnIniOption, boolValue);
+                    }
+
+                    string itemIniPath = Items[SelectedIndex].Tag as string;
+                    if (!string.IsNullOrEmpty(itemIniPath))
+                    {
+                        IniFile additionalIni = new IniFile();
+                        if (additionalIni.Load(itemIniPath))
+                        {
+                            spawnIni.Merge(additionalIni);
+                        }
+                        else
+                        {
+                            Logger.Log($"GameLobbyDropDown: Failed to load {itemIniPath} for dropdown {Name}");
+                        }
+                    }
+                    return;
+            }
         }
 
-        /// <summary>
-        /// Applies the drop down's associated code to the map INI file.
-        /// </summary>
-        /// <param name="mapIni">The map INI file.</param>
-        /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
-            if (dataWriteMode != DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
+            if (dataWriteMode != DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+                return;
 
-            string customIniPath;
-            customIniPath = Items[SelectedIndex].Tag.ToString();
-
+            string customIniPath = Items[SelectedIndex].Tag.ToString();
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
