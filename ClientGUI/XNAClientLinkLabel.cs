@@ -99,8 +99,10 @@ namespace ClientGUI
             TextColor = IdleColor;
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+            
             ClickSoundEffect?.Play();
 
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
@@ -110,7 +112,7 @@ namespace ClientGUI
             else if (!string.IsNullOrEmpty(URL))
                 ProcessLauncher.StartShellProcess(URL);
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
     }
 }

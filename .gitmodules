@@ -1,0 +1,3 @@
+[submodule "Rampastring.XNAUI"]
+	path = Rampastring.XNAUI
+	url = ../../Rampastring/Rampastring.XNAUI.git
