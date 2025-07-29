@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -89,6 +89,7 @@ namespace DTAClient.Online
         {
             FileHashes fh = new()
             {
+                ClientDefinitionsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ClientConfiguration.CLIENT_DEFS)),
                 GameOptionsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, ClientConfiguration.GAME_OPTIONS)),
                 ClientDXHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientdx.exe")),
                 ClientXNAHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientxna.exe")),
@@ -105,6 +106,7 @@ namespace DTAClient.Online
                 FHCConfigHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.BASE_RESOURCE_PATH, CONFIGNAME)),
             };
 
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{ClientConfiguration.CLIENT_DEFS}: {fh.ClientDefinitionsHash}");
             Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{CONFIGNAME}: {fh.FHCConfigHash}");
             Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{ClientConfiguration.GAME_OPTIONS}: {fh.GameOptionsHash}");
             Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\clientdx.exe: {fh.ClientDXHash}");
@@ -239,6 +241,7 @@ namespace DTAClient.Online
 
         private class FileHashes()
         {
+            public string ClientDefinitionsHash;
             public string GameOptionsHash;
             public string ClientDXHash;
             public string ClientXNAHash;
@@ -276,6 +279,7 @@ namespace DTAClient.Online
             public string GetFinalHash()
             {
                 var sb = new StringBuilder();
+                sb.Append(ClientDefinitionsHash);
                 sb.Append(GameOptionsHash);
                 sb.Append(ClientDXHash);
                 sb.Append(ClientXNAHash);
