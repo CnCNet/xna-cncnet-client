@@ -40,20 +40,22 @@ namespace ClientCore
             }
         }
 
-        public static void Initialize(string userIniFileName, string userDefaultIniFileName = "UserDefaults.ini")
+        public static void Initialize(string userIniFileName)
         {
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
             var userIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userIniFileName));
 
-            if (string.IsNullOrWhiteSpace(userIniFileName) || !File.Exists(userDefaultIniFileName))
+            string userDefaultIniFilePath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), "UserDefaults.ini");
+
+            if (string.IsNullOrWhiteSpace(userIniFileName) || !File.Exists(userDefaultIniFilePath))
             {
                 _instance = new UserINISettings(userIni);
                 return;
             }
-                        
-            var userDefaultIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userDefaultIniFileName));
+
+            var userDefaultIni = new IniFile(userDefaultIniFilePath);
 
             // Clone userDefaultIni to combinedUserIni. Clone() method is not available. https://github.com/Rampastring/Rampastring.Tools/issues/12
             var combinedUserIni = new IniFile();
@@ -393,7 +395,7 @@ namespace ClientCore
         public bool IsGameFiltersApplied()
             => ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES
                || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
-               || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES 
+               || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES
                || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
                || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
 
