@@ -77,6 +77,11 @@ namespace ClientCore
             {
                 IniSection userSection = userIni.GetSection(sectionName);
                 IniSection combinedUserSection = combinedUserIni.GetSection(sectionName);
+                if (combinedUserSection == null)
+                {
+                    combinedUserSection = new IniSection(sectionName);
+                    combinedUserIni.AddSection(combinedUserSection);
+                }
                 foreach ((var key, var value) in userSection.Keys)
                 {
                     combinedUserSection.AddOrReplaceKey(key, value);
