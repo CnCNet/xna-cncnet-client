@@ -83,6 +83,8 @@ namespace ClientCore
                 }
             }
 
+            combinedUserIni.FileName = userIni.FileName;
+
             _instance = new UserINISettings(combinedUserIni);
         }
 
