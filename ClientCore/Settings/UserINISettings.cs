@@ -1,10 +1,13 @@
-using ClientCore.Settings;
-using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.Settings;
+
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -37,14 +40,48 @@ namespace ClientCore
             }
         }
 
-        public static void Initialize(string iniFileName)
+        public static void Initialize(string userIniFileName, string userDefaultIniFileName = "UserDefaults.ini")
         {
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
-            var iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, iniFileName));
+            var userIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userIniFileName));
 
-            _instance = new UserINISettings(iniFile);
+            if (string.IsNullOrWhiteSpace(userIniFileName) || !File.Exists(userDefaultIniFileName))
+            {
+                _instance = new UserINISettings(userIni);
+                return;
+            }
+                        
+            var userDefaultIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userDefaultIniFileName));
+
+            // Clone userDefaultIni to combinedUserIni. Clone() method is not available. https://github.com/Rampastring/Rampastring.Tools/issues/12
+            var combinedUserIni = new IniFile();
+            foreach (string sectionName in userDefaultIni.GetSections())
+            {
+                IniSection newSection = new(sectionName);
+
+                IniSection oldSection = userDefaultIni.GetSection(sectionName);
+                foreach ((var key, var value) in oldSection.Keys)
+                {
+                    newSection.AddKey(key, value);
+                }
+
+                combinedUserIni.AddSection(newSection);
+            }
+
+            // Combine userIni and userDefaultIni
+            foreach (string sectionName in userIni.GetSections())
+            {
+                IniSection userSection = userIni.GetSection(sectionName);
+                IniSection combinedUserSection = combinedUserIni.GetSection(sectionName);
+                foreach ((var key, var value) in userSection.Keys)
+                {
+                    combinedUserSection.AddOrReplaceKey(key, value);
+                }
+            }
+
+            _instance = new UserINISettings(combinedUserIni);
         }
 
         protected UserINISettings(IniFile iniFile)
