@@ -58,19 +58,8 @@ namespace ClientCore
             var userDefaultIni = new IniFile(userDefaultIniFilePath);
 
             // Clone userDefaultIni to combinedUserIni. Clone() method is not available. https://github.com/Rampastring/Rampastring.Tools/issues/12
-            var combinedUserIni = new IniFile();
-            foreach (string sectionName in userDefaultIni.GetSections())
-            {
-                IniSection newSection = new(sectionName);
-
-                IniSection oldSection = userDefaultIni.GetSection(sectionName);
-                foreach ((var key, var value) in oldSection.Keys)
-                {
-                    newSection.AddKey(key, value);
-                }
-
-                combinedUserIni.AddSection(newSection);
-            }
+            var combinedUserIni = userDefaultIni.Clone();
+            combinedUserIni.FileName = null;
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
