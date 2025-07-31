@@ -1,10 +1,13 @@
-using ClientCore.Settings;
-using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.Settings;
+
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -37,14 +40,47 @@ namespace ClientCore
             }
         }
 
-        public static void Initialize(string iniFileName)
+        public static void Initialize(string userIniFileName)
         {
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
-            var iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, iniFileName));
+            var userIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userIniFileName));
 
-            _instance = new UserINISettings(iniFile);
+            string userDefaultIniFilePath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), "UserDefaults.ini");
+
+            if (!File.Exists(userDefaultIniFilePath))
+            {
+                _instance = new UserINISettings(userIni);
+                return;
+            }
+
+            var userDefaultIni = new IniFile(userDefaultIniFilePath);
+
+            var combinedUserIni = userDefaultIni.Clone();
+            combinedUserIni.FileName = null;
+
+            // Combine userIni and userDefaultIni
+            foreach (string sectionName in userIni.GetSections())
+            {
+                IniSection userSection = userIni.GetSection(sectionName);
+
+                IniSection combinedUserSection = combinedUserIni.GetSection(sectionName);
+                if (combinedUserSection == null)
+                {
+                    combinedUserSection = new IniSection(sectionName);
+                    combinedUserIni.AddSection(combinedUserSection);
+                }
+
+                foreach ((var key, var value) in userSection.Keys)
+                {
+                    combinedUserSection.AddOrReplaceKey(key, value);
+                }
+            }
+
+            combinedUserIni.FileName = userIni.FileName;
+
+            _instance = new UserINISettings(combinedUserIni);
         }
 
         protected UserINISettings(IniFile iniFile)
@@ -356,7 +392,7 @@ namespace ClientCore
         public bool IsGameFiltersApplied()
             => ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES
                || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
-               || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES 
+               || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES
                || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
                || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
 

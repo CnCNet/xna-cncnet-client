@@ -78,6 +78,9 @@ namespace ClientGUI
                     RandomColorTexture = AssetLoader.LoadTexture(value);
                     Items[0].Texture = RandomColorTexture;
                     break;
+                case nameof(DisabledItemTexture):
+                    DisabledItemTexture = AssetLoader.LoadTexture(value);
+                    break;
                 default:
                     base.ParseControlINIAttribute(iniFile, key, value);
                     return;
