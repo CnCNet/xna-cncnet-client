@@ -49,7 +49,7 @@ namespace ClientCore
 
             string userDefaultIniFilePath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), "UserDefaults.ini");
 
-            if (string.IsNullOrWhiteSpace(userIniFileName) || !File.Exists(userDefaultIniFilePath))
+            if (!File.Exists(userDefaultIniFilePath))
             {
                 _instance = new UserINISettings(userIni);
                 return;
