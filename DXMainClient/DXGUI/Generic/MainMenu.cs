@@ -691,7 +691,7 @@ namespace DTAClient.DXGUI.Generic
             }
             catch (Exception ex)
             {
-                Logger.Log($"Error loading the theme song. Fallback to the legacy method. Exception: {ex.ToString()}");
+                Logger.Log($"Error loading the theme song. Fallback to the legacy method. Have you installed 'Media Feature Pack for Windows 10/11 N'? Exception: {ex.ToString()}");
                 themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
             }
 #endif
