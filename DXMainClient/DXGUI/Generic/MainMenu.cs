@@ -679,14 +679,21 @@ namespace DTAClient.DXGUI.Generic
             string songExtension = "wma";
 #endif
 
-            FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, 
+            FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.{songExtension}"));
 
             if (!mainMenuMusicFile.Exists)
                 return;
 
-            Song song = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
-            themeSong = song;
+            try
+            {
+                themeSong = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error loading the theme song. Fallback to the legacy method. Exception: {ex.ToString()}");
+                themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+            }
 #endif
         }
 
