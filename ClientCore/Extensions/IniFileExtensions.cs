@@ -8,6 +8,7 @@ namespace ClientCore.Extensions
 {
     public static class IniFileExtensions
     {
+        // Clone() method is not officially available now. https://github.com/Rampastring/Rampastring.Tools/issues/12
         public static IniFile Clone(this IniFile oldIniFile)
         {
             var newIni = new IniFile();
