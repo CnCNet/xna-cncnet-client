@@ -26,19 +26,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string spawnIniOption = string.Empty;
 
+        private string[] spawnIniValues = Array.Empty<string>();
+
         private int defaultIndex;
 
         public override void Initialize()
         {
-            // Find the game lobby that this control belongs to and register ourselves as a game option.
-
             XNAControl parent = Parent;
             while (true)
             {
                 if (parent == null)
                     break;
 
-                // oh no, we have a circular class reference here!
                 if (parent is GameLobbyBase gameLobby)
                 {
                     gameLobby.DropDowns.Add(this);
@@ -53,7 +52,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
-            // shorthand for localization function
             static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
                 => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
@@ -67,25 +65,37 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
                         XNADropDownItem item = new()
                         {
-                            Text = Localize(this, $"Item{i}",
-                                hasLabel ? itemLabels[i] : items[i]),
+                            Text = Localize(this, $"Item{i}", hasLabel ? itemLabels[i] : items[i]),
                             Tag = items[i],
                         };
                         AddItem(item);
                     }
                     return;
                 case "DataWriteMode":
-                    if (value.ToUpper() == "INDEX")
-                        dataWriteMode = DropDownDataWriteMode.INDEX;
-                    else if (value.ToUpper() == "BOOLEAN")
-                        dataWriteMode = DropDownDataWriteMode.BOOLEAN;
-                    else if (value.ToUpper() == "MAPCODE")
-                        dataWriteMode = DropDownDataWriteMode.MAPCODE;
-                    else
-                        dataWriteMode = DropDownDataWriteMode.STRING;
+                    switch (value.ToUpper())
+                    {
+                        case "INDEX":
+                            dataWriteMode = DropDownDataWriteMode.INDEX;
+                            break;
+                        case "BOOLEAN":
+                            dataWriteMode = DropDownDataWriteMode.BOOLEAN;
+                            break;
+                        case "MAPCODE":
+                            dataWriteMode = DropDownDataWriteMode.MAPCODE;
+                            break;
+                        case "SPAWN_SPAWNMAP":
+                            dataWriteMode = DropDownDataWriteMode.SPAWN_SPAWNMAP;
+                            break;
+                        default:
+                            dataWriteMode = DropDownDataWriteMode.STRING;
+                            break;
+                    }
                     return;
                 case "SpawnIniOption":
                     spawnIniOption = value;
+                    return;
+                case "SpawnIniValues":
+                    spawnIniValues = value.Split(',');
                     return;
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
@@ -104,13 +114,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Applies the drop down's associated code to spawn.ini.
         /// </summary>
-        /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            if (String.IsNullOrEmpty(spawnIniOption))
+            if (string.IsNullOrEmpty(spawnIniOption))
             {
                 Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
                 return;
@@ -124,26 +133,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 case DropDownDataWriteMode.INDEX:
                     spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
                     break;
-                default:
                 case DropDownDataWriteMode.STRING:
                     spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
                     break;
+                case DropDownDataWriteMode.SPAWN_SPAWNMAP:
+                    if (spawnIniValues.Length > SelectedIndex)
+                    {
+                        spawnIni.SetStringValue("Settings", spawnIniOption, spawnIniValues[SelectedIndex]);
+                    }
+                    else
+                    {
+                        Logger.Log($"GameLobbyDropDown: SpawnIniValues missing index {SelectedIndex} for {Name}");
+                    }
+                    break;
             }
-
         }
 
         /// <summary>
         /// Applies the drop down's associated code to the map INI file.
         /// </summary>
-        /// <param name="mapIni">The map INI file.</param>
-        /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
-            if (dataWriteMode != DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
+            if ((dataWriteMode != DropDownDataWriteMode.MAPCODE &&
+                 dataWriteMode != DropDownDataWriteMode.SPAWN_SPAWNMAP) ||
+                 SelectedIndex < 0 || SelectedIndex >= Items.Count)
+                return;
 
-            string customIniPath;
-            customIniPath = Items[SelectedIndex].Tag.ToString();
-
+            string customIniPath = Items[SelectedIndex].Tag.ToString();
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
