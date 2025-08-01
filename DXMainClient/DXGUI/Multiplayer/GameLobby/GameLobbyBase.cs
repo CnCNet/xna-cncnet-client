@@ -1420,7 +1420,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pHouseInfo.RandomizeSide(pInfo, SideCount, pseudoRandom, disallowedSides, RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, pseudoRandom);
-                pHouseInfo.RandomizeStart(pInfo, pseudoRandom, freeStartingLocations, takenStartingLocations, teamStartMappings.Any());
+
+                bool overrideGameRandomLocations = teamStartMappings.Any()
+                    || GameModeMap.AllowedStartingLocations.Max() > GameModeMap.MaxPlayers; // non-sequential AllowedStartingLocations
+                pHouseInfo.RandomizeStart(pInfo, pseudoRandom, freeStartingLocations, takenStartingLocations, overrideGameRandomLocations);
             }
 
             return houseInfos;
