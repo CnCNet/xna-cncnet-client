@@ -264,7 +264,7 @@ namespace ClientCore
 
         public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
 
-        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
+        public string[] AlwaysTrustedDomains = { "cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be" };
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
@@ -285,6 +285,30 @@ namespace ClientCore
             }
 
             return null;
+        }
+
+        private string[] GetCoopDifficultyINIPaths()
+        {
+            List<string> paths = new List<string>();
+            var pathString = clientDefinitionsIni.GetStringValue(SETTINGS, nameof(CoopDifficultyINIPaths), string.Empty);
+
+            if (string.IsNullOrEmpty(pathString))
+            {
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Easy.ini"));
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Medium.ini"));
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Hard.ini"));
+            }
+            else
+            {
+                var pathStrings = pathString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var path in pathStrings)
+                {
+                    paths.Add(SafePath.CombineFilePath(path));
+                }
+            }
+            
+            return paths.ToArray();
         }
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
@@ -347,6 +371,8 @@ namespace ClientCore
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
         public string MPMapsIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", SafePath.CombineFilePath("INI", "MPMaps.ini")));
+
+        public string[] CoopDifficultyINIPaths => GetCoopDifficultyINIPaths();
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 

@@ -1507,7 +1507,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 12)
+            if (splitMessage.Length != 13)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1538,6 +1538,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 string loadedGameId = splitMessage[10];
                 int skillLevel = int.Parse(splitMessage[11]);
+                int difficulty = int.Parse(splitMessage[12]);
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
@@ -1561,6 +1562,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
                 game.SkillLevel = skillLevel;
+                game.Difficulty = difficulty;
 
                 if (isClosed)
                 {
