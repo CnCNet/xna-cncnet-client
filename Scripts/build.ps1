@@ -108,9 +108,9 @@ function Script:Invoke-BuildProject {
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
       # $Private:ArgumentList.Add("-property:InformationalVersion=$InformationalVersion")
   
-      if ($Engine -eq 'WindowsXNA') {
-        $Private:ArgumentList.Add('--arch=x86')
-      }
+      # if ($Engine -eq 'WindowsXNA') {
+      #   $Private:ArgumentList.Add('--arch=x86')
+      # }
   
       & 'dotnet' $Private:ArgumentList  
       if ($LASTEXITCODE) {
