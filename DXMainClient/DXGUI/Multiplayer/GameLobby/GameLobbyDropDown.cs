@@ -32,12 +32,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
+            // Find the game lobby that this control belongs to and register ourselves as a game option.
+
             XNAControl parent = Parent;
             while (true)
             {
                 if (parent == null)
                     break;
 
+                // oh no, we have a circular class reference here!
                 if (parent is GameLobbyBase gameLobby)
                 {
                     gameLobby.DropDowns.Add(this);
@@ -52,6 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
+            // shorthand for localization function
             static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
                 => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
