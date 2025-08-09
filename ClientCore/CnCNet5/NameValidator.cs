@@ -25,7 +25,7 @@ namespace ClientCore.CnCNet5
                 return "The first character in the player name cannot be a number.".L10N("Client:ClientCore:NameFirstIsNumber");
 
             if (name[0] == '-')
-                return "The first character in the player name cannot be a dash ( - ).".L10N("Client:ClientCore:NameFirstIsDash");
+                return "The first character in the player name cannot be a hyphen ( - ).".L10N("Client:ClientCore:NameFirstIsHyphen");
 
             // Check that there are no invalid chars
             char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();
