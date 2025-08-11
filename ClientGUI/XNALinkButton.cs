@@ -36,8 +36,10 @@ namespace ClientGUI
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+            
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
             if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
@@ -45,7 +47,7 @@ namespace ClientGUI
             else if (!string.IsNullOrEmpty(URL))
                 ProcessLauncher.StartShellProcess(URL, Arguments);
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
     }
 }

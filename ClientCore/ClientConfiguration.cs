@@ -21,11 +21,11 @@ namespace ClientCore
         private const string TRANSLATIONS = "Translations";
         private const string USER_DEFAULTS = "UserDefaults";
 
-        private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
-        private const string GAME_OPTIONS = "GameOptions.ini";
-        private const string CLIENT_DEFS = "ClientDefinitions.ini";
-        private const string NETWORK_DEFS_LOCAL = "NetworkDefinitions.local.ini";
-        private const string NETWORK_DEFS = "NetworkDefinitions.ini";
+        public const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
+        public const string GAME_OPTIONS = "GameOptions.ini";
+        public const string CLIENT_DEFS = "ClientDefinitions.ini";
+        public const string NETWORK_DEFS_LOCAL = "NetworkDefinitions.local.ini";
+        public const string NETWORK_DEFS = "NetworkDefinitions.ini";
 
         private static ClientConfiguration _instance;
 
