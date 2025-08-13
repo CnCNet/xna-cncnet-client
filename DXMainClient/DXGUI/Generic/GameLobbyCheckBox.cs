@@ -1,13 +1,17 @@
 ﻿using System;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using ClientGUI;
 using System.Collections.Generic;
 using System.Linq;
+
+using ClientGUI;
+
 using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+namespace DTAClient.DXGUI.Generic
 {
     public enum CheckBoxMapScoringMode
     {
@@ -30,7 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// A game option check box for the game lobby.
     /// </summary>
-    public class GameLobbyCheckBox : XNAClientCheckBox
+    public class GameLobbyCheckBox : XNAClientCheckBox, IGameSessionSetting
     {
         public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
 
@@ -58,7 +62,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public bool AllowChanges { get; set; } = true;
 
-        public CheckBoxMapScoringMode MapScoringMode { get; private set; } = CheckBoxMapScoringMode.Irrelevant;
+        public bool AffectsSpawnIni => !string.IsNullOrWhiteSpace(spawnIniOption);
+        public bool AffectsMapCode => !string.IsNullOrWhiteSpace(customIniPath);
+
+        public bool AllowScoring
+            => !((mapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && Checked)
+                || (mapScoringMode == CheckBoxMapScoringMode.DenyWhenUnchecked && !Checked));
+
+        private CheckBoxMapScoringMode mapScoringMode = CheckBoxMapScoringMode.Irrelevant;
 
         private string spawnIniOption;
 
@@ -83,9 +94,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
 
                 // oh no, we have a circular class reference here!
-                if (parent is GameLobbyBase gameLobby)
+                if (parent is IGameSessionConfigView configView)
                 {
-                    gameLobby.CheckBoxes.Add(this);
+                    configView.CheckBoxes.Add(this);
                     break;
                 }
 
@@ -132,20 +143,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                     return;
                 case "MapScoringMode":
-                    MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
+                    mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
                     return;
             }
 
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        /// <summary>
-        /// Applies the check-box's associated code to the spawn INI file.
-        /// </summary>
-        /// <param name="spawnIni">The spawn INI file.</param>
-        public void ApplySpawnINICode(IniFile spawnIni)
+        public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (string.IsNullOrEmpty(spawnIniOption))
+            if (!AffectsSpawnIni)
                 return;
 
             string value = disabledSpawnIniValue;
@@ -156,15 +163,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             spawnIni.SetStringValue("Settings", spawnIniOption, value);
         }
-
-        /// <summary>
-        /// Applies the check-box's associated code to the map INI file.
-        /// </summary>
-        /// <param name="mapIni">The map INI file.</param>
-        /// <param name="gameMode">Currently selected gamemode, if set.</param>
+        
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
-            if (Checked == reversed || String.IsNullOrEmpty(customIniPath))
+            if (!AffectsMapCode || Checked == reversed)
                 return;
 
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);

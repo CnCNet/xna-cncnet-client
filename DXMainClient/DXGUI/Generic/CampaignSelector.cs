@@ -6,6 +6,8 @@ using System.Globalization;
 
 using DTAClient.Domain;
 using System.IO;
+using System.Linq;
+
 using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
@@ -16,7 +18,7 @@ using ClientCore.Enums;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class CampaignSelector : XNAWindow
+    public class CampaignSelector : XNAWindow, IGameSessionConfigView
     {
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
@@ -44,6 +46,11 @@ namespace DTAClient.DXGUI.Generic
         private XNATrackbar trbDifficultySelector;
 
         private CheaterWindow cheaterWindow;
+        
+        public List<GameLobbyCheckBox> CheckBoxes { get; } = new();
+        public List<GameLobbyDropDown> DropDowns { get; } = new();
+        
+        private IniFile gameOptionsIni;
 
         private string[] filesToCheck = new string[]
         {
@@ -173,6 +180,9 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblNormal);
             AddChild(lblHard);
 
+            gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
+                ClientConfiguration.GAME_OPTIONS));
+
             // Set control attributes from INI file
             base.Initialize();
 
@@ -191,6 +201,18 @@ namespace DTAClient.DXGUI.Generic
             cheaterWindow.CenterOnParent();
             cheaterWindow.YesClicked += CheaterWindow_YesClicked;
             cheaterWindow.Disable();
+
+            if (!ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)
+            {
+                var mapCodeAffectingControl = (XNAControl)CheckBoxes.Cast<IGameSessionSetting>().Concat(DropDowns)
+                    .FirstOrDefault(igss => igss.AffectsMapCode);
+
+                if (mapCodeAffectingControl != null)
+                {
+                    throw new Exception($"{nameof(CampaignSelector)} can't contain settings affecting map code if {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)} is disabled!\n\n"
+                        + $"Offending setting control: {mapCodeAffectingControl.Name}");
+                }
+            }
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
@@ -316,6 +338,25 @@ namespace DTAClient.DXGUI.Generic
             spawnIniSettings.AddKey("DifficultyModeComputer", GetComputerDifficulty().ToString(CultureInfo.InvariantCulture));
 
             spawnIni.AddSection(spawnIniSettings);
+            
+            foreach (GameLobbyCheckBox chkBox in CheckBoxes)
+                chkBox.ApplySpawnIniCode(spawnIni);
+
+            foreach (GameLobbyDropDown dd in DropDowns)
+                dd.ApplySpawnIniCode(spawnIni);
+
+            // Apply forced options from GameOptions.ini
+
+            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
+
+            if (forcedKeys != null)
+            {
+                foreach (string key in forcedKeys)
+                {
+                    spawnIni.SetStringValue("Settings", key,
+                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
+                }
+            }
 
             spawnIni.WriteIniFile();
 
@@ -325,7 +366,15 @@ namespace DTAClient.DXGUI.Generic
             if (copyMapsToSpawnmapINI)
             {
                 var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
+                
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
+                
+                foreach (GameLobbyCheckBox chkBox in CheckBoxes)
+                    chkBox.ApplyMapCode(mapIni, gameMode: null);
+                
+                foreach (GameLobbyDropDown dd in DropDowns)
+                    dd.ApplyMapCode(mapIni, gameMode: null);
+                
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
             }
 

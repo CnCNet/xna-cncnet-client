@@ -1,4 +1,4 @@
-﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby
+﻿namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
     /// An enum for controlling how the game lobbies'
