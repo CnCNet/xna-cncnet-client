@@ -1218,8 +1218,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             gameCheckCancellation = new CancellationTokenSource();
-            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
-            gameCheck.InitializeService(gameCheckCancellation);
+            CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
