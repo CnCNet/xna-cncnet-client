@@ -37,6 +37,7 @@ namespace ClientCore.Statistics
             if (!scoreFileInfo.Exists)
             {
                 Logger.Log("Skipping reading statistics because the file doesn't exist!");
+                _statisticsInitialized = true;
                 return;
             }
 
