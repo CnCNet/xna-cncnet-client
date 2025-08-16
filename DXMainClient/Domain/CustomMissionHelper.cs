@@ -17,7 +17,7 @@ internal static class CustomMissionHelper
 {
     public static List<(string extension, string filename)>? CustomMissionSupplementDefinition { get; private set; }
 
-    private static bool IsValidExtension(string extension) => extension == extension.ToWin32FileName() && extension.IndexOfAny(['.', ' ']) == -1;
+    private static bool IsValidExtension(string extension) => extension == extension.ToWin32FileName() && extension.IndexOfAny(new char[] { '.', ' ' }) == -1;
 
     private static bool IsValidFileName(string filename) => filename == filename.ToWin32FileName();
 
