@@ -118,6 +118,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Applies the drop down's associated code to spawn.ini.
         /// </summary>
+        /// /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
@@ -156,6 +157,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Applies the drop down's associated code to the map INI file.
         /// </summary>
+        /// <param name="mapIni">The map INI file.</param>
+        /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
             if ((dataWriteMode != DropDownDataWriteMode.MAPCODE &&
