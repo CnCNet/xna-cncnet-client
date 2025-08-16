@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using Rampastring.Tools;
+using System.Diagnostics;
 
 namespace ClientCore.Statistics
 {
@@ -13,6 +14,8 @@ namespace ClientCore.Statistics
         private const string SCORE_FILE_PATH = "Client/dscore.dat";
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
+
+        private bool _statisticsInitialized = false;
 
         public event EventHandler GameAdded;
 
@@ -57,6 +60,8 @@ namespace ClientCore.Statistics
 
                 SaveDatabase();
             }
+
+            _statisticsInitialized = true;
         }
 
         /// <summary>
@@ -286,6 +291,7 @@ namespace ClientCore.Statistics
         {
             Statistics.Clear();
             CreateDummyFile();
+            _statisticsInitialized = true;
         }
 
         public void AddMatchAndSaveDatabase(bool addMatch, MatchStatistics ms)
@@ -367,6 +373,7 @@ namespace ClientCore.Statistics
 
         public bool HasBeatCoOpMap(string mapName, string gameMode)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
