@@ -393,6 +393,7 @@ namespace ClientCore.Statistics
 
         public int GetCoopRankForDefaultMap(string mapName, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
@@ -498,6 +499,7 @@ namespace ClientCore.Statistics
 
         public bool HasWonMapInPvP(string mapName, string gameMode, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             foreach (MatchStatistics ms in Statistics)
@@ -563,6 +565,7 @@ namespace ClientCore.Statistics
 
         public int GetSkirmishRankForDefaultMap(string mapName, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
@@ -678,11 +681,13 @@ namespace ClientCore.Statistics
 
         public bool IsGameIdUnique(int gameId)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             return Statistics.Find(m => m.GameID == gameId) == null;
         }
 
         public MatchStatistics GetMatchWithGameID(int gameId)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             return Statistics.Find(m => m.GameID == gameId);
         }
 
