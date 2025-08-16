@@ -118,7 +118,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Applies the drop down's associated code to spawn.ini.
         /// </summary>
-        /// /// <param name="spawnIni">The spawn INI file.</param>
+        /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
