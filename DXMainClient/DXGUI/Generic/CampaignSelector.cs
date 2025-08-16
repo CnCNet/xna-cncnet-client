@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Generic
         private DiscordHandler discordHandler;
         private CampaignTagSelector campaignTagSelector;
 
-        private List<Mission> lbCampaignListMissions = new List<Mission>();
+        private List<Mission> selectedMissions = [];
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
         private XNAClientButton btnCancel;
@@ -251,7 +251,7 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-            Mission mission = lbCampaignListMissions[lbCampaignList.SelectedIndex];
+            Mission mission = selectedMissions[lbCampaignList.SelectedIndex];
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
@@ -287,7 +287,7 @@ namespace DTAClient.DXGUI.Generic
 
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
-            Mission mission = lbCampaignListMissions[selectedMissionId];
+            Mission mission = selectedMissions[selectedMissionId];
 
             if (!ClientConfiguration.Instance.ModMode &&
                 (!Updater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
@@ -555,7 +555,7 @@ namespace DTAClient.DXGUI.Generic
                 return false;
             }
 
-            if (lbCampaignListMissions.Count > 0)
+            if (selectedMissions.Count > 0)
             {
                 throw new InvalidOperationException("Loading multiple Battle*.ini files is not supported anymore.");
             }
@@ -590,7 +590,7 @@ namespace DTAClient.DXGUI.Generic
         /// <param name="loadCustomMissions">True means show official missions. False means show custom missions.</param>
         public void LoadMissionsWithFilter(ISet<string> selectedTags, bool disableCustomMissions = true, bool disableOfficialMissions = false)
         {
-            lbCampaignListMissions.Clear();
+            selectedMissions.Clear();
 
             lbCampaignList.IsChangingSize = true;
 
@@ -622,10 +622,10 @@ namespace DTAClient.DXGUI.Generic
 
             if (selectedTags != null)
                 missions = missions.Where(mission => mission.Tags.Intersect(selectedTags).Any()).ToList();
-            lbCampaignListMissions = missions.ToList();
+            selectedMissions = missions.ToList();
 
             // Update lbCampaignList with selected missions
-            foreach (Mission mission in lbCampaignListMissions)
+            foreach (Mission mission in selectedMissions)
             {
                 var item = new XNAListBoxItem();
                 item.Text = mission.GUIName;
