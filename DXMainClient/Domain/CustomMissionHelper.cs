@@ -1,17 +1,19 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using ClientCore;
+
 using Rampastring.Tools;
 
 namespace DTAClient.Domain;
 internal static class CustomMissionHelper
 {
-
     public static void DeleteSupplementalMissionFiles()
     {
         DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
@@ -22,7 +24,12 @@ internal static class CustomMissionHelper
                 ClientConfiguration.Instance.CustomMissionShpName,
         })
         {
-            gameDirectory.EnumerateFiles(filename).SingleOrDefault()?.Delete();
+            FileInfo? fileInfo = gameDirectory.EnumerateFiles(filename).SingleOrDefault();
+            if (fileInfo?.Exists ?? false)
+            {
+                fileInfo.IsReadOnly = false;
+                fileInfo.Delete();
+            }
         }
     }
 
@@ -44,8 +51,14 @@ internal static class CustomMissionHelper
             })
             {
                 string sourceFileName = missionFileName[..^".map".Length] + "." + ext;
-                if (SafePath.GetFile(SafePath.CombineFilePath(ProgramConstants.GamePath, sourceFileName)).Exists)
-                    File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, sourceFileName), SafePath.CombineFilePath(ProgramConstants.GamePath, filename));
+                string sourceFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, sourceFileName);
+                if (SafePath.GetFile(sourceFilePath).Exists)
+                {
+                    string targetFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, filename);
+
+                    FileHelper.CreateHardLinkFromSource(sourceFilePath, targetFilePath);
+                    new FileInfo(targetFilePath).IsReadOnly = true;
+                }
             }
         }
     }
