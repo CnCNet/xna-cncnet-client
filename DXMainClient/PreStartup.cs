@@ -186,7 +186,8 @@ namespace DTAClient
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
-            // Delete custom mission files
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
             CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             // Delete obsolete files from old target project versions

@@ -509,9 +509,7 @@ namespace ClientCore
         public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
         
         public string CustomMissionPath => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPath", "Maps/CustomMissions");
-        public string CustomMissionCsfName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionCsfName", "stringtable99.csf");
-        public string CustomMissionPalName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPalName", "custommission.pal");
-        public string CustomMissionShpName => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionShpName", "custommission.shp");
+        public string CustomMissionSupplementDefinition => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionSupplementDefinition", "csf|stringtable99.csf|pal|custommission.pal|shp|custommission.shp");
 
         public OSVersion GetOperatingSystemVersion()
         {
