@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <RampastringXNAUIVersion>2.7.10</RampastringXNAUIVersion>
+    <RampastringXNAUIVersion>3.0.4</RampastringXNAUIVersion>
     <DotnetLibrariesVersion>8.0.0</DotnetLibrariesVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -17,7 +17,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="OpenMcdf" Version="2.4.1" />
-    <PackageVersion Include="Rampastring.Tools" Version="2.0.6" />
+    <PackageVersion Include="Rampastring.Tools" Version="2.0.7" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsDX" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsGL" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.UniversalGL" Version="$(RampastringXNAUIVersion)" />
@@ -26,7 +26,7 @@
     <PackageVersion Include="Rampastring.XNAUI.WindowsGL.Debug" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.UniversalGL.Debug" Version="$(RampastringXNAUIVersion)" />
     <PackageVersion Include="Rampastring.XNAUI.WindowsXNA.Debug" Version="$(RampastringXNAUIVersion)" />
-    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.10" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.11" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />

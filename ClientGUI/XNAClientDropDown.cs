@@ -46,9 +46,10 @@ namespace ClientGUI
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        public override void OnMouseLeftDown()
+        public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            base.OnMouseLeftDown();
+            // no need to set Handled to true since we're not "consuming" the event here, just augmenting
+            base.OnMouseLeftDown(inputEventArgs);
             UpdateToolTipBlock();
         }
 
