@@ -29,7 +29,7 @@ internal static class CustomMissionHelper
     public static List<(string extension, string filename)> GetCustomMissionSupplementDefinition()
     {
         string rawDefinition = ClientConfiguration.Instance.CustomMissionSupplementDefinition;
-        string[] definitionItems = rawDefinition.Split(['|'], StringSplitOptions.RemoveEmptyEntries);
+        string[] definitionItems = rawDefinition.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
         int fileCount = definitionItems.Length / 2;
 
         HashSet<string> extensions = [];
