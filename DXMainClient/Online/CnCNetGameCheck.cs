@@ -83,8 +83,8 @@ namespace DTAClient.Online
                     process.Dispose();
                 }
             }
-            catch 
-            { 
+            catch
+            {
             }
         }
     }
