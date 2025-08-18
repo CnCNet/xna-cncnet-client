@@ -23,6 +23,8 @@ namespace DTAClient.DXGUI.Generic
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
 
+        private const string SETTINGS_PATH = "Client/CampaignSettings.ini";
+
         private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
 
         private static string[] DifficultyIniPaths = new string[]
@@ -213,6 +215,8 @@ namespace DTAClient.DXGUI.Generic
                         + $"Offending setting control: {mapCodeAffectingControl.Name}");
                 }
             }
+            
+            LoadSettings();
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
@@ -246,11 +250,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
+            SaveSettings();
             Disable();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
+            SaveSettings();
+            
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
             Mission mission = Missions[selectedMissionId];
@@ -478,6 +485,58 @@ namespace DTAClient.DXGUI.Generic
 
             Logger.Log("Finished parsing " + path + ".");
             return true;
+        }
+        
+        /// <summary>
+        /// Saves settings to an INI file on the file system.
+        /// </summary>
+        private void SaveSettings()
+        {
+            if (!ClientConfiguration.Instance.SaveCampaignGameOptions)
+                return;
+
+            try
+            {
+                FileInfo settingsFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SETTINGS_PATH);
+
+                settingsFileInfo.Delete();
+
+                var settingsIni = new IniFile(settingsFileInfo.FullName);
+                
+                foreach (GameLobbyDropDown dd in DropDowns)
+                    settingsIni.SetStringValue("GameOptions", dd.Name, dd.UserSelectedIndex + "");
+
+                foreach (GameLobbyCheckBox cb in CheckBoxes)
+                    settingsIni.SetStringValue("GameOptions", cb.Name, cb.Checked.ToString());
+
+                settingsIni.WriteIniFile();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Saving campaign settings failed! Reason: {ex}");
+            }
+        }
+        
+        /// <summary>
+        /// Loads settings from an INI file on the file system.
+        /// </summary>
+        private void LoadSettings()
+        {
+            if (!ClientConfiguration.Instance.SaveCampaignGameOptions)
+                return;
+
+            var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
+                
+            foreach (GameLobbyDropDown dd in DropDowns)
+            {
+                dd.UserSelectedIndex = settingsIni.GetIntValue("GameOptions", dd.Name, dd.UserSelectedIndex);
+
+                if (dd.UserSelectedIndex > -1 && dd.UserSelectedIndex < dd.Items.Count)
+                    dd.SelectedIndex = dd.UserSelectedIndex;
+            }
+
+            foreach (GameLobbyCheckBox cb in CheckBoxes)
+                cb.Checked = settingsIni.GetBooleanValue("GameOptions", cb.Name, cb.Checked);
         }
 
         public override void Draw(GameTime gameTime)
