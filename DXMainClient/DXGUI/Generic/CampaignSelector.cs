@@ -422,9 +422,37 @@ namespace DTAClient.DXGUI.Generic
             {
                 // copy an IniSection
                 IniSection spawnIniMissionIniSection = new(mission.Scenario.ToUpperInvariant());
+                string loadingScreenName = string.Empty;
+                string loadingScreenPalName = string.Empty;
                 foreach (var kvp in mission.GameMissionConfigSection.Keys)
                 {
+                    if (string.IsNullOrEmpty(kvp.Value))
+                    {
+                        if (kvp.Key.Equals("LS640BkgdName", StringComparison.InvariantCulture) || kvp.Key.Equals("LS800BkgdName", StringComparison.InvariantCulture))
+                            loadingScreenName = kvp.Value;
+                        else if (kvp.Key.Equals("LS800BkgdPal", StringComparison.InvariantCulture))
+                            loadingScreenPalName = kvp.Value;
+                    }
+
                     spawnIniMissionIniSection.AddKey(kvp.Key, kvp.Value);
+                }
+
+                if (string.IsNullOrEmpty(loadingScreenName))
+                {
+                    string lsFilename = CustomMissionHelper.CustomMissionSupplementDefinition.FirstOrDefault(x => x.extension.Equals("shp", StringComparison.InvariantCultureIgnoreCase)).filename;
+                    
+                    if (!string.IsNullOrEmpty(lsFilename))
+                    {
+                        spawnIniMissionIniSection.AddOrReplaceKey("LS640BkgdName", lsFilename);
+                        spawnIniMissionIniSection.AddOrReplaceKey("LS800BkgdName", lsFilename);
+                    }
+                }
+                if (string.IsNullOrEmpty(loadingScreenPalName))
+                {
+                    string palFilename = CustomMissionHelper.CustomMissionSupplementDefinition.FirstOrDefault(x => x.extension.Equals("pal", StringComparison.InvariantCultureIgnoreCase)).filename;
+                    
+                    if (!string.IsNullOrEmpty(palFilename))
+                        spawnIniMissionIniSection.AddOrReplaceKey("LS800BkgdPal", palFilename);
                 }
 
                 // append the new IniSection
