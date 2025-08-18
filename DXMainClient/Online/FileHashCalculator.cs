@@ -89,61 +89,47 @@ namespace DTAClient.Online
         {
             FileHashes fh = new()
             {
-                GameOptionsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, "GameOptions.ini")),
+                ClientDefinitionsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ClientConfiguration.CLIENT_DEFS)),
+                GameOptionsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, ClientConfiguration.GAME_OPTIONS)),
                 ClientDXHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientdx.exe")),
                 ClientXNAHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientxna.exe")),
                 ClientOGLHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientogl.exe")),
-                ClientDXNET8Hash = string.Empty,
-                ClientXNANET8Hash = string.Empty,
-                ClientOGLNET8Hash = string.Empty,
-                ClientUGLNET8Hash = string.Empty,
-                GameExeHash = calculateGameExeHash ?
-                CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GetGameExecutableName())) : string.Empty,
+                ClientDXNET8Hash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "Windows", "clientdx.dll")),
+                ClientXNANET8Hash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "XNA", "clientxna.dll")),
+                ClientOGLNET8Hash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "OpenGL", "clientogl.dll")),
+                ClientUGLNET8Hash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "UniversalGL", "clientogl.dll")),
+                GameExeHash = calculateGameExeHash
+                    ? CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GetGameExecutableName()))
+                    : string.Empty,
                 LauncherExeHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GameLauncherExecutableName)),
                 MPMapsHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath)),
                 FHCConfigHash = CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.BASE_RESOURCE_PATH, CONFIGNAME)),
             };
 
-            // .NET 8 hashes are optional
-            FileInfo fileDX8 = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "Windows", "clientdx.dll");
-            if (fileDX8.Exists)
-                fh.ClientDXNET8Hash = CalculateSHA1ForFile(fileDX8.FullName);
-
-            FileInfo fileXNA8 = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "XNA", "clientxna.dll");
-            if (fileXNA8.Exists)
-                fh.ClientXNANET8Hash = CalculateSHA1ForFile(fileXNA8.FullName);
-
-            FileInfo fileOGL8 = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "OpenGL", "clientogl.dll");
-            if (fileOGL8.Exists)
-                fh.ClientOGLNET8Hash = CalculateSHA1ForFile(fileOGL8.FullName);
-
-            FileInfo fileUGL8 = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "BinariesNET8", "UniversalGL", "clientogl.dll");
-            if (fileUGL8.Exists)
-                fh.ClientUGLNET8Hash = CalculateSHA1ForFile(fileUGL8.FullName);
-
-            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME + ": " + fh.FHCConfigHash);
-            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "\\GameOptions.ini: " + fh.GameOptionsHash);
-            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "\\clientdx.exe: " + fh.ClientDXHash);
-            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "\\clientxna.exe: " + fh.ClientXNAHash);
-            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "\\clientogl.exe: " + fh.ClientOGLHash);
-            Logger.Log("Hash for ClientDXNET8: " + fh.ClientDXNET8Hash);
-            Logger.Log("Hash for ClientXNANET8: " + fh.ClientXNANET8Hash);
-            Logger.Log("Hash for ClientOGLNET8: " + fh.ClientOGLNET8Hash);
-            Logger.Log("Hash for ClientUGLNET8: " + fh.ClientUGLNET8Hash);
-            Logger.Log("Hash for " + ClientConfiguration.Instance.MPMapsIniPath + ": " + fh.MPMapsHash);
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{ClientConfiguration.CLIENT_DEFS}: {fh.ClientDefinitionsHash}");
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{CONFIGNAME}: {fh.FHCConfigHash}");
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\{ClientConfiguration.GAME_OPTIONS}: {fh.GameOptionsHash}");
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\clientdx.exe: {fh.ClientDXHash}");
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\clientxna.exe: {fh.ClientXNAHash}");
+            Logger.Log($"Hash for {ProgramConstants.BASE_RESOURCE_PATH}\\clientogl.exe: {fh.ClientOGLHash}");
+            Logger.Log($"Hash for ClientDX NET8: {fh.ClientDXNET8Hash}");
+            Logger.Log($"Hash for ClientXNA NET8: {fh.ClientXNANET8Hash}");
+            Logger.Log($"Hash for ClientOGL NET8: {fh.ClientOGLNET8Hash}");
+            Logger.Log($"Hash for ClientUGL NET8: {fh.ClientUGLNET8Hash}");
+            Logger.Log($"Hash for {ClientConfiguration.Instance.MPMapsIniPath}: {fh.MPMapsHash}");
 
             if (calculateGameExeHash)
-                Logger.Log("Hash for " + ClientConfiguration.Instance.GetGameExecutableName() + ": " + fh.GameExeHash);
+                Logger.Log($"Hash for {ClientConfiguration.Instance.GetGameExecutableName()}: {fh.GameExeHash}");
 
             if (!string.IsNullOrEmpty(ClientConfiguration.Instance.GameLauncherExecutableName))
-                Logger.Log("Hash for " + ClientConfiguration.Instance.GameLauncherExecutableName + ": " + fh.LauncherExeHash);
+                Logger.Log($"Hash for {ClientConfiguration.Instance.GameLauncherExecutableName}: {fh.LauncherExeHash}");
 
             foreach (string relativePath in fileNamesToCheck)
             {
                 string fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, relativePath);
                 string hash = fh.AddHashForFileIfExists(relativePath, fullPath);
                 if (!string.IsNullOrEmpty(hash))
-                    Logger.Log("Hash for " + relativePath + ": " + hash);
+                    Logger.Log($"Hash for {relativePath}: {hash}");
             }
 
             List<DirectoryInfo> iniPaths = [SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")];
@@ -186,13 +172,13 @@ namespace DTAClient.Online
 
                         string hash = fh.AddHashForFileIfExists(fileRelativePath, fileFullPath);
                         if (!string.IsNullOrEmpty(hash))
-                            Logger.Log("Hash for " + fileRelativePath + ": " + hash);
+                            Logger.Log($"Hash for {fileRelativePath}: {hash}");
                     }
                 }
             }
 
             finalHash = fh.GetFinalHash();
-            Logger.Log("Complete hash: " + finalHash);
+            Logger.Log($"Complete hash: {finalHash}");
         }
 
         public string GetCompleteHash() => finalHash;
@@ -255,6 +241,7 @@ namespace DTAClient.Online
 
         private class FileHashes()
         {
+            public string ClientDefinitionsHash;
             public string GameOptionsHash;
             public string ClientDXHash;
             public string ClientXNAHash;
@@ -292,6 +279,7 @@ namespace DTAClient.Online
             public string GetFinalHash()
             {
                 var sb = new StringBuilder();
+                sb.Append(ClientDefinitionsHash);
                 sb.Append(GameOptionsHash);
                 sb.Append(ClientDXHash);
                 sb.Append(ClientXNAHash);
