@@ -669,8 +669,20 @@ namespace DTAClient.DXGUI.Generic
 
         private void LoadThemeSong()
         {
+            string musicName;
+            var themes = ClientConfiguration.Instance.MainMenuThemes;
+            if (themes.Count > 0)
+            {
+                var random = new Random();
+                musicName = themes[random.Next(themes.Count)];
+            }
+            else
+            {
+                musicName = ClientConfiguration.Instance.MainMenuMusicName;
+            }
+
 #if XNA
-            themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+            themeSong = AssetLoader.LoadSong(musicName);
 #else
 
 #if GL
@@ -680,19 +692,19 @@ namespace DTAClient.DXGUI.Generic
 #endif
 
             FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
-                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.{songExtension}"));
+                FormattableString.Invariant($"{musicName}.{songExtension}"));
 
             if (!mainMenuMusicFile.Exists)
                 return;
 
             try
             {
-                themeSong = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
+                themeSong = Song.FromUri(musicName, new Uri(mainMenuMusicFile.FullName));
             }
             catch (Exception ex)
             {
                 Logger.Log($"Error loading the theme song. Fallback to the legacy method. Have you installed 'Media Feature Pack for Windows 10/11 N'? Exception: {ex.ToString()}");
-                themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+                themeSong = AssetLoader.LoadSong(musicName);
             }
 #endif
         }
