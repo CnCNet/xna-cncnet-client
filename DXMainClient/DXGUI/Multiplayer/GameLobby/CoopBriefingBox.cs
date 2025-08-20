@@ -17,7 +17,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         string text = string.Empty;
-        int fontIndex = 3;
+        int fontIndex = 0;
 
         private bool isVisible = true;
 
