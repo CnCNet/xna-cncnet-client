@@ -4,9 +4,15 @@ using System.Threading;
 
 namespace DTAClient.Online
 {
-    public class CnCNetGameCheck
+    public sealed class CnCNetGameCheck
     {
-        private static int REFRESH_INTERVAL = 15000; // 15 seconds
+        private static readonly CnCNetGameCheck _instance = new CnCNetGameCheck();
+
+        private static readonly int REFRESH_INTERVAL = 15000; // 15 seconds
+
+        private CnCNetGameCheck() { }
+
+        public static CnCNetGameCheck Instance => _instance;
 
         public void InitializeService(CancellationTokenSource cts)
         {
@@ -33,13 +39,15 @@ namespace DTAClient.Online
 
         private void CheatEngineWatchEvent()
         {
+            if (!ProgramConstants.IsInGame) 
+                return;
+
             Process[] processlist = Process.GetProcesses();
             foreach (Process process in processlist)
             {
                 try {
                     if (process.ProcessName.Contains("cheatengine") ||
-                        process.MainWindowTitle.ToLower().Contains("cheat engine") ||
-                        process.MainWindowHandle.ToString().ToLower().Contains("cheat engine")
+                        process.MainWindowTitle.ToLower().Contains("cheat engine")
                         )
                     {
                         KillGameInstance();
