@@ -1,6 +1,7 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -16,8 +17,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
         }
 
+        /// <summary>
+        /// The index of the text font.
+        /// </summary>
+        public int FontIndex { get; set; } = 0;
+
         string text = string.Empty;
-        int fontIndex = 0;
 
         private bool isVisible = true;
 
@@ -28,7 +33,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClientRectangle = new Rectangle(0, 0, 400, 300);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 224), 2, 2);
-            
+            FontIndex = 0;
+
             InputEnabled = false;
 
             AlphaRate = ALPHA_RATE;
@@ -36,6 +42,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             CenterOnParent();
+        }
+
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+        {
+            switch (key)
+            {
+                case "FontIndex":
+                    FontIndex = Conversions.IntFromString(value, 0);
+                    return;
+            }
+
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public void SetFadeVisibility(bool visible)
@@ -50,8 +68,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SetText(string text)
         {
-            this.text = Renderer.FixText(text, fontIndex, Width - (MARGIN * 2)).Text;
-            int textHeight = (int)Renderer.GetTextDimensions(this.text, fontIndex).Y;
+            this.text = Renderer.FixText(text, FontIndex, Width - (MARGIN * 2)).Text;
+            int textHeight = (int)Renderer.GetTextDimensions(this.text, FontIndex).Y;
             ClientRectangle = new Rectangle(X, 0,
                 Width, textHeight + MARGIN * 2);
             CenterOnParent();
@@ -77,7 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             FillControlArea(new Color(0, 0, 0, 224));
             DrawRectangle(new Rectangle(0, 0, Width, Height), BorderColor);
-            DrawStringWithShadow(text, fontIndex,
+            DrawStringWithShadow(text, FontIndex,
                 new Vector2(MARGIN, MARGIN),
                 UISettings.ActiveSettings.AltColor);
         }
