@@ -32,7 +32,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClientRectangle = new Rectangle(0, 0, 400, 300);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 224), 2, 2);
-            FontIndex = 0;
 
             InputEnabled = false;
 
