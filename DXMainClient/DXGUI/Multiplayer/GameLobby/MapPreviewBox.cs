@@ -32,8 +32,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
-    public class MapPreviewBox : XNAPanel
+    public class MapPreviewBox : XNAPanel, ICompositeControl
     {
+        public IReadOnlyList<XNAControl> SubControls => [briefingBox];
+
         private const int MAX_STARTING_LOCATIONS = 8;
 
         public delegate void LocalStartingLocationSelectedEventHandler(object sender,
@@ -48,7 +50,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             FontIndex = 1;
         }
-
 
         public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
         {
@@ -90,10 +91,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 AddChild(indicator);
             }
-
-            briefingBox = new CoopBriefingBox(WindowManager);
-            AddChild(briefingBox);
-            briefingBox.Disable();
 
             ClientRectangleUpdated += (s, e) => UpdateMap();
         }
@@ -216,6 +213,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddChild(mapContextMenu);
             mapContextMenu.Disable();
+
+            briefingBox = new CoopBriefingBox(WindowManager);
+            // AddChildWithoutInitialize is needed for the control composition to work properly, as otherwise
+            // the controls will be initialized twice via INItializableWindow system
+            AddChildWithoutInitialize(briefingBox);
+            briefingBox.Disable();
 
             sndClickSound = new EnhancedSoundEffect("button.wav");
 
@@ -620,7 +623,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
             inputEventArgs.Handled = true;
-            
+
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
