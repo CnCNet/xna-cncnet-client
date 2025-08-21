@@ -34,7 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public class MapPreviewBox : XNAPanel, ICompositeControl
     {
-        public IReadOnlyList<XNAControl> SubControls => [briefingBox];
+        public IReadOnlyList<XNAControl> SubControls => [CoopBriefingBox];
 
         private const int MAX_STARTING_LOCATIONS = 8;
 
@@ -49,6 +49,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             FontIndex = 1;
+
+            CoopBriefingBox = new CoopBriefingBox(windowManager);
+            CoopBriefingBox.Disable();
+
+            NameChanged += MapPreviewBox_NameChanged;
+        }
+
+        private void MapPreviewBox_NameChanged(object sender, EventArgs e)
+        {
+            CoopBriefingBox.Name = $"{Name}_CoopBriefingBox";
         }
 
         public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
@@ -140,7 +150,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private XNAClientButton btnToggleFavoriteMap;
         private XNAClientButton btnToggleExtraTextures;
 
-        private CoopBriefingBox briefingBox;
+        private CoopBriefingBox CoopBriefingBox;
 
         private Rectangle textureRectangle;
 
@@ -214,11 +224,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(mapContextMenu);
             mapContextMenu.Disable();
 
-            briefingBox = new CoopBriefingBox(WindowManager);
-            // AddChildWithoutInitialize is needed for the control composition to work properly, as otherwise
+            // this is needed for the control composition to work properly, as otherwise
             // the controls will be initialized twice via INItializableWindow system
-            AddChildWithoutInitialize(briefingBox);
-            briefingBox.Disable();
+            AddChildWithoutInitialize(CoopBriefingBox);
 
             sndClickSound = new EnhancedSoundEffect("button.wav");
 
@@ -395,7 +403,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (GameModeMap == null)
             {
                 previewTexture = null;
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
                 contextMenu.Disable();
 
@@ -418,13 +426,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(GameModeMap.Map.Briefing);
-                briefingBox.Enable();
+                CoopBriefingBox.SetText(GameModeMap.Map.Briefing);
+                CoopBriefingBox.Enable();
                 if (IsActive)
-                    briefingBox.SetAlpha(0f);
+                    CoopBriefingBox.SetAlpha(0f);
             }
             else
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
             double xRatio = (Width - 2) / (double)previewTexture.Width;
             double yRatio = (Height - 2) / (double)previewTexture.Height;
@@ -598,10 +606,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetFadeVisibility(false);
+                CoopBriefingBox.SetFadeVisibility(false);
             }
             else
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
             base.OnMouseEnter();
         }
@@ -613,8 +621,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(GameModeMap.Map.Briefing);
-                briefingBox.SetFadeVisibility(true);
+                CoopBriefingBox.SetText(GameModeMap.Map.Briefing);
+                CoopBriefingBox.SetFadeVisibility(true);
             }
 
             base.OnMouseLeave();
