@@ -475,7 +475,7 @@ ItemXFileN=                          ; comma-separated strings,
 ; GameLobbyBase.ini
 
 [MapPreviewBox_CoopBriefingBox]
-FontIndex=1
+FontIndex=0
 ```
 
 ##### Appendix: File Operation Options
