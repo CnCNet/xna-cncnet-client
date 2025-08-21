@@ -469,6 +469,15 @@ ItemXFileN=                          ; comma-separated strings,
                                      ;          (see #appendix-file-operation-options).
 ```
 
+#### CoopBriefingBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox_CoopBriefingBox]
+FontIndex=1
+```
+
 ##### Appendix: File Operation Options
 
 Valid file operation options available for files defined for `FileSettingCheckBox` and `FileSettingDropDown` are as follows:
