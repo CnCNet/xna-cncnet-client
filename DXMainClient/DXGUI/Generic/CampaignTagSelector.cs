@@ -68,12 +68,19 @@ namespace DTAClient.DXGUI.Generic
             var tagButtons = FindChildrenStartWith<XNAClientButton>(TagButtonsPrefix);
             foreach (var tagButton in tagButtons)
             {
-                string tagName = tagButton.Name.Substring(TagButtonsPrefix.Length);
-                tagButton.LeftClick += (sender, e) =>
+                if (tagButton.Enabled)
                 {
-                    CampaignSelector.LoadMissionsWithFilter(new HashSet<string>() { tagName }, disableCustomMissions: false, disableOfficialMissions: false);
-                    NoFadeSwitch();
-                };
+                    string tagName = tagButton.Name.Substring(TagButtonsPrefix.Length);
+                    tagButton.LeftClick += (sender, e) =>
+                    {
+                        CampaignSelector.LoadMissionsWithFilter(new HashSet<string>() { tagName }, disableCustomMissions: false, disableOfficialMissions: false);
+                        NoFadeSwitch();
+                    };
+                }
+                else
+                {
+                    tagButton.AllowClick = false;
+                }
             }
         }
 
