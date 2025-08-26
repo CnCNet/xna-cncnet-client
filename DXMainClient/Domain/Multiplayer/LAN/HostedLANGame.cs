@@ -24,7 +24,7 @@ namespace DTAClient.Domain.LAN
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {
-            if (parameters.Length != 9)
+            if (parameters.Length != 10)
             {
                 Logger.Log("Ignoring LAN GAME message because of an incorrect number of parameters.");
                 return false;
@@ -51,6 +51,7 @@ namespace DTAClient.Domain.LAN
             LastRefreshTime = DateTime.Now;
             TimeWithoutRefresh = TimeSpan.Zero;
             RoomName = HostName + "'s Game";
+            MapHash = parameters[9];
 
             return true;
         }
