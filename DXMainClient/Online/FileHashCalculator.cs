@@ -154,8 +154,21 @@ namespace DTAClient.Online
                 }
             }
 
-            // Add the hashes for each checked file from the available translations
+            // Add coop difficulty INIs unless they were already in one of the paths.
+            foreach (var path in ClientConfiguration.Instance.CoopDifficultyINIPaths)
+            {
+                var fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, path);
+                var dir = SafePath.GetDirectory(Path.GetDirectoryName(fullPath));
 
+                if (iniPaths.Any(x => x.FullName.Equals(dir.FullName)))
+                    continue;
+
+                string hash = fh.AddHashForFileIfExists(path, fullPath);
+                if (!string.IsNullOrEmpty(hash))
+                    Logger.Log("Hash for " + path + ": " + hash);
+            }
+
+            // Add the hashes for each checked file from the available translations
             if (Directory.Exists(ClientConfiguration.Instance.TranslationsFolderPath))
             {
                 DirectoryInfo translationsFolderPath = SafePath.GetDirectory(ClientConfiguration.Instance.TranslationsFolderPath);

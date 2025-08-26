@@ -19,8 +19,6 @@ namespace DTAClient.DXGUI.Generic
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
 
-        private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
-
         private static string[] DifficultyIniPaths = new string[]
         {
             "INI/Map Code/Difficulty Easy.ini",
@@ -310,7 +308,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             var difficultyIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, DifficultyIniPaths[trbDifficultySelector.Value]));
-            string difficultyName = DifficultyNames[trbDifficultySelector.Value];
+            string difficultyName = ProgramConstants.DIFFICULTY_NAMES[trbDifficultySelector.Value];
 
             if (copyMapsToSpawnmapINI)
             {
