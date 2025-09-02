@@ -357,6 +357,15 @@ FillHeight=10
 
 Some controls are only available under specific circumstances.
 
+#### CoopBriefingBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox_CoopBriefingBox]
+FontIndex=0
+```
+
 #### XNAOptionsPanel Controls
 
 Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
@@ -467,15 +476,6 @@ ItemXFileN=                          ; comma-separated strings,
                                      ;          source path relative to game root folder,
                                      ;          destination path relative to game root folder and a file operation option 
                                      ;          (see #appendix-file-operation-options).
-```
-
-#### CoopBriefingBox
-
-```ini
-; GameLobbyBase.ini
-
-[MapPreviewBox_CoopBriefingBox]
-FontIndex=0
 ```
 
 ##### Appendix: File Operation Options
