@@ -902,7 +902,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected virtual void LockGameNotification() =>
-            AddNotice("You need to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
+            AddNotice("The host needs to lock the game room before launching the game.".L10N("Client:Main:LockGameNotificationV2"));
 
         protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
