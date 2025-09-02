@@ -85,4 +85,20 @@
   <ItemGroup>
     <CompilerVisibleProperty Include="RootNamespace" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <XNAUIRoot>$(MSBuildThisFileDirectory)Rampastring.XNAUI</XNAUIRoot>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+    <Reference Include="Microsoft.Xna.Framework">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
