@@ -412,10 +412,10 @@ public static class Updater
         httpClient.DefaultRequestHeaders.UserAgent.Clear();
 
         if (GameVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame, GameVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame.Replace(' ', '-'), GameVersion.Replace(' ', '-')));
 
         if (UpdaterVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion.Replace(' ', '-')));
 
         httpClient.DefaultRequestHeaders.UserAgent.Add(new("Client", GitVersionInformation.AssemblySemVer));
     }
