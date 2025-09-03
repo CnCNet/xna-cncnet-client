@@ -637,7 +637,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
 
                 if (previewFileInfo.Exists)
-                    ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
+                {
+                    try
+                    {
+                        ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
+                    }
+                    catch { }
+                }
             }
 
             base.OnLeftClick(inputEventArgs);
