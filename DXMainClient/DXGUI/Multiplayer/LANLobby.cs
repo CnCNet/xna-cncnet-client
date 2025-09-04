@@ -1,31 +1,39 @@
-﻿using ClientCore;
-using ClientCore.CnCNet5;
-using ClientGUI;
-using DTAClient.Domain;
-using DTAClient.Domain.LAN;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.LAN;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
-using DTAClient.Online;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+
+using ClientCore;
+using ClientCore.CnCNet5;
+using ClientCore.Extensions;
+
+using ClientGUI;
+
+using DTAClient.Domain;
+using DTAClient.Domain.LAN;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.LAN;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+
 using SixLabors.ImageSharp;
+
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -89,7 +97,8 @@ namespace DTAClient.DXGUI.Multiplayer
         EnhancedSoundEffect sndGameCreated;
 
         Socket socket;
-        IPEndPoint endPoint;
+        List<IPEndPoint> endPoints;
+        List<IPAddress> ignoredIPs;
         Encoding encoding;
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
@@ -337,6 +346,37 @@ namespace DTAClient.DXGUI.Multiplayer
             SetChatColor();
             UserINISettings.Instance.SaveSettings();
         }
+        private void AddBroadcasts()
+        {
+            endPoints = new List<IPEndPoint>();
+            NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+            ignoredIPs = new List<IPAddress>();
+            foreach (NetworkInterface adapter in adapters)
+            {
+                IPInterfaceProperties prop = adapter.GetIPProperties();
+                UnicastIPAddressInformation? info = null;
+                foreach (UnicastIPAddressInformation info_ in prop.UnicastAddresses)
+                {
+                    if (info_.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        info = info_;
+                        break;
+                    }
+                }
+                if (info == null) continue;
+                ignoredIPs.Add(info.Address);
+                uint ip = BitConverter.ToUInt32(info.Address.GetAddressBytes(), 0);
+                uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
+                uint broadcast = ip | ~mask;
+                IPAddress adr = new IPAddress(BitConverter.GetBytes(broadcast));
+                endPoints.Add(new IPEndPoint(adr, ProgramConstants.LAN_LOBBY_PORT));
+            }
+            if (ignoredIPs.Count > 0)
+            {
+                if (!ignoredIPs.Contains(IPAddress.Loopback)) ignoredIPs.RemoveAt(ignoredIPs.Count - 1);
+                else ignoredIPs.Remove(IPAddress.Loopback);
+            }
+        }
 
         public void Open()
         {
@@ -354,7 +394,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 socket.EnableBroadcast = true;
                 socket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT));
-                endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
+                AddBroadcasts();
                 initSuccess = true;
             }
             catch (SocketException ex)
@@ -384,8 +424,10 @@ namespace DTAClient.DXGUI.Multiplayer
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
-
-            socket.SendTo(buffer, endPoint);
+            foreach (IPEndPoint endPoint in endPoints)
+            {
+                socket.SendTo(buffer, endPoint);
+            }
         }
 
         private void Listen()
@@ -400,6 +442,9 @@ namespace DTAClient.DXGUI.Multiplayer
                     receivedBytes = socket.ReceiveFrom(buffer, ref ep);
 
                     IPEndPoint iep = (IPEndPoint)ep;
+
+                    if (ignoredIPs.Contains(iep.Address))
+                        continue;
 
                     string data = encoding.GetString(buffer, 0, receivedBytes);
 
