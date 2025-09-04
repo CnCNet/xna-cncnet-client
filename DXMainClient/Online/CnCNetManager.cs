@@ -127,11 +127,12 @@ namespace DTAClient.Online
         /// <param name="persistent">Determines whether the channel's information 
         /// should remain in memory even after a disconnect.</param>
         /// <param name="password">The password for the channel. Use null for none.</param>
+        /// <param name="isCustomPassword">True if the channel uses a manually set custom password; false if it's default or auto-assigned..</param>
         /// <returns>A channel.</returns>
         public Channel CreateChannel(string uiName, string channelName,
-            bool persistent, bool isChatChannel, string password)
+            bool persistent, bool isChatChannel, string password, bool isCustomPassword)
         {
-            return new Channel(uiName, channelName, persistent, isChatChannel, password, connection);
+            return new Channel(uiName, channelName, persistent, isChatChannel, password, isCustomPassword, connection);
         }
 
         public void AddChannel(Channel channel)
