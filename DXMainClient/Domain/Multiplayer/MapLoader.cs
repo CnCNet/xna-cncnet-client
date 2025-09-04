@@ -21,7 +21,15 @@ namespace DTAClient.Domain.Multiplayer
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
-        private const int CurrentCustomMapCacheVersion = 1;
+
+        /// <summary>
+        /// Version identifier for the cache.
+        /// Increment this version number to invalidate cached data. You should do this if:
+        /// (a) Map class gains new members, or
+        /// (b) Map parsing logic changes in ways that could produce different results
+        /// </summary>
+        private const int CurrentCustomMapCacheVersion = 2;
+
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
 
         /// <summary>
@@ -110,7 +118,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 var map = new Map(mapFilePathValue, false);
 
-                if (!map.SetInfoFromMpMapsINI(mpMapsIni))
+                if (!map.InitializeFromMpMapsINI(mpMapsIni))
                     continue;
 
                 maps.Add(map);
@@ -183,7 +191,7 @@ namespace DTAClient.Domain.Multiplayer
                         .Replace(Path.AltDirectorySeparatorChar, '/'), true);
                     map.CalculateSHA();
                     localMapSHAs.Add(map.SHA1);
-                    if (!customMapCache.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
+                    if (!customMapCache.ContainsKey(map.SHA1) && map.InitializeFromCustomMap())
                         customMapCache.TryAdd(map.SHA1, map);
                 }));
             }
@@ -272,7 +280,7 @@ namespace DTAClient.Domain.Multiplayer
 
             var map = new Map(mapPath, true);
 
-            if (map.SetInfoFromCustomMap())
+            if (map.InitializeFromCustomMap())
             {
                 foreach (GameMode gm in GameModes)
                 {
