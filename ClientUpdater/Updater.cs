@@ -487,7 +487,8 @@ public static class Updater
         else
         {
             var updaterConfig = new IniFile(configFile.FullName);
-            ignoreMasks = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks)).Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
+            string maskString = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks));
+            ignoreMasks = maskString.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             List<string> keys = updaterConfig.GetSectionKeys("DownloadMirrors");
 
