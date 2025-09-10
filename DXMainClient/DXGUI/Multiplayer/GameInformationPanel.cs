@@ -144,10 +144,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
             this.game = game;
 
-            // we don't have the ID of a map here
-            string translatedMapName = string.IsNullOrEmpty(game.Map)
-                ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(game.Map)
-                ? mapLoader.TranslatedMapNames[game.Map] : game.Map;
+            string translatedMapName = "Unknown".L10N("Client:Main:Unknown");
+
+            if (!string.IsNullOrEmpty(game.MapHash) && mapLoader != null)
+            {
+                var mapEntry = mapLoader.GameModeMaps
+                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase));
+
+                if (mapEntry != null)
+                    translatedMapName = mapEntry.Map.Name ?? mapEntry.Map.UntranslatedName;
+                else if (!string.IsNullOrEmpty(game.Map))
+                    translatedMapName = game.Map; // fallback to broadcasted name
+            }
+            else if (!string.IsNullOrEmpty(game.Map))
+            {
+                translatedMapName = game.Map;
+            }
 
             string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
@@ -192,9 +204,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lblGameInformation.Visible = true;
 
-            if (mapLoader != null)
+            if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                mapTexture = mapLoader.GameModeMaps.Find(m => m.Map.UntranslatedName.Equals(game.Map, StringComparison.InvariantCultureIgnoreCase) && m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
+                mapTexture = mapLoader.GameModeMaps
+                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase) &&
+                               m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
+
                 if (mapTexture == null && noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
