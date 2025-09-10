@@ -545,3 +545,18 @@ TrustedDomains=  ; comma-separated list of strings,
                  ; domain names to match links and prevent the message box from appearing before they open by default browser
                  ; example: cncnet.org,github.com,moddb.com
 ```
+
+```ini
+[Settings]
+CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
+CustomMissionSupplementDefinition=csf|stringtable99.csf|pal|custommission.pal|shp|custommission.shp ; supplement files that are supposed to be copied to the game folder when a custom mission is played
+```
+
+```ini
+[Settings]
+ReturnToMainMenuOnMissionLaunch=true ; whether or not client returns to main menu when launching a mission
+```
+
+```ini
+CampaignTagSelectorEnabled=false ; turns on the campaign tag selector, showing a window to let users choose which group of missions to play
+```
