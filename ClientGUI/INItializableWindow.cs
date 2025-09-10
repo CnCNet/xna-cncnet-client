@@ -217,6 +217,10 @@ namespace ClientGUI
                     if (kvp.Value == "Disable")
                         control.LeftClick += (s, e) => Disable();
                 }
+                else if (kvp.Key == "$ToggleableControl" && control is XNAClientButton button)
+                {
+                    button.SetToggleableControl(kvp.Value);
+                }
                 else
                 {
                     control.ParseINIAttribute(ConfigIni, kvp.Key, kvp.Value);
