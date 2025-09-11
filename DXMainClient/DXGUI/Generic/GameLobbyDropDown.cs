@@ -1,18 +1,23 @@
 ﻿using System;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using ClientGUI;
-using DTAClient.Domain.Multiplayer;
+
 using ClientCore.Extensions;
 using ClientCore.I18N;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+using ClientGUI;
+
+using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+
+namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
     /// A game option drop-down for the game lobby.
     /// </summary>
-    public class GameLobbyDropDown : XNAClientDropDown
+    public class GameLobbyDropDown : XNAClientDropDown, IGameSessionSetting
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 
@@ -21,6 +26,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public int HostSelectedIndex { get; set; }
 
         public int UserSelectedIndex { get; set; }
+
+        public bool AffectsSpawnIni => dataWriteMode != DropDownDataWriteMode.MAPCODE;
+        public bool AffectsMapCode => dataWriteMode == DropDownDataWriteMode.MAPCODE;
+        public bool AllowScoring => true;  // TODO
 
         private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
 
@@ -39,9 +48,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
 
                 // oh no, we have a circular class reference here!
-                if (parent is GameLobbyBase gameLobby)
+                if (parent is IGameSessionConfigView configView)
                 {
-                    gameLobby.DropDowns.Add(this);
+                    configView.DropDowns.Add(this);
                     break;
                 }
 
@@ -101,13 +110,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
-        /// <summary>
-        /// Applies the drop down's associated code to spawn.ini.
-        /// </summary>
-        /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            if (!AffectsSpawnIni || SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
             if (String.IsNullOrEmpty(spawnIniOption))
@@ -129,17 +134,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
                     break;
             }
-
         }
 
-        /// <summary>
-        /// Applies the drop down's associated code to the map INI file.
-        /// </summary>
-        /// <param name="mapIni">The map INI file.</param>
-        /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
-            if (dataWriteMode != DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
+            if (!AffectsMapCode || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
 
             string customIniPath;
             customIniPath = Items[SelectedIndex].Tag.ToString();
