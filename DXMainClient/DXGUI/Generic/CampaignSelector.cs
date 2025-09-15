@@ -215,6 +215,15 @@ namespace DTAClient.DXGUI.Generic
                         + $"Offending setting control: {mapCodeAffectingControl.Name}");
                 }
             }
+
+            var disallowedSideCheckbox = CheckBoxes
+                .FirstOrDefault(cb => cb.DisallowedSideIndices.Count > 0);
+
+            if (disallowedSideCheckbox != null)
+            {
+                throw new Exception($"{nameof(CampaignSelector)} can't contain settings with disallowed side indices!\n\n" 
+                    + $"Offending setting control: {disallowedSideCheckbox.Name}");
+            }
             
             LoadSettings();
         }
