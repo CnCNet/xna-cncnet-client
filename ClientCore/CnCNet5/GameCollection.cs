@@ -146,7 +146,6 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Red Alert",
                     UIName = "Red Alert".L10N("Client:ClientCore:RedAlert"),
                     Texture = AssetLoader.TextureFromImage(raIcon),
-                    Supported = false
                 },
 
                 new()
