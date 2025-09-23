@@ -1,10 +1,8 @@
 ﻿using ClientCore;
-using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     /// <summary>
     /// Dropdown for toggling options in user settings INI file.

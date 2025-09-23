@@ -1,9 +1,8 @@
 ﻿using System;
-using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     public abstract class SettingCheckBoxBase : XNAClientCheckBox, IUserSetting
     {

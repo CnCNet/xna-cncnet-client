@@ -1,12 +1,10 @@
 ﻿using ClientCore;
-
 using Rampastring.Tools;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     sealed class FileSourceDestinationInfo
     {

@@ -1,12 +1,11 @@
 using ClientCore;
-using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     /// <summary>
     /// A check-box that toggles between two sets of files and saves the setting to user settings file.
