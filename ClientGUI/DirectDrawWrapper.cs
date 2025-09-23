@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DTAConfig
+namespace ClientGUI
 {
     /// <summary>
     /// A DirectDraw wrapper option.

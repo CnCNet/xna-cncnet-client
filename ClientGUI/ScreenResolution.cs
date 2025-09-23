@@ -8,7 +8,7 @@ using ClientCore;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DTAConfig
+namespace ClientGUI
 {
     /// <summary>
     /// A single screen resolution.

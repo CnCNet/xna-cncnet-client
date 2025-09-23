@@ -1,6 +1,5 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
-using ClientGUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
@@ -9,7 +8,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 
-namespace DTAConfig
+namespace ClientGUI
 {
     /// <summary>
     /// A window for configuring in-game hotkeys.
