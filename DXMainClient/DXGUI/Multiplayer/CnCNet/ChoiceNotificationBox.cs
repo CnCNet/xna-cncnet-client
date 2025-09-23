@@ -7,7 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
 using System.Reflection;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

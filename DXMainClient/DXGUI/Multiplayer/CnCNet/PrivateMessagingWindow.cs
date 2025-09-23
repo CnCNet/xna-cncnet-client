@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;

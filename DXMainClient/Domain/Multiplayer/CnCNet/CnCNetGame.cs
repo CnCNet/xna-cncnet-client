@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace ClientCore.CnCNet5
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// A class for games supported on CnCNet (DTA, TI, TS, RA1/2, etc.)

@@ -6,9 +6,10 @@ using System.IO;
 using System.Reflection;
 using Rampastring.Tools;
 using SixLabors.ImageSharp;
+using ClientCore;
 using ClientCore.Extensions;
 
-namespace ClientCore.CnCNet5
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// A class for storing the collection of supported CnCNet games.
