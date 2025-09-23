@@ -229,7 +229,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 

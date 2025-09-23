@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "MAKE A CHOICE".L10N("Client:Main:MakeAChoice");
             AddChild(lblHeader);
 
-            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.dtaicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
 
             gameIconPanel = new XNAPanel(WindowManager);

@@ -29,6 +29,10 @@
     <None Remove="Resources\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Icons\*.png" />
+    <EmbeddedResource Include="Icons\*.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>

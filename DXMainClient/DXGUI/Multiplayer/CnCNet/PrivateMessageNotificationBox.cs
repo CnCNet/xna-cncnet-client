@@ -78,7 +78,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.DrawBorders = false;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.dtaicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
 
             gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);

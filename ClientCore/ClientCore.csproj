@@ -3,10 +3,6 @@
     <Description>CnCNet Client Core Library</Description>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Resources\*.png" />
-    <EmbeddedResource Include="Resources\*.png" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Rampastring.Tools" />
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="Ude.NetStandard" />
