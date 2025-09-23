@@ -19,7 +19,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ClientCore.Enums;
-using DTAConfig;
 using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
