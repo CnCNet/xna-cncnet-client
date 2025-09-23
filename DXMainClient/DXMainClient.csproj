@@ -49,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-    <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
