@@ -1,6 +1,6 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ClientCore.Enums;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class CnCNetOptionsPanel : XNAOptionsPanel
     {

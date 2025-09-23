@@ -19,9 +19,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.Settings;
-using Microsoft.Xna.Framework.Graphics;
-using DTAConfig;
-using System.Collections.Generic;
+using ClientGUI;
 using Steamworks;
 
 namespace DTAClient
