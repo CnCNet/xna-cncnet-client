@@ -1,8 +1,6 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
-using System;
-using ClientCore;
 using ClientCore.Extensions;
 
 namespace ClientGUI
@@ -10,6 +8,8 @@ namespace ClientGUI
     public class XNAClientButton : XNAButton, IToolTipContainer
     {
         public ToolTip ToolTip { get; private set; }
+
+        public XNAControl ToggleableControl { get; set; }
 
         private string _initialToolTipText;
         public string ToolTipText
@@ -67,5 +67,35 @@ namespace ClientGUI
 
             base.ParseControlINIAttribute(iniFile, key, value);
         }
+
+        public void SetToggleableControl(string controlName)
+        {
+            if (!string.IsNullOrEmpty(controlName))
+            {
+                var parent = UIHelpers.FindParentWindow(this);
+
+                if (parent == null)
+                    return;
+
+                ToggleableControl = UIHelpers.FindMatchingChild<XNAControl>(parent, controlName, true);
+            }
+        }
+
+        public override void OnLeftClick()
+        {
+            if (!AllowClick)
+                return;
+
+            if (ToggleableControl != null)
+            {
+                if (ToggleableControl.Enabled)
+                    ToggleableControl.Disable();
+                else
+                    ToggleableControl.Enable();
+            }
+
+            base.OnLeftClick();
+        }
+
     }
 }

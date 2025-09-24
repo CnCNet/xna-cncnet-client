@@ -1,4 +1,4 @@
-﻿# Instructions on how to construct the UI using INI files.
+# Instructions on how to construct the UI using INI files.
 > [!NOTE]
 > _TODO work in progress_
 
