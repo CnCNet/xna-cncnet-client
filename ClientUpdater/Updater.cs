@@ -143,7 +143,7 @@ public static class Updater
     private static IniFile settingsINI;
     private static List<CustomComponent> customComponents;
     private static List<UpdateMirror> updateMirrors;
-    private static string[] ignoreMasks = new string[] { ".rtf", ".txt", "Theme.ini", "gui_settings.xml" };
+    private static string[] ignoreMasks = [".rtf", ".txt", "Theme.ini", "gui_settings.xml"];
 
     // File infos.
     private static readonly List<UpdaterFileInfo> FileInfosToDownload = new();
@@ -412,10 +412,10 @@ public static class Updater
         httpClient.DefaultRequestHeaders.UserAgent.Clear();
 
         if (GameVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame, GameVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame.Replace(' ', '-'), GameVersion.Replace(' ', '-')));
 
         if (UpdaterVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion.Replace(' ', '-')));
 
         httpClient.DefaultRequestHeaders.UserAgent.Add(new("Client", GitVersionInformation.AssemblySemVer));
     }
@@ -487,7 +487,8 @@ public static class Updater
         else
         {
             var updaterConfig = new IniFile(configFile.FullName);
-            ignoreMasks = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks)).Split(',');
+            string maskString = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks));
+            ignoreMasks = maskString.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             List<string> keys = updaterConfig.GetSectionKeys("DownloadMirrors");
 
@@ -1589,9 +1590,9 @@ public static class Updater
     /// <returns>True if path contains any ignore masks, otherwise false.</returns>
     private static bool ContainsAnyMask(string filePath)
     {
-        foreach (string str2 in ignoreMasks)
+        foreach (string mask in ignoreMasks)
         {
-            if (filePath.Contains(str2, StringComparison.OrdinalIgnoreCase))
+            if (filePath.Contains(mask, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
@@ -1640,16 +1641,11 @@ public static class Updater
     /// <returns>File identifier if check is successful, otherwise null.</returns>
     private static string CheckFileIdentifiers(string fileInfoFilename, string localFilename, string fileInfoIdentifier)
     {
-        string identifier;
         if (ContainsAnyMask(fileInfoFilename))
-            identifier = fileInfoIdentifier;
-        else
-            identifier = GetUniqueIdForFile(localFilename);
-
-        if (fileInfoIdentifier == identifier)
             return null;
-
-        return identifier;
+        
+        string identifier;  identifier = GetUniqueIdForFile(localFilename);
+        return fileInfoIdentifier == identifier ? null : identifier;
     }
 
     public static event NoParamEventHandler FileIdentifiersUpdated;

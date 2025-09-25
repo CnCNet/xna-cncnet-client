@@ -104,7 +104,7 @@ namespace ClientGUI
             ConfigIni = new CCIniFile(configIniPath);
 
             if (Parser.Instance == null)
-                new Parser(WindowManager);
+                _ = new Parser(WindowManager); // Note: Parser.Instance will be set by calling new Parser()
 
             Parser.Instance.SetPrimaryControl(this);
             ReadINIForControl(this);
@@ -143,14 +143,6 @@ namespace ClientGUI
             }
         }
 
-        private void ReadINIRecursive(XNAControl control)
-        {
-            ReadINIForControl(control);
-
-            foreach (var child in control.Children)
-                ReadINIRecursive(child);
-        }
-
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "HasCloseButton")
@@ -178,6 +170,15 @@ namespace ClientGUI
                     var child = CreateChildControl(control, kvp.Value);
                     ReadINIForControl(child);
                     child.Initialize();
+
+                    if (child is ICompositeControl composite)
+                    {
+                        foreach (var sc in composite.SubControls)
+                        {
+                            ReadINIForControl(sc);
+                            sc.Initialize();
+                        }
+                    }
                 }
                 else if (kvp.Key == "$X")
                 {

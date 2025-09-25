@@ -603,6 +603,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 XNAListBoxItem rankItem = new XNAListBoxItem();
                 if (gameModeMap.Map.IsCoop)
                 {
+                    // Note: StatisticsManager.Statistics must be initialized to call `HasBeatCoOpMap()`. This means StatisticsWindow must be initialized before any lobbies extending GameLobbyBase.
                     if (StatisticsManager.Instance.HasBeatCoOpMap(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName))
                         rankItem.Texture = RankTextures[Math.Abs(2 - gameModeMap.GameMode.CoopDifficultyLevel) + 1];
                     else
@@ -1071,7 +1072,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     string[] tmp = GameOptionsIni.GetStringListValue("RandomSelectors", randomSelector, string.Empty);
-                    randomSides = Array.ConvertAll(tmp, int.Parse).Distinct().ToList();
+                    randomSides = Array.ConvertAll(tmp, int.Parse).ToList();
                     randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }
                 catch (FormatException) { }

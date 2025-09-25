@@ -297,6 +297,7 @@ _(inherits XNAClientDropDown)_
 ItemsDrawMode=TextAndIcon         ; enum (Text | Icon | TextAndIcon),
                                   ; this will set what combination of texture and text should client use.
 RandomColorTexture=randomicon.png ; string, the file to load as texture for random color.
+DisabledItemTexture=              ; string, the file to load as texture for disabled items, defaults to texture generated from disabled item color
 ColorTextureHeight=               ; int, color icon height in pixels.
 ColorTextureWidth=                ; int, color icon width in pixels.
 ```
@@ -355,6 +356,15 @@ FillHeight=10
 ### Special Controls & Their Properties
 
 Some controls are only available under specific circumstances.
+
+#### CoopBriefingBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox_CoopBriefingBox]
+FontIndex=0
+```
 
 #### XNAOptionsPanel Controls
 

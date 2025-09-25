@@ -400,7 +400,8 @@ namespace DTAClient.Domain.Multiplayer
                     if (string.IsNullOrEmpty(waypoint))
                         break;
 
-                    Dev.Assert(int.TryParse(waypoint, out _), $"waypoint should be a number, got {waypoint}");
+                    Dev.Assert(int.TryParse(waypoint.Split(',')[0], out _), $"waypoint should be a number, got {waypoint}");
+
                     waypoints.Add(waypoint);
                 }
 
