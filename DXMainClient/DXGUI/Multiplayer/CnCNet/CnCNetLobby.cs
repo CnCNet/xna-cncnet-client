@@ -115,10 +115,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private TunnelHandler tunnelHandler;
 
-    private CnCNetLoginWindow loginWindow;
-    private CnCNetAccountLoginPrompt loginWindowPrompt;
-    private CnCNetAccountLoginWindow accountLoginWindow;
-    private CnCNetAccountManagerWindow accountManagerWindow;
+        private CnCNetLoginWindow loginWindow;
+        private CnCNetAccountLoginPrompt loginWindowPrompt;
+        private CnCNetAccountLoginWindow accountLoginWindow;
+        private CnCNetAccountManagerWindow accountManagerWindow;
 
         private TopBar topBar;
 
@@ -137,8 +137,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private bool isJoiningGame = false;
         private HostedCnCNetGame gameOfLastJoinAttempt;
 
-    private CancellationTokenSource gameCheckCancellation;
-    private CancellationTokenSource verifyAccountCancellation;
+        private CancellationTokenSource gameCheckCancellation;
+        private CancellationTokenSource verifyAccountCancellation;
 
         private CommandHandlerBase[] ctcpCommandHandlers;
 

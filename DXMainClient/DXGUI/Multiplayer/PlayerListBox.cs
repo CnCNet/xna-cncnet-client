@@ -26,7 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
         private Texture2D badgeGameIcon;
-    private Texture2D verifiedIcon;
+        private Texture2D verifiedIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
 
