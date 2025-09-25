@@ -155,6 +155,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     case "Unauthorized":
                         ErrorMessage = "You have entered an incorrect email or password";
                         break;
+                    case "NotFound":
+                        ErrorMessage = "Login service endpoint not found. Please verify CnCNetApiUrl points to the API base (e.g. https://ladder.cncnet.org/api/v1/).";
+                        break;
                     default:
                         ErrorMessage = "An error occurred, status code: " + statusCode;
                         break;
@@ -211,19 +214,35 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         public void VerifyAccounts(List<string> idents)
         {
-            using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
+            string url = ApiBaseUrl + API_IDENTS_VERIFY;
+            try
             {
-                string jsonIdents = JsonConvert.SerializeObject(idents);
+                using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
+                {
+                    string jsonIdents = JsonConvert.SerializeObject(idents);
 
-                var request = new NameValueCollection();
-                request.Add("idents", jsonIdents);
-                request.Add("game", ClientConfiguration.Instance.LocalGame.ToLower());
+                    var request = new NameValueCollection();
+                    request.Add("idents", jsonIdents);
+                    request.Add("game", ClientConfiguration.Instance.LocalGame.ToLower());
 
-                byte[] responsebytes = client.UploadValues(ApiBaseUrl + API_IDENTS_VERIFY, "POST", request);
-                string response = Encoding.UTF8.GetString(responsebytes);
+                    byte[] responsebytes = client.UploadValues(url, "POST", request);
+                    string response = Encoding.UTF8.GetString(responsebytes);
 
-                List<VerifiedAccounts> verifiedAccounts = JsonConvert.DeserializeObject<List<VerifiedAccounts>>(response);
-                VerifyAccountsComplete?.Invoke(verifiedAccounts ?? new List<VerifiedAccounts>());
+                    List<VerifiedAccounts> verifiedAccounts = JsonConvert.DeserializeObject<List<VerifiedAccounts>>(response);
+                    VerifyAccountsComplete?.Invoke(verifiedAccounts ?? new List<VerifiedAccounts>());
+                }
+            }
+            catch (WebException ex)
+            {
+                var http = ex.Response as HttpWebResponse;
+                Logger.Log($"CnCNetAPI.VerifyAccounts failed ({http?.StatusCode ?? 0}) at {url}: {ex.Message}");
+                // Do not crash the client; just report no verified accounts so UI stays responsive
+                VerifyAccountsComplete?.Invoke(new List<VerifiedAccounts>());
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"CnCNetAPI.VerifyAccounts unexpected error at {url}: {ex.Message}");
+                VerifyAccountsComplete?.Invoke(new List<VerifiedAccounts>());
             }
         }
     }
