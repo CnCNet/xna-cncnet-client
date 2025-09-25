@@ -19,9 +19,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         // Registration URL is separate (web)
         public static string API_REGISTER_URL = "https://ladder.cncnet.org/auth/register";
 
-        private const string API_AUTH_LOGIN = "auth/login";
-        private const string API_USER_NICKNAMES = "client/accounts/user/nicknames";
-        private const string API_IDENTS_VERIFY = "client/accounts/verify";
+    private const string API_AUTH_LOGIN = "auth/login";
+    // Official API: GET /api/v1/user/account (auth: Bearer <JWT>)
+    private const string API_USER_ACCOUNT = "user/account";
+    // Note: There is currently no public endpoint matching this in cncnet-ladder-api.
+    // Leaving the path for future server support; client degrades gracefully on failure.
+    private const string API_IDENTS_VERIFY = "client/accounts/verify";
 
         private static string ApiBaseUrl
         {
@@ -86,7 +89,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         /// <summary>
-        /// Verifies token works
+        /// Verifies token by calling an authenticated endpoint
         /// </summary>
         private bool VerifyToken()
         {
@@ -95,15 +98,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
                     client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + AuthToken);
-
-                    var request = new NameValueCollection();
-                    request.Add("game", ClientConfiguration.Instance.LocalGame.ToLower());
-                    request.Add("ident", Connection.GetId());
-
-                    byte[] responsebytes = client.UploadValues(ApiBaseUrl + API_USER_NICKNAMES, "POST", request);
-
+                    // Call /user/account to validate the token and also refresh local account data
+                    byte[] responsebytes = client.DownloadData(ApiBaseUrl + API_USER_ACCOUNT);
                     string response = Encoding.UTF8.GetString(responsebytes);
-
                     List<AuthPlayer> accounts = JsonConvert.DeserializeObject<List<AuthPlayer>>(response);
                     Accounts = accounts ?? new List<AuthPlayer>();
 
@@ -182,7 +179,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         /// <summary>
-        /// Gets players nicknames from their account
+        /// Gets players from their account (active players for current month)
         /// </summary>
         public bool GetAccounts()
         {
@@ -191,8 +188,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
                     client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + AuthToken);
-
-                    byte[] responsebytes = client.DownloadData(ApiBaseUrl + API_USER_NICKNAMES);
+                    byte[] responsebytes = client.DownloadData(ApiBaseUrl + API_USER_ACCOUNT);
                     string response = Encoding.UTF8.GetString(responsebytes);
 
                     List<AuthPlayer> accounts = JsonConvert.DeserializeObject<List<AuthPlayer>>(response);
