@@ -6,6 +6,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Net;
 using System.Text;
 
@@ -46,6 +47,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private const int REQUEST_TIMEOUT = 10000; // In milliseconds
         private readonly string tokenPath = "SOFTWARE\\CnCNet\\QuickMatch";
+        private static string TokenFilePath => SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "access.token");
 
         public CnCNetAPI() { }
 
@@ -69,12 +71,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.OpenSubKey(tokenPath);
-                if (key != null)
-                {
-                    AuthToken = key.GetValue("accessToken", "").ToString();
-                    key.Close();
-                }
+                AuthToken = ReadAuthToken();
 
                 IsAuthed = VerifyToken();
 
@@ -133,9 +130,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     AuthTokenResponse authToken = JsonConvert.DeserializeObject<AuthTokenResponse>(response);
                     AuthToken = authToken?.Token;
 
-                    RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
-                    key.SetValue("accessToken", AuthToken ?? string.Empty);
-                    key.Close();
+                    WriteAuthToken(AuthToken ?? string.Empty);
 
                     bool success = GetAccounts();
 
@@ -166,15 +161,79 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
-                key.SetValue("accessToken", "");
-                key.Close();
+                ClearAuthToken();
             }
             catch { }
 
             IsAuthed = false;
             AuthToken = string.Empty;
             Accounts.Clear();
+        }
+
+        private string ReadAuthToken()
+        {
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    RegistryKey key = Registry.CurrentUser.OpenSubKey(tokenPath);
+                    if (key != null)
+                    {
+                        string token = key.GetValue("accessToken", "").ToString();
+                        key.Close();
+                        return token;
+                    }
+                    return string.Empty;
+                }
+                // Non-Windows: read from file under Client user files
+                var fi = SafePath.GetFile(TokenFilePath);
+                if (fi.Exists)
+                {
+                    return File.ReadAllText(fi.FullName).Trim();
+                }
+                return string.Empty;
+            }
+            catch { return string.Empty; }
+        }
+
+        private void WriteAuthToken(string token)
+        {
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
+                    key.SetValue("accessToken", token ?? string.Empty);
+                    key.Close();
+                }
+                else
+                {
+                    // Ensure directory exists
+                    DirectoryInfo dir = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+                    if (!dir.Exists) dir.Create();
+                    File.WriteAllText(TokenFilePath, token ?? string.Empty);
+                }
+            }
+            catch { }
+        }
+
+        private void ClearAuthToken()
+        {
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
+                    key.SetValue("accessToken", "");
+                    key.Close();
+                }
+                else
+                {
+                    var fi = SafePath.GetFile(TokenFilePath);
+                    if (fi.Exists) fi.Delete();
+                }
+            }
+            catch { }
         }
 
         /// <summary>
@@ -214,16 +273,24 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
+                    // Include Authorization if available; some deployments require auth for this endpoint
+                    if (!string.IsNullOrEmpty(AuthToken))
+                    {
+                        client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + AuthToken);
+                    }
+
                     string jsonIdents = JsonConvert.SerializeObject(idents);
 
                     var request = new NameValueCollection();
                     request.Add("idents", jsonIdents);
-                    request.Add("game", ClientConfiguration.Instance.LocalGame.ToLower());
+                    string game = ClientConfiguration.Instance.LocalGame.ToLower();
+                    request.Add("game", game);
 
                     byte[] responsebytes = client.UploadValues(url, "POST", request);
                     string response = Encoding.UTF8.GetString(responsebytes);
 
                     List<VerifiedAccounts> verifiedAccounts = JsonConvert.DeserializeObject<List<VerifiedAccounts>>(response);
+                    Logger.Log($"VerifyAccounts OK: sent={idents?.Count ?? 0}, game='{game}', received={verifiedAccounts?.Count ?? 0}");
                     VerifyAccountsComplete?.Invoke(verifiedAccounts ?? new List<VerifiedAccounts>());
                 }
             }

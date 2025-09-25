@@ -63,10 +63,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.LogoutEvent += LogoutEvent;
         }
 
-        private MapLoader mapLoader;
+        private readonly MapLoader mapLoader;
 
-        private CnCNetManager connectionManager;
-        private CnCNetUserData cncnetUserData;
+        private readonly CnCNetManager connectionManager;
+        private readonly CnCNetUserData cncnetUserData;
         private readonly OptionsWindow optionsWindow;
 
         private PlayerListBox lbPlayerList;
@@ -98,7 +98,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private Channel currentChatChannel;
 
-        private GameCollection gameCollection;
+        private readonly GameCollection gameCollection;
 
         private Color cAdminNameColor;
 
@@ -110,19 +110,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private IRCColor[] chatColors;
 
-        private CnCNetGameLobby gameLobby;
-        private CnCNetGameLoadingLobby gameLoadingLobby;
+        private readonly CnCNetGameLobby gameLobby;
+        private readonly CnCNetGameLoadingLobby gameLoadingLobby;
 
-        private TunnelHandler tunnelHandler;
+        private readonly TunnelHandler tunnelHandler;
 
         private CnCNetLoginWindow loginWindow;
         private CnCNetAccountLoginPrompt loginWindowPrompt;
         private CnCNetAccountLoginWindow accountLoginWindow;
         private CnCNetAccountManagerWindow accountManagerWindow;
 
-        private TopBar topBar;
+        private readonly TopBar topBar;
 
-        private PrivateMessagingWindow pmWindow;
+        private readonly PrivateMessagingWindow pmWindow;
 
         private PasswordRequestWindow passwordRequestWindow;
 
@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private string localGameID;
         private CnCNetGame localGame;
 
-        private List<string> followedGames = new List<string>();
+        private readonly List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
         private HostedCnCNetGame gameOfLastJoinAttempt;
@@ -140,13 +140,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private CancellationTokenSource gameCheckCancellation;
         private CancellationTokenSource verifyAccountCancellation;
 
-        private CommandHandlerBase[] ctcpCommandHandlers;
+        private readonly CommandHandlerBase[] ctcpCommandHandlers;
 
         private InvitationIndex invitationIndex;
 
         private GameFiltersPanel panelGameFilters;
 
-        private Random random;
+        private readonly Random random;
 
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
@@ -1552,13 +1552,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void CnCNetAuthApi_VerifyAccountsComplete(System.Collections.Generic.List<VerifiedAccounts> verifiedAccounts)
         {
             CnCNetAPI.Instance.VerifyAccountsComplete -= CnCNetAuthApi_VerifyAccountsComplete;
-            // Reset verification flags before applying the latest results
-            var curReset = currentChatChannel.Users.GetFirst();
-            while (curReset != null)
-            {
-                curReset.Value.IRCUser.IsVerified = false;
-                curReset = curReset.Next;
-            }
+            if (currentChatChannel == null)
+                return;
 
             foreach (VerifiedAccounts user in verifiedAccounts)
             {
@@ -1568,7 +1563,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     var u = cur.Value;
                     if (u.IRCUser.Ident == user.ident)
                     {
-                        u.IRCUser.IsVerified = true;
+                        if (!u.IRCUser.IsVerified)
+                        {
+                            u.IRCUser.IsVerified = true;
+                            // Update the player list entry immediately to show the checkmark
+                            RefreshPlayerListUser(u);
+                        }
                         break;
                     }
                     cur = cur.Next;
