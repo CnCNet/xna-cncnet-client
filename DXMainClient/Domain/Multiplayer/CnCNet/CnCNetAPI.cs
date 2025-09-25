@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -174,6 +175,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
+#if NETFRAMEWORK
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(tokenPath);
+                if (key != null)
+                {
+                    string token = key.GetValue("accessToken", "").ToString();
+                    key.Close();
+                    return token;
+                }
+                return string.Empty;
+#else
                 if (OperatingSystem.IsWindows())
                 {
                     RegistryKey key = Registry.CurrentUser.OpenSubKey(tokenPath);
@@ -192,6 +203,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     return File.ReadAllText(fi.FullName).Trim();
                 }
                 return string.Empty;
+#endif
             }
             catch { return string.Empty; }
         }
@@ -200,6 +212,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
+#if NETFRAMEWORK
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
+                key.SetValue("accessToken", token ?? string.Empty);
+                key.Close();
+#else
                 if (OperatingSystem.IsWindows())
                 {
                     RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
@@ -213,6 +230,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (!dir.Exists) dir.Create();
                     File.WriteAllText(TokenFilePath, token ?? string.Empty);
                 }
+#endif
             }
             catch { }
         }
@@ -221,6 +239,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
+#if NETFRAMEWORK
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
+                key.SetValue("accessToken", "");
+                key.Close();
+#else
                 if (OperatingSystem.IsWindows())
                 {
                     RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
@@ -232,9 +255,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     var fi = SafePath.GetFile(TokenFilePath);
                     if (fi.Exists) fi.Delete();
                 }
+#endif
             }
             catch { }
         }
+
+    // Intentionally left without OperatingSystem.IsWindows() wrapper because we
+    // now use preprocessor guards in call sites to satisfy analyzers across TFMs.
 
         /// <summary>
         /// Gets nick names from their account (active for current month)
