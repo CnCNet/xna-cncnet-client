@@ -653,7 +653,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             accountLoginWindow.Disable();
             loginWindow.Disable();
 
-            connectionManager.Connect();
+            // If we're already connected or connecting (e.g., auto-connect),
+            // disconnect first so we can reconnect cleanly with the selected account/nickname.
+            if (connectionManager.IsConnected || connectionManager.IsAttemptingConnection)
+            {
+                EventHandler onDisconnected = null;
+                onDisconnected = (s, e) =>
+                {
+                    connectionManager.Disconnected -= onDisconnected;
+                    connectionManager.Connect();
+                };
+
+                connectionManager.Disconnected += onDisconnected;
+                connectionManager.Disconnect();
+            }
+            else
+            {
+                connectionManager.Connect();
+            }
 
             SetLogOutButtonText();
         }
