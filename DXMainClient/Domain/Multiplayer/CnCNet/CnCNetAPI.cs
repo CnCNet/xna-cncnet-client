@@ -21,10 +21,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         // Registration URL is separate (web)
         public static string API_REGISTER_URL = "https://ladder.cncnet.org/auth/register";
 
-    private const string API_AUTH_LOGIN = "auth/login";
-    // Official API: GET /api/v1/user/account (auth: Bearer <JWT>)
-    private const string API_USER_ACCOUNT = "user/account";
-    private const string API_IDENTS_VERIFY = "client/accounts/verify";
+        private const string API_AUTH_LOGIN = "auth/login";
+        // Official API: GET /api/v1/user/account (auth: Bearer <JWT>)
+        private const string API_USER_ACCOUNT = "user/account";
+        private const string API_IDENTS_VERIFY = "client/accounts/verify";
 
         private static string ApiBaseUrl
         {
