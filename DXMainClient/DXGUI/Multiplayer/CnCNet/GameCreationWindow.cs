@@ -128,8 +128,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 chkVerifiedOnly = new XNAClientCheckBox(WindowManager);
                 chkVerifiedOnly.Name = nameof(chkVerifiedOnly);
                 chkVerifiedOnly.Text = "Verified accounts only".L10N("Client:Main:VerifiedAccountsOnly");
-                chkVerifiedOnly.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
-                    UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN,
+                // Place directly under the password input field, aligned with the textbox column
+                chkVerifiedOnly.ClientRectangle = new Rectangle(
+                    tbPassword.X,
+                    tbPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN,
                     0, 0);
                 chkVerifiedOnly.Checked = false;
                 AddChild(chkVerifiedOnly);
