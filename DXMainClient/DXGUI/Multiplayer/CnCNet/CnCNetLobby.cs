@@ -930,6 +930,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
 
+            if (hg.VerifiedOnly && ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                if (!CnCNetAPI.Instance.IsAuthed)
+                {
+                    return "This room only allows verified CnCNet accounts. Please log in and try again.".L10N("Client:Main:VerifiedOnlyJoinDenied");
+                }
+            }
+
             return GetJoinGameErrorBase();
         }
 
@@ -1029,7 +1037,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel, hg.VerifiedOnly);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1141,7 +1149,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.SkillLevel);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.SkillLevel, e.VerifiedOnly);
             gameChannel.UserAdded += GameChannel_UserAdded;
             //gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
@@ -1666,7 +1674,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 12)
+            if (splitMessage.Length < 12)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1686,6 +1694,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
                 bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
                 bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
+                bool verifiedOnly = false;
+                if (splitMessage[5].Length >= 6)
+                {
+                    verifiedOnly = Conversions.BooleanFromString(splitMessage[5].Substring(5, 1), false);
+                }
                 string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 List<string> playerNames = players.ToList();
                 string mapName = splitMessage[7];
@@ -1715,6 +1728,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadder;
+                game.VerifiedOnly = verifiedOnly;
                 game.Game = cncnetGame;
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;

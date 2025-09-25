@@ -28,6 +28,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public string Revision { get; set; }
         public bool Tunneled { get; set; }
         public bool IsLadder { get; set; }
+    public bool VerifiedOnly { get; set; }
         public string MatchID { get; set; }
         public CnCNetTunnel TunnelServer { get; set; }
 
