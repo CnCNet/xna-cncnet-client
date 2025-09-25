@@ -394,7 +394,7 @@ namespace ClientCore
         /// <summary>
         /// Base URL for the CnCNet API, typically ends with /api/v1/.
         /// </summary>
-        public string CnCNetApiUrl => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetApiUrl", "http://cncnet-api/api/v1/");
+        public string CnCNetApiUrl => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetAPIUrl", "http://cncnet-api/api/v1/");
 
         /// <summary>
         /// The name of the executable in the main game directory that selects

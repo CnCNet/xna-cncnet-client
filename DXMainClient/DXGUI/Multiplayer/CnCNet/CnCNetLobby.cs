@@ -1691,10 +1691,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length < 12)
             {
-                Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
-                return;
+                // Require the 12 expected fields; accept forward-compatible packets with extras by truncating
+                if (splitMessage.Length != 12)
+                {
+                    if (splitMessage.Length > 12)
+                    {
+                        Array.Resize(ref splitMessage, 12);
+                    }
+                    else
+                    {
+                        Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
+                        return;
+                    }
+                }
             }
 
             try
