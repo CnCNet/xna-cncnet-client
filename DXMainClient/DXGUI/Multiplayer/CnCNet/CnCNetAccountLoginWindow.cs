@@ -51,7 +51,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var btnRegister = new XNAClientButton(WindowManager)
             {
                 Name = "btnRegister",
-                ClientRectangle = new Rectangle(btnLogin.Width + 25, ClientRectangle.Bottom - 35, 92, 23),
+                // Center the Register button horizontally within the window
+                ClientRectangle = new Rectangle((Width - 92) / 2, ClientRectangle.Bottom - 35, 92, 23),
                 Text = "Register"
             };
             btnRegister.LeftClick += BtnRegister_LeftClick;

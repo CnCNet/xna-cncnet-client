@@ -22,15 +22,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     private const string API_AUTH_LOGIN = "auth/login";
     // Official API: GET /api/v1/user/account (auth: Bearer <JWT>)
     private const string API_USER_ACCOUNT = "user/account";
-    // Note: There is currently no public endpoint matching this in cncnet-ladder-api.
-    // Leaving the path for future server support; client degrades gracefully on failure.
     private const string API_IDENTS_VERIFY = "client/accounts/verify";
 
         private static string ApiBaseUrl
         {
             get
             {
-                // Read from configuration, with sensible default for local dev
+                // Read from configuration, with sensible default for local dev.
+                // Setting this value inside ClientDefinitions.ini overrides built-in value.
                 string url = ClientConfiguration.Instance.CnCNetApiUrl ?? "http://cncnet-api/api/v1/";
                 if (!url.EndsWith("/"))
                     url += "/";
@@ -179,7 +178,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         /// <summary>
-        /// Gets players from their account (active players for current month)
+        /// Gets nick names from their account (active for current month)
         /// </summary>
         public bool GetAccounts()
         {
