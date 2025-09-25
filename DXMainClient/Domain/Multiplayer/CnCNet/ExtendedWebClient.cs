@@ -13,6 +13,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public ExtendedWebClient(int timeout)
         {
             this.timeout = timeout;
+
+            // Interferes with POST requests to API if left enabled
+            // https://learn.microsoft.com/dotnet/api/system.net.servicepointmanager.expect100continue
+            ServicePointManager.Expect100Continue = false;
+            // Increase default connection limit to allow a few concurrent requests
+            ServicePointManager.DefaultConnectionLimit = 5; // Default is 2
         }
 
         private int timeout;

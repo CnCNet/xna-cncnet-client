@@ -369,9 +369,9 @@ namespace ClientCore
         public bool InactiveHostKickEnabled => InactiveHostWarningMessageSeconds > 0 && InactiveHostKickSeconds > 0;
 
         public string SkillLevelOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "SkillLevelOptions", "Any,Beginner,Intermediate,Pro");
-        
+
         public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
-        
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "GameExecutableNames", "Game.exe");
@@ -388,6 +388,13 @@ namespace ClientCore
         public bool DisableMultiplayerGameLoading => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false);
 
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
+
+        public bool UseCnCNetAPI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseCnCNetAPI", true);
+
+        /// <summary>
+        /// Base URL for the CnCNet API, typically ends with /api/v1/.
+        /// </summary>
+        public string CnCNetApiUrl => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetApiUrl", "http://cncnet-api/api/v1/");
 
         /// <summary>
         /// The name of the executable in the main game directory that selects
@@ -418,12 +425,12 @@ namespace ClientCore
         /// The main map file extension that is read by the client.
         /// </summary>
         public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
-        
+
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"
         /// when writing the spawnmap.ini file for map file "map_a.ini".
-        /// 
+        ///
         /// This configuration should be in the form "SupplementalMapFileExtensions=bin,mix"
         /// </summary>
         public IEnumerable<string> SupplementalMapFileExtensions

@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="DiscordRichPresence" Version="1.2.1.24" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Facepunch.Steamworks" Version="2.4.1" />
     <PackageVersion Include="ImeSharp" Version="1.4.1" />
     <PackageVersion Include="lzo.net" Version="0.0.6" />

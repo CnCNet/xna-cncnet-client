@@ -1,0 +1,175 @@
+﻿using ClientGUI;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.Input;
+using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Diagnostics;
+
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
+{
+    public class CnCNetAccountLoginWindow : XNAWindow
+    {
+        public event Action<object> Cancel;
+        public event Action<bool> LoginSuccess;
+
+        private XNALabel lblPlayerEmail;
+        private XNATextBox tbPlayerEmail;
+        private XNALabel lblPlayerPassword;
+        private XNAPasswordBox tbPlayerPassword;
+        private XNALabel lblLoginWindowTitle;
+        private XNALabel lblError;
+
+        public CnCNetAccountLoginWindow(WindowManager windowManager) : base(windowManager) { }
+
+        public override void Initialize()
+        {
+            Name = nameof(CnCNetAccountLoginWindow);
+            BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
+            ClientRectangle = new Rectangle(0, 0, 350, 200);
+
+            lblLoginWindowTitle = new XNALabel(WindowManager)
+            {
+                Name = "lblWindowTitle",
+                FontIndex = 1,
+                Text = "LOGIN TO CNCNET"
+            };
+            AddChild(lblLoginWindowTitle);
+            lblLoginWindowTitle.CenterOnParent();
+            lblLoginWindowTitle.ClientRectangle = new Rectangle(lblLoginWindowTitle.X, 12, lblLoginWindowTitle.Width, lblLoginWindowTitle.Height);
+
+            var btnLogin = new XNAClientButton(WindowManager)
+            {
+                Name = "btnLogin",
+                ClientRectangle = new Rectangle(12, ClientRectangle.Bottom - 35, 92, 23),
+                Text = "Login"
+            };
+            btnLogin.LeftClick += BtnLogin_LeftClick;
+
+            var btnRegister = new XNAClientButton(WindowManager)
+            {
+                Name = "btnRegister",
+                ClientRectangle = new Rectangle(btnLogin.Width + 25, ClientRectangle.Bottom - 35, 92, 23),
+                Text = "Register"
+            };
+            btnRegister.LeftClick += BtnRegister_LeftClick;
+
+            var btnCancel = new XNAClientButton(WindowManager)
+            {
+                Name = "btnCancel",
+                ClientRectangle = new Rectangle(Width - 104, btnLogin.Y, 92, 23),
+                Text = "Cancel"
+            };
+            btnCancel.LeftClick += BtnCancel_LeftClick;
+
+            tbPlayerEmail = new XNATextBox(WindowManager)
+            {
+                Name = "tbPlayerEmail",
+                ClientRectangle = new Rectangle(100, 50, 200, 19),
+                Text = string.Empty
+            };
+
+            lblPlayerEmail = new XNALabel(WindowManager)
+            {
+                Name = "lblPlayerEmail",
+                FontIndex = 1,
+                Text = "Email:"
+            };
+            lblPlayerEmail.ClientRectangle = new Rectangle(12, tbPlayerEmail.ClientRectangle.Y + 1, lblPlayerEmail.ClientRectangle.Width, lblPlayerEmail.ClientRectangle.Height);
+
+            lblPlayerPassword = new XNALabel(WindowManager)
+            {
+                Name = "lblPlayerPassword",
+                FontIndex = 1,
+                Text = "Password:"
+            };
+            lblPlayerPassword.ClientRectangle = new Rectangle(12, tbPlayerEmail.ClientRectangle.Y + 35, lblPlayerPassword.ClientRectangle.Width, lblPlayerPassword.ClientRectangle.Height);
+
+            tbPlayerPassword = new XNAPasswordBox(WindowManager)
+            {
+                Name = "tbPlayerPassword",
+                ClientRectangle = new Rectangle(100, lblPlayerPassword.ClientRectangle.Y, 200, 19),
+                Text = string.Empty
+            };
+
+            lblError = new XNALabel(WindowManager)
+            {
+                Name = "lblError",
+                FontIndex = 1,
+                TextColor = Color.Red,
+                Text = string.Empty
+            };
+            lblError.ClientRectangle = new Rectangle(12, tbPlayerPassword.ClientRectangle.Y + 35, lblError.ClientRectangle.Width, lblError.ClientRectangle.Height);
+
+            AddChild(tbPlayerEmail);
+            AddChild(tbPlayerPassword);
+            AddChild(lblPlayerEmail);
+            AddChild(lblPlayerPassword);
+            AddChild(btnLogin);
+            AddChild(btnCancel);
+            AddChild(btnRegister);
+            AddChild(lblError);
+
+            base.Initialize();
+            CenterOnParent();
+            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+        }
+
+        private void BtnRegister_LeftClick(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = CnCNetAPI.API_REGISTER_URL,
+                UseShellExecute = true
+            });
+        }
+
+        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        {
+            if (Enabled)
+            {
+                switch (e.PressedKey)
+                {
+                    case Keys.Enter:
+                        BtnLogin_LeftClick(this, EventArgs.Empty);
+                        break;
+                    case Keys.Tab:
+                        WindowManager.SelectedControl = tbPlayerEmail.IsActive ? (XNAControl)tbPlayerPassword : tbPlayerEmail;
+                        break;
+                }
+            }
+        }
+
+        private void BtnCancel_LeftClick(object sender, EventArgs e)
+        {
+            Cancel?.Invoke(this);
+            Disable();
+        }
+
+        private void BtnLogin_LeftClick(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(tbPlayerEmail.Text) || string.IsNullOrEmpty(tbPlayerPassword.Password))
+            {
+                lblError.Text = "Email and password are required";
+                return;
+            }
+
+            Login();
+        }
+
+        private void Login()
+        {
+            bool success = CnCNetAPI.Instance.Login(tbPlayerEmail.Text, tbPlayerPassword.Password);
+            if (success)
+            {
+                LoginSuccess?.Invoke(true);
+            }
+            else
+            {
+                lblError.Text = CnCNetAPI.Instance.ErrorMessage;
+            }
+        }
+    }
+}

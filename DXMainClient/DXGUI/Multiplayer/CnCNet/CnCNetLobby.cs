@@ -115,7 +115,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private TunnelHandler tunnelHandler;
 
-        private CnCNetLoginWindow loginWindow;
+    private CnCNetLoginWindow loginWindow;
+    private CnCNetAccountLoginPrompt loginWindowPrompt;
+    private CnCNetAccountLoginWindow accountLoginWindow;
+    private CnCNetAccountManagerWindow accountManagerWindow;
 
         private TopBar topBar;
 
@@ -134,7 +137,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private bool isJoiningGame = false;
         private HostedCnCNetGame gameOfLastJoinAttempt;
 
-        private CancellationTokenSource gameCheckCancellation;
+    private CancellationTokenSource gameCheckCancellation;
+    private CancellationTokenSource verifyAccountCancellation;
 
         private CommandHandlerBase[] ctcpCommandHandlers;
 
@@ -595,6 +599,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindowPanel.AddChild(loginWindow);
             loginWindow.Disable();
 
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                loginWindowPrompt = new CnCNetAccountLoginPrompt(WindowManager);
+                loginWindowPrompt.ConnectAsGuest += LoginWindowPrompt_ConnectAsGuest;
+                loginWindowPrompt.ConnectWithAccount += LoginWindowPrompt_ConnectWithAccount;
+
+                accountLoginWindow = new CnCNetAccountLoginWindow(WindowManager);
+                accountLoginWindow.LoginSuccess += AccountLoginWindow_LoginSuccess;
+                accountLoginWindow.Cancel += AccountLoginWindow_Cancel;
+
+                accountManagerWindow = new CnCNetAccountManagerWindow(WindowManager);
+                accountManagerWindow.Connect += AccountManagerWindow_Connect;
+
+                AddChild(loginWindowPrompt);
+                AddChild(accountLoginWindow);
+                AddChild(accountManagerWindow);
+
+                CnCNetAPI.Instance.Initialized += CnCNetAuthApi_Initialized;
+                CnCNetAPI.Instance.InitializeAccount();
+            }
+            else
+            {
+                EnableGuestLoginWindow();
+            }
+
             passwordRequestWindow = new PasswordRequestWindow(WindowManager, pmWindow);
             passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
 
@@ -611,6 +640,64 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void AccountLoginWindow_Cancel(object obj)
+        {
+            UpdateAccountLoginState();
+        }
+
+        private void AccountManagerWindow_Connect(object obj)
+        {
+            accountManagerWindow.Disable();
+            accountLoginWindow.Disable();
+            loginWindow.Disable();
+
+            connectionManager.Connect();
+
+            SetLogOutButtonText();
+        }
+
+        private void AccountLoginWindow_LoginSuccess(bool obj)
+        {
+            accountManagerWindow.Enable();
+        }
+
+        private void CnCNetAuthApi_Initialized(bool authed)
+        {
+            CnCNetAPI.Instance.Initialized -= CnCNetAuthApi_Initialized;
+            UpdateAccountLoginState();
+        }
+
+        private void UpdateAccountLoginState()
+        {
+            loginWindowPrompt?.Disable();
+            accountLoginWindow?.Disable();
+            accountManagerWindow?.Disable();
+
+            if (CnCNetAPI.Instance.IsAuthed)
+            {
+                accountManagerWindow?.Enable();
+            }
+            else
+            {
+                loginWindowPrompt?.Enable();
+            }
+        }
+
+        private void LoginWindowPrompt_ConnectWithAccount(object obj)
+        {
+            accountLoginWindow.Enable();
+        }
+
+        private void EnableGuestLoginWindow()
+        {
+            loginWindow.Enable();
+        }
+
+        private void LoginWindowPrompt_ConnectAsGuest(object obj)
+        {
+            EnableGuestLoginWindow();
         }
 
         /// <summary>
@@ -1184,6 +1271,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (gameCheckCancellation != null)
                 gameCheckCancellation.Cancel();
+
+            // cancel verify queue if running
+            if (verifyAccountCancellation != null)
+            {
+                verifyAccountCancellation.Cancel();
+                CnCNetVerifyAccountsTask.VerifyCall -= CnCNetVerifyAccountsTask_VerifyCall;
+                verifyAccountCancellation = null;
+            }
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -1372,6 +1467,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
             currentChatChannel.UserKicked += RefreshPlayerList;
             currentChatChannel.UserListReceived += RefreshPlayerList;
+            // Trigger verification after user list is received, if API is enabled
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                currentChatChannel.UserListReceived += VerifyUserList;
+            }
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
@@ -1388,6 +1488,66 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
             {
                 currentChatChannel.Join();
+            }
+        }
+
+        private void VerifyUserList(object sender, EventArgs e)
+        {
+            currentChatChannel.UserListReceived -= VerifyUserList;
+
+            if (verifyAccountCancellation == null)
+            {
+                verifyAccountCancellation = new CancellationTokenSource();
+                CnCNetVerifyAccountsTask.VerifyCall += CnCNetVerifyAccountsTask_VerifyCall;
+                CnCNetVerifyAccountsTask.InitializeService(verifyAccountCancellation);
+            }
+        }
+
+        private void CnCNetVerifyAccountsTask_VerifyCall(object obj) => UpdateVerifiedUsers();
+
+        private void UpdateVerifiedUsers()
+        {
+            List<string> idents = new List<string>();
+            // Users is a SortedUserCollection; iterate via linked list API
+            var current = currentChatChannel.Users.GetFirst();
+            while (current != null)
+            {
+                var user = current.Value;
+                if (user.IRCUser.Ident != null)
+                {
+                    idents.Add(user.IRCUser.Ident);
+                }
+                current = current.Next;
+            }
+
+            CnCNetAPI.Instance.VerifyAccountsComplete += CnCNetAuthApi_VerifyAccountsComplete;
+            CnCNetAPI.Instance.VerifyAccounts(idents);
+        }
+
+        private void CnCNetAuthApi_VerifyAccountsComplete(System.Collections.Generic.List<VerifiedAccounts> verifiedAccounts)
+        {
+            CnCNetAPI.Instance.VerifyAccountsComplete -= CnCNetAuthApi_VerifyAccountsComplete;
+            // Reset verification flags before applying the latest results
+            var curReset = currentChatChannel.Users.GetFirst();
+            while (curReset != null)
+            {
+                curReset.Value.IRCUser.IsVerified = false;
+                curReset = curReset.Next;
+            }
+
+            foreach (VerifiedAccounts user in verifiedAccounts)
+            {
+                var cur = currentChatChannel.Users.GetFirst();
+                while (cur != null)
+                {
+                    var u = cur.Value;
+                    if (u.IRCUser.Ident == user.ident)
+                    {
+                        u.IRCUser.IsVerified = true;
+                        break;
+                    }
+                    cur = cur.Next;
+                }
             }
         }
 
@@ -1631,8 +1791,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
             {
-                loginWindow.Enable();
-                loginWindow.LoadSettings();
+                if (ClientConfiguration.Instance.UseCnCNetAPI)
+                {
+                    // In API mode, show the appropriate account/login UI instead of the legacy guest login window
+                    UpdateAccountLoginState();
+                }
+                else
+                {
+                    loginWindow.Enable();
+                    loginWindow.LoadSettings();
+                }
             }
 
             SetLogOutButtonText();
