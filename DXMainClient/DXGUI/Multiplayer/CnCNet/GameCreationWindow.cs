@@ -30,6 +30,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientDropDown ddMaxPlayers;
         private XNAClientDropDown ddSkillLevel;
         private XNATextBox tbPassword;
+        private XNAClientCheckBox chkVerifiedOnly;
 
         private XNALabel lblRoomName;
         private XNALabel lblMaxPlayers;
@@ -121,17 +122,35 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, tbPassword.Y + 1, 0, 0);
             lblPassword.Text = "Password (leave blank for none):".L10N("Client:Main:PasswordTextBlankForNone");
 
+            // Only show the verified-only option when API mode is enabled
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                chkVerifiedOnly = new XNAClientCheckBox(WindowManager);
+                chkVerifiedOnly.Name = nameof(chkVerifiedOnly);
+                chkVerifiedOnly.Text = "Verified accounts only".L10N("Client:Main:VerifiedAccountsOnly");
+                // Place directly under the password input field, aligned with the textbox column
+                chkVerifiedOnly.ClientRectangle = new Rectangle(
+                    tbPassword.X,
+                    tbPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN,
+                    0, 0);
+                chkVerifiedOnly.Checked = false;
+                AddChild(chkVerifiedOnly);
+            }
+
             btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
             btnDisplayAdvancedOptions.Name = nameof(btnDisplayAdvancedOptions);
+            int advancedOptionsY = (ClientConfiguration.Instance.UseCnCNetAPI && chkVerifiedOnly != null)
+                ? chkVerifiedOnly.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2
+                : lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3;
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
-                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, advancedOptionsY, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnDisplayAdvancedOptions.Text = "Advanced Options".L10N("Client:Main:AdvancedOptions");
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
 
             lblTunnelServer = new XNALabel(WindowManager);
             lblTunnelServer.Name = nameof(lblTunnelServer);
             lblTunnelServer.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
-                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 4, 0, 0);
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, btnDisplayAdvancedOptions.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN, 0, 0);
             lblTunnelServer.Text = "Tunnel server:".L10N("Client:Main:TunnelServer");
             lblTunnelServer.Enabled = false;
             lblTunnelServer.Visible = false;
@@ -232,7 +251,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], ddSkillLevel.SelectedIndex);
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], ddSkillLevel.SelectedIndex,
+                false /* verified-only not applicable for loaded games for now */);
 
             LoadedGameCreated?.Invoke(this, ea);
         }
@@ -259,9 +279,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             GameCreated?.Invoke(this, 
-                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text), 
-                tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
-                ddSkillLevel.SelectedIndex)
+                new GameCreationEventArgs(gameName, int.Parse(ddMaxPlayers.SelectedItem.Text),
+                tbPassword.Text, tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
+                ddSkillLevel.SelectedIndex,
+                (ClientConfiguration.Instance.UseCnCNetAPI && chkVerifiedOnly != null) ? chkVerifiedOnly.Checked : false)
             );
         }
 

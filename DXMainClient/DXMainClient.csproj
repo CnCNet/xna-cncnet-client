@@ -46,6 +46,7 @@
     <PackageReference Include="System.DirectoryServices" />
     <PackageReference Include="System.Private.Uri" />
     <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />

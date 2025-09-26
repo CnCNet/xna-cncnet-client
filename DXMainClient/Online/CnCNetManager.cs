@@ -470,6 +470,11 @@ namespace DTAClient.Online
         /// </summary>
         public void Connect()
         {
+            // Avoid double-connects
+            if (IsConnected || IsAttemptingConnection)
+            {
+                return;
+            }
             disconnect = false;
             MainChannel.AddMessage(new ChatMessage("Connecting to CnCNet...".L10N("Client:Main:ConnectingToCncNet")));
             connection.ConnectAsync();

@@ -61,10 +61,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.LogoutEvent += LogoutEvent;
         }
 
-        private MapLoader mapLoader;
+        private readonly MapLoader mapLoader;
 
-        private CnCNetManager connectionManager;
-        private CnCNetUserData cncnetUserData;
+        private readonly CnCNetManager connectionManager;
+        private readonly CnCNetUserData cncnetUserData;
         private readonly OptionsWindow optionsWindow;
 
         private PlayerListBox lbPlayerList;
@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private Channel currentChatChannel;
 
-        private GameCollection gameCollection;
+        private readonly GameCollection gameCollection;
 
         private Color cAdminNameColor;
 
@@ -108,16 +108,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private IRCColor[] chatColors;
 
-        private CnCNetGameLobby gameLobby;
-        private CnCNetGameLoadingLobby gameLoadingLobby;
+        private readonly CnCNetGameLobby gameLobby;
+        private readonly CnCNetGameLoadingLobby gameLoadingLobby;
 
-        private TunnelHandler tunnelHandler;
+        private readonly TunnelHandler tunnelHandler;
 
         private CnCNetLoginWindow loginWindow;
+        private CnCNetAccountLoginPrompt loginWindowPrompt;
+        private CnCNetAccountLoginWindow accountLoginWindow;
+        private CnCNetAccountManagerWindow accountManagerWindow;
 
-        private TopBar topBar;
+        private readonly TopBar topBar;
 
-        private PrivateMessagingWindow pmWindow;
+        private readonly PrivateMessagingWindow pmWindow;
 
         private PasswordRequestWindow passwordRequestWindow;
 
@@ -127,20 +130,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private string localGameID;
         private CnCNetGame localGame;
 
-        private List<string> followedGames = new List<string>();
+        private readonly List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
         private HostedCnCNetGame gameOfLastJoinAttempt;
 
         private CancellationTokenSource gameCheckCancellation;
+        private CancellationTokenSource verifyAccountCancellation;
 
-        private CommandHandlerBase[] ctcpCommandHandlers;
+        private readonly CommandHandlerBase[] ctcpCommandHandlers;
 
         private InvitationIndex invitationIndex;
 
         private GameFiltersPanel panelGameFilters;
 
-        private Random random;
+        private readonly Random random;
 
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
@@ -593,6 +597,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindowPanel.AddChild(loginWindow);
             loginWindow.Disable();
 
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                loginWindowPrompt = new CnCNetAccountLoginPrompt(WindowManager);
+                loginWindowPrompt.ConnectAsGuest += LoginWindowPrompt_ConnectAsGuest;
+                loginWindowPrompt.ConnectWithAccount += LoginWindowPrompt_ConnectWithAccount;
+
+                accountLoginWindow = new CnCNetAccountLoginWindow(WindowManager);
+                accountLoginWindow.LoginSuccess += AccountLoginWindow_LoginSuccess;
+                accountLoginWindow.Cancel += AccountLoginWindow_Cancel;
+
+                accountManagerWindow = new CnCNetAccountManagerWindow(WindowManager);
+                accountManagerWindow.Connect += AccountManagerWindow_Connect;
+
+                AddChild(loginWindowPrompt);
+                AddChild(accountLoginWindow);
+                AddChild(accountManagerWindow);
+
+                CnCNetAPI.Instance.Initialized += CnCNetAuthApi_Initialized;
+                CnCNetAPI.Instance.InitializeAccount();
+            }
+            else
+            {
+                EnableGuestLoginWindow();
+            }
+
             passwordRequestWindow = new PasswordRequestWindow(WindowManager, pmWindow);
             passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
 
@@ -609,6 +638,81 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void AccountLoginWindow_Cancel(object obj)
+        {
+            UpdateAccountLoginState();
+        }
+
+        private void AccountManagerWindow_Connect(object obj)
+        {
+            accountManagerWindow.Disable();
+            accountLoginWindow.Disable();
+            loginWindow.Disable();
+
+            // If we're already connected or connecting (e.g., auto-connect),
+            // disconnect first so we can reconnect cleanly with the selected account/nickname.
+            if (connectionManager.IsConnected || connectionManager.IsAttemptingConnection)
+            {
+                EventHandler onDisconnected = null;
+                onDisconnected = (s, e) =>
+                {
+                    connectionManager.Disconnected -= onDisconnected;
+                    connectionManager.Connect();
+                };
+
+                connectionManager.Disconnected += onDisconnected;
+                connectionManager.Disconnect();
+            }
+            else
+            {
+                connectionManager.Connect();
+            }
+
+            SetLogOutButtonText();
+        }
+
+        private void AccountLoginWindow_LoginSuccess(bool obj)
+        {
+            accountManagerWindow.Enable();
+        }
+
+        private void CnCNetAuthApi_Initialized(bool authed)
+        {
+            CnCNetAPI.Instance.Initialized -= CnCNetAuthApi_Initialized;
+            UpdateAccountLoginState();
+        }
+
+        private void UpdateAccountLoginState()
+        {
+            loginWindowPrompt?.Disable();
+            accountLoginWindow?.Disable();
+            accountManagerWindow?.Disable();
+
+            if (CnCNetAPI.Instance.IsAuthed)
+            {
+                accountManagerWindow?.Enable();
+            }
+            else
+            {
+                loginWindowPrompt?.Enable();
+            }
+        }
+
+        private void LoginWindowPrompt_ConnectWithAccount(object obj)
+        {
+            accountLoginWindow.Enable();
+        }
+
+        private void EnableGuestLoginWindow()
+        {
+            loginWindow.Enable();
+        }
+
+        private void LoginWindowPrompt_ConnectAsGuest(object obj)
+        {
+            EnableGuestLoginWindow();
         }
 
         /// <summary>
@@ -841,6 +945,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
 
+            if (hg.VerifiedOnly && ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                if (!CnCNetAPI.Instance.IsAuthed)
+                {
+                    return "This room only allows verified CnCNet accounts. Please log in and try again.".L10N("Client:Main:VerifiedOnlyJoinDenied");
+                }
+            }
+
             return GetJoinGameErrorBase();
         }
 
@@ -940,7 +1052,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, hg.SkillLevel, hg.VerifiedOnly);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
@@ -1052,7 +1164,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.SkillLevel);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, e.SkillLevel, e.VerifiedOnly);
             gameChannel.UserAdded += GameChannel_UserAdded;
             //gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
@@ -1182,6 +1294,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (gameCheckCancellation != null)
                 gameCheckCancellation.Cancel();
+
+            // cancel verify queue if running
+            if (verifyAccountCancellation != null)
+            {
+                verifyAccountCancellation.Cancel();
+                CnCNetVerifyAccountsTask.VerifyCall -= CnCNetVerifyAccountsTask_VerifyCall;
+                verifyAccountCancellation = null;
+            }
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -1370,6 +1490,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
             currentChatChannel.UserKicked += RefreshPlayerList;
             currentChatChannel.UserListReceived += RefreshPlayerList;
+            // Trigger verification after user list is received, if API is enabled
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                currentChatChannel.UserListReceived += VerifyUserList;
+            }
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
@@ -1386,6 +1511,66 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
             {
                 currentChatChannel.Join();
+            }
+        }
+
+        private void VerifyUserList(object sender, EventArgs e)
+        {
+            currentChatChannel.UserListReceived -= VerifyUserList;
+
+            if (verifyAccountCancellation == null)
+            {
+                verifyAccountCancellation = new CancellationTokenSource();
+                CnCNetVerifyAccountsTask.VerifyCall += CnCNetVerifyAccountsTask_VerifyCall;
+                CnCNetVerifyAccountsTask.InitializeService(verifyAccountCancellation);
+            }
+        }
+
+        private void CnCNetVerifyAccountsTask_VerifyCall(object obj) => UpdateVerifiedUsers();
+
+        private void UpdateVerifiedUsers()
+        {
+            List<string> idents = new List<string>();
+            // Users is a SortedUserCollection; iterate via linked list API
+            var current = currentChatChannel.Users.GetFirst();
+            while (current != null)
+            {
+                var user = current.Value;
+                if (user.IRCUser.Ident != null)
+                {
+                    idents.Add(user.IRCUser.Ident);
+                }
+                current = current.Next;
+            }
+
+            CnCNetAPI.Instance.VerifyAccountsComplete += CnCNetAuthApi_VerifyAccountsComplete;
+            CnCNetAPI.Instance.VerifyAccounts(idents);
+        }
+
+        private void CnCNetAuthApi_VerifyAccountsComplete(System.Collections.Generic.List<VerifiedAccounts> verifiedAccounts)
+        {
+            CnCNetAPI.Instance.VerifyAccountsComplete -= CnCNetAuthApi_VerifyAccountsComplete;
+            if (currentChatChannel == null)
+                return;
+
+            foreach (VerifiedAccounts user in verifiedAccounts)
+            {
+                var cur = currentChatChannel.Users.GetFirst();
+                while (cur != null)
+                {
+                    var u = cur.Value;
+                    if (u.IRCUser.Ident == user.ident)
+                    {
+                        if (!u.IRCUser.IsVerified)
+                        {
+                            u.IRCUser.IsVerified = true;
+                            // Update the player list entry immediately to show the checkmark
+                            RefreshPlayerListUser(u);
+                        }
+                        break;
+                    }
+                    cur = cur.Next;
+                }
             }
         }
 
@@ -1504,10 +1689,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 12)
             {
-                Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
-                return;
+                // Require the 12 expected fields; accept forward-compatible packets with extras by truncating
+                if (splitMessage.Length != 12)
+                {
+                    if (splitMessage.Length > 12)
+                    {
+                        Array.Resize(ref splitMessage, 12);
+                    }
+                    else
+                    {
+                        Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
+                        return;
+                    }
+                }
             }
 
             try
@@ -1524,6 +1719,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
                 bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
                 bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
+                bool verifiedOnly = false;
+                if (splitMessage[5].Length >= 6)
+                {
+                    verifiedOnly = Conversions.BooleanFromString(splitMessage[5].Substring(5, 1), false);
+                }
                 string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 List<string> playerNames = players.ToList();
                 string mapName = splitMessage[7];
@@ -1553,6 +1753,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadder;
+                game.VerifiedOnly = verifiedOnly;
                 game.Game = cncnetGame;
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
@@ -1629,8 +1830,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
             {
-                loginWindow.Enable();
-                loginWindow.LoadSettings();
+                if (ClientConfiguration.Instance.UseCnCNetAPI)
+                {
+                    // In API mode, show the appropriate account/login UI instead of the legacy guest login window
+                    UpdateAccountLoginState();
+                }
+                else
+                {
+                    loginWindow.Enable();
+                    loginWindow.LoadSettings();
+                }
             }
 
             SetLogOutButtonText();

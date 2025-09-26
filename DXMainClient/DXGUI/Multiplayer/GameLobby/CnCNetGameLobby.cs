@@ -230,9 +230,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
+        private bool verifiedOnly;
+
         public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword,
-            int skillLevel)
+            int skillLevel, bool verifiedOnly = false)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -248,6 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
             this.skillLevel = skillLevel;
+            this.verifiedOnly = verifiedOnly;
 
             if (isHost)
             {
@@ -563,6 +566,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 CopyPlayerDataToUI();
                 return;
+            }
+
+            // As host, enforce verified-only by kicking unverified users immediately on join
+            if (verifiedOnly && e.User.IRCUser.Name != ProgramConstants.PLAYERNAME)
+            {
+                // If the user lacks a verified account flag, kick them
+                if (!e.User.IRCUser.IsVerified)
+                {
+                    AddNotice(string.Format("{0} is not using a verified CnCNet account and was removed.".L10N("Client:Main:VerifiedOnlyKick"), e.User.IRCUser.Name));
+                    channel.SendKickMessage(e.User.IRCUser.Name, 8);
+                    return;
+                }
             }
 
             if (e.User.IRCUser.Name != ProgramConstants.PLAYERNAME)
@@ -1983,6 +1998,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(Convert.ToInt32(closed));
             sb.Append("0"); // IsLoadedGame
             sb.Append("0"); // IsLadder
+            sb.Append(Convert.ToInt32(verifiedOnly)); // VerifiedOnly
             sb.Append(";");
             foreach (PlayerInfo pInfo in Players)
             {

@@ -6,13 +6,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     class GameCreationEventArgs : EventArgs
     {
         public GameCreationEventArgs(string roomName, int maxPlayers, 
-            string password, CnCNetTunnel tunnel, int skillLevel)
+            string password, CnCNetTunnel tunnel, int skillLevel, bool verifiedOnly)
         {
             GameRoomName = roomName;
             MaxPlayers = maxPlayers;
             Password = password;
             Tunnel = tunnel;
             SkillLevel = skillLevel;
+            VerifiedOnly = verifiedOnly;
         }
 
         public string GameRoomName { get; private set; }
@@ -20,5 +21,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public string Password { get; private set; }
         public CnCNetTunnel Tunnel { get; private set; }
         public int SkillLevel { get; private set; }
+        public bool VerifiedOnly { get; private set; }
     }
 }

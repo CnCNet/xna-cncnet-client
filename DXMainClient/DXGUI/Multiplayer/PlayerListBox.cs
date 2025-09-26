@@ -26,6 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
         private Texture2D badgeGameIcon;
+        private Texture2D verifiedIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
 
@@ -44,7 +45,10 @@ namespace DTAClient.DXGUI.Multiplayer
             adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
-            ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
+            try { ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png"); }
+            catch { ignoreIcon = AssetLoader.CreateTexture(Color.Gray, 8, 8); }
+            try { verifiedIcon = AssetLoader.LoadTexture("verifiedicon.png"); }
+            catch { verifiedIcon = AssetLoader.CreateTexture(Color.LimeGreen, 8, 8); }
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
         }
 
@@ -117,6 +121,14 @@ namespace DTAClient.DXGUI.Multiplayer
                         ignoreIcon.Width, ignoreIcon.Height), Color.White);
 
                     x += ignoreIcon.Width + MARGIN;
+                }
+
+                // Verified icon
+                if (user.IRCUser.IsVerified)
+                {
+                    DrawTexture(verifiedIcon,
+                        new Rectangle(x, height, verifiedIcon.Width, verifiedIcon.Height), Color.White);
+                    x += verifiedIcon.Width + MARGIN;
                 }
 
                 // Badge Icon - coming soon
