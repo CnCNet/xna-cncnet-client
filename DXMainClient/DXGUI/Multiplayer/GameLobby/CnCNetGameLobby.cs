@@ -2001,6 +2001,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(0); // LoadedGameId
             sb.Append(";");
             sb.Append(skillLevel); // SkillLevel
+            sb.Append(";");
+            sb.Append(Map?.SHA1);
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
