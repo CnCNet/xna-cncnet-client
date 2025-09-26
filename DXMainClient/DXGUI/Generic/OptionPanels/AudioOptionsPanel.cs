@@ -6,7 +6,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class AudioOptionsPanel : XNAOptionsPanel
     {

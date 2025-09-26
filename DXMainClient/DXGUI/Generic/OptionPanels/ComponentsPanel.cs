@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using ClientUpdater;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class ComponentsPanel : XNAOptionsPanel
     {

@@ -20,7 +20,7 @@ using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class DisplayOptionsPanel : XNAOptionsPanel
     {

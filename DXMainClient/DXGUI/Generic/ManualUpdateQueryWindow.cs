@@ -2,7 +2,6 @@
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
-using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;

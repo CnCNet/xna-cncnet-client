@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -20,7 +19,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ClientCore.Enums;
-using DTAConfig;
 using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
@@ -536,8 +534,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
-            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.cncneticon.png");
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));

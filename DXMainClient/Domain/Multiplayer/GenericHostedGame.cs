@@ -1,4 +1,4 @@
-﻿using ClientCore.CnCNet5;
+﻿using DTAClient.Domain.Multiplayer.CnCNet;
 using System;
 
 namespace DTAClient.Domain.Multiplayer

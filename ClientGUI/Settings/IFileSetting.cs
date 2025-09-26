@@ -1,4 +1,4 @@
-﻿namespace DTAConfig.Settings
+﻿namespace ClientGUI.Settings
 {
     interface IFileSetting : IUserSetting
     {

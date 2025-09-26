@@ -1,15 +1,15 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
 using ClientCore.Enums;
-using DTAConfig.Settings;
+using ClientGUI.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class GameOptionsPanel : XNAOptionsPanel
     {

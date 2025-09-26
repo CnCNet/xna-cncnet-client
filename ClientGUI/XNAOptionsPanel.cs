@@ -1,20 +1,19 @@
 ﻿using ClientCore;
-using ClientGUI;
-using DTAConfig.Settings;
+using ClientGUI.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System.Collections.Generic;
 
-namespace DTAConfig.OptionPanels
+namespace ClientGUI
 {
     /// <summary>
     /// A base class for all option panels.
     /// Handles custom game-specific panel options
     /// defined in INI files.
     /// </summary>
-    internal abstract class XNAOptionsPanel : XNAWindowBase
+    public abstract class XNAOptionsPanel : XNAWindowBase
     {
         public XNAOptionsPanel(WindowManager windowManager, 
             UserINISettings iniSettings) : base(windowManager)

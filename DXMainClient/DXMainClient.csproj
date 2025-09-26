@@ -29,6 +29,10 @@
     <None Remove="Resources\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Icons\*.png" />
+    <EmbeddedResource Include="Icons\*.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -44,7 +48,7 @@
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
+    <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -1,9 +1,9 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Enums;
 using ClientGUI;
-using DTAConfig.OptionPanels;
+using DTAClient.DXGUI.Generic.OptionPanels;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -11,7 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using ClientUpdater;
 
-namespace DTAConfig
+namespace DTAClient.DXGUI.Generic
 {
     public class OptionsWindow : XNAWindow
     {
