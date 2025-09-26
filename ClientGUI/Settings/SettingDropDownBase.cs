@@ -1,11 +1,9 @@
-﻿using ClientCore.Extensions;
-using ClientCore.I18N;
-using ClientGUI;
+﻿using ClientCore.I18N;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     public abstract class SettingDropDownBase : XNAClientDropDown, IUserSetting
     {

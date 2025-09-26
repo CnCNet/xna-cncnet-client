@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+
+using ClientCore;
 using ClientCore.Extensions;
 
-namespace ClientCore.CnCNet5
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public static class NameValidator
     {

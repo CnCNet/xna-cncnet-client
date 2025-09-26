@@ -7,7 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using ClientUpdater;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class UpdaterOptionsPanel : XNAOptionsPanel
     {

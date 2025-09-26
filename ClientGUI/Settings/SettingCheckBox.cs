@@ -1,10 +1,8 @@
-﻿using System;
-using ClientCore;
-using ClientGUI;
+﻿using ClientCore;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     /// <summary>
     /// A check-box for toggling options in user settings INI file.

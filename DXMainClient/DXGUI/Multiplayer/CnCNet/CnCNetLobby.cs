@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -20,7 +19,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ClientCore.Enums;
-using DTAConfig;
 using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
@@ -536,8 +534,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
-            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.cncneticon.png");
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
@@ -1218,8 +1216,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             gameCheckCancellation = new CancellationTokenSource();
-            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
-            gameCheck.InitializeService(gameCheckCancellation);
+            CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1507,7 +1504,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 12)
+            if (splitMessage.Length != 13)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1538,6 +1535,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 string loadedGameId = splitMessage[10];
                 int skillLevel = int.Parse(splitMessage[11]);
+                string mapHash = splitMessage[12];
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
@@ -1551,7 +1549,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
                     gameRoomDisplayName, isCustomPassword, true, players,
-                    e.UserName, mapName, gameMode);
+                    e.UserName, mapName, gameMode, mapHash);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;

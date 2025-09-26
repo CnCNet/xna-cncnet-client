@@ -7,7 +7,6 @@ using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using DTAConfig;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -579,6 +578,7 @@ namespace DTAClient.DXGUI.Generic
         {
             foreach (XNAControl control in new XNAControl[]
             {
+                statisticsWindow, // Note: StatisticsWindow must be initialized before any lobbies that extends GameLobbyBase. This is because StatisticsManager is accessed when initializing GameLobbyBase.
                 skirmishLobby,
                 cnCNetGameLoadingLobby,
                 cnCNetGameLobby,
@@ -586,7 +586,6 @@ namespace DTAClient.DXGUI.Generic
                 lanLobby,
                 campaignSelector,
                 gameLoadingWindow,
-                statisticsWindow,
                 updateQueryWindow,
                 manualUpdateQueryWindow,
                 updateWindow,

@@ -4,7 +4,7 @@ using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DTAConfig.Settings
+namespace ClientGUI.Settings
 {
     /// <summary>
     /// A dropdown that switches between multiple sets of files.

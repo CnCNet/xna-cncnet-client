@@ -6,9 +6,10 @@ using System.IO;
 using System.Reflection;
 using Rampastring.Tools;
 using SixLabors.ImageSharp;
+using ClientCore;
 using ClientCore.Extensions;
 
-namespace ClientCore.CnCNet5
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// A class for storing the collection of supported CnCNet games.
@@ -27,20 +28,20 @@ namespace ClientCore.CnCNet5
             GameList = new List<CnCNetGame>();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
-            using Stream tiIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tiicon.png");
-            using Stream tsIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
-            using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
-            using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
-            using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
-            using Stream reIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.reicon.png");
-            using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
-            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
-            using Stream tdIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
-            using Stream raIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.raicon.png");
-            using Stream d2kIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.d2kicon.png");
-            using Stream ssIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.ssicon.png");
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.dtaicon.png");
+            using Stream tiIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.tiicon.png");
+            using Stream tsIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.tsicon.png");
+            using Stream moIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.moicon.png");
+            using Stream yrIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.yricon.png");
+            using Stream rrIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.rricon.png");
+            using Stream reIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.reicon.png");
+            using Stream cncrIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.cncricon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.cncneticon.png");
+            using Stream tdIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.tdicon.png");
+            using Stream raIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.raicon.png");
+            using Stream d2kIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.d2kicon.png");
+            using Stream ssIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.ssicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
             using var tiIcon = Image.Load(tiIconStream);
             using var tsIcon = Image.Load(tsIconStream);
@@ -146,7 +147,6 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Red Alert",
                     UIName = "Red Alert".L10N("Client:ClientCore:RedAlert"),
                     Texture = AssetLoader.TextureFromImage(raIcon),
-                    Supported = false
                 },
 
                 new()
@@ -252,7 +252,7 @@ namespace ClientCore.CnCNet5
                     throw new GameCollectionConfigurationException("Game with InternalName " + ID.ToUpperInvariant() + " already exists in the game collection.");
 
                 string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
-                using Stream unknownIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+                using Stream unknownIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
                 using var unknownIcon = Image.Load(unknownIconStream);
                 customGames.Add(new CnCNetGame
                 {

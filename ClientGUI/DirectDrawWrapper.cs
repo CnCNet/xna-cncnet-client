@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DTAConfig
+namespace ClientGUI
 {
     /// <summary>
     /// A DirectDraw wrapper option.
     /// </summary>
-    class DirectDrawWrapper
+    public class DirectDrawWrapper
     {
         /// <summary>
         /// Creates a new DirectDrawWrapper instance and parses its configuration
