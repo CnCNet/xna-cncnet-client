@@ -34,7 +34,10 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="Ude.NetStandard" Version="1.2.0" />
   </ItemGroup>
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' 
+                         Or '$(MSBuildProjectName)' == 'ClientGUI' 
+                         Or '$(MSBuildProjectName)' == 'ClientUpdater' 
+                         Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <!-- Polyfill on .NET 4.8 (SecondStageUpdater and MigrationTool excluded) -->
