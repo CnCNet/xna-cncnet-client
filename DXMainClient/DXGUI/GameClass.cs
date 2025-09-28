@@ -17,6 +17,7 @@ using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.DXGUI.Singleplayer;
 using DTAClient.Online;
 using ClientGUI.Settings;
 using Microsoft.Extensions.DependencyInjection;
@@ -312,7 +313,8 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<SettingCheckBox>()
                             .AddTransientXnaControl<SettingDropDown>()
                             .AddTransientXnaControl<FileSettingCheckBox>()
-                            .AddTransientXnaControl<FileSettingDropDown>();
+                            .AddTransientXnaControl<FileSettingDropDown>()
+                            .AddTransientXnaControl<NavigationButton>();
                     }
                 )
                 .Build();
