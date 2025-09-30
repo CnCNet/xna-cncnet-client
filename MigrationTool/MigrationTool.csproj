@@ -1,10 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <UseAppHost>false</UseAppHost>
-    <Nullable>Enable</Nullable>
-  </PropertyGroup>
-  <PropertyGroup>
     <Title>CnCNet.MigrationTool</Title>
     <Description>CnCNet Client Migration Tool</Description>
     <Product>CnCNet.MigrationTool</Product>
@@ -27,9 +22,6 @@
     <EmbeddedResource Include="Pictures\statusOk.png" />
     <EmbeddedResource Include="Pictures\statusUnavailable.png" />
     <EmbeddedResource Include="Pictures\statusWarning.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Rampastring.Tools" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />

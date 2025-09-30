@@ -24,17 +24,17 @@
       Properties="TargetFramework=$(TargetFramework.Split('-')[0]);Platform=AnyCPU;RuntimeIdentifier=" />
   </Target>
     
-  <Target Name="RestoreMigrationTool" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+  <Target Name="RestoreMigrationTool" AfterTargets="Restore" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'MigrationTool'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)MigrationTool\MigrationTool.csproj"
-      Properties="TargetFramework=$(TargetFramework);Platform=AnyCPU;RuntimeIdentifier="
+      Properties="TargetFramework=$(TargetFramework);Platform=$(Platform);RuntimeIdentifier="
       Targets="Restore" />
   </Target>
 
-  <Target Name="BuildMigrationTool" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'DXMainClient'">
+  <Target Name="BuildMigrationTool" AfterTargets="Build" Condition="'$(PublishDir)' != '' AND '$(MSBuildProjectName)' == 'MigrationTool'">
     <MSBuild
       Projects="$(MSBuildThisFileDirectory)MigrationTool\MigrationTool.csproj"
-      Properties="TargetFramework=$(TargetFramework);Platform=AnyCPU;RuntimeIdentifier=" />
+      Properties="TargetFramework=$(TargetFramework);Platform=$(Platform);RuntimeIdentifier=" />
   </Target>
 
   <Target Name="MakeDirectoryStructure" AfterTargets="Publish" Condition="'$(MSBuildProjectName)' == 'DXMainClient'">

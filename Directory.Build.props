@@ -33,8 +33,7 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' 
                              Or '$(MSBuildProjectName)' == 'ClientGUI' 
                              Or '$(MSBuildProjectName)' == 'ClientUpdater' 
-                             Or '$(MSBuildProjectName)' == 'DXMainClient' 
-                             Or '$(MSBuildProjectName)' == 'MigrationTool'">
+                             Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
@@ -53,6 +52,13 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
     
   <!-- For Constants -->
