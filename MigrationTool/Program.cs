@@ -81,6 +81,8 @@ internal sealed class Program
                     Logger.Log("Migration to the latest client version has been failed");
                 }
 
+                Console.WriteLine("Patching has been done.");
+
                 break;
             case 0:
             default:
