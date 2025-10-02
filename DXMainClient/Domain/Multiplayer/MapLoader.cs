@@ -81,6 +81,9 @@ namespace DTAClient.Domain.Multiplayer
             GameModes.RemoveAll(g => g.Maps.Count < 1);
             GameModeMaps = new GameModeMapCollection(GameModes);
 
+            // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
+            CleanupMigratedFavorites();
+
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
@@ -342,6 +345,50 @@ namespace DTAClient.Domain.Multiplayer
                     if (enableLogging)
                         Logger.Log("AddMapToGameModes: Added map " + map.UntranslatedName + " to game mode " + gm.Name);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Removes any name-based favorite entries that have been successfully migrated to SHA1.
+        /// This runs after all maps have been processed to ensure complete migration.
+        /// </summary>
+        private void CleanupMigratedFavorites()
+        {
+            var favoriteMaps = UserINISettings.Instance.FavoriteMaps;
+            if (favoriteMaps == null || !favoriteMaps.Any())
+                return;
+
+            var entriesToRemove = new List<string>();
+
+            foreach (string favoriteKey in favoriteMaps.ToList())
+            {
+                string[] parts = favoriteKey.Split(':');
+                if (parts.Length != 2)
+                    continue;
+
+                string mapName = parts[0];
+                string gameModeName = parts[1];
+
+                // Check if there's a corresponding SHA1-based entry for any map with this name
+                var gameMode = GameModes.FirstOrDefault(gm => gm.Name == gameModeName);
+                if (gameMode != null)
+                {
+                    bool hasMigratedVersion = gameMode.Maps
+                        .Where(m => m.UntranslatedName == mapName)
+                        .Any(m => favoriteMaps.Contains($"{m.SHA1}:{gameModeName}"));
+
+                    if (hasMigratedVersion)
+                        entriesToRemove.Add(favoriteKey);
+                }
+            }
+
+            // Remove the name-based entries
+            if (entriesToRemove.Any())
+            {
+                foreach (string entry in entriesToRemove)
+                    favoriteMaps.Remove(entry);
+
+                UserINISettings.Instance.WriteFavoriteMaps();
             }
         }
     }
