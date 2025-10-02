@@ -282,7 +282,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
                         continue;
 
-                    if (!seenAddresses.Add(tunnel.Address))
+                    if (!seenAddresses.Add($"{tunnel.Address}:{tunnel.Port}"))
                         continue;
 
                     returnValue.Add(tunnel);
