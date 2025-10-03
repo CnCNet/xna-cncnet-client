@@ -1260,6 +1260,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ChangeMap(gameModeMap);
         }
 
+        protected override void HandleMapUpdated(Map updatedMap, string previousSHA1)
+        {
+            base.HandleMapUpdated(updatedMap, previousSHA1);
+
+            // If the host's currently selected map was updated, broadcast the new map to other players
+            if (IsHost && Map != null && Map.SHA1 == updatedMap.SHA1)
+                OnGameOptionChanged();
+        }
+
         /// <summary>
         /// Signals other players that the local player has returned from the game,
         /// and unlocks the game as well as generates a new random seed as the game host.

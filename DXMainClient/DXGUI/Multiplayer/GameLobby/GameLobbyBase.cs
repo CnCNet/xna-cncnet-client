@@ -333,6 +333,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Allow repositioning / disabling in INI.
             ReadINIForControl(btnMapSortAlphabetically);
+
+            MapLoader.MapChanged += MapLoader_MapChanged;
         }
 
         private void InitializeGameOptionPresetUI()
@@ -384,6 +386,90 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Enum.IsDefined(typeof(SortDirection), UserINISettings.Instance.MapSortState.Value))
                 btnMapSortAlphabetically.SetState((SortDirection)UserINISettings.Instance.MapSortState.Value);
+        }
+
+        private void MapLoader_MapChanged(object sender, MapChangedEventArgs e)
+        {
+            WindowManager.AddCallback(() =>
+            {
+                switch (e.ChangeType)
+                {
+                    case MapChangeType.Added:
+                        HandleMapAdded(e.Map);
+                        break;
+                    case MapChangeType.Updated:
+                        HandleMapUpdated(e.Map, e.PreviousMapSHA1);
+                        break;
+                    case MapChangeType.Removed:
+                        HandleMapRemoved(e.Map);
+                        break;
+                }
+            }, null);
+        }
+
+        private void HandleMapAdded(Map addedMap)
+        {
+            RefreshGameModeFilter();
+
+            if (ShouldShowMapInCurrentFilter(addedMap))
+                ListMaps();
+        }
+
+        protected virtual void HandleMapUpdated(Map updatedMap, string previousSHA1)
+        {
+            // If the currently selected map was updated, refresh the UI
+            if (Map != null && (Map.SHA1 == previousSHA1 || Map.SHA1 == updatedMap.SHA1))
+            {
+                // Find the new GameModeMap for the updated map
+                var updatedGameModeMap = GameModeMaps
+                    .FirstOrDefault(gmm => gmm.Map.SHA1 == updatedMap.SHA1);
+
+                if (updatedGameModeMap != null)
+                    ChangeMap(updatedGameModeMap);
+            }
+
+            ListMaps();
+        }
+
+        private void HandleMapRemoved(Map removedMap)
+        {
+            // If the currently selected map was removed, select a different one
+            if (Map != null && Map.SHA1 == removedMap.SHA1)
+            {
+                var availableMaps = GameModeMaps.Where(gmm => gmm.GameMode == GameMode).ToList();
+                if (availableMaps.Any())
+                {
+                    ChangeMap(availableMaps.First());
+                }
+                else
+                {
+                    // No maps available for current game mode, change to a different one
+                    var firstAvailableGameModeMap = GameModeMaps.FirstOrDefault();
+                    if (firstAvailableGameModeMap != null)
+                    {
+                        ChangeMap(firstAvailableGameModeMap);
+                        RefreshMapSelectionUI();
+                    }
+                }
+            }
+
+            RefreshGameModeFilter();
+            ListMaps();
+        }
+
+        private bool ShouldShowMapInCurrentFilter(Map map)
+        {
+            if (map?.GameModes == null || gameModeMapFilter == null)
+                return false;
+
+            return map.GameModes.Any(gameModeName =>
+            {
+                var gameMode = MapLoader.GameModes.FirstOrDefault(gm => gm.Name == gameModeName);
+                if (gameMode == null) return false;
+
+                return gameModeMapFilter.GetGameModeMaps().Any(gmm =>
+                    gmm.GameMode.Name == gameMode.Name && gmm.Map.SHA1 == map.SHA1);
+            });
         }
 
         private static XNADropDownItem CreateGameFilterItem(string text, GameModeMapFilter filter)
@@ -811,6 +897,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             return maps;
+        }
+
+        /// <summary>
+        /// Refreshes the game mode filter dropdown to include all current game modes.
+        /// </summary>
+        protected void RefreshGameModeFilter()
+        {
+            string currentSelection = ddGameModeMapFilter.SelectedItem?.Text;
+
+            ddGameModeMapFilter.SelectedIndexChanged -= DdGameModeMapFilter_SelectedIndexChanged;
+            ddGameModeMapFilter.Items.Clear();
+
+            ddGameModeMapFilter.AddItem(CreateGameFilterItem(FavoriteMapsLabel, new GameModeMapFilter(GetFavoriteGameModeMaps)));
+            foreach (GameMode gm in GameModeMaps.GameModes)
+                ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
+
+            int selectedIndex = ddGameModeMapFilter.Items.FindIndex(i => i.Text == currentSelection);
+            ddGameModeMapFilter.SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+
+            ddGameModeMapFilter.SelectedIndexChanged += DdGameModeMapFilter_SelectedIndexChanged;
+            gameModeMapFilter = ddGameModeMapFilter.SelectedItem.Tag as GameModeMapFilter;
         }
 
         /// <summary>
