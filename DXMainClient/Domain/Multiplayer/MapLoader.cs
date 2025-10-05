@@ -360,7 +360,7 @@ namespace DTAClient.Domain.Multiplayer
 
             var entriesToRemove = new List<string>();
 
-            foreach (string favoriteKey in favoriteMaps.ToList())
+            foreach (string favoriteKey in favoriteMaps)
             {
                 string[] parts = favoriteKey.Split(':');
                 if (parts.Length != 2)
