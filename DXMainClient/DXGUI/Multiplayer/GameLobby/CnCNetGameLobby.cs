@@ -1345,9 +1345,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                             string.Equals(t.Address, ipAndPort[0], StringComparison.OrdinalIgnoreCase));
 
                     if (matchedTunnel != null)
+                    {
                         tunnelHandler.CurrentTunnel = matchedTunnel;
+                    }
                     else
+                    {
+                        // Notify the user and log the error when tunnel matching fails
+                        XNAMessageBox.Show(WindowManager, "Tunnel Error", "Failed to match the tunnel address provided by the host to any available tunnel. The game cannot be started.");
+                        Logger.Log("Failed to match tunnel address: " + ipAndPort[0]);
                         return;
+                    }
                 }
 
                 PlayerInfo pInfo = Players.Find(p => p.Name == pName);
