@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 using ClientCore;
@@ -88,7 +86,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Loads multiplayer map info asynchonously.
+        /// Loads multiplayer map info asynchronously.
         /// </summary>
         public Task LoadMapsAsync() => Task.Run(LoadMaps);
 
