@@ -88,7 +88,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 _refreshInProgress = true;
             }
 
-            Task.Factory.StartNew(() =>
+            Task.Run(() =>
             {
                 try
                 {
@@ -162,7 +162,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Task PingListTunnelAsync(int index)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
                 Tunnels[index].UpdatePing();
                 DoTunnelPinged(index);
@@ -171,7 +171,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Task PingCurrentTunnelAsync(bool checkTunnelList = false)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
                 var tunnel = CurrentTunnel;
                 if (tunnel == null) return;
