@@ -441,7 +441,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
 
-            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode) 
+            string translatedGameMode = string.IsNullOrEmpty(hg.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown")
                 : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
 
@@ -784,7 +784,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGame();
-        
+
         private void LbGameList_RightClick(object sender, EventArgs e)
         {
             lbGameList.SelectedIndex = lbGameList.HoveredIndex;
@@ -1364,7 +1364,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel = (Channel)ddCurrentChannel.SelectedItem?.Tag;
             if (currentChatChannel == null)
                 throw new Exception("Current selected chat channel is null. This should not happen.");
-            
+
             currentChatChannel.UserAdded += RefreshPlayerList;
             currentChatChannel.UserLeft += RefreshPlayerList;
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
@@ -1529,9 +1529,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                bool isDynamicTunnels = splitMessage[9] == "[DYN]";
+                CnCNetTunnel tunnel = null;
+                if (!isDynamicTunnels)
+                {
+                    string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                    string tunnelAddress = tunnelAddressAndPort[0];
+                    int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                    tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+                    if (tunnel == null)
+                        return;
+                }
 
                 string loadedGameId = splitMessage[10];
                 int skillLevel = int.Parse(splitMessage[11]);
@@ -1539,16 +1547,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                    return;
-
                 if (cncnetGame == null)
                     return;
 
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
+                    gameRoomDisplayName, isCustomPassword, !isDynamicTunnels, players,
                     e.UserName, mapName, gameMode, mapHash);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
