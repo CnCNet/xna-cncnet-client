@@ -116,178 +116,163 @@ namespace DTAClient.Domain.Multiplayer
 
         private async void OnMapFileChanged(object sender, MapFileEventArgs e)
         {
-            try
+            switch (e.ChangeType)
             {
-                switch (e.ChangeType)
-                {
-                    case WatcherChangeTypes.Created:
-                        await HandleMapFileAdded(e.FilePath);
-                        break;
-                    case WatcherChangeTypes.Changed:
-                        await HandleMapFileChanged(e.FilePath);
-                        break;
-                    case WatcherChangeTypes.Deleted:
-                        await HandleMapFileDeleted(e.FilePath);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapLoader: Unhandled exception in file watcher: {ex}");
+                case WatcherChangeTypes.Created:
+                    await HandleMapFileAdded(e.FilePath);
+                    break;
+                case WatcherChangeTypes.Changed:
+                    await HandleMapFileChanged(e.FilePath);
+                    break;
+                case WatcherChangeTypes.Deleted:
+                    await HandleMapFileDeleted(e.FilePath);
+                    break;
             }
         }
 
         private async Task HandleMapFileAdded(string filePath)
         {
-            await Task.Run(() =>
+            try
             {
-                try
+                if (!File.Exists(filePath))
+                    return;
+
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
+
+                var map = new Map(baseFilePath, true);
+
+                if (map.SetInfoFromCustomMap())
                 {
-                    if (!File.Exists(filePath))
-                        return;
-
-                    string baseFilePath = GetBaseFilePathFromFullPath(filePath);
-                    if (string.IsNullOrEmpty(baseFilePath))
-                        return;
-
-                    var map = new Map(baseFilePath, true);
-
-                    if (map.SetInfoFromCustomMap())
+                    lock (mapModificationLock)
                     {
-                        lock (mapModificationLock)
-                        {
-                            if (IsMapAlreadyLoaded(map.SHA1))
-                                return;
+                        if (IsMapAlreadyLoaded(map.SHA1))
+                            return;
 
-                            AddMapToGameModes(map, true);
-                            UpdateGameModeMaps();
+                        AddMapToGameModes(map, true);
+                        UpdateGameModeMaps();
 
-                            Logger.Log($"MapLoader: Added new map {map.Name} from {filePath}");
-                            MapChanged?.Invoke(this, new MapChangedEventArgs(map, MapChangeType.Added));
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log($"MapLoader: Failed to load map info from {filePath}");
+                        Logger.Log($"MapLoader: Added new map {map.Name} from {filePath}");
+                        MapChanged?.Invoke(this, new MapChangedEventArgs(map, MapChangeType.Added));
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.Log($"MapLoader: Error adding map from {filePath}: {ex.Message}");
+                    Logger.Log($"MapLoader: Failed to load map info from {filePath}");
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error adding map from {filePath}: {ex.Message}");
+            }
         }
 
         private async Task HandleMapFileChanged(string filePath)
         {
-            await Task.Run(() =>
+            try
             {
-                try
-                {
-                    string baseFilePath = GetBaseFilePathFromFullPath(filePath);
-                    if (string.IsNullOrEmpty(baseFilePath))
-                        return;
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
 
-                    // If editing a map, the program that saved the new version may still
-                    // have a lock on the file. Retry a couple of times.
-                    Map newMap = null;
-                    bool success = false;
-                    for (int attempt = 0; attempt < 3; attempt++)
+                // If editing a map, the program that saved the new version may still
+                // have a lock on the file. Retry a couple of times.
+                Map newMap = null;
+                bool success = false;
+
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    try
                     {
-                        try
+                        newMap = new Map(baseFilePath, true);
+                        if (newMap.SetInfoFromCustomMap())
                         {
-                            newMap = new Map(baseFilePath, true);
-                            if (newMap.SetInfoFromCustomMap())
-                            {
-                                success = true;
-                                break;
-                            }
-                        }
-                        catch (IOException)
-                        {
-                            if (attempt < 2)
-                                Thread.Sleep(100);
-                            else
-                                throw;
+                            success = true;
+                            break;
                         }
                     }
-
-                    if (success && newMap != null)
+                    catch (IOException)
                     {
-                        lock (mapModificationLock)
+                        if (attempt < 2)
+                            await Task.Delay(100);
+                        else
+                            throw;
+                    }
+                }
+
+                if (success && newMap != null)
+                {
+                    lock (mapModificationLock)
+                    {
+                        string oldSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+
+                        if (!string.IsNullOrEmpty(oldSHA1))
                         {
-                            string oldSHA1 = FindMapSHA1ByFilePath(baseFilePath);
-
-                            if (!string.IsNullOrEmpty(oldSHA1))
+                            if (oldSHA1 != newMap.SHA1)
                             {
-                                if (oldSHA1 != newMap.SHA1)
-                                {
-                                    // SHA1 changed, remove old and add new
-                                    RemoveMapBySHA1(oldSHA1);
-                                    AddMapToGameModes(newMap, true);
-                                    UpdateGameModeMaps();
-
-                                    Logger.Log($"MapLoader: Updated map {newMap.Name} from {filePath} (SHA1 changed: {oldSHA1} -> {newMap.SHA1})");
-                                    MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Updated, oldSHA1));
-                                }
-                                else
-                                {
-                                    Logger.Log($"MapLoader: Map file {filePath} changed but SHA1 remained the same ({newMap.SHA1})");
-                                }
-                            }
-                            else
-                            {
-                                // Map not found, treat as new
-                                Logger.Log($"MapLoader: Changed event for unknown map {filePath}, treating as new");
+                                // SHA1 changed, remove old and add new
+                                RemoveMapBySHA1(oldSHA1);
                                 AddMapToGameModes(newMap, true);
                                 UpdateGameModeMaps();
-                                MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Added));
+
+                                Logger.Log($"MapLoader: Updated map {newMap.Name} from {filePath} (SHA1 changed: {oldSHA1} -> {newMap.SHA1})");
+                                MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Updated, oldSHA1));
+                            }
+                            else
+                            {
+                                Logger.Log($"MapLoader: Map file {filePath} changed but SHA1 remained the same ({newMap.SHA1})");
                             }
                         }
-                    }
-                    else
-                    {
-                        Logger.Log($"MapLoader: Failed to reload map info from {filePath}");
+                        else
+                        {
+                            // Map not found, treat as new
+                            Logger.Log($"MapLoader: Changed event for unknown map {filePath}, treating as new");
+                            AddMapToGameModes(newMap, true);
+                            UpdateGameModeMaps();
+                            MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Added));
+                        }
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.Log($"MapLoader: Error updating map from {filePath}: {ex.Message}");
+                    Logger.Log($"MapLoader: Failed to reload map info from {filePath}");
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error updating map from {filePath}: {ex.Message}");
+            }
         }
 
         private async Task HandleMapFileDeleted(string filePath)
         {
-            await Task.Run(() =>
+            try
             {
-                try
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
+
+                lock (mapModificationLock)
                 {
-                    string baseFilePath = GetBaseFilePathFromFullPath(filePath);
-                    if (string.IsNullOrEmpty(baseFilePath))
-                        return;
+                    string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
 
-                    lock (mapModificationLock)
+                    if (!string.IsNullOrEmpty(mapSHA1))
                     {
-                        string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+                        var removedMap = FindMapBySHA1(mapSHA1);
+                        RemoveMapBySHA1(mapSHA1);
+                        UpdateGameModeMaps();
 
-                        if (!string.IsNullOrEmpty(mapSHA1))
-                        {
-                            var removedMap = FindMapBySHA1(mapSHA1);
-                            RemoveMapBySHA1(mapSHA1);
-                            UpdateGameModeMaps();
-
-                            Logger.Log($"MapLoader: Removed map from {filePath}");
-                            if (removedMap != null)
-                                MapChanged?.Invoke(this, new MapChangedEventArgs(removedMap, MapChangeType.Removed));
-                        }
+                        Logger.Log($"MapLoader: Removed map from {filePath}");
+                        if (removedMap != null)
+                            MapChanged?.Invoke(this, new MapChangedEventArgs(removedMap, MapChangeType.Removed));
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log($"MapLoader: Error removing map from {filePath}: {ex.Message}");
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error removing map from {filePath}: {ex.Message}");
+            }
         }
 
         /// <summary>
