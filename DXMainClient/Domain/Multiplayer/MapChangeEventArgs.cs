@@ -1,16 +1,18 @@
 ﻿using System;
-using DTAClient.Domain.Multiplayer;
 
-public class MapChangedEventArgs : EventArgs
+namespace DTAClient.Domain.Multiplayer
 {
-    public Map Map { get; set; }
-    public MapChangeType ChangeType { get; set; }
-    public string PreviousMapSHA1 { get; set; }
-
-    public MapChangedEventArgs(Map map, MapChangeType changeType, string previousMapSHA1 = null)
+    public class MapChangedEventArgs : EventArgs
     {
-        Map = map;
-        ChangeType = changeType;
-        PreviousMapSHA1 = previousMapSHA1;
+        public Map Map { get; set; }
+        public MapChangeType ChangeType { get; set; }
+        public string PreviousMapSHA1 { get; set; }
+
+        public MapChangedEventArgs(Map map, MapChangeType changeType, string previousMapSHA1 = null)
+        {
+            Map = map;
+            ChangeType = changeType;
+            PreviousMapSHA1 = previousMapSHA1;
+        }
     }
 }
