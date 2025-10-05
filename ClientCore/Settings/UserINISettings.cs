@@ -366,7 +366,7 @@ namespace ClientCore
         /// </summary>
         /// <param name="mapSHA1">The SHA1 hash of the map.</param>
         /// <param name="mapName">The name of the map.</param>
-        /// <param name="gameModeName">The name of the game mode</param>
+        /// <param name="gameModeName">The name of the game mode.</param>
         public bool IsFavoriteMap(string mapSHA1, string mapName, string gameModeName)
         {
             // SHA1-based lookup first
