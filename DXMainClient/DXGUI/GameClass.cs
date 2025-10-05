@@ -1,5 +1,4 @@
 using ClientCore;
-using ClientCore.CnCNet5;
 using ClientGUI;
 using ClientGUI.IME;
 using DTAClient.Domain;
@@ -19,8 +18,7 @@ using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using DTAConfig;
-using DTAConfig.Settings;
+using ClientGUI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;

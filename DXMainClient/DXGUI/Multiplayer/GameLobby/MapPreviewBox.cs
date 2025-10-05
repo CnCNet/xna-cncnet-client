@@ -51,6 +51,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             FontIndex = 1;
 
             CoopBriefingBox = new CoopBriefingBox(windowManager);
+            CoopBriefingBox.DrawOrder = 100;  // not a magic number, just high enough so don't need to change it later
+            CoopBriefingBox.UpdateOrder = 100;
             CoopBriefingBox.Disable();
 
             NameChanged += MapPreviewBox_NameChanged;
