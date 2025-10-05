@@ -116,17 +116,24 @@ namespace DTAClient.Domain.Multiplayer
 
         private async void OnMapFileChanged(object sender, MapFileEventArgs e)
         {
-            switch (e.ChangeType)
+            try
             {
-                case WatcherChangeTypes.Created:
-                    await HandleMapFileAdded(e.FilePath);
-                    break;
-                case WatcherChangeTypes.Changed:
-                    await HandleMapFileChanged(e.FilePath);
-                    break;
-                case WatcherChangeTypes.Deleted:
-                    HandleMapFileDeleted(e.FilePath);
-                    break;
+                switch (e.ChangeType)
+                {
+                    case WatcherChangeTypes.Created:
+                        await HandleMapFileAdded(e.FilePath);
+                        break;
+                    case WatcherChangeTypes.Changed:
+                        await HandleMapFileChanged(e.FilePath);
+                        break;
+                    case WatcherChangeTypes.Deleted:
+                        await HandleMapFileDeleted(e.FilePath);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Unhandled exception in file watcher: {ex}");
             }
         }
 
@@ -250,34 +257,37 @@ namespace DTAClient.Domain.Multiplayer
             });
         }
 
-        private void HandleMapFileDeleted(string filePath)
+        private async Task HandleMapFileDeleted(string filePath)
         {
-            try
+            await Task.Run(() =>
             {
-                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
-                if (string.IsNullOrEmpty(baseFilePath))
-                    return;
-
-                lock (mapModificationLock)
+                try
                 {
-                    string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+                    string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                    if (string.IsNullOrEmpty(baseFilePath))
+                        return;
 
-                    if (!string.IsNullOrEmpty(mapSHA1))
+                    lock (mapModificationLock)
                     {
-                        var removedMap = FindMapBySHA1(mapSHA1);
-                        RemoveMapBySHA1(mapSHA1);
-                        UpdateGameModeMaps();
+                        string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
 
-                        Logger.Log($"MapLoader: Removed map from {filePath}");
-                        if (removedMap != null)
-                            MapChanged?.Invoke(this, new MapChangedEventArgs(removedMap, MapChangeType.Removed));
+                        if (!string.IsNullOrEmpty(mapSHA1))
+                        {
+                            var removedMap = FindMapBySHA1(mapSHA1);
+                            RemoveMapBySHA1(mapSHA1);
+                            UpdateGameModeMaps();
+
+                            Logger.Log($"MapLoader: Removed map from {filePath}");
+                            if (removedMap != null)
+                                MapChanged?.Invoke(this, new MapChangedEventArgs(removedMap, MapChangeType.Removed));
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapLoader: Error removing map from {filePath}: {ex.Message}");
-            }
+                catch (Exception ex)
+                {
+                    Logger.Log($"MapLoader: Error removing map from {filePath}: {ex.Message}");
+                }
+            });
         }
 
         /// <summary>
