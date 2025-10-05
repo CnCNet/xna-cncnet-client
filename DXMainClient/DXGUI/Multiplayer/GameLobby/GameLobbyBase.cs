@@ -28,7 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// A generic base for all game lobbies (Skirmish, LAN and CnCNet).
     /// Contains the common logic for parsing game options and handling player info.
     /// </summary>
-    public abstract class GameLobbyBase : INItializableWindow, IGameSessionConfigView
+    public abstract class GameLobbyBase : INItializableWindow
     {
         protected record Rank
         {

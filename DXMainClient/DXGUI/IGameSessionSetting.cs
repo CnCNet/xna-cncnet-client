@@ -4,6 +4,7 @@ using Rampastring.Tools;
 
 namespace DTAClient.DXGUI;
 
+// TODO split the logic between campaign/mp and clean up
 public interface IGameSessionSetting
 {
     /// <summary>Indicates whether this setting can affect spawn.ini.</summary>
@@ -23,6 +24,4 @@ public interface IGameSessionSetting
     /// <param name="mapIni">The map INI file.</param>
     /// <param name="gameMode">Currently selected gamemode, if applicable.</param>
     void ApplyMapCode(IniFile mapIni, GameMode gameMode);
-    
-    // TODO disallowes side indices
 }

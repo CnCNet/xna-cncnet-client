@@ -1,24 +1,27 @@
-using ClientCore;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-
-using DTAClient.Domain;
 using System.IO;
-using System.Linq;
+
+using ClientCore;
+using ClientCore.Enums;
+using ClientCore.Extensions;
 
 using ClientGUI;
-using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using Rampastring.Tools;
-using ClientUpdater;
-using ClientCore.Extensions;
-using ClientCore.Enums;
 
-namespace DTAClient.DXGUI.Generic
+using ClientUpdater;
+
+using DTAClient.Domain;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+
+namespace DTAClient.DXGUI.Campaign
 {
-    public class CampaignSelector : XNAWindow, IGameSessionConfigView
+    public class CampaignSelector : XNAWindow
     {
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
@@ -49,8 +52,8 @@ namespace DTAClient.DXGUI.Generic
 
         private CheaterWindow cheaterWindow;
         
-        public List<GameLobbyCheckBox> CheckBoxes { get; } = new();
-        public List<GameLobbyDropDown> DropDowns { get; } = new();
+        public List<CampaignCheckBox> CheckBoxes { get; } = new();
+        public List<CampaignDropDown> DropDowns { get; } = new();
         
         private IniFile gameOptionsIni;
 
@@ -203,27 +206,6 @@ namespace DTAClient.DXGUI.Generic
             cheaterWindow.CenterOnParent();
             cheaterWindow.YesClicked += CheaterWindow_YesClicked;
             cheaterWindow.Disable();
-
-            if (!ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)
-            {
-                var mapCodeAffectingControl = (XNAControl)CheckBoxes.Cast<IGameSessionSetting>().Concat(DropDowns)
-                    .FirstOrDefault(igss => igss.AffectsMapCode);
-
-                if (mapCodeAffectingControl != null)
-                {
-                    throw new Exception($"{nameof(CampaignSelector)} can't contain settings affecting map code if {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)} is disabled!\n\n"
-                        + $"Offending setting control: {mapCodeAffectingControl.Name}");
-                }
-            }
-
-            var disallowedSideCheckbox = CheckBoxes
-                .FirstOrDefault(cb => cb.DisallowedSideIndices.Count > 0);
-
-            if (disallowedSideCheckbox != null)
-            {
-                throw new Exception($"{nameof(CampaignSelector)} can't contain settings with disallowed side indices!\n\n" 
-                    + $"Offending setting control: {disallowedSideCheckbox.Name}");
-            }
             
             LoadSettings();
         }
@@ -355,10 +337,10 @@ namespace DTAClient.DXGUI.Generic
 
             spawnIni.AddSection(spawnIniSettings);
             
-            foreach (GameLobbyCheckBox chkBox in CheckBoxes)
+            foreach (CampaignCheckBox chkBox in CheckBoxes)
                 chkBox.ApplySpawnIniCode(spawnIni);
 
-            foreach (GameLobbyDropDown dd in DropDowns)
+            foreach (CampaignDropDown dd in DropDowns)
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini
@@ -385,10 +367,10 @@ namespace DTAClient.DXGUI.Generic
                 
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
                 
-                foreach (GameLobbyCheckBox chkBox in CheckBoxes)
+                foreach (CampaignCheckBox chkBox in CheckBoxes)
                     chkBox.ApplyMapCode(mapIni, gameMode: null);
                 
-                foreach (GameLobbyDropDown dd in DropDowns)
+                foreach (CampaignDropDown dd in DropDowns)
                     dd.ApplyMapCode(mapIni, gameMode: null);
                 
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
@@ -512,10 +494,10 @@ namespace DTAClient.DXGUI.Generic
 
                 var settingsIni = new IniFile(settingsFileInfo.FullName);
                 
-                foreach (GameLobbyDropDown dd in DropDowns)
-                    settingsIni.SetStringValue("GameOptions", dd.Name, dd.UserSelectedIndex + "");
+                foreach (CampaignDropDown dd in DropDowns)
+                    settingsIni.SetStringValue("GameOptions", dd.Name, dd.SelectedIndex.ToString());
 
-                foreach (GameLobbyCheckBox cb in CheckBoxes)
+                foreach (CampaignCheckBox cb in CheckBoxes)
                     settingsIni.SetStringValue("GameOptions", cb.Name, cb.Checked.ToString());
 
                 settingsIni.WriteIniFile();
@@ -536,15 +518,15 @@ namespace DTAClient.DXGUI.Generic
 
             var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
                 
-            foreach (GameLobbyDropDown dd in DropDowns)
+            foreach (CampaignDropDown dd in DropDowns)
             {
-                dd.UserSelectedIndex = settingsIni.GetIntValue("GameOptions", dd.Name, dd.UserSelectedIndex);
+                dd.SelectedIndex = settingsIni.GetIntValue("GameOptions", dd.Name, dd.SelectedIndex);
 
-                if (dd.UserSelectedIndex > -1 && dd.UserSelectedIndex < dd.Items.Count)
-                    dd.SelectedIndex = dd.UserSelectedIndex;
+                if (dd.SelectedIndex > -1 && dd.SelectedIndex < dd.Items.Count)
+                    dd.SelectedIndex = dd.SelectedIndex;
             }
 
-            foreach (GameLobbyCheckBox cb in CheckBoxes)
+            foreach (CampaignCheckBox cb in CheckBoxes)
                 cb.Checked = settingsIni.GetBooleanValue("GameOptions", cb.Name, cb.Checked);
         }
 

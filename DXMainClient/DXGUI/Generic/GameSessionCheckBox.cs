@@ -32,33 +32,12 @@ namespace DTAClient.DXGUI.Generic
     }
 
     /// <summary>
-    /// A game option check box for the game lobby.
+    /// A game option check box for the game lobby or campaign.
     /// </summary>
-    public class GameLobbyCheckBox : XNAClientCheckBox, IGameSessionSetting
+    // TODO split the logic between descendants better and clean up
+    public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     {
-        public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
-
-        public bool IsMultiplayer { get; set; }
-
-        /// <summary>
-        /// The last host-defined value for this check box.
-        /// Defaults to the default value of Checked after the check-box
-        /// has been initialized, but its value is only changed by user interaction.
-        /// </summary>
-        public bool HostChecked { get; set; }
-
-        /// <summary>
-        /// The last value that the local player gave for this check box.
-        /// Defaults to the default value of Checked after the check-box
-        /// has been initialized, but its value is only changed by user interaction.
-        /// </summary>
-        public bool UserChecked { get; set; }
-
-        /// <summary>
-        /// The side indices that this check box disallows when checked.
-        /// Defaults to -1, which means none.
-        /// </summary>
-        public List<int> DisallowedSideIndices = new List<int>();
+        public GameSessionCheckBox(WindowManager windowManager) : base (windowManager) { }
 
         public bool AllowChanges { get; set; } = true;
 
@@ -75,37 +54,13 @@ namespace DTAClient.DXGUI.Generic
 
         private string customIniPath;
 
-        private bool reversed;
+        protected bool reversed;
 
         private bool defaultValue;
 
         private string enabledSpawnIniValue = "True";
         private string disabledSpawnIniValue = "False";
-
-
-        public override void Initialize()
-        {
-            // Find the game lobby that this control belongs to and register ourselves as a game option.
-
-            XNAControl parent = Parent;
-            while (true)
-            {
-                if (parent == null)
-                    break;
-
-                // oh no, we have a circular class reference here!
-                if (parent is IGameSessionConfigView configView)
-                {
-                    configView.CheckBoxes.Add(this);
-                    break;
-                }
-
-                parent = parent.Parent;
-            }
-
-            base.Initialize();
-        }
-
+        
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             switch (key)
@@ -125,22 +80,10 @@ namespace DTAClient.DXGUI.Generic
                 case "Reversed":
                     reversed = Conversions.BooleanFromString(value, false);
                     return;
-                case "CheckedMP":
-                    if (IsMultiplayer)
-                        Checked = Conversions.BooleanFromString(value, false);
-                    return;
                 case "Checked":
                     bool checkedValue = Conversions.BooleanFromString(value, false);
                     Checked = checkedValue;
                     defaultValue = checkedValue;
-                    HostChecked = checkedValue;
-                    UserChecked = checkedValue;
-                    return;
-                case "DisallowedSideIndex":
-                case "DisallowedSideIndices":
-                    List<int> sides = value.Split(',').ToList()
-                        .Select(s => Conversions.IntFromString(s, -1)).Distinct().ToList();
-                    DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                     return;
                 case "MapScoringMode":
                     mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -172,26 +115,6 @@ namespace DTAClient.DXGUI.Generic
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
-        /// <summary>
-        /// Applies the check-box's disallowed side index to a bool
-        /// array that determines which sides are disabled.
-        /// </summary>
-        /// <param name="disallowedArray">An array that determines which sides are disabled.</param>
-        public void ApplyDisallowedSideIndex(bool[] disallowedArray)
-        {
-            if (DisallowedSideIndices == null || DisallowedSideIndices.Count == 0)
-                return;
-
-            if (Checked != reversed)
-            {
-                for (int i = 0; i < DisallowedSideIndices.Count; i++)
-                {
-                    int sideNotAllowed = DisallowedSideIndices[i];
-                    disallowedArray[sideNotAllowed] = true;
-                }
-            }
-        }
-
         public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
             // FIXME there's a discrepancy with how base XNAUI handles this
@@ -202,7 +125,6 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             base.OnLeftClick(inputEventArgs);
-            UserChecked = Checked;
         }
     }
 }

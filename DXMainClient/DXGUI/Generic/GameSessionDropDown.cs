@@ -15,18 +15,14 @@ using Rampastring.XNAUI.XNAControls;
 namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
-    /// A game option drop-down for the game lobby.
+    /// A game option drop-down for the game lobby or campaign.
     /// </summary>
-    public class GameLobbyDropDown : XNAClientDropDown, IGameSessionSetting
+    // TODO split the logic between descendants better and clean up
+    public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
     {
-        public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
+        public GameSessionDropDown(WindowManager windowManager) : base(windowManager) { }
 
         public string OptionName { get; private set; }
-
-        public int HostSelectedIndex { get; set; }
-
-        public int UserSelectedIndex { get; set; }
-
         public bool AffectsSpawnIni => dataWriteMode != DropDownDataWriteMode.MAPCODE;
         public bool AffectsMapCode => dataWriteMode == DropDownDataWriteMode.MAPCODE;
         public bool AllowScoring => true;  // TODO
@@ -36,29 +32,6 @@ namespace DTAClient.DXGUI.Generic
         private string spawnIniOption = string.Empty;
 
         private int defaultIndex;
-
-        public override void Initialize()
-        {
-            // Find the game lobby that this control belongs to and register ourselves as a game option.
-
-            XNAControl parent = Parent;
-            while (true)
-            {
-                if (parent == null)
-                    break;
-
-                // oh no, we have a circular class reference here!
-                if (parent is IGameSessionConfigView configView)
-                {
-                    configView.DropDowns.Add(this);
-                    break;
-                }
-
-                parent = parent.Parent;
-            }
-
-            base.Initialize();
-        }
 
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
@@ -99,8 +72,6 @@ namespace DTAClient.DXGUI.Generic
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
                     defaultIndex = SelectedIndex;
-                    HostSelectedIndex = SelectedIndex;
-                    UserSelectedIndex = SelectedIndex;
                     return;
                 case "OptionName":
                     OptionName = Localize(this, "OptionName", value);
@@ -156,7 +127,6 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             base.OnLeftClick(inputEventArgs);
-            UserSelectedIndex = SelectedIndex;
         }
     }
 }
