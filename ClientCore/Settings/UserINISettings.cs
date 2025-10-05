@@ -142,6 +142,9 @@ namespace ClientCore
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
             MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
 
+            UseLegacyTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseLegacyTunnels", false);
+            UseDynamicTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseDynamicTunnels", true);
+
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
             PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
@@ -238,6 +241,9 @@ namespace ClientCore
         public BoolSetting DiscordIntegration { get; private set; }
         public BoolSetting SteamIntegration { get; private set; }
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
+
+        public BoolSetting UseLegacyTunnels { get; private set; }
+        public BoolSetting UseDynamicTunnels { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
