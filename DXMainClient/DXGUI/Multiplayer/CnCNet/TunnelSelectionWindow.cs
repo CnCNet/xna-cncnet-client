@@ -80,10 +80,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Disable();
 
-            if (!lbTunnelList.IsValidIndexSelected())
+            CnCNetTunnel tunnel = lbTunnelList.GetSelectedTunnel();
+            if (tunnel == null)
                 return;
 
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex];
             TunnelSelected?.Invoke(this, new TunnelEventArgs(tunnel));
         }
 
@@ -98,10 +98,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         /// <param name="description">The window description.</param>
         /// <param name="tunnelAddress">The address of the tunnel server to select.</param>
-        public void Open(string description, string tunnelAddress = null)
+        public void Open(string description, string tunnelAddress = null, int? targetVersion = null)
         {
             lblDescription.Text = description;
             originalTunnelAddress = tunnelAddress;
+
+            lbTunnelList.TargetVersion = targetVersion;
 
             if (!string.IsNullOrWhiteSpace(tunnelAddress))
                 lbTunnelList.SelectTunnel(tunnelAddress);
