@@ -312,8 +312,8 @@ namespace DTAClient.Domain.Multiplayer
                     return null;
 
                 string relativePath = fullPathNormalized.Substring(gamePathNormalized.Length);
-                if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString()) ||
-                    relativePath.StartsWith(Path.AltDirectorySeparatorChar.ToString()))
+                if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString())
+                    || relativePath.StartsWith(Path.AltDirectorySeparatorChar.ToString()))
                 {
                     relativePath = relativePath.Substring(1);
                 }
@@ -329,22 +329,16 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        private bool IsMapAlreadyLoaded(string sha1)
-        {
-            return GameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
-        }
+        private bool IsMapAlreadyLoaded(string sha1) =>
+            GameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
 
-        private Map FindMapBySHA1(string sha1)
-        {
-            return GameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
-        }
+        private Map FindMapBySHA1(string sha1) =>
+            GameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
 
-        private string FindMapSHA1ByFilePath(string baseFilePath)
-        {
-            return GameModes.SelectMany(gm => gm.Maps)
-                           .Where(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))
-                           .FirstOrDefault()?.SHA1;
-        }
+        private string FindMapSHA1ByFilePath(string baseFilePath) =>
+            GameModes.SelectMany(gm => gm.Maps)
+                     .Where(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))
+                     .FirstOrDefault()?.SHA1;
 
         private void RemoveMapBySHA1(string sha1)
         {
