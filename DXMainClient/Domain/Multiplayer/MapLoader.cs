@@ -139,9 +139,32 @@ namespace DTAClient.Domain.Multiplayer
                 if (string.IsNullOrEmpty(baseFilePath))
                     return;
 
-                var map = new Map(baseFilePath, true);
+                // If, for instance, the file was just extracted, the program that created it may still
+                // have a lock on the file. Retry a couple of times.
+                Map map = null;
+                bool success = false;
 
-                if (map.SetInfoFromCustomMap())
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    try
+                    {
+                        map = new Map(baseFilePath, true);
+                        if (map.SetInfoFromCustomMap())
+                        {
+                            success = true;
+                            break;
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        if (attempt < 2)
+                            await Task.Delay(100);
+                        else
+                            throw;
+                    }
+                }
+
+                if (success && map != null)
                 {
                     lock (mapModificationLock)
                     {

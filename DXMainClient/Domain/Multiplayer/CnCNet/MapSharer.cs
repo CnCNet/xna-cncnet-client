@@ -427,17 +427,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return null;
             }
 
-            string extractedFile = ExtractZipFile(destinationFile.FullName, customMapsDirectory);
+            string extractedFile = ExtractZipFile(destinationFile.FullName, newFile.FullName);
 
             if (String.IsNullOrEmpty(extractedFile))
             {
                 success = false;
                 return null;
             }
-
-            // We can safely assume that there will not be a duplicate file due to deleting it
-            // earlier if one already existed.
-            File.Move(SafePath.CombineFilePath(customMapsDirectory, extractedFile), newFile.FullName);
 
             destinationFile.Delete();
 

@@ -407,7 +407,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }, null);
         }
 
-        private void HandleMapAdded(Map addedMap)
+        protected virtual void HandleMapAdded(Map addedMap)
         {
             RefreshGameModeFilter();
 
