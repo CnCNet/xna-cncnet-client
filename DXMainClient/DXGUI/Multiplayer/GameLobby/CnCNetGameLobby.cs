@@ -1660,6 +1660,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             tunnelHandler.CurrentTunnel = tunnel;
             AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("Client:Main:HostChangeTunnel"), tunnel.Name));
+
+            foreach (PlayerInfo pInfo in Players)
+            {
+                pInfo.Ping = -1;
+                UpdatePlayerPingIndicator(pInfo);
+            }
+
+            CopyPlayerDataToUI();
             UpdatePing();
         }
 
