@@ -2,95 +2,77 @@ using System;
 using System.IO;
 using Rampastring.Tools;
 
-namespace DTAClient.Domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer;
+public class MapFileWatcher
 {
-    public class MapFileEventArgs : EventArgs
-    {
-        public string FilePath { get; set; }
-        public string FileName { get; set; }
-        public WatcherChangeTypes ChangeType { get; set; }
-        public string OldFilePath { get; set; }
+    private readonly string mapsDirectory;
+    private readonly string mapFileExtension;
+    private FileSystemWatcher fileSystemWatcher;
 
-        public MapFileEventArgs(string filePath, WatcherChangeTypes changeType, string oldFilePath = null)
+    public event EventHandler<MapFileEventArgs> MapFileChanged;
+
+    public MapFileWatcher(string mapsPath, string fileExtension)
+    {
+        mapsDirectory = mapsPath;
+        mapFileExtension = fileExtension;
+    }
+
+    public void StartWatching()
+    {
+        if (fileSystemWatcher != null)
+            return;
+
+        DirectoryInfo directoryInfo = SafePath.GetDirectory(mapsDirectory);
+        if (!directoryInfo.Exists)
+            return;
+
+        try
         {
-            FilePath = filePath;
-            FileName = Path.GetFileNameWithoutExtension(filePath);
-            ChangeType = changeType;
-            OldFilePath = oldFilePath;
+            fileSystemWatcher = new FileSystemWatcher(mapsDirectory, $"*.{mapFileExtension}")
+            {
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size,
+                IncludeSubdirectories = true
+            };
+
+            fileSystemWatcher.Created += OnFileSystemEvent;
+            fileSystemWatcher.Changed += OnFileSystemEvent;
+            fileSystemWatcher.Deleted += OnFileSystemEvent;
+            fileSystemWatcher.Renamed += OnFileRenamed;
+
+            fileSystemWatcher.EnableRaisingEvents = true;
+
+            Logger.Log($"MapFileWatcher: Started watching {mapsDirectory} for *.{mapFileExtension} files");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"MapFileWatcher: Failed to start watching directory {mapsDirectory}: {ex.Message}");
+            fileSystemWatcher?.Dispose();
+            fileSystemWatcher = null;
         }
     }
 
-    public class MapFileWatcher
+    private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
     {
-        private readonly string mapsDirectory;
-        private readonly string mapFileExtension;
-        private FileSystemWatcher fileSystemWatcher;
+        ProcessFileEvent(e.FullPath, e.ChangeType);
+    }
 
-        public event EventHandler<MapFileEventArgs> MapFileChanged;
+    private void OnFileRenamed(object sender, RenamedEventArgs e)
+    {
+        // delete + create
+        ProcessFileEvent(e.OldFullPath, WatcherChangeTypes.Deleted);
+        ProcessFileEvent(e.FullPath, WatcherChangeTypes.Created);
+    }
 
-        public MapFileWatcher(string mapsPath, string fileExtension)
+    private void ProcessFileEvent(string filePath, WatcherChangeTypes changeType)
+    {
+        try
         {
-            mapsDirectory = mapsPath;
-            mapFileExtension = fileExtension;
+            var eventArgs = new MapFileEventArgs(filePath, changeType);
+            MapFileChanged?.Invoke(this, eventArgs);
         }
-
-        public void StartWatching()
+        catch (Exception ex)
         {
-            if (fileSystemWatcher != null)
-                return;
-
-            DirectoryInfo directoryInfo = SafePath.GetDirectory(mapsDirectory);
-            if (!directoryInfo.Exists)
-                return;
-
-            try
-            {
-                fileSystemWatcher = new FileSystemWatcher(mapsDirectory, $"*.{mapFileExtension}")
-                {
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size,
-                    IncludeSubdirectories = true
-                };
-
-                fileSystemWatcher.Created += OnFileSystemEvent;
-                fileSystemWatcher.Changed += OnFileSystemEvent;
-                fileSystemWatcher.Deleted += OnFileSystemEvent;
-                fileSystemWatcher.Renamed += OnFileRenamed;
-
-                fileSystemWatcher.EnableRaisingEvents = true;
-
-                Logger.Log($"MapFileWatcher: Started watching {mapsDirectory} for *.{mapFileExtension} files");
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapFileWatcher: Failed to start watching directory {mapsDirectory}: {ex.Message}");
-                fileSystemWatcher?.Dispose();
-                fileSystemWatcher = null;
-            }
-        }
-
-        private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
-        {
-            ProcessFileEvent(e.FullPath, e.ChangeType);
-        }
-
-        private void OnFileRenamed(object sender, RenamedEventArgs e)
-        {
-            // delete + create
-            ProcessFileEvent(e.OldFullPath, WatcherChangeTypes.Deleted);
-            ProcessFileEvent(e.FullPath, WatcherChangeTypes.Created);
-        }
-
-        private void ProcessFileEvent(string filePath, WatcherChangeTypes changeType)
-        {
-            try
-            {
-                var eventArgs = new MapFileEventArgs(filePath, changeType);
-                MapFileChanged?.Invoke(this, eventArgs);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapFileWatcher: Error processing file event for {filePath}: {ex.Message}");
-            }
+            Logger.Log($"MapFileWatcher: Error processing file event for {filePath}: {ex.Message}");
         }
     }
 }
