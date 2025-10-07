@@ -31,6 +31,7 @@ namespace DTAClient.Domain.Multiplayer
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
         private MapFileWatcher mapFileWatcher;
         private readonly object mapModificationLock = new object();
+        private const int _mapChangeRetryCount = 3;
 
         /// <summary>
         /// List of game modes.
@@ -144,7 +145,7 @@ namespace DTAClient.Domain.Multiplayer
                 Map map = null;
                 bool success = false;
 
-                for (int attempt = 0; attempt < 3; attempt++)
+                for (int attempt = 0; attempt < _mapChangeRetryCount; attempt++)
                 {
                     try
                     {
@@ -157,7 +158,7 @@ namespace DTAClient.Domain.Multiplayer
                     }
                     catch (IOException)
                     {
-                        if (attempt < 2)
+                        if (attempt < _mapChangeRetryCount-1)
                             await Task.Delay(100);
                         else
                             throw;
@@ -202,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer
                 Map newMap = null;
                 bool success = false;
 
-                for (int attempt = 0; attempt < 3; attempt++)
+                for (int attempt = 0; attempt < _mapChangeRetryCount; attempt++)
                 {
                     try
                     {
@@ -215,7 +216,7 @@ namespace DTAClient.Domain.Multiplayer
                     }
                     catch (IOException)
                     {
-                        if (attempt < 2)
+                        if (attempt < _mapChangeRetryCount-1)
                             await Task.Delay(100);
                         else
                             throw;
