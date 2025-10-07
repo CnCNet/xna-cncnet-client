@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,6 +13,13 @@ using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
 {
+    public enum MapChangeType
+    {
+        Added,
+        Updated,
+        Removed
+    }
+
     public class MapLoader
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
@@ -23,6 +29,9 @@ namespace DTAClient.Domain.Multiplayer
         private const string GameModeAliasesSection = "GameModeAliases";
         private const int CurrentCustomMapCacheVersion = 1;
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
+        private MapFileWatcher mapFileWatcher;
+        private readonly object mapModificationLock = new object();
+        private const int _mapChangeRetryCount = 3;
 
         /// <summary>
         /// List of game modes.
@@ -35,6 +44,11 @@ namespace DTAClient.Domain.Multiplayer
         /// An event that is fired when the maps have been loaded.
         /// </summary>
         public event EventHandler MapLoadingComplete;
+
+        /// <summary>
+        /// Fired when a map file is added, updated, or removed.
+        /// </summary>
+        public event EventHandler<MapChangedEventArgs> MapChanged;
 
         /// <summary>
         /// A list of game mode aliases.
@@ -58,7 +72,22 @@ namespace DTAClient.Domain.Multiplayer
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
         /// <summary>
-        /// Loads multiplayer map info asynchonously.
+        /// Sets up file watching for maps.
+        /// </summary>
+        public void Initialize()
+        {
+            if (mapFileWatcher != null)
+                return;
+
+            string customMapsPath = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, CUSTOM_MAPS_DIRECTORY);
+
+            mapFileWatcher = new MapFileWatcher(customMapsPath, ClientConfiguration.Instance.MapFileExtension);
+            mapFileWatcher.MapFileChanged += OnMapFileChanged;
+            mapFileWatcher.StartWatching();
+        }
+
+        /// <summary>
+        /// Loads multiplayer map info asynchronously.
         /// </summary>
         public Task LoadMapsAsync() => Task.Run(LoadMaps);
 
@@ -82,6 +111,245 @@ namespace DTAClient.Domain.Multiplayer
             GameModeMaps = new GameModeMapCollection(GameModes);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
+        }
+
+        private async void OnMapFileChanged(object sender, MapFileEventArgs e)
+        {
+            switch (e.ChangeType)
+            {
+                case WatcherChangeTypes.Created:
+                    await HandleMapFileAdded(e.FilePath);
+                    break;
+                case WatcherChangeTypes.Changed:
+                    await HandleMapFileChanged(e.FilePath);
+                    break;
+                case WatcherChangeTypes.Deleted:
+                    await HandleMapFileDeleted(e.FilePath);
+                    break;
+            }
+        }
+
+        private async Task HandleMapFileAdded(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                    return;
+
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
+
+                // If, for instance, the file was just extracted, the program that created it may still
+                // have a lock on the file. Retry a couple of times.
+                Map map = null;
+                bool success = false;
+
+                for (int attempt = 0; attempt < _mapChangeRetryCount; attempt++)
+                {
+                    try
+                    {
+                        map = new Map(baseFilePath, true);
+                        if (map.SetInfoFromCustomMap())
+                        {
+                            success = true;
+                            break;
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        if (attempt < _mapChangeRetryCount-1)
+                            await Task.Delay(100);
+                        else
+                            throw;
+                    }
+                }
+
+                if (success && map != null)
+                {
+                    lock (mapModificationLock)
+                    {
+                        if (IsMapAlreadyLoaded(map.SHA1))
+                            return;
+
+                        AddMapToGameModes(map, true);
+                        UpdateGameModeMaps();
+
+                        Logger.Log($"MapLoader: Added new map {map.Name} from {filePath}");
+                        MapChanged?.Invoke(this, new MapChangedEventArgs(map, MapChangeType.Added));
+                    }
+                }
+                else
+                {
+                    Logger.Log($"MapLoader: Failed to load map info from {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error adding map from {filePath}: {ex.Message}");
+            }
+        }
+
+        private async Task HandleMapFileChanged(string filePath)
+        {
+            try
+            {
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
+
+                // If editing a map, the program that saved the new version may still
+                // have a lock on the file. Retry a couple of times.
+                Map newMap = null;
+                bool success = false;
+
+                for (int attempt = 0; attempt < _mapChangeRetryCount; attempt++)
+                {
+                    try
+                    {
+                        newMap = new Map(baseFilePath, true);
+                        if (newMap.SetInfoFromCustomMap())
+                        {
+                            success = true;
+                            break;
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        if (attempt < _mapChangeRetryCount-1)
+                            await Task.Delay(100);
+                        else
+                            throw;
+                    }
+                }
+
+                if (success && newMap != null)
+                {
+                    lock (mapModificationLock)
+                    {
+                        string oldSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+
+                        if (!string.IsNullOrEmpty(oldSHA1))
+                        {
+                            if (oldSHA1 != newMap.SHA1)
+                            {
+                                // SHA1 changed, remove old and add new
+                                RemoveMapBySHA1(oldSHA1);
+                                AddMapToGameModes(newMap, true);
+                                UpdateGameModeMaps();
+
+                                Logger.Log($"MapLoader: Updated map {newMap.Name} from {filePath} (SHA1 changed: {oldSHA1} -> {newMap.SHA1})");
+                                MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Updated, oldSHA1));
+                            }
+                            else
+                            {
+                                Logger.Log($"MapLoader: Map file {filePath} changed but SHA1 remained the same ({newMap.SHA1})");
+                            }
+                        }
+                        else
+                        {
+                            // Map not found, treat as new
+                            Logger.Log($"MapLoader: Changed event for unknown map {filePath}, treating as new");
+                            AddMapToGameModes(newMap, true);
+                            UpdateGameModeMaps();
+                            MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Added));
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.Log($"MapLoader: Failed to reload map info from {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error updating map from {filePath}: {ex.Message}");
+            }
+        }
+
+        private async Task HandleMapFileDeleted(string filePath)
+        {
+            try
+            {
+                string baseFilePath = GetBaseFilePathFromFullPath(filePath);
+                if (string.IsNullOrEmpty(baseFilePath))
+                    return;
+
+                lock (mapModificationLock)
+                {
+                    string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+
+                    if (!string.IsNullOrEmpty(mapSHA1))
+                    {
+                        var removedMap = FindMapBySHA1(mapSHA1);
+                        RemoveMapBySHA1(mapSHA1);
+                        UpdateGameModeMaps();
+
+                        Logger.Log($"MapLoader: Removed map from {filePath}");
+                        if (removedMap != null)
+                            MapChanged?.Invoke(this, new MapChangedEventArgs(removedMap, MapChangeType.Removed));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error removing map from {filePath}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Converts a full file path to the base file path used by the map system.
+        /// C:\YR\Maps\Custom\abc123.map > Maps\Custom\abc123
+        /// </summary>
+        private string GetBaseFilePathFromFullPath(string fullPath)
+        {
+            try
+            {
+                string gamePathNormalized = Path.GetFullPath(ProgramConstants.GamePath);
+                string fullPathNormalized = Path.GetFullPath(fullPath);
+
+                if (!fullPathNormalized.StartsWith(gamePathNormalized, StringComparison.OrdinalIgnoreCase))
+                    return null;
+
+                string relativePath = fullPathNormalized.Substring(gamePathNormalized.Length);
+                if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString())
+                    || relativePath.StartsWith(Path.AltDirectorySeparatorChar.ToString()))
+                {
+                    relativePath = relativePath.Substring(1);
+                }
+
+                string baseFilePath = relativePath.Substring(0, relativePath.Length - Path.GetExtension(relativePath).Length);
+
+                return baseFilePath.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapLoader: Error converting file path {fullPath}: {ex.Message}");
+                return null;
+            }
+        }
+
+        private bool IsMapAlreadyLoaded(string sha1)
+            => GameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
+
+        private Map FindMapBySHA1(string sha1)
+            => GameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
+
+        private string FindMapSHA1ByFilePath(string baseFilePath)
+            => GameModes.SelectMany(gm => gm.Maps)
+                .Where(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault()?.SHA1;
+
+        private void RemoveMapBySHA1(string sha1)
+        {
+            foreach (var gameMode in GameModes)
+                gameMode.Maps.RemoveAll(map => map.SHA1 == sha1);
+        }
+
+        private void UpdateGameModeMaps()
+        {
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModeMaps = new GameModeMapCollection(GameModes);
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
