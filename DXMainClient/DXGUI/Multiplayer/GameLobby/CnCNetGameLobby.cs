@@ -203,6 +203,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelSelectionWindow.Disable();
             tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
 
+            MapLoader.MapChanged += MapLoader_MapChanged;
             mapSharingConfirmationPanel = new MapSharingConfirmationPanel(WindowManager);
             MapPreviewBox.AddChild(mapSharingConfirmationPanel);
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
@@ -417,6 +418,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             tunnelHandler.CurrentTunnel = null;
             tunnelHandler.CurrentTunnelPinged -= TunnelHandler_CurrentTunnelPinged;
+
+            if (MapLoader != null)
+                MapLoader.MapChanged -= MapLoader_MapChanged;
 
             GameLeft?.Invoke(this, EventArgs.Empty);
 
@@ -1260,6 +1264,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ChangeMap(gameModeMap);
         }
 
+        protected override void HandleMapUpdated(Map updatedMap, string previousSHA1)
+        {
+            base.HandleMapUpdated(updatedMap, previousSHA1);
+
+            // If the host's currently selected map was updated, broadcast the new map to other players
+            if (IsHost && Map != null && Map.SHA1 == updatedMap.SHA1)
+                OnGameOptionChanged();
+        }
+
         /// <summary>
         /// Signals other players that the local player has returned from the game,
         /// and unlocks the game as well as generates a new random seed as the game host.
@@ -1713,32 +1726,76 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
             string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
-            Logger.Log("Map " + mapFileName + " downloaded, parsing.");
-            string mapPath = "Maps/Custom/" + mapFileName;
-            Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
-            if (map != null)
+            Logger.Log("Map " + mapFileName + " downloaded successfully.");
+
+            // MapLoader_MapChanged will fire when it's processed.
+        }
+
+        private void MapLoader_MapChanged(object sender, MapChangedEventArgs e)
+        {
+            if (e.ChangeType != MapChangeType.Added)
+                return;
+
+            bool isFromChatCommand = chatCommandDownloadedMaps.Contains(e.Map.SHA1);
+            bool isFromHostSharing = lastMapSHA1 == e.Map.SHA1 && !isFromChatCommand;
+
+            if (!isFromChatCommand && !isFromHostSharing)
+                return;
+
+            AddNotice($"Map {e.Map.Name} loaded successfully.");
+
+            GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == e.Map.SHA1);
+            ChangeMap(GameModeMap);
+
+            if (isFromChatCommand)
+                chatCommandDownloadedMaps.Remove(e.Map.SHA1);
+        }
+
+        protected override void HandleMapAdded(Map addedMap)
+        {
+            bool isFromChatCommand = chatCommandDownloadedMaps.Contains(addedMap.SHA1);
+            bool isFromHostSharing = lastMapSHA1 == addedMap.SHA1 && !isFromChatCommand;
+
+            // If this is a map we downloaded, select it
+            if (isFromChatCommand || isFromHostSharing)
             {
-                AddNotice(returnMessage);
-                if (lastMapSHA1 == e.SHA1)
+                AddNotice($"Map {addedMap.Name} loaded successfully.");
+
+                RefreshGameModeFilter();
+
+                GameModeMap gameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == addedMap.SHA1);
+
+                if (gameModeMap != null)
                 {
-                    GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == lastMapSHA1);
-                    ChangeMap(GameModeMap);
+                    // select game mode
+                    int gameModeIndex = ddGameModeMapFilter.Items.FindIndex(item =>
+                        (item.Tag as GameModeMapFilter)?.GetGameModeMaps().Any(gmm => gmm.GameMode.Name == gameModeMap.GameMode.Name) ?? false);
+
+                    if (gameModeIndex >= 0)
+                        ddGameModeMapFilter.SelectedIndex = gameModeIndex;
+
+                    ListMaps();
+
+                    // select map
+                    for (int i = 0; i < lbGameModeMapList.ItemCount; i++)
+                    {
+                        var item = lbGameModeMapList.GetItem(1, i);
+                        if ((item.Tag as GameModeMap)?.Map.SHA1 == addedMap.SHA1)
+                        {
+                            lbGameModeMapList.SelectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    ChangeMap(gameModeMap);
                 }
-            }
-            else if (chatCommandDownloadedMaps.Contains(e.SHA1))
-            {
-                // Somehow the user has managed to download an already existing sha1 hash.
-                // This special case prevents user confusion from the file successfully downloading but showing an error anyway.
-                AddNotice(returnMessage, Color.Yellow);
-                AddNotice("Map was downloaded, but a duplicate is already loaded from a different filename. This may cause strange behavior.".L10N("Client:Main:DownloadMapCommandDuplicateMapFileLoaded"),
-                    Color.Yellow);
+
+                if (isFromChatCommand)
+                    chatCommandDownloadedMaps.Remove(addedMap.SHA1);
             }
             else
             {
-                AddNotice(returnMessage, Color.Red);
-                AddNotice("Transfer of the custom map failed. The host needs to change the map or you will be unable to participate in this match.".L10N("Client:Main:MapTransferFailed"));
-                mapSharingConfirmationPanel.SetFailedStatus();
-                channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+                base.HandleMapAdded(addedMap);
             }
         }
 

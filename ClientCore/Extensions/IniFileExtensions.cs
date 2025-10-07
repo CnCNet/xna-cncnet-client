@@ -52,16 +52,7 @@ namespace ClientCore.Extensions
         }
 
         public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
-        {
-            separators ??= [','];
-            IniSection iniSection = iniFile.GetSection(section);
-
-            return (iniSection?.GetStringValue(key, defaultValue) ?? defaultValue)
-                .Split(separators)
-                .ToList()
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrEmpty(s))
-                .ToArray();
-        }
+            => (iniFile.GetSection(section)?.GetStringValue(key, defaultValue) ?? defaultValue)
+                .SplitWithCleanup();
     }
 }
