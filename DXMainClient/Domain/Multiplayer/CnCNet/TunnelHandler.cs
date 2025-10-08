@@ -29,10 +29,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
-        private const int SUPPORTED_TUNNEL_VERSION = 2;
+        private static readonly int[] SUPPORTED_TUNNEL_VERSIONS = [2, 3];
 
-        private readonly object _refreshLock = new object();
+        private readonly object _refreshLock = new();
         private bool _refreshInProgress = false;
+        private readonly V3TunnelCommunicator _tunnelCommunicator;
 
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
@@ -46,13 +47,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             connectionManager.Connected += ConnectionManager_Connected;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
+
+            _tunnelCommunicator = new V3TunnelCommunicator();
         }
 
-        public List<CnCNetTunnel> Tunnels { get; private set; } = new List<CnCNetTunnel>();
+        public List<CnCNetTunnel> Tunnels { get; private set; } = [];
         public CnCNetTunnel CurrentTunnel { get; set; } = null;
+        public V3GameTunnelBridge GameTunnelBridge;
 
         public event EventHandler TunnelsRefreshed;
         public event EventHandler CurrentTunnelPinged;
+        public event EventHandler<CnCNetTunnel> TunnelFailed;
         public event Action<int> TunnelPinged;
 
         private WindowManager wm;
@@ -73,7 +78,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
         }
 
-        private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
+        private void ConnectionManager_Connected(object sender, EventArgs e)
+        {
+            InitializeTunnelCommunicator();
+            Enabled = true;
+        }
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e) => Enabled = false;
 
@@ -92,7 +101,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 try
                 {
-                    List<CnCNetTunnel> tunnels = RefreshTunnels();
+                    List<CnCNetTunnel> tunnels = TunnelHandler.RefreshTunnels();
                     wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
                 }
                 finally
@@ -158,13 +167,21 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     PingCurrentTunnelAsync();
                 }
             }
+
+            InitializeTunnelCommunicator();
         }
 
         private Task PingListTunnelAsync(int index)
         {
             return Task.Run(() =>
             {
-                Tunnels[index].UpdatePing();
+                var tunnel = Tunnels[index];
+                int previousPing = tunnel.PingInMs;
+                tunnel.UpdatePing();
+
+                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > 2000))
+                    TunnelFailed?.Invoke(this, tunnel);
+
                 DoTunnelPinged(index);
             });
         }
@@ -176,7 +193,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 var tunnel = CurrentTunnel;
                 if (tunnel == null) return;
 
+                int previousPing = tunnel.PingInMs;
                 tunnel.UpdatePing();
+
+                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > 2000))
+                    TunnelFailed?.Invoke(this, tunnel);
+
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
@@ -188,22 +210,22 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             });
         }
 
-        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
-        private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
+        private static bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
+        private static bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
 
-        private byte[] GetRawTunnelDataOnline()
+        private static byte[] GetRawTunnelDataOnline()
         {
             WebClient client = new ExtendedWebClient();
             return client.DownloadData(ClientConfiguration.Instance.CnCNetTunnelListURL);
         }
 
-        private byte[] GetRawTunnelDataOffline()
+        private static byte[] GetRawTunnelDataOffline()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
             return File.ReadAllBytes(tunnelCacheFile.FullName);
         }
 
-        private byte[] GetRawTunnelData(int retryCount = 2)
+        private static byte[] GetRawTunnelData(int retryCount = 2)
         {
             Logger.Log("Fetching tunnel server info.");
 
@@ -213,7 +235,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     try
                     {
-                        byte[] data = GetRawTunnelDataOnline();
+                        byte[] data = TunnelHandler.GetRawTunnelDataOnline();
                         return data;
                     }
                     catch (Exception ex)
@@ -234,10 +256,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("Fetching tunnel server list online is disabled.");
             }
 
-            if (OfflineTunnelDataAvailable)
+            if (TunnelHandler.OfflineTunnelDataAvailable)
             {
                 Logger.Log("Using cached tunnel data.");
-                byte[] data = GetRawTunnelDataOffline();
+                byte[] data = TunnelHandler.GetRawTunnelDataOffline();
                 return data;
             }
             else
@@ -251,20 +273,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private List<CnCNetTunnel> RefreshTunnels()
+        private static List<CnCNetTunnel> RefreshTunnels()
         {
-            List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
+            List<CnCNetTunnel> returnValue = [];
             var seenAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
-            byte[] data = GetRawTunnelData();
+            byte[] data = TunnelHandler.GetRawTunnelData();
             if (data is null)
                 return returnValue;
 
             string convertedData = Encoding.Default.GetString(data);
 
-            string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] serverList = convertedData.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
             // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
             foreach (string serverInfo in serverList.Skip(1))
@@ -279,7 +301,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.RequiresPassword)
                         continue;
 
-                    if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
+                    if (!SUPPORTED_TUNNEL_VERSIONS.Contains(tunnel.Version))
                         continue;
 
                     if (!seenAddresses.Add($"{tunnel.Address}:{tunnel.Port}"))
@@ -339,5 +361,48 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             base.Update(gameTime);
         }
+
+        public V3GameTunnelBridge StartGameBridge(uint localId, int localPort, List<V3PlayerInfo> allPlayers)
+        {
+            if (GameTunnelBridge != null)
+                StopGameBridge();
+
+            GameTunnelBridge = new V3GameTunnelBridge(localId, localPort, allPlayers, this);
+            GameTunnelBridge.Start();
+
+            return GameTunnelBridge;
+        }
+
+        public void StopGameBridge()
+        {
+            if (GameTunnelBridge != null)
+            {
+                GameTunnelBridge.Stop();
+                GameTunnelBridge.Dispose();
+                GameTunnelBridge = null;
+            }
+        }
+
+        public void InitializeTunnelCommunicator()
+        {
+            if (!_tunnelCommunicator.IsInitialized && Tunnels.Count > 0)
+                _tunnelCommunicator.Initialize(Tunnels);
+        }
+
+        public void RegisterV3PacketHandler(uint localId, uint remoteId, PacketHandler handler) => _tunnelCommunicator.RegisterHandler(localId, remoteId, handler);
+
+        public void UnregisterV3PacketHandler(uint localId, uint remoteId) => _tunnelCommunicator.UnregisterHandler(localId, remoteId);
+
+        public void SendRegistrationToAllTunnels(uint localId, List<CnCNetTunnel> tunnels = null) => _tunnelCommunicator.SendRegistrationToAllTunnels(localId, tunnels);
+
+        public void SendPacket(CnCNetTunnel tunnel, uint senderId, uint receiverId,
+            TunnelPacketType packetType, byte[] payload = null)  => _tunnelCommunicator.SendPacket(tunnel, senderId, receiverId, packetType, payload);
+
+        protected override void Dispose(bool disposing)
+        {
+            StopGameBridge();
+            _tunnelCommunicator?.Dispose();
+        }
+
     }
 }
