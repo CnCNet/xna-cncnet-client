@@ -9,4 +9,5 @@ public class TunnelChosenEventArgs : EventArgs
     public CnCNetTunnel ChosenTunnel { get; set; }
     public bool IsLocalDecision { get; set; }
     public string FailureReason { get; set; }
+    public int NegotiationPing { get; set; }
 }

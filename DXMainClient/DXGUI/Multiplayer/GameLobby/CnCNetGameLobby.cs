@@ -388,28 +388,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // Success
                     v3PlayerInfo.Tunnel = e.ChosenTunnel;
 
-                    // Only the decider has ping data, so only they update and broadcast it
-                    var bestPing = v3PlayerInfo.GetBestPing();
-                    // Halve the ping since it's round-trip (player1 -> tunnel -> player2 -> tunnel -> player1)
-                    int halvedPing = (int)Math.Round(bestPing / 2.0);
 
                     if (e.IsLocalDecision)
                     {
-                        AddNotice($"Selected tunnel for {e.PlayerName}: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms)");
+                        AddNotice($"Selected tunnel for {e.PlayerName}: {e.ChosenTunnel.Name} (Ping: {e.NegotiationPing}ms)");
 
-                        _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, halvedPing);
+                        _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, e.NegotiationPing);
 
-                        playerInfo.Ping = halvedPing;
+                        playerInfo.Ping = e.NegotiationPing;
                         UpdatePlayerPingIndicator(playerInfo);
                     }
                     else
                     {
-                        AddNotice($"Assigned to tunnel: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms) from {e.PlayerName}");
+                        AddNotice($"Assigned to tunnel: {e.ChosenTunnel.Name} (Ping: {e.NegotiationPing}ms) from {e.PlayerName}");
+
+                        _negotiationData.UpdatePing(e.PlayerName, ProgramConstants.PLAYERNAME, e.NegotiationPing);
+
+                        playerInfo.Ping = e.NegotiationPing;
+                        UpdatePlayerPingIndicator(playerInfo);
                     }
 
                     _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Succeeded);
-                    UpdateNegotiationUI(); 
-                    BroadcastNegotiationInfo(e.PlayerName, NegotiationStatus.Succeeded, halvedPing);
+                    UpdateNegotiationUI();
+                    BroadcastNegotiationInfo(e.PlayerName, NegotiationStatus.Succeeded, e.NegotiationPing);
                 }
                 else
                 {
