@@ -904,7 +904,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                Debug.Print($"Error negotiating with player {player.Name}: {ex.Message}");
+                Logger.Log($"Error negotiating with player {player.Name}: {ex.Message}");
                 AddNotice($"Error negotiating tunnel with {player.Name}", Color.Red);
                 BroadcastNegotiationInfo(player.Name, NegotiationStatus.Failed);
             }

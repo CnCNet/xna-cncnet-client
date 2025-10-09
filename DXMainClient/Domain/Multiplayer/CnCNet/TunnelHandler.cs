@@ -417,7 +417,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             if (GameTunnelBridge != null)
             {
                 GameTunnelBridge.Stop();
-                GameTunnelBridge.Dispose();
                 GameTunnelBridge = null;
             }
         }

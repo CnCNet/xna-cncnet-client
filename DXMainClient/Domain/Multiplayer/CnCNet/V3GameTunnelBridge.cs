@@ -13,14 +13,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 /// Bridges UDP traffic between the local game and remote players
 /// using V3 tunnels
 /// </summary>
-public class V3GameTunnelBridge : IDisposable
+public class V3GameTunnelBridge
 {
     private readonly uint _localId;
     private readonly int _localPort;
     private readonly List<V3PlayerInfo> _otherPlayers;
     private readonly TunnelHandler _tunnelHandler;
     private readonly Thread _bridgeThread;
-    private readonly CancellationTokenSource _cts = new();
     private readonly UdpClient _localGameClient; // game will connect to this
     private volatile IPEndPoint _gameEndpoint;
     private volatile bool _isRunning = false;
@@ -86,7 +85,6 @@ public class V3GameTunnelBridge : IDisposable
             return;
 
         _isRunning = false;
-        _cts.Cancel();
         _localGameClient?.Close();
         _tunnelHandler?.UnregisterV3PacketHandler(_localId, 0);
 
@@ -133,21 +131,24 @@ public class V3GameTunnelBridge : IDisposable
         try
         {
             IPEndPoint remoteEndPoint = new(IPAddress.Any, 0);
-            while (!_cts.Token.IsCancellationRequested)
+            while (_isRunning)
             {
                 try
                 {
-                    byte[] gameData = _localGameClient.Receive(ref remoteEndPoint);
-                    _gameEndpoint = remoteEndPoint;
+                    if (_localGameClient.Client.Poll(500_000, SelectMode.SelectRead)) // 500ms
+                    {
+                        byte[] gameData = _localGameClient.Receive(ref remoteEndPoint);
+                        _gameEndpoint = remoteEndPoint;
 
-                    ushort receiverId = BinaryPrimitives.ReadUInt16BigEndian(gameData.AsSpan(2));
-                    var recipient = _otherPlayers.FirstOrDefault(p => p.PlayerGameId == receiverId);
+                        ushort receiverId = BinaryPrimitives.ReadUInt16BigEndian(gameData.AsSpan(2));
+                        var recipient = _otherPlayers.FirstOrDefault(p => p.PlayerGameId == receiverId);
 
-                    if (recipient != null)
-                        _tunnelHandler.SendPacket(recipient.Tunnel, _localId, recipient.Id,
-                            TunnelPacketType.GameData, gameData);
-                    else
-                        Logger.Log($"V3GameTunnelBridge: No matching recipient found for receiverId={receiverId}");
+                        if (recipient != null)
+                            _tunnelHandler.SendPacket(recipient.Tunnel, _localId, recipient.Id,
+                                TunnelPacketType.GameData, gameData);
+                        else
+                            Logger.Log($"V3GameTunnelBridge: No matching recipient found for receiverId={receiverId}");
+                    }
                 }
                 catch (SocketException ex) when (ex.SocketErrorCode == SocketError.TimedOut)
                 {
@@ -169,12 +170,5 @@ public class V3GameTunnelBridge : IDisposable
         }
 
         Logger.Log("V3GameTunnelBridge: Bridge worker thread stopped");
-    }
-
-    public void Dispose()
-    {
-        Stop();
-        _localGameClient?.Dispose();
-        _cts?.Dispose();
     }
 }
