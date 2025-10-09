@@ -79,7 +79,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// <summary>
     /// A lobby's player for V3 tunnel-based negotiation and communication.
     /// </summary>
-    public class V3PlayerInfo(uint id, string name, int playerIndex, ushort playerGameID, CnCNetTunnel tunnel = null)
+    public class V3PlayerInfo(uint id, string name, int playerIndex, ushort playerGameID)
     {
         public uint Id { get; set; } = id;
         public string Name { get; set; } = name;
@@ -87,7 +87,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public ushort PlayerGameId { get; set; } = playerGameID;
         public bool HasNegotiated { get; set; }
         public bool IsNegotiating { get; set; }
-        public CnCNetTunnel Tunnel { get; set; } = tunnel;
+        public CnCNetTunnel Tunnel { get; set; }
         public V3PlayerNegotiator Negotiator { get; set; }
         public Dictionary<CnCNetTunnel, TunnelTestResult> TunnelResults { get; } = [];
         private const int PACKET_LOSS_WEIGHT = 10;

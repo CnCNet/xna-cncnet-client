@@ -294,8 +294,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
 
+            bool showTunnelList = ShouldShowTunnelList();
             lblTunnelServer.Enable();
-            if (!UserINISettings.Instance.UseDynamicTunnels)
+            lblTunnelServer.Visible = showTunnelList;
+
+            if (showTunnelList)
                 lbTunnelList.Enable();
             else
                 lbTunnelList.Disable();
@@ -309,7 +312,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void Refresh()
         {
-            if (UserINISettings.Instance.UseDynamicTunnels && !UserINISettings.Instance.UseLegacyTunnels)
+            bool showTunnelList = ShouldShowTunnelList();
+            bool isAdvancedMode = Name == "GameCreationWindow_Advanced";
+
+            // When dynamic tunnels are enabled and legacy tunnels are disabled:
+            // - Show the dynamic tunnels info label
+            // - Hide the tunnel list, tunnel server label, and advanced options button
+            if (!showTunnelList)
             {
                 lblDynamicTunnels.Visible = true;
                 lbTunnelList.Visible = false;
@@ -319,12 +328,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
             {
                 lblDynamicTunnels.Visible = false;
-                lbTunnelList.Visible = true;
-                lblTunnelServer.Visible = true;
-                btnDisplayAdvancedOptions.Visible = !(Name == "GameCreationWindow_Advanced");
+                lbTunnelList.Visible = isAdvancedMode;
+                lblTunnelServer.Visible = isAdvancedMode;
+                btnDisplayAdvancedOptions.Visible = !isAdvancedMode;
             }
-            lblDynamicTunnels.Visible = UserINISettings.Instance.UseDynamicTunnels && !UserINISettings.Instance.UseLegacyTunnels;
+
             lbTunnelList.TargetVersion = UserINISettings.Instance.UseLegacyTunnels ? 2 : 3;
+
             btnLoadMPGame.AllowClick = AllowLoadingGame();
         }
 
@@ -344,6 +354,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Determines if the tunnel list should be shown.
+        /// The tunnel list is visible when legacy tunnels are enabled or dynamic tunnels are disabled.
+        /// </summary>
+        private bool ShouldShowTunnelList()
+        {
+            return UserINISettings.Instance.UseLegacyTunnels || !UserINISettings.Instance.UseDynamicTunnels;
         }
     }
 }
