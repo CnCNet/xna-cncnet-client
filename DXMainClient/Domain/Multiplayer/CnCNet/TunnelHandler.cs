@@ -146,10 +146,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Tunnels = updatedTunnels;
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            for (int i = 0; i < Tunnels.Count; i++)
+            // Group tunnels by IP address and ping each unique address
+            var tunnelsByAddress = Tunnels
+                .Where(t => UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended)
+                .GroupBy(t => t.Address)
+                .ToList();
+
+            foreach (var group in tunnelsByAddress)
             {
-                if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    _ = PingListTunnelAsync(i);
+                _ = PingAddressAndUpdateTunnelsAsync(group.Key, group.ToList());
             }
 
             if (CurrentTunnel != null)
@@ -172,18 +177,39 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             InitializeTunnelCommunicator();
         }
 
-        private Task PingListTunnelAsync(int index)
+        /// <summary>
+        /// Pings a single IP address and updates all tunnels sharing that address with the same ping result.
+        /// This prevents redundant pings for tunnels on the same IP but different ports (e.g., V2 and V3 versions).
+        /// </summary>
+        private Task PingAddressAndUpdateTunnelsAsync(string address, List<CnCNetTunnel> tunnelsWithSameAddress)
         {
             return Task.Run(() =>
             {
-                var tunnel = Tunnels[index];
-                int previousPing = tunnel.PingInMs;
-                tunnel.UpdatePing();
+                if (tunnelsWithSameAddress.Count == 0)
+                    return;
 
-                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
-                    TunnelFailed?.Invoke(this, tunnel);
+                int pingResult = -1;
 
-                DoTunnelPinged(tunnel.Address, tunnel.Port);
+                for (int i = 0; i < tunnelsWithSameAddress.Count; i++)
+                {
+                    var tunnel = tunnelsWithSameAddress[i];
+                    int previousPing = tunnel.PingInMs;
+
+                    if (i == 0)
+                    {
+                        tunnel.UpdatePing();
+                        pingResult = tunnel.PingInMs;
+                    }
+                    else
+                    {
+                        tunnel.PingInMs = pingResult;
+                    }
+
+                    if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
+                        TunnelFailed?.Invoke(this, tunnel);
+
+                    DoTunnelPinged(tunnel.Address, tunnel.Port);
+                }
             });
         }
 
@@ -196,8 +222,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 int previousPing = tunnel.PingInMs;
                 tunnel.UpdatePing();
+                int pingResult = tunnel.PingInMs;
 
-                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
+                if (previousPing > 0 && (pingResult <= 0 || pingResult > TUNNEL_FAILED_PING_AMOUNT))
                     TunnelFailed?.Invoke(this, tunnel);
 
                 DoCurrentTunnelPinged();
@@ -205,6 +232,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (checkTunnelList)
                 {
                     DoTunnelPinged(tunnel.Address, tunnel.Port);
+
+                    // Update all other tunnels with the same IP address
+                    var otherTunnelsWithSameAddress = Tunnels.Where(t => t.Address == tunnel.Address && t != tunnel).ToList();
+                    foreach (var otherTunnel in otherTunnelsWithSameAddress)
+                    {
+                        int otherPreviousPing = otherTunnel.PingInMs;
+                        otherTunnel.PingInMs = pingResult;
+
+                        if (otherPreviousPing > 0 && (pingResult <= 0 || pingResult > TUNNEL_FAILED_PING_AMOUNT))
+                            TunnelFailed?.Invoke(this, otherTunnel);
+
+                        DoTunnelPinged(otherTunnel.Address, otherTunnel.Port);
+                    }
                 }
             });
         }
