@@ -51,8 +51,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
         private const string PLAYER_TUNNEL_MESSAGE = "PLYTNL";
-        private const string NEGOTIATION_STATUS_MESSAGE = "NEGSTAT";
-        private const string NEGOTIATION_PING_INFO_MESSAGE = "NEGPING";
+        private const string NEGOTIATION_INFO_MESSAGE = "NEGINFO";
         private const string TUNNEL_RENEGOTIATE_MESSAGE = "TNLRENEG";
         private const string TUNNEL_FAILED_MESSAGE = "TNLFAIL";
 
@@ -111,8 +110,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
                 new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(PLAYER_TUNNEL_MESSAGE, HandlePlayerTunnelMessage),
-                new StringCommandHandler(NEGOTIATION_STATUS_MESSAGE, HandleNegotiationStatusMessage),
-                new StringCommandHandler(NEGOTIATION_PING_INFO_MESSAGE, HandleNegotiationPingInfoMessage),
+                new StringCommandHandler(NEGOTIATION_INFO_MESSAGE, HandleNegotiationInfoMessage),
                 new StringCommandHandler(TUNNEL_RENEGOTIATE_MESSAGE, HandleTunnelRenegotiateMessage),
                 new StringCommandHandler(TUNNEL_FAILED_MESSAGE, HandleTunnelFailedMessage)
             };
@@ -390,16 +388,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // Success
                     v3PlayerInfo.Tunnel = e.ChosenTunnel;
 
+                    // Only the decider has ping data, so only they update and broadcast it
+                    var bestPing = v3PlayerInfo.GetBestPing();
+                    // Halve the ping since it's round-trip (player1 -> tunnel -> player2 -> tunnel -> player1)
+                    int halvedPing = (int)Math.Round(bestPing / 2.0);
+
                     if (e.IsLocalDecision)
                     {
                         AddNotice($"Selected tunnel for {e.PlayerName}: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms)");
 
-                        // Only the decider has ping data, so only they update and broadcast it
-                        var bestPing = v3PlayerInfo.GetBestPing();
-                        // Halve the ping since it's round-trip (player1 -> tunnel -> player2 -> tunnel -> player1)
-                        int halvedPing = (int)Math.Round(bestPing / 2.0);
                         _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, halvedPing);
-                        BroadcastNegotiationPingInfo(e.PlayerName, halvedPing);
 
                         playerInfo.Ping = halvedPing;
                         UpdatePlayerPingIndicator(playerInfo);
@@ -410,8 +408,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
 
                     _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Succeeded);
-                    UpdateNegotiationUI();
-                    BroadcastNegotiationStatus(e.PlayerName, NegotiationStatus.Succeeded);
+                    UpdateNegotiationUI(); 
+                    BroadcastNegotiationInfo(e.PlayerName, NegotiationStatus.Succeeded, halvedPing);
                 }
                 else
                 {
@@ -424,7 +422,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Failed);
                     UpdateNegotiationUI();
 
-                    BroadcastNegotiationStatus(e.PlayerName, NegotiationStatus.Failed);
+                    BroadcastNegotiationInfo(e.PlayerName, NegotiationStatus.Failed);
                 }
             }
 
@@ -446,7 +444,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 player.HasNegotiated = true;
                 player.IsNegotiating = false;
-                BroadcastNegotiationStatus(player.Name, NegotiationStatus.Failed);
+                BroadcastNegotiationInfo(player.Name, NegotiationStatus.Failed);
             }
 
             if (player.Negotiator != null)
@@ -884,7 +882,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var availableTunnels = GetAvailableTunnelsForNegotiation();
 
-            BroadcastNegotiationStatus(player.Name, NegotiationStatus.InProgress);
+            BroadcastNegotiationInfo(player.Name, NegotiationStatus.InProgress);
 
             try
             {
@@ -901,14 +899,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (!success)
                 {
                     AddNotice($"Failed to negotiate tunnel with {player.Name}", Color.Yellow);
-                    BroadcastNegotiationStatus(player.Name, NegotiationStatus.Failed);
+                    BroadcastNegotiationInfo(player.Name, NegotiationStatus.Failed);
                 }
             }
             catch (Exception ex)
             {
                 Debug.Print($"Error negotiating with player {player.Name}: {ex.Message}");
                 AddNotice($"Error negotiating tunnel with {player.Name}", Color.Red);
-                BroadcastNegotiationStatus(player.Name, NegotiationStatus.Failed);
+                BroadcastNegotiationInfo(player.Name, NegotiationStatus.Failed);
             }
         }
 
@@ -1524,11 +1522,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
         }
 
-        private void HandleNegotiationStatusMessage(string sender, string message)
+        private void HandleNegotiationInfoMessage(string sender, string message)
         {
-            // NEGSTAT targetPlayer;status
             string[] parts = message.Split(';');
-            if (parts.Length != 2)
+            if (parts.Length < 2)
                 return;
 
             string targetPlayer = parts[0];
@@ -1537,57 +1534,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             _negotiationData.UpdateStatus(sender, targetPlayer, status);
 
+            // Handle ping if present
+            if (parts.Length >= 3 && int.TryParse(parts[2], out int ping) && ping >= 0)
+            {
+                _negotiationData.UpdatePing(sender, targetPlayer, ping);
+
+                if (sender == ProgramConstants.PLAYERNAME)
+                {
+                    PlayerInfo pInfo = Players.Find(p => p.Name == targetPlayer);
+                    if (pInfo != null)
+                    {
+                        pInfo.Ping = ping;
+                        UpdatePlayerPingIndicator(pInfo);
+                    }
+                }
+                else if (targetPlayer == ProgramConstants.PLAYERNAME)
+                {
+                    PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+                    if (pInfo != null)
+                    {
+                        pInfo.Ping = ping;
+                        UpdatePlayerPingIndicator(pInfo);
+                    }
+                }
+            }
+
             UpdateNegotiationUI();
             CheckAllNegotiationsComplete();
         }
 
-        private void HandleNegotiationPingInfoMessage(string sender, string message)
+        private void BroadcastNegotiationInfo(string targetPlayer, NegotiationStatus status, int ping = -1)
         {
-            // NEGPING targetPlayer;ping
-            string[] parts = message.Split(';');
-            if (parts.Length != 2)
-                return;
+            string message = ping >= 0
+                ? $"{NEGOTIATION_INFO_MESSAGE} {targetPlayer};{status};{ping}"
+                : $"{NEGOTIATION_INFO_MESSAGE} {targetPlayer};{status}";
 
-            string targetPlayer = parts[0];
-            if (!int.TryParse(parts[1], out int ping))
-                return;
-
-            _negotiationData.UpdatePing(sender, targetPlayer, ping);
-
-            if (sender == ProgramConstants.PLAYERNAME)
-            {
-                // Local player is reporting their ping to remote player
-                PlayerInfo pInfo = Players.Find(p => p.Name == targetPlayer);
-                if (pInfo != null)
-                {
-                    pInfo.Ping = ping;
-                    UpdatePlayerPingIndicator(pInfo);
-                }
-            }
-            else if (targetPlayer == ProgramConstants.PLAYERNAME)
-            {
-                // Remote player is reporting their ping to local player
-                PlayerInfo pInfo = Players.Find(p => p.Name == sender);
-                if (pInfo != null)
-                {
-                    pInfo.Ping = ping;
-                    UpdatePlayerPingIndicator(pInfo);
-                }
-            }
-
-            UpdateNegotiationUI();
-        }
-
-        private void BroadcastNegotiationStatus(string targetPlayer, NegotiationStatus status)
-        {
-            channel.SendCTCPMessage($"{NEGOTIATION_STATUS_MESSAGE} {targetPlayer};{status}",
-                QueuedMessageType.SYSTEM_MESSAGE, 10);
-        }
-
-        private void BroadcastNegotiationPingInfo(string targetPlayer, int ping)
-        {
-            channel.SendCTCPMessage($"{NEGOTIATION_PING_INFO_MESSAGE} {targetPlayer};{ping}",
-                QueuedMessageType.SYSTEM_MESSAGE, 10);
+            channel.SendCTCPMessage(message, QueuedMessageType.SYSTEM_MESSAGE, 10);
         }
 
         private void CheckAllNegotiationsComplete()
