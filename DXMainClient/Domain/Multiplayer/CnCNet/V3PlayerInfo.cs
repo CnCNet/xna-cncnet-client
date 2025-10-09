@@ -182,7 +182,6 @@ public class V3PlayerInfo(uint id, string name, int playerIndex, ushort playerGa
             if (!success)
             {
                 Logger.Log($"V3PlayerInfo: Negotiation failed for player {Name} (ID: {Id})");
-                await Task.Yield();
                 StopNegotiation();
             }
         }

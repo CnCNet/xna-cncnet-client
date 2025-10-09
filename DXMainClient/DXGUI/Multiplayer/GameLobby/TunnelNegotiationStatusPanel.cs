@@ -152,7 +152,6 @@ public class TunnelNegotiationStatusPanel : XNAPanel
                     ClientRectangle = new Rectangle(0, 0, CELL_WIDTH, CELL_HEIGHT),
                     TextAnchor = LabelTextAnchorInfo.CENTER
                 };
-                statusCell.AnchorPoint = new Vector2(CELL_WIDTH / 2f, CELL_HEIGHT / 2f);
 
                 var status = negotiationData.GetNegotiationStatus(players[i], players[j]);
                 var ping = negotiationData.GetPing(players[i], players[j]);

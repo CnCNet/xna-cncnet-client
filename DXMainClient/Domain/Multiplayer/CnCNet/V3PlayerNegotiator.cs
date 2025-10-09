@@ -387,10 +387,7 @@ public class V3PlayerNegotiator : IDisposable
                     Logger.Log($"V3TunnelNegotiator: Acknowledgment received from {_remotePlayer.Name} for {tunnel.Name}");
                     return; // success
                 }
-                else
-                {
-                    Logger.Log($"V3TunnelNegotiator: No acknowledgment received, retrying... (attempt {attempt + 1}/{TUNNEL_CHOICE_MAX_RETRIES})");
-                }
+                Logger.Log($"V3TunnelNegotiator: No acknowledgment received, retrying... (attempt {attempt + 1}/{TUNNEL_CHOICE_MAX_RETRIES})");
             }
             catch (OperationCanceledException)
             {
