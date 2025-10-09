@@ -20,7 +20,6 @@ using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
 using System.Net;
 using System.Diagnostics;
-using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -184,10 +183,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private readonly List<V3PlayerInfo> _v3PlayerInfos = new();
         private bool _useLegacyTunnels;
         private bool _useDynamicTunnels;
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, NegotiationStatus>> negotiationStatuses = new();
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> playerPingMatrix = new();
+        private readonly NegotiationDataManager _negotiationData = new();
         private TunnelNegotiationStatusPanel _negotiationStatusPanel;
-        private bool showNegotiationStatusPanel = false;
         private const int TUNNEL_MODE_V3_STATIC = 0;  // V3 tunnels, host-selected
         private const int TUNNEL_MODE_V3_DYNAMIC = 1; // V3 tunnels, dynamic negotiation
         private const int TUNNEL_MODE_V2_LEGACY = 2;  // V2 tunnels, host-selected
@@ -267,18 +264,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void UpdateNegotiationUI()
         {
-            if (!_useDynamicTunnels || !showNegotiationStatusPanel)
+            if (!_useDynamicTunnels || !_negotiationStatusPanel.Enabled)
             {
                 _negotiationStatusPanel.Disable();
                 return;
             }
 
             var playerNames = Players.Select(p => p.Name).ToList();
-            _negotiationStatusPanel.UpdateNegotiationStatus(playerNames, negotiationStatuses, playerPingMatrix);
+            _negotiationStatusPanel.UpdateNegotiationStatus(playerNames, _negotiationData);
 
             if (IsHost)
             {
-                var summary = _negotiationStatusPanel.GetStatusSummary(playerNames, negotiationStatuses);
+                var summary = _negotiationData.GetStatusSummary(playerNames);
                 Logger.Log($"Negotiation Status: {summary}");
             }
         }
@@ -291,18 +288,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            showNegotiationStatusPanel = !showNegotiationStatusPanel;
-
-            if (showNegotiationStatusPanel)
+            if (_negotiationStatusPanel.Enabled)
+            {
+                _negotiationStatusPanel.Disable();
+            }
+            else
             {
                 _negotiationStatusPanel.Enable();
                 UpdateNegotiationUI();
                 AddNotice("Negotiation status panel shown.");
-            }
-            else
-            {
-                _negotiationStatusPanel.Disable();
-                AddNotice("Negotiation status panel hidden.");
             }
         }
 
@@ -397,11 +391,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     v3PlayerInfo.Tunnel = e.ChosenTunnel;
 
                     if (e.IsLocalDecision)
+                    {
                         AddNotice($"Selected tunnel for {e.PlayerName}: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms)");
-                    else
-                        AddNotice($"Assigned to tunnel: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms) from {e.PlayerName}");
 
-                    BroadcastNegotiationPingInfo(e.PlayerName, v3PlayerInfo.GetBestPing());
+                        // Only the decider has ping data, so only they update and broadcast it
+                        var bestPing = v3PlayerInfo.GetBestPing();
+                        _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, (int)Math.Round(bestPing));
+                        BroadcastNegotiationPingInfo(e.PlayerName, bestPing);
+                    }
+                    else
+                    {
+                        AddNotice($"Assigned to tunnel: {e.ChosenTunnel.Name} (Ping: {e.ChosenTunnel.PingInMs}ms) from {e.PlayerName}");
+                    }
+
+                    _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Succeeded);
+                    UpdateNegotiationUI();
                     BroadcastNegotiationStatus(e.PlayerName, NegotiationStatus.Succeeded);
                 }
                 else
@@ -411,6 +415,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (!string.IsNullOrEmpty(e.FailureReason))
                         failureMessage += $": {e.FailureReason}";
                     AddNotice(failureMessage, Color.Yellow);
+
+                    _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Failed);
+                    UpdateNegotiationUI();
 
                     BroadcastNegotiationStatus(e.PlayerName, NegotiationStatus.Failed);
                 }
@@ -498,7 +505,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 v3Player.HasNegotiated = false;
                 v3Player.IsNegotiating = false;
 
-                ClearNegotiationStatusForPlayer(v3Player.Name);
+                _negotiationData.ClearPlayer(v3Player.Name);
 
                 if (v3Player.Name != ProgramConstants.PLAYERNAME)
                     StartTunnelNegotiationForPlayer(v3Player);
@@ -507,16 +514,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateNegotiationUI();
         }
 
-        private void ClearNegotiationStatusForPlayer(string playerName)
-        {
-            negotiationStatuses.TryRemove(playerName, out _);
-            playerPingMatrix.TryRemove(playerName, out _);
-
-            foreach (var status in negotiationStatuses.Values)
-                status.TryRemove(playerName, out _);
-            foreach (var pings in playerPingMatrix.Values)
-                pings.TryRemove(playerName, out _);
-        }
 
         private void GameHostInactiveChecker_CloseEvent(object sender, EventArgs e) => LeaveGameLobby();
 
@@ -646,11 +643,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 v3Player.StopNegotiation();
             }
 
-            negotiationStatuses.Clear();
-            playerPingMatrix.Clear();
+            _negotiationData.ClearAll();
 
             _negotiationStatusPanel?.Disable();
-            showNegotiationStatusPanel = false;
 
             _v3PlayerInfos.Clear();
 
@@ -948,14 +943,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 UnlockGame(true);
             }
 
-            negotiationStatuses.TryRemove(playerName, out _);
-            playerPingMatrix.TryRemove(playerName, out _);
-
-            foreach (var status in negotiationStatuses.Values)
-                status.TryRemove(playerName, out _);
-
-            foreach (var pings in playerPingMatrix.Values)
-                pings.TryRemove(playerName, out _);
+            _negotiationData.ClearPlayer(playerName);
 
             UpdateNegotiationUI();
 
@@ -1019,7 +1007,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (_useDynamicTunnels && !AreAllNegotiationsSuccessful())
             {
-                var (incomplete, failed) = GetNegotiationStatusCounts();
+                var (incomplete, failed) = _negotiationData.GetNegotiationStatusCounts(Players.Select(p => p.Name).ToList());
 
                 if (failed > 0)
                 {
@@ -1030,7 +1018,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (incomplete > 0)
                 {
-                    var incompleteNegotiations = GetIncompleteNegotiations();
+                    var incompleteNegotiations = _negotiationData.GetIncompleteNegotiations(Players.Select(p => p.Name).ToList());
                     AddNotice("Waiting for negotiations between:", Color.Yellow);
                     foreach (var (p1, p2, status) in incompleteNegotiations)
                         AddNotice($"  {p1} <-> {p2} ({status})", Color.Yellow);
@@ -1171,88 +1159,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private bool AreAllNegotiationsComplete()
-        {
-            if (!_useDynamicTunnels)
-                return true;
 
-            for (int i = 0; i < Players.Count; i++)
-            {
-                for (int j = i + 1; j < Players.Count; j++)
-                {
-                    var status = GetNegotiationStatus(Players[i].Name, Players[j].Name);
-                    if (status == NegotiationStatus.NotStarted || status == NegotiationStatus.InProgress)
-                        return false;
-                }
-            }
-
-            return true;
-        }
-
-        private List<(string, string, NegotiationStatus)> GetIncompleteNegotiations()
-        {
-            var incomplete = new List<(string, string, NegotiationStatus)>();
-
-            for (int i = 0; i < Players.Count; i++)
-            {
-                for (int j = i + 1; j < Players.Count; j++)
-                {
-                    var status = GetNegotiationStatus(Players[i].Name, Players[j].Name);
-                    if (status == NegotiationStatus.NotStarted || status == NegotiationStatus.InProgress)
-                        incomplete.Add((Players[i].Name, Players[j].Name, status));
-                }
-            }
-
-            return incomplete;
-        }
         private bool AreAllNegotiationsSuccessful()
         {
             if (!_useDynamicTunnels || Players.Count <= 1)
                 return true;
 
-            for (int i = 0; i < Players.Count; i++)
-            {
-                for (int j = i + 1; j < Players.Count; j++)
-                {
-                    var status = GetNegotiationStatus(Players[i].Name, Players[j].Name);
-                    if (status != NegotiationStatus.Succeeded)
-                        return false;
-                }
-            }
-            return true;
+            return _negotiationData.AreAllNegotiationsSuccessful(Players.Select(p => p.Name).ToList());
         }
 
-        private (int incomplete, int failed) GetNegotiationStatusCounts()
-        {
-            int incomplete = 0, failed = 0;
-
-            for (int i = 0; i < Players.Count; i++)
-            {
-                for (int j = i + 1; j < Players.Count; j++)
-                {
-                    var status = GetNegotiationStatus(Players[i].Name, Players[j].Name);
-                    if (status == NegotiationStatus.NotStarted || status == NegotiationStatus.InProgress)
-                        incomplete++;
-                    else if (status == NegotiationStatus.Failed)
-                        failed++;
-                }
-            }
-            return (incomplete, failed);
-        }
 
         private void ShowFailedNegotiations()
         {
-            var failedPairs = new List<(string, string)>();
-
-            for (int i = 0; i < Players.Count; i++)
-            {
-                for (int j = i + 1; j < Players.Count; j++)
-                {
-                    var status = GetNegotiationStatus(Players[i].Name, Players[j].Name);
-                    if (status == NegotiationStatus.Failed)
-                        failedPairs.Add((Players[i].Name, Players[j].Name));
-                }
-            }
+            var failedPairs = _negotiationData.GetFailedPairs(Players.Select(p => p.Name).ToList());
 
             if (failedPairs.Count > 0)
             {
@@ -1611,10 +1530,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!Enum.TryParse<NegotiationStatus>(parts[1], out var status))
                 return;
 
-            var senderStatuses = negotiationStatuses.GetOrAdd(sender,
-                _ => new ConcurrentDictionary<string, NegotiationStatus>());
-
-            senderStatuses[targetPlayer] = status;
+            _negotiationData.UpdateStatus(sender, targetPlayer, status);
 
             UpdateNegotiationUI();
             CheckAllNegotiationsComplete();
@@ -1631,10 +1547,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!int.TryParse(parts[1], out int ping))
                 return;
 
-            var senderPings = playerPingMatrix.GetOrAdd(sender,
-                _ => new ConcurrentDictionary<string, int>());
-
-            senderPings[targetPlayer] = ping;
+            _negotiationData.UpdatePing(sender, targetPlayer, ping);
 
             UpdateNegotiationUI();
         }
@@ -1704,15 +1617,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private NegotiationStatus GetNegotiationStatus(string player1, string player2)
         {
-            //either player could be the reporter
-            if (negotiationStatuses.TryGetValue(player1, out var player1Statuses) &&
-                player1Statuses.TryGetValue(player2, out var status))
-                return status;
-
-            return negotiationStatuses.TryGetValue(player2, out var player2Statuses) &&
-                player2Statuses.TryGetValue(player1, out status)
-                ? status
-                : NegotiationStatus.NotStarted;
+            return _negotiationData.GetNegotiationStatus(player1, player2);
         }
 
         private void CheckHighPingPairs()
@@ -1720,10 +1625,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             const int HIGH_PING_THRESHOLD = 350; //ms
             var highPingPairs = new List<(string, string, int)>();
 
-            foreach (var player1 in playerPingMatrix.Keys)
-                foreach (var kvp in playerPingMatrix[player1])
-                    if (kvp.Value > HIGH_PING_THRESHOLD)
-                        highPingPairs.Add((player1, kvp.Key, kvp.Value));
+            var playerNames = Players.Select(p => p.Name).ToList();
+            foreach (var (player1, player2) in _negotiationData.GetPlayerPairs(playerNames))
+            {
+                var ping = _negotiationData.GetPing(player1, player2);
+                if (ping.HasValue && ping.Value > HIGH_PING_THRESHOLD)
+                    highPingPairs.Add((player1, player2, ping.Value));
+            }
 
             if (highPingPairs.Count > 0)
             {
@@ -2034,10 +1942,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                negotiationStatuses.Clear();
-                playerPingMatrix.Clear();
+                _negotiationData.ClearAll();
                 _negotiationStatusPanel.Disable();
-                showNegotiationStatusPanel = false;
             }
         }
 
