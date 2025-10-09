@@ -396,8 +396,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                         // Only the decider has ping data, so only they update and broadcast it
                         var bestPing = v3PlayerInfo.GetBestPing();
-                        _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, (int)Math.Round(bestPing));
-                        BroadcastNegotiationPingInfo(e.PlayerName, bestPing);
+                        // Halve the ping since it's round-trip (player1 -> tunnel -> player2 -> tunnel -> player1)
+                        int halvedPing = (int)Math.Round(bestPing / 2.0);
+                        _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, halvedPing);
+                        BroadcastNegotiationPingInfo(e.PlayerName, halvedPing);
+
+                        playerInfo.Ping = halvedPing;
+                        UpdatePlayerPingIndicator(playerInfo);
                     }
                     else
                     {
@@ -1549,6 +1554,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             _negotiationData.UpdatePing(sender, targetPlayer, ping);
 
+            if (sender == ProgramConstants.PLAYERNAME)
+            {
+                // Local player is reporting their ping to remote player
+                PlayerInfo pInfo = Players.Find(p => p.Name == targetPlayer);
+                if (pInfo != null)
+                {
+                    pInfo.Ping = ping;
+                    UpdatePlayerPingIndicator(pInfo);
+                }
+            }
+            else if (targetPlayer == ProgramConstants.PLAYERNAME)
+            {
+                // Remote player is reporting their ping to local player
+                PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+                if (pInfo != null)
+                {
+                    pInfo.Ping = ping;
+                    UpdatePlayerPingIndicator(pInfo);
+                }
+            }
+
             UpdateNegotiationUI();
         }
 
@@ -1558,9 +1584,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 QueuedMessageType.SYSTEM_MESSAGE, 10);
         }
 
-        private void BroadcastNegotiationPingInfo(string targetPlayer, double ping)
+        private void BroadcastNegotiationPingInfo(string targetPlayer, int ping)
         {
-            channel.SendCTCPMessage($"{NEGOTIATION_PING_INFO_MESSAGE} {targetPlayer};{(int)Math.Round(ping)}",
+            channel.SendCTCPMessage($"{NEGOTIATION_PING_INFO_MESSAGE} {targetPlayer};{ping}",
                 QueuedMessageType.SYSTEM_MESSAGE, 10);
         }
 
