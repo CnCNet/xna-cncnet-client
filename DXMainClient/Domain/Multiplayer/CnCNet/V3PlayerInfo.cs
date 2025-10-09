@@ -18,13 +18,7 @@ public class PingResult
     public long SentTimeTicks { get; set; }
     public long? ReceivedTimeTicks { get; set; }
 
-    public double? RoundTripTime
-    {
-        get
-        {
-            return ReceivedTimeTicks.HasValue ? (double)(ReceivedTimeTicks.Value - SentTimeTicks) / Stopwatch.Frequency * 1000.0 : null;
-        }
-    }
+    public double? RoundTripTime => ReceivedTimeTicks.HasValue ? (ReceivedTimeTicks.Value - SentTimeTicks) * 1000.0 / Stopwatch.Frequency : null;
 
     /// <summary>
     /// A task completion source that can be awaited

@@ -1935,6 +1935,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (newUseDynamic)
             {
+                foreach (PlayerInfo pInfo in Players)
+                {
+                    pInfo.Ping = -1;
+                    UpdatePlayerPingIndicator(pInfo);
+                }
+                CopyPlayerDataToUI();
+
                 foreach (var v3Player in _v3PlayerInfos)
                 {
                     v3Player.Tunnel = null;

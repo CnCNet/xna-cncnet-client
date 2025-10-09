@@ -114,8 +114,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 lbTunnelList.SetTopIndex(0);
 
-                while (lbTunnelList.SelectedIndex > lbTunnelList.LastIndex)
-                    lbTunnelList.TopIndex++;
+                int diff = lbTunnelList.SelectedIndex - lbTunnelList.LastIndex;
+                if (diff > 0)
+                    lbTunnelList.TopIndex = Math.Min(lbTunnelList.TopIndex + diff, lbTunnelList.ItemCount - 1);
             }
 
             btnApply.AllowClick = false;

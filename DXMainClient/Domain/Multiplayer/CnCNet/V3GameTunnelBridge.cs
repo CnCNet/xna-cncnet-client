@@ -9,6 +9,10 @@ using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
+/// <summary>
+/// Bridges UDP traffic between the local game and remote players
+/// using V3 tunnels
+/// </summary>
 public class V3GameTunnelBridge : IDisposable
 {
     private readonly uint _localId;

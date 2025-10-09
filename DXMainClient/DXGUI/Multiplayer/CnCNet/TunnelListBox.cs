@@ -39,7 +39,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AllowKeyboardInput = true;
         }
 
-        public int? TargetVersion { get; set; }
+        private int? _targetVersion;
+        public int? TargetVersion
+        {
+            get => _targetVersion;
+            set
+            {
+                if (_targetVersion != value)
+                {
+                    _targetVersion = value;
+                    isManuallySelectedTunnel = false;
+                    manuallySelectedTunnelAddress = null;
+                    if (ItemCount > 0)
+                        TunnelHandler_TunnelsRefreshed(this, EventArgs.Empty);
+                }
+            }
+        }
+
         public event EventHandler ListRefreshed;
 
         private readonly TunnelHandler tunnelHandler;
@@ -135,6 +151,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     {
                         SelectedIndex = bestTunnelIndex;
                         isManuallySelectedTunnel = false;
+                        manuallySelectedTunnelAddress = null;
                     }
                     else
                         SelectedIndex = manuallySelectedIndex;
@@ -144,12 +161,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ListRefreshed?.Invoke(this, EventArgs.Empty);
         }
 
-        private void TunnelHandler_TunnelPinged(int originalTunnelIndex)
+        private void TunnelHandler_TunnelPinged(string address, int port)
         {
             var filteredTunnels = GetFilteredTunnels();
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels[originalTunnelIndex];
 
-            int filteredIndex = filteredTunnels.FindIndex(t => t.Address == tunnel.Address);
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.FirstOrDefault(t => t.Address == address && t.Port == port);
+            if (tunnel == null)
+                return;
+
+            int filteredIndex = filteredTunnels.FindIndex(t => t.Address == address && t.Port == port);
             if (filteredIndex == -1)
                 return;
 

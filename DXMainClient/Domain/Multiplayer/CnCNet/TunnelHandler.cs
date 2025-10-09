@@ -58,18 +58,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public event EventHandler TunnelsRefreshed;
         public event EventHandler CurrentTunnelPinged;
         public event EventHandler<CnCNetTunnel> TunnelFailed;
-        public event Action<int> TunnelPinged;
+        public event Action<string, int> TunnelPinged; //address, port
 
         private WindowManager wm;
         private CnCNetManager connectionManager;
 
         private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
         private uint skipCount = 0;
+        private const int TUNNEL_FAILED_PING_AMOUNT = 2000;
 
-        private void DoTunnelPinged(int index)
+        private void DoTunnelPinged(string address, int port)
         {
             if (TunnelPinged != null)
-                wm.AddCallback(TunnelPinged, index);
+                wm.AddCallback(TunnelPinged, address, port);
         }
 
         private void DoCurrentTunnelPinged()
@@ -101,7 +102,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 try
                 {
-                    List<CnCNetTunnel> tunnels = TunnelHandler.RefreshTunnels();
+                    List<CnCNetTunnel> tunnels = RefreshTunnels();
                     wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
                 }
                 finally
@@ -179,10 +180,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 int previousPing = tunnel.PingInMs;
                 tunnel.UpdatePing();
 
-                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > 2000))
+                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
                     TunnelFailed?.Invoke(this, tunnel);
 
-                DoTunnelPinged(index);
+                DoTunnelPinged(tunnel.Address, tunnel.Port);
             });
         }
 
@@ -196,16 +197,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 int previousPing = tunnel.PingInMs;
                 tunnel.UpdatePing();
 
-                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > 2000))
+                if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
                     TunnelFailed?.Invoke(this, tunnel);
 
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
                 {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == tunnel.Address && t.Port == tunnel.Port);
-                    if (tunnelIndex > -1)
-                        DoTunnelPinged(tunnelIndex);
+                    DoTunnelPinged(tunnel.Address, tunnel.Port);
                 }
             });
         }
@@ -235,7 +234,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     try
                     {
-                        byte[] data = TunnelHandler.GetRawTunnelDataOnline();
+                        byte[] data = GetRawTunnelDataOnline();
                         return data;
                     }
                     catch (Exception ex)
@@ -256,10 +255,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("Fetching tunnel server list online is disabled.");
             }
 
-            if (TunnelHandler.OfflineTunnelDataAvailable)
+            if (OfflineTunnelDataAvailable)
             {
                 Logger.Log("Using cached tunnel data.");
-                byte[] data = TunnelHandler.GetRawTunnelDataOffline();
+                byte[] data = GetRawTunnelDataOffline();
                 return data;
             }
             else
@@ -280,7 +279,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
-            byte[] data = TunnelHandler.GetRawTunnelData();
+            byte[] data = GetRawTunnelData();
             if (data is null)
                 return returnValue;
 
@@ -393,16 +392,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public void UnregisterV3PacketHandler(uint localId, uint remoteId) => _tunnelCommunicator.UnregisterHandler(localId, remoteId);
 
-        public void SendRegistrationToAllTunnels(uint localId, List<CnCNetTunnel> tunnels = null) => _tunnelCommunicator.SendRegistrationToAllTunnels(localId, tunnels);
+        public void SendRegistrationToTunnels(uint localId, List<CnCNetTunnel> tunnels = null) => _tunnelCommunicator.SendRegistrationToTunnels(localId, tunnels);
 
         public void SendPacket(CnCNetTunnel tunnel, uint senderId, uint receiverId,
             TunnelPacketType packetType, byte[] payload = null)  => _tunnelCommunicator.SendPacket(tunnel, senderId, receiverId, packetType, payload);
-
-        protected override void Dispose(bool disposing)
-        {
-            StopGameBridge();
-            _tunnelCommunicator?.Dispose();
-        }
-
     }
 }

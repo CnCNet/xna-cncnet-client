@@ -56,13 +56,13 @@ public delegate void PacketHandler(uint senderId, uint receiverId,
 /// Handles registration, negotiation packets, and forwarding of
 /// game data between players through tunnels.
 /// </summary>
-public class V3TunnelCommunicator : IDisposable
+public class V3TunnelCommunicator
 {
     private readonly static byte[] MAGIC_BYTES = [0x45, 0x4A, 0x45, 0x4A, 0x45, 0x4A]; //EJEJEJ
 
     private UdpClient _udpClient;
-    private Thread _receiveThread;
-    private CancellationTokenSource _receiveCts;
+    private Thread _receiveThread; 
+    private volatile bool _running;
     private readonly ConcurrentDictionary<IPEndPoint, CnCNetTunnel> _endpointToTunnel = new();
     private readonly ConcurrentDictionary<(uint localId, uint remoteId), PacketHandler> _handlers = new();
     private readonly object _initLock = new();
@@ -170,7 +170,7 @@ public class V3TunnelCommunicator : IDisposable
     /// Optional list of tunnels to send to.  
     /// If omitted, all known tunnels will be targeted.
     /// </param>
-    public void SendRegistrationToAllTunnels(uint localId, List<CnCNetTunnel> tunnels = null)
+    public void SendRegistrationToTunnels(uint localId, List<CnCNetTunnel> tunnels = null)
     {
         if (!IsInitialized)
             return;
@@ -178,7 +178,7 @@ public class V3TunnelCommunicator : IDisposable
         var targetTunnels = tunnels?.Where(t => t.Version == 3).ToList() ??
                             [.. _endpointToTunnel.Values];
 
-        var packet = V3TunnelCommunicator.CreatePacket(localId, 0u, TunnelPacketType.Register);
+        var packet = CreatePacket(localId, 0u, TunnelPacketType.Register);
         foreach (var tunnel in targetTunnels)
         {
             try
@@ -212,7 +212,7 @@ public class V3TunnelCommunicator : IDisposable
 
         try
         {
-            var packet = V3TunnelCommunicator.CreatePacket(senderId, receiverId, packetType, payload);
+            var packet = CreatePacket(senderId, receiverId, packetType, payload);
             _udpClient.Send(packet, packet.Length, tunnel.Address, tunnel.Port);
         }
         catch (Exception ex)
@@ -225,8 +225,6 @@ public class V3TunnelCommunicator : IDisposable
     {
         _udpClient = new UdpClient(0);
         _udpClient.Client.ReceiveTimeout = 500;
-        _udpClient.Client.ReceiveBufferSize = 65536; //TODO: do we still need this?
-        _udpClient.Client.SendBufferSize = 65536;
 
         _endpointToTunnel.Clear();
         foreach (var tunnel in tunnels)
@@ -236,7 +234,7 @@ public class V3TunnelCommunicator : IDisposable
             Logger.Log($"V3TunnelCommunicator: Added tunnel mapping: {endpoint} -> {tunnel.Name}");
         }
 
-        _receiveCts = new CancellationTokenSource();
+        _running = true;
         _receiveThread = new Thread(ReceivePackets)
         {
             IsBackground = true,
@@ -258,7 +256,7 @@ public class V3TunnelCommunicator : IDisposable
     {
         try
         {
-            var parsed = V3TunnelCommunicator.ParsePacket(data.AsSpan());
+            var parsed = ParsePacket(data.AsSpan());
             if (parsed.Payload.Length == 0 && !parsed.NegotiationType.HasValue)
                 return;
 
@@ -326,17 +324,20 @@ public class V3TunnelCommunicator : IDisposable
         try
         {
             IPEndPoint remoteEndpoint = new(IPAddress.Any, 0);
-            while (!_receiveCts.Token.IsCancellationRequested)
+            while (_running)
             {
                 try
                 {
-                    byte[] data = _udpClient.Receive(ref remoteEndpoint);
-                    var receivedTime = Stopwatch.GetTimestamp();
+                    if (_udpClient.Client.Poll(500_000, SelectMode.SelectRead)) // 500ms
+                    {
+                        byte[] data = _udpClient.Receive(ref remoteEndpoint);
+                        var receivedTime = Stopwatch.GetTimestamp();
 
-                    if (_endpointToTunnel.TryGetValue(remoteEndpoint, out var tunnel))
-                        ProcessReceivedPacket(data, receivedTime, tunnel);
-                    else
-                        Logger.Log($"V3TunnelCommunicator: Received packet from unknown endpoint: {remoteEndpoint}");
+                        if (_endpointToTunnel.TryGetValue(remoteEndpoint, out var tunnel))
+                            ProcessReceivedPacket(data, receivedTime, tunnel);
+                        else
+                            Logger.Log($"V3TunnelCommunicator: Received packet from unknown endpoint: {remoteEndpoint}");
+                    }
                 }
                 catch (SocketException ex) when (ex.SocketErrorCode == SocketError.TimedOut)
                 {
@@ -366,37 +367,6 @@ public class V3TunnelCommunicator : IDisposable
         finally
         {
             Logger.Log("V3TunnelCommunicator: Receive thread exiting");
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposing)
-            return;
-
-        lock (_initLock)
-        {
-            if (!IsInitialized)
-                return;
-
-            _receiveCts?.Cancel();
-            _udpClient?.Dispose();
-
-            _endpointToTunnel.Clear();
-            _handlers.Clear();
-            _receiveCts?.Dispose();
-
-            _udpClient = null;
-            _receiveThread = null;
-            _receiveCts = null;
-
-            Logger.Log("V3TunnelCommunicator: V3 tunnel communicator disposed.");
         }
     }
 }

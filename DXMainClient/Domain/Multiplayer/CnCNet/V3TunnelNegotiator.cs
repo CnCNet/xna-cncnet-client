@@ -8,14 +8,6 @@ using Rampastring.Tools;
 using System.Text;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
-public class TunnelChosenEventArgs : EventArgs
-{
-    public uint PlayerId { get; set; }
-    public string PlayerName { get; set; }
-    public CnCNetTunnel ChosenTunnel { get; set; }
-    public bool IsLocalDecision { get; set; }
-    public string FailureReason { get; set; }
-}
 
 /// <summary>
 /// Handles negotiating best tunnel with a single other player.
@@ -94,7 +86,7 @@ public class V3PlayerNegotiator : IDisposable
             _negotiationCompletionSource = new TaskCompletionSource<bool>();
             _tunnelAckReceived = new TaskCompletionSource<bool>();
 
-            _tunnelHandler.SendRegistrationToAllTunnels(_localPlayer.Id, _tunnels);
+            _tunnelHandler.SendRegistrationToTunnels(_localPlayer.Id, _tunnels);
 
             if (_isDecider)
                 await PerformDeciderNegotiationAsync();
@@ -410,6 +402,7 @@ public class V3PlayerNegotiator : IDisposable
         Logger.Log($"V3TunnelNegotiator: Failed to receive tunnel acknowledgment from {_remotePlayer.Name} after {TUNNEL_CHOICE_MAX_RETRIES} goes");
         RaiseNegotiationResult(null, $"Failed to receive tunnel acknowledgment after {TUNNEL_CHOICE_MAX_RETRIES} attempts");
     }
+
     private void PrintNegotiationResults()
     {
         if (!_isDecider)
@@ -456,7 +449,6 @@ public class V3PlayerNegotiator : IDisposable
 
         Logger.Log(sb.ToString());
     }
-
 
     public void Dispose()
     {

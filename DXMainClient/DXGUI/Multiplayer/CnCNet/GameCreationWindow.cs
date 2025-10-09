@@ -315,9 +315,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             bool showTunnelList = ShouldShowTunnelList();
             bool isAdvancedMode = Name == "GameCreationWindow_Advanced";
 
-            // When dynamic tunnels are enabled and legacy tunnels are disabled:
-            // - Show the dynamic tunnels info label
-            // - Hide the tunnel list, tunnel server label, and advanced options button
             if (!showTunnelList)
             {
                 lblDynamicTunnels.Visible = true;

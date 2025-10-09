@@ -245,5 +245,4 @@ public class NegotiationDataManager
         else
             return $"Negotiations: {succeeded}/{total} complete";
     }
-
 }
