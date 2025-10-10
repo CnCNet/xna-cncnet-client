@@ -142,6 +142,13 @@ public class V3PlayerInfo(uint id, string name, int playerIndex, ushort playerGa
         }
     }
 
+    public void ResetNegotiator()
+    {
+        Tunnel = null;
+        IsNegotiating = false;
+        HasNegotiated = false;
+    }
+
     public bool StartNegotiation(V3PlayerInfo localPlayer, TunnelHandler tunnelHandler, List<CnCNetTunnel> availableTunnels)
     {
         if (this == localPlayer)
