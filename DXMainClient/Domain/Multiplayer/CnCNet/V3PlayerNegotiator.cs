@@ -36,7 +36,7 @@ public class V3PlayerNegotiator : IDisposable
 
     // How long the decider will wait to receive a Ping Request from the non-decider.
     // If none are received in time, the tunnel is skipped.
-    private static readonly TimeSpan DECIDER_CONNECTED_PHASE_TIMEOUT = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan DECIDER_CONNECTED_PHASE_TIMEOUT = TimeSpan.FromSeconds(15);
 
     // How long the decider will wait for pings to complete. If it takes this long, 
     // pick the best one from the results that have come in.
