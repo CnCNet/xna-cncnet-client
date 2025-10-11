@@ -19,7 +19,6 @@ using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
 using System.Net;
-using System.Diagnostics;
 using System.Security.Cryptography;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -182,6 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private bool _useLegacyTunnels;
         private bool _useDynamicTunnels;
         private readonly NegotiationDataManager _negotiationData = new();
+        private bool _allNegotiationsCompleteMessageShown;
         private TunnelNegotiationStatusPanel _negotiationStatusPanel;
         private const int TUNNEL_MODE_V3_STATIC = 0;  // V3 tunnels, host-selected
         private const int TUNNEL_MODE_V3_DYNAMIC = 1; // V3 tunnels, dynamic negotiation
@@ -356,19 +356,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         AddNotice($"Selected tunnel for {e.PlayerName}: {e.ChosenTunnel.Name} (Ping: {e.NegotiationPing}ms)");
 
                         _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, e.NegotiationPing);
-
-                        playerInfo.Ping = e.NegotiationPing;
-                        UpdatePlayerPingIndicator(playerInfo);
                     }
                     else
                     {
                         AddNotice($"Assigned to tunnel: {e.ChosenTunnel.Name} (Ping: {e.NegotiationPing}ms) from {e.PlayerName}");
 
                         _negotiationData.UpdatePing(e.PlayerName, ProgramConstants.PLAYERNAME, e.NegotiationPing);
-
-                        playerInfo.Ping = e.NegotiationPing;
-                        UpdatePlayerPingIndicator(playerInfo);
                     }
+
+                    playerInfo.Ping = e.NegotiationPing;
+                    UpdatePlayerPingIndicator(playerInfo);
+                    CopyPlayerDataToUI();
 
                     _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Succeeded);
                     UpdateNegotiationUI();
@@ -470,6 +468,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     StartTunnelNegotiationForPlayer(v3Player);
             }
 
+            _allNegotiationsCompleteMessageShown = false;
             UpdateNegotiationUI();
         }
 
@@ -507,7 +506,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 _negotiationStatusPanel.Enable();
                 UpdateNegotiationUI();
-                AddNotice("Negotiation status panel shown.");
             }
         }
 
@@ -571,6 +569,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 pInfo.Ping = tunnelHandler.CurrentTunnel.PingInMs;
                 UpdatePlayerPingIndicator(pInfo);
+                CopyPlayerDataToUI();
             }
         }
 
@@ -640,6 +639,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             _negotiationData.ClearAll();
+            _allNegotiationsCompleteMessageShown = false;
 
             _negotiationStatusPanel?.Disable();
 
@@ -940,6 +940,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             _negotiationData.ClearPlayer(playerName);
+            _allNegotiationsCompleteMessageShown = false;
 
             UpdateNegotiationUI();
 
@@ -1537,6 +1538,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         pInfo.Ping = ping;
                         UpdatePlayerPingIndicator(pInfo);
+                        CopyPlayerDataToUI();
                     }
                 }
                 else if (targetPlayer == ProgramConstants.PLAYERNAME)
@@ -1546,6 +1548,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         pInfo.Ping = ping;
                         UpdatePlayerPingIndicator(pInfo);
+                        CopyPlayerDataToUI();
                     }
                 }
             }
@@ -1599,13 +1602,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (allComplete && anyNegotiationStarted && totalNegotiations > 0)
             {
-                if (failedNegotiations > 0)
-                    AddNotice($"All tunnel negotiations complete. {completedNegotiations} succeeded, {failedNegotiations} failed.",
-                        failedNegotiations > 0 ? Color.Yellow : Color.LightGreen);
-                else
-                    AddNotice($"All tunnel negotiations successfully completed!", Color.LightGreen);
+                if (!_allNegotiationsCompleteMessageShown)
+                {
+                    if (failedNegotiations > 0)
+                        AddNotice($"All tunnel negotiations complete. {completedNegotiations} succeeded, {failedNegotiations} failed.",
+                            failedNegotiations > 0 ? Color.Yellow : Color.LightGreen);
+                    else
+                        AddNotice($"All tunnel negotiations successfully completed!", Color.LightGreen);
 
-                CheckHighPingPairs();
+                    _allNegotiationsCompleteMessageShown = true;
+                    CheckHighPingPairs();
+                }
             }
 
             UpdateLaunchGameButtonStatus();
@@ -1930,6 +1937,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 CopyPlayerDataToUI();
 
+                _allNegotiationsCompleteMessageShown = false;
                 foreach (var v3Player in _v3PlayerInfos)
                     v3Player.ResetNegotiator();
 
@@ -1942,6 +1950,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 _negotiationData.ClearAll();
+                _allNegotiationsCompleteMessageShown = false;
                 _negotiationStatusPanel.Disable();
             }
         }
