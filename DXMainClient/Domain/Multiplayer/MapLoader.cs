@@ -440,8 +440,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (FileInfo mapFile in mapFiles)
             {
-                // this must be Task.Factory.StartNew for XNA/.Net 4.0 compatibility
-                tasks.Add(Task.Factory.StartNew(() =>
+                tasks.Add(Task.Run(() =>
                 {
                     string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);

@@ -33,7 +33,7 @@ namespace ClientCore.INIProcessing
 
         public void Run()
         {
-            task = Task.Factory.StartNew(CheckFiles);
+            task = Task.Run(CheckFiles);
         }
 
         private static void CheckFiles()

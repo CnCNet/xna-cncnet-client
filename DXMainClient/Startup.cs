@@ -67,9 +67,9 @@ namespace DTAClient
             onlineIdThread.Start();
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
-                Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+                Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
 
-            Task.Factory.StartNew(MigrateOldLogFiles);
+            Task.Run(MigrateOldLogFiles);
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
 
