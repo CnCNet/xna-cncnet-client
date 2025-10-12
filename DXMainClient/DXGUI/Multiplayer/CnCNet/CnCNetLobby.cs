@@ -1580,7 +1580,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (tunnel == null)
                 {
-                    Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {1}:{2} is not available. Available tunnel count: {3}",
+                    Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {0}:{1} is not available. Available tunnel count: {2}",
                         tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
 
                     // Remind users that the game is ignored because of no specified tunnel
