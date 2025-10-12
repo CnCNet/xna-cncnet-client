@@ -1594,9 +1594,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         {
                             lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
                         }
-
-                        return;
                     }
+
+                    return;
                 }
 
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
