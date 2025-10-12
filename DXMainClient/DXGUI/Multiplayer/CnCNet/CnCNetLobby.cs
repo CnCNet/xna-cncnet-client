@@ -1511,7 +1511,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // Remind users that the network is good but the client is outdated or newer
                 if (lbGameList.Items.Count == 0)
                 {
-                    string message = "There are no games listed but you are indeed connected. The client has received a game message but can't add it to the list because the message is invalid. " +
+                    string message = "There are no games listed but you are indeed connected. The client did receive a game message but can't add it to the list because the message is invalid. " +
                         "You can ignore this prompt if there are games listed later. " +
                         "Otherwise, this usually means that your client is outdated, or, in a rare case, newer than the server. Please check for updates.".L10N("Client:Main:InvalidGameMessage");
 
@@ -1565,7 +1565,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     // Remind users that the game is ignored because of no tunnel
                     if (lbGameList.Items.Count == 0)
                     {
-                        string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because there are no available tunnels. " +
+                        string message = "There are no games listed. The client did receive a valid game message but can't add it to the list because there are no available tunnels. " +
                             "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.".L10N("Client:Main:NoTunnels");
                         if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                         {
@@ -1586,7 +1586,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     // Remind users that the game is ignored because of no specified tunnel
                     if (lbGameList.Items.Count == 0)
                     {
-                        string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because the specified tunnel is not available. " +
+                        string message = "There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
                             "You can ignore this prompt if there are games listed later. Otherwise, please contact support.".L10N("Client:Main:NoTunnelForGames");
 
                         if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
