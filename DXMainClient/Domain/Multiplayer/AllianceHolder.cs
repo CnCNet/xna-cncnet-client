@@ -102,7 +102,7 @@ namespace DTAClient.Domain.Multiplayer
                     else
                     {
                         spawnIni.SetIntValue("Multi" + houseId + "_Alliances",
-                            "HouseAlly" + GetHouseAllyIndexString(allyId, selfFound), allyHouseId - 1);
+                            "HouseAlly" + GetHouseAllyIndexString(allyId, selfFound), allyHouseId - 1) + 12);
                     }
                 }
             }
