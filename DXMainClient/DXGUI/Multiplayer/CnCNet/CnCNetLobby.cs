@@ -1515,7 +1515,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         "You can ignore this prompt if there are games listed later. " +
                         "Otherwise, this usually means that your client is outdated, or, in a rare case, newer than the server. Please check for updates.".L10N("Client:Main:InvalidGameMessage");
 
-                    if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage).Message != message)
+                    if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                     {
                         lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
                     }
@@ -1567,7 +1567,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     {
                         string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because there are no available tunnels. " +
                             "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.".L10N("Client:Main:NoTunnels");
-                        if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage).Message != message)
+                        if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                         {
                             lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
                         }
@@ -1589,7 +1589,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because the specified tunnel is not available. " +
                             "You can ignore this prompt if there are games listed later. Otherwise, please contact support.".L10N("Client:Main:NoTunnelForGames");
 
-                        if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage).Message != message)
+                        if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                         {
                             lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
                         }
