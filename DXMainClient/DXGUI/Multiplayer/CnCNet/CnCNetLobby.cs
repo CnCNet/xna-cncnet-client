@@ -1508,7 +1508,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
 
-                // Reminder users that the network is good but the client is outdated or newer
+                // Remind users that the network is good but the client is outdated or newer
                 if (lbGameList.Items.Count == 0)
                 {
                     string message = "There are no games listed but you are indeed connected. The client has received a game message but can't add it to the list because the message is invalid. " +
@@ -1562,7 +1562,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     Logger.Log("Ignoring CTCP game message because there are no tunnels at all. Available tunnel count: 0. Is the connection to CnCNet HTTP service broken?");
 
-                    // Reminder users that the game is ignored because of no tunnel
+                    // Remind users that the game is ignored because of no tunnel
                     if (lbGameList.Items.Count == 0)
                     {
                         string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because there are no available tunnels. " +
@@ -1583,7 +1583,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {1}:{2} is not available. Available tunnel count: {3}",
                         tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
 
-                    // Reminder users that the game is ignored because of no specified tunnel
+                    // Remind users that the game is ignored because of no specified tunnel
                     if (lbGameList.Items.Count == 0)
                     {
                         string message = "There are no games listed. The client does have received a valid game message but can't add it to the list because the specified tunnel is not available. " +
