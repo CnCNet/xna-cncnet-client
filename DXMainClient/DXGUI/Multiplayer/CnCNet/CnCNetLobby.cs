@@ -1513,7 +1513,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     string message = "There are no games listed but you are indeed connected. The client did receive a game message but can't add it to the list because the message is invalid. " +
                         "You can ignore this prompt if there are games listed later. " +
-                        "Otherwise, this usually means that your client is outdated, or, in a rare case, newer than the server. Please check for updates.".L10N("Client:Main:InvalidGameMessage");
+                        "Otherwise, this usually means that your client is outdated, or, in a rare case, newer than others. Please check for updates.".L10N("Client:Main:InvalidGameMessage");
 
                     if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                     {
