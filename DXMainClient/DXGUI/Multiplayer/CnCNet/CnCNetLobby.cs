@@ -1587,8 +1587,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     // Remind users that the game is ignored because of no specified tunnel
                     if (lbGameList.Items.Count == 0)
                     {
-                        string message = "There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
-                            "You can ignore this prompt if there are games listed later. Otherwise, please contact support.".L10N("Client:Main:NoTunnelForGames");
+                        string message = string.Format("There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
+                            "You can ignore this prompt if there are games listed later. Otherwise, please contact support at {0}.".L10N("Client:Main:NoTunnelForGames"), ClientConfiguration.Instance.LongSupportURL);
 
                         if ((lbChatMessages.Items.LastOrDefault()?.Tag as ChatMessage)?.Message != message)
                         {
