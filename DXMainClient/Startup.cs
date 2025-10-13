@@ -159,11 +159,16 @@ namespace DTAClient
             {
                 try
                 {
-                    Logger.Log("Steam init called");
-                if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
-                    SteamClient.Init(2229850);
-                else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
-                    SteamClient.Init(2229880);
+                    if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229850);
+                    }
+                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229880);
+                    }
                 }
                 catch (System.Exception e)
                 {
