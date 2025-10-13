@@ -28,6 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
+        private Texture2D medalIcon;
 
         private GameCollection gameCollection;
 
@@ -46,6 +47,9 @@ namespace DTAClient.DXGUI.Multiplayer
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
+
+            // 🥇 Medal icon (new)
+            medalIcon = AssetLoader.LoadTexture("medal.png");
         }
 
         public void AddUser(ChannelUser user)
@@ -119,14 +123,15 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += ignoreIcon.Width + MARGIN;
                 }
 
-                // Badge Icon - coming soon
-                /*
-                Renderer.DrawTexture(badgeGameIcon,
-                    new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                    badgeGameIcon.Width, badgeGameIcon.Height), Color.White);
+                // 🥇 Medal Icon
+                if (user.HasMedal)
+                {
+                    int medalSize = 14;
+                    DrawTexture(medalIcon,
+                        new Rectangle(x, height + 1, medalSize, medalSize), Color.White);
 
-                x += badgeGameIcon.Width + margin;
-                */
+                    x += medalSize + MARGIN;
+                }
 
                 // Player Name
                 string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("Client:Main:AdminSuffix") : user.IRCUser.Name;
