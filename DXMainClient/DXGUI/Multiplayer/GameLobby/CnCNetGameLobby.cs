@@ -692,7 +692,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     sb.Append(";");
                     sb.Append(Players[pId].Name);
                     sb.Append(";");
-                    sb.Append("0.0.0.0:");
+                    sb.Append(tunnelHandler.CurrentTunnel.Address + ":");
                     sb.Append(playerPorts[pId]);
                 }
                 channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 10);
@@ -1350,6 +1350,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (!success)
                     return;
+
+                if (pName == ProgramConstants.PLAYERNAME)
+                {
+                    var matchedTunnel = tunnelHandler.Tunnels
+                        .FirstOrDefault(t =>
+                            string.Equals(t.Address, ipAndPort[0], StringComparison.OrdinalIgnoreCase));
+
+                    if (matchedTunnel != null)
+                    {
+                        tunnelHandler.CurrentTunnel = matchedTunnel;
+                    }
+                    else
+                    {
+                        XNAMessageBox.Show(WindowManager, "Tunnel Error".L10N("Client:Main:TunnelErrorTitle"), "Failed to match the tunnel address provided by the host to any available tunnel. The game cannot be started.".L10N("Client:Main:TunnelErrorMessage"));
+                        Logger.Log("Failed to match tunnel address: " + ipAndPort[0]);
+                        return;
+                    }
+                }
 
                 PlayerInfo pInfo = Players.Find(p => p.Name == pName);
 
