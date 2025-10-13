@@ -1,4 +1,7 @@
-﻿using Rampastring.Tools;
+﻿using ClientCore;
+using ClientCore.Enums;
+
+using Rampastring.Tools;
 using System.Collections.Generic;
 
 namespace DTAClient.Domain.Multiplayer
@@ -102,14 +105,15 @@ namespace DTAClient.Domain.Multiplayer
                     else
                     {
                         spawnIni.SetIntValue("Multi" + houseId + "_Alliances",
-                            "HouseAlly" + GetHouseAllyIndexString(allyId, selfFound),
+                        "HouseAlly" + GetHouseAllyIndexString(allyId, selfFound),
                             ClientConfiguration.Instance.ClientGameType == ClientType.RA
                                 ? allyHouseId + 11  // Red Alert's multiplayer houses are offset
                                 : allyHouseId);
-                    }
+            }
                 }
             }
         }
+
 
         private static string GetHouseAllyIndexString(int allyId, bool selfFound)
         {
