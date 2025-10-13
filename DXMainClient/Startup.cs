@@ -169,6 +169,11 @@ namespace DTAClient
                         Logger.Log("Steam init called");
                         SteamClient.Init(2229880);
                     }
+                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229840);
+                    }
                 }
                 catch (System.Exception e)
                 {
