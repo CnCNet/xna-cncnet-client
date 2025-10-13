@@ -107,8 +107,8 @@ namespace DTAClient.Domain.Multiplayer
                         spawnIni.SetIntValue("Multi" + houseId + "_Alliances",
                         "HouseAlly" + GetHouseAllyIndexString(allyId, selfFound),
                             ClientConfiguration.Instance.ClientGameType == ClientType.RA
-                                ? allyHouseId + 11  // Red Alert uses house IDs shifted by +11 in multiplayer
-                                : allyHouseId);
+                                ? allyHouseId + 11  // Compared with other games, Red Alert uses house IDs shifted by +12 (from -1 to +11) in multiplayer
+                                : allyHouseId - 1);
             }
                 }
             }
