@@ -114,7 +114,6 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-
         private static string GetHouseAllyIndexString(int allyId, bool selfFound)
         {
             if (selfFound)
