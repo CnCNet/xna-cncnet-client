@@ -109,7 +109,7 @@ namespace DTAClient.Domain.Multiplayer
                             ClientConfiguration.Instance.ClientGameType == ClientType.RA
                                 ? allyHouseId + 11  // Compared with other games, Red Alert uses house IDs shifted by +12 (from -1 to +11) in multiplayer
                                 : allyHouseId - 1);
-            }
+                    }
                 }
             }
         }
