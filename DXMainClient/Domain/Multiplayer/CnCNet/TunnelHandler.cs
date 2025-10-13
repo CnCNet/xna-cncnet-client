@@ -29,10 +29,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
-        private const int SUPPORTED_TUNNEL_VERSION = 2;
+        private static readonly int[] SUPPORTED_TUNNEL_VERSIONS = [2, 3];
 
-        private readonly object _refreshLock = new object();
+        private readonly object _refreshLock = new();
         private bool _refreshInProgress = false;
+        private readonly V3TunnelCommunicator _tunnelCommunicator;
 
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
@@ -46,25 +47,30 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             connectionManager.Connected += ConnectionManager_Connected;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
+
+            _tunnelCommunicator = new V3TunnelCommunicator();
         }
 
-        public List<CnCNetTunnel> Tunnels { get; private set; } = new List<CnCNetTunnel>();
+        public List<CnCNetTunnel> Tunnels { get; private set; } = [];
         public CnCNetTunnel CurrentTunnel { get; set; } = null;
+        public V3GameTunnelBridge GameTunnelBridge;
 
         public event EventHandler TunnelsRefreshed;
         public event EventHandler CurrentTunnelPinged;
-        public event Action<int> TunnelPinged;
+        public event EventHandler<CnCNetTunnel> TunnelFailed;
+        public event Action<string, int> TunnelPinged; //address, port
 
         private WindowManager wm;
         private CnCNetManager connectionManager;
 
         private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
         private uint skipCount = 0;
+        private const int TUNNEL_FAILED_PING_AMOUNT = 2000;
 
-        private void DoTunnelPinged(int index)
+        private void DoTunnelPinged(string address, int port)
         {
             if (TunnelPinged != null)
-                wm.AddCallback(TunnelPinged, index);
+                wm.AddCallback(TunnelPinged, address, port);
         }
 
         private void DoCurrentTunnelPinged()
@@ -73,7 +79,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
         }
 
-        private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
+        private void ConnectionManager_Connected(object sender, EventArgs e)
+        {
+            InitializeTunnelCommunicator();
+            Enabled = true;
+        }
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e) => Enabled = false;
 
@@ -136,10 +146,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Tunnels = updatedTunnels;
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            for (int i = 0; i < Tunnels.Count; i++)
+            // Group tunnels by IP address and ping each unique address
+            var tunnelsByAddress = Tunnels
+                .Where(t => UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended)
+                .GroupBy(t => t.Address)
+                .ToList();
+
+            foreach (var group in tunnelsByAddress)
             {
-                if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    _ = PingListTunnelAsync(i);
+                _ = PingAddressAndUpdateTunnelsAsync(group.Key, group.ToList());
             }
 
             if (CurrentTunnel != null)
@@ -158,14 +173,43 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     PingCurrentTunnelAsync();
                 }
             }
+
+            InitializeTunnelCommunicator();
         }
 
-        private Task PingListTunnelAsync(int index)
+        /// <summary>
+        /// Pings a single IP address and updates all tunnels sharing that address with the same ping result.
+        /// This prevents redundant pings for tunnels on the same IP but different ports (e.g., V2 and V3 versions).
+        /// </summary>
+        private Task PingAddressAndUpdateTunnelsAsync(string address, List<CnCNetTunnel> tunnelsWithSameAddress)
         {
             return Task.Run(() =>
             {
-                Tunnels[index].UpdatePing();
-                DoTunnelPinged(index);
+                if (tunnelsWithSameAddress.Count == 0)
+                    return;
+
+                int pingResult = -1;
+
+                for (int i = 0; i < tunnelsWithSameAddress.Count; i++)
+                {
+                    var tunnel = tunnelsWithSameAddress[i];
+                    int previousPing = tunnel.PingInMs;
+
+                    if (i == 0)
+                    {
+                        tunnel.UpdatePing();
+                        pingResult = tunnel.PingInMs;
+                    }
+                    else
+                    {
+                        tunnel.PingInMs = pingResult;
+                    }
+
+                    if (previousPing > 0 && (tunnel.PingInMs <= 0 || tunnel.PingInMs > TUNNEL_FAILED_PING_AMOUNT))
+                        TunnelFailed?.Invoke(this, tunnel);
+
+                    DoTunnelPinged(tunnel.Address, tunnel.Port);
+                }
             });
         }
 
@@ -176,34 +220,51 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 var tunnel = CurrentTunnel;
                 if (tunnel == null) return;
 
+                int previousPing = tunnel.PingInMs;
                 tunnel.UpdatePing();
+                int pingResult = tunnel.PingInMs;
+
+                if (previousPing > 0 && (pingResult <= 0 || pingResult > TUNNEL_FAILED_PING_AMOUNT))
+                    TunnelFailed?.Invoke(this, tunnel);
+
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
                 {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == tunnel.Address && t.Port == tunnel.Port);
-                    if (tunnelIndex > -1)
-                        DoTunnelPinged(tunnelIndex);
+                    DoTunnelPinged(tunnel.Address, tunnel.Port);
+
+                    // Update all other tunnels with the same IP address
+                    var otherTunnelsWithSameAddress = Tunnels.Where(t => t.Address == tunnel.Address && t != tunnel).ToList();
+                    foreach (var otherTunnel in otherTunnelsWithSameAddress)
+                    {
+                        int otherPreviousPing = otherTunnel.PingInMs;
+                        otherTunnel.PingInMs = pingResult;
+
+                        if (otherPreviousPing > 0 && (pingResult <= 0 || pingResult > TUNNEL_FAILED_PING_AMOUNT))
+                            TunnelFailed?.Invoke(this, otherTunnel);
+
+                        DoTunnelPinged(otherTunnel.Address, otherTunnel.Port);
+                    }
                 }
             });
         }
 
-        private bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
-        private bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
+        private static bool OnlineTunnelDataAvailable => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetTunnelListURL);
+        private static bool OfflineTunnelDataAvailable => SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache").Exists;
 
-        private byte[] GetRawTunnelDataOnline()
+        private static byte[] GetRawTunnelDataOnline()
         {
             WebClient client = new ExtendedWebClient();
             return client.DownloadData(ClientConfiguration.Instance.CnCNetTunnelListURL);
         }
 
-        private byte[] GetRawTunnelDataOffline()
+        private static byte[] GetRawTunnelDataOffline()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
             return File.ReadAllBytes(tunnelCacheFile.FullName);
         }
 
-        private byte[] GetRawTunnelData(int retryCount = 2)
+        private static byte[] GetRawTunnelData(int retryCount = 2)
         {
             Logger.Log("Fetching tunnel server info.");
 
@@ -251,9 +312,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private List<CnCNetTunnel> RefreshTunnels()
+        private static List<CnCNetTunnel> RefreshTunnels()
         {
-            List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
+            List<CnCNetTunnel> returnValue = [];
             var seenAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
@@ -264,7 +325,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string convertedData = Encoding.Default.GetString(data);
 
-            string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] serverList = convertedData.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
             // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
             foreach (string serverInfo in serverList.Skip(1))
@@ -279,7 +340,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.RequiresPassword)
                         continue;
 
-                    if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
+                    if (!SUPPORTED_TUNNEL_VERSIONS.Contains(tunnel.Version))
                         continue;
 
                     if (!seenAddresses.Add($"{tunnel.Address}:{tunnel.Port}"))
@@ -339,5 +400,40 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             base.Update(gameTime);
         }
+
+        public V3GameTunnelBridge StartGameBridge(uint localId, int localPort, List<V3PlayerInfo> allPlayers)
+        {
+            if (GameTunnelBridge != null)
+                StopGameBridge();
+
+            GameTunnelBridge = new V3GameTunnelBridge(localId, localPort, allPlayers, this);
+            GameTunnelBridge.Start();
+
+            return GameTunnelBridge;
+        }
+
+        public void StopGameBridge()
+        {
+            if (GameTunnelBridge != null)
+            {
+                GameTunnelBridge.Stop();
+                GameTunnelBridge = null;
+            }
+        }
+
+        public void InitializeTunnelCommunicator()
+        {
+            if (!_tunnelCommunicator.IsInitialized && Tunnels.Count > 0)
+                _tunnelCommunicator.Initialize(Tunnels);
+        }
+
+        public void RegisterV3PacketHandler(uint localId, uint remoteId, PacketHandler handler) => _tunnelCommunicator.RegisterHandler(localId, remoteId, handler);
+
+        public void UnregisterV3PacketHandler(uint localId, uint remoteId) => _tunnelCommunicator.UnregisterHandler(localId, remoteId);
+
+        public void SendRegistrationToTunnels(uint localId, List<CnCNetTunnel> tunnels = null) => _tunnelCommunicator.SendRegistrationToTunnels(localId, tunnels);
+
+        public void SendPacket(CnCNetTunnel tunnel, uint senderId, uint receiverId,
+            TunnelPacketType packetType, byte[] payload = null)  => _tunnelCommunicator.SendPacket(tunnel, senderId, receiverId, packetType, payload);
     }
 }

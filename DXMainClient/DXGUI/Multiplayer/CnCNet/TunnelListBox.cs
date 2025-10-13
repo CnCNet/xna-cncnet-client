@@ -6,6 +6,8 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -37,6 +39,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AllowKeyboardInput = true;
         }
 
+        private int? _targetVersion;
+        public int? TargetVersion
+        {
+            get => _targetVersion;
+            set
+            {
+                if (_targetVersion != value)
+                {
+                    _targetVersion = value;
+                    isManuallySelectedTunnel = false;
+                    manuallySelectedTunnelAddress = null;
+                    if (ItemCount > 0)
+                        TunnelHandler_TunnelsRefreshed(this, EventArgs.Empty);
+                }
+            }
+        }
+
         public event EventHandler ListRefreshed;
 
         private readonly TunnelHandler tunnelHandler;
@@ -47,6 +66,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private bool isManuallySelectedTunnel;
         private string manuallySelectedTunnelAddress;
 
+        /// <summary>
+        /// Gets filtered list of tunnels based on the UseLegacyTunnels setting.
+        /// </summary>
+        private List<CnCNetTunnel> GetFilteredTunnels()
+        {
+            int targetVersion = TargetVersion ?? (UserINISettings.Instance.UseLegacyTunnels ? 2 : 3);
+            return tunnelHandler.Tunnels.Where(tunnel => tunnel.Version == targetVersion).ToList();
+        }
 
         /// <summary>
         /// Selects a tunnel from the list with the given address.
@@ -54,7 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="address">The address of the tunnel server to select.</param>
         public void SelectTunnel(string address)
         {
-            int index = tunnelHandler.Tunnels.FindIndex(t => t.Address == address);
+            int index = GetFilteredTunnels().FindIndex(t => t.Address == address);
             if (index > -1)
             {
                 SelectedIndex = index;
@@ -68,16 +95,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         /// <param name="address">The address of the tunnel server</param>
         /// <returns>True if tunnel with given address is selected, otherwise false.</returns>
-        public bool IsTunnelSelected(string address) =>
-            tunnelHandler.Tunnels.FindIndex(t => t.Address == address) == SelectedIndex;
+        public bool IsTunnelSelected(string address)
+        {
+            return GetFilteredTunnels().FindIndex(t => t.Address == address) == SelectedIndex;
+        }
 
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
             ClearItems();
 
+            var filteredTunnels = GetFilteredTunnels();
             int tunnelIndex = 0;
+            bestTunnelIndex = 0;
+            lowestTunnelRating = int.MaxValue;
 
-            foreach (CnCNetTunnel tunnel in tunnelHandler.Tunnels)
+            foreach (CnCNetTunnel tunnel in filteredTunnels)
             {
                 List<string> info = new List<string>();
 
@@ -104,7 +136,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tunnelIndex++;
             }
 
-            if (tunnelHandler.Tunnels.Count > 0)
+            if (filteredTunnels.Count > 0)
             {
                 if (!isManuallySelectedTunnel)
                 {
@@ -113,12 +145,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
                 else
                 {
-                    int manuallySelectedIndex = tunnelHandler.Tunnels.FindIndex(t => t.Address == manuallySelectedTunnelAddress);
+                    int manuallySelectedIndex = filteredTunnels.FindIndex(t => t.Address == manuallySelectedTunnelAddress);
 
                     if (manuallySelectedIndex == -1)
                     {
                         SelectedIndex = bestTunnelIndex;
                         isManuallySelectedTunnel = false;
+                        manuallySelectedTunnelAddress = null;
                     }
                     else
                         SelectedIndex = manuallySelectedIndex;
@@ -128,10 +161,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ListRefreshed?.Invoke(this, EventArgs.Empty);
         }
 
-        private void TunnelHandler_TunnelPinged(int tunnelIndex)
+        private void TunnelHandler_TunnelPinged(string address, int port)
         {
-            XNAListBoxItem lbItem = GetItem(2, tunnelIndex);
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels[tunnelIndex];
+            var filteredTunnels = GetFilteredTunnels();
+
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.FirstOrDefault(t => t.Address == address && t.Port == port);
+            if (tunnel == null)
+                return;
+
+            int filteredIndex = filteredTunnels.FindIndex(t => t.Address == address && t.Port == port);
+            if (filteredIndex == -1)
+                return;
+
+            XNAListBoxItem lbItem = GetItem(2, filteredIndex);
 
             if (tunnel.PingInMs == -1)
                 lbItem.Text = "Unknown".L10N("Client:Main:UnknownPing");
@@ -145,9 +187,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if ((tunnel.Recommended || tunnel.Official) && rating < lowestTunnelRating)
                 {
-                    bestTunnelIndex = tunnelIndex;
+                    bestTunnelIndex = filteredIndex;
                     lowestTunnelRating = rating;
-                    SelectedIndex = tunnelIndex;
+                    SelectedIndex = filteredIndex;
                 }
             }
         }
@@ -164,13 +206,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             return Convert.ToInt32(Math.Pow(tunnel.PingInMs, 2.0) * usageRatio);
         }
 
+        public CnCNetTunnel GetSelectedTunnel()
+        {
+            if (!IsValidIndexSelected())
+                return null;
+
+            return GetFilteredTunnels()[SelectedIndex];
+        }
+
         private void TunnelListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (!IsValidIndexSelected())
                 return;
 
-            isManuallySelectedTunnel = true;
-            manuallySelectedTunnelAddress = tunnelHandler.Tunnels[SelectedIndex].Address;
+            var filteredTunnels = GetFilteredTunnels();
+            if (SelectedIndex >= 0 && SelectedIndex < filteredTunnels.Count)
+            {
+                isManuallySelectedTunnel = true;
+                manuallySelectedTunnelAddress = filteredTunnels[SelectedIndex].Address;
+            }
         }
     }
 }

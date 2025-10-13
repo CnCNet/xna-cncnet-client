@@ -37,6 +37,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         XNAClientDropDown ddAllowPrivateMessagesFrom;
 
+        XNAClientCheckBox chkUseLegacyTunnels;
+        XNAClientCheckBox chkUseDynamicTunnels;
+
         GameCollection gameCollection;
 
         List<XNAClientCheckBox> followedGameChks = new List<XNAClientCheckBox>();
@@ -118,7 +121,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkPersistentMode.Name = nameof(chkPersistentMode);
             chkPersistentMode.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkSkipLoginWindow.Bottom + 12, 0, 0);
+                chkSkipLoginWindow.Bottom + 9, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby".L10N("Client:DTAConfig:StayConnect");
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
@@ -128,7 +131,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkConnectOnStartup.Name = nameof(chkConnectOnStartup);
             chkConnectOnStartup.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkPersistentMode.Bottom + 12, 0, 0);
+                chkPersistentMode.Bottom + 9, 0, 0);
             chkConnectOnStartup.Text = "Connect automatically on client startup".L10N("Client:DTAConfig:ConnectOnStart");
             chkConnectOnStartup.AllowChecking = false;
 
@@ -138,7 +141,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDiscordIntegration.Name = nameof(chkDiscordIntegration);
             chkDiscordIntegration.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkConnectOnStartup.Bottom + 12, 0, 0);
+                chkConnectOnStartup.Bottom + 9, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
 
             if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
@@ -157,7 +160,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Name = nameof(chkAllowGameInvitesFromFriendsOnly);
             chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
                 chkDiscordIntegration.X,
-                chkDiscordIntegration.Bottom + 12, 0, 0);
+                chkDiscordIntegration.Bottom + 9, 0, 0);
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
@@ -167,17 +170,35 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkSteamIntegration.Name = nameof(chkSteamIntegration);
             chkSteamIntegration.ClientRectangle = new Rectangle(
                 chkAllowGameInvitesFromFriendsOnly.X,
-                chkAllowGameInvitesFromFriendsOnly.Bottom + 12, 0, 0);
+                chkAllowGameInvitesFromFriendsOnly.Bottom + 9, 0, 0);
             chkSteamIntegration.Text = "Show the game being played in Steam".L10N("Client:DTAConfig:SteamStatus");
 
             AddChild(chkSteamIntegration);
+
+            chkUseLegacyTunnels = new XNAClientCheckBox(WindowManager);
+            chkUseLegacyTunnels.Name = nameof(chkUseLegacyTunnels);
+            chkUseLegacyTunnels.ClientRectangle = new Rectangle(
+                chkSteamIntegration.X,
+                chkSteamIntegration.Bottom + 9, 0, 0);
+            chkUseLegacyTunnels.Text = "Use legacy tunnels when hosting".L10N("Client:DTAConfig:LegacyTunnels");
+            chkUseLegacyTunnels.CheckedChanged += ChkUseLegacyTunnels_CheckedChanged;
+
+            AddChild(chkUseLegacyTunnels);
+
+            chkUseDynamicTunnels = new XNAClientCheckBox(WindowManager);
+            chkUseDynamicTunnels.Name = nameof(chkUseDynamicTunnels);
+            chkUseDynamicTunnels.ClientRectangle = new Rectangle(
+                chkUseLegacyTunnels.X,
+                chkUseLegacyTunnels.Bottom + 9, 0, 0);
+            chkUseDynamicTunnels.Text = "Use dynamic tunnels when hosting".L10N("Client:DTAConfig:DynamicTunnels");
+            AddChild(chkUseDynamicTunnels);
         }
 
         private void InitAllowPrivateMessagesFromDropdown()
         {
             XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager);
             lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
-            lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:".L10N("Client:DTAConfig:AllowPMFrom");
+            lblAllPrivateMessagesFrom.Text = "Allow private messages from:".L10N("Client:DTAConfig:AllowPMFrom");
             lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 chkDisablePrivateMessagePopup.X,
                 chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
@@ -187,8 +208,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager);
             ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
             ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
-                lblAllPrivateMessagesFrom.Right,
-                lblAllPrivateMessagesFrom.Y - 2, 110, 0);
+                lblAllPrivateMessagesFrom.Right - 110,
+                lblAllPrivateMessagesFrom.Y + 22, 110, 0);
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
@@ -298,6 +319,11 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
         }
 
+        private void ChkUseLegacyTunnels_CheckedChanged(object sender, EventArgs e)
+        {
+            chkUseDynamicTunnels.AllowChecking = !chkUseLegacyTunnels.Checked;
+        }
+
         private void ChkSkipLoginWindow_CheckedChanged(object sender, EventArgs e)
         {
             CheckConnectOnStartupAllowance();
@@ -334,6 +360,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
             chkSteamIntegration.Checked = IniSettings.SteamIntegration;
+            chkUseLegacyTunnels.Checked = IniSettings.UseLegacyTunnels;
+            chkUseDynamicTunnels.Checked = IniSettings.UseDynamicTunnels;
 
             chkDiscordIntegration.Checked = !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled
                 && IniSettings.DiscordIntegration;
@@ -354,6 +382,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                 chkBox.Checked = IniSettings.IsGameFollowed(chkBox.Name);
             }
+
+            ChkUseLegacyTunnels_CheckedChanged(null, EventArgs.Empty);
         }
 
         public override bool Save()
@@ -370,6 +400,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
             IniSettings.SteamIntegration.Value = chkSteamIntegration.Checked;
+            IniSettings.UseLegacyTunnels.Value = chkUseLegacyTunnels.Checked;
+            IniSettings.UseDynamicTunnels.Value = chkUseDynamicTunnels.Checked;
 
             if (!ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {

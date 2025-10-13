@@ -26,7 +26,7 @@ namespace ClientCore
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R13";
+        public const string CNCNET_PROTOCOL_REVISION = "R15";
         public const string LAN_PROTOCOL_REVISION = "RL8";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
