@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI.Generic
                 if (ClientConfiguration.Instance.ClientGameType == ClientType.YR ||
                     ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
                     spawnStreamWriter.WriteLine("Ra2Mode=" + !mission.RequiredAddon);
-                else
+                else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                     spawnStreamWriter.WriteLine("Firestorm=" + mission.RequiredAddon);
       
                 spawnStreamWriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
