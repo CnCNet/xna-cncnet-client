@@ -1,4 +1,5 @@
-﻿using DTAClient.Online;
+﻿using System;
+using DTAClient.Online;
 public class ChannelUser
 {
     public ChannelUser(IRCUser ircUser)
