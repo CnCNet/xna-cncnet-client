@@ -7,6 +7,8 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -35,7 +37,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
-            flagsSpriteSheet = AssetLoader.LoadTexture("flags16.png");
+            using Stream flagsStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.flags16.png");
+            var flagsPNG = SixLabors.ImageSharp.Image.Load(flagsStream);
+            flagsSpriteSheet = AssetLoader.TextureFromImage(flagsPNG);
 
             var flagListBox = new FlagListBox(windowManager, tunnelHandler, flagsSpriteSheet);
             flagListBox.FontIndex = FontIndex;
