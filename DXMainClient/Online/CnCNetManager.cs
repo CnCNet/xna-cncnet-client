@@ -284,6 +284,17 @@ namespace DTAClient.Online
                                 break;
                             user.IsAdmin = addMode;
                             break;
+
+                        // Add/remove medal status on user
+                        case 'v':
+                            if (parameterCount >= modeParameters.Count)
+                                break;
+                            string vParam = modeParameters[parameterCount++];
+                            ChannelUser vUser = channel.Users.Find(vParam);
+                            if (vUser == null)
+                                break;
+                            vUser.IRCUser.HasMedal = addMode; // grant or remove medal
+                            break;
                     }
                 }
             }
