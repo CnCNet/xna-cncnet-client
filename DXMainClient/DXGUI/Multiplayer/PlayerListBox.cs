@@ -124,13 +124,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
 
                 // 🥇 Medal Icon
-                if (user.HasMedal)
+                if (user.HasVoice)
                 {
-                    int medalSize = 14;
                     DrawTexture(medalIcon,
-                        new Rectangle(x, height + 1, medalSize, medalSize), Color.White);
+                        new Rectangle(x, height, medalIcon.Width, medalIcon.Height), Color.White);
 
-                    x += medalSize + MARGIN;
+                    x += medalIcon.Width + MARGIN;
                 }
 
                 // Player Name

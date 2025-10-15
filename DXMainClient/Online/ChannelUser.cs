@@ -14,7 +14,7 @@ public class ChannelUser
     public bool IsFriend { get; set; }
 
     // New property
-    public bool HasMedal => IRCUser.HasMedal;
+    public bool HasVoice => IRCUser.HasVoice;
 
     public static int ChannelUserComparison(ChannelUser u1, ChannelUser u2)
     {

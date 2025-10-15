@@ -36,6 +36,6 @@ namespace DTAClient.Online
 
         public bool IsFriend { get; set; }
         public bool IsIgnored { get; set; }
-        public bool HasMedal { get; set; } = false;
+        public bool HasVoice { get; set; } = false;
     }
 }

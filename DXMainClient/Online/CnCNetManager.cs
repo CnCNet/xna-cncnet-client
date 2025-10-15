@@ -293,7 +293,7 @@ namespace DTAClient.Online
                             ChannelUser vUser = channel.Users.Find(vParam);
                             if (vUser == null)
                                 break;
-                            vUser.IRCUser.HasMedal = addMode; // grant or remove medal
+                            vUser.IRCUser.HasVoice = addMode; // grant or remove medal
                             break;
                     }
                 }
