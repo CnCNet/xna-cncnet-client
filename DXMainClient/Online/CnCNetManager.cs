@@ -289,11 +289,11 @@ namespace DTAClient.Online
                         case 'v':
                             if (parameterCount >= modeParameters.Count)
                                 break;
-                            string vParam = modeParameters[parameterCount++];
-                            ChannelUser vUser = channel.Users.Find(vParam);
-                            if (vUser == null)
+                            string parameter = modeParameters[parameterCount++];
+                            ChannelUser user = channel.Users.Find(parameter);
+                            if (user == null)
                                 break;
-                            vUser.IRCUser.HasVoice = addMode; // grant or remove medal
+                            user.IRCUser.HasVoice = addMode; // grant or remove medal
                             break;
                     }
                 }

@@ -21,6 +21,9 @@ public class ChannelUser
         if (u1.IsAdmin != u2.IsAdmin)
             return u1.IsAdmin ? -1 : 1;
 
+        if (u1.HasVoice != u2.HasVoice)
+            return u1.HasVoice ? -1 : 1;
+
         if (u1.IsFriend != u2.IsFriend)
             return u1.IsFriend ? -1 : 1;
 
