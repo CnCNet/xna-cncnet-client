@@ -290,10 +290,10 @@ namespace DTAClient.Online
                             if (parameterCount >= modeParameters.Count)
                                 break;
                             string vParam = modeParameters[parameterCount++];
-                            ChannelUser user = channel.Users.Find(vParam);
-                            if (user == null)
+                            ChannelUser vUser = channel.Users.Find(vParam);
+                            if (vUser == null)
                                 break;
-                            user.IRCUser.HasVoice = addMode; // grant or remove medal
+                            vUser.IRCUser.HasVoice = addMode; // grant or remove medal
                             break;
                     }
                 }
