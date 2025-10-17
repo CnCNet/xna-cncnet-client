@@ -1,32 +1,40 @@
 ﻿using System;
-using DTAClient.Online;
-public class ChannelUser
+
+namespace DTAClient.Online
 {
-    public ChannelUser(IRCUser ircUser)
+    /// <summary>
+    /// An user on an IRC channel.
+    /// </summary>
+    public class ChannelUser
     {
-        IRCUser = ircUser;
-    }
+        public ChannelUser(IRCUser ircUser)
+        {
+            IRCUser = ircUser;
+        }
 
-    public IRCUser IRCUser { get; private set; }
+        public IRCUser IRCUser { get; private set; }
 
-    public bool IsAdmin { get; set; }
+        public bool IsAdmin { get; set; }
 
-    public bool IsFriend { get; set; }
+        public bool IsFriend { get; set; }
 
-    // New property
-    public bool HasVoice => IRCUser.HasVoice;
+        //New Property
+        public bool HasVoice => IRCUser.HasVoice;
 
-    public static int ChannelUserComparison(ChannelUser u1, ChannelUser u2)
-    {
-        if (u1.IsAdmin != u2.IsAdmin)
-            return u1.IsAdmin ? -1 : 1;
+        public static int ChannelUserComparison(ChannelUser u1, ChannelUser u2)
+        {
+            if (u1.IsAdmin != u2.IsAdmin)
+                return u1.IsAdmin ? -1 : 1;
 
-        if (u1.HasVoice != u2.HasVoice)
-            return u1.HasVoice ? -1 : 1;
+            if (u1.HasVoice != u2.HasVoice)
+                return u1.HasVoice ? -1 : 1;
 
-        if (u1.IsFriend != u2.IsFriend)
-            return u1.IsFriend ? -1 : 1;
 
-        return string.Compare(u1.IRCUser.Name, u2.IRCUser.Name, StringComparison.InvariantCultureIgnoreCase);
+            if (u1.IsFriend != u2.IsFriend)
+                return u1.IsFriend ? -1 : 1;
+
+            return string.Compare(u1.IRCUser.Name, u2.IRCUser.Name, StringComparison.InvariantCultureIgnoreCase);
+
+        }
     }
 }
