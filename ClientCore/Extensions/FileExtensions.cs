@@ -92,7 +92,7 @@ public class FileExtensions
     /// <param name="filename"></param>
     /// <param name="minimalConfidence"></param>
     /// <returns></returns>
-    public static Encoding GetEncoding(string filename, float minimalConfidence = 0.5f)
+    public static Encoding GetDetectedEncoding(string filename, float minimalConfidence = 0.5f)
     {
         Encoding encoding = EncodingExt.UTF8NoBOM;
 
