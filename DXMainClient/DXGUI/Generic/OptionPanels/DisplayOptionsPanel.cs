@@ -818,7 +818,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                     if (sourceHash != destinationHash)
                     {
-                        FileHelper.CreateHardLinkFromSource(sourcePath, targetPath);
+                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
                         new FileInfo(targetPath).IsReadOnly = true;
                     }
                 }
