@@ -48,7 +48,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
 
-            // 🥇 voice icon (new)
+            //  voice icon (new)
             voiceIcon = AssetLoader.LoadTexture("voice.png");
         }
 
@@ -123,8 +123,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += ignoreIcon.Width + MARGIN;
                 }
 
-                //  voice Icon
-                if (user.HasVoice)
+                // voice Icon
+                if (user.HasVoice && voiceIcon != null)
                 {
                     DrawTexture(voiceIcon,
                         new Rectangle(x, height, voiceIcon.Width, voiceIcon.Height), Color.White);
