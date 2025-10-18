@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true" />
+    <PackageReference Include="LibVLCSharp" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
@@ -46,6 +47,7 @@
     <PackageReference Include="System.DirectoryServices" />
     <PackageReference Include="System.Private.Uri" />
     <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />

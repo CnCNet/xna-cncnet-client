@@ -22,12 +22,14 @@ using System.Linq;
 using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
+using DXMainClient.Domain;
 
 namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
     /// The main menu of the client.
     /// </summary>
+    /// 
     class MainMenu : XNAWindow, ISwitchable
     {
         private const float MEDIA_PLAYER_VOLUME_FADE_STEP = 0.01f;
@@ -59,6 +61,7 @@ namespace DTAClient.DXGUI.Generic
             ManualUpdateQueryWindow manualUpdateQueryWindow,
             UpdateWindow updateWindow,
             ExtrasWindow extrasWindow
+
         ) : base(windowManager)
         {
             this.lanLobby = lanLobby;
@@ -158,7 +161,15 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
 
-        /// <summary>
+        // Video Background Stuffs
+        private VideoBackground _videoBg;
+        private static string iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RA2MD.ini"); // get the theme from RA2MD.ini
+        private static string _selectedTheme = VideoBackground.GetTheme(iniPath);
+        private string _videoPath = Path.Combine("Resources", _selectedTheme, "MainMenu", "mainmenubg.mp4");// your main menu video file - can be improved by reading all video file
+        private string _fallbackPath = Path.Combine("MainMenu", "mainmenubg.png");// your main menu image file as a fallback when there's no video found
+
+
+        /// <summary>*
         /// Initializes the main menu's controls.
         /// </summary>
         public override void Initialize()
@@ -167,7 +178,17 @@ namespace DTAClient.DXGUI.Generic
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             Name = nameof(MainMenu);
-            BackgroundTexture = AssetLoader.LoadTexture("MainMenu/mainmenubg.png");
+
+            // if you dont have a video, lets do a static image instead
+            if (File.Exists(_videoPath))
+            {
+                _videoBg = new VideoBackground(GraphicsDevice, _videoPath);
+                BackgroundTexture = _videoBg.Texture;
+            } else
+            {
+                BackgroundTexture = AssetLoader.LoadTexture(_fallbackPath);
+            }
+
             ClientRectangle = new Rectangle(0, 0, BackgroundTexture.Width, BackgroundTexture.Height);
 
             WindowManager.CenterControlOnScreen(this);
@@ -294,6 +315,8 @@ namespace DTAClient.DXGUI.Generic
 
             base.Initialize(); // Read control attributes from INI
 
+            //spriteBatch = new SpriteBatch(Game.GraphicsDevice);
+
             lblVersion.Text = Updater.GameVersion;
 
             updateQueryWindow.UpdateDeclined += UpdateQueryWindow_UpdateDeclined;
@@ -403,7 +426,7 @@ namespace DTAClient.DXGUI.Generic
         {
             if (isMediaPlayerAvailable)
             {
-                if (MediaPlayer.State == MediaState.Playing)
+                if (Microsoft.Xna.Framework.Media.MediaPlayer.State == MediaState.Playing)
                 {
                     if (!UserINISettings.Instance.PlayMainMenuMusic)
                         isMusicFading = true;
@@ -989,6 +1012,7 @@ namespace DTAClient.DXGUI.Generic
             if (isMusicFading)
                 FadeMusic(gameTime);
 
+            //_videoBg.Update();
             base.Update(gameTime);
         }
 
@@ -996,8 +1020,10 @@ namespace DTAClient.DXGUI.Generic
         {
             lock (locker)
             {
+                
                 base.Draw(gameTime);
             }
+
         }
 
         /// <summary>
@@ -1013,10 +1039,10 @@ namespace DTAClient.DXGUI.Generic
                 if (themeSong != null && UserINISettings.Instance.PlayMainMenuMusic)
                 {
                     isMusicFading = false;
-                    MediaPlayer.IsRepeating = true;
-                    MediaPlayer.Volume = (float)UserINISettings.Instance.ClientVolume;
+                    Microsoft.Xna.Framework.Media.MediaPlayer.IsRepeating = true;
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Volume = (float)UserINISettings.Instance.ClientVolume;
 
-                    MediaPlayer.Play(themeSong);
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Play(themeSong);
                 }
             }
             catch (Exception ex)
@@ -1040,11 +1066,11 @@ namespace DTAClient.DXGUI.Generic
                 // Fade during 1 second
                 float step = SoundPlayer.Volume * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-                if (MediaPlayer.Volume > step)
-                    MediaPlayer.Volume -= step;
+                if (Microsoft.Xna.Framework.Media.MediaPlayer.Volume > step)
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Volume -= step;
                 else
                 {
-                    MediaPlayer.Stop();
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Stop();
                     isMusicFading = false;
                 }
             }
@@ -1069,14 +1095,14 @@ namespace DTAClient.DXGUI.Generic
             {
                 float step = MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP * (float)UserINISettings.Instance.ClientVolume;
 
-                if (MediaPlayer.Volume > step)
+                if (Microsoft.Xna.Framework.Media.MediaPlayer.Volume > step)
                 {
-                    MediaPlayer.Volume -= step;
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Volume -= step;
                     AddCallback(new Action(FadeMusicExit), null);
                 }
                 else
                 {
-                    MediaPlayer.Stop();
+                    Microsoft.Xna.Framework.Media.MediaPlayer.Stop();
                     ExitClient();
                 }
             }
@@ -1090,7 +1116,9 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
+            VideoBackground.ShutdownLibVLC(); // shut the Video, else it'll do some memory violation toomfoolery
             themeSong?.Dispose();
+
 #if !XNA
             Thread.Sleep(1000);
             Environment.Exit(0);
@@ -1122,7 +1150,7 @@ namespace DTAClient.DXGUI.Generic
             try
             {
                 if (isMediaPlayerAvailable &&
-                    MediaPlayer.State == MediaState.Playing)
+                    Microsoft.Xna.Framework.Media.MediaPlayer.State == MediaState.Playing)
                 {
                     isMusicFading = true;
                 }
@@ -1142,7 +1170,7 @@ namespace DTAClient.DXGUI.Generic
         {
             try
             {
-                MediaState state = MediaPlayer.State;
+                MediaState state = Microsoft.Xna.Framework.Media.MediaPlayer.State;
                 return true;
             }
             catch (Exception ex)
