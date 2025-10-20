@@ -317,11 +317,16 @@ namespace DTAClient.DXGUI.Campaign
             spawnIniSettings.AddKey("CampaignID", mission.CampaignID.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("GameSpeed", UserINISettings.Instance.GameSpeed.ToString());
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.YR ||
-                ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
-                spawnIniSettings.AddKey("Ra2Mode", (!mission.RequiredAddon).ToString(CultureInfo.InvariantCulture));
-            else
-                spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
+            switch (ClientConfiguration.Instance.ClientGameType)
+            {
+                case ClientType.YR or ClientType.Ares:
+                    spawnIniSettings.AddKey("Ra2Mode", (!mission.RequiredAddon).ToString(CultureInfo.InvariantCulture));
+                    break;
+                case ClientType.TS:
+                    spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
+                    break;
+                // TODO figure out the RA one
+            }
 
             spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
 
