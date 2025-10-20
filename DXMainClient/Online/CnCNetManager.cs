@@ -285,7 +285,7 @@ namespace DTAClient.Online
                             user.IsAdmin = addMode;
                             break;
 
-                        // Add/remove voice status on user
+                        // Add/remove voice status on user.
                         case 'v':
                             if (parameterCount >= modeParameters.Count)
                                 break;
@@ -293,7 +293,7 @@ namespace DTAClient.Online
                             ChannelUser vUser = channel.Users.Find(vParam);
                             if (vUser == null)
                                 break;
-                            vUser.IRCUser.HasVoice = addMode; // grant or remove voice
+                            vUser.IRCUser.HasVoice = addMode;
                             break;
                     }
                 }

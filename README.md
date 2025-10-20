@@ -12,8 +12,6 @@ The primary targets of the client project are
 * [Mental Omega](https://www.moddb.com/mods/mental-omega)
 * [CnCNet Yuri's Revenge](https://cncnet.org/yuris-revenge)
 
-* [CnCNet Red Alert 1]
-
 However, there is no limitation in the client that would prevent incorporating it into other projects. Any game or mod project that utilizes the CnCNet spawner for Tiberian Sun and Red Alert 2 can be supported. Several other projects also use the client or an unofficial fork of it, including [Tiberian Sun Client](https://www.moddb.com/mods/tiberian-sun-client), [Project Phantom](https://www.moddb.com/mods/project-phantom), [YR Red-Resurrection](https://www.moddb.com/mods/yr-red-resurrection), [The Second Tiberium War](https://www.moddb.com/mods/the-second-tiberium-war) and [CnC: Final War](https://www.moddb.com/mods/cncfinalwar).
 
 ## Development requirements
