@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -120,7 +121,7 @@ namespace ClientGUI.Settings
                     break;
 
                 case FileOperationOption.AlwaysOverwrite_LinkAsReadOnly:
-                    FileHelper.CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
+                    FileExtensions.CreateHardLinkFromSource(sourcePath, destinationPath, fallback: true);
                     new FileInfo(DestinationPath).IsReadOnly = true;
                     new FileInfo(SourcePath).IsReadOnly = true;
                     break;
