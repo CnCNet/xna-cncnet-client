@@ -2,6 +2,9 @@
 
 This guide outlines the steps for updating the XNA CnCNet Client version for any mod or game package that is using it (like, for example, Tiberian Sun Client, CnCNet YR, YR Mod Base or any mod that derives from them etc.).
 
+> [!WARNING]
+> It is also strongly recommended to keep the client launcher (the EXE file that resides in the mod folder and launches the actual client) up to date. To update - download the latest release from [it's repository](https://github.com/CnCNet/dta-mg-client-launcher/), open the EXE file with [Resource Hacker](https://www.angusj.com/resourcehacker/), change the icons, save and replace the EXE you currently have (for example, `TiberianSun.exe` or `CnCNetYRLauncher.exe`). Don't forget to add the rest of the files in the archive!
+
 ## Updating the XNA CnCNet Client binaries for the package
 
 1. **Download the latest client binaries release:**
