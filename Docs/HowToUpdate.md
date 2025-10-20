@@ -19,6 +19,27 @@ This guide outlines the steps for updating the XNA CnCNet Client version for any
    - Unarchive `Resources` folder from `[xna-cncnet-client-X.Y.Z.7z]` file downloaded earlier inside the "game root" folder.
    - You **must** get a prompt to replace `Resources/` folder and files inside it. If not, you're in the wrong directory.
 
+> [!WARNING]
+> If you are using the updater to update mods on the players' side, make sure to check the release notes for any files that need to be added to the `[Delete]` section of `updateexec`. Each release may specify the exact files that must be removed to prevent conflicts during the update process. For reference, here are some files you may need to delete during the update by the updater (reference: release [2.12.12](https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.12)):
+> ```ini
+> [Delete]
+> ; append those lines in the section
+> Resources\Binaries\Windows\DTAConfig.dll
+> Resources\Binaries\Windows\DTAConfig.pdb
+> Resources\Binaries\OpenGL\DTAConfig.dll
+> Resources\Binaries\OpenGL\DTAConfig.pdb
+> Resources\Binaries\XNA\DTAConfig.dll
+> Resources\Binaries\XNA\DTAConfig.pdb
+> Resources\BinariesNET8\Windows\DTAConfig.dll
+> Resources\BinariesNET8\Windows\DTAConfig.pdb
+> Resources\BinariesNET8\OpenGL\DTAConfig.dll
+> Resources\BinariesNET8\OpenGL\DTAConfig.pdb
+> Resources\BinariesNET8\UniversalGL\DTAConfig.dll
+> Resources\BinariesNET8\UniversalGL\DTAConfig.pdb
+> Resources\BinariesNET8\XNA\DTAConfig.dll
+> Resources\BinariesNET8\XNA\DTAConfig.pdb
+> ```
+
 4. **Apply the migration steps:**
    - If updating to next version: follow the instructions from release notes mentioned in step 1.
    - If updating skipping multiple versions, either:
