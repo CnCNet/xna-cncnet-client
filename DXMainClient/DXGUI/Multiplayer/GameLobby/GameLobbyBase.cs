@@ -16,6 +16,9 @@ using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
+
+using DTAClient.DXGUI.Generic;
+
 using TextCopy;
 
 
@@ -86,8 +89,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected List<MultiplayerColor> MPColors;
 
-        public List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
-        public List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
+        public List<GameLobbyCheckBox> CheckBoxes { get; } = new();
+        public List<GameLobbyDropDown> DropDowns { get; } = new();
 
         protected DiscordHandler discordHandler;
 
@@ -214,7 +217,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MPColors = MultiplayerColor.LoadColors();
 
-            GameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "GameOptions.ini"));
+            GameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), ClientConfiguration.GAME_OPTIONS));
 
             base.Initialize();
 
@@ -1564,7 +1567,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
-                chkBox.ApplySpawnINICode(spawnIni);
+                chkBox.ApplySpawnIniCode(spawnIni);
 
             foreach (GameLobbyDropDown dd in DropDowns)
                 dd.ApplySpawnIniCode(spawnIni);
@@ -1738,8 +1741,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool isValidForStar = true;
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
-                if ((checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && checkBox.Checked) ||
-                    (checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenUnchecked && !checkBox.Checked))
+                if (!checkBox.AllowScoring)
+                {
+                    isValidForStar = false;
+                    break;
+                }
+            }
+            foreach (GameLobbyDropDown dropDown in DropDowns)
+            {
+                if (!dropDown.AllowScoring)
                 {
                     isValidForStar = false;
                     break;
@@ -2513,11 +2523,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
-                if ((checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && checkBox.Checked) ||
-                    (checkBox.MapScoringMode == CheckBoxMapScoringMode.DenyWhenUnchecked && !checkBox.Checked))
-                {
+                if (checkBox.AllowScoring)
                     return Rank.None;
-                }
+            }
+            
+            foreach (GameLobbyDropDown dropDown in DropDowns)
+            {
+                if (dropDown.AllowScoring)
+                    return Rank.None;
             }
 
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
