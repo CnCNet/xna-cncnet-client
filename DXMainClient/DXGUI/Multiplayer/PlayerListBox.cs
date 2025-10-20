@@ -25,10 +25,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
-        private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
-        private Texture2D voiceIcon;
+        private Texture2D? voiceIcon;
 
         private GameCollection gameCollection;
 
@@ -46,10 +45,10 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
-            badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
 
-            //  voice icon (new)
-            voiceIcon = AssetLoader.LoadTexture("voice.png");
+            const string voiceIconName = "voiceicon.png";
+            if (AssetLoader.AssetExists(voiceIconName))
+                voiceIcon = AssetLoader.LoadTexture(voiceIconName);
         }
 
         public void AddUser(ChannelUser user)
@@ -123,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += ignoreIcon.Width + MARGIN;
                 }
 
-                // voice Icon
+                // Voice Icon
                 if (user.HasVoice && voiceIcon != null)
                 {
                     DrawTexture(voiceIcon,
