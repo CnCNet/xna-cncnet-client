@@ -5,7 +5,7 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.I18N;
-using ClientCore.PlatformShim;
+using ClientCore.Extensions;
 
 using DTAClient.Domain.Multiplayer;
 
@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public static class MapCodeHelper
     {
-        public static Encoding GetMapEncoding(string filepath) => Translation.Instance.MapEncoding ?? FileHelper.GetEncoding(filepath);
+        public static Encoding GetMapEncoding(string filepath) => Translation.Instance.MapEncoding ?? FileExtensions.GetDetectedEncoding(filepath);
 
         /// <summary>
         /// Applies code from a component custom INI file to a map INI file.

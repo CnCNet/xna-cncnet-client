@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>CnCNet Config Library</Description>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
-  </ItemGroup>
-</Project>

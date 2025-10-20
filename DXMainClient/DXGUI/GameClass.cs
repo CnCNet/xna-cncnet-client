@@ -1,5 +1,4 @@
 using ClientCore;
-using ClientCore.CnCNet5;
 using ClientGUI;
 using ClientGUI.IME;
 using DTAClient.Domain;
@@ -15,12 +14,12 @@ using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Campaign;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using DTAConfig;
-using DTAConfig.Settings;
+using ClientGUI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
@@ -311,6 +310,8 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<ChatListBox>()
                             .AddTransientXnaControl<GameLobbyCheckBox>()
                             .AddTransientXnaControl<GameLobbyDropDown>()
+                            .AddTransientXnaControl<CampaignCheckBox>()
+                            .AddTransientXnaControl<CampaignDropDown>()
                             .AddTransientXnaControl<SettingCheckBox>()
                             .AddTransientXnaControl<SettingDropDown>()
                             .AddTransientXnaControl<FileSettingCheckBox>()
