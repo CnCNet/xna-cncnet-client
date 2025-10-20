@@ -20,7 +20,7 @@ This guide outlines the steps for updating the XNA CnCNet Client version for any
    - You **must** get a prompt to replace `Resources/` folder and files inside it. If not, you're in the wrong directory.
 
 > [!WARNING]
-> If you are using the updater to update mods on the players' side, make sure to check the release notes for any files that need to be added to the `[Delete]` section of `updateexec`. Each release may specify the exact files that must be removed to prevent conflicts during the update process. For reference, here are some files you may need to delete during the update by the updater (reference: release [2.12.12](https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.12)):
+> If you are using our automatic updater, make sure to check the release notes for any files that need to be added to the `[Delete]` section of `updateexec` or `preupdateexec`. Each release may specify the exact files that must be removed to prevent issues during the update process. For example (from release [2.12.12](https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.12)):
 > ```ini
 > [Delete]
 > ; append those lines in the section
