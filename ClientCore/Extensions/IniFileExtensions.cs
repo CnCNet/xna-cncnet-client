@@ -8,6 +8,31 @@ namespace ClientCore.Extensions
 {
     public static class IniFileExtensions
     {
+        // Clone() method is not officially available now. https://github.com/Rampastring/Rampastring.Tools/issues/12
+        public static IniFile Clone(this IniFile oldIniFile)
+        {
+            var newIni = new IniFile();
+            foreach (string sectionName in oldIniFile.GetSections())
+            {
+                IniSection oldSection = oldIniFile.GetSection(sectionName);
+                newIni.AddSection(oldSection.Clone());
+            }
+
+            return newIni;
+        }
+
+        public static IniSection Clone(this IniSection oldSection)
+        {
+            IniSection newSection = new(oldSection.SectionName);
+
+            foreach ((var key, var value) in oldSection.Keys)
+            {
+                newSection.AddKey(key, value);
+            }
+
+            return newSection;
+        }
+
         public static IniSection GetOrAddSection(this IniFile iniFile, string sectionName)
         {
             var section = iniFile.GetSection(sectionName);
@@ -27,16 +52,7 @@ namespace ClientCore.Extensions
         }
 
         public static string[] GetStringListValue(this IniFile iniFile, string section, string key, string defaultValue, char[] separators = null)
-        {
-            separators ??= [','];
-            IniSection iniSection = iniFile.GetSection(section);
-
-            return (iniSection?.GetStringValue(key, defaultValue) ?? defaultValue)
-                .Split(separators)
-                .ToList()
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrEmpty(s))
-                .ToArray();
-        }
+            => (iniFile.GetSection(section)?.GetStringValue(key, defaultValue) ?? defaultValue)
+                .SplitWithCleanup();
     }
 }

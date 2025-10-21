@@ -7,6 +7,9 @@ namespace ClientGUI;
 /// <summary>
 /// Indicates that the implementer has sub-controls that need to be exposed to INI system.
 /// </summary>
+/// <remarks>
+/// Currently only supported in <see cref="INItializableWindow">.
+/// </remarks>
 public interface ICompositeControl
 {
     /// <summary>

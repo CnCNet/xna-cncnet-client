@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
@@ -188,18 +188,18 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 new LANColor("Gray".L10N("Client:Main:ColorGray"), Color.Gray),
                 new LANColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), Color.LightGray),
-                new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.Green),
+                new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.ForestGreen),
                 new LANColor("Lime Green".L10N("Client:Main:ColorLimeGreen"), Color.LimeGreen),
                 new LANColor("Green Yellow".L10N("Client:Main:ColorGreenYellow"), Color.GreenYellow),
                 new LANColor("Goldenrod".L10N("Client:Main:ColorGoldenrod"), Color.Goldenrod),
                 new LANColor("Yellow".L10N("Client:Main:ColorYellow"), Color.Yellow),
                 new LANColor("Orange".L10N("Client:Main:ColorOrange"), Color.Orange),
                 new LANColor("Red".L10N("Client:Main:ColorRed"), Color.Red),
-                new LANColor("Pink".L10N("Client:Main:ColorDeepPink"), Color.DeepPink),
-                new LANColor("Purple".L10N("Client:Main:ColorMediumPurple"), Color.MediumPurple),
-                new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.SkyBlue),
-                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.Blue),
-                new LANColor("Brown".L10N("Client:Main:ColorSaddleBrown"), Color.SaddleBrown),
+                new LANColor("Pink".L10N("Client:Main:ColorPink"), Color.DeepPink),
+                new LANColor("Purple".L10N("Client:Main:ColorPurple"), Color.MediumPurple),
+                new LANColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), Color.LightSkyBlue),
+                new LANColor("Blue".L10N("Client:Main:ColorBlue"), Color.RoyalBlue),
+                new LANColor("Brown".L10N("Client:Main:ColorBrown"), Color.SaddleBrown),
                 new LANColor("Teal".L10N("Client:Main:ColorTeal"), Color.Teal)
             };
 
@@ -229,7 +229,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 

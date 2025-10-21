@@ -11,7 +11,6 @@ using ClientCore;
 using System.Threading;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
-using DTAConfig;
 using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic

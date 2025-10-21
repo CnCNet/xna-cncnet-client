@@ -129,7 +129,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessExited()
         {
-            AddCallback(new Action(HandleGameProcessExited), null);
+            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
         }
 
         private void HandleGameProcessExited()
@@ -167,7 +167,7 @@ namespace DTAClient.DXGUI
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
-                Task.Factory.StartNew(ProcessScreenshots);
+                Task.Run(ProcessScreenshots);
 
                 // TODO: Ares debug log handling should be addressed in Ares DLL itself.
                 // For now the following are handled here:

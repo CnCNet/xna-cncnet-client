@@ -2,6 +2,9 @@
 
 This guide outlines the steps for updating the XNA CnCNet Client version for any mod or game package that is using it (like, for example, Tiberian Sun Client, CnCNet YR, YR Mod Base or any mod that derives from them etc.).
 
+> [!WARNING]
+> It is also strongly recommended to keep the client launcher (the EXE file that resides in the mod folder and launches the actual client) up to date. To update - download the latest release from [it's repository](https://github.com/CnCNet/dta-mg-client-launcher/), open the EXE file with [Resource Hacker](https://www.angusj.com/resourcehacker/), change the icons, save and replace the EXE you currently have (for example, `TiberianSun.exe` or `CnCNetYRLauncher.exe`). Don't forget also to copy the rest of the files from the archive to the game folder!
+
 ## Updating the XNA CnCNet Client binaries for the package
 
 1. **Download the latest client binaries release:**
@@ -18,6 +21,27 @@ This guide outlines the steps for updating the XNA CnCNet Client version for any
    - Go to your local game/mod repo or working folder.
    - Unarchive `Resources` folder from `[xna-cncnet-client-X.Y.Z.7z]` file downloaded earlier inside the "game root" folder.
    - You **must** get a prompt to replace `Resources/` folder and files inside it. If not, you're in the wrong directory.
+
+> [!WARNING]
+> If you are using our automatic updater, make sure to check the release notes for any files that need to be added to the `[Delete]` section of `updateexec` or `preupdateexec`. Each release may specify the exact files that must be removed to prevent issues during the update process. For example (from release [2.12.12](https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.12)):
+> ```ini
+> [Delete]
+> ; append those lines in the section
+> Resources\Binaries\Windows\DTAConfig.dll
+> Resources\Binaries\Windows\DTAConfig.pdb
+> Resources\Binaries\OpenGL\DTAConfig.dll
+> Resources\Binaries\OpenGL\DTAConfig.pdb
+> Resources\Binaries\XNA\DTAConfig.dll
+> Resources\Binaries\XNA\DTAConfig.pdb
+> Resources\BinariesNET8\Windows\DTAConfig.dll
+> Resources\BinariesNET8\Windows\DTAConfig.pdb
+> Resources\BinariesNET8\OpenGL\DTAConfig.dll
+> Resources\BinariesNET8\OpenGL\DTAConfig.pdb
+> Resources\BinariesNET8\UniversalGL\DTAConfig.dll
+> Resources\BinariesNET8\UniversalGL\DTAConfig.pdb
+> Resources\BinariesNET8\XNA\DTAConfig.dll
+> Resources\BinariesNET8\XNA\DTAConfig.pdb
+> ```
 
 4. **Apply the migration steps:**
    - If updating to next version: follow the instructions from release notes mentioned in step 1.

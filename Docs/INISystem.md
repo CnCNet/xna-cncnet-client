@@ -297,6 +297,7 @@ _(inherits XNAClientDropDown)_
 ItemsDrawMode=TextAndIcon         ; enum (Text | Icon | TextAndIcon),
                                   ; this will set what combination of texture and text should client use.
 RandomColorTexture=randomicon.png ; string, the file to load as texture for random color.
+DisabledItemTexture=              ; string, the file to load as texture for disabled items, defaults to texture generated from disabled item color
 ColorTextureHeight=               ; int, color icon height in pixels.
 ColorTextureWidth=                ; int, color icon width in pixels.
 ```
@@ -355,6 +356,15 @@ FillHeight=10
 ### Special Controls & Their Properties
 
 Some controls are only available under specific circumstances.
+
+#### CoopBriefingBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox_CoopBriefingBox]
+FontIndex=0
+```
 
 #### XNAOptionsPanel Controls
 
@@ -531,7 +541,9 @@ The `ClientDefinitions.ini` file defines the client's global settings, including
 In `ClientDefinitions.ini`:
 ```ini
 [Settings]
-TrustedDomains=  ; comma-separated list of strings,
-                 ; domain names to match links and prevent the message box from appearing before they open by default browser
-                 ; example: cncnet.org,github.com,moddb.com
+TrustedDomains=                ; comma-separated list of strings,
+                               ; domain names to match links and prevent the message box from appearing before they open by default browser
+                               ; example: cncnet.org,github.com,moddb.com
+SaveSkirmishGameOptions=false  ; boolean, whether or not previously used game options in skirmish are saved across client sessions
+SaveCampaignGameOptions=false  ; boolean, whether or not previously used game options in campaign are saved across client sessions
 ```

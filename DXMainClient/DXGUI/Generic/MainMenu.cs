@@ -7,7 +7,6 @@ using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using DTAConfig;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -23,6 +22,7 @@ using System.Linq;
 using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Campaign;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -442,7 +442,7 @@ namespace DTAClient.DXGUI.Generic
                 {
                     description = ("You are missing Yuri's Revenge files that are required\n" +
                         "to play this mod! Yuri's Revenge mods are not standalone,\n" +
-                        "so you need a copy of following Yuri's Revenge (v. 1.001)\n" +
+                        "so you need a copy of following Yuri's Revenge (v.1.001)\n" +
                         "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares");
                 }
                 else
@@ -579,6 +579,7 @@ namespace DTAClient.DXGUI.Generic
         {
             foreach (XNAControl control in new XNAControl[]
             {
+                statisticsWindow, // Note: StatisticsWindow must be initialized before any lobbies that extends GameLobbyBase. This is because StatisticsManager is accessed when initializing GameLobbyBase.
                 skirmishLobby,
                 cnCNetGameLoadingLobby,
                 cnCNetGameLobby,
@@ -586,7 +587,6 @@ namespace DTAClient.DXGUI.Generic
                 lanLobby,
                 campaignSelector,
                 gameLoadingWindow,
-                statisticsWindow,
                 updateQueryWindow,
                 manualUpdateQueryWindow,
                 updateWindow,
@@ -652,6 +652,19 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+
+            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
+            {
+                new XNAMessageBox(WindowManager, title, error, XNAMessageBoxButtons.OK)
+                {
+                    OKClickedAction = _ =>
+                    {
+                        if (exit)
+                            Environment.Exit(1);
+                    },
+
+                }.Show();
+            };
         }
 
         private void LoadThemeSong()
@@ -666,14 +679,21 @@ namespace DTAClient.DXGUI.Generic
             string songExtension = "wma";
 #endif
 
-            FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, 
+            FileInfo mainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.{songExtension}"));
 
             if (!mainMenuMusicFile.Exists)
                 return;
 
-            Song song = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
-            themeSong = song;
+            try
+            {
+                themeSong = Song.FromUri(ClientConfiguration.Instance.MainMenuMusicName, new Uri(mainMenuMusicFile.FullName));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error loading the theme song. Fallback to the legacy method. Have you installed 'Media Feature Pack for Windows 10/11 N'? Exception: {ex.ToString()}");
+                themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
+            }
 #endif
         }
 

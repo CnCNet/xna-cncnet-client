@@ -13,6 +13,8 @@ using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using ClientCore.Extensions;
 
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
