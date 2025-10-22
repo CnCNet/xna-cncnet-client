@@ -52,6 +52,21 @@ internal abstract class Patch
         return this;
     }
 
+    public Patch RemoveKeyWithLog(IniFile src, string section, string key)
+    {
+        if (!src.KeyExists(section, key))
+        {
+            Logger.Log($"Update {src.FileName}: Skip removing [{section}]->{key}, reason: doesn't exist");
+        }
+        else
+        {
+            Logger.Log($"Update {src.FileName}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
+            src.GetSection(section).RemoveKey(key);
+        }
+
+        return this;
+    }
+
     public void CalculatePositions(IniFile ini, string parent, string child)
     {
         int parentX, parentY, childX, childY;

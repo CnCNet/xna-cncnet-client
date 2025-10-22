@@ -23,10 +23,9 @@ internal class Patch_v2_12_6 : Patch
 
         // Remove GenericWindow.ini->{ GameCreationWindow; GameCreationWindow_Advanced }->Size
         IniFile genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-        genericWindowIni.GetSection("GameCreationWindow")?.RemoveKey("Size");
-        genericWindowIni.GetSection("GameCreationWindow_Advanced")?.RemoveKey("Size");
+        RemoveKeyWithLog(genericWindowIni, "GameCreationWindow", "Size");
+        RemoveKeyWithLog(genericWindowIni, "GameCreationWindow_Advanced", "Size");
         genericWindowIni.WriteIniFile();
-
     }
 }
 
