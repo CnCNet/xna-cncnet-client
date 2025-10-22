@@ -94,34 +94,6 @@ public abstract class IMEHandler : IIMEHandler
 
         LastActionIMEChatInput = true;
 
-        // The IME reports ESC key as a text input. For unknown reasons, XNAUI TextBox cannot capture ESC key when IME is enabled.
-        if (character == 27)
-        {
-            if (HandleEscapeKey())
-            {
-                // Do not return this ESC key back to the textbox if HandleEscapeKey returns true.
-                return;
-            }
-            else
-            {
-                // handleChatInput() method rejects the ESC message (which is correct). Therefore, we need to clear the text in the text box here.
-                if (IMEFocus != null)
-                {
-                    // TODO: wrap this logic as a new action in RegisterXNATextBox(). This requires an API breaking change, and therefore left as a TODO.
-                    IMEFocus.Text = string.Empty;
-                }
-
-                return;
-            }
-        }
-
-        // The IME reports backspace as a text input. However, unlike the ESC key, XNAUI TextBox can correctly capture backspace key even if we turn on IME.
-        if (character == 8)
-        {
-            // handleChatInput() will reject this backspace message (which is correct). Just explicitly return here in case of a behavior change in the future.
-            return;
-        }
-
         if (IMEFocus != null)
         {
             TextBoxHandleChatInputCallbacks.TryGetValue(IMEFocus, out var handleChatInput);
