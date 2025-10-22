@@ -221,9 +221,6 @@ public abstract class IMEHandler : IIMEHandler
         => false;
 
     bool IIMEHandler.HandleEscapeKey(XNATextBox sender)
-        => HandleEscapeKey();
-
-    private bool HandleEscapeKey()
     {
         //Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
 
@@ -233,6 +230,7 @@ public abstract class IMEHandler : IIMEHandler
         // For example, the user might mistakenly hit ESC key twice to cancel composition -- deleting the whole sentence is definitely a heavy punishment for such a small mistake.
 
         // Note: "!CompositionEmpty => IMEEventReceived" should hold, but just in case
+
         return IMEEventReceived || !CompositionEmpty;
     }
 
