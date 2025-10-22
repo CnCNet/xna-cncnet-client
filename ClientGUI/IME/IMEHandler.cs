@@ -10,6 +10,7 @@ using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI.IME;
+
 public abstract class IMEHandler : IIMEHandler
 {
     bool IIMEHandler.TextCompositionEnabled => TextCompositionEnabled;
@@ -41,7 +42,11 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool CompositionEmpty => string.IsNullOrEmpty(_composition);
 
+    /// <summary>
+    /// Indicates whether an IME event has been received ever. Used to distinguish IME users from non-IME users.
+    /// </summary>
     protected bool IMEEventReceived = false;
+
     protected bool LastActionIMEChatInput = true;
 
     private void OnCompositionChanged(string oldValue, string newValue)
@@ -87,8 +92,35 @@ public abstract class IMEHandler : IIMEHandler
     {
         //Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
-        IMEEventReceived = true;
         LastActionIMEChatInput = true;
+
+        // The IME reports ESC key as a text input. For unknown reasons, XNAUI TextBox cannot capture ESC key when IME is enabled.
+        if (character == 27)
+        {
+            if (HandleEscapeKey())
+            {
+                // Do not return this ESC key back to the textbox if HandleEscapeKey returns true.
+                return;
+            }
+            else
+            {
+                // handleChatInput() method rejects the ESC message (which is correct). Therefore, we need to clear the text in the text box here.
+                if (IMEFocus != null)
+                {
+                    // TODO: wrap this logic as a new action in RegisterXNATextBox(). This requires an API breaking change, and therefore left as a TODO.
+                    IMEFocus.Text = string.Empty;
+                }
+
+                return;
+            }
+        }
+
+        // The IME reports backspace as a text input. However, unlike the ESC key, XNAUI TextBox can correctly capture backspace key even if we turning on IME.
+        if (character == 8)
+        {
+            // handleChatInput() will reject this backspace message (which is correct). Just explicitly return here in case a behavior change in the future.
+            return;
+        }
 
         if (IMEFocus != null)
         {
@@ -217,9 +249,19 @@ public abstract class IMEHandler : IIMEHandler
         => false;
 
     bool IIMEHandler.HandleEscapeKey(XNATextBox sender)
+        => HandleEscapeKey();
+
+    private bool HandleEscapeKey()
     {
         //Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
-        return IMEEventReceived;
+
+        // This method disables the ESC handling of the TextBox as long as the user has ever used IME.
+        // This is because IME users often use ESC to cancel composition. Even if currently the composition is empty,
+        // the user still expects ESC to cancel composition rather than deleting the whole sentence.
+        // For example, the user might mistakenly hit ESC key twice to cancel composition -- deleting the whole sentence is definitely a heavy punishment for such a small mistake.
+
+        // Note: "!CompositionEmpty => IMEEventReceived" should hold, but just in case
+        return IMEEventReceived || !CompositionEmpty;
     }
 
     void IIMEHandler.OnTextChanged(XNATextBox sender) { }
