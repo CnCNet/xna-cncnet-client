@@ -37,6 +37,7 @@ internal class Patch_v2_11_0 : Patch
 
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         {
+            Logger.Log("Renaming CustomSettingFileCheckBox to FileSettingCheckBox and CustomSettingFileDropDown to FileSettingDropDown");
             IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
             foreach (var section in optionsWindowIni.GetSections())
             {
