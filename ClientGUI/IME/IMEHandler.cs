@@ -115,10 +115,10 @@ public abstract class IMEHandler : IIMEHandler
             }
         }
 
-        // The IME reports backspace as a text input. However, unlike the ESC key, XNAUI TextBox can correctly capture backspace key even if we turning on IME.
+        // The IME reports backspace as a text input. However, unlike the ESC key, XNAUI TextBox can correctly capture backspace key even if we turn on IME.
         if (character == 8)
         {
-            // handleChatInput() will reject this backspace message (which is correct). Just explicitly return here in case a behavior change in the future.
+            // handleChatInput() will reject this backspace message (which is correct). Just explicitly return here in case of a behavior change in the future.
             return;
         }
 
