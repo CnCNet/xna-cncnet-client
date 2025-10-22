@@ -3,8 +3,11 @@ Migrating from older versions
 
 > [!NOTE]
 > CnCNet has a program called `Migration Tool` that implements all the instructions described down below notices to automate the migration process.
-> To use this tool, download the latest nightly build and run `Resources/BinariesNET8/MigrationTool/MigrationTool.exe` with older client path as the first argument.
+> To use this tool, download the latest nightly build and run `Resources\BinariesNET8\MigrationTool\MigrationTool.exe` with older client path as the first argument. 
+> 
 > Example: `MigrationTool.exe C:\TiberianSunClient`
+> 
+> It is recommended that you back up the client configuration before running the migration tool.
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
