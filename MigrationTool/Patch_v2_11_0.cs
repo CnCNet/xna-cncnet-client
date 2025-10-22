@@ -128,7 +128,7 @@ internal class Patch_v2_11_0 : Patch
         // Rework skirmish/lan/cncnet lobbies ini's
         if (File.Exists(SafePath.CombineFilePath(ResouresDir.FullName, $"{GameLobbyBase}.ini")))
         {
-            Logger.Log($"Update lobbies has been aborted, {GameLobbyBase}.ini already exists");
+            Logger.Log($"Update lobbies has been skipped, {GameLobbyBase}.ini already exists");
         }
         else
         {
