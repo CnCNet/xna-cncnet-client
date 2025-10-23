@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Collections.Generic;
 
 using ClientCore;
 using ClientCore.Extensions;
@@ -40,12 +42,17 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblSkillLevel;
 
         private XNALabel[] lblPlayerNames;
+        private XNAPanel pnlIconLegend;
 
         private GenericHostedGame game = null;
 
         private bool disposeTextures = false;
         private Texture2D mapTexture = null;
         private Texture2D noMapPreviewTexture = null;
+
+        private Texture2D txLockedGame;
+        private Texture2D txIncompatibleGame;
+        private Texture2D txPasswordedGame;
 
         private const int leftColumnPositionX = 10;
         private int rightColumnPositionX = 0;
@@ -57,6 +64,18 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int columnWidth = 235;
         private const int maxPreviewHeight = 150;
         private const int mapPreviewMargin = 15;
+
+        private const int playerNameRowHeight = 20;
+        private const int playerColumn2OffsetX = 115;
+
+        private const int legendTopSpacing = 15;
+        private const int legendIconHeight = 18;
+        private const int legendPadding = 5;
+
+        private const int gameInfoLabelTopPadding = 6;
+
+        private const int mapPreviewHorizontalMargin = 10;
+        private const int mapPreviewVerticalMargin = 20;
 
         private string[] skillLevelOptions;
 
@@ -72,6 +91,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
+
+            txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
+            txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
+            txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
 
             rightColumnPositionX = Width / 2 - columnMargin;
             mapPreviewPositionY = topStartingPositionY + (rowHeight * 2 + mapPreviewMargin); // 2 Labels down, incase map name spills to next line
@@ -106,11 +129,11 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
             {
                 XNALabel lblPlayerName1 = new XNALabel(WindowManager);
-                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + rowHeight + i * 20, 0, 0);
+                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + rowHeight + i * playerNameRowHeight, 0, 0);
                 lblPlayerName1.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 XNALabel lblPlayerName2 = new XNALabel(WindowManager);
-                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + 115, lblPlayerName1.Y, 0, 0);
+                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + playerColumn2OffsetX, lblPlayerName1.Y, 0, 0);
                 lblPlayerName2.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 AddChild(lblPlayerName1);
@@ -120,6 +143,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
+            pnlIconLegend = new XNAPanel(WindowManager);
+            int legendY = lblPlayers.Y + rowHeight + (MAX_PLAYERS / 2 * playerNameRowHeight) + legendTopSpacing;
+            pnlIconLegend.ClientRectangle = new Rectangle(0, legendY, columnWidth, 0);
+            pnlIconLegend.DrawBorders = false;
+
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -128,9 +156,10 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
             AddChild(lblSkillLevel);
+            AddChild(pnlIconLegend);
 
             lblGameInformation.CenterOnParent();
-            lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
+            lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, gameInfoLabelTopPadding,
                 lblGameInformation.Width, lblGameInformation.Height);
 
             skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
@@ -201,6 +230,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string skillLevel = skillLevelOptions[game.SkillLevel];
             string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
             lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
+            lblSkillLevel.Visible = true;
 
             lblGameInformation.Visible = true;
 
@@ -221,6 +251,57 @@ namespace DTAClient.DXGUI.Multiplayer
                     disposeTextures = true;
                 }
             }
+
+            SetLegendInfo(game);
+        }
+
+        private void SetLegendInfo(GenericHostedGame game)
+        {
+            ClearLegendIconPanel();
+
+            var icons = new List<(Texture2D, string)>();
+            if (game.Locked) icons.Add((txLockedGame, "Game is locked".L10N("Client:Main:LockedGame")));
+            if (game.Passworded) icons.Add((txPasswordedGame, "Game is passworded".L10N("Client:Main:PasswordedGame")));
+            if (game.Incompatible) icons.Add((txIncompatibleGame, "Incompatible client version".L10N("Client:Main:IncompatibleGame")));
+
+            if (icons.Count == 0)
+            {
+                pnlIconLegend.Visible = false;
+                ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, initialPanelHeight);
+                return;
+            }
+
+            var divider = CreateDivider(0);
+            pnlIconLegend.AddChild(divider);
+
+            int currentY = divider.Bottom + legendPadding;
+
+            foreach (var (icon, label) in icons)
+            {
+                var iconPanel = new GameInformationIconPanel(WindowManager, icon, label);
+                iconPanel.ClientRectangle = new Rectangle(leftColumnPositionX, currentY, pnlIconLegend.Width, legendIconHeight);
+                pnlIconLegend.AddChild(iconPanel);
+                currentY += legendIconHeight;
+            }
+
+            pnlIconLegend.Height = currentY + legendPadding;
+            pnlIconLegend.Visible = true;
+
+            ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, pnlIconLegend.Bottom);
+        }
+
+        private XNAPanel CreateDivider(int y)
+        {
+            var dividerPanel = new XNAPanel(WindowManager);
+            dividerPanel.DrawBorders = true;
+            dividerPanel.ClientRectangle = new Rectangle(0, y, ClientRectangle.Width, 1);
+            return dividerPanel;
+        }
+
+        private void ClearLegendIconPanel()
+        {
+            foreach (XNAControl xnaControl in pnlIconLegend.Children.ToList())
+                pnlIconLegend.RemoveChild(xnaControl);
         }
 
         public void ClearInfo()
@@ -232,6 +313,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing.Visible = false;
             lblPlayers.Visible = false;
             lblGameInformation.Visible = false;
+            lblSkillLevel.Visible = false;
 
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
@@ -258,8 +340,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private void RenderMapPreview()
         {
             // Calculate map preview area based on right half of ClientRectangle
-            double xRatio = (ClientRectangle.Width / 2 - 10) / (double)mapTexture.Width;
-            double yRatio = (ClientRectangle.Height - 20) / (double)mapTexture.Height;
+            double xRatio = (ClientRectangle.Width / 2 - mapPreviewHorizontalMargin) / (double)mapTexture.Width;
+            double yRatio = (ClientRectangle.Height - mapPreviewVerticalMargin) / (double)mapTexture.Height;
 
             double ratio = Math.Min(xRatio, yRatio); // Choose the smaller ratio for scaling
             int textureWidth = (int)(mapTexture.Width * ratio);
