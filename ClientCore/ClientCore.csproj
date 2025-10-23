@@ -12,6 +12,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
-    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.XNAUI.csproj" />
   </ItemGroup>
 </Project>
