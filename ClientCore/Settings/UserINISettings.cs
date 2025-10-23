@@ -318,14 +318,15 @@ namespace ClientCore
         public bool IsGameFollowed(string gameName)
             => SettingsIni.GetBooleanValue("Channels", gameName, false);
 
-        public bool ToggleFavoriteMap(string mapName, string gameModeName, bool isFavorite)
+        public bool ToggleFavoriteMap(string mapSHA1, string gameModeName, bool isFavorite)
         {
-            if (string.IsNullOrEmpty(mapName))
+            if (string.IsNullOrEmpty(mapSHA1))
                 return isFavorite;
 
-            string favoriteMapKey = FavoriteMapKey(mapName, gameModeName);
-            isFavorite = IsFavoriteMap(mapName, gameModeName);
-            if (isFavorite)
+            string favoriteMapKey = FavoriteMapKey(mapSHA1, gameModeName);
+
+            bool isCurrentlyFavorite = FavoriteMaps.Contains(favoriteMapKey);
+            if (isCurrentlyFavorite)
                 FavoriteMaps.Remove(favoriteMapKey);
             else
                 FavoriteMaps.Add(favoriteMapKey);
@@ -334,7 +335,7 @@ namespace ClientCore
 
             WriteFavoriteMaps();
 
-            return !isFavorite;
+            return !isCurrentlyFavorite;
         }
 
         private void LoadFavoriteMaps(IniFile iniFile)
@@ -349,7 +350,7 @@ namespace ClientCore
                 WriteFavoriteMaps();
         }
 
-        private void WriteFavoriteMaps()
+        public void WriteFavoriteMaps()
         {
             var favoriteMapsSection = SettingsIni.GetOrAddSection(FAVORITE_MAPS);
             favoriteMapsSection.RemoveAllKeys();
@@ -361,12 +362,41 @@ namespace ClientCore
 
         /// <summary>
         /// Checks if a specified map name and game mode name belongs to the favorite map list.
+        /// Name-based favorites are migrated to SHA1.
         /// </summary>
-        /// <param name="nameName">The name of the map.</param>
-        /// <param name="gameModeName">The name of the game mode</param>
-        public bool IsFavoriteMap(string nameName, string gameModeName) => FavoriteMaps.Contains(FavoriteMapKey(nameName, gameModeName));
+        /// <param name="mapSHA1">The SHA1 hash of the map.</param>
+        /// <param name="mapName">The name of the map.</param>
+        /// <param name="gameModeName">The name of the game mode.</param>
+        public bool IsFavoriteMap(string mapSHA1, string mapName, string gameModeName)
+        {
+            // SHA1-based lookup first
+            if (!string.IsNullOrEmpty(mapSHA1) && FavoriteMaps.Contains(FavoriteMapKey(mapSHA1, gameModeName)))
+                return true;
 
-        private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
+            // Fallback to name-based
+            string nameKey = FavoriteMapKey(mapName, gameModeName);
+            if (FavoriteMaps.Contains(nameKey))
+            {
+                // Migrate to SHA1
+                if (!string.IsNullOrEmpty(mapSHA1))
+                {
+                    string sha1Key = FavoriteMapKey(mapSHA1, gameModeName);
+                    if (!FavoriteMaps.Contains(sha1Key))
+                    {
+                        FavoriteMaps.Add(sha1Key);
+                        WriteFavoriteMaps();
+                    }
+                    // Note: We don't remove the name-based entry here to allow other maps
+                    // with the same name to also migrate. The name-based entry will be
+                    // cleaned up when all maps with that name have been processed.
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        private string FavoriteMapKey(string identifier, string gameModeName) => $"{identifier}:{gameModeName}";
 
         public void ReloadSettings() => SettingsIni.Reload();
 

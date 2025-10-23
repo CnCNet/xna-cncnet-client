@@ -11,6 +11,33 @@ Migrating from older versions
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
+> [!NOTE]
+> You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
+
+## 2.12.12
+
+- The `DTAConfig` library has been removed and its functionality merged into other parts of the client. Therefore, if using automatic updater, you must append the following lines to the `[Delete]` section of your `updateexec` file to prevent issues during the update process:
+
+  In `updateexec`:
+  ```ini
+  [Delete]
+  ; append those lines in the section
+  Resources\Binaries\Windows\DTAConfig.dll
+  Resources\Binaries\Windows\DTAConfig.pdb
+  Resources\Binaries\OpenGL\DTAConfig.dll
+  Resources\Binaries\OpenGL\DTAConfig.pdb
+  Resources\Binaries\XNA\DTAConfig.dll
+  Resources\Binaries\XNA\DTAConfig.pdb
+  Resources\BinariesNET8\Windows\DTAConfig.dll
+  Resources\BinariesNET8\Windows\DTAConfig.pdb
+  Resources\BinariesNET8\OpenGL\DTAConfig.dll
+  Resources\BinariesNET8\OpenGL\DTAConfig.pdb
+  Resources\BinariesNET8\UniversalGL\DTAConfig.dll
+  Resources\BinariesNET8\UniversalGL\DTAConfig.pdb
+  Resources\BinariesNET8\XNA\DTAConfig.dll
+  Resources\BinariesNET8\XNA\DTAConfig.pdb
+  ```
+
 ## 2.12.0
 
 - The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/0554d7974cb741170c881116568144265e6cbabb/ClientCore/Enums/ClientType.cs) for a list of available values.

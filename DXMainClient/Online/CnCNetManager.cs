@@ -284,6 +284,17 @@ namespace DTAClient.Online
                                 break;
                             user.IsAdmin = addMode;
                             break;
+
+                        // Add/remove voice status on user.
+                        case 'v':
+                            if (parameterCount >= modeParameters.Count)
+                                break;
+                            string vParam = modeParameters[parameterCount++];
+                            ChannelUser vUser = channel.Users.Find(vParam);
+                            if (vUser == null)
+                                break;
+                            vUser.IRCUser.HasVoice = addMode;
+                            break;
                     }
                 }
             }
@@ -739,6 +750,7 @@ namespace DTAClient.Online
             {
                 string name = userName;
                 bool isAdmin = false;
+                bool hasVoice = false;
 
                 if (userName.StartsWith("@"))
                 {
@@ -746,7 +758,10 @@ namespace DTAClient.Online
                     name = userName.Substring(1);
                 }
                 else if (userName.StartsWith("+"))
+                {
+                    hasVoice = true;
                     name = userName.Substring(1);
+                }
 
                 // Check if we already know the IRC user from another channel
                 IRCUser ircUser = UserList.Find(u => u.Name == name);
@@ -762,6 +777,7 @@ namespace DTAClient.Online
                 var channelUser = new ChannelUser(ircUser);
                 channelUser.IsAdmin = isAdmin;
                 channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+                channelUser.IRCUser.HasVoice = hasVoice;
 
                 channelUserList.Add(channelUser);
             }
