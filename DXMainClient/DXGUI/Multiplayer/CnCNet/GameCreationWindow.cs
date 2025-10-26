@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
             btnDisplayAdvancedOptions.Name = nameof(btnDisplayAdvancedOptions);
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
-                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnDisplayAdvancedOptions.Text = "Advanced Options".L10N("Client:Main:AdvancedOptions");
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
 
