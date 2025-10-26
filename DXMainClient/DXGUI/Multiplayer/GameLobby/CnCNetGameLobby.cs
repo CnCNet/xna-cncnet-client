@@ -106,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("Client:Main:SelectTunnelServerCommand"))));
             AddChatBoxCommand(new ChatBoxCommand("DOWNLOADMAP",
                 "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("Client:Main:DownloadMapCommandDescription"),
-                false, DownloadMapByIdCommand));
+                true, DownloadMapByIdCommand));
         }
 
         public event EventHandler GameLeft;

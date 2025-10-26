@@ -427,7 +427,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return null;
             }
 
-            string extractedFile = ExtractZipFile(destinationFile.FullName, newFile.FullName);
+            string extractedFile;
+
+            try
+            {
+                extractedFile = ExtractZipFile(destinationFile.FullName, customMapsDirectory);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"MapSharer: Failed to extract map: {ex.Message}");
+                success = false;
+                return ex.Message;
+            }
 
             if (String.IsNullOrEmpty(extractedFile))
             {
