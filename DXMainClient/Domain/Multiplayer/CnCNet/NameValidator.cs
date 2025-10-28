@@ -62,8 +62,36 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
                 return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
+
             return validName;
+        }
+
+        /// <summary>
+        /// Checks if a lobby room name is valid.
+        /// </summary>
+        /// <param name="name">The lobby name to validate.</param>
+        /// <returns>Null if the name is valid, otherwise a string that tells what is wrong with the name.</returns>
+        public static string IsGameNameValid(string name)
+        {
+            var profanityFilter = new ProfanityFilter();
+
+            if (string.IsNullOrEmpty(name))
+                return "Please enter a game name.".L10N("Client:Main:PleaseEnterGameName");
+
+            return profanityFilter.IsOffensive(name)
+                ? "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText")
+                : null;
+        }
+
+        /// <summary>
+        /// Sanitizes a lobby name by removing invalid characters.
+        /// </summary>
+        /// <param name="name">The lobby room name to sanitize.</param>
+        /// <returns>The sanitized lobby room name.</returns>
+        public static string GetSanitizedGameName(string name)
+        {
+            // semicolons are used as separators in the protocol
+            return name.Replace(";", string.Empty).Trim();
         }
     }
 }

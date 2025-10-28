@@ -219,9 +219,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnLoadMPGame_LeftClick(object sender, EventArgs e)
         {
-            string gameName = tbGameName.Text.Replace(";", string.Empty);
+            string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            if (string.IsNullOrEmpty(gameName) || !lbTunnelList.IsValidIndexSelected())
+            string validationError = NameValidator.IsGameNameValid(gameName);
+            if (validationError != null)
+            {
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
+                    validationError);
+                return;
+            }
+
+            if (!lbTunnelList.IsValidIndexSelected())
                 return;
 
             IniFile spawnSGIni =
@@ -239,17 +247,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnCreateGame_LeftClick(object sender, EventArgs e)
         {
-            string gameName = tbGameName.Text.Replace(";", string.Empty);
+            string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            if (string.IsNullOrEmpty(gameName))
+            string validationError = NameValidator.IsGameNameValid(gameName);
+            if (validationError != null)
             {
-                return;
-            }
-
-            if (new ProfanityFilter().IsOffensive(gameName))
-            {
-                XNAMessageBox.Show(WindowManager, "Offensive game name".L10N("Client:Main:GameNameOffensiveTitle"),
-                    "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText"));
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
+                    validationError);
                 return;
             }
 
@@ -258,8 +262,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            GameCreated?.Invoke(this, 
-                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text), 
+            GameCreated?.Invoke(this,
+                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text),
                 tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
                 ddSkillLevel.SelectedIndex)
             );
