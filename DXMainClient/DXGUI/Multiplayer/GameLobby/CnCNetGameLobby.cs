@@ -403,7 +403,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
-            gameLobbySettingsWindow.Open(gameRoomName, playerLimit, skillLevel);
+            string displayPassword = isCustomPassword ? channel.Password : string.Empty;
+            gameLobbySettingsWindow.Open(gameRoomName, playerLimit, skillLevel, displayPassword);
         }
 
         private void GameLobbySettingsWindow_SettingsChanged(object sender, GameLobbySettingsEventArgs e)
@@ -411,10 +412,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
-            UpdateGameLobbySettings(e.GameRoomName, e.MaxPlayers, e.SkillLevel);
+            UpdateGameLobbySettings(e.GameRoomName, e.MaxPlayers, e.SkillLevel, e.Password);
         }
 
-        private void UpdateGameLobbySettings(string newGameRoomName, int newMaxPlayers, int newSkillLevel)
+        private void UpdateGameLobbySettings(string newGameRoomName, int newMaxPlayers, int newSkillLevel, string newPassword)
         {
             if (!IsHost)
                 return;
@@ -422,6 +423,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool gameNameChanged = gameRoomName != newGameRoomName;
             bool maxPlayersChanged = playerLimit != newMaxPlayers;
             bool skillLevelChanged = skillLevel != newSkillLevel;
+
+            string currentUserPassword = isCustomPassword ? channel.Password : string.Empty;
+            bool passwordChanged = currentUserPassword != newPassword;
 
             // ensure max players isn't less than current player count
             if (newMaxPlayers < Players.Count + AIPlayers.Count)
@@ -432,9 +436,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             string oldGameRoomName = gameRoomName;
+            bool oldIsCustomPassword = isCustomPassword;
             gameRoomName = newGameRoomName;
             playerLimit = newMaxPlayers;
             skillLevel = newSkillLevel;
+
+            if (passwordChanged)
+            {
+                // if new password is empty, generate password from channel name
+                string actualNewPassword = newPassword;
+                if (string.IsNullOrEmpty(newPassword))
+                {
+                    actualNewPassword = Utilities.CalculateSHA1ForString(channel.ChannelName).Substring(0, 10);
+                    isCustomPassword = false;
+                }
+                else
+                {
+                    isCustomPassword = true;
+                }
+
+                channel.ChangePassword(actualNewPassword, 10);
+            }
 
             BroadcastGameLobbySettings();
 
@@ -458,6 +480,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{newSkillLevel}");
                 AddNotice(string.Format("Skill level changed to {0}."
                     .L10N("Client:Main:SkillLevelChanged"), localizedSkillLevel));
+            }
+
+            if (passwordChanged)
+            {
+                if (string.IsNullOrEmpty(newPassword))
+                    AddNotice("Password removed from the game.".L10N("Client:Main:PasswordRemoved"));
+                else if (!oldIsCustomPassword)
+                    AddNotice("Password added to the game.".L10N("Client:Main:PasswordAdded"));
+                else
+                    AddNotice("Password changed.".L10N("Client:Main:PasswordChanged"));
             }
 
             BroadcastGame();

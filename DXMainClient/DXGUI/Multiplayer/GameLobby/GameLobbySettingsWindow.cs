@@ -17,10 +17,12 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
     public event EventHandler<GameLobbySettingsEventArgs> SettingsChanged;
 
     private XNATextBox tbGameName;
+    private XNATextBox tbPassword;
     private XNAClientDropDown ddMaxPlayers;
     private XNAClientDropDown ddSkillLevel;
 
     private XNALabel lblRoomName;
+    private XNALabel lblPassword;
     private XNALabel lblMaxPlayers;
     private XNALabel lblSkillLevel;
 
@@ -51,6 +53,18 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
             UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblRoomName.Y - 2, 200, 21);
 
         int nextY = tbGameName.Bottom + 15;
+
+        lblPassword = new XNALabel(WindowManager);
+        lblPassword.Name = nameof(lblPassword);
+        lblPassword.ClientRectangle = new Rectangle(lblRoomName.X, nextY, 0, 0);
+        lblPassword.Text = "Password:".L10N("Client:Main:LobbyPassword");
+
+        tbPassword = new XNATextBox(WindowManager);
+        tbPassword.Name = nameof(tbPassword);
+        tbPassword.MaximumTextLength = 20;
+        tbPassword.ClientRectangle = new Rectangle(tbGameName.X, lblPassword.Y - 2, 200, 21);
+
+        nextY = tbPassword.Bottom + 15;
 
         lblMaxPlayers = new XNALabel(WindowManager);
         lblMaxPlayers.Name = nameof(lblMaxPlayers);
@@ -104,6 +118,8 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
 
         AddChild(lblRoomName);
         AddChild(tbGameName);
+        AddChild(lblPassword);
+        AddChild(tbPassword);
         AddChild(lblMaxPlayers);
         AddChild(ddMaxPlayers);
         AddChild(lblSkillLevel);
@@ -118,9 +134,10 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
         CenterOnParent();
     }
 
-    public void Open(string currentGameName, int currentMaxPlayers, int currentSkillLevel)
+    public void Open(string currentGameName, int currentMaxPlayers, int currentSkillLevel, string currentPassword)
     {
         tbGameName.Text = currentGameName;
+        tbPassword.Text = currentPassword ?? string.Empty;
         ddMaxPlayers.SelectedIndex = 8 - currentMaxPlayers;
         ddSkillLevel.SelectedIndex = currentSkillLevel;
 
@@ -141,9 +158,10 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
 
         int maxPlayers = int.Parse(ddMaxPlayers.SelectedItem.Text);
         int skillLevel = ddSkillLevel.SelectedIndex;
+        string password = tbPassword.Text;
 
         SettingsChanged?.Invoke(this, new GameLobbySettingsEventArgs(
-            gameName, maxPlayers, skillLevel));
+            gameName, maxPlayers, skillLevel, password));
 
         Disable();
     }

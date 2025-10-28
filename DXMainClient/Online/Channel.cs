@@ -72,7 +72,7 @@ namespace DTAClient.Online
 
         public bool IsChatChannel { get; }
 
-        public string Password { get; private set; }
+        public string Password { get; set; }
 
         private readonly Connection connection;
 
@@ -304,6 +304,36 @@ namespace DTAClient.Online
         {
             connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
                 string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
+        }
+
+        /// <summary>
+        /// Changes the channel password.
+        /// </summary>
+        /// <param name="newPassword">The new password. If empty, removes the password.</param>
+        /// <param name="priority">The priority of the message in the send queue.</param>
+        public void ChangePassword(string newPassword, int priority)
+        {
+            string oldPassword = Password;
+            Password = newPassword;
+
+            if (string.IsNullOrEmpty(newPassword))
+            {
+                // remove
+                connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
+                    string.Format("MODE {0} -k {1}", ChannelName, oldPassword));
+            }
+            else if (string.IsNullOrEmpty(oldPassword))
+            {
+                // add
+                connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
+                    string.Format("MODE {0} +k {1}", ChannelName, newPassword));
+            }
+            else
+            {
+                // update (remove + add - both passwords need to be known)
+                connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
+                    string.Format("MODE {0} -k+k {1} {2}", ChannelName, oldPassword, newPassword));
+            }
         }
 
         public void Join()
