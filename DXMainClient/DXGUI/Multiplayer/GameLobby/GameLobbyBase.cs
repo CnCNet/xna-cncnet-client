@@ -325,10 +325,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HintTextGenerator = () => searchAllGameModes ? "< " : null
             };
             searchContextMenu.AddItem(searchAllModesItem);
+            searchAllGameModes = UserINISettings.Instance.SearchAllGameModes.Value;
 
             AddChild(searchContextMenu);
 
-            searchAllGameModes = UserINISettings.Instance.SearchAllGameModes.Value;
 
             btnPickRandomMap = FindChild<XNAClientButton>(nameof(btnPickRandomMap));
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
