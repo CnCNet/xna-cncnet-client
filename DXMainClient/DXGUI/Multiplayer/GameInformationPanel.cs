@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
@@ -290,11 +290,11 @@ namespace DTAClient.DXGUI.Multiplayer
             ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, pnlIconLegend.Bottom);
         }
 
-        private XNAPanel CreateDivider(int y)
+        private XNAPanel CreateDivider(int y, int height = 1)
         {
             var dividerPanel = new XNAPanel(WindowManager);
             dividerPanel.DrawBorders = true;
-            dividerPanel.ClientRectangle = new Rectangle(0, y, ClientRectangle.Width, 1);
+            dividerPanel.ClientRectangle = new Rectangle(0, y, ClientRectangle.Width, height);
             return dividerPanel;
         }
 

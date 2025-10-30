@@ -15,6 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private readonly Texture2D icon;
         private readonly string label;
+        private const int iconLabelSpacing = 6;
         public int FontIndex = 1;
 
         public GameInformationIconPanel(WindowManager windowManager, Texture2D icon, string label) : base(windowManager)
@@ -40,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer
             int panelHeight = Math.Max(icon.Height, textHeight);
             float textY = (panelHeight - textHeight) / 2f;
 
-            DrawString(label, FontIndex, new Vector2(icon.Width + 6, textY), UISettings.ActiveSettings.TextColor);
+            DrawString(label, FontIndex, new Vector2(icon.Width + iconLabelSpacing, textY), UISettings.ActiveSettings.TextColor);
         }
     }
 }
