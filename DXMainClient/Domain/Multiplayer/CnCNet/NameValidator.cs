@@ -6,28 +6,101 @@ using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
+    public enum NameValidationError
+    {
+        None = 0,
+        EmptyName,
+        OffensiveName,
+        FirstCharacterIsNumber,
+        FirstCharacterIsHyphen,
+        InvalidCharacters,
+        TooLong
+    }
+
     public static class NameValidator
     {
         /// <summary>
+        /// Gets the localized error message for a player name validation error.
+        /// </summary>
+        /// <param name="error">The validation error.</param>
+        /// <returns>Localized error message, or null if the error is None.</returns>
+        public static string GetLocalizedPlayerNameErrorMessage(NameValidationError error)
+        {
+            switch (error)
+            {
+                case NameValidationError.None:
+                    return null;
+                case NameValidationError.EmptyName:
+                    return "Please enter a name.".L10N("Client:ClientCore:EnterAName");
+                case NameValidationError.OffensiveName:
+                    return "Please enter a name that is less offensive.".L10N("Client:ClientCore:NameOffensive");
+                case NameValidationError.FirstCharacterIsNumber:
+                    return "The first character in the player name cannot be a number.".L10N("Client:ClientCore:NameFirstIsNumber");
+                case NameValidationError.FirstCharacterIsHyphen:
+                    return "The first character in the player name cannot be a hyphen ( - ).".L10N("Client:ClientCore:NameFirstIsHyphen");
+                case NameValidationError.InvalidCharacters:
+                    return "Your player name has invalid characters in it.".L10N("Client:ClientCore:NameInvalidChar1") + Environment.NewLine +
+                           "Allowed characters are anything from A to Z and numbers.".L10N("Client:ClientCore:NameInvalidChar2");
+                case NameValidationError.TooLong:
+                    return "Your nickname is too long.".L10N("Client:ClientCore:NameTooLong");
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the localized error message for a game name validation error.
+        /// </summary>
+        /// <param name="error">The validation error.</param>
+        /// <returns>Localized error message, or null if the error is None.</returns>
+        public static string GetLocalizedGameNameErrorMessage(NameValidationError error)
+        {
+            switch (error)
+            {
+                case NameValidationError.None:
+                    return null;
+                case NameValidationError.EmptyName:
+                    return "Please enter a game name.".L10N("Client:Main:PleaseEnterGameName");
+                case NameValidationError.OffensiveName:
+                    return "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText");
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
         /// Checks if the player's nickname is valid for CnCNet.
         /// </summary>
-        /// <returns>Null if the nickname is valid, otherwise a string that tells
-        /// what is wrong with the name.</returns>
-        public static string IsNameValid(string name)
+        /// <param name="name">The player name to validate.</param>
+        /// <param name="localizedErrorMessage">The localized error message if validation fails, otherwise null.</param>
+        /// <returns>NameValidationError.None if the nickname is valid, otherwise the specific validation error.</returns>
+        public static NameValidationError IsNameValid(string name, out string localizedErrorMessage)
         {
             var profanityFilter = new ProfanityFilter();
 
             if (string.IsNullOrEmpty(name))
-                return "Please enter a name.".L10N("Client:ClientCore:EnterAName");
+            {
+                localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.EmptyName);
+                return NameValidationError.EmptyName;
+            }
 
             if (profanityFilter.IsOffensive(name))
-                return "Please enter a name that is less offensive.".L10N("Client:ClientCore:NameOffensive");
+            {
+                localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.OffensiveName);
+                return NameValidationError.OffensiveName;
+            }
 
             if (int.TryParse(name.Substring(0, 1), out _))
-                return "The first character in the player name cannot be a number.".L10N("Client:ClientCore:NameFirstIsNumber");
+            {
+                localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.FirstCharacterIsNumber);
+                return NameValidationError.FirstCharacterIsNumber;
+            }
 
             if (name[0] == '-')
-                return "The first character in the player name cannot be a hyphen ( - ).".L10N("Client:ClientCore:NameFirstIsHyphen");
+            {
+                localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.FirstCharacterIsHyphen);
+                return NameValidationError.FirstCharacterIsHyphen;
+            }
 
             // Check that there are no invalid chars
             char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();
@@ -37,15 +110,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 if (!allowedCharacters.Contains(nickChar))
                 {
-                    return "Your player name has invalid characters in it.".L10N("Client:ClientCore:NameInvalidChar1") + Environment.NewLine +
-                    "Allowed characters are anything from A to Z and numbers.".L10N("Client:ClientCore:NameInvalidChar2");
+                    localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.InvalidCharacters);
+                    return NameValidationError.InvalidCharacters;
                 }
             }
 
             if (name.Length > ClientConfiguration.Instance.MaxNameLength)
-                return "Your nickname is too long.".L10N("Client:ClientCore:NameTooLong");
+            {
+                localizedErrorMessage = GetLocalizedPlayerNameErrorMessage(NameValidationError.TooLong);
+                return NameValidationError.TooLong;
+            }
 
-            return null;
+            localizedErrorMessage = null;
+            return NameValidationError.None;
         }
 
         /// <summary>
@@ -70,17 +147,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Checks if a lobby room name is valid.
         /// </summary>
         /// <param name="name">The lobby name to validate.</param>
-        /// <returns>Null if the name is valid, otherwise a string that tells what is wrong with the name.</returns>
-        public static string IsGameNameValid(string name)
+        /// <param name="localizedErrorMessage">The localized error message if validation fails, otherwise null.</param>
+        /// <returns>NameValidationError.None if the name is valid, otherwise the specific validation error.</returns>
+        public static NameValidationError IsGameNameValid(string name, out string localizedErrorMessage)
         {
             var profanityFilter = new ProfanityFilter();
 
             if (string.IsNullOrEmpty(name))
-                return "Please enter a game name.".L10N("Client:Main:PleaseEnterGameName");
+            {
+                localizedErrorMessage = GetLocalizedGameNameErrorMessage(NameValidationError.EmptyName);
+                return NameValidationError.EmptyName;
+            }
 
-            return profanityFilter.IsOffensive(name)
-                ? "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText")
-                : null;
+            if (profanityFilter.IsOffensive(name))
+            {
+                localizedErrorMessage = GetLocalizedGameNameErrorMessage(NameValidationError.OffensiveName);
+                return NameValidationError.OffensiveName;
+            }
+
+            localizedErrorMessage = null;
+            return NameValidationError.None;
         }
 
         /// <summary>

@@ -221,11 +221,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            string validationError = NameValidator.IsGameNameValid(gameName);
-            if (validationError != null)
+            NameValidationError validationError = NameValidator.IsGameNameValid(gameName, out string errorMessage);
+            if (validationError != NameValidationError.None)
             {
                 XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
-                    validationError);
+                    errorMessage);
                 return;
             }
 
@@ -249,11 +249,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            string validationError = NameValidator.IsGameNameValid(gameName);
-            if (validationError != null)
+            NameValidationError validationError = NameValidator.IsGameNameValid(gameName, out string errorMessage);
+            if (validationError != NameValidationError.None)
             {
                 XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
-                    validationError);
+                    errorMessage);
                 return;
             }
 

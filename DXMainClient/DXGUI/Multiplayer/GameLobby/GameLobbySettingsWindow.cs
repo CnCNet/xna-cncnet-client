@@ -148,11 +148,11 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
     {
         string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-        string validationError = NameValidator.IsGameNameValid(gameName);
-        if (validationError != null)
+        NameValidationError validationError = NameValidator.IsGameNameValid(gameName, out string errorMessage);
+        if (validationError != NameValidationError.None)
         {
             XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
-                validationError);
+                errorMessage);
             return;
         }
 
