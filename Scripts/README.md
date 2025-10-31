@@ -1,10 +1,11 @@
 # README for Build Scripts
 
-Before running any scripts in this folder, please close Visual Studio.
+> [!NOTE]
+> Before running any scripts in this folder, please close Visual Studio.
 
 ## Build the client
 
-Click one of the following script file: `BuildAres.bat`, `BuildTS.bat`, and `BuildYR.bat`.
+Click the following script file: `Build.bat`.
 
 ## Update the common assembly list
 
@@ -12,7 +13,7 @@ You should do this if you have introduced any new NuGet dependencies.
 
 1. Launch Powershell (`pwsh`, not `PowerShell`) and switch to this folder. 
 
-2. `.\build.ps1 -Games Ares -NoMove`
+2. `.\build.ps1 -NoMove`
 
 3. `.\Get-CommonAssemblyList.ps1 -Net8 > ..\CommonAssemblies.txt`
 
