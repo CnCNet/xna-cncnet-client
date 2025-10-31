@@ -308,7 +308,7 @@ namespace DTAClient.DXGUI.Campaign
             if (copyMapsToSpawnmapINI)
                 spawnIniSettings.AddKey("Scenario", "spawnmap.ini");
             else
-                spawnIniSettings.AddKey("Scenario", scenario.ToUpperInvariant());
+                spawnIniSettings.AddKey("Scenario", scenario);
 
             // No one wants to play missions on Fastest, so we'll change it to Faster
             if (UserINISettings.Instance.GameSpeed == 0)
