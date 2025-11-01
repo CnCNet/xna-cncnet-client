@@ -9,7 +9,6 @@ using ClientCore.Extensions;
 using ClientCore.PlatformShim;
 
 using Rampastring.Tools;
-using Rampastring.XNAUI.XNAControls;
 
 namespace ClientCore.I18N;
 
@@ -67,15 +66,6 @@ public class Translation : ICloneable
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
-
-    /// <summary>Used for hardcoded strings.</summary>
-    public const string CLIENT_PREFIX = "Client";
-    /// <summary>Used for INI values.</summary>
-    public const string INI_PREFIX = "INI";
-    /// <summary>Used for INI-defined control values.</summary>
-    public const string CONTROLS_PREFIX = "Controls";
-    /// <summary>Used for parent-agnostic INI values.</summary>
-    public const string GLOBAL_PREFIX = "Global";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Translation"/> class.
@@ -311,26 +301,23 @@ public class Translation : ICloneable
     }
 
     /// <summary>
-    /// Looks up the translated value that corresponds to the given INI-defined control attribute.
+    /// Looks up the translated value that corresponds to the given key with a fallback to the value of global key.
     /// </summary>
-    /// <param name="control">The control to look up the attribute value for.</param>
-    /// <param name="attributeName">The attribute name as written in the INI.</param>
+    /// <param name="key">The translation key (identifier).</param>
+    /// <param name="fallbackKey">The fallback translation key (identifier).</param>
     /// <param name="defaultValue">The value to fall back to in case there's no translated value.</param>
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
+    /// <param name="notify">Whether to add this key and value to the list of missing key-values. Doesn't include the fallback key.</param>
     /// <returns>The translated value or a default value.</returns>
-    public string LookUp(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+    public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
-        string key = $"{INI_PREFIX}:{CONTROLS_PREFIX}:{control.Parent?.Name ?? GLOBAL_PREFIX}:{control.Name}:{attributeName}";
-        string globalKey = $"{INI_PREFIX}:{CONTROLS_PREFIX}:{GLOBAL_PREFIX}:{control.Name}:{attributeName}";
-
         string result;
         if (Values.ContainsKey(key))
         {
             result = Values[key];
         }
-        else if (key != globalKey && Values.ContainsKey(globalKey))
+        else if (key != fallbackKey && Values.ContainsKey(fallbackKey))
         {
-            result = Values[globalKey];
+            result = Values[fallbackKey];
         }
         else
         {

@@ -1,4 +1,4 @@
-﻿using ClientCore.CnCNet5;
+﻿using DTAClient.Domain.Multiplayer.CnCNet;
 using System;
 
 namespace DTAClient.Domain.Multiplayer
@@ -17,6 +17,7 @@ namespace DTAClient.Domain.Multiplayer
         public CnCNetGame Game { get; set; }
         public string GameMode { get; set; }
         public string Map { get; set; }
+        public string MapHash { get; set; }
         public string GameVersion { get; set; }
         public string HostName { get; set; }
         public string[] Players { get; set; }

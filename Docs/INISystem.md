@@ -357,6 +357,15 @@ FillHeight=10
 
 Some controls are only available under specific circumstances.
 
+#### CoopBriefingBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox_CoopBriefingBox]
+FontIndex=0
+```
+
 #### XNAOptionsPanel Controls
 
 Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
@@ -532,7 +541,9 @@ The `ClientDefinitions.ini` file defines the client's global settings, including
 In `ClientDefinitions.ini`:
 ```ini
 [Settings]
-TrustedDomains=  ; comma-separated list of strings,
-                 ; domain names to match links and prevent the message box from appearing before they open by default browser
-                 ; example: cncnet.org,github.com,moddb.com
+TrustedDomains=                ; comma-separated list of strings,
+                               ; domain names to match links and prevent the message box from appearing before they open by default browser
+                               ; example: cncnet.org,github.com,moddb.com
+SaveSkirmishGameOptions=false  ; boolean, whether or not previously used game options in skirmish are saved across client sessions
+SaveCampaignGameOptions=false  ; boolean, whether or not previously used game options in campaign are saved across client sessions
 ```

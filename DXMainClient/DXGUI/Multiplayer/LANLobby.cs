@@ -1,39 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-
-using ClientCore;
-using ClientCore.CnCNet5;
-using ClientCore.Extensions;
-
+﻿using ClientCore;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
-
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using SixLabors.ImageSharp;
-
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -97,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer
         EnhancedSoundEffect sndGameCreated;
 
         Socket socket;
-        List<IPEndPoint> endPoints;
+        IPEndPoint endPoint;
         Encoding encoding;
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
@@ -237,7 +229,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 
@@ -345,31 +337,6 @@ namespace DTAClient.DXGUI.Multiplayer
             SetChatColor();
             UserINISettings.Instance.SaveSettings();
         }
-        private List<IPAddress> GetBroadcasts()
-        {
-            List<IPAddress> l = new List<IPAddress>();
-            NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface adapter in adapters)
-            {
-                IPInterfaceProperties prop = adapter.GetIPProperties();
-                UnicastIPAddressInformation? info = null;
-                foreach (UnicastIPAddressInformation info_ in prop.UnicastAddresses)
-                {
-                    if (info_.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    {
-                        info = info_;
-                        break;
-                    }
-                }
-                if (info == null) continue;
-                uint ip = BitConverter.ToUInt32(info.Address.GetAddressBytes(), 0);
-                uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
-                uint broadcast = ip | ~mask;
-                IPAddress adr = new IPAddress(BitConverter.GetBytes(broadcast));
-                l.Add(adr);
-            }
-            return l;
-        }
 
         public void Open()
         {
@@ -387,11 +354,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 socket.EnableBroadcast = true;
                 socket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT));
-                endPoints = new List<IPEndPoint>();
-                foreach (IPAddress broadcast in GetBroadcasts())
-                {
-                    endPoints.Add(new IPEndPoint(broadcast, ProgramConstants.LAN_LOBBY_PORT));
-                }
+                endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
                 initSuccess = true;
             }
             catch (SocketException ex)
@@ -421,10 +384,8 @@ namespace DTAClient.DXGUI.Multiplayer
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
-            foreach (IPEndPoint endPoint in endPoints)
-            {
-                socket.SendTo(buffer, endPoint);
-            }
+
+            socket.SendTo(buffer, endPoint);
         }
 
         private void Listen()
