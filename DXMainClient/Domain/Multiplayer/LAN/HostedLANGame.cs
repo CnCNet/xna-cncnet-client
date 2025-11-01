@@ -50,7 +50,7 @@ namespace DTAClient.Domain.LAN
             IsLoadedGame = Conversions.IntFromString(parameters[8], 0) > 0;
             LastRefreshTime = DateTime.Now;
             TimeWithoutRefresh = TimeSpan.Zero;
-            RoomName = HostName + "'s Game";
+            RoomName = HostName + "'s Game" + (EndPoint != null ? " [" + EndPoint.Address.ToString() + "]" : "");
             MapHash = parameters[9];
 
             return true;
