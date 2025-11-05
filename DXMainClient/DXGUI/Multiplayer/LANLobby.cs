@@ -530,7 +530,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        void PlayerListAdd(string username, Texture2D texture)
+        private void PlayerListAdd(string username, Texture2D texture)
         {
             if (player_usernameinfo.ContainsKey(username))
             {
@@ -543,7 +543,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        void PlayerListRemove(string username)
+        private void PlayerListRemove(string username)
         {
             if (!player_usernameinfo.ContainsKey(username)) return;
             PlayerUsernameInfo info = player_usernameinfo[username];
