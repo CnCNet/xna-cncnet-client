@@ -370,7 +370,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info => info.Address.AddressFamily == AddressFamily.InterNetwork);
                 if (info == null) continue;
                 IPAddress local_ip = info.Address;
-                uint ip = BitConverter.ToUInt32(info.Address.GetAddressBytes(), 0);
+                uint ip = BitConverter.ToUInt32(local_ip.GetAddressBytes(), 0);
                 uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
                 uint broadcast = ip | ~mask;
                 IPAddress broadcast_ip = new IPAddress(BitConverter.GetBytes(broadcast));
