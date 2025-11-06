@@ -244,9 +244,10 @@ namespace DTAClient.DXGUI.Multiplayer
             lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbLadderRankings.LineHeight = 16;
             lbLadderRankings.AllowMultiLineItems = false;
-            lbLadderRankings.AllowSelection = false;
+            // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
+            // Don't set it; selection behavior remains default for your client.
 
-            // Fill initially with placeholders; will be overwritten by LoadLadderSettings()
+            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
             lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
             lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
 
@@ -312,21 +313,41 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             try
             {
+                // Use SafePath if available to combine paths like the rest of the project
                 string iniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, LANLOBBY_INI);
 
                 // If file doesn't exist, create with sensible defaults
                 if (!File.Exists(iniPath))
                 {
-                    var defaultIni = new IniFile();
-                    defaultIni.SetValue(INI_SECTION, INI_KEY_RA1_1V1, "???,???,???");
-                    defaultIni.SetValue(INI_SECTION, INI_KEY_RA1_2V2, "???,???,???");
-                    defaultIni.Save(iniPath);
+                    string defaultContent = "[Ladder]" + Environment.NewLine +
+                                            INI_KEY_RA1_1V1 + "=???,???,???" + Environment.NewLine +
+                                            INI_KEY_RA1_2V2 + "=???,???,???";
+                    File.WriteAllText(iniPath, defaultContent, Encoding.UTF8);
                 }
 
-                var ini = new IniFile(iniPath);
+                string ra1Value = "???,???,???";
+                string ra2Value = "???,???,???";
 
-                string ra1Value = ini.GetValue(INI_SECTION, INI_KEY_RA1_1V1, "???,???,???");
-                string ra2Value = ini.GetValue(INI_SECTION, INI_KEY_RA1_2V2, "???,???,???");
+                // Read file lines safely
+                string[] lines = File.ReadAllLines(iniPath, Encoding.UTF8);
+                foreach (var rawLine in lines)
+                {
+                    string line = rawLine.Trim();
+                    if (line.StartsWith("#") || line.StartsWith(";") || line.Length == 0)
+                        continue;
+
+                    // simple key=value parsing (INI parsing kept minimal intentionally)
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    string val = line.Substring(eq + 1).Trim();
+
+                    if (string.Equals(key, INI_KEY_RA1_1V1, StringComparison.OrdinalIgnoreCase))
+                        ra1Value = val;
+                    else if (string.Equals(key, INI_KEY_RA1_2V2, StringComparison.OrdinalIgnoreCase))
+                        ra2Value = val;
+                }
 
                 string ra1Display = ComposeTop3FromCsv(ra1Value);
                 string ra2Display = ComposeTop3FromCsv(ra2Value);
@@ -368,7 +389,6 @@ namespace DTAClient.DXGUI.Multiplayer
                            .Where(s => !string.IsNullOrEmpty(s))
                            .ToList();
 
-            // If given as single name with spaces, allow splitting by spaces? No — respect commas.
             // Fill with ??? up to 3
             while (parts.Count < 3)
                 parts.Add("???");
