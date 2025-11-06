@@ -64,6 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer
         XNAChatTextBox tbChatInput;
 
         XNALabel lblColor;
+        XNALabel lbLadderRankings;
 
         XNAClientDropDown ddColor;
 
@@ -218,6 +219,33 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(tbChatInput);
             AddChild(lblColor);
             AddChild(ddColor);
+
+            // Ladder Rankings Label (configurable from INI)
+            lbLadderRankings = new XNALabel(WindowManager);
+            lbLadderRankings.Name = "lbLadderRankings";
+
+            // Load settings from INI (optional - you can use the existing logic)
+            var section = IniSettings.GetSection("lbLadderRankings");
+            if (section != null)
+            {
+                lbLadderRankings.ClientRectangle = new Rectangle(
+                    section.GetIntValue("X", 15),
+                    section.GetIntValue("Y", 470),
+                    section.GetIntValue("Width", 450),
+                    section.GetIntValue("Height", 50)
+                );
+                lbLadderRankings.TextColor = AssetLoader.GetColorFromString(section.GetStringValue("TextColor", "255,255,0"));
+                lbLadderRankings.Text = section.GetStringValue("Text", "Fetching ladder rankings...");
+            }
+            else
+            {
+                lbLadderRankings.ClientRectangle = new Rectangle(15, 470, 450, 50);
+                lbLadderRankings.TextColor = Color.Yellow;
+                lbLadderRankings.Text = "Fetching ladder rankings...";
+            }
+
+            // Add to window
+            AddChild(lbLadderRankings);
 
             gameCreationWindow = new LANGameCreationWindow(WindowManager);
             var gameCreationPanel = new DarkeningPanel(WindowManager);
