@@ -28,6 +28,7 @@ using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
