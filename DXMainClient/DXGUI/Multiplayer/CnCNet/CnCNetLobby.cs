@@ -1895,34 +1895,44 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             return top;
         }
 
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-
-            if (_ladderBg == null)
-            {
-                _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-                _ladderBg.SetData(new[] { new Color(0, 0, 0, 160) }); // translucent black
-            }
-
-           using (SpriteBatch spriteBatch = new SpriteBatch(Game.GraphicsDevice))
+    public override void Draw(GameTime gameTime)
 {
-    spriteBatch.Begin();
-    // your drawing code here
-    spriteBatch.End();
-}
+    base.Draw(gameTime);
 
-            // Background behind ladder labels
+    try
+    {
+        if (_ladderBg == null)
+        {
+            _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
+            _ladderBg.SetData(new[] { new Color(0, 0, 0, 160) }); // translucent black
+        }
+
+        // Create sprite batch for drawing
+        using (var spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(Game.GraphicsDevice))
+        {
+            spriteBatch.Begin();
+
+            // Draw translucent background behind ladder labels
             var bgRect = new Rectangle(
                 (int)lblRa1v1.X - 10,
                 (int)lblRa1v1.Y - 6,
                 Math.Max(lblRa1v1.Width, lblRa2v2.Width) + 20,
                 (int)(lblRa1v1.Height + lblRa2v2.Height + 16)
             );
-
             spriteBatch.Draw(_ladderBg, bgRect, Color.White);
+
+            // Optionally draw ladder text directly (if you want extra overlay)
+            // e.g. spriteBatch.DrawString(font, lblRa1v1.Text, new Vector2(lblRa1v1.X, lblRa1v1.Y), Color.White);
+            // e.g. spriteBatch.DrawString(font, lblRa2v2.Text, new Vector2(lblRa2v2.X, lblRa2v2.Y + lblRa1v1.Height + 8), Color.White);
+
             spriteBatch.End();
         }
+    }
+    catch (Exception ex)
+    {
+        Logger.Log("Error drawing ladder: " + ex);
+    }
+}
         // === END Ladder Fetch Section ===
     }
 }
