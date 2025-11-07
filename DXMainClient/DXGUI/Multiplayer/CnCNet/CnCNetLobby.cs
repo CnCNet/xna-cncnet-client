@@ -1877,17 +1877,17 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
     {
         using var http = new HttpClient();
         // Request the main endpoint once; API may return multiple ladder entries in the same payload.
-        string json = await http.GetStringAsync($"{apiBase}");
+        string json = await http.GetStringAsync(apiBase);
 
         var players = new List<(string name, double points)>();
 
-        // First, try to locate objects that explicitly reference the ladder id
+        // First pass: find JSON objects and filter those that explicitly reference the ladder id
         var objMatches = Regex.Matches(json, @"\{(.*?)\}", RegexOptions.Singleline);
         foreach (Match obj in objMatches)
         {
             string objText = obj.Groups[1].Value;
 
-            // Only process objects that contain the ladder id (field may be "ladder" or "queue")
+            // Filter objects that reference the ladder id in "ladder" or "queue" fields
             if (!Regex.IsMatch(objText, $@"""ladder""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase) &&
                 !Regex.IsMatch(objText, $@"""queue""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase))
                 continue;
