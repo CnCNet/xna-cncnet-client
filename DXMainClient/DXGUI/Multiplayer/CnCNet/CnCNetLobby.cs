@@ -1826,7 +1826,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="messageView">The message view/list to write error messages to.</param>
         private void JoinUser(IRCUser user, IMessageView messageView)
         {
-            if (user == null)
+            if user == null)
             {
                 // can happen if a user is selected while offline
                 messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
@@ -1964,6 +1964,104 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         ParseRankingElement(prop.Value, outList);
                     }
                 }
+            }
+        }
+
+        private static void ParseRankingElement(JsonElement el, List<(string name, double points)> outList)
+        {
+            try
+            {
+                if (el.ValueKind != JsonValueKind.Object)
+                {
+                    if (el.ValueKind == JsonValueKind.String)
+                    {
+                        var s = el.GetString();
+                        if (!string.IsNullOrEmpty(s))
+                            outList.Add((s, 0));
+                    }
+                    return;
+                }
+
+                string name = null;
+                double points = 0;
+
+                // Try common name properties
+                foreach (var n in new[] { "name", "nickname", "player", "nick", "username", "displayName", "playerName" })
+                {
+                    if (el.TryGetProperty(n, out var p) && p.ValueKind == JsonValueKind.String)
+                    {
+                        name = p.GetString();
+                        break;
+                    }
+                }
+
+                // If there's a nested player object, prefer its name
+                if ((name == null || name.Length == 0) && el.TryGetProperty("player", out var playerProp) && playerProp.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var n in new[] { "name", "nickname", "username" })
+                    {
+                        if (playerProp.TryGetProperty(n, out var pp) && pp.ValueKind == JsonValueKind.String)
+                        {
+                            name = pp.GetString();
+                            break;
+                        }
+                    }
+                }
+
+                // Try common points properties on root
+                foreach (var n in new[] { "points", "score", "rating", "elo", "value" })
+                {
+                    if (el.TryGetProperty(n, out var p))
+                    {
+                        if (p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var d))
+                        {
+                            points = d;
+                            break;
+                        }
+                        if (p.ValueKind == JsonValueKind.String && double.TryParse(p.GetString(), out var d2))
+                        {
+                            points = d2;
+                            break;
+                        }
+                    }
+                }
+
+                // Try points under stats or nested player object
+                if (points == 0)
+                {
+                    if (el.TryGetProperty("stats", out var stats) && stats.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var n in new[] { "points", "score", "rating", "elo" })
+                        {
+                            if (stats.TryGetProperty(n, out var sp))
+                            {
+                                if (sp.ValueKind == JsonValueKind.Number && sp.TryGetDouble(out var d3)) { points = d3; break; }
+                                if (sp.ValueKind == JsonValueKind.String && double.TryParse(sp.GetString(), out var d4)) { points = d4; break; }
+                            }
+                        }
+                    }
+
+                    if (el.TryGetProperty("player", out var pplayer) && pplayer.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var n in new[] { "rating", "elo", "points", "score" })
+                        {
+                            if (pplayer.TryGetProperty(n, out var ppv))
+                            {
+                                if (ppv.ValueKind == JsonValueKind.Number && ppv.TryGetDouble(out var d5)) { points = d5; break; }
+                                if (ppv.ValueKind == JsonValueKind.String && double.TryParse(ppv.GetString(), out var d6)) { points = d6; break; }
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    outList.Add((name, points));
+                }
+            }
+            catch
+            {
+                // Swallow parsing errors for resilience
             }
         }
     }
