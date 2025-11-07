@@ -1927,4 +1927,3 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
         return new List<string>();
        }
     }
-}
