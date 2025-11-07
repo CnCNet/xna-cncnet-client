@@ -1810,30 +1810,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        /// <summary>
+      /// <summary>
         /// Attempts to find a hosted game that the specified user is in
         /// </summary>
-        /// <param name="user">The user to find a game for.</param>
-        /// <returns></returns>
         private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
         {
-            return lbGameList.HostedGames.Select(g => (HostedCnCNetGame)g).FirstOrDefault(g => g.Players.Contains(user.Name));
+            return lbGameList.HostedGames
+                .Select(g => (HostedCnCNetGame)g)
+                .FirstOrDefault(g => g.Players.Contains(user.Name));
         }
 
         /// <summary>
-        /// Joins a specified user's game depending on whether or not
-        /// they are currently in one.
+        /// Joins a specified user's game depending on whether or not they are currently in one.
         /// </summary>
-        /// <param name="user">The user to join.</param>
-        /// <param name="messageView">The message view/list to write error messages to.</param>
         private void JoinUser(IRCUser user, IMessageView messageView)
         {
             if (user == null)
             {
-                // can happen if a user is selected while offline
                 messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
                 return;
             }
+
             var game = GetHostedGameForUser(user);
             if (game == null)
             {
@@ -1844,70 +1841,83 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-// === START Ladder Fetch Section ===
-private async Task FetchAndDisplayLaddersAsync()
-{
-    const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
+        // === START Ladder Fetch Section ===
+        private Texture2D _ladderBg;
 
-    try
-    {
-        using var http = new HttpClient();
-        string json = await http.GetStringAsync(url);
+        private async Task FetchAndDisplayLaddersAsync()
+        {
+            const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
-        // Fetch both ladders
-        var raTop = ExtractTop3(json, "RA");
-        var ra2v2Top = ExtractTop3(json, "RA-2v2");
+            try
+            {
+                using var http = new HttpClient();
+                string json = await http.GetStringAsync(url);
 
-        // Update labels (no prefixes, trophies & spacing)
-        lblRa1v1.Text = raTop.Count > 0
-            ? string.Join("   ", raTop)
-            : "No data";
+                var raTop = ExtractTop3(json, "RA");
+                var ra2v2Top = ExtractTop3(json, "RA-2v2");
 
-        lblRa2v2.Text = ra2v2Top.Count > 0
-            ? string.Join("   ", ra2v2Top)
-            : "No data";
+                lblRa1v1.Text = raTop.Count > 0 ? string.Join("   ", raTop) : "No data";
+                lblRa2v2.Text = ra2v2Top.Count > 0 ? string.Join("   ", ra2v2Top) : "No data";
 
-        // Auto refresh every 60 seconds
-        _ = Task.Delay(TimeSpan.FromMinutes(1))
-                .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
-    }
-    catch (Exception ex)
-    {
-        lblRa1v1.Text = "⚠ Error fetching ladder";
-        lblRa2v2.Text = "⚠ Error fetching ladder";
-        Logger.Log("Ladder fetch error: " + ex);
-    }
-}
-
-private List<string> ExtractTop3(string json, string ladderKey)
-{
-    // Match ladder section
-    var match = Regex.Match(json, $@"""{ladderKey}""\s*:\s*\[(.*?)\](,|}})", RegexOptions.Singleline);
-    if (!match.Success)
-        return new List<string>();
-
-    string ladderJson = match.Groups[1].Value;
-
-    // Extract players + points
-    var players = Regex.Matches(
-        ladderJson,
-        @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
-        RegexOptions.Singleline
-    );
-
-    var trophy = new[] { "🏆", "🥈", "🥉" };
-    var top = new List<string>();
-
-    for (int i = 0; i < Math.Min(3, players.Count); i++)
-    {
-        string name = players[i].Groups[1].Value;
-        string points = players[i].Groups[2].Value;
-
-        top.Add($"{trophy[i]}{i + 1}.{name}");
-    }
-
-    return top;
+                // Refresh every minute
+                _ = Task.Delay(TimeSpan.FromMinutes(1))
+                        .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
+            }
+            catch (Exception ex)
+            {
+                lblRa1v1.Text = "⚠ Error fetching ladder";
+                lblRa2v2.Text = "⚠ Error fetching ladder";
+                Logger.Log("Ladder fetch error: " + ex);
+            }
         }
-     }
-  }
+
+        private List<string> ExtractTop3(string json, string ladderKey)
+        {
+            var match = Regex.Match(json, $@"""{ladderKey}""\s*:\s*\[(.*?)\](,|}})", RegexOptions.Singleline);
+            if (!match.Success)
+                return new List<string>();
+
+            string ladderJson = match.Groups[1].Value;
+            var players = Regex.Matches(ladderJson,
+                @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
+                RegexOptions.Singleline);
+
+            var trophy = new[] { "🏆", "🥈", "🥉" };
+            var top = new List<string>();
+
+            for (int i = 0; i < Math.Min(3, players.Count); i++)
+            {
+                string name = players[i].Groups[1].Value;
+                top.Add($"{trophy[i]}{i + 1}.{name}");
+            }
+
+            return top;
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            base.Draw(gameTime);
+
+            if (_ladderBg == null)
+            {
+                _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
+                _ladderBg.SetData(new[] { new Color(0, 0, 0, 160) }); // translucent black
+            }
+
+            var spriteBatch = Renderer.SpriteBatch;
+            spriteBatch.Begin();
+
+            // Background behind ladder labels
+            var bgRect = new Rectangle(
+                (int)lblRa1v1.X - 10,
+                (int)lblRa1v1.Y - 6,
+                Math.Max(lblRa1v1.Width, lblRa2v2.Width) + 20,
+                (int)(lblRa1v1.Height + lblRa2v2.Height + 16)
+            );
+
+            spriteBatch.Draw(_ladderBg, bgRect, Color.White);
+            spriteBatch.End();
+        }
+        // === END Ladder Fetch Section ===
+    }
 }
