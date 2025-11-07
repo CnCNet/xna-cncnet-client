@@ -1920,7 +1920,7 @@ ladderBgAlpha = ini.GetIntValue("LadderBackground", "Alpha", 160);  // default s
         if (_ladderBg == null)
         {
             _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-          Color bgColor = new Color((byte)255, (byte)255, (byte)255, (byte)ladderBgAlpha);
+          Color bgColor = new Color((byte)60, (byte)60, (byte)60, (byte)ladderBgAlpha);
 _ladderBg.SetData(new[] { bgColor });
         }
 
