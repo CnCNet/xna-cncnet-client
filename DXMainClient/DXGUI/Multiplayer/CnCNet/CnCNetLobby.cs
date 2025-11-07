@@ -1844,7 +1844,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-  private async Task FetchAndDisplayLaddersAsync()
+ private async Task FetchAndDisplayLaddersAsync()
 {
     const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
@@ -1854,12 +1854,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
         var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
 
-        // Update labels (no Invoke needed)
+        // Update labels safely
         lblRa1v1.Text = raTop.Count > 0 ? "RA: " + string.Join("  ", raTop) : "RA: No data";
         lblRa2v2.Text = ra2Top.Count > 0 ? "RA-2v2: " + string.Join("  ", ra2Top) : "RA-2v2: No data";
 
-        // Refresh again every 60s
-        _ = Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
+        // Refresh again every 60s (non-blocking)
+        _ = Task.Delay(TimeSpan.FromMinutes(1))
+                .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
     }
     catch (Exception ex)
     {
@@ -1876,15 +1877,12 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
         using var http = new HttpClient();
         string json = await http.GetStringAsync($"{apiBase}?ladder={ladderId}");
 
-        var players = new List<(string name, double points)>();
+        var players = new List<(string Name, double Points)>();
 
         var objMatches = Regex.Matches(json, @"\{(.*?)\}", RegexOptions.Singleline);
         foreach (Match obj in objMatches)
         {
             string objText = obj.Groups[1].Value;
-
-            if (!Regex.IsMatch(objText, $@"""ladder""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase))
-                continue;
 
             var nameMatch = Regex.Match(objText, @"""player_name""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase);
             if (!nameMatch.Success)
@@ -1901,8 +1899,8 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
         }
 
         var top = players
-            .GroupBy(p => p.name)
-            .Select(g => (Name: g.Key, Points: g.Max(x => x.points)))
+            .GroupBy(p => p.Name)
+            .Select(g => (Name: g.Key, Points: g.Max(x => x.Points)))
             .OrderByDescending(x => x.Points)
             .Take(3)
             .Select((p, i) => $"{i + 1}.{p.Name}")
