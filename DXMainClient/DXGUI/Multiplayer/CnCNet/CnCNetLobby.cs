@@ -1844,6 +1844,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
+// === START Ladder Fetch Section ===
 private async Task FetchAndDisplayLaddersAsync()
 {
     const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
@@ -1853,19 +1854,20 @@ private async Task FetchAndDisplayLaddersAsync()
         using var http = new HttpClient();
         string json = await http.GetStringAsync(url);
 
-        // Get top 3 from RA
+        // Fetch both ladders
         var raTop = ExtractTop3(json, "RA");
         var ra2v2Top = ExtractTop3(json, "RA-2v2");
 
+        // Update labels (no prefixes, trophies & spacing)
         lblRa1v1.Text = raTop.Count > 0
-            ? " " + string.Join("  ", raTop)
-            : " No data";
+            ? string.Join("   ", raTop)
+            : "No data";
 
         lblRa2v2.Text = ra2v2Top.Count > 0
-            ? "" + string.Join("  ", ra2v2Top)
-            : " No data";
+            ? string.Join("   ", ra2v2Top)
+            : "No data";
 
-        // Refresh every 60 seconds
+        // Auto refresh every 60 seconds
         _ = Task.Delay(TimeSpan.FromMinutes(1))
                 .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
     }
@@ -1879,22 +1881,29 @@ private async Task FetchAndDisplayLaddersAsync()
 
 private List<string> ExtractTop3(string json, string ladderKey)
 {
-    // Extract section for given ladder
+    // Match ladder section
     var match = Regex.Match(json, $@"""{ladderKey}""\s*:\s*\[(.*?)\](,|}})", RegexOptions.Singleline);
     if (!match.Success)
         return new List<string>();
 
     string ladderJson = match.Groups[1].Value;
 
-    // Extract player names and points
-    var players = Regex.Matches(ladderJson, @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)", RegexOptions.Singleline);
+    // Extract players + points
+    var players = Regex.Matches(
+        ladderJson,
+        @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
+        RegexOptions.Singleline
+    );
 
+    var trophy = new[] { "🏆", "🥈", "🥉" };
     var top = new List<string>();
+
     for (int i = 0; i < Math.Min(3, players.Count); i++)
     {
         string name = players[i].Groups[1].Value;
         string points = players[i].Groups[2].Value;
-        top.Add($"{i + 1}.{name}");
+
+        top.Add($"{trophy[i]}{i + 1}.{name}");
     }
 
     return top;
