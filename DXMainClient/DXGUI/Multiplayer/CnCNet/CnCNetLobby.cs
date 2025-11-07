@@ -1844,30 +1844,55 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-      private async Task FetchAndDisplayLaddersAsync()
+     private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
 {
-    const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
-
     try
     {
-        var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
-        var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
+        using var http = new HttpClient();
+        string json = await http.GetStringAsync(apiBase);
 
-        lblRa1v1.Text = raTop.Count > 0 ? string.Join("\n", raTop) : "No RA 1v1 data";
-        lblRa2v2.Text = ra2Top.Count > 0 ? string.Join("\n", ra2Top) : "No RA 2v2 data";
-
-        // schedule refresh in background (fire-and-forget)
-        _ = Task.Run(async () =>
+        // Deserialize the JSON root object
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty(ladderId.ToUpperInvariant(), out var ladderArray) ||
+            ladderArray.ValueKind != JsonValueKind.Array)
         {
-            await Task.Delay(TimeSpan.FromMinutes(1));
-            await FetchAndDisplayLaddersAsync();
-        });
+            Logger.Log($"Ladder '{ladderId}' not found in API response.");
+            return new List<string> { $"No data for {ladderId}" };
+        }
+
+        var players = new List<(string name, double points)>();
+
+        foreach (var entry in ladderArray.EnumerateArray())
+        {
+            if (!entry.TryGetProperty("player_name", out var nameProp)) continue;
+            var name = nameProp.GetString() ?? "Unknown";
+
+            double points = 0;
+            if (entry.TryGetProperty("points", out var pointsProp))
+                points = pointsProp.GetDouble();
+
+            players.Add((name, points));
+        }
+
+        if (players.Count == 0)
+        {
+            Logger.Log($"Ladder '{ladderId}' contained no players.");
+            return new List<string> { $"No players in {ladderId}" };
+        }
+
+        // Sort and select top 3
+        var top = players
+            .OrderByDescending(p => p.points)
+            .Take(3)
+            .Select((p, i) => $"{i + 1}. {p.name} ({p.points})")
+            .ToList();
+
+        return top;
     }
     catch (Exception ex)
     {
-        lblRa1v1.Text = "⚠ Error fetching ladder";
-        lblRa2v2.Text = "⚠ Error fetching ladder";
-        Logger.Log("Ladder fetch error: " + ex);
+        Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
+        return new List<string> { $"⚠ Error for {ladderId}" };
     }
 }
 
