@@ -1844,55 +1844,28 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-     private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
+  private async Task FetchAndDisplayLaddersAsync()
 {
+    const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
+
     try
     {
-        using var http = new HttpClient();
-        string json = await http.GetStringAsync(apiBase);
+        // Fetch both ladders
+        var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
+        var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
 
-        // Deserialize the JSON root object
-        using var doc = JsonDocument.Parse(json);
-        if (!doc.RootElement.TryGetProperty(ladderId.ToUpperInvariant(), out var ladderArray) ||
-            ladderArray.ValueKind != JsonValueKind.Array)
-        {
-            Logger.Log($"Ladder '{ladderId}' not found in API response.");
-            return new List<string> { $"No data for {ladderId}" };
-        }
+        // Update labels (no Invoke needed)
+        lblRa1v1.Text = raTop.Count > 0 ? "RA: " + string.Join("  ", raTop) : "RA: No data";
+        lblRa2v2.Text = ra2Top.Count > 0 ? "RA-2v2: " + string.Join("  ", ra2Top) : "RA-2v2: No data";
 
-        var players = new List<(string name, double points)>();
-
-        foreach (var entry in ladderArray.EnumerateArray())
-        {
-            if (!entry.TryGetProperty("player_name", out var nameProp)) continue;
-            var name = nameProp.GetString() ?? "Unknown";
-
-            double points = 0;
-            if (entry.TryGetProperty("points", out var pointsProp))
-                points = pointsProp.GetDouble();
-
-            players.Add((name, points));
-        }
-
-        if (players.Count == 0)
-        {
-            Logger.Log($"Ladder '{ladderId}' contained no players.");
-            return new List<string> { $"No players in {ladderId}" };
-        }
-
-        // Sort and select top 3
-        var top = players
-            .OrderByDescending(p => p.points)
-            .Take(3)
-            .Select((p, i) => $"{i + 1}. {p.name} ({p.points})")
-            .ToList();
-
-        return top;
+        // Refresh again every 60s
+        _ = Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
     }
     catch (Exception ex)
     {
-        Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
-        return new List<string> { $"⚠ Error for {ladderId}" };
+        lblRa1v1.Text = "⚠ Error fetching ladder";
+        lblRa2v2.Text = "⚠ Error fetching ladder";
+        Logger.Log("Ladder fetch error: " + ex);
     }
 }
 
@@ -1901,42 +1874,23 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
     try
     {
         using var http = new HttpClient();
-        // Request the main endpoint once; API may return multiple ladder entries in the same payload.
-        string json = await http.GetStringAsync(apiBase);
+        string json = await http.GetStringAsync($"{apiBase}?ladder={ladderId}");
 
         var players = new List<(string name, double points)>();
 
-        // First pass: find JSON objects and filter those that explicitly reference the ladder id
         var objMatches = Regex.Matches(json, @"\{(.*?)\}", RegexOptions.Singleline);
         foreach (Match obj in objMatches)
         {
             string objText = obj.Groups[1].Value;
 
-            // Filter objects that reference the ladder id in "ladder" or "queue" fields
-            if (!Regex.IsMatch(objText, $@"""ladder""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase) &&
-                !Regex.IsMatch(objText, $@"""queue""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase))
+            if (!Regex.IsMatch(objText, $@"""ladder""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase))
                 continue;
 
-            // Try common name fields
-            string name = null;
-            var namePatterns = new[] {
-                @"""player_name""\s*:\s*""([^""]+)""",
-                @"""player""\s*:\s*""([^""]+)""",
-                @"""name""\s*:\s*""([^""]+)"""
-            };
-
-            foreach (var pat in namePatterns)
-            {
-                var nm = Regex.Match(objText, pat, RegexOptions.IgnoreCase);
-                if (nm.Success)
-                {
-                    name = nm.Groups[1].Value;
-                    break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(name))
+            var nameMatch = Regex.Match(objText, @"""player_name""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase);
+            if (!nameMatch.Success)
                 continue;
+
+            string name = nameMatch.Groups[1].Value;
 
             double points = 0;
             var ptsMatch = Regex.Match(objText, @"""points""\s*:\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
@@ -1946,38 +1900,12 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
             players.Add((name, points));
         }
 
-        // Fallback: if none found above, try to extract any player_name/points pairs from the payload.
-        if (players.Count == 0)
-        {
-            var allPlayers = Regex.Matches(json,
-                @"""player_name""\s*:\s*""([^""]+)""(?:.*?""points""\s*:\s*([0-9]+(?:\.[0-9]+)?))?",
-                RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-            foreach (Match m in allPlayers)
-            {
-                string name = m.Groups[1].Value;
-                double points = 0;
-                if (m.Groups.Count > 2 && !string.IsNullOrEmpty(m.Groups[2].Value))
-                    double.TryParse(m.Groups[2].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out points);
-
-                players.Add((name, points));
-            }
-        }
-
-        if (players.Count == 0)
-        {
-            var snippet = json?.Length > 1000 ? json.Substring(0, 1000) + "..." : json;
-            Logger.Log($"Ladder fetch returned no candidates for '{ladderId}'. Response snippet:\n{snippet}");
-            return new List<string>();
-        }
-
-        // dedupe by name and pick highest points, then sort descending and return top 3
         var top = players
             .GroupBy(p => p.name)
-            .Select(g => (name: g.Key, points: g.Max(x => x.points)))
-            .OrderByDescending(x => x.points)
+            .Select(g => (Name: g.Key, Points: g.Max(x => x.points)))
+            .OrderByDescending(x => x.Points)
             .Take(3)
-            .Select((p, i) => $"{i + 1}. {p.name} ({p.points})")
+            .Select((p, i) => $"{i + 1}.{p.Name}")
             .ToList();
 
         return top;
