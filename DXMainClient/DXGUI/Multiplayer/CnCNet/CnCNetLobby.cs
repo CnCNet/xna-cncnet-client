@@ -94,6 +94,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa1v1;
         private XNALabel lblRa2v2Title;
         private XNALabel lblRa2v2;
+        private int ladderBgAlpha;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -346,6 +347,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRa1v1);
             AddChild(lblRa2v2Title);
             AddChild(lblRa2v2);
+
+            var ini = new IniFile("Resources\\UI\\CnCNetLobby.ini");
+
+ladderBgX = ini.GetIntValue("LadderBackground", "X", (int)lblRa1v1.X - 10);
+ladderBgY = ini.GetIntValue("LadderBackground", "Y", (int)lblRa1v1.Y - 6);
+ladderBgWidth = ini.GetIntValue("LadderBackground", "Width", Math.Max(lblRa1v1.Width, lblRa2v2.Width) + 20);
+ladderBgHeight = ini.GetIntValue("LadderBackground", "Height", (int)(lblRa1v1.Height + lblRa2v2.Height + 16));
+ladderBgAlpha = ini.GetIntValue("LadderBackground", "Alpha", 160);  // default same as before
 
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
@@ -1904,7 +1913,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         if (_ladderBg == null)
         {
             _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-            _ladderBg.SetData(new[] { new Color(0, 0, 0, 160) }); // translucent black
+           _ladderBg.SetData(new[] { new Color(0, 0, 0, (byte)ladderBgAlpha) });
         }
 
         // Create sprite batch for drawing
