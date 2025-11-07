@@ -1844,7 +1844,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-       private async Task FetchAndDisplayLaddersAsync()
+      private async Task FetchAndDisplayLaddersAsync()
 {
     const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
@@ -1854,23 +1854,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
         var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
 
-        // Update safely on UI thread
-        this.Invoke((Action)(() =>
-        {
-            lblRa1v1.Text = raTop.Count > 0 ? string.Join("\n", raTop) : "No RA 1v1 data";
-            lblRa2v2.Text = ra2Top.Count > 0 ? string.Join("\n", ra2Top) : "No RA 2v2 data";
-        }));
+        // Update labels directly (no Invoke in XNA)
+        lblRa1v1.Text = raTop.Count > 0 ? string.Join("\n", raTop) : "No RA 1v1 data";
+        lblRa2v2.Text = ra2Top.Count > 0 ? string.Join("\n", ra2Top) : "No RA 2v2 data";
 
-        // Schedule a refresh again in 60s (self-refreshing)
+        // Auto-refresh every 60 seconds
         _ = Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
     }
     catch (Exception ex)
     {
-        this.Invoke((Action)(() =>
-        {
-            lblRa1v1.Text = "⚠ Error fetching ladder";
-            lblRa2v2.Text = "⚠ Error fetching ladder";
-        }));
+        lblRa1v1.Text = "⚠ Error fetching ladder";
+        lblRa2v2.Text = "⚠ Error fetching ladder";
         Logger.Log("Ladder fetch error: " + ex);
     }
 }
@@ -1925,7 +1919,5 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
     {
         Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
         return new List<string>();
-         }
-       }
-     }
-  }
+    }
+}
