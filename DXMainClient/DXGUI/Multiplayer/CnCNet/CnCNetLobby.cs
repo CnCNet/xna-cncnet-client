@@ -1905,8 +1905,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 _ladderBg.SetData(new[] { new Color(0, 0, 0, 160) }); // translucent black
             }
 
-            var spriteBatch = Renderer.SpriteBatch;
-            spriteBatch.Begin();
+           using (SpriteBatch spriteBatch = new SpriteBatch(Game.GraphicsDevice))
+{
+    spriteBatch.Begin();
+    // your drawing code here
+    spriteBatch.End();
+}
 
             // Background behind ladder labels
             var bgRect = new Rectangle(
