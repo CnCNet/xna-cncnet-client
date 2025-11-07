@@ -96,11 +96,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa2v2;
         
          // Ladder background config
-         private int ladderBgX = 0;
-         private int ladderBgY = 0;
-         private int ladderBgWidth = 0;
-         private int ladderBgHeight = 0;
-         private int ladderBgAlpha = 255;
+         private int ladderBgX;
+         private int ladderBgY;
+         private int ladderBgWidth;
+         private int ladderBgHeight;
+         private int ladderBgAlpha;
        
 
         private XNAClientDropDown ddColor;
@@ -1878,7 +1878,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
                 RegexOptions.Singleline);
 
-            var trophy = new[] { "🏆", "🥈", "🥉" };
+            var trophy = new[] { "Top", "bot", "noob" };
             var top = new List<string>();
 
             for (int i = 0; i < Math.Min(3, players.Count); i++)
@@ -1942,7 +1942,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     _ladderBg?.Dispose();
                     _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-                    var bgColor = new Microsoft.Xna.Framework.Color(60, 60, 60, (byte)ladderBgAlpha);
+                    var bgColor = new Microsoft.Xna.Framework.Color((byte)60, (byte)60,(byte)60, (byte)ladderBgAlpha);
                     _ladderBg.SetData(new[] { bgColor });
                     _ladderBgAlphaCached = ladderBgAlpha;
                 }
