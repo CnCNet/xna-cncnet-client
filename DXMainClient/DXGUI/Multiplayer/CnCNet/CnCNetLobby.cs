@@ -1844,7 +1844,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-        private async Task FetchAndDisplayLaddersAsync()
+       private async Task FetchAndDisplayLaddersAsync()
 {
     const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
@@ -1925,5 +1925,5 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
     {
         Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
         return new List<string>();
-       }
     }
+}
