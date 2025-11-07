@@ -94,7 +94,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa1v1;
         private XNALabel lblRa2v2Title;
         private XNALabel lblRa2v2;
-        private int ladderBgAlpha;
+        
+         // Ladder background config
+         private int ladderBgX = 0;
+         private int ladderBgY = 0;
+         private int ladderBgWidth = 0;
+         private int ladderBgHeight = 0;
+         private int ladderBgAlpha = 255;
+       
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -1913,7 +1920,7 @@ ladderBgAlpha = ini.GetIntValue("LadderBackground", "Alpha", 160);  // default s
         if (_ladderBg == null)
         {
             _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-           _ladderBg.SetData(new[] { new Color(0, 0, 0, (byte)ladderBgAlpha) });
+           _ladderBg.SetData(new[] {new Color(255, 255, 255, (byte)ladderBgAlpha) });
         }
 
         // Create sprite batch for drawing
