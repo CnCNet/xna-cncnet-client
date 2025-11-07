@@ -1866,110 +1866,104 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
         {
-            try
+            var triedUrls = new List<string>
             {
-                using var http = new HttpClient();
-                // try a query param commonly used by the API; if the API is different, this method is tolerant
-                string url = $"{apiBase}?ladder={Uri.EscapeDataString(ladderId)}";
-                var resp = await http.GetStringAsync(url);
+                // original attempt
+                $"{apiBase}?ladder={Uri.EscapeDataString(ladderId)}",
+                // try common alternatives
+                $"{apiBase}/{Uri.EscapeDataString(ladderId)}",
+                $"{apiBase}?queue={Uri.EscapeDataString(ladderId)}",
+                $"{apiBase}?game={Uri.EscapeDataString(ladderId)}"
+            };
 
-                var doc = JsonDocument.Parse(resp);
-                var candidates = new List<(string name, double points)>();
+            string lastResponse = string.Empty;
+            var candidates = new List<(string name, double points)>();
 
-                // If root is an array, iterate elements
-                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            using var http = new HttpClient();
+            foreach (var url in triedUrls)
+            {
+                try
                 {
-                    foreach (var el in doc.RootElement.EnumerateArray())
-                    {
-                        ParseRankingElement(el, candidates);
-                    }
+                    lastResponse = await http.GetStringAsync(url);
                 }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                catch (Exception ex)
                 {
-                    // try to find arrays in object properties
-                    foreach (var prop in doc.RootElement.EnumerateObject())
+                    Logger.Log($"Ladder fetch HTTP error for '{ladderId}' at '{url}': {ex.Message}");
+                    continue;
+                }
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(lastResponse);
+                    // try to extract candidates from the JSON document
+                    TryExtractCandidates(doc.RootElement, candidates);
+
+                    // also try common container names
+                    foreach (var prop in new[] { "data", "results", "rankings", "entries", "items", "rows", "players" })
                     {
-                        if (prop.Value.ValueKind == JsonValueKind.Array)
+                        if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                            doc.RootElement.TryGetProperty(prop, out var arr) &&
+                            arr.ValueKind == JsonValueKind.Array)
                         {
-                            foreach (var el in prop.Value.EnumerateArray())
+                            foreach (var el in arr.EnumerateArray())
                                 ParseRankingElement(el, candidates);
                         }
                     }
-                }
 
-                // If no candidates found, attempt to parse top-level "data" property
-                if (candidates.Count == 0 && doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Array)
+                    if (candidates.Count > 0)
+                        break; // success
+                }
+                catch (Exception ex)
                 {
-                    foreach (var el in dataProp.EnumerateArray())
-                        ParseRankingElement(el, candidates);
+                    Logger.Log($"Ladder fetch JSON parse error for '{ladderId}' at '{url}': {ex}");
+                    // continue trying other url forms
                 }
-
-                // sort by points desc and take top 3
-                var top = candidates
-                    .OrderByDescending(c => c.points)
-                    .Take(3)
-                    .Select((c, i) => $"{i + 1}. {c.name} ({c.points})")
-                    .ToList();
-
-                return top;
             }
-            catch (Exception ex)
+
+            if (candidates.Count == 0)
             {
-                Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
+                // Log the first part of response to help debugging
+                var snippet = lastResponse?.Length > 1000 ? lastResponse.Substring(0, 1000) + "..." : lastResponse;
+                Logger.Log($"Ladder fetch returned no candidates for '{ladderId}'. Last response snippet:\n{snippet}");
                 return new List<string>();
             }
+
+            var top = candidates
+                .OrderByDescending(c => c.points)
+                .Take(3)
+                .Select((c, i) => $"{i + 1}. {c.name} ({c.points})")
+                .ToList();
+
+            return top;
         }
 
-        private static void ParseRankingElement(JsonElement el, List<(string name, double points)> outList)
+        private static void TryExtractCandidates(JsonElement el, List<(string name, double points)> outList)
         {
-            try
+            // Root array
+            if (el.ValueKind == JsonValueKind.Array)
             {
-                string name = null;
-                double points = 0;
-
-                // Common property names to try for the display name
-                foreach (var n in new[] { "name", "nickname", "player", "nick", "username" })
-                {
-                    if (el.TryGetProperty(n, out var p) && p.ValueKind == JsonValueKind.String)
-                    {
-                        name = p.GetString();
-                        break;
-                    }
-                }
-
-                // Common property names to try for points/score
-                foreach (var n in new[] { "points", "score", "rating", "elo" })
-                {
-                    if (el.TryGetProperty(n, out var p))
-                    {
-                        if (p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var d))
-                        {
-                            points = d;
-                            break;
-                        }
-                        else if (p.ValueKind == JsonValueKind.String && double.TryParse(p.GetString(), out var d2))
-                        {
-                            points = d2;
-                            break;
-                        }
-                    }
-                }
-
-                // Fallback: if element has "rank" and "player" style structure
-                if (name == null && el.TryGetProperty("player", out var playerProp) && playerProp.ValueKind == JsonValueKind.Object)
-                {
-                    if (playerProp.TryGetProperty("name", out var pn) && pn.ValueKind == JsonValueKind.String)
-                        name = pn.GetString();
-                }
-
-                if (name != null)
-                {
-                    outList.Add((name, points));
-                }
+                foreach (var item in el.EnumerateArray())
+                    ParseRankingElement(item, outList);
+                return;
             }
-            catch
+
+            // Object: try direct properties that may themselves be arrays/objects
+            if (el.ValueKind == JsonValueKind.Object)
             {
-                // ignore malformed items
+                // If object maps of id->entry, try each property
+                foreach (var prop in el.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in prop.Value.EnumerateArray())
+                            ParseRankingElement(item, outList);
+                    }
+                    else if (prop.Value.ValueKind == JsonValueKind.Object)
+                    {
+                        // sometimes entries are keyed objects with player data inside
+                        ParseRankingElement(prop.Value, outList);
+                    }
+                }
             }
         }
     }
