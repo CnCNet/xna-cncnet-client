@@ -1866,203 +1866,115 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
         {
-            var triedUrls = new List<string>
-            {
-                // original attempt
-                $"{apiBase}?ladder={Uri.EscapeDataString(ladderId)}",
-                // try common alternatives
-                $"{apiBase}/{Uri.EscapeDataString(ladderId)}",
-                $"{apiBase}?queue={Uri.EscapeDataString(ladderId)}",
-                $"{apiBase}?game={Uri.EscapeDataString(ladderId)}"
-            };
-
-            string lastResponse = string.Empty;
-            var candidates = new List<(string name, double points)>();
-
-            using var http = new HttpClient();
-            foreach (var url in triedUrls)
-            {
-                try
-                {
-                    lastResponse = await http.GetStringAsync(url);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Ladder fetch HTTP error for '{ladderId}' at '{url}': {ex.Message}");
-                    continue;
-                }
-
-                try
-                {
-                    using var doc = JsonDocument.Parse(lastResponse);
-                    // try to extract candidates from the JSON document
-                    TryExtractCandidates(doc.RootElement, candidates);
-
-                    // also try common container names
-                    foreach (var prop in new[] { "data", "results", "rankings", "entries", "items", "rows", "players" })
-                    {
-                        if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                            doc.RootElement.TryGetProperty(prop, out var arr) &&
-                            arr.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var el in arr.EnumerateArray())
-                                ParseRankingElement(el, candidates);
-                        }
-                    }
-
-                    if (candidates.Count > 0)
-                        break; // success
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Ladder fetch JSON parse error for '{ladderId}' at '{url}': {ex}");
-                    // continue trying other url forms
-                }
-            }
-
-            if (candidates.Count == 0)
-            {
-                // Log the first part of response to help debugging
-                var snippet = lastResponse?.Length > 1000 ? lastResponse.Substring(0, 1000) + "..." : lastResponse;
-                Logger.Log($"Ladder fetch returned no candidates for '{ladderId}'. Last response snippet:\n{snippet}");
-                return new List<string>();
-            }
-
-            var top = candidates
-                .OrderByDescending(c => c.points)
-                .Take(3)
-                .Select((c, i) => $"{i + 1}. {c.name} ({c.points})")
-                .ToList();
-
-            return top;
-        }
-
-        private static void TryExtractCandidates(JsonElement el, List<(string name, double points)> outList)
-        {
-            // Root array
-            if (el.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var item in el.EnumerateArray())
-                    ParseRankingElement(item, outList);
-                return;
-            }
-
-            // Object: try direct properties that may themselves be arrays/objects
-            if (el.ValueKind == JsonValueKind.Object)
-            {
-                // If object maps of id->entry, try each property
-                foreach (var prop in el.EnumerateObject())
-                {
-                    if (prop.Value.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var item in prop.Value.EnumerateArray())
-                            ParseRankingElement(item, outList);
-                    }
-                    else if (prop.Value.ValueKind == JsonValueKind.Object)
-                    {
-                        // sometimes entries are keyed objects with player data inside
-                        ParseRankingElement(prop.Value, outList);
-                    }
-                }
-            }
-        }
-
-        private static void ParseRankingElement(JsonElement el, List<(string name, double points)> outList)
-        {
             try
             {
-                if (el.ValueKind != JsonValueKind.Object)
-                {
-                    if (el.ValueKind == JsonValueKind.String)
-                    {
-                        var s = el.GetString();
-                        if (!string.IsNullOrEmpty(s))
-                            outList.Add((s, 0));
-                    }
-                    return;
-                }
+                using var http = new HttpClient();
+                string json = await http.GetStringAsync(apiBase);
 
-                string name = null;
-                double points = 0;
+                var candidates = new List<(string name, double points)>();
 
-                // Try common name properties
-                foreach (var n in new[] { "name", "nickname", "player", "nick", "username", "displayName", "playerName" })
-                {
-                    if (el.TryGetProperty(n, out var p) && p.ValueKind == JsonValueKind.String)
-                    {
-                        name = p.GetString();
-                        break;
-                    }
-                }
+                // 1) Try to find a named section like "RA": [ ... ]
+                var sectionPattern = $@"""{Regex.Escape(ladderId)}""\s*:\s*\[(.*?)\]";
+                var sectionMatch = Regex.Match(json, sectionPattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-                // If there's a nested player object, prefer its name
-                if ((name == null || name.Length == 0) && el.TryGetProperty("player", out var playerProp) && playerProp.ValueKind == JsonValueKind.Object)
+                if (sectionMatch.Success)
                 {
-                    foreach (var n in new[] { "name", "nickname", "username" })
+                    string section = sectionMatch.Groups[1].Value;
+
+                    // Extract common player fields: player_name and points
+                    var playerMatches = Regex.Matches(section,
+                        @"""player_name""\s*:\s*""([^""]+)""(?:.*?""points""\s*:\s*([0-9]+(?:\.[0-9]+)?))?",
+                        RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                    foreach (Match m in playerMatches)
                     {
-                        if (playerProp.TryGetProperty(n, out var pp) && pp.ValueKind == JsonValueKind.String)
-                        {
-                            name = pp.GetString();
-                            break;
-                        }
+                        string name = m.Groups[1].Value;
+                        double points = 0;
+                        if (m.Groups.Count > 2 && !string.IsNullOrEmpty(m.Groups[2].Value))
+                            double.TryParse(m.Groups[2].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out points);
+
+                        candidates.Add((name, points));
                     }
                 }
 
-                // Try common points properties on root
-                foreach (var n in new[] { "points", "score", "rating", "elo", "value" })
+                // 2) Fallback: scan objects looking for "ladder":"<ladderId>" then extract name/points
+                if (candidates.Count == 0)
                 {
-                    if (el.TryGetProperty(n, out var p))
+                    var objMatches = Regex.Matches(json, @"\{(.*?)\}", RegexOptions.Singleline);
+                    foreach (Match obj in objMatches)
                     {
-                        if (p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var d))
-                        {
-                            points = d;
-                            break;
-                        }
-                        if (p.ValueKind == JsonValueKind.String && double.TryParse(p.GetString(), out var d2))
-                        {
-                            points = d2;
-                            break;
-                        }
-                    }
-                }
+                        string objText = obj.Groups[1].Value;
 
-                // Try points under stats or nested player object
-                if (points == 0)
-                {
-                    if (el.TryGetProperty("stats", out var stats) && stats.ValueKind == JsonValueKind.Object)
-                    {
-                        foreach (var n in new[] { "points", "score", "rating", "elo" })
+                        if (!Regex.IsMatch(objText, $@"""ladder""\s*:\s*""{Regex.Escape(ladderId)}""", RegexOptions.IgnoreCase))
+                            continue;
+
+                        // try several name fields
+                        string name = null;
+                        foreach (var nameField in new[] { @"""player_name""\s*:\s*""([^""]+)""", @"""player""\s*:\s*""([^""]+)""", @"""name""\s*:\s*""([^""]+)""" })
                         {
-                            if (stats.TryGetProperty(n, out var sp))
+                            var nm = Regex.Match(objText, nameField, RegexOptions.IgnoreCase);
+                            if (nm.Success)
                             {
-                                if (sp.ValueKind == JsonValueKind.Number && sp.TryGetDouble(out var d3)) { points = d3; break; }
-                                if (sp.ValueKind == JsonValueKind.String && double.TryParse(sp.GetString(), out var d4)) { points = d4; break; }
+                                name = nm.Groups[1].Value;
+                                break;
                             }
                         }
-                    }
 
-                    if (el.TryGetProperty("player", out var pplayer) && pplayer.ValueKind == JsonValueKind.Object)
-                    {
-                        foreach (var n in new[] { "rating", "elo", "points", "score" })
-                        {
-                            if (pplayer.TryGetProperty(n, out var ppv))
-                            {
-                                if (ppv.ValueKind == JsonValueKind.Number && ppv.TryGetDouble(out var d5)) { points = d5; break; }
-                                if (ppv.ValueKind == JsonValueKind.String && double.TryParse(ppv.GetString(), out var d6)) { points = d6; break; }
-                            }
-                        }
+                        if (string.IsNullOrEmpty(name))
+                            continue;
+
+                        double points = 0;
+                        var pointsMatch = Regex.Match(objText, @"""points""\s*:\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
+                        if (pointsMatch.Success)
+                            double.TryParse(pointsMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out points);
+
+                        candidates.Add((name, points));
                     }
                 }
 
-                if (!string.IsNullOrEmpty(name))
+                // 3) Final fallback: try to find any "player_name" occurrences if still empty
+                if (candidates.Count == 0)
                 {
-                    outList.Add((name, points));
+                    var allPlayers = Regex.Matches(json,
+                        @"""player_name""\s*:\s*""([^""]+)""(?:.*?""points""\s*:\s*([0-9]+(?:\.[0-9]+)?))?",
+                        RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                    foreach (Match m in allPlayers)
+                    {
+                        string name = m.Groups[1].Value;
+                        double points = 0;
+                        if (m.Groups.Count > 2 && !string.IsNullOrEmpty(m.Groups[2].Value))
+                            double.TryParse(m.Groups[2].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out points);
+
+                        candidates.Add((name, points));
+                    }
                 }
+
+                if (candidates.Count == 0)
+                {
+                    var snippet = json?.Length > 1000 ? json.Substring(0, 1000) + "..." : json;
+                    Logger.Log($"Ladder fetch returned no candidates for '{ladderId}'. Response snippet:\n{snippet}");
+                    return new List<string>();
+                }
+
+                // dedupe by name and take highest points per player, then sort
+                var top = candidates
+                    .GroupBy(c => c.name)
+                    .Select(g => (name: g.Key, points: g.Max(x => x.points)))
+                    .OrderByDescending(x => x.points)
+                    .Take(3)
+                    .Select((c, i) => $"{i + 1}. {c.name} ({c.points})")
+                    .ToList();
+
+                return top;
             }
-            catch
+            catch (Exception ex)
             {
-                // Swallow parsing errors for resilience
+                Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
+                return new List<string>();
             }
         }
     }
 }
+using System.Text.RegularExpressions;
+using System.Globalization;
