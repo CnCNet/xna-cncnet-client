@@ -1844,21 +1844,28 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
- private async Task FetchAndDisplayLaddersAsync()
+private async Task FetchAndDisplayLaddersAsync()
 {
-    const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
+    const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
     try
     {
-        // Fetch both ladders
-        var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
-        var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
+        using var http = new HttpClient();
+        string json = await http.GetStringAsync(url);
 
-        // Update labels safely
-        lblRa1v1.Text = raTop.Count > 0 ? "RA: " + string.Join("  ", raTop) : "RA: No data";
-        lblRa2v2.Text = ra2Top.Count > 0 ? "RA-2v2: " + string.Join("  ", ra2Top) : "RA-2v2: No data";
+        // Get top 3 from RA
+        var raTop = ExtractTop3(json, "RA");
+        var ra2v2Top = ExtractTop3(json, "RA-2v2");
 
-        // Refresh again every 60s (non-blocking)
+        lblRa1v1.Text = raTop.Count > 0
+            ? " " + string.Join("  ", raTop)
+            : " No data";
+
+        lblRa2v2.Text = ra2v2Top.Count > 0
+            ? "" + string.Join("  ", ra2v2Top)
+            : " No data";
+
+        // Refresh every 60 seconds
         _ = Task.Delay(TimeSpan.FromMinutes(1))
                 .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
     }
@@ -1870,48 +1877,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     }
 }
 
-private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
+private List<string> ExtractTop3(string json, string ladderKey)
 {
-    try
-    {
-        using var http = new HttpClient();
-        string json = await http.GetStringAsync($"{apiBase}?ladder={ladderId}");
-
-        var players = new List<(string Name, double Points)>();
-
-        var objMatches = Regex.Matches(json, @"\{(.*?)\}", RegexOptions.Singleline);
-        foreach (Match obj in objMatches)
-        {
-            string objText = obj.Groups[1].Value;
-
-            var nameMatch = Regex.Match(objText, @"""player_name""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase);
-            if (!nameMatch.Success)
-                continue;
-
-            string name = nameMatch.Groups[1].Value;
-
-            double points = 0;
-            var ptsMatch = Regex.Match(objText, @"""points""\s*:\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
-            if (ptsMatch.Success)
-                double.TryParse(ptsMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out points);
-
-            players.Add((name, points));
-        }
-
-        var top = players
-            .GroupBy(p => p.Name)
-            .Select(g => (Name: g.Key, Points: g.Max(x => x.Points)))
-            .OrderByDescending(x => x.Points)
-            .Take(3)
-            .Select((p, i) => $"{i + 1}.{p.Name}")
-            .ToList();
-
-        return top;
-    }
-    catch (Exception ex)
-    {
-        Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
+    // Extract section for given ladder
+    var match = Regex.Match(json, $@"""{ladderKey}""\s*:\s*\[(.*?)\](,|}})", RegexOptions.Singleline);
+    if (!match.Success)
         return new List<string>();
+
+    string ladderJson = match.Groups[1].Value;
+
+    // Extract player names and points
+    var players = Regex.Matches(ladderJson, @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)", RegexOptions.Singleline);
+
+    var top = new List<string>();
+    for (int i = 0; i < Math.Min(3, players.Count); i++)
+    {
+        string name = players[i].Groups[1].Value;
+        string points = players[i].Groups[2].Value;
+        top.Add($"{i + 1}.{name}");
+    }
+
+    return top;
         }
      }
   }
