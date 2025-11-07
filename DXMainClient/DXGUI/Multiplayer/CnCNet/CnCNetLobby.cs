@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1976,5 +1978,3 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
     }
 }
-using System.Text.RegularExpressions;
-using System.Globalization;
