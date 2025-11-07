@@ -1826,7 +1826,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="messageView">The message view/list to write error messages to.</param>
         private void JoinUser(IRCUser user, IMessageView messageView)
         {
-            if user == null)
+            if (user == null)
             {
                 // can happen if a user is selected while offline
                 messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
