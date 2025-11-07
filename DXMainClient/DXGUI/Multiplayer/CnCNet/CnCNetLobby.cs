@@ -1925,5 +1925,6 @@ private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string 
     {
         Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
         return new List<string>();
+        }
     }
 }
