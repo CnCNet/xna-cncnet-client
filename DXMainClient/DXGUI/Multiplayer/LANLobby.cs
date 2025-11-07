@@ -1,5 +1,4 @@
-﻿// LANLobby.cs — original with local-config ladder UI box (no fetching)
-using ClientCore;
+﻿using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using DTAClient.Domain;
@@ -103,14 +102,6 @@ namespace DTAClient.DXGUI.Multiplayer
         PrivateMessagingWindow pmWindow;
 
         bool initSuccess = false;
-
-        // ----- Ladder UI fields (NEW) -----
-        XNAListBox lbLadderRankings;
-        private const string LANLOBBY_INI = "lanlobby.ini";
-        private const string INI_SECTION = "Ladder";
-        private const string INI_KEY_RA1_1V1 = "RA1_1v1";
-        private const string INI_KEY_RA1_2V2 = "RA1_2v2";
-        // -----------------------------------
 
         public override void Initialize()
         {
@@ -228,33 +219,6 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblColor);
             AddChild(ddColor);
 
-            // -------------------- LADDER UI BOX (Below chat input) --------------------
-            // We position it just above the chat input (so it's visually "below the chat messages")
-            int ladderHeight = 52; // two lines of text (2 * lineheight + padding)
-            int ladderY = tbChatInput.Y - ladderHeight - 6; // 6px gap
-            if (ladderY < lbGameList.Bottom + 6) ladderY = lbGameList.Bottom + 6; // prevent overlap
-
-            lbLadderRankings = new XNAListBox(WindowManager);
-            lbLadderRankings.Name = "lbLadderRankings";
-            lbLadderRankings.ClientRectangle = new Rectangle(lbChatMessages.X,
-                ladderY,
-                lbChatMessages.Width,
-                ladderHeight);
-            lbLadderRankings.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbLadderRankings.LineHeight = 16;
-            lbLadderRankings.AllowMultiLineItems = false;
-            // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
-            // Don't set it; selection behavior remains default for your client.
-
-            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
-            lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
-            lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
-
-            AddChild(lbLadderRankings);
-
-            // -----------------------------------------------------------------------
-
             gameCreationWindow = new LANGameCreationWindow(WindowManager);
             var gameCreationPanel = new DarkeningPanel(WindowManager);
             AddChild(gameCreationPanel);
@@ -303,99 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lanGameLoadingLobby.GameLeft += LanGameLoadingLobby_GameLeft;
 
             WindowManager.GameClosing += WindowManager_GameClosing;
-
-            // Load ladder settings from lanlobby.ini (create file with defaults if needed)
-            LoadLadderSettingsFromIni();
         }
-
-        // -------------------- Ladder INI handling (NEW) --------------------
-        private void LoadLadderSettingsFromIni()
-        {
-            try
-            {
-                // Use SafePath if available to combine paths like the rest of the project
-                string iniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, LANLOBBY_INI);
-
-                // If file doesn't exist, create with sensible defaults
-                if (!File.Exists(iniPath))
-                {
-                    string defaultContent = "[Ladder]" + Environment.NewLine +
-                                            INI_KEY_RA1_1V1 + "=???,???,???" + Environment.NewLine +
-                                            INI_KEY_RA1_2V2 + "=???,???,???";
-                    File.WriteAllText(iniPath, defaultContent, Encoding.UTF8);
-                }
-
-                string ra1Value = "???,???,???";
-                string ra2Value = "???,???,???";
-
-                // Read file lines safely
-                string[] lines = File.ReadAllLines(iniPath, Encoding.UTF8);
-                foreach (var rawLine in lines)
-                {
-                    string line = rawLine.Trim();
-                    if (line.StartsWith("#") || line.StartsWith(";") || line.Length == 0)
-                        continue;
-
-                    // simple key=value parsing (INI parsing kept minimal intentionally)
-                    int eq = line.IndexOf('=');
-                    if (eq <= 0) continue;
-
-                    string key = line.Substring(0, eq).Trim();
-                    string val = line.Substring(eq + 1).Trim();
-
-                    if (string.Equals(key, INI_KEY_RA1_1V1, StringComparison.OrdinalIgnoreCase))
-                        ra1Value = val;
-                    else if (string.Equals(key, INI_KEY_RA1_2V2, StringComparison.OrdinalIgnoreCase))
-                        ra2Value = val;
-                }
-
-                string ra1Display = ComposeTop3FromCsv(ra1Value);
-                string ra2Display = ComposeTop3FromCsv(ra2Value);
-
-                // Update ladder list box
-                if (lbLadderRankings != null)
-                {
-                    lbLadderRankings.Clear();
-                    lbLadderRankings.AddItem("RA1 1v1: " + ra1Display);
-                    lbLadderRankings.AddItem("RA1 2v2: " + ra2Display);
-                }
-            }
-            catch (Exception ex)
-            {
-                // On failure, show ??? placeholders
-                if (lbLadderRankings != null)
-                {
-                    try
-                    {
-                        lbLadderRankings.Clear();
-                        lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
-                        lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
-                    }
-                    catch { }
-                }
-
-                Logger.Log("Loading lanlobby.ini failed: " + ex.ToString());
-            }
-        }
-
-        private string ComposeTop3FromCsv(string csv)
-        {
-            if (string.IsNullOrWhiteSpace(csv))
-                return "??? ??? ???";
-
-            // split on comma, semicolon or pipe for flexibility, trim, take up to 3
-            var parts = csv.Split(new char[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
-                           .Select(s => s.Trim())
-                           .Where(s => !string.IsNullOrEmpty(s))
-                           .ToList();
-
-            // Fill with ??? up to 3
-            while (parts.Count < 3)
-                parts.Add("???");
-
-            return string.Join(" ", parts.Take(3));
-        }
-        // --------------------------------------------------------------------
 
         private void LanGameLoadingLobby_GameLeft(object sender, EventArgs e)
         {

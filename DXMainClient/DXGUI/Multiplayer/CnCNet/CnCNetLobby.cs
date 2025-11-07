@@ -1,4 +1,14 @@
-﻿using ClientCore;
+﻿using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -11,13 +21,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
 using ClientCore.Enums;
 using ClientCore.Extensions;
 using SixLabors.ImageSharp;
@@ -82,6 +85,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblCurrentChannel;
         private XNALabel lblOnline;
         private XNALabel lblOnlineCount;
+
+        // New ladder labels
+        private XNALabel lblRa1v1Title;
+        private XNALabel lblRa1v1;
+        private XNALabel lblRa2v2Title;
+        private XNALabel lblRa2v2;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -302,6 +311,38 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.X + 50, 14, 0, 0);
             lblOnlineCount.FontIndex = 1;
             lblOnlineCount.Disable();
+
+            // Ladder labels: RA 1v1
+            lblRa1v1Title = new XNALabel(WindowManager);
+            lblRa1v1Title.Name = nameof(lblRa1v1Title);
+            lblRa1v1Title.ClientRectangle = new Rectangle(lblOnline.X, lblOnline.Y + 20, 0, 0);
+            lblRa1v1Title.FontIndex = 1;
+            lblRa1v1Title.Text = "RA 1v1 Top 3:";
+
+            lblRa1v1 = new XNALabel(WindowManager);
+            lblRa1v1.Name = nameof(lblRa1v1);
+            lblRa1v1.ClientRectangle = new Rectangle(lblOnline.X, lblRa1v1Title.Y + 14, 300, 0);
+            lblRa1v1.FontIndex = 1;
+            lblRa1v1.Text = "Loading...";
+
+            // Ladder labels: RA 2v2
+            lblRa2v2Title = new XNALabel(WindowManager);
+            lblRa2v2Title.Name = nameof(lblRa2v2Title);
+            lblRa2v2Title.ClientRectangle = new Rectangle(lblOnline.X + 320, lblOnline.Y + 20, 0, 0);
+            lblRa2v2Title.FontIndex = 1;
+            lblRa2v2Title.Text = "RA-2v2 Top 3:";
+
+            lblRa2v2 = new XNALabel(WindowManager);
+            lblRa2v2.Name = nameof(lblRa2v2);
+            lblRa2v2.ClientRectangle = new Rectangle(lblRa2v2Title.X, lblRa2v2Title.Y + 14, 300, 0);
+            lblRa2v2.FontIndex = 1;
+            lblRa2v2.Text = "Loading...";
+
+            // Add the new labels to the UI
+            AddChild(lblRa1v1Title);
+            AddChild(lblRa1v1);
+            AddChild(lblRa2v2Title);
+            AddChild(lblRa2v2);
 
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
@@ -1217,6 +1258,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCheckCancellation = new CancellationTokenSource();
             CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
+
+            // Kick off ladder fetch (fire-and-forget)
+            _ = FetchAndDisplayLaddersAsync();
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1233,7 +1277,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleGameInviteCommand(string sender, string argumentsString)
         {
             // arguments are semicolon-delimited
-            var arguments = argumentsString.Split(';');
+            var arguments = argumentsString.Split(';' );
 
             // we expect to be given a channel name, a (human-friendly) game name and optionally a password
             if (arguments.Length < 2 || arguments.Length > 3)
@@ -1796,6 +1840,137 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             JoinGame(game, string.Empty, messageView);
+        }
+
+        private async Task FetchAndDisplayLaddersAsync()
+        {
+            // Base API endpoint
+            const string apiBase = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
+
+            try
+            {
+                var raTop = await FetchTop3ForLadderAsync(apiBase, "ra");
+                var ra2Top = await FetchTop3ForLadderAsync(apiBase, "ra-2v2");
+
+                // Update labels (best-effort; UI updates on same thread as caller)
+                lblRa1v1.Text = raTop.Count > 0 ? string.Join("\n", raTop) : "No data";
+                lblRa2v2.Text = ra2Top.Count > 0 ? string.Join("\n", ra2Top) : "No data";
+            }
+            catch (Exception ex)
+            {
+                lblRa1v1.Text = "⚠ Error";
+                lblRa2v2.Text = "⚠ Error";
+                Logger.Log("Ladder fetch error: " + ex);
+            }
+        }
+
+        private async Task<List<string>> FetchTop3ForLadderAsync(string apiBase, string ladderId)
+        {
+            try
+            {
+                using var http = new HttpClient();
+                // try a query param commonly used by the API; if the API is different, this method is tolerant
+                string url = $"{apiBase}?ladder={Uri.EscapeDataString(ladderId)}";
+                var resp = await http.GetStringAsync(url);
+
+                var doc = JsonDocument.Parse(resp);
+                var candidates = new List<(string name, double points)>();
+
+                // If root is an array, iterate elements
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var el in doc.RootElement.EnumerateArray())
+                    {
+                        ParseRankingElement(el, candidates);
+                    }
+                }
+                else if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    // try to find arrays in object properties
+                    foreach (var prop in doc.RootElement.EnumerateObject())
+                    {
+                        if (prop.Value.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var el in prop.Value.EnumerateArray())
+                                ParseRankingElement(el, candidates);
+                        }
+                    }
+                }
+
+                // If no candidates found, attempt to parse top-level "data" property
+                if (candidates.Count == 0 && doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var el in dataProp.EnumerateArray())
+                        ParseRankingElement(el, candidates);
+                }
+
+                // sort by points desc and take top 3
+                var top = candidates
+                    .OrderByDescending(c => c.points)
+                    .Take(3)
+                    .Select((c, i) => $"{i + 1}. {c.name} ({c.points})")
+                    .ToList();
+
+                return top;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error fetching ladder '{ladderId}': {ex}");
+                return new List<string>();
+            }
+        }
+
+        private static void ParseRankingElement(JsonElement el, List<(string name, double points)> outList)
+        {
+            try
+            {
+                string name = null;
+                double points = 0;
+
+                // Common property names to try for the display name
+                foreach (var n in new[] { "name", "nickname", "player", "nick", "username" })
+                {
+                    if (el.TryGetProperty(n, out var p) && p.ValueKind == JsonValueKind.String)
+                    {
+                        name = p.GetString();
+                        break;
+                    }
+                }
+
+                // Common property names to try for points/score
+                foreach (var n in new[] { "points", "score", "rating", "elo" })
+                {
+                    if (el.TryGetProperty(n, out var p))
+                    {
+                        if (p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var d))
+                        {
+                            points = d;
+                            break;
+                        }
+                        else if (p.ValueKind == JsonValueKind.String && double.TryParse(p.GetString(), out var d2))
+                        {
+                            points = d2;
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback: if element has "rank" and "player" style structure
+                if (name == null && el.TryGetProperty("player", out var playerProp) && playerProp.ValueKind == JsonValueKind.Object)
+                {
+                    if (playerProp.TryGetProperty("name", out var pn) && pn.ValueKind == JsonValueKind.String)
+                        name = pn.GetString();
+                }
+
+                if (name != null)
+                {
+                    outList.Add((name, points));
+                }
+            }
+            catch
+            {
+                // ignore malformed items
+            }
         }
     }
 }
