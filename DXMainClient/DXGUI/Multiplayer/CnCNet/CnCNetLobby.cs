@@ -362,7 +362,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRa2v2Title);
             AddChild(lblRa2v2);
 
-            LoadLadderBgConfig();
+           // LoadLadderBgConfig();
 
               // -------------------- LADDER UI BOX (Below chat input) --------------------
             // We position it just above the chat input (so it's visually "below the chat messages")
