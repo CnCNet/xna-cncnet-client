@@ -1908,7 +1908,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ladderBgY = ini.GetIntValue("LadderBackground", "Y", defaultY);
                 ladderBgWidth = Math.Max(1, ini.GetIntValue("LadderBackground", "Width", defaultWidth));
                 ladderBgHeight = Math.Max(1, ini.GetIntValue("LadderBackground", "Height", defaultHeight));
-                ladderBgAlpha = Math.Clamp(ini.GetIntValue("LadderBackground", "Alpha", 160), 0, 255);
+              ladderBgAlpha = Clamp(ini.GetIntValue("LadderBackground", "Alpha", 160), 0, 255);
 
                 // If alpha changed, force recreation of texture so alpha is applied
                 if (_ladderBg != null && _ladderBgAlphaCached != ladderBgAlpha)
