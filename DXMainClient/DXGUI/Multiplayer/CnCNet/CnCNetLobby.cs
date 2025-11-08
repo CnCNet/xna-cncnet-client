@@ -96,13 +96,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa2v2;
         
          // Ladder background config
-         private int ladderBgX;
-         private int ladderBgY;
-         private int ladderBgWidth;
-         private int ladderBgHeight;
-         private int ladderBgAlpha;
-       
+         // private int ladderBgX;
+        // private int ladderBgY;
+         //private int ladderBgWidth;
+        // private int ladderBgHeight;
+         //private int ladderBgAlpha;
 
+            // ----- Ladder UI fields (NEW) -----
+        XNAListBox lbLadderRankings;
+        private const string LANLOBBY_INI = "lanlobby.ini";
+        private const string INI_SECTION = "Ladder";
+        //private const string INI_KEY_RA1_1V1 = "RA1_1v1";
+       // private const string INI_KEY_RA1_2V2 = "RA1_2v2";
+        // -----------------------------------
+       
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
 
@@ -356,6 +363,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRa2v2);
 
             LoadLadderBgConfig();
+
+              // -------------------- LADDER UI BOX (Below chat input) --------------------
+            // We position it just above the chat input (so it's visually "below the chat messages")
+            int ladderHeight = 52; // two lines of text (2 * lineheight + padding)
+            int ladderY = tbChatInput.Y - ladderHeight - 6; // 6px gap
+            if (ladderY < lbGameList.Bottom + 6) ladderY = lbGameList.Bottom + 6; // prevent overlap
+
+            lbLadderRankings = new XNAListBox(WindowManager);
+            lbLadderRankings.Name = "lbLadderRankings";
+            lbLadderRankings.ClientRectangle = new Rectangle(lbChatMessages.X,
+                ladderY,
+                lbChatMessages.Width,
+                ladderHeight);
+            lbLadderRankings.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbLadderRankings.LineHeight = 16;
+            lbLadderRankings.AllowMultiLineItems = false;
+            // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
+            // Don't set it; selection behavior remains default for your client.
+
+            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
+            // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
+            // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
+
+            AddChild(lbLadderRankings);
+
+            // -----------------------------------------------------------------------
 
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
@@ -1890,10 +1924,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             return top;
         }
 
-        private void LoadLadderBgConfig()
-        {
+       /* private void LoadLadderBgConfig()
+      //  {
             // INI located in GameFolder\resources\CnCNetLobby.ini
-            string iniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "resources", "CnCNetLobby.ini");
+         //   string iniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "resources", "CnCNetLobby.ini");
 
             try
             {
@@ -1967,6 +2001,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Logger.Log("Error drawing ladder background: " + ex);
             }
         }
-        // === END Ladder Fetch Section ===
+        // === END Ladder Fetch Section ===*/
     }
 }
