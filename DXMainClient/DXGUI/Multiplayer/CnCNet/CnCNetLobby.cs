@@ -357,6 +357,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRa2v2.Text = "Loading...";
 
             // Add the new labels to the UI
+            AddChild(lbLadderRankings);
             AddChild(lblRa1v1Title);
             AddChild(lblRa1v1);
             AddChild(lblRa2v2Title);
@@ -386,8 +387,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
             // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
             // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
-
-            AddChild(lbLadderRankings);
 
             // -----------------------------------------------------------------------
 
@@ -1912,7 +1911,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
                 RegexOptions.Singleline);
 
-            var trophy = new[] { "Top", "bot", "noob" };
+            var trophy = new[] { "", "", "" };
             var top = new List<string>();
 
             for (int i = 0; i < Math.Min(3, players.Count); i++)
