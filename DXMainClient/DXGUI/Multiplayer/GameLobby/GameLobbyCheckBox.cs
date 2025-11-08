@@ -14,7 +14,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby;
 public class GameLobbyCheckBox : GameSessionCheckBox
 {
     public GameLobbyCheckBox(WindowManager windowManager) : base(windowManager) { }
-    
+
     public bool IsMultiplayer { get; set; }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class GameLobbyCheckBox : GameSessionCheckBox
     /// Defaults to -1, which means none.
     /// </summary>
     public List<int> DisallowedSideIndices = new();
-    
+
     public override void Initialize()
     {
         // Find the game lobby that this control belongs to and register ourselves as a game option.
@@ -82,10 +82,10 @@ public class GameLobbyCheckBox : GameSessionCheckBox
                 DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                 return;
         }
-        
+
         base.ParseControlINIAttribute(iniFile, key, value);
     }
-    
+
     /// <summary>
     /// Applies the check-box's disallowed side index to a bool
     /// array that determines which sides are disabled.
@@ -105,13 +105,13 @@ public class GameLobbyCheckBox : GameSessionCheckBox
             }
         }
     }
-    
+
     public override void OnLeftClick(InputEventArgs inputEventArgs)
     {
         // FIXME there's a discrepancy with how base XNAUI handles this
         // it doesn't set handled if changing the setting is not allowed
         inputEventArgs.Handled = true;
-            
+
         if (!AllowChanges)
             return;
 

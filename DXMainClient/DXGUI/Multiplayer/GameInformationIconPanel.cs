@@ -15,13 +15,15 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private readonly Texture2D icon;
         private readonly string label;
+        private readonly int maxIconWidth;
         private const int iconLabelSpacing = 6;
         public int FontIndex = 1;
 
-        public GameInformationIconPanel(WindowManager windowManager, Texture2D icon, string label) : base(windowManager)
+        public GameInformationIconPanel(WindowManager windowManager, Texture2D icon, string label, int maxIconWidth = 0) : base(windowManager)
         {
             this.icon = icon;
             this.label = label;
+            this.maxIconWidth = maxIconWidth;
 
             DrawBorders = false;
         }
@@ -29,6 +31,9 @@ namespace DTAClient.DXGUI.Multiplayer
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
+
+            if (icon == null)
+                return;
 
             var textSize = Renderer.GetTextDimensions(label, FontIndex);
             int textHeight = (int)textSize.Y;
@@ -41,7 +46,9 @@ namespace DTAClient.DXGUI.Multiplayer
             int panelHeight = Math.Max(icon.Height, textHeight);
             float textY = (panelHeight - textHeight) / 2f;
 
-            DrawString(label, FontIndex, new Vector2(icon.Width + iconLabelSpacing, textY), UISettings.ActiveSettings.TextColor);
+            int textStartX = maxIconWidth > 0 ? maxIconWidth + iconLabelSpacing : icon.Width + iconLabelSpacing;
+
+            DrawString(label, FontIndex, new Vector2(textStartX, textY), UISettings.ActiveSettings.TextColor);
         }
     }
 }

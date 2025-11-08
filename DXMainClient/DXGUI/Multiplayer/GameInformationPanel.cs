@@ -7,6 +7,8 @@ using ClientCore;
 using ClientCore.Extensions;
 
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -23,14 +25,16 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public GameInformationPanel(WindowManager windowManager, MapLoader mapLoader)
+        public GameInformationPanel(WindowManager windowManager, MapLoader mapLoader, GameLobbyBase gameLobby = null)
             : base(windowManager)
         {
             this.mapLoader = mapLoader;
+            this.gameLobby = gameLobby;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
         private MapLoader mapLoader;
+        private GameLobbyBase gameLobby;
 
         private XNALabel lblGameInformation;
         private XNALabel lblGameMode;
@@ -43,6 +47,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private XNALabel[] lblPlayerNames;
         private XNAPanel pnlIconLegend;
+        private XNAPanel pnlGameOptions;
 
         private GenericHostedGame game = null;
 
@@ -148,6 +153,10 @@ namespace DTAClient.DXGUI.Multiplayer
             pnlIconLegend.ClientRectangle = new Rectangle(0, legendY, columnWidth, 0);
             pnlIconLegend.DrawBorders = false;
 
+            pnlGameOptions = new XNAPanel(WindowManager);
+            pnlGameOptions.ClientRectangle = new Rectangle(0, legendY, columnWidth * 2, 0);
+            pnlGameOptions.DrawBorders = false;
+
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -156,6 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
             AddChild(lblSkillLevel);
+            AddChild(pnlGameOptions);
             AddChild(pnlIconLegend);
 
             lblGameInformation.CenterOnParent();
@@ -252,7 +262,98 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
 
+            SetGameOptionsInfo(game);
             SetLegendInfo(game);
+        }
+
+        private void SetGameOptionsInfo(GenericHostedGame game)
+        {
+            foreach (XNAControl xnaControl in pnlGameOptions.Children.ToList())
+                pnlGameOptions.RemoveChild(xnaControl);
+
+            if (gameLobby == null || !(game is HostedCnCNetGame cncnetGame) ||
+                (cncnetGame.BroadcastedCheckboxValues == null && cncnetGame.BroadcastedDropdownIndices == null))
+            {
+                pnlGameOptions.Visible = false;
+                return;
+            }
+
+            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
+            var broadcastableDropdowns = gameLobby.DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
+
+            var optionIcons = new List<(Texture2D, string)>();
+
+            if (cncnetGame.BroadcastedCheckboxValues != null && cncnetGame.BroadcastedCheckboxValues.Length > 0)
+            {
+                for (int i = 0; i < broadcastableCheckboxes.Count; i++)
+                {
+                    bool isChecked = cncnetGame.BroadcastedCheckboxValues[i];
+                    var checkbox = broadcastableCheckboxes[i];
+
+                    if (checkbox.IconShownInGameInfo)
+                    {
+                        string iconName = isChecked ? checkbox.EnabledIcon : checkbox.DisabledIcon;
+                        if (!string.IsNullOrEmpty(iconName))
+                        {
+                            Texture2D icon = AssetLoader.LoadTexture(iconName);
+                            if (icon != null)
+                            {
+                                string text = $"{checkbox.Text}: {(isChecked ? "On".L10N("Client:Main:On") : "Off".L10N("Client:Main:Off"))}";
+                                optionIcons.Add((icon, text));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (cncnetGame.BroadcastedDropdownIndices != null && cncnetGame.BroadcastedDropdownIndices.Length > 0)
+            {
+                for (int i = 0; i < broadcastableDropdowns.Count; i++)
+                {
+                    var dropdown = broadcastableDropdowns[i];
+                    int selectedIndex = cncnetGame.BroadcastedDropdownIndices[i];
+
+                    if (dropdown.IconShownInGameInfo && !string.IsNullOrEmpty(dropdown.Icon) &&
+                        selectedIndex >= 0 && selectedIndex < dropdown.Items.Count)
+                    {
+                        Texture2D icon = AssetLoader.LoadTexture(dropdown.Icon);
+                        if (icon != null)
+                        {
+                            string text = $"{dropdown.OptionName}: {dropdown.Items[selectedIndex].Text}";
+                            optionIcons.Add((icon, text));
+                        }
+                    }
+                }
+            }
+
+            if (optionIcons.Count == 0)
+            {
+                pnlGameOptions.Visible = false;
+                return;
+            }
+
+            int gameOptionsY = lblPlayers.Y + rowHeight + (MAX_PLAYERS / 2 * playerNameRowHeight) + legendTopSpacing;
+            pnlGameOptions.ClientRectangle = new Rectangle(0, gameOptionsY, columnWidth * 2, 0);
+
+            var divider = CreateDivider(0);
+            pnlGameOptions.AddChild(divider);
+
+            int currentY = divider.Bottom + legendPadding;
+
+            int maxIconWidth = optionIcons.Max(option => option.Item1.Width);
+
+            foreach (var (icon, label) in optionIcons)
+            {
+                var iconPanel = new GameInformationIconPanel(WindowManager, icon, label, maxIconWidth);
+                iconPanel.ClientRectangle = new Rectangle(leftColumnPositionX, currentY, pnlGameOptions.Width, legendIconHeight);
+                pnlGameOptions.AddChild(iconPanel);
+                currentY += legendIconHeight + 2;
+            }
+
+            pnlGameOptions.Height = currentY + legendPadding;
+            pnlGameOptions.Visible = true;
+
+            pnlIconLegend.ClientRectangle = new Rectangle(pnlIconLegend.X, pnlGameOptions.Bottom, pnlIconLegend.Width, pnlIconLegend.Height);
         }
 
         private void SetLegendInfo(GenericHostedGame game)
@@ -267,7 +368,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (icons.Count == 0)
             {
                 pnlIconLegend.Visible = false;
-                ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, initialPanelHeight);
+                UpdatePanelHeight();
                 return;
             }
 
@@ -287,7 +388,20 @@ namespace DTAClient.DXGUI.Multiplayer
             pnlIconLegend.Height = currentY + legendPadding;
             pnlIconLegend.Visible = true;
 
-            ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, pnlIconLegend.Bottom);
+            UpdatePanelHeight();
+        }
+
+        private void UpdatePanelHeight()
+        {
+            int bottomMostY = initialPanelHeight;
+
+            if (pnlGameOptions.Visible && pnlGameOptions.Bottom > bottomMostY)
+                bottomMostY = pnlGameOptions.Bottom;
+
+            if (pnlIconLegend.Visible && pnlIconLegend.Bottom > bottomMostY)
+                bottomMostY = pnlIconLegend.Bottom;
+
+            ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, bottomMostY);
         }
 
         private XNAPanel CreateDivider(int y, int height = 1)

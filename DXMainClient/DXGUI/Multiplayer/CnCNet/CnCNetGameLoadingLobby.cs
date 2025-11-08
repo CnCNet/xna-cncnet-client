@@ -717,8 +717,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(0); // LoadedGameId
             sb.Append(";");
             sb.Append(ClientConfiguration.Instance.DefaultSkillLevelIndex); // we don't know the original skill level
-            sb.Append(";");
-            sb.Append(string.Empty); // MapHash
+            sb.Append(";"); // Map SHA1
+            sb.Append(";"); // Packed checkbox values (empty for loaded lobbies)
+            sb.Append(";"); // Dropdown indices (empty for loaded lobbies)
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

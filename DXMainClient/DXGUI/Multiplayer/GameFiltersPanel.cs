@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using ClientCore;
 using ClientGUI;
 using ClientCore.Extensions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -12,6 +16,7 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int minPlayerCount = 2;
         private const int maxPlayerCount = 8;
+        private const int GAP = 12;
 
         private XNAClientCheckBox chkBoxFriendsOnly;
         private XNAClientCheckBox chkBoxHideLockedGames;
@@ -19,8 +24,27 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNAClientCheckBox chkBoxHideIncompatibleGames;
         private XNAClientDropDown ddMaxPlayerCount;
 
-        public GameFiltersPanel(WindowManager windowManager) : base(windowManager)
+        private GameLobbyBase gameLobby;
+        private List<GameOptionFilterControl> gameOptionFilterControls = [];
+        private bool gameOptionFiltersCreated = false;
+
+        private class GameOptionFilterControl
         {
+            public string OptionName { get; set; }
+            public bool IsCheckbox { get; set; }
+            public XNAClientDropDown DropDown { get; set; }
+            public XNALabel Label { get; set; }
+            public int IconX { get; set; }
+            public int IconY { get; set; }
+            public Texture2D CurrentIcon { get; set; }
+            public string EnabledIcon { get; set; }
+            public string DisabledIcon { get; set; }
+            public string Icon { get; set; }
+        }
+
+        public GameFiltersPanel(WindowManager windowManager, GameLobbyBase gameLobby) : base(windowManager)
+        {
+            this.gameLobby = gameLobby;
         }
 
         public override void Initialize()
@@ -30,20 +54,18 @@ namespace DTAClient.DXGUI.Multiplayer
             Name = "GameFiltersWindow";
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0), Width, Height);
 
-            const int gap = 12;
-
             var lblTitle = new XNALabel(WindowManager);
             lblTitle.Name = nameof(lblTitle);
             lblTitle.Text = "Game Filters".L10N("Client:Main:GameFilters");
             lblTitle.ClientRectangle = new Rectangle(
-                gap, gap, 120, UIDesignConstants.BUTTON_HEIGHT
+                GAP, GAP, 120, UIDesignConstants.BUTTON_HEIGHT
             );
 
             chkBoxFriendsOnly = new XNAClientCheckBox(WindowManager);
             chkBoxFriendsOnly.Name = nameof(chkBoxFriendsOnly);
             chkBoxFriendsOnly.Text = "Show Friend Games Only".L10N("Client:Main:FriendGameOnly");
             chkBoxFriendsOnly.ClientRectangle = new Rectangle(
-                gap, lblTitle.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, lblTitle.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 0, 0
             );
 
@@ -51,7 +73,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxHideLockedGames.Name = nameof(chkBoxHideLockedGames);
             chkBoxHideLockedGames.Text = "Hide Locked Games".L10N("Client:Main:HideLockedGame");
             chkBoxHideLockedGames.ClientRectangle = new Rectangle(
-                gap, chkBoxFriendsOnly.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, chkBoxFriendsOnly.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 0, 0
             );
 
@@ -59,7 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxHidePasswordedGames.Name = nameof(chkBoxHidePasswordedGames);
             chkBoxHidePasswordedGames.Text = "Hide Passworded Games".L10N("Client:Main:HidePasswordGame");
             chkBoxHidePasswordedGames.ClientRectangle = new Rectangle(
-                gap, chkBoxHideLockedGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, chkBoxHideLockedGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 0, 0
             );
 
@@ -67,14 +89,14 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxHideIncompatibleGames.Name = nameof(chkBoxHideIncompatibleGames);
             chkBoxHideIncompatibleGames.Text = "Hide Incompatible Games".L10N("Client:Main:HideIncompatibleGame");
             chkBoxHideIncompatibleGames.ClientRectangle = new Rectangle(
-                gap, chkBoxHidePasswordedGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, chkBoxHidePasswordedGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 0, 0
             );
 
             ddMaxPlayerCount = new XNAClientDropDown(WindowManager);
             ddMaxPlayerCount.Name = nameof(ddMaxPlayerCount);
             ddMaxPlayerCount.ClientRectangle = new Rectangle(
-                gap, chkBoxHideIncompatibleGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, chkBoxHideIncompatibleGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 40, UIDesignConstants.BUTTON_HEIGHT
             );
             for (int i = minPlayerCount; i <= maxPlayerCount; i++)
@@ -86,7 +108,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblMaxPlayerCount.Name = nameof(lblMaxPlayerCount);
             lblMaxPlayerCount.Text = "Max Player Count".L10N("Client:Main:MaxPlayerCount");
             lblMaxPlayerCount.ClientRectangle = new Rectangle(
-                ddMaxPlayerCount.X + ddMaxPlayerCount.Width + gap, ddMaxPlayerCount.Y,
+                ddMaxPlayerCount.X + ddMaxPlayerCount.Width + GAP, ddMaxPlayerCount.Y,
                 0, UIDesignConstants.BUTTON_HEIGHT
             );
 
@@ -94,7 +116,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnResetDefaults.Name = nameof(btnResetDefaults);
             btnResetDefaults.Text = "Reset Defaults".L10N("Client:Main:ResetDefaults");
             btnResetDefaults.ClientRectangle = new Rectangle(
-                gap, ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT
             );
             btnResetDefaults.LeftClick += BtnResetDefaults_LeftClick;
@@ -103,7 +125,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnSave.Name = nameof(btnSave);
             btnSave.Text = "Save".L10N("Client:Main:ButtonSave");
             btnSave.ClientRectangle = new Rectangle(
-                gap, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                GAP, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
             );
             btnSave.LeftClick += BtnSave_LeftClick;
@@ -112,7 +134,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnCancel.Name = nameof(btnCancel);
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.ClientRectangle = new Rectangle(
-                Width - gap - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
+                Width - GAP - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
             );
             btnCancel.LeftClick += BtnCancel_LeftClick;
@@ -127,6 +149,213 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(btnResetDefaults);
             AddChild(btnSave);
             AddChild(btnCancel);
+        }
+
+        private void CreateGameOptionFilters()
+        {
+            // Note: broadcasted checkboxes are converted to dropdowns so we can have a third - undefined - value.
+
+            if (gameLobby == null)
+                return;
+
+            int currentY = ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + GAP;
+            const int iconLabelSpacing = 6;
+            const int itemVerticalSpacing = 4;
+            const int minLabelRowHeight = 18;
+
+            int dropdownWidth = (Width - (GAP * 3)) / 2;
+
+            var divider = CreateDivider(currentY);
+            AddChild(divider);
+            currentY += divider.Height + GAP;
+
+            int leftColumnX = GAP;
+            int rightColumnX = Width / 2 + GAP / 2;
+            int filterIndex = 0;
+            int maxItemHeight = 0;
+
+            // Create filters for broadcastable checkboxes
+            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby && cb.IconShownInFilters).ToList();
+            foreach (var checkbox in broadcastableCheckboxes)
+            {
+                var filterControl = new GameOptionFilterControl
+                {
+                    OptionName = checkbox.Name,
+                    IsCheckbox = true,
+                    EnabledIcon = checkbox.EnabledIcon,
+                    DisabledIcon = checkbox.DisabledIcon
+                };
+
+                Texture2D icon = null;
+                if (!string.IsNullOrEmpty(checkbox.EnabledIcon))
+                    icon = AssetLoader.LoadTexture(checkbox.EnabledIcon);
+
+                int iconWidth = icon?.Width ?? 0;
+                int iconHeight = icon?.Height ?? 0;
+
+                bool isLeftColumn = (filterIndex % 2 == 0);
+                int columnX = isLeftColumn ? leftColumnX : rightColumnX;
+                int rowY = currentY + (filterIndex / 2) * maxItemHeight;
+
+                if (icon != null)
+                {
+                    filterControl.IconX = columnX;
+                    filterControl.IconY = rowY;
+                }
+
+                var label = new XNALabel(WindowManager)
+                {
+                    Name = $"lbl{checkbox.Name}Filter",
+                    Text = checkbox.Text ?? checkbox.Name,
+                    ClientRectangle = new Rectangle(
+                    columnX + iconWidth + (iconWidth > 0 ? iconLabelSpacing : 0), rowY,
+                    0, UIDesignConstants.BUTTON_HEIGHT)
+                };
+
+                int topRowHeight = Math.Max(iconHeight, minLabelRowHeight);
+
+                var dropdown = new XNAClientDropDown(WindowManager)
+                {
+                    Name = $"dd{checkbox.Name}Filter",
+                    ClientRectangle = new Rectangle(columnX, rowY + topRowHeight + itemVerticalSpacing, dropdownWidth, UIDesignConstants.BUTTON_HEIGHT)
+                };
+                dropdown.AddItem("All".L10N("Client:Main:FilterAll"));
+                dropdown.AddItem("On".L10N("Client:Main:FilterOn"));
+                dropdown.AddItem("Off".L10N("Client:Main:FilterOff"));
+                dropdown.SelectedIndex = 0;
+                dropdown.SelectedIndexChanged += FilterDropDown_SelectedIndexChanged;
+
+                filterControl.DropDown = dropdown;
+                filterControl.Label = label;
+
+                int itemHeight = topRowHeight + itemVerticalSpacing + UIDesignConstants.BUTTON_HEIGHT + GAP;
+                if (itemHeight > maxItemHeight)
+                    maxItemHeight = itemHeight;
+
+                gameOptionFilterControls.Add(filterControl);
+                AddChild(dropdown);
+                AddChild(label);
+
+                filterIndex++;
+            }
+
+            // Create filters for broadcastable dropdowns
+            var broadcastableDropdowns = gameLobby.DropDowns.Where(dd => dd.BroadcastToLobby && dd.IconShownInFilters).ToList();
+            foreach (var lobbyDropdown in broadcastableDropdowns)
+            {
+                var filterControl = new GameOptionFilterControl
+                {
+                    OptionName = lobbyDropdown.Name,
+                    IsCheckbox = false,
+                    Icon = lobbyDropdown.Icon
+                };
+
+                Texture2D icon = null;
+                if (!string.IsNullOrEmpty(lobbyDropdown.Icon))
+                    icon = AssetLoader.LoadTexture(lobbyDropdown.Icon);
+
+                int iconWidth = icon?.Width ?? 0;
+                int iconHeight = icon?.Height ?? 0;
+
+                bool isLeftColumn = (filterIndex % 2 == 0);
+                int columnX = isLeftColumn ? leftColumnX : rightColumnX;
+                int rowY = currentY + (filterIndex / 2) * maxItemHeight;
+
+                if (icon != null)
+                {
+                    filterControl.IconX = columnX;
+                    filterControl.IconY = rowY;
+                }
+
+                var label = new XNALabel(WindowManager)
+                {
+                    Name = $"lbl{lobbyDropdown.Name}Filter",
+                    Text = lobbyDropdown.OptionName ?? lobbyDropdown.Name,
+                    ClientRectangle = new Rectangle(
+                    columnX + iconWidth + (iconWidth > 0 ? iconLabelSpacing : 0), rowY,
+                    0, UIDesignConstants.BUTTON_HEIGHT)
+                };
+
+                int topRowHeight = Math.Max(iconHeight, minLabelRowHeight);
+
+                var dropdown = new XNAClientDropDown(WindowManager)
+                {
+                    Name = $"dd{lobbyDropdown.Name}Filter",
+                    ClientRectangle = new Rectangle(columnX, rowY + topRowHeight + itemVerticalSpacing, dropdownWidth, UIDesignConstants.BUTTON_HEIGHT)
+                };
+                dropdown.AddItem("All".L10N("Client:Main:FilterAll"));
+
+                foreach (var item in lobbyDropdown.Items)
+                    dropdown.AddItem(new XNADropDownItem { Text = item.Text, Tag = item.Tag });
+
+                dropdown.SelectedIndex = 0;
+                dropdown.SelectedIndexChanged += FilterDropDown_SelectedIndexChanged;
+
+                filterControl.DropDown = dropdown;
+                filterControl.Label = label;
+
+                int itemHeight = topRowHeight + itemVerticalSpacing + UIDesignConstants.BUTTON_HEIGHT + GAP;
+                if (itemHeight > maxItemHeight)
+                    maxItemHeight = itemHeight;
+
+                gameOptionFilterControls.Add(filterControl);
+                AddChild(dropdown);
+                AddChild(label);
+
+                filterIndex++;
+            }
+
+            if (gameOptionFilterControls.Count > 0)
+            {
+                int numRows = (filterIndex + 1) / 2;
+                currentY += numRows * maxItemHeight;
+
+                var secondDivider = CreateDivider(currentY);
+                AddChild(secondDivider);
+
+                currentY += secondDivider.Height + GAP;
+
+                var btnResetDefaults = Children.FirstOrDefault(c => c.Name == "btnResetDefaults") as XNAClientButton;
+                if (btnResetDefaults != null)
+                {
+                    btnResetDefaults.ClientRectangle = new Rectangle(
+                        GAP, currentY,
+                        UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT
+                    );
+                }
+            }
+
+            UpdateFilterIcons();
+        }
+
+        private void FilterDropDown_SelectedIndexChanged(object sender, EventArgs e) => UpdateFilterIcons();
+
+        private void UpdateFilterIcons()
+        {
+            foreach (var filterControl in gameOptionFilterControls)
+            {
+                if (filterControl.IconX == 0 && filterControl.IconY == 0)
+                    continue;
+
+                string iconToShow = null;
+
+                if (filterControl.IsCheckbox)
+                {
+                    // For checkboxes: 0 = All, 1 = On, 2 = Off
+                    int selectedIndex = filterControl.DropDown.SelectedIndex;
+                    if (selectedIndex == 0 || selectedIndex == 1) // All or On
+                        iconToShow = filterControl.EnabledIcon;
+                    else if (selectedIndex == 2) // Off
+                        iconToShow = filterControl.DisabledIcon;
+                }
+                else
+                {
+                    // For dropdowns, always show the icon
+                    iconToShow = filterControl.Icon;
+                }
+
+                filterControl.CurrentIcon = !string.IsNullOrEmpty(iconToShow) ? AssetLoader.LoadTexture(iconToShow) : null;
+            }
         }
 
         private void BtnSave_LeftClick(object sender, EventArgs e)
@@ -153,7 +382,29 @@ namespace DTAClient.DXGUI.Multiplayer
             userIniSettings.HidePasswordedGames.Value = chkBoxHidePasswordedGames.Checked;
             userIniSettings.HideIncompatibleGames.Value = chkBoxHideIncompatibleGames.Checked;
             userIniSettings.MaxPlayerCount.Value = int.Parse(ddMaxPlayerCount.SelectedItem.Text);
-            
+
+            // Save game option filters (only non-default values)
+            var gameOptionFiltersSection = userIniSettings.SettingsIni.GetSection(UserINISettings.GAME_OPTION_FILTERS);
+            gameOptionFiltersSection?.RemoveAllKeys();
+
+            foreach (var filterControl in gameOptionFilterControls)
+            {
+                if (filterControl.IsCheckbox)
+                {
+                    // For checkboxes: 0 = All (default), 1 = On, 2 = Off
+                    int filterValue = filterControl.DropDown.SelectedIndex;
+                    if (filterValue != 0) // Only save if not "All"
+                        userIniSettings.SetCheckboxFilterValue(filterControl.OptionName, filterValue);
+                }
+                else
+                {
+                    // For dropdowns: -1 = All (default), actual indices are offset by 1
+                    int filterValue = filterControl.DropDown.SelectedIndex == 0 ? -1 : filterControl.DropDown.SelectedIndex - 1;
+                    if (filterValue != -1) // if not "All"
+                        userIniSettings.SetDropdownFilterValue(filterControl.OptionName, filterValue);
+                }
+            }
+
             UserINISettings.Instance.SaveSettings();
         }
 
@@ -165,6 +416,23 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxHidePasswordedGames.Checked = userIniSettings.HidePasswordedGames.Value;
             chkBoxHideIncompatibleGames.Checked = userIniSettings.HideIncompatibleGames.Value;
             ddMaxPlayerCount.SelectedIndex = ddMaxPlayerCount.Items.FindIndex(i => i.Text == userIniSettings.MaxPlayerCount.Value.ToString());
+
+            foreach (var filterControl in gameOptionFilterControls)
+            {
+                if (filterControl.IsCheckbox)
+                {
+                    int filterValue = userIniSettings.GetCheckboxFilterValue(filterControl.OptionName);
+                    filterControl.DropDown.SelectedIndex = filterValue;
+                }
+                else
+                {
+                    int filterValue = userIniSettings.GetDropdownFilterValue(filterControl.OptionName);
+                    // Convert -1 (All) to index 0, and offset actual indices by 1
+                    filterControl.DropDown.SelectedIndex = filterValue == -1 ? 0 : filterValue + 1;
+                }
+            }
+
+            UpdateFilterIcons();
         }
 
         private void ResetDefaults()
@@ -175,6 +443,30 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void Show()
         {
+            if (!gameOptionFiltersCreated)
+            {
+                CreateGameOptionFilters();
+
+                var btnResetDefaults = Children.FirstOrDefault(c => c.Name == "btnResetDefaults") as XNAClientButton;
+                var btnSave = Children.FirstOrDefault(c => c.Name == "btnSave") as XNAClientButton;
+                var btnCancel = Children.FirstOrDefault(c => c.Name == "btnCancel") as XNAClientButton;
+
+                if (btnResetDefaults != null && btnSave != null && btnCancel != null)
+                {
+                    btnSave.ClientRectangle = new Rectangle(
+                        GAP, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
+                        UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
+                    );
+
+                    btnCancel.ClientRectangle = new Rectangle(
+                        Width - GAP - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
+                        UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
+                    );
+                }
+
+                gameOptionFiltersCreated = true;
+            }
+
             Load();
             Enable();
         }
@@ -182,6 +474,32 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Cancel()
         {
             Disable();
+        }
+
+        private XNAPanel CreateDivider(int y, int height = 1)
+        {
+            var dividerPanel = new XNAPanel(WindowManager)
+            {
+                DrawBorders = true,
+                ClientRectangle = new Rectangle(0, y, Width, height)
+            };
+            return dividerPanel;
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            base.Draw(gameTime);
+
+            foreach (var filterControl in gameOptionFilterControls)
+            {
+                if (filterControl.CurrentIcon != null)
+                {
+                    DrawTexture(filterControl.CurrentIcon,
+                        new Rectangle(filterControl.IconX, filterControl.IconY,
+                            filterControl.CurrentIcon.Width, filterControl.CurrentIcon.Height),
+                        Color.White);
+                }
+            }
         }
     }
 }

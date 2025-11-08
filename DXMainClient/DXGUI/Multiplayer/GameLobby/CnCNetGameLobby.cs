@@ -2087,6 +2087,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(Map?.SHA1);
 
+            var broadcastableCheckboxes = CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
+            var broadcastableDropdowns = DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
+
+            bool[] checkboxValues = new bool[broadcastableCheckboxes.Count];
+            for (int i = 0; i < broadcastableCheckboxes.Count; i++)
+                checkboxValues[i] = broadcastableCheckboxes[i].Checked;
+
+            List<byte> byteList = Conversions.BoolArrayIntoBytes(checkboxValues).ToList();
+
+            // Pad to multiple of 4 bytes
+            while (byteList.Count % 4 != 0)
+                byteList.Add(0);
+
+            int integerCount = byteList.Count / 4;
+            byte[] byteArray = byteList.ToArray();
+
+            // Convert bytes to integers
+            List<int> packedCheckboxes = new List<int>();
+            for (int i = 0; i < integerCount; i++)
+                packedCheckboxes.Add(BitConverter.ToInt32(byteArray, i * 4));
+
+            sb.Append(";");
+            if (packedCheckboxes.Count > 0)
+                sb.Append(string.Join(",", packedCheckboxes));
+
+            sb.Append(";");
+            if (broadcastableDropdowns.Count > 0)
+                sb.Append(string.Join(",", broadcastableDropdowns.Select(dd => dd.SelectedIndex)));
+
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
 

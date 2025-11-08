@@ -191,12 +191,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47
             );
 
-            panelGameFilters = new GameFiltersPanel(WindowManager);
+            panelGameFilters = new GameFiltersPanel(WindowManager, gameLobby);
             panelGameFilters.Name = nameof(panelGameFilters);
             panelGameFilters.ClientRectangle = gameListRectangle;
             panelGameFilters.Disable();
 
-            lbGameList = new GameListBox(WindowManager, mapLoader, localGameID, HostedGameMatches);
+            lbGameList = new GameListBox(WindowManager, mapLoader, localGameID, gameLobby, HostedGameMatches);
             lbGameList.Name = nameof(lbGameList);
             lbGameList.ClientRectangle = gameListRectangle;
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -421,6 +421,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.ViewTop = 0;
         }
 
+
+        /// <summary>
+        /// Checks if a hosted game matches the current filter criteria.
+        /// </summary>
+        /// <param name="hg">The hosted game to check.</param>
+        /// <returns>True if the game matches the filter criteria, false otherwise.</returns>
         private bool HostedGameMatches(GenericHostedGame hg)
         {
             // friends list takes priority over other filters below
@@ -437,6 +443,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
 
             if (hg.MaxPlayers > UserINISettings.Instance.MaxPlayerCount.Value)
+                return false;
+
+            if (hg is HostedCnCNetGame cncnetGame && !GameOptionsMatch(cncnetGame))
                 return false;
 
             string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
@@ -460,6 +469,62 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 hg.Players.Any(pl => pl.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal));
         }
 
+        /// <summary>
+        /// Checks if a game's broadcast options match the current filter criteria.
+        /// </summary>
+        /// <param name="game">The hosted game to check.</param>
+        /// <returns>True if the game matches the filter criteria, false otherwise.</returns>
+        private bool GameOptionsMatch(HostedCnCNetGame game)
+        {
+            // checkbox filters
+            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
+            if (game.BroadcastedCheckboxValues != null && broadcastableCheckboxes.Count > 0)
+            {
+                for (int i = 0; i < broadcastableCheckboxes.Count; i++)
+                {
+                    if (i >= game.BroadcastedCheckboxValues.Length)
+                        break;
+
+                    var checkbox = broadcastableCheckboxes[i];
+                    int filterValue = UserINISettings.Instance.GetCheckboxFilterValue(checkbox.Name);
+
+                    // 0 = All, 1 = On, 2 = Off
+                    if (filterValue == 0)
+                        continue;
+
+                    bool isChecked = game.BroadcastedCheckboxValues[i];
+
+                    bool shouldBeChecked = filterValue == 1;
+                    if (isChecked != shouldBeChecked)
+                        return false;
+                }
+            }
+
+            // dropdown filters
+            var broadcastableDropdowns = gameLobby.DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
+            if (game.BroadcastedDropdownIndices != null && broadcastableDropdowns.Count > 0)
+            {
+                for (int i = 0; i < broadcastableDropdowns.Count; i++)
+                {
+                    if (i >= game.BroadcastedDropdownIndices.Length)
+                        break;
+
+                    var dropdown = broadcastableDropdowns[i];
+                    int filterValue = UserINISettings.Instance.GetDropdownFilterValue(dropdown.Name);
+
+                    // -1 = All, otherwise check for exact match
+                    if (filterValue == -1)
+                        continue;
+
+                    int gameSelectedIndex = game.BroadcastedDropdownIndices[i];
+
+                    if (gameSelectedIndex != filterValue)
+                        return false;
+                }
+            }
+
+            return true;
+        }
 
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e) => UpdateOnlineCount(e.PlayerCount);
 
@@ -1504,7 +1569,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 13)
+            if (splitMessage.Length != 15)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
 
@@ -1550,6 +1615,43 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string loadedGameId = splitMessage[10];
                 int skillLevel = int.Parse(splitMessage[11]);
                 string mapHash = splitMessage[12];
+
+                bool[] checkboxValues = null;
+                int[] dropdownIndices = null;
+
+                // Games with different versions may have different option counts, so ignore
+                if (gameVersion == ProgramConstants.GAME_VERSION)
+                {
+                    // packed checkbox values
+                    if (!string.IsNullOrEmpty(splitMessage[13]))
+                    {
+                        string[] checkboxStrings = splitMessage[13].Split(',');
+                        int[] packedCheckboxes = new int[checkboxStrings.Length];
+                        for (int i = 0; i < checkboxStrings.Length; i++)
+                            packedCheckboxes[i] = int.Parse(checkboxStrings[i]);
+
+                        int localCheckboxCount = gameLobby.CheckBoxes.Count(cb => cb.BroadcastToLobby);
+                        checkboxValues = new bool[localCheckboxCount];
+                        for (int i = 0; i < localCheckboxCount; i++)
+                        {
+                            int packedIndex = i / 32;
+                            int bitIndex = i % 32;
+                            if (packedIndex < packedCheckboxes.Length)
+                                checkboxValues[i] = (packedCheckboxes[packedIndex] & (1 << bitIndex)) != 0;
+                        }
+                    }
+
+                    // dropdown indices
+                    if (!string.IsNullOrEmpty(splitMessage[14]))
+                    {
+                        string[] dropdownStrings = splitMessage[14].Split(',');
+                        int localDropdownCount = gameLobby.DropDowns.Count(dd => dd.BroadcastToLobby);
+                        int dropdownCount = Math.Min(dropdownStrings.Length, localDropdownCount);
+                        dropdownIndices = new int[dropdownCount];
+                        for (int i = 0; i < dropdownCount; i++)
+                            dropdownIndices[i] = int.Parse(dropdownStrings[i]);
+                    }
+                }
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
@@ -1611,6 +1713,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
                 game.SkillLevel = skillLevel;
+                game.BroadcastedCheckboxValues = checkboxValues;
+                game.BroadcastedDropdownIndices = dropdownIndices;
 
                 if (isClosed)
                 {
