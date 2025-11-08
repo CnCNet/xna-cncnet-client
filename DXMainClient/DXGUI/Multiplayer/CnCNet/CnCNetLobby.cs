@@ -357,7 +357,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRa2v2.Text = "Loading...";
 
             // Add the new labels to the UI
-            AddChild(lbLadderRankings);
             AddChild(lblRa1v1Title);
             AddChild(lblRa1v1);
             AddChild(lblRa2v2Title);
@@ -378,7 +377,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbChatMessages.Width,
                 ladderHeight);
             lbLadderRankings.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 60), 1, 1);
             lbLadderRankings.LineHeight = 16;
             lbLadderRankings.AllowMultiLineItems = false;
             // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
@@ -387,6 +386,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
             // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
             // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
+
+             AddChild(lbLadderRankings);
 
             // -----------------------------------------------------------------------
 
