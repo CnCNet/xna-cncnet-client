@@ -274,27 +274,55 @@ namespace ClientCore
 
         /// <summary>
         /// Gets the filter value for a checkbox game option.
-        /// Returns 0 for "All", 1 for "On", 2 for "Off".
+        /// Returns null for "All" (no filter), true for "On", false for "Off".
         /// </summary>
-        public int GetCheckboxFilterValue(string optionName) => SettingsIni.GetIntValue(GAME_OPTION_FILTERS, optionName, 0);
+        public bool? GetCheckboxFilterValue(string optionName)
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section == null || !section.KeyExists(optionName))
+                return null;
+
+            return section.GetIntValue(optionName, 0) == 1;  // 1 = On (true), 0 = Off (false)
+        }
 
         /// <summary>
         /// Sets the filter value for a checkbox game option.
-        /// 0 = "All", 1 = "On", 2 = "Off".
+        /// null = "All" (no filter), true = "On", false = "Off".
+        /// When null, removes the key from INI. Otherwise stores as: 1 = On, 0 = Off.
         /// </summary>
-        public void SetCheckboxFilterValue(string optionName, int value)  => SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value);
+        public void SetCheckboxFilterValue(string optionName, bool? value)
+        {
+            if (value == null)
+                SettingsIni.GetSection(GAME_OPTION_FILTERS)?.RemoveKey(optionName);
+            else
+                SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value ? 1 : 0);
+        }
 
         /// <summary>
         /// Gets the filter value for a dropdown game option.
-        /// Returns -1 for "All", or the selected index.
+        /// Returns null for "All" (no filter), or the selected index.
         /// </summary>
-        public int GetDropdownFilterValue(string optionName) => SettingsIni.GetIntValue(GAME_OPTION_FILTERS, optionName, -1);
+        public int? GetDropdownFilterValue(string optionName)
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section == null || !section.KeyExists(optionName))
+                return null;
+
+            return section.GetIntValue(optionName, 0);
+        }
 
         /// <summary>
         /// Sets the filter value for a dropdown game option.
-        /// -1 = "All", or the selected index.
+        /// null = "All" (no filter), or the selected index.
+        /// When null, removes the key from INI. Otherwise stores the index value.
         /// </summary>
-        public void SetDropdownFilterValue(string optionName, int value) => SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value);
+        public void SetDropdownFilterValue(string optionName, int? value)
+        {
+            if (value == null)
+                SettingsIni.GetSection(GAME_OPTION_FILTERS)?.RemoveKey(optionName);
+            else
+                SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value);
+        }
 
         /********/
         /* MISC */

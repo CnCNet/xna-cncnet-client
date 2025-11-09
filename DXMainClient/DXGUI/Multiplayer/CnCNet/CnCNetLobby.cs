@@ -486,16 +486,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         break;
 
                     var checkbox = broadcastableCheckboxes[i];
-                    int filterValue = UserINISettings.Instance.GetCheckboxFilterValue(checkbox.Name);
+                    bool? filterValue = UserINISettings.Instance.GetCheckboxFilterValue(checkbox.Name);
 
-                    // 0 = All, 1 = On, 2 = Off
-                    if (filterValue == 0)
+                    if (filterValue == null)
                         continue;
 
                     bool isChecked = game.BroadcastedCheckboxValues[i];
 
-                    bool shouldBeChecked = filterValue == 1;
-                    if (isChecked != shouldBeChecked)
+                    if (isChecked != filterValue.Value)
                         return false;
                 }
             }
@@ -510,15 +508,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         break;
 
                     var dropdown = broadcastableDropdowns[i];
-                    int filterValue = UserINISettings.Instance.GetDropdownFilterValue(dropdown.Name);
+                    int? filterValue = UserINISettings.Instance.GetDropdownFilterValue(dropdown.Name);
 
-                    // -1 = All, otherwise check for exact match
-                    if (filterValue == -1)
+                    if (filterValue == null)
                         continue;
 
                     int gameSelectedIndex = game.BroadcastedDropdownIndices[i];
 
-                    if (gameSelectedIndex != filterValue)
+                    if (gameSelectedIndex != filterValue.Value)
                         return false;
                 }
             }
