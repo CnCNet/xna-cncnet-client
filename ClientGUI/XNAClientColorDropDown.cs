@@ -1,4 +1,5 @@
-﻿using ClientCore.Extensions;
+﻿using System.Collections.Generic;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -19,7 +20,9 @@ namespace ClientGUI
         public Texture2D RandomColorTexture { get; private set; }
         public Texture2D DisabledItemTexture { get; private set; }
 
-        public XNAClientColorDropDown(WindowManager windowManager) : base(windowManager) 
+        private Dictionary<int, Texture2D> itemColorTextures = new Dictionary<int, Texture2D>();
+
+        public XNAClientColorDropDown(WindowManager windowManager) : base(windowManager)
         {
             ColorTextureWidth = Height - VERTICAL_PADDING;
             ColorTextureHeight = Height - HORIZONTAL_PADDING;
@@ -37,27 +40,33 @@ namespace ClientGUI
                     switch (ItemsDrawMode)
                     {
                         case ItemsKind.Text:
-                            Items.ForEach(item =>
+                            for (int i = 0; i < Items.Count; i++)
                             {
-                                // Disposing cause client to crash, so replace texture with transparent one
-                                item.Texture = AssetLoader.CreateTexture(AssetLoader.GetRGBAColorFromString("0,0,0,0"), 1, 1);
-                            });
+                                // Text mode: use transparent 1x1 texture as placeholder
+                                var texture = AssetLoader.CreateTexture(AssetLoader.GetRGBAColorFromString("0,0,0,0"), 1, 1);
+                                Items[i].Texture = texture;
+                                itemColorTextures[i] = texture;
+                            }
                             break;
                         case ItemsKind.Icon:
                             ColorTextureWidth = Width - VERTICAL_PADDING;
                             ColorTextureHeight = Height - HORIZONTAL_PADDING;
-                            
-                            Items.ForEach(item =>
+
+                            for (int i = 0; i < Items.Count; i++)
                             {
-                                if (Items[0] != item)
-                                    item.Texture = AssetLoader.CreateTexture(
-                                        item.TextColor ?? Color.White,
+                                if (i != 0) // Skip random color item
+                                {
+                                    var texture = AssetLoader.CreateTexture(
+                                        Items[i].TextColor ?? Color.White,
                                         ColorTextureWidth,
                                         ColorTextureHeight);
+                                    Items[i].Texture = texture;
+                                    itemColorTextures[i] = texture;
+                                }
 
-                                item.Text = string.Empty;
-                            });
-                            
+                                Items[i].Text = string.Empty;
+                            }
+
                             DisabledItemTexture = AssetLoader.CreateTexture(DisabledItemColor, Width - VERTICAL_PADDING, Height - HORIZONTAL_PADDING);
 
                             break;
@@ -94,12 +103,45 @@ namespace ClientGUI
             item.Text = text;
             item.TextColor = color;
 
-            if (Items.Count > 1)
-                item.Texture = AssetLoader.CreateTexture(color, ColorTextureWidth, ColorTextureHeight);
+            int index = Items.Count;
+
+            if (index > 0) // Not the random color item
+            {
+                var texture = AssetLoader.CreateTexture(color, ColorTextureWidth, ColorTextureHeight);
+                item.Texture = texture;
+                itemColorTextures[index] = texture;
+            }
             else
+            {
                 item.Texture = RandomColorTexture;
+            }
 
             Items.Add(item);
+        }
+
+        /// <summary>
+        /// Enables or disables the color texture for an item by swapping between the color texture and disabled texture.
+        /// </summary>
+        /// <param name="itemIndex">The index of the item.</param>
+        /// <param name="enabled">If true, sets the color texture. If false, sets the disabled texture.</param>
+        public void SetItemColorEnabled(int itemIndex, bool enabled)
+        {
+            if (itemIndex < 0 || itemIndex >= Items.Count)
+                return;
+
+            // Skip random color
+            if (itemIndex == 0)
+                return;
+
+            // Skip if in text only mode
+            if (ItemsDrawMode == ItemsKind.Text)
+                return;
+
+            if (enabled)
+                if (itemColorTextures.TryGetValue(itemIndex, out var colorTexture))
+                    Items[itemIndex].Texture = colorTexture;
+            else
+                Items[itemIndex].Texture = DisabledItemTexture;
         }
 
         public enum ItemsKind

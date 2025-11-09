@@ -2379,17 +2379,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Enable all colors by default
             foreach (var ddColor in ddPlayerColors)
             {
-                ddColor.Items.ForEach(item => 
-                { 
-                    item.Selectable = true;
-                    
-                    // Random color has its own texture
-                    if (ddColor.Items[0] == item) return;
-
-                    if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) return;
-
-                    item.Texture = AssetLoader.CreateTexture(item.TextColor ?? Color.White, ddColor.ColorTextureWidth, ddColor.ColorTextureHeight); 
-                });
+                for (int i = 0; i < ddColor.Items.Count; i++)
+                {
+                    ddColor.Items[i].Selectable = true;
+                    ddColor.SetItemColorEnabled(i, true);
+                }
             }
 
             // Apply starting locations
@@ -2440,10 +2434,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     foreach (var ddColor in ddPlayerColors)
                     {
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
-                        if (ddColor.ItemsDrawMode == XNAClientColorDropDown.ItemsKind.Text) 
-                            continue;
-                        if (ddColor.Items[disallowedColorIndex + 1] != ddColor.Items[0])
-                            ddColor.Items[disallowedColorIndex + 1].Texture = ddColor.DisabledItemTexture;
+                        ddColor.SetItemColorEnabled(disallowedColorIndex + 1, false);
                     }
 
                     foreach (PlayerInfo pInfo in concatPlayerList)
