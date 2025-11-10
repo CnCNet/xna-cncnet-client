@@ -30,6 +30,8 @@ namespace DTAClient.Domain.Multiplayer
 
         public int SkillLevel { get; set; }
 
+        public int Difficulty { get; set; }
+
         public virtual bool Equals(GenericHostedGame other)
             => string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);
     }
