@@ -476,48 +476,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns>True if the game matches the filter criteria, false otherwise.</returns>
         private bool GameOptionsMatch(HostedCnCNetGame game)
         {
-            // checkbox filters
-            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
-            if (game.BroadcastedCheckboxValues != null && broadcastableCheckboxes.Count > 0)
+            if (game.BroadcastedGameOptionValues == null)
+                return true;
+
+            var broadcastableSettings = gameLobby.GetBroadcastableSettings();
+
+            for (int i = 0; i < broadcastableSettings.Count; i++)
             {
-                for (int i = 0; i < broadcastableCheckboxes.Count; i++)
-                {
-                    if (i >= game.BroadcastedCheckboxValues.Length)
-                        break;
+                if (i >= game.BroadcastedGameOptionValues.Length)
+                    break;
 
-                    var checkbox = broadcastableCheckboxes[i];
-                    bool? filterValue = UserINISettings.Instance.GetCheckboxFilterValue(checkbox.Name);
+                int? filterValue = UserINISettings.Instance.GetGameOptionFilterValue(broadcastableSettings[i].Name);
 
-                    if (filterValue == null)
-                        continue;
+                if (filterValue == null)
+                    continue;
 
-                    bool isChecked = game.BroadcastedCheckboxValues[i];
-
-                    if (isChecked != filterValue.Value)
-                        return false;
-                }
-            }
-
-            // dropdown filters
-            var broadcastableDropdowns = gameLobby.DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
-            if (game.BroadcastedDropdownIndices != null && broadcastableDropdowns.Count > 0)
-            {
-                for (int i = 0; i < broadcastableDropdowns.Count; i++)
-                {
-                    if (i >= game.BroadcastedDropdownIndices.Length)
-                        break;
-
-                    var dropdown = broadcastableDropdowns[i];
-                    int? filterValue = UserINISettings.Instance.GetDropdownFilterValue(dropdown.Name);
-
-                    if (filterValue == null)
-                        continue;
-
-                    int gameSelectedIndex = game.BroadcastedDropdownIndices[i];
-
-                    if (gameSelectedIndex != filterValue.Value)
-                        return false;
-                }
+                if (game.BroadcastedGameOptionValues[i] != filterValue.Value)
+                    return false;
             }
 
             return true;
@@ -1566,7 +1541,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 15)
+            if (splitMessage.Length != 14)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
 
@@ -1613,40 +1588,47 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int skillLevel = int.Parse(splitMessage[11]);
                 string mapHash = splitMessage[12];
 
-                bool[] checkboxValues = null;
-                int[] dropdownIndices = null;
+                int[] gameOptionValues = null;
 
                 // Games with different versions may have different option counts, so ignore
                 if (gameVersion == ProgramConstants.GAME_VERSION)
                 {
-                    // packed checkbox values
-                    if (!string.IsNullOrEmpty(splitMessage[13]))
+                    var broadcastableSettings = gameLobby.GetBroadcastableSettings();
+                    if (broadcastableSettings.Count == 0)
                     {
-                        string[] checkboxStrings = splitMessage[13].Split(',');
-                        int[] packedCheckboxes = new int[checkboxStrings.Length];
-                        for (int i = 0; i < checkboxStrings.Length; i++)
-                            packedCheckboxes[i] = int.Parse(checkboxStrings[i]);
-
-                        int localCheckboxCount = gameLobby.CheckBoxes.Count(cb => cb.BroadcastToLobby);
-                        checkboxValues = new bool[localCheckboxCount];
-                        for (int i = 0; i < localCheckboxCount; i++)
-                        {
-                            int packedIndex = i / 32;
-                            int bitIndex = i % 32;
-                            if (packedIndex < packedCheckboxes.Length)
-                                checkboxValues[i] = (packedCheckboxes[packedIndex] & (1 << bitIndex)) != 0;
-                        }
+                        gameOptionValues = null;
                     }
-
-                    // dropdown indices
-                    if (!string.IsNullOrEmpty(splitMessage[14]))
+                    else if (!string.IsNullOrEmpty(splitMessage[13]))
                     {
-                        string[] dropdownStrings = splitMessage[14].Split(',');
-                        int localDropdownCount = gameLobby.DropDowns.Count(dd => dd.BroadcastToLobby);
-                        int dropdownCount = Math.Min(dropdownStrings.Length, localDropdownCount);
-                        dropdownIndices = new int[dropdownCount];
-                        for (int i = 0; i < dropdownCount; i++)
-                            dropdownIndices[i] = int.Parse(dropdownStrings[i]);
+                        gameOptionValues = new int[broadcastableSettings.Count];
+                        string[] allValueStrings = splitMessage[13].Split(',');
+
+                        int checkboxCount = gameLobby.CheckBoxes.Count(cb => cb.BroadcastToLobby);
+                        int packedCheckboxCount = (checkboxCount + 31) / 32;
+
+                        // packed checkbox values
+                        if (checkboxCount > 0 && allValueStrings.Length >= packedCheckboxCount)
+                        {
+                            int[] packedCheckboxes = new int[packedCheckboxCount];
+                            for (int i = 0; i < packedCheckboxCount; i++)
+                                packedCheckboxes[i] = int.Parse(allValueStrings[i]);
+
+                            for (int i = 0; i < checkboxCount; i++)
+                            {
+                                int packedIndex = i / 32;
+                                int bitIndex = i % 32;
+                                gameOptionValues[i] = (packedCheckboxes[packedIndex] & (1 << bitIndex)) != 0 ? 1 : 0;
+                            }
+                        }
+
+                        // dropdown indices
+                        int dropdownCount = gameLobby.DropDowns.Count(dd => dd.BroadcastToLobby);
+                        if (dropdownCount > 0)
+                        {
+                            int count = Math.Min(allValueStrings.Length - packedCheckboxCount, dropdownCount);
+                            for (int i = 0; i < count; i++)
+                                gameOptionValues[checkboxCount + i] = int.Parse(allValueStrings[packedCheckboxCount + i]);
+                        }
                     }
                 }
 
@@ -1710,8 +1692,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
                 game.SkillLevel = skillLevel;
-                game.BroadcastedCheckboxValues = checkboxValues;
-                game.BroadcastedDropdownIndices = dropdownIndices;
+                game.BroadcastedGameOptionValues = gameOptionValues;
 
                 if (isClosed)
                 {

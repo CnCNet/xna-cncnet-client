@@ -392,16 +392,16 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (filterControl.IsCheckbox)
                 {
                     // UI: 0 = All, 1 = On, 2 = Off
-                    // Storage: null = All, true = On, false = Off
-                    bool? filterValue = filterControl.DropDown.SelectedIndex switch
+                    // Storage: null = All, 1 = On, 0 = Off
+                    int? filterValue = filterControl.DropDown.SelectedIndex switch
                     {
                         0 => null,   // All
-                        1 => true,   // On
-                        2 => false,  // Off
+                        1 => 1,      // On
+                        2 => 0,      // Off
                         _ => null
                     };
                     if (filterValue != null) // Only save if not "All"
-                        userIniSettings.SetCheckboxFilterValue(filterControl.OptionName, filterValue);
+                        userIniSettings.SetGameOptionFilterValue(filterControl.OptionName, filterValue);
                 }
                 else
                 {
@@ -409,7 +409,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     // Storage: null = All, otherwise actual index
                     int? filterValue = filterControl.DropDown.SelectedIndex == 0 ? null : filterControl.DropDown.SelectedIndex - 1;
                     if (filterValue != null) // if not "All"
-                        userIniSettings.SetDropdownFilterValue(filterControl.OptionName, filterValue);
+                        userIniSettings.SetGameOptionFilterValue(filterControl.OptionName, filterValue);
                 }
             }
 
@@ -427,23 +427,24 @@ namespace DTAClient.DXGUI.Multiplayer
 
             foreach (var filterControl in gameOptionFilterControls)
             {
+                int? filterValue = userIniSettings.GetGameOptionFilterValue(filterControl.OptionName);
+
                 if (filterControl.IsCheckbox)
                 {
-                    // Storage: null = All, true = On, false = Off
+                    // Storage: null = All, 1 = On, 0 = Off
                     // UI: 0 = All, 1 = On, 2 = Off
-                    bool? filterValue = userIniSettings.GetCheckboxFilterValue(filterControl.OptionName);
                     filterControl.DropDown.SelectedIndex = filterValue switch
                     {
                         null => 0,   // All
-                        true => 1,   // On
-                        false => 2   // Off
+                        1 => 1,      // On
+                        0 => 2,      // Off
+                        _ => 0
                     };
                 }
                 else
                 {
                     // Storage: null = All, otherwise actual index
                     // UI: 0 = All, 1+ = game option indices
-                    int? filterValue = userIniSettings.GetDropdownFilterValue(filterControl.OptionName);
                     filterControl.DropDown.SelectedIndex = filterValue == null ? 0 : filterValue.Value + 1;
                 }
             }

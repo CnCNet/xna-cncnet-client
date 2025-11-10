@@ -147,6 +147,12 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
         base.ParseControlINIAttribute(iniFile, key, value);
     }
 
+    public int Value
+    {
+        get => Checked ? 1 : 0;  // 0 = unchecked/off, 1 = checked/on
+        set => Checked = value != 0;  // 0 = unchecked/off, 1 = checked/on
+    }
+
     public void ApplySpawnIniCode(IniFile spawnIni)
     {
         if (!AffectsSpawnIni)

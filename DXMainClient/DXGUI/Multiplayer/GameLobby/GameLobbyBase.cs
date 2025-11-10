@@ -92,6 +92,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public List<GameLobbyCheckBox> CheckBoxes { get; } = new();
         public List<GameLobbyDropDown> DropDowns { get; } = new();
 
+        public List<IGameSessionSetting> GetBroadcastableSettings()
+        {
+            var result = new List<IGameSessionSetting>();
+
+            result.AddRange(CheckBoxes.Where(cb => cb.BroadcastToLobby));
+            result.AddRange(DropDowns.Where(dd => dd.BroadcastToLobby));
+
+            return result;
+        }
+
         protected DiscordHandler discordHandler;
 
         protected MapLoader MapLoader;

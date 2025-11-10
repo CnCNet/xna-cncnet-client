@@ -272,56 +272,42 @@ namespace DTAClient.DXGUI.Multiplayer
                 pnlGameOptions.RemoveChild(xnaControl);
 
             if (gameLobby == null || !(game is HostedCnCNetGame cncnetGame) ||
-                (cncnetGame.BroadcastedCheckboxValues == null && cncnetGame.BroadcastedDropdownIndices == null))
+                cncnetGame.BroadcastedGameOptionValues == null)
             {
                 pnlGameOptions.Visible = false;
                 return;
             }
 
-            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
-            var broadcastableDropdowns = gameLobby.DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
-
+            var broadcastableSettings = gameLobby.GetBroadcastableSettings();
             var optionIcons = new List<(Texture2D, string)>();
 
-            if (cncnetGame.BroadcastedCheckboxValues != null && cncnetGame.BroadcastedCheckboxValues.Length > 0)
+            for (int i = 0; i < broadcastableSettings.Count && i < cncnetGame.BroadcastedGameOptionValues.Length; i++)
             {
-                for (int i = 0; i < broadcastableCheckboxes.Count; i++)
-                {
-                    bool isChecked = cncnetGame.BroadcastedCheckboxValues[i];
-                    var checkbox = broadcastableCheckboxes[i];
+                var setting = broadcastableSettings[i];
+                int value = cncnetGame.BroadcastedGameOptionValues[i];
 
-                    if (checkbox.IconShownInGameInfo)
+                if (setting is GameLobbyCheckBox checkbox && checkbox.IconShownInGameInfo)
+                {
+                    bool isChecked = value != 0;
+                    string iconName = isChecked ? checkbox.EnabledIcon : checkbox.DisabledIcon;
+                    if (!string.IsNullOrEmpty(iconName))
                     {
-                        string iconName = isChecked ? checkbox.EnabledIcon : checkbox.DisabledIcon;
-                        if (!string.IsNullOrEmpty(iconName))
+                        Texture2D icon = AssetLoader.LoadTexture(iconName);
+                        if (icon != null)
                         {
-                            Texture2D icon = AssetLoader.LoadTexture(iconName);
-                            if (icon != null)
-                            {
-                                string text = $"{checkbox.Text}: {(isChecked ? "On".L10N("Client:Main:On") : "Off".L10N("Client:Main:Off"))}";
-                                optionIcons.Add((icon, text));
-                            }
+                            string text = $"{checkbox.Text}: {(isChecked ? "On".L10N("Client:Main:On") : "Off".L10N("Client:Main:Off"))}";
+                            optionIcons.Add((icon, text));
                         }
                     }
                 }
-            }
-
-            if (cncnetGame.BroadcastedDropdownIndices != null && cncnetGame.BroadcastedDropdownIndices.Length > 0)
-            {
-                for (int i = 0; i < broadcastableDropdowns.Count; i++)
+                else if (setting is GameLobbyDropDown dropdown && dropdown.IconShownInGameInfo &&
+                         !string.IsNullOrEmpty(dropdown.Icon) && value >= 0 && value < dropdown.Items.Count)
                 {
-                    var dropdown = broadcastableDropdowns[i];
-                    int selectedIndex = cncnetGame.BroadcastedDropdownIndices[i];
-
-                    if (dropdown.IconShownInGameInfo && !string.IsNullOrEmpty(dropdown.Icon) &&
-                        selectedIndex >= 0 && selectedIndex < dropdown.Items.Count)
+                    Texture2D icon = AssetLoader.LoadTexture(dropdown.Icon);
+                    if (icon != null)
                     {
-                        Texture2D icon = AssetLoader.LoadTexture(dropdown.Icon);
-                        if (icon != null)
-                        {
-                            string text = $"{dropdown.OptionName}: {dropdown.Items[selectedIndex].Text}";
-                            optionIcons.Add((icon, text));
-                        }
+                        string text = $"{dropdown.OptionName}: {dropdown.Items[value].Text}";
+                        optionIcons.Add((icon, text));
                     }
                 }
             }

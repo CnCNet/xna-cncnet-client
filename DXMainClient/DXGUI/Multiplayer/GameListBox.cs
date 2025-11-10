@@ -256,18 +256,17 @@ namespace DTAClient.DXGUI.Multiplayer
             if (gameLobby == null || game is not HostedCnCNetGame cncnetGame)
                 return (leftIcons, rightIcons);
 
-            if (cncnetGame.BroadcastedCheckboxValues == null || cncnetGame.BroadcastedCheckboxValues.Length == 0)
+            if (cncnetGame.BroadcastedGameOptionValues == null || cncnetGame.BroadcastedGameOptionValues.Length == 0)
                 return (leftIcons, rightIcons);
 
-            var broadcastableCheckboxes = gameLobby.CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
+            var broadcastableSettings = gameLobby.GetBroadcastableSettings();
 
-            for (int i = 0; i < broadcastableCheckboxes.Count; i++)
+            for (int i = 0; i < broadcastableSettings.Count && i < cncnetGame.BroadcastedGameOptionValues.Length; i++)
             {
-                var checkbox = broadcastableCheckboxes[i];
-                if (!checkbox.IconShownInGameList)
+                if (broadcastableSettings[i] is not GameLobbyCheckBox checkbox || !checkbox.IconShownInGameList)
                     continue;
 
-                string iconName = cncnetGame.BroadcastedCheckboxValues[i] ? checkbox.EnabledIcon : checkbox.DisabledIcon;
+                string iconName = cncnetGame.BroadcastedGameOptionValues[i] != 0 ? checkbox.EnabledIcon : checkbox.DisabledIcon;
                 if (string.IsNullOrEmpty(iconName))
                     continue;
 

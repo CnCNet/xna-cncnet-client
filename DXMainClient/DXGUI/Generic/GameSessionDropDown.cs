@@ -113,6 +113,12 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         base.ParseControlINIAttribute(iniFile, key, value);
     }
 
+    public int Value
+    {
+        get => SelectedIndex;
+        set => SelectedIndex = value;
+    }
+
     public void ApplySpawnIniCode(IniFile spawnIni)
     {
         if (!AffectsSpawnIni || SelectedIndex < 0 || SelectedIndex >= Items.Count)
