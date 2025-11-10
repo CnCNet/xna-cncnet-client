@@ -338,7 +338,6 @@ namespace DTAClient.DXGUI.Campaign
         /// </summary>
         private void LaunchMission(Mission mission)
         {
-            CustomMissionHelper.DeleteSupplementalMissionFiles();
             CustomMissionHelper.CopySupplementalMissionFiles(mission);
 
             string scenario = mission.Scenario;
@@ -470,7 +469,7 @@ namespace DTAClient.DXGUI.Campaign
             if (mission.IsCustomMission && mission.GameMissionConfigSection is not null || hasGameMissionData)
             {
                 // copy an IniSection
-                IniSection spawnIniMissionIniSection = new(mission.Scenario.ToUpperInvariant());
+                IniSection spawnIniMissionIniSection = new(mission.Scenario);
                 string loadingScreenName = string.Empty;
                 string loadingScreenPalName = string.Empty;
                 foreach (var kvp in mission.GameMissionConfigSection.Keys)
