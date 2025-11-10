@@ -219,7 +219,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     Name = $"dd{checkbox.Name}Filter",
                     ClientRectangle = new Rectangle(columnX, rowY + topRowHeight + itemVerticalSpacing, dropdownWidth, UIDesignConstants.BUTTON_HEIGHT)
                 };
-                dropdown.AddItem("All".L10N("Client:Main:FilterAll"));
+                dropdown.AddItem("All".L10N("Client:Main:FilterAllGames"));
                 dropdown.AddItem("On".L10N("Client:Main:FilterOn"));
                 dropdown.AddItem("Off".L10N("Client:Main:FilterOff"));
                 dropdown.SelectedIndex = 0;
@@ -283,7 +283,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     Name = $"dd{lobbyDropdown.Name}Filter",
                     ClientRectangle = new Rectangle(columnX, rowY + topRowHeight + itemVerticalSpacing, dropdownWidth, UIDesignConstants.BUTTON_HEIGHT)
                 };
-                dropdown.AddItem("All".L10N("Client:Main:FilterAll"));
+                dropdown.AddItem("All".L10N("Client:Main:FilterAllGames"));
 
                 foreach (var item in lobbyDropdown.Items)
                     dropdown.AddItem(new XNADropDownItem { Text = item.Text, Tag = item.Tag });
