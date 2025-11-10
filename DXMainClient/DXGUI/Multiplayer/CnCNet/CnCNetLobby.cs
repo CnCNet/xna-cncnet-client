@@ -94,13 +94,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa1v1;
         private XNALabel lblRa2v2Title;
         private XNALabel lblRa2v2;
-        
-         // Ladder background config
-         // private int ladderBgX;
-        // private int ladderBgY;
-         //private int ladderBgWidth;
-        // private int ladderBgHeight;
-         //private int ladderBgAlpha;
 
             // ----- Ladder UI fields (NEW) -----
         XNAListBox lbLadderRankings;
@@ -362,7 +355,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRa2v2Title);
             AddChild(lblRa2v2);
 
-           // LoadLadderBgConfig();
 
               // -------------------- LADDER UI BOX (Below chat input) --------------------
             // We position it just above the chat input (so it's visually "below the chat messages")
@@ -382,10 +374,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbLadderRankings.AllowMultiLineItems = false;
             // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
             // Don't set it; selection behavior remains default for your client.
-
-            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
-            // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
-            // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
 
              AddChild(lbLadderRankings);
 
@@ -1869,6 +1857,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
+        if (clientgametype=RA)
         // === START Ladder Fetch Section ===
         private Texture2D _ladderBg;
 
@@ -1924,83 +1913,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             return top;
         }
 
-       /* private void LoadLadderBgConfig()
-      //  {
-            // INI located in GameFolder\resources\CnCNetLobby.ini
-         //   string iniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "resources", "CnCNetLobby.ini");
-
-            try
-            {
-                var ini = new IniFile(iniPath);
-
-                int defaultX = Math.Max(0, (int)lblRa1v1.X - 10);
-                int defaultY = Math.Max(0, (int)lblRa1v1.Y - 6);
-                int defaultWidth = Math.Max(lblRa1v1.Width, lblRa2v2.Width) + 20;
-                int defaultHeight = Math.Max(1, (int)(lblRa1v1.Height + lblRa2v2.Height + 16));
-
-                ladderBgX = ini.GetIntValue("LadderBackground", "X", defaultX);
-                ladderBgY = ini.GetIntValue("LadderBackground", "Y", defaultY);
-                ladderBgWidth = Math.Max(1, ini.GetIntValue("LadderBackground", "Width", defaultWidth));
-                ladderBgHeight = Math.Max(1, ini.GetIntValue("LadderBackground", "Height", defaultHeight));
-              ladderBgAlpha = Clamp(ini.GetIntValue("LadderBackground", "Alpha", 160), 0, 255);
-
-                // If alpha changed, force recreation of texture so alpha is applied
-                if (_ladderBg != null && _ladderBgAlphaCached != ladderBgAlpha)
-                {
-                    _ladderBg.Dispose();
-                    _ladderBg = null;
-                }
-
-                _ladderBgAlphaCached = ladderBgAlpha;
-            }
-            catch (Exception ex)
-            {
-                // Fall back to sensible defaults if INI missing or invalid
-                ladderBgX = Math.Max(0, (int)lblRa1v1.X - 10);
-                ladderBgY = Math.Max(0, (int)lblRa1v1.Y - 6);
-                ladderBgWidth = Math.Max(lblRa1v1.Width, lblRa2v2.Width) + 20;
-                ladderBgHeight = Math.Max(1, (int)(lblRa1v1.Height + lblRa2v2.Height + 16));
-                ladderBgAlpha = 160;
-                Logger.Log("Failed to load ladder INI: " + ex);
-            }
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-
-            try
-            {
-                // create/recreate 1x1 bg texture with configured alpha
-                if (_ladderBg == null)
-                {
-                    _ladderBg?.Dispose();
-                    _ladderBg = new Texture2D(Game.GraphicsDevice, 1, 1);
-                    var bgColor = new Microsoft.Xna.Framework.Color((byte)60, (byte)60,(byte)60, (byte)ladderBgAlpha);
-                    _ladderBg.SetData(new[] { bgColor });
-                    _ladderBgAlphaCached = ladderBgAlpha;
-                }
-
-                // Use INI-configured rectangle (ladderBgX/Y/Width/Height)
-                var bgRect = new Rectangle(
-                    ladderBgX,
-                    ladderBgY,
-                    ladderBgWidth,
-                    ladderBgHeight
-                );
-
-                using (var spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(Game.GraphicsDevice))
-                {
-                    spriteBatch.Begin();
-                    spriteBatch.Draw(_ladderBg, bgRect, Color.White);
-                    spriteBatch.End();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error drawing ladder background: " + ex);
-            }
-        }
-        // === END Ladder Fetch Section ===*/
+     
     }
 }
