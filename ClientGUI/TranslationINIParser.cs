@@ -86,6 +86,12 @@ public class TranslationINIParser : IControlINIAttributeParser
             case "Suggestion" when control is XNASuggestionTextBox suggestionTextBox:
                 suggestionTextBox.Suggestion = Localize(control, key, value.FromIniString());
                 return true;
+            case "URL" when control is XNALinkButton button:  // need to link localized docs
+                button.URL = Localize(control, key, value.FromIniString(), notify: false);
+                return true;
+            case "UnixURL" when control is XNALinkButton button:
+                button.UnixURL = Localize(control, key, value.FromIniString(), notify: false);
+                return true;
         }
 
         return false;
