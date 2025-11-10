@@ -9,7 +9,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public HostedCnCNetGame(string channelName, string revision, string gamever, int maxPlayers,
             string roomName, bool passworded,
             bool tunneled,
-            string[] players, string adminName, string mapName, string gameMode)
+            string[] players, string adminName, string mapName, string gameMode, string mapHash)
         {
             ChannelName = channelName;
             Revision = revision;
@@ -22,6 +22,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             HostName = adminName;
             Map = mapName;
             GameMode = gameMode;
+            MapHash = mapHash;
         }
 
         public string ChannelName { get; set; }

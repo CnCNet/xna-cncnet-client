@@ -759,6 +759,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(sbPlayers.ToString());
             sb.Append(Convert.ToInt32(Locked));
             sb.Append(0); // IsLoadedGame
+            sb.Append(Map?.SHA1);
 
             GameBroadcast?.Invoke(this, new GameBroadcastEventArgs(sb.ToString()));
         }

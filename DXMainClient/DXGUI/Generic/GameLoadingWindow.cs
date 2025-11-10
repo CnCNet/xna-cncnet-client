@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using DTAClient.DXGUI.Campaign;
 
 namespace DTAClient.DXGUI.Generic
 {

@@ -4,12 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using ClientCore;
 using ClientCore.Extensions;
-
 using Rampastring.Tools;
 
 namespace DTAClient.Domain;
@@ -103,7 +99,7 @@ internal static class CustomMissionHelper
                 {
                     string targetFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, filename);
 
-                    FileHelper.CreateHardLinkFromSource(sourceFilePath, targetFilePath);
+                    FileExtensions.CreateHardLinkFromSource(sourceFilePath, targetFilePath);
                     new FileInfo(targetFilePath).IsReadOnly = true;
                 }
             }
