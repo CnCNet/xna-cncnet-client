@@ -95,14 +95,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa2v2Title;
         private XNALabel lblRa2v2;
 
-            // ----- Ladder UI fields (NEW) -----
+        // Ladder background config
+        // private int ladderBgX;
+        // private int ladderBgY;
+        //private int ladderBgWidth;
+        // private int ladderBgHeight;
+        //private int ladderBgAlpha;
+
+        // ----- Ladder UI fields (NEW) -----
         XNAListBox lbLadderRankings;
         private const string LANLOBBY_INI = "lanlobby.ini";
         private const string INI_SECTION = "Ladder";
-        //private const string INI_KEY_RA1_1V1 = "RA1_1v1";
-       // private const string INI_KEY_RA1_2V2 = "RA1_2v2";
         // -----------------------------------
-       
+
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
 
@@ -355,8 +360,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblRa2v2Title);
             AddChild(lblRa2v2);
 
+            // LoadLadderBgConfig();
 
-              // -------------------- LADDER UI BOX (Below chat input) --------------------
+            // -------------------- LADDER UI BOX (Below chat input) --------------------
             // We position it just above the chat input (so it's visually "below the chat messages")
             int ladderHeight = 52; // two lines of text (2 * lineheight + padding)
             int ladderY = tbChatInput.Y - ladderHeight - 6; // 6px gap
@@ -375,7 +381,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
             // Don't set it; selection behavior remains default for your client.
 
-             AddChild(lbLadderRankings);
+            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
+            // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
+            // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
+
+            AddChild(lbLadderRankings);
 
             // -----------------------------------------------------------------------
 
@@ -1293,9 +1303,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCheckCancellation = new CancellationTokenSource();
             CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
-
-            // Kick off ladder fetch (fire-and-forget)
-            _ = FetchAndDisplayLaddersAsync();
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1312,7 +1319,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleGameInviteCommand(string sender, string argumentsString)
         {
             // arguments are semicolon-delimited
-            var arguments = argumentsString.Split(';' );
+            var arguments = argumentsString.Split(';');
 
             // we expect to be given a channel name, a (human-friendly) game name and optionally a password
             if (arguments.Length < 2 || arguments.Length > 3)
@@ -1330,6 +1337,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // also enforce user preference on whether to accept invitations from non-friends
             // this is kept separate from CanReceiveInvitationMessagesFrom() as we still
             // want to let the host know that we couldn't receive the invitation
+            if (!string.IsNullOrEmpty(GetJoinGameErrorByIndex(gameIndex)) ||
+                (UserINISettings.Instance.AllowGameInvitesFromFriendsOnly &&
+                !cncnetUserData.IsFriend(sender)))
+            {
+                // let the host know that we can't accept
+                // note this is not reached for the rejection case
+                connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + sender + " :\u0001" +
+                    ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND + "\u0001",
+                    QueuedMessageType.CHAT_MESSAGE, 0));
+
+                return;
+            }
+
+            // if there's already an outstanding invitation from this user/channel combination,
+            // we don't want to display another
+            // we won't bother telling the host though, since their old invitation is still
+            // available to us
             var invitationIdentity = new UserChannelPair(sender, channelName);
 
             if (invitationIndex.ContainsKey(invitationIdentity))
@@ -1826,27 +1850,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-      /// <summary>
+        /// <summary>
         /// Attempts to find a hosted game that the specified user is in
         /// </summary>
+        /// <param name="user">The user to find a game for.</param>
+        /// <returns></returns>
         private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
         {
-            return lbGameList.HostedGames
-                .Select(g => (HostedCnCNetGame)g)
-                .FirstOrDefault(g => g.Players.Contains(user.Name));
+            return lbGameList.HostedGames.Select(g => (HostedCnCNetGame)g).FirstOrDefault(g => g.Players.Contains(user.Name));
         }
 
         /// <summary>
-        /// Joins a specified user's game depending on whether or not they are currently in one.
+        /// Joins a specified user's game depending on whether or not
+        /// they are currently in one.
         /// </summary>
+        /// <param name="user">The user to join.</param>
+        /// <param name="messageView">The message view/list to write error messages to.</param>
         private void JoinUser(IRCUser user, IMessageView messageView)
         {
             if (user == null)
             {
+                // can happen if a user is selected while offline
                 messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
                 return;
             }
-
             var game = GetHostedGameForUser(user);
             if (game == null)
             {
@@ -1857,7 +1884,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-        if (clientgametype=RA)
         // === START Ladder Fetch Section ===
         private Texture2D _ladderBg;
 
@@ -1912,7 +1938,5 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             return top;
         }
-
-     
     }
 }
