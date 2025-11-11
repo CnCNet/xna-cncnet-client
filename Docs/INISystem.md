@@ -279,7 +279,7 @@ OptionX=                        ; string,  the text option for dropdown. `X` is 
 ; Option_ThirdOption=33333
 ```
 
-#### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
+#### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientDropDown.cs)
 
 _(inherits XNADropDown)_
 
