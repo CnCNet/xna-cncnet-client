@@ -295,6 +295,8 @@ namespace DTAClient.DXGUI.Campaign
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
+            userSettings.ForEach(c => c.Save());
+
             SaveSettings();
 
             int selectedMissionId = lbCampaignList.SelectedIndex;
@@ -396,27 +398,29 @@ namespace DTAClient.DXGUI.Campaign
             }
 
             spawnIni.AddSection(spawnIniSettings);
-            
-            foreach (CampaignCheckBox chkBox in CheckBoxes)
-                chkBox.ApplySpawnIniCode(spawnIni);
+            WriteMissionSectionToSpawnIni(spawnIni, mission);
 
-            foreach (CampaignDropDown dd in DropDowns)
-                dd.ApplySpawnIniCode(spawnIni);
-
-            // Apply forced options from GameOptions.ini
-
-            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
-
-            if (forcedKeys != null)
+            // Process campaign game options
             {
-                foreach (string key in forcedKeys)
+                foreach (CampaignCheckBox chkBox in CheckBoxes)
+                    chkBox.ApplySpawnIniCode(spawnIni);
+
+                foreach (CampaignDropDown dd in DropDowns)
+                    dd.ApplySpawnIniCode(spawnIni);
+
+                // Apply forced options from GameOptions.ini
+
+                List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
+
+                if (forcedKeys != null)
                 {
-                    spawnIni.SetStringValue("Settings", key,
-                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
+                    foreach (string key in forcedKeys)
+                    {
+                        spawnIni.SetStringValue("Settings", key,
+                            gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
+                    }
                 }
             }
-
-            WriteMissionSectionToSpawnIni(spawnIni, mission);
 
             spawnIni.WriteIniFile();
 
@@ -728,6 +732,7 @@ namespace DTAClient.DXGUI.Campaign
             }
 
             lbCampaignList.IsChangingSize = false;
+            lbCampaignList.TopIndex = 0;
         }
         
         /// <summary>
@@ -780,8 +785,6 @@ namespace DTAClient.DXGUI.Campaign
 
             foreach (CampaignCheckBox cb in CheckBoxes)
                 cb.Checked = settingsIni.GetBooleanValue("GameOptions", cb.Name, cb.Checked);
-
-            lbCampaignList.TopIndex = 0;
         }
         public override void Draw(GameTime gameTime)
         {
