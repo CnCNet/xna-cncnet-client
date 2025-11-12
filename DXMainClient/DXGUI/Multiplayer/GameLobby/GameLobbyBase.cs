@@ -1899,7 +1899,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             // Get the supplemental file names for allowable extensions
             var supplementalMapFileNames = ClientConfiguration.Instance.SupplementalMapFileExtensions
-                .Select(ext => $"{baseFileName}.{ext}".ToUpperInvariant())
+                .Select(ext => $"{baseFileName}.{ext}")
                 .ToList();
 
             if (!supplementalMapFileNames.Any())
@@ -1907,7 +1907,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Get full file paths for all possible supplemental files
             return Directory.GetFiles(basePath, $"{baseFileName}.*")
-                .Where(f => supplementalMapFileNames.Contains(Path.GetFileName(f).ToUpperInvariant()));
+                .Where(f => supplementalMapFileNames.Contains(Path.GetFileName(f)));
         }
 
         private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)

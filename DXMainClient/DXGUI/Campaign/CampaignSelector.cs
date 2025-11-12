@@ -610,7 +610,7 @@ namespace DTAClient.DXGUI.Campaign
 
                 string filename = new FileInfo(mapFilePath).Name;
                 string scenario = SafePath.CombineFilePath(ClientConfiguration.Instance.CustomMissionPath, filename);
-                Mission mission = Mission.NewCustomMission(clientMissionDataSection, missionCodeName: filename.ToUpperInvariant(), scenario, gameMissionDataSection);
+                Mission mission = Mission.NewCustomMission(clientMissionDataSection, missionCodeName: filename, scenario, gameMissionDataSection);
                 AddMission(mission);
             }
         }
