@@ -1872,15 +1872,18 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
 
             JoinGame(game, string.Empty, messageView);
         }
-
-if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-       { // === START Ladder Fetch Section ===
+        
+ // === START Ladder Fetch Section ===
         private Texture2D _ladderBg;
 
         private int _ladderBgAlphaCached = -1;
 
         private async Task FetchAndDisplayLaddersAsync()
         {
+        //Only run if clientgametype=RA
+        if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+        return;
+        
             const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
             try
