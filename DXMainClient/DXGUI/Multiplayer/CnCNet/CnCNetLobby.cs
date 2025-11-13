@@ -95,13 +95,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblRa2v2Title;
         private XNALabel lblRa2v2;
 
-        // Ladder background config
-        // private int ladderBgX;
-        // private int ladderBgY;
-        //private int ladderBgWidth;
-        // private int ladderBgHeight;
-        //private int ladderBgAlpha;
-
         // ----- Ladder UI fields (NEW) -----
         XNAListBox lbLadderRankings;
         private const string LANLOBBY_INI = "lanlobby.ini";
@@ -354,13 +347,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRa2v2.FontIndex = 1;
             lblRa2v2.Text = "Loading...";
 
-            // Add the new labels to the UI
+if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+        {    // Add the new labels to the UI
             AddChild(lblRa1v1Title);
             AddChild(lblRa1v1);
             AddChild(lblRa2v2Title);
-            AddChild(lblRa2v2);
-
-            // LoadLadderBgConfig();
+            AddChild(lblRa2v2);  
 
             // -------------------- LADDER UI BOX (Below chat input) --------------------
             // We position it just above the chat input (so it's visually "below the chat messages")
@@ -381,14 +373,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
             // Don't set it; selection behavior remains default for your client.
 
-            // Fill initially with placeholders; will be overwritten by LoadLadderSettingsFromIni()
-            // lbLadderRankings.AddItem("RA1 1v1: ??? ??? ???");
-            // lbLadderRankings.AddItem("RA1 2v2: ??? ??? ???");
 
-            AddChild(lbLadderRankings);
+            AddChild(lbLadderRankings);  
 
             // -----------------------------------------------------------------------
-
+            }
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
             tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
@@ -1884,7 +1873,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(game, string.Empty, messageView);
         }
 
-        // === START Ladder Fetch Section ===
+if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+       { // === START Ladder Fetch Section ===
         private Texture2D _ladderBg;
 
         private int _ladderBgAlphaCached = -1;
