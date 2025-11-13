@@ -348,7 +348,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRa2v2.Text = "Loading...";
 
 if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-        {    // Add the new labels to the UI
+        {  
+        // Add the new labels to the UI
             AddChild(lblRa1v1Title);
             AddChild(lblRa1v1);
             AddChild(lblRa2v2Title);
@@ -375,6 +376,8 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
 
 
             AddChild(lbLadderRankings);  
+
+            _ = FetchAndDisplayLaddersAsync();
 
             // -----------------------------------------------------------------------
             }
@@ -1875,6 +1878,7 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
         }
         
  // === START Ladder Fetch Section ===
+ 
         private Texture2D _ladderBg;
 
         private int _ladderBgAlphaCached = -1;
@@ -1882,8 +1886,9 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
         private async Task FetchAndDisplayLaddersAsync()
         {
         //Only run if clientgametype=RA
-        if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-          {
+        if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
+        return;
+        
             const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
             try
