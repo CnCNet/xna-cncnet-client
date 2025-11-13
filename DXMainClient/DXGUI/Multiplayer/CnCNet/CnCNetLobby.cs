@@ -378,6 +378,7 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
 
             // -----------------------------------------------------------------------
             }
+            
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
             tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
@@ -1881,9 +1882,8 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
         private async Task FetchAndDisplayLaddersAsync()
         {
         //Only run if clientgametype=RA
-        if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
-        return;
-        
+        if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+          {
             const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
 
             try
