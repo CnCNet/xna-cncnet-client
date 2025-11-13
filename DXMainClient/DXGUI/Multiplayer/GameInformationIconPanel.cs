@@ -17,7 +17,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private readonly string label;
         private readonly int maxIconWidth;
         private const int iconLabelSpacing = 6;
-        public int FontIndex = 1;
+        public int FontIndex = 0;
 
         public GameInformationIconPanel(WindowManager windowManager, Texture2D icon, string label, int maxIconWidth = 0) : base(windowManager)
         {
