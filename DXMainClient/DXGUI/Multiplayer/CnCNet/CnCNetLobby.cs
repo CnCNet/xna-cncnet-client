@@ -1881,7 +1881,7 @@ if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
         private async Task FetchAndDisplayLaddersAsync()
         {
         //Only run if clientgametype=RA
-        if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+        if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
         return;
         
             const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
