@@ -1,4 +1,16 @@
-﻿using ClientCore;
+﻿using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -11,18 +23,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
 using ClientCore.Enums;
 using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -82,6 +88,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblCurrentChannel;
         private XNALabel lblOnline;
         private XNALabel lblOnlineCount;
+
+        // New ladder labels
+        private XNALabel lblRa1v1Title;
+        private XNALabel lblRa1v1;
+        private XNALabel lblRa2v2Title;
+        private XNALabel lblRa2v2;
+
+        // ----- Ladder UI fields (NEW) -----
+        XNAListBox lbLadderRankings;
+        private const string LANLOBBY_INI = "lanlobby.ini";
+        private const string INI_SECTION = "Ladder";
+        // -----------------------------------
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -303,6 +321,67 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblOnlineCount.FontIndex = 1;
             lblOnlineCount.Disable();
 
+            // Ladder labels: RA 1v1
+            lblRa1v1Title = new XNALabel(WindowManager);
+            lblRa1v1Title.Name = nameof(lblRa1v1Title);
+            lblRa1v1Title.ClientRectangle = new Rectangle(lblOnline.X, lblOnline.Y + 20, 0, 0);
+            lblRa1v1Title.FontIndex = 1;
+            lblRa1v1Title.Text = "RA 1v1 Top 3:";
+
+            lblRa1v1 = new XNALabel(WindowManager);
+            lblRa1v1.Name = nameof(lblRa1v1);
+            lblRa1v1.ClientRectangle = new Rectangle(lblOnline.X, lblRa1v1Title.Y + 14, 300, 0);
+            lblRa1v1.FontIndex = 1;
+            lblRa1v1.Text = "Loading...";
+
+            // Ladder labels: RA 2v2
+            lblRa2v2Title = new XNALabel(WindowManager);
+            lblRa2v2Title.Name = nameof(lblRa2v2Title);
+            lblRa2v2Title.ClientRectangle = new Rectangle(lblOnline.X + 320, lblOnline.Y + 20, 0, 0);
+            lblRa2v2Title.FontIndex = 1;
+            lblRa2v2Title.Text = "RA-2v2 Top 3:";
+
+            lblRa2v2 = new XNALabel(WindowManager);
+            lblRa2v2.Name = nameof(lblRa2v2);
+            lblRa2v2.ClientRectangle = new Rectangle(lblRa2v2Title.X, lblRa2v2Title.Y + 14, 300, 0);
+            lblRa2v2.FontIndex = 1;
+            lblRa2v2.Text = "Loading...";
+
+if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+        {  
+        // Add the new labels to the UI
+            AddChild(lblRa1v1Title);
+            AddChild(lblRa1v1);
+            AddChild(lblRa2v2Title);
+            AddChild(lblRa2v2);  
+
+            // -------------------- LADDER UI BOX (Below chat input) --------------------
+            // We position it just above the chat input (so it's visually "below the chat messages")
+            int ladderHeight = 52; // two lines of text (2 * lineheight + padding)
+            int ladderY = tbChatInput.Y - ladderHeight - 6; // 6px gap
+            if (ladderY < lbGameList.Bottom + 6) ladderY = lbGameList.Bottom + 6; // prevent overlap
+
+            lbLadderRankings = new XNAListBox(WindowManager);
+            lbLadderRankings.Name = "lbLadderRankings";
+            lbLadderRankings.ClientRectangle = new Rectangle(lbChatMessages.X,
+                ladderY,
+                lbChatMessages.Width,
+                ladderHeight);
+            lbLadderRankings.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbLadderRankings.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 60), 1, 1);
+            lbLadderRankings.LineHeight = 16;
+            lbLadderRankings.AllowMultiLineItems = false;
+            // NOTE: previous versions tried to set AllowSelection — your XNAListBox doesn't have that property.
+            // Don't set it; selection behavior remains default for your client.
+
+
+            AddChild(lbLadderRankings);  
+
+            _ = FetchAndDisplayLaddersAsync();
+
+            // -----------------------------------------------------------------------
+            }
+            
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
             tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
@@ -1796,6 +1875,66 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             JoinGame(game, string.Empty, messageView);
+        }
+        
+ // === START Ladder Fetch Section ===
+ 
+        private Texture2D _ladderBg;
+
+        private int _ladderBgAlphaCached = -1;
+
+        private async Task FetchAndDisplayLaddersAsync()
+        {
+        //Only run if clientgametype=RA
+        if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
+        return;
+        
+            const string url = "https://ladder.cncnet.org/api/v1/qm/ladder/rankings";
+
+            try
+            {
+                using var http = new HttpClient();
+                string json = await http.GetStringAsync(url);
+
+                var raTop = ExtractTop3(json, "RA");
+                var ra2v2Top = ExtractTop3(json, "RA-2v2");
+
+                lblRa1v1.Text = raTop.Count > 0 ? string.Join("   ", raTop) : "No data";
+                lblRa2v2.Text = ra2v2Top.Count > 0 ? string.Join("   ", ra2v2Top) : "No data";
+
+                // Refresh every minute
+                _ = Task.Delay(TimeSpan.FromMinutes(1))
+                        .ContinueWith(async _ => await FetchAndDisplayLaddersAsync());
+            }
+            catch (Exception ex)
+            {
+                lblRa1v1.Text = "⚠ Error fetching ladder";
+                lblRa2v2.Text = "⚠ Error fetching ladder";
+                Logger.Log("Ladder fetch error: " + ex);
+            }
+        }
+
+        private List<string> ExtractTop3(string json, string ladderKey)
+        {
+            var match = Regex.Match(json, $@"""{ladderKey}""\s*:\s*\[(.*?)\](,|}})", RegexOptions.Singleline);
+            if (!match.Success)
+                return new List<string>();
+
+            string ladderJson = match.Groups[1].Value;
+            var players = Regex.Matches(ladderJson,
+                @"""player_name""\s*:\s*""([^""]+)"".*?""points""\s*:\s*(\d+)",
+                RegexOptions.Singleline);
+
+            var trophy = new[] { "", "", "" };
+            var top = new List<string>();
+
+            for (int i = 0; i < Math.Min(3, players.Count); i++)
+            {
+                string name = players[i].Groups[1].Value;
+                top.Add($"{trophy[i]}{i + 1}.{name}");
+            }
+
+            return top;
         }
     }
 }
