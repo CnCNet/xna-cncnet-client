@@ -254,12 +254,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            if (Players.Count != SGPlayers.Count)
-            {
-                NotAllPresentNotification();
-                return;
-            }
-
             HostStartGame();
         }
 
@@ -304,10 +298,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
+            spawnIni.SetIntValue("Settings", "PlayerCount", SGPlayers.Count);
 
-            for (int i = 1; i < Players.Count; i++)
+            for (int i = 1; i < SGPlayers.Count; i++)
             {
-                string otherName = spawnIni.GetStringValue("Other" + i, "Name", string.Empty);
+                string otherSectionName = $"Other{i}";
+                string otherName = spawnIni.GetStringValue(otherSectionName, "Name", string.Empty);
 
                 if (string.IsNullOrEmpty(otherName))
                     continue;
@@ -315,10 +311,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 PlayerInfo otherPlayer = Players.Find(p => p.Name == otherName);
 
                 if (otherPlayer == null)
-                    continue;
-
-                spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
-                spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
+                {
+                    spawnIni.RemoveSection(otherSectionName);  // don't connect to missing players
+                }
+                else
+                {
+                    spawnIni.SetStringValue(otherSectionName, "Ip", otherPlayer.IPAddress);
+                    spawnIni.SetIntValue(otherSectionName, "Port", otherPlayer.Port);
+                }
             }
 
             WriteSpawnIniAdditions(spawnIni);
