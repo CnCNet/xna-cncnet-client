@@ -30,7 +30,10 @@
     <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' 
+                             Or '$(MSBuildProjectName)' == 'ClientGUI' 
+                             Or '$(MSBuildProjectName)' == 'ClientUpdater' 
+                             Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
@@ -51,6 +54,13 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+    
   <!-- For Constants -->
   <PropertyGroup>
     <!-- Is Debug -->

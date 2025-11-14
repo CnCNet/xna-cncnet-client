@@ -32,7 +32,9 @@
   build.ps1 Ares -IsDebug
   Build for ares game on debug mode.
 #>
-param(
+
+param
+(
   [Parameter()]
   [switch]
   $IsDebug,
@@ -48,7 +50,8 @@ param(
 )
 
 $Script:ConfigurationSuffix = 'Release'
-if ($IsDebug) {
+if ($IsDebug)
+{
   $Script:ConfigurationSuffix = 'Debug'
 }
 
@@ -67,17 +70,21 @@ $Script:FrameworkBinariesFolderMap = @{
   'net8.0-windows' = 'BinariesNET8'
 }
 
-if (!$NoClean -AND (Test-Path $Script:CompiledRoot)) {
+if (!$NoClean -AND (Test-Path $Script:CompiledRoot))
+{
   Remove-Item -Recurse -Force -LiteralPath $Script:CompiledRoot
 }
 
-if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) {
+if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) 
+{
   $Script:IsWindows = $true
 }
 
-function Script:Invoke-BuildProject {
+function Script:Invoke-BuildProject
+{
   [CmdletBinding(DefaultParameterSetName = 'ByGame')]
-  param (
+  param
+  (
     [Parameter(Mandatory, ParameterSetName = 'Detail', Position = 0)]
     [string]
     $Engine,
@@ -86,8 +93,10 @@ function Script:Invoke-BuildProject {
     $Framework
   )
   
-  process {
-    if ($Engine) {
+  process
+  {
+    if ($Engine)
+    {
       $Output = Join-Path $CompiledRoot 'Resources' ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
 
       $Private:ArgumentList = [System.Collections.Generic.List[string]]::new(11)
@@ -98,28 +107,35 @@ function Script:Invoke-BuildProject {
       $Private:ArgumentList.Add("--framework:$Framework")
       $Private:ArgumentList.Add("--output:$Output")
       $Private:ArgumentList.Add('-property:SatelliteResourceLanguages=en')
-      if ($Log) {
+      if ($Log)
+      {
         $Private:ArgumentList.Add('-verbosity:diagnostic')
       }
-      if ($NoMove) {
+      if ($NoMove)
+      {
         $Private:ArgumentList.Add('-property:NoMove=true')
       }
       # $Private:ArgumentList.Add("-property:AssemblyVersion=$AssemblySemVer")
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
       # $Private:ArgumentList.Add("-property:InformationalVersion=$InformationalVersion")
   
-      if ($Engine -eq 'WindowsXNA') {
+      if ($Engine -eq 'WindowsXNA')
+      {
         $Private:ArgumentList.Add('--arch=x86')
       }
   
-      & 'dotnet' $Private:ArgumentList  
-      if ($LASTEXITCODE) {
+      echo ''
+      & 'dotnet' $Private:ArgumentList
+      if ($LASTEXITCODE)
+      {
         throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework"
       }
     }
-    else {
+    else
+    {
       Invoke-BuildProject -Engine 'UniversalGL' -Framework 'net8.0'
-      if ($IsWindows) {
+      if ($IsWindows)
+      {
         @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
           $Private:Engine = $PSItem
   
@@ -134,4 +150,33 @@ function Script:Invoke-BuildProject {
   }
 }
 
+# Build client binaries
 Script:Invoke-BuildProject
+
+# Build migration tool binaries
+$Private:MTFramework='net8.0-windows'
+$Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
+$Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
+$Private:MTOutput = Join-Path $MTCompiledPath 'Resources' $FrameworkBinariesFolderMap['net8.0-windows']
+$Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
+$Private:MTArgumentList.Add('publish')
+$Private:MTArgumentList.Add("$MTProjectPath")
+$Private:MTArgumentList.Add('--graph')
+$Private:MTArgumentList.Add("--framework:$MTFramework")
+$Private:MTArgumentList.Add("--output:$MTOutput\MigrationTool")
+$Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
+if ($Log)
+{
+  $Private:ArgumentList.Add('-verbosity:diagnostic')
+}
+if ($NoMove)
+{
+  $Private:ArgumentList.Add('-property:NoMove=true')
+}
+
+echo ''
+& 'dotnet' $MTArgumentList
+if ($LASTEXITCODE)
+{
+  throw "Build failed for Migration Tool"
+}
