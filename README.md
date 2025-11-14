@@ -22,6 +22,11 @@ The client has 2 variants: .NET 4.8 and .NET 8.0.
 * The DirectX11 and OpenGL builds rely on MonoGame.
 * The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
 
+To build this project, you must use Git to clone the repository, instead of downloading a ZIP archive. After cloning, make sure to initialize and update the submodules using the following command:
+```shell
+git submodule update --init --recursive
+```
+
 Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requries Visual Studio 2026 or newer. A modern version of Visual Studio Code, MonoDevelop or Rider could also work, but are not officially supported.
 To debug WindowsXNA builds the .NET SDK 10.0 x86 is additionally required.
 When using the included build scripts PowerShell 7.2 or newer is required.[^install-powershell]
