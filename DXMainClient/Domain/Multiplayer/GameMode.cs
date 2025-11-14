@@ -3,6 +3,7 @@ using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -77,6 +78,8 @@ namespace DTAClient.Domain.Multiplayer
         public int MinPlayersOverride { get; private set; } = -1;
 
         private string mapCodeININame;
+        private List<string> randomizedMapCodeININames;
+        private int randomizedMapCodesCount;
 
         private string forcedOptionsSection;
 
@@ -103,6 +106,8 @@ namespace DTAClient.Domain.Multiplayer
             MinPlayersOverride = forcedOptionsIni.GetIntValue(Name, "MinPlayersOverride", -1);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
+            randomizedMapCodeININames = forcedOptionsIni.GetStringValue(Name, "RandomizedMapCodeININames", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            randomizedMapCodesCount = forcedOptionsIni.GetIntValue(Name, "RandomizedMapCodesCount", 1);
 
             string[] disallowedSides = forcedOptionsIni.GetStringListValue(Name, "DisallowedPlayerSides", string.Empty);
 
@@ -174,9 +179,24 @@ namespace DTAClient.Domain.Multiplayer
                 spawnIni.SetStringValue("Settings", key.Key, key.Value);
         }
 
-        public IniFile GetMapRulesIniFile()
+        public List<IniFile> GetMapRulesIniFiles(int randomSeed)
         {
-            return new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame));
+            var mapRules = new List<IniFile>() { new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame)) };
+            if (randomizedMapCodeININames.Count == 0)
+                return mapRules;
+
+            Random random = new Random(randomSeed);
+            Dictionary<string, int> randomOrder = new();
+            foreach (string name in randomizedMapCodeININames)
+            {
+                randomOrder[name] = random.Next();
+            }
+
+            mapRules.AddRange(
+                from iniName in randomizedMapCodeININames.OrderBy(x => randomOrder[x]).Take(randomizedMapCodesCount)
+                select new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, iniName)));
+
+            return mapRules;
         }
 
         protected bool Equals(GameMode other) => string.Equals(Name, other?.Name, StringComparison.InvariantCultureIgnoreCase);
