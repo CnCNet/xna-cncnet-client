@@ -204,6 +204,8 @@ namespace DTAClient
                 MainClientConstants.DisplayErrorAction(null, error, true);
             }
 
+            Dev.Initialize();
+
             Startup startup = new();
 #if DEBUG
             startup.Execute();
@@ -223,7 +225,7 @@ namespace DTAClient
 
         }
 
-        public static void LogException(Exception ex, bool innerException = false)
+        public static void LogException(Exception ex, bool innerException = false, string stackTraceOverride = null)
         {
             if (!innerException)
                 Logger.Log("KABOOOOOOM!!! Info:");
@@ -234,15 +236,15 @@ namespace DTAClient
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
-            Logger.Log("Stacktrace: " + ex.StackTrace);
+            Logger.Log("Stacktrace: " + (stackTraceOverride ?? ex.StackTrace));
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
         }
 
-        public static void HandleException(object sender, Exception ex)
+        public static void HandleException(object sender, Exception ex, string stackTraceOverride = null)
         {
-            LogException(ex, innerException: false);
+            LogException(ex, innerException: false, stackTraceOverride);
 
             string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;

@@ -212,7 +212,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (mapTexture == null && noMapPreviewTexture != null)
                 {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
+                    Dev.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
                     disposeTextures = false;
                 }
@@ -238,7 +238,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapTexture != null && disposeTextures)
             {
-                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
+                Dev.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
                 mapTexture.Dispose();
                 mapTexture = null;
             }

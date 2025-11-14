@@ -145,7 +145,7 @@ namespace DTAClient.Online
                     {
                         string fileRelativePath = SafePath.CombineFilePath(path.Name, filename);
                         string fileFullPath = SafePath.CombineFilePath(path.FullName, filename);
-                        Debug.Assert(File.Exists(fileFullPath), $"File {fileFullPath} is supposed to but does not exist.");
+                        Dev.Assert(File.Exists(fileFullPath), $"File {fileFullPath} is supposed to but does not exist.");
 
                         string hash = fh.AddHashForFileIfExists(fileRelativePath, fileFullPath);
                         if (!string.IsNullOrEmpty(hash))
@@ -262,7 +262,7 @@ namespace DTAClient.Online
 
             public string AddHashForFileIfExists(string relativePath, string filePath)
             {
-                Debug.Assert(!relativePath.StartsWith(ProgramConstants.GamePath), $"File path {relativePath} should be a relative path.");
+                Dev.Assert(!relativePath.StartsWith(ProgramConstants.GamePath), $"File path {relativePath} should be a relative path.");
 
                 string hash = CalculateSHA1ForFile(filePath);
                 if (!string.IsNullOrEmpty(hash))
