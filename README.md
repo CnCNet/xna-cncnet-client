@@ -98,7 +98,7 @@ Windows 7 SP1 additionally requires:
 ## Client launcher
 
 This repository does not contain the client launcher (for example, `DTA.exe` in Dawn of the Tiberium Age) that selects which platform's client executable is most suitable for each user's system.
-See [dta-mg-client-launcher](https://github.com/CnCNet/dta-mg-client-launcher).
+See [xna-cncnet-client-launcher](https://github.com/CnCNet/xna-cncnet-client-launcher).
 
 ## Branches
 
