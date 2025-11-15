@@ -9,7 +9,15 @@ namespace DTAClient.Domain.LAN
 {
     class HostedLANGame : GenericHostedGame
     {
-        public IPEndPoint EndPoint { get; set; }
+        private IPEndPoint _EndPoint;
+        public IPEndPoint EndPoint {
+            get { return _EndPoint; }
+            set
+            {
+                _EndPoint = value;
+                RoomName = HostName + "'s Game" + (EndPoint != null ? " [" + EndPoint.Address.ToString() + "]" : "");
+            }
+        }
         public string LoadedGameID { get; set; }
 
         public TimeSpan TimeWithoutRefresh { get; set; }

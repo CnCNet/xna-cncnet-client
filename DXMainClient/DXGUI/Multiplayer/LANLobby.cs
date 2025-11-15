@@ -19,6 +19,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
+using SystemNetworkInterface = System.Net.NetworkInformation.NetworkInterface;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -89,10 +91,15 @@ namespace DTAClient.DXGUI.Multiplayer
         EnhancedSoundEffect sndGameCreated;
 
         Socket socket;
-        IPEndPoint endPoint;
         Encoding encoding;
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
+
+        List<NetworkInterface> broadcast_interfaces = new List<NetworkInterface>();
+        Dictionary<string, PlayerIPInfo> player_ipinfo = new Dictionary<string, PlayerIPInfo>();
+        Dictionary<string, PlayerUsernameInfo> player_usernameinfo = new Dictionary<string, PlayerUsernameInfo>();
+
+        Thread listener;
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
 
@@ -276,14 +283,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
         {
-            if (socket == null)
-                return;
-
-            if (socket.IsBound)
+            if (socket != null && socket.IsBound)
             {
                 try
                 {
-                    SendMessage("QUIT");
+                    SendMessage("QUIT ");
+                }
+                catch (ObjectDisposedException)
+                {
+
+                }
+                try
+                {
                     socket.Close();
                 }
                 catch (ObjectDisposedException)
@@ -291,6 +302,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 }
             }
+            if (listener != null) listener.Join(1000);
         }
 
         private void LanGameLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
@@ -338,11 +350,42 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
+        class NetworkInterface
+        {
+            public IPAddress local_ip;
+            public IPEndPoint broadcast;
+            public NetworkInterface(IPAddress local_ip, IPEndPoint broadcast)
+            {
+                this.local_ip = local_ip;
+                this.broadcast = broadcast;
+            }
+        }
+
+        private void AddBroadcastInterfaces()
+        {
+            SystemNetworkInterface[] interfaces = SystemNetworkInterface.GetAllNetworkInterfaces();
+            foreach (SystemNetworkInterface iface in interfaces)
+            {
+                IPInterfaceProperties prop = iface.GetIPProperties();
+                UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info => info.Address.AddressFamily == AddressFamily.InterNetwork);
+                if (info == null) continue;
+                IPAddress local_ip = info.Address;
+                uint ip = BitConverter.ToUInt32(local_ip.GetAddressBytes(), 0);
+                uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
+                uint broadcast = ip | ~mask;
+                IPAddress broadcast_ip = new IPAddress(BitConverter.GetBytes(broadcast));
+                broadcast_interfaces.Add(new NetworkInterface(local_ip, new IPEndPoint(broadcast_ip, ProgramConstants.LAN_LOBBY_PORT)));
+            }
+        }
+
         public void Open()
         {
             players.Clear();
             lbPlayerList.Clear();
             lbGameList.ClearGames();
+            broadcast_interfaces.Clear();
+            player_ipinfo.Clear();
+            player_usernameinfo.Clear();
 
             Visible = true;
             Enabled = true;
@@ -354,7 +397,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 socket.EnableBroadcast = true;
                 socket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT));
-                endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
+                AddBroadcastInterfaces();
                 initSuccess = true;
             }
             catch (SocketException ex)
@@ -371,7 +414,8 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             Logger.Log("Starting listener.");
-            new Thread(new ThreadStart(Listen)).Start();
+            listener = new Thread(new ThreadStart(Listen));
+            listener.Start();
 
             SendAlive();
         }
@@ -384,8 +428,62 @@ namespace DTAClient.DXGUI.Multiplayer
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
+            List<NetworkInterface> for_deletion = null;
+            foreach (NetworkInterface iface in broadcast_interfaces)
+            {
+                try
+                {
+                    socket.SendTo(buffer, iface.broadcast);
+                }
+                catch (SocketException)
+                {
+                    if (for_deletion == null) for_deletion = new List<NetworkInterface>();
+                    for_deletion.Add(iface);
+                }
+            }
+            if (for_deletion != null)
+            {
+                foreach (NetworkInterface iface in for_deletion)
+                {
+                    broadcast_interfaces.Remove(iface);
+                }
+            }
+        }
 
-            socket.SendTo(buffer, endPoint);
+        class PlayerIPInfo
+        {
+            public IPAddress ip;
+            public DateTime last_msg_time;
+            public PlayerIPInfo(IPAddress ip, DateTime last_msg_time)
+            {
+                this.ip = ip;
+                this.last_msg_time = last_msg_time;
+            }
+        }
+
+        private bool ShouldReceive(string username, IPAddress ip)
+        {
+            DateTime now = DateTime.Now;
+            if (!player_ipinfo.ContainsKey(username))
+            {
+                player_ipinfo[username] = new PlayerIPInfo(ip, now);
+                return true;
+            }
+            PlayerIPInfo info = player_ipinfo[username];
+            if (info.ip.Equals(ip))
+            {
+                info.last_msg_time = now;
+                return true;
+            }
+            if ((now - info.last_msg_time).Seconds >= 3)
+            {
+                info.last_msg_time = now;
+                info.ip = ip;
+                return true;
+            } else
+            {
+                return false;
+            }
         }
 
         private void Listen()
@@ -400,7 +498,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     receivedBytes = socket.ReceiveFrom(buffer, ref ep);
 
                     IPEndPoint iep = (IPEndPoint)ep;
-
                     string data = encoding.GetString(buffer, 0, receivedBytes);
 
                     if (data == string.Empty)
@@ -411,8 +508,56 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("LAN socket listener: exception: " + ex.ToString());
+                if (ex is SocketException sex && sex.SocketErrorCode == SocketError.Interrupted)
+                { 
+                    // do nothing, this is how the thread is supposed to end
+                }
+                else
+                {
+                    Logger.Log("LAN socket listener: exception: " + ex.ToString());
+                }
             }
+        }
+
+        class PlayerUsernameInfo
+        {
+            public int list_index;
+            public int count;
+            public PlayerUsernameInfo(int list_index, int count)
+            {
+                this.list_index = list_index;
+                this.count = count;
+            }
+        }
+
+        private void PlayerListAdd(string username, Texture2D texture)
+        {
+            if (player_usernameinfo.ContainsKey(username))
+            {
+                player_usernameinfo[username].count++;
+            }
+            else
+            {
+                player_usernameinfo[username] = new PlayerUsernameInfo(lbPlayerList.Items.Count, 1);
+                lbPlayerList.AddItem(username, texture);
+            }
+        }
+
+        private void PlayerListRemove(string username)
+        {
+            if (!player_usernameinfo.ContainsKey(username)) return;
+            PlayerUsernameInfo info = player_usernameinfo[username];
+            if (info.count == 1)
+            {
+                int idx = info.list_index;
+                foreach (PlayerUsernameInfo oinfo in player_usernameinfo.Values)
+                {
+                    if (oinfo.list_index > idx) oinfo.list_index--;
+                }
+                player_usernameinfo.Remove(username);
+                lbPlayerList.RemoveItem(idx);
+            }
+            else info.count--;
         }
 
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
@@ -447,7 +592,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                         user = new LANLobbyUser(name, gameTexture, endPoint);
                         players.Add(user);
-                        lbPlayerList.AddItem(user.Name, gameTexture);
+                        PlayerListAdd(user.Name, gameTexture);
                     }
 
                     user.TimeWithoutRefresh = TimeSpan.Zero;
@@ -465,6 +610,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
 
+                    if (!ShouldReceive(user.Name, endPoint.Address)) break;
+
                     lbChatMessages.AddMessage(new ChatMessage(user.Name,
                         chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
 
@@ -475,8 +622,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     int index = players.FindIndex(p => p == user);
 
+                    PlayerListRemove(players[index].Name);
                     players.RemoveAt(index);
-                    lbPlayerList.Items.RemoveAt(index);
                     break;
                 case "GAME":
                     if (user == null)
@@ -622,7 +769,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            SendMessage("QUIT");
+            SendMessage("QUIT ");
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);
         }
@@ -648,7 +795,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (players[i].TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
-                    lbPlayerList.Items.RemoveAt(i);
+                    PlayerListRemove(players[i].Name);
                     players.RemoveAt(i);
                     i--;
                 }
