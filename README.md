@@ -27,7 +27,7 @@ To build this project, you must use Git to clone the repository, instead of down
 git submodule update --init --recursive
 ```
 
-Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requries Visual Studio 2026 or newer. A modern version of Visual Studio Code, MonoDevelop or Rider could also work, but are not officially supported.
+Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requries Visual Studio 2026 or newer, or Rider 2025.3 or newer. A modern version of Visual Studio Code also works, but is not officially supported.
 To debug WindowsXNA builds the .NET SDK 10.0 x86 is additionally required.
 When using the included build scripts PowerShell 7.2 or newer is required.[^install-powershell]
 
