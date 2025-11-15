@@ -27,13 +27,13 @@ To build this project, you must use Git to clone the repository, instead of down
 git submodule update --init --recursive
 ```
 
-Building the solution for **any** platform requires Visual Studio 2022 17.8 or newer and/or the .NET SDK 8.0.200. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
-To debug WindowsXNA builds the .NET SDK 8.0 x86 is additionally required.
+Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requries Visual Studio 2026 or newer, or Rider 2025.3 or newer. A modern version of Visual Studio Code also works, but is not officially supported.
+To debug WindowsXNA builds the .NET SDK 10.0 x86 is additionally required.
 When using the included build scripts PowerShell 7.2 or newer is required.[^install-powershell]
 
 ## Compiling and debugging
 
-* Compiling itself is simple: assuming you have the .NET 8.0 SDK installed, you can just open the solution with Visual Studio and compile it right away.
+* Compiling itself is simple: assuming you have the .NET SDK 10.0 installed, you can just open the solution with Visual Studio and compile it right away.
 * When built as a debug build, the client executable expects to reside in the same directory with the target project's main game executable. Resources should exist in a "Resources" sub-directory in the same directory. The repository contains sample resources and post-build commands for copying them so that you can immediately run the client in debug mode by just hitting the Debug button in Visual Studio.
 * When built in release mode, the client executables expect to reside in the `Resources` sub-directory itself for .NET 4.8, named `clientdx.exe`, `clientogl.exe` and `clientxna.exe`. Each `.exe` file or `.dll` file expects a `.pdb` file for diagnostics purpose. It's advised not to delete these `.pdb` files. Keep all `.pdb` files even for end users.
 * The `Scripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
@@ -89,7 +89,7 @@ Refer to [Docs/Build.md](/Docs/Build.md) for more information about building the
 * [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
 
 Windows 7 SP1 and Windows 8.x additionally require:
-* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
+* Microsoft Visual C++ 2015-2022 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
 
 Windows 7 SP1 additionally requires:
 * KB3063858 [64-bit](https://www.microsoft.com/download/details.aspx?id=47442) / [32-bit](https://www.microsoft.com/download/details.aspx?id=47409).

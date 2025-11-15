@@ -112,9 +112,9 @@ function Script:Invoke-BuildProject {
       #   $Private:ArgumentList.Add('--arch=x86')
       # }
   
-      & 'dotnet' $Private:ArgumentList  
+      & 'dotnet' $Private:ArgumentList
       if ($LASTEXITCODE) {
-        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework"
+        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $LASTEXITCODE)"
       }
     }
     else {

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <ImplicitUsings>disable</ImplicitUsings>
