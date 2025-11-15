@@ -114,13 +114,7 @@ function Script:Invoke-BuildProject {
   
       & 'dotnet' $Private:ArgumentList
       if ($LASTEXITCODE) {
-        $exitCode = $LASTEXITCODE
-        $errMsg = "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $exitCode)"
-        if ($exitCode -eq 8) {
-          # ERROR_NOT_ENOUGH_MEMORY
-          $errMsg += " - ERROR_NOT_ENOUGH_MEMORY"
-        }
-        throw $errMsg
+        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $LASTEXITCODE)"
       }
     }
     else {
