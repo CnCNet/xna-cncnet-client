@@ -112,9 +112,15 @@ function Script:Invoke-BuildProject {
       #   $Private:ArgumentList.Add('--arch=x86')
       # }
   
-      & 'dotnet' $Private:ArgumentList  
+      & 'dotnet' $Private:ArgumentList
       if ($LASTEXITCODE) {
-        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework"
+        $exitCode = $LASTEXITCODE
+        $errMsg = "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $exitCode)"
+        if ($exitCode -eq 8) {
+          # ERROR_NOT_ENOUGH_MEMORY
+          $errMsg += " - ERROR_NOT_ENOUGH_MEMORY"
+        }
+        throw $errMsg
       }
     }
     else {
