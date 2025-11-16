@@ -174,6 +174,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int SideCount { get; private set; }
         protected int RandomSelectorCount { get; private set; } = 1;
 
+        /// <summary>
+        /// The maximum number of players allowed in this lobby.
+        /// </summary>
+        protected virtual int MaxPlayerCount => MAX_PLAYER_COUNT;
+
         protected List<int[]> RandomSelectors = new List<int[]>();
 
         private readonly bool isMultiplayer = false;
@@ -2097,7 +2102,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             AIPlayers.Clear();
-            for (int cmbId = Players.Count; cmbId < 8; cmbId++)
+            for (int cmbId = Players.Count; cmbId < MaxPlayerCount; cmbId++)
             {
                 XNADropDown dd = ddPlayerNames[cmbId];
                 dd.Items[0].Text = "-";

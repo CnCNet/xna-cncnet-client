@@ -114,7 +114,7 @@ namespace DTAClient.DXGUI.Generic
             mainMenu.PostInit();
 
             if (UserINISettings.Instance.AutomaticCnCNetLogin &&
-                NameValidator.IsNameValid(ProgramConstants.PLAYERNAME) == null)
+                NameValidator.IsNameValid(ProgramConstants.PLAYERNAME, out _) == NameValidationError.None)
             {
                 cncnetManager.Connect();
             }
