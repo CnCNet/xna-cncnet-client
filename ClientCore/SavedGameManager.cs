@@ -21,32 +21,56 @@ namespace ClientCore
             if (!AreSavedGamesAvailable())
                 return 0;
 
-            for (int i = 0; i < 1000; i++)
+            try
             {
-                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
-                {
-                    return i;
-                }
-            }
+                var files = Directory.EnumerateFiles(saveGameDirectory, "SVGM_*.NET");
+                int maxIndex = -1;
 
-            return 1000;
+                foreach (var file in files)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    if (fileName.Length >= 5 && fileName.StartsWith("SVGM_"))
+                    {
+                        string indexStr = fileName.Substring(5);
+                        if (int.TryParse(indexStr, out int index))
+                        {
+                            if (index > maxIndex)
+                                maxIndex = index;
+                        }
+                    }
+                }
+
+                return maxIndex + 1;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         public static List<string> GetSaveGameTimestamps()
         {
-            int saveGameCount = GetSaveGameCount();
-
-            List<string> timestamps = new List<string>();
-
             string saveGameDirectory = GetSaveGameDirectoryPath();
 
-            for (int i = 0; i < saveGameCount; i++)
+            if (!AreSavedGamesAvailable())
+                return new List<string>();
+
+            var timestamps = new List<string>();
+
+            try
             {
-                FileInfo sgFile = SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                var files = Directory.EnumerateFiles(saveGameDirectory, "SVGM_*.NET")
+                    .OrderBy(f => f);
 
-                DateTime dt = sgFile.LastWriteTime;
-
-                timestamps.Add(dt.ToString());
+                foreach (var file in files)
+                {
+                    FileInfo sgFile = new FileInfo(file);
+                    timestamps.Add(sgFile.LastWriteTime.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error getting save game timestamps: {ex.Message}");
             }
 
             return timestamps;
@@ -110,16 +134,10 @@ namespace ClientCore
 
             saveRenameInProgress = true;
 
-            int saveGameId = 0;
+            int saveGameId = GetSaveGameCount();
 
-            for (int i = 0; i < 1000; i++)
-            {
-                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
-                {
-                    saveGameId = i;
-                    break;
-                }
-            }
+            if (saveGameId >= 1000)
+                saveGameId = 999;
 
             if (saveGameId == 999)
             {
@@ -165,9 +183,23 @@ namespace ClientCore
 
             try
             {
-                for (int i = 0; i < 1000; i++)
+                string saveGameDirectory = GetSaveGameDirectoryPath();
+                
+                if (!Directory.Exists(saveGameDirectory))
+                    return true;
+
+                var files = Directory.EnumerateFiles(saveGameDirectory, "SVGM_*.NET");
+                
+                foreach (var file in files)
                 {
-                    SafePath.DeleteFileIfExists(GetSaveGameDirectoryPath(), string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"Failed to delete {Path.GetFileName(file)}: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)
