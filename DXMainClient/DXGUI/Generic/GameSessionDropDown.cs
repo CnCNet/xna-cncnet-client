@@ -33,6 +33,26 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
 
     private int defaultIndex;
 
+    /// <summary>
+    /// Whether this dropdown should be included in the GAME broadcast.
+    /// </summary>
+    public bool BroadcastToLobby { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game information panel.
+    /// </summary>
+    public bool IconShownInGameInfo { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game filters panel.
+    /// </summary>
+    public bool IconShownInFilters { get; private set; }
+
+    /// <summary>
+    /// The texture name for the icon.
+    /// </summary>
+    public string Icon { get; private set; }
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         // shorthand for localization function
@@ -76,9 +96,27 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
             case "OptionName":
                 OptionName = Localize(this, "OptionName", value);
                 return;
+            case "BroadcastToLobby":
+                BroadcastToLobby = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInGameInfo":
+                IconShownInGameInfo = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInFilters":
+                IconShownInFilters = Conversions.BooleanFromString(value, false);
+                return;
+            case "Icon":
+                Icon = value;
+                return;
         }
 
         base.ParseControlINIAttribute(iniFile, key, value);
+    }
+
+    public int Value
+    {
+        get => SelectedIndex;
+        set => SelectedIndex = value;
     }
 
     public void ApplySpawnIniCode(IniFile spawnIni)

@@ -2087,6 +2087,39 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(Map?.SHA1);
 
+            List<IGameSessionSetting> broadcastableSettings = GetBroadcastableSettings();
+
+            List<int> gameOptionValues = new();
+
+            int checkboxCount = CheckBoxes.Count(cb => cb.BroadcastToLobby);
+            if (checkboxCount > 0)
+            {
+                bool[] checkboxValues = new bool[checkboxCount];
+                for (int i = 0; i < checkboxCount; i++)
+                    checkboxValues[i] = CheckBoxes.Where(cb => cb.BroadcastToLobby).ElementAt(i).Checked;
+
+                List<byte> byteList = Conversions.BoolArrayIntoBytes(checkboxValues).ToList();
+
+                // Pad to multiple of 4 bytes
+                while (byteList.Count % 4 != 0)
+                    byteList.Add(0);
+
+                byte[] byteArray = byteList.ToArray();
+
+                // Convert bytes to integers
+                for (int i = 0; i < byteArray.Length / 4; i++)
+                    gameOptionValues.Add(BitConverter.ToInt32(byteArray, i * 4));
+            }
+
+            // Add dropdown indices
+            int dropdownCount = DropDowns.Count(dd => dd.BroadcastToLobby);
+            if (dropdownCount > 0)
+                gameOptionValues.AddRange(DropDowns.Where(dd => dd.BroadcastToLobby).Select(dd => dd.SelectedIndex));
+
+            sb.Append(";");
+            if (gameOptionValues.Count > 0)
+                sb.Append(string.Join(",", gameOptionValues));
+
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
 

@@ -57,7 +57,43 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
 
     private string enabledSpawnIniValue = "True";
     private string disabledSpawnIniValue = "False";
-        
+
+    /// <summary>
+    /// Whether this checkbox should be included in the GAME broadcast.
+    /// </summary>
+    public bool BroadcastToLobby { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game list.
+    /// </summary>
+    public bool IconShownInGameList { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown on the right side of the game list.
+    /// Only applies if IconShownInGameList is true.
+    /// </summary>
+    public bool IconShownInGameListOnRight { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game information panel.
+    /// </summary>
+    public bool IconShownInGameInfo { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game filters panel.
+    /// </summary>
+    public bool IconShownInFilters { get; private set; }
+
+    /// <summary>
+    /// The texture name for the icon when setting is enabled.
+    /// </summary>
+    public string EnabledIcon { get; private set; }
+
+    /// <summary>
+    /// The texture name for the icon when setting is disabled.
+    /// </summary>
+    public string DisabledIcon { get; private set; }
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         switch (key)
@@ -85,9 +121,36 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
             case "MapScoringMode":
                 mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
                 return;
+            case "BroadcastToLobby":
+                BroadcastToLobby = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInGameList":
+                IconShownInGameList = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInGameListOnRight":
+                IconShownInGameListOnRight = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInGameInfo":
+                IconShownInGameInfo = Conversions.BooleanFromString(value, false);
+                return;
+            case "IconShownInFilters":
+                IconShownInFilters = Conversions.BooleanFromString(value, false);
+                return;
+            case "EnabledIcon":
+                EnabledIcon = value;
+                return;
+            case "DisabledIcon":
+                DisabledIcon = value;
+                return;
         }
 
         base.ParseControlINIAttribute(iniFile, key, value);
+    }
+
+    public int Value
+    {
+        get => Checked ? 1 : 0;  // 0 = unchecked/off, 1 = checked/on
+        set => Checked = value != 0;  // 0 = unchecked/off, 1 = checked/on
     }
 
     public void ApplySpawnIniCode(IniFile spawnIni)

@@ -21,6 +21,7 @@ namespace ClientCore
         public const string AUDIO = "Audio";
         public const string COMPATIBILITY = "Compatibility";
         public const string GAME_FILTERS = "GameFilters";
+        public const string GAME_OPTION_FILTERS = "GameOptionFilters";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -267,6 +268,40 @@ namespace ClientCore
 
         public IntRangeSetting MaxPlayerCount { get; private set; }
 
+        /************************/
+        /* GAME OPTION FILTERS */
+        /************************/
+
+        /// <summary>
+        /// Gets the filter value for a game option (checkbox or dropdown).
+        /// Returns null for "All" (no filter), or the selected index.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public int? GetGameOptionFilterValue(string optionName)
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section == null || !section.KeyExists(optionName))
+                return null;
+
+            return section.GetIntValue(optionName, 0);
+        }
+
+        /// <summary>
+        /// Sets the filter value for a game option.
+        /// null = "All" (no filter), or the selected index.
+        /// When null, removes the key from INI. Otherwise stores the index value.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public void SetGameOptionFilterValue(string optionName, int? value)
+        {
+            if (value == null)
+                SettingsIni.GetSection(GAME_OPTION_FILTERS)?.RemoveKey(optionName);
+            else
+                SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value);
+        }
+
         /********/
         /* MISC */
         /********/
@@ -424,7 +459,8 @@ namespace ClientCore
                || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
                || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES
                || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
-               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT
+               || HasGameOptionFilters();
 
         public void ResetGameFilters()
         {
@@ -433,6 +469,26 @@ namespace ClientCore
             HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
             HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
             MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
+            ResetGameOptionFilters();
+        }
+
+        /// <summary>
+        /// Checks if any game option filters are set.
+        /// </summary>
+        private bool HasGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            return section != null && section.Keys.Count > 0;
+        }
+
+        /// <summary>
+        /// Clears all game option filters.
+        /// </summary>
+        private void ResetGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section != null)
+                section.RemoveAllKeys();
         }
 
         /// <summary>

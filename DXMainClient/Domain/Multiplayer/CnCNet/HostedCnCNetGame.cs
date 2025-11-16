@@ -31,6 +31,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public bool IsLadder { get; set; }
         public string MatchID { get; set; }
         public CnCNetTunnel TunnelServer { get; set; }
+        public int[] BroadcastedGameOptionValues { get; set; }
 
         public override int Ping => TunnelServer.PingInMs;
 

@@ -266,6 +266,8 @@ namespace ClientCore
 
         public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
 
+        public bool ShowGameIconInGameList => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ShowGameIconInGameList", true);
+
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
         /// <summary>
