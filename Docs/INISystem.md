@@ -547,3 +547,18 @@ TrustedDomains=                ; comma-separated list of strings,
 SaveSkirmishGameOptions=false  ; boolean, whether or not previously used game options in skirmish are saved across client sessions
 SaveCampaignGameOptions=false  ; boolean, whether or not previously used game options in campaign are saved across client sessions
 ```
+
+```ini
+[Settings]
+CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
+CustomMissionSupplementDefinition=csf|stringtable99.csf|pal|custommission.pal|shp|custommission.shp ; supplement files that are supposed to be copied to the game folder when a custom mission is played
+```
+
+```ini
+[Settings]
+ReturnToMainMenuOnMissionLaunch=true ; whether or not client returns to main menu when launching a mission
+```
+
+```ini
+CampaignTagSelectorEnabled=false ; turns on the campaign tag selector, showing a window to let users choose which group of missions to play
+```
