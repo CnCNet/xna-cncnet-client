@@ -89,7 +89,7 @@ Refer to [Docs/Build.md](/Docs/Build.md) for more information about building the
 * [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
 
 Windows 7 SP1 and Windows 8.x additionally require:
-* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
+* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe). Note: the latest version of this redistributable is named "Microsoft Visual C++ 2015-2026 Redistributable", available [here](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist). We recommend using the latest version instead of the 2015-2019 version.
 
 Windows 7 SP1 additionally requires:
 * KB3063858 [64-bit](https://www.microsoft.com/download/details.aspx?id=47442) / [32-bit](https://www.microsoft.com/download/details.aspx?id=47409).
