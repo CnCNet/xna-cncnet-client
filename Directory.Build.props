@@ -12,6 +12,9 @@
     <Trademark>CnCNet</Trademark>
     <!-- GitVersion will rewrite the informational version anyway -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <!-- There is a race condition in GitVersion. Disable writing version info should help a bit -->
+    <WriteVersionInfoToBuildLog Condition="'$(IsSubmodule)' == 'true'">true</WriteVersionInfoToBuildLog>
   </PropertyGroup>
 
   <PropertyGroup>
