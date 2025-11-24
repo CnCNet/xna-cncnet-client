@@ -9,8 +9,6 @@
     <BuildType Name="WindowsXNADebug" />
     <BuildType Name="WindowsXNARelease" />
     <Platform Name="Any CPU" />
-    <Platform Name="ARM64" />
-    <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/Solution Items/">
@@ -25,32 +23,24 @@
     <File Path="NuGet.config" />
   </Folder>
   <Project Path="ClientCore/ClientCore.csproj">
-    <Platform Solution="*|ARM64" Project="ARM64" />
-    <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
-    <Platform Solution="WindowsXNADebug|Any CPU" Project="x86" />
-    <Platform Solution="WindowsXNARelease|Any CPU" Project="x86" />
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
   <Project Path="ClientGUI/ClientGUI.csproj">
-    <Platform Solution="*|ARM64" Project="ARM64" />
-    <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
-    <Platform Solution="WindowsXNADebug|Any CPU" Project="x86" />
-    <Platform Solution="WindowsXNARelease|Any CPU" Project="x86" />
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
   <Project Path="ClientUpdater/ClientUpdater.csproj">
-    <Platform Solution="*|ARM64" Project="ARM64" />
-    <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
-    <Platform Solution="WindowsXNADebug|Any CPU" Project="x86" />
-    <Platform Solution="WindowsXNARelease|Any CPU" Project="x86" />
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
   <Project Path="DXMainClient/DXMainClient.csproj">
-    <Platform Solution="*|ARM64" Project="ARM64" />
-    <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
-    <Platform Solution="WindowsXNADebug|Any CPU" Project="x86" />
-    <Platform Solution="WindowsXNARelease|Any CPU" Project="x86" />
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
   <Project Path="Rampastring.XNAUI/Rampastring.Tools/Rampastring.Tools.csproj" />
   <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
