@@ -40,6 +40,7 @@
     <Platforms>AnyCPU;x86</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
+    <Platform Condition="!$(Engine.Contains(XNA))">AnyCPU</Platform>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
