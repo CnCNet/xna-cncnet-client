@@ -32,6 +32,7 @@
     <Platform Solution="WindowsXNADebug|*" Project="x86" />
     <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
+  <Project Path="MigrationTool/MigrationTool.csproj" />
   <Project Path="Rampastring.XNAUI/Rampastring.Tools/Rampastring.Tools.csproj" />
   <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
   <Project Path="SecondStageUpdater/SecondStageUpdater.csproj" />
