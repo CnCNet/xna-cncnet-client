@@ -119,16 +119,13 @@ function Script:Invoke-BuildProject
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
       # $Private:ArgumentList.Add("-property:InformationalVersion=$InformationalVersion")
   
-      if ($Engine -eq 'WindowsXNA')
-      {
-        $Private:ArgumentList.Add('--arch=x86')
-      }
+      # if ($Engine -eq 'WindowsXNA') {
+      #   $Private:ArgumentList.Add('--arch=x86')
+      # }
   
-      echo ''
       & 'dotnet' $Private:ArgumentList
-      if ($LASTEXITCODE)
-      {
-        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework"
+      if ($LASTEXITCODE) {
+        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $LASTEXITCODE)"
       }
     }
     else

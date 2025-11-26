@@ -1,0 +1,39 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="UniversalGLDebug" />
+    <BuildType Name="UniversalGLRelease" />
+    <BuildType Name="WindowsDXDebug" />
+    <BuildType Name="WindowsDXRelease" />
+    <BuildType Name="WindowsGLDebug" />
+    <BuildType Name="WindowsGLRelease" />
+    <BuildType Name="WindowsXNADebug" />
+    <BuildType Name="WindowsXNARelease" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="GitVersion.yml" />
+    <File Path="global.json" />
+    <File Path="NuGet.config" />
+  </Folder>
+  <Project Path="ClientCore/ClientCore.csproj" />
+  <Project Path="ClientGUI/ClientGUI.csproj">
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
+  </Project>
+  <Project Path="ClientUpdater/ClientUpdater.csproj" />
+  <Project Path="DXMainClient/DXMainClient.csproj">
+    <Platform Solution="WindowsXNADebug|*" Project="x86" />
+    <Platform Solution="WindowsXNARelease|*" Project="x86" />
+  </Project>
+  <Project Path="Rampastring.XNAUI/Rampastring.Tools/Rampastring.Tools.csproj" />
+  <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
+  <Project Path="SecondStageUpdater/SecondStageUpdater.csproj" />
+  <Project Path="TranslationNotifierGenerator/TranslationNotifierGenerator.csproj" />
+</Solution>

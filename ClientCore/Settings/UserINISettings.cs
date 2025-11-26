@@ -87,8 +87,6 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string WINDOWED_MODE_KEY = "Video.Windowed";
-
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
             else
@@ -100,7 +98,7 @@ namespace ClientCore
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
-            WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
+            WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", ClientConfiguration.Instance.UserDefault_BorderlessWindowedClient);
             IntegerScaledClient = new BoolSetting(iniFile, VIDEO, "IntegerScaledClient", ClientConfiguration.Instance.UserDefault_IntegerScaledClient);

@@ -374,71 +374,113 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
-            string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
-            string mapFileName = GetMapFileName(sha1, mapName);
-
-            FileInfo destinationFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.zip"));
-
-            // This string is up here so we can check that there isn't already a .map file for this download.
-            // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
-            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.{ClientConfiguration.Instance.MapFileExtension}"));
-
-            destinationFile.Delete();
-            newFile.Delete();
-
-            using (WebClient webClient = new ExtendedWebClient(DOWNLOAD_TIMEOUT))
+            try
             {
-                if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
-                {
-                    success = false;
-                    Logger.Log("MapSharer: Download URL is not configured.");
-                    return null;
-                }
+                string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
+                string mapFileName = GetMapFileName(sha1, mapName);
 
-                string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
+                FileInfo destinationFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.zip"));
+
+                // This string is up here so we can check that there isn't already a .map file for this download.
+                // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
+                FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.{ClientConfiguration.Instance.MapFileExtension}"));
 
                 try
                 {
-                    Logger.Log($"MapSharer: Downloading URL: {url}");
-                    webClient.DownloadFile(url, destinationFile.FullName);
+                    destinationFile.Delete();
                 }
                 catch (Exception ex)
                 {
-                    /*                    if (ex.Message.Contains("404"))
-                                        {
-                                            string messageToSend = "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + "READY 1" + CTCPChar2;
-                                            CnCNetData.ConnectionBridge.SendMessage(messageToSend);
-                                        }
-                                        else
-                                        {
-                                            //GlobalVars.WriteLogfile(ex.StackTrace.ToString(), DateTime.Now.ToString("hh:mm:ss") + " DownloadMap: " + ex.Message + _DestFile);
-                                            MessageBox.Show("Download failed:" + _DestFile);
-                                        }*/
+                    Logger.Log($"MapSharer: Failed to delete existing zip file: {ex.Message}");
+                }
+
+                try
+                {
+                    newFile.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"MapSharer: Failed to delete existing map file: {ex.Message}");
+                }
+
+                using (WebClient webClient = new ExtendedWebClient(DOWNLOAD_TIMEOUT))
+                {
+                    if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
+                    {
+                        success = false;
+                        Logger.Log("MapSharer: Download URL is not configured.");
+                        return null;
+                    }
+
+                    string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
+
+                    try
+                    {
+                        Logger.Log($"MapSharer: Downloading URL: {url}");
+                        webClient.DownloadFile(url, destinationFile.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        /*                    if (ex.Message.Contains("404"))
+                                            {
+                                                string messageToSend = "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + "READY 1" + CTCPChar2;
+                                                CnCNetData.ConnectionBridge.SendMessage(messageToSend);
+                                            }
+                                            else
+                                            {
+                                                //GlobalVars.WriteLogfile(ex.StackTrace.ToString(), DateTime.Now.ToString("hh:mm:ss") + " DownloadMap: " + ex.Message + _DestFile);
+                                                MessageBox.Show("Download failed:" + _DestFile);
+                                            }*/
+                        success = false;
+                        return ex.Message;
+                    }
+                }
+
+                destinationFile.Refresh();
+
+                if (!destinationFile.Exists)
+                {
+                    success = false;
+                    return null;
+                }
+
+                string extractedFile;
+
+                try
+                {
+                    extractedFile = ExtractZipFile(destinationFile.FullName, customMapsDirectory);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"MapSharer: Failed to extract map: {ex.Message}");
                     success = false;
                     return ex.Message;
                 }
+
+                if (String.IsNullOrEmpty(extractedFile))
+                {
+                    success = false;
+                    return null;
+                }
+
+                try
+                {
+                    destinationFile.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"MapSharer: Failed to delete zip file after extraction: {ex.Message}");
+                }
+
+                success = true;
+                return extractedFile;
             }
-
-            destinationFile.Refresh();
-
-            if (!destinationFile.Exists)
+            catch (Exception ex)
             {
+                Logger.Log($"MapSharer: Map download failed with exception: {ex.Message}");
                 success = false;
-                return null;
+                return ex.Message;
             }
-
-            string extractedFile = ExtractZipFile(destinationFile.FullName, newFile.FullName);
-
-            if (String.IsNullOrEmpty(extractedFile))
-            {
-                success = false;
-                return null;
-            }
-
-            destinationFile.Delete();
-
-            success = true;
-            return extractedFile;
         }
 
         class FileToUpload
