@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Runtime.InteropServices;
 
 using LibVLCSharp.Shared;
 
@@ -17,8 +18,8 @@ namespace DXMainClient.Domain
         private byte[] _videoBuffer;
         private readonly object _lock = new();
 
-        public uint _videoWidth { get; private set; }
-        public uint _videoHeight { get; private set; }
+        public uint VideoWidth { get; private set; }
+        public uint VideoHeight { get; private set; }
 
         public Texture2D Texture => _texture ?? throw new ObjectDisposedException(nameof(VideoBackground));
 
@@ -34,14 +35,28 @@ namespace DXMainClient.Domain
 
             _mediaPlayer = new MediaPlayer(_libVLC);
 
-            _videoWidth = (uint)width;
-            _videoHeight = (uint)height;
+            VideoWidth = (uint)width;
+            VideoHeight = (uint)height;
 
-            _videoBuffer = new byte[_videoWidth * _videoHeight * 4];
-            _texture = new Texture2D(graphicsDevice, (int)_videoWidth, (int)_videoHeight, false, SurfaceFormat.Color);
+            _videoBuffer = new byte[VideoWidth * VideoHeight * 4];
+            _texture = new Texture2D(graphicsDevice, (int)VideoWidth, (int)VideoHeight, false, SurfaceFormat.Color);
 
-            _mediaPlayer.SetVideoCallbacks(Lock, Unlock, Display);
-            _mediaPlayer.SetVideoFormat("RGBA", (uint)_videoWidth, (uint)_videoHeight, (uint)_videoWidth * 4); // do not use RV32, use RGBA instead, else the color will be messed up as if it were blue
+            _mediaPlayer.SetVideoCallbacks(
+                lockCb: (opaque, planes) =>
+                {
+                    Marshal.WriteIntPtr(planes, Marshal.UnsafeAddrOfPinnedArrayElement(_videoBuffer, 0));
+                    return IntPtr.Zero;
+                },
+                unlockCb: (opaque, picture, planes) => { },
+                displayCb: (opaque, picture) =>
+                {
+                    lock (_lock)
+                    {
+                        _texture.SetData(_videoBuffer);
+                    }
+                });
+
+            _mediaPlayer.SetVideoFormat("RGBA", (uint)VideoWidth, (uint)VideoHeight, (uint)VideoWidth * 4); // do not use RV32, use RGBA instead, else the color will be messed up as if it were blue
 
             _media = new Media(_libVLC, videoPath, FromType.FromPath);
 
@@ -52,24 +67,6 @@ namespace DXMainClient.Domain
 
             // play the media
             _mediaPlayer.Play(_media);
-        }
-
-        private IntPtr Lock(IntPtr opaque, IntPtr planes)
-        {
-            System.Runtime.InteropServices.Marshal.WriteIntPtr(planes, System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(_videoBuffer, 0));
-            return IntPtr.Zero;
-        }
-
-        private void Unlock(IntPtr opaque, IntPtr picture, IntPtr planes)
-        {
-        }
-
-        private void Display(IntPtr opaque, IntPtr picture)
-        {
-            lock (_lock)
-            {
-                _texture.SetData(_videoBuffer);
-            }
         }
 
         public void Dispose()
