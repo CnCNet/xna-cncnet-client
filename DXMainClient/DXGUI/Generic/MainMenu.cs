@@ -329,8 +329,6 @@ namespace DTAClient.DXGUI.Generic
 
             base.Initialize(); // Read control attributes from INI
 
-            //spriteBatch = new SpriteBatch(Game.GraphicsDevice);
-
             lblVersion.Text = Updater.GameVersion;
 
             updateQueryWindow.UpdateDeclined += UpdateQueryWindow_UpdateDeclined;
@@ -1026,7 +1024,6 @@ namespace DTAClient.DXGUI.Generic
             if (isMusicFading)
                 FadeMusic(gameTime);
 
-            //_videoBg.Update();
             base.Update(gameTime);
         }
 
@@ -1034,10 +1031,8 @@ namespace DTAClient.DXGUI.Generic
         {
             lock (locker)
             {
-
                 base.Draw(gameTime);
             }
-
         }
 
         /// <summary>
