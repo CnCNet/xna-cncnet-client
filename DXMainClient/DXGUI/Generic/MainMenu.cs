@@ -162,7 +162,7 @@ namespace DTAClient.DXGUI.Generic
 
         private VideoBackground videoBackground;
 
-        /// <summary>*
+        /// <summary>
         /// Initializes the main menu's controls.
         /// </summary>
         public override void Initialize()
