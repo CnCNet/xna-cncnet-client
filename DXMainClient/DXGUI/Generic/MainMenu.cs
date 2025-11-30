@@ -171,7 +171,6 @@ namespace DTAClient.DXGUI.Generic
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             Name = nameof(MainMenu);
-
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu/mainmenubg.png");
             ClientRectangle = new Rectangle(0, 0, BackgroundTexture.Width, BackgroundTexture.Height);
 
@@ -1129,7 +1128,6 @@ namespace DTAClient.DXGUI.Generic
             // shut the Video, else it'll do some memory violation tomfoolery
             VideoBackground.ShutdownLibVLC();
             themeSong?.Dispose();
-
 #if !XNA
             Thread.Sleep(1000);
             Environment.Exit(0);
