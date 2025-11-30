@@ -1,16 +1,15 @@
 ﻿#nullable enable
-using Microsoft.Xna.Framework.Graphics;
-using LibVLCSharp.Shared;
 using System;
-using System.IO;
-using System.Threading;
+
+using LibVLCSharp.Shared;
+
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DXMainClient.Domain
 {
     public class VideoBackground : IDisposable
     {
         private static LibVLC? _libVLC = null;
-        private static LibVLC libVLC = _libVLC ??= new LibVLC("--no-xlib", "--drop-late-frames", "--skip-frames");
 
         private MediaPlayer _mediaPlayer;
         private Media _media;
