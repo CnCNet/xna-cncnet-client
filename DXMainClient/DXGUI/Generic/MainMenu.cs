@@ -1126,7 +1126,7 @@ namespace DTAClient.DXGUI.Generic
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
 
-            // shut the Video, else it'll do some memory violation toomfoolery
+            // shut the Video, else it'll do some memory violation tomfoolery
             VideoBackground.ShutdownLibVLC();
             themeSong?.Dispose();
 
