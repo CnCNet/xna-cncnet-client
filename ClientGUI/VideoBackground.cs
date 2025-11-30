@@ -1,18 +1,22 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿#nullable enable
+using Microsoft.Xna.Framework.Graphics;
 using LibVLCSharp.Shared;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace DXMainClient.Domain
 {
     public class VideoBackground : IDisposable
     {
-        private static LibVLC _libVLC;
+        private static LibVLC? _libVLC = null;
+        private static LibVLC libVLC = _libVLC ??= new LibVLC("--no-xlib", "--drop-late-frames", "--skip-frames");
+
         private MediaPlayer _mediaPlayer;
         private Media _media;
         private Texture2D _texture;
         private byte[] _videoBuffer;
-        private object _lock = new object();
+        private readonly object _lock = new();
 
         public uint _videoWidth { get; private set; }
         public uint _videoHeight { get; private set; }
@@ -24,17 +28,15 @@ namespace DXMainClient.Domain
         /// </summary>
         /// <param name="graphicsDevice">Graphic device resolution</param>
         /// <param name="videoPath">Video path location</param>
-        public VideoBackground(GraphicsDevice graphicsDevice, string videoPath)
+        public VideoBackground(GraphicsDevice graphicsDevice, string videoPath, int width, int height)
         {
-            
             if (_libVLC == null)
-                _libVLC = new LibVLC("--no-xlib", "--drop-late-frames", "--skip-frames"); 
+                _libVLC = new LibVLC("--no-xlib", "--drop-late-frames", "--skip-frames");
+
             _mediaPlayer = new MediaPlayer(_libVLC);
 
-            // video height and width can be edited here, can be improved by automatically read the video file resolution
-            _videoWidth = 1360;
-            _videoHeight = 720;
-
+            _videoWidth = (uint)width;
+            _videoHeight = (uint)height;
 
             _videoBuffer = new byte[_videoWidth * _videoHeight * 4];
             _texture = new Texture2D(graphicsDevice, (int)_videoWidth, (int)_videoHeight, false, SurfaceFormat.Color);
@@ -51,45 +53,6 @@ namespace DXMainClient.Domain
 
             // play the media
             _mediaPlayer.Play(_media);
-        }
-
-        /// <summary>
-        /// Get current theme rom RA2MD.ini
-        /// </summary>
-        /// <param name="iniPath">RA2 YR ONLY, read the content of RA2MD.ini to get the theme</param>
-        /// <returns></returns>
-        public static string GetTheme(string iniPath)
-        {
-            String defaultTheme = "Default Theme";
-            if (!File.Exists(iniPath))
-                return defaultTheme; // fallback default
-
-            var lines = File.ReadAllLines(iniPath);
-            bool inMultiPlayer = false;
-
-            foreach (var raw in lines)
-            {
-                var line = raw.Trim();
-
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith(";"))
-                    continue;
-
-                if (line.Equals("[MultiPlayer]", StringComparison.OrdinalIgnoreCase))
-                {
-                    inMultiPlayer = true;
-                    continue;
-                }
-
-                if (inMultiPlayer && line.StartsWith("[") && line.EndsWith("]"))
-                    break;
-
-                if (inMultiPlayer && line.StartsWith("Theme=", StringComparison.OrdinalIgnoreCase))
-                {
-                    return line.Substring("Theme=".Length).Trim();
-                }
-            }
-
-            return defaultTheme; // fallback if not found
         }
 
         private IntPtr Lock(IntPtr opaque, IntPtr planes)

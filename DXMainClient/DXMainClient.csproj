@@ -37,7 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Facepunch.Steamworks" GeneratePathProperty="true" />
-    <PackageReference Include="LibVLCSharp" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="DiscordRichPresence" />
     <PackageReference Include="lzo.net" />
