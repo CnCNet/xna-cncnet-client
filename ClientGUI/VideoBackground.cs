@@ -11,16 +11,16 @@ namespace DXMainClient.Domain
     {
         private static LibVLC? _libVLC = null;
 
-        private MediaPlayer _mediaPlayer;
-        private Media _media;
-        private Texture2D _texture;
+        private MediaPlayer? _mediaPlayer;
+        private Media? _media;
+        private Texture2D? _texture;
         private byte[] _videoBuffer;
         private readonly object _lock = new();
 
         public uint _videoWidth { get; private set; }
         public uint _videoHeight { get; private set; }
 
-        public Texture2D Texture => _texture;
+        public Texture2D Texture => _texture ?? throw new ObjectDisposedException(nameof(VideoBackground));
 
         /// <summary>
         /// Video playback for the main menu panel
