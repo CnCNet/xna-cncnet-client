@@ -48,7 +48,7 @@ namespace DXMainClient.Domain
             // add more option if you want to edit the video via VLC
             _media.AddOption(":scale=0.5"); // compress the video (a little help with the lower end devices.||_ ps. its a 50/50 in the lower end device)
             _media.AddOption(":no-audio"); // disables the audio
-            _media.AddOption(":input-repeat=65535"); // this means looping the video 65.535 times, its stupid but it works
+            _media.AddOption(":input-repeat=65535"); // this means looping the video 65535 times, its stupid but it works
 
             // play the media
             _mediaPlayer.Play(_media);
