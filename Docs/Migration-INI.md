@@ -931,7 +931,7 @@ The `Resources` directory should look like this (omitting configuration files an
 
 ### Update the client launcher
 
-The client launcher (that resides in the game directory) has been updated. You can replace the old one with version [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7). Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e. `YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
+The client launcher (that resides in the game directory) has been updated. You can replace the old one with the latest version [here](https://github.com/CnCNet/xna-cncnet-client-launcher/releases). Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e. `YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
 
 ### Keep the old second-stage updater
 

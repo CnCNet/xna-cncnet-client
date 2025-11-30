@@ -34,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 string address = parts[0];
                 string[] detailedAddress = address.Split(new char[] { ':' });
-                
+
                 tunnel.Address = detailedAddress[0];
                 tunnel.Port = int.Parse(detailedAddress[1]);
                 tunnel.Country = parts[1];
@@ -86,7 +86,27 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public int PingInMs { get; set; } = -1;
 
         /// <summary>
-        /// Gets a list of player ports to use from a specific tunnel server.
+        /// Updates this tunnel's metadata from another tunnel instance, preserving Address, Port, and existing PingInMs.
+        /// </summary>
+        internal void UpdateFrom(CnCNetTunnel updatedTunnel)
+        {
+            Country = updatedTunnel.Country;
+            CountryCode = updatedTunnel.CountryCode;
+            Name = updatedTunnel.Name;
+            Clients = updatedTunnel.Clients;
+            MaxClients = updatedTunnel.MaxClients;
+            Official = updatedTunnel.Official;
+            Recommended = updatedTunnel.Recommended;
+            Version = updatedTunnel.Version;
+
+            RequiresPassword = updatedTunnel.RequiresPassword;
+            Latitude = updatedTunnel.Latitude;
+            Longitude = updatedTunnel.Longitude;
+            Distance = updatedTunnel.Distance;
+        }
+
+        /// <summary>
+        /// Gets a list of player ports to use from a specific V2 tunnel server.
         /// </summary>
         /// <returns>A list of player ports to use.</returns>
         public List<int> GetPlayerPortInfo(int playerCount)

@@ -10,6 +10,7 @@ using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI.IME;
+
 public abstract class IMEHandler : IIMEHandler
 {
     bool IIMEHandler.TextCompositionEnabled => TextCompositionEnabled;
@@ -41,7 +42,11 @@ public abstract class IMEHandler : IIMEHandler
 
     public bool CompositionEmpty => string.IsNullOrEmpty(_composition);
 
+    /// <summary>
+    /// Indicates whether an IME event has been received ever. Used to distinguish IME users from non-IME users.
+    /// </summary>
     protected bool IMEEventReceived = false;
+
     protected bool LastActionIMEChatInput = true;
 
     private void OnCompositionChanged(string oldValue, string newValue)
@@ -87,7 +92,6 @@ public abstract class IMEHandler : IIMEHandler
     {
         //Debug.WriteLine($"IME: OnIMETextInput: {character} {(short)character}; IMEFocus is null? {IMEFocus == null}");
 
-        IMEEventReceived = true;
         LastActionIMEChatInput = true;
 
         if (IMEFocus != null)
@@ -219,7 +223,15 @@ public abstract class IMEHandler : IIMEHandler
     bool IIMEHandler.HandleEscapeKey(XNATextBox sender)
     {
         //Debug.WriteLine($"IME: HandleEscapeKey: handled: {IMEEventReceived}");
-        return IMEEventReceived;
+
+        // This method disables the ESC handling of the TextBox as long as the user has ever used IME.
+        // This is because IME users often use ESC to cancel composition. Even if currently the composition is empty,
+        // the user still expects ESC to cancel composition rather than deleting the whole sentence.
+        // For example, the user might mistakenly hit ESC key twice to cancel composition -- deleting the whole sentence is definitely a heavy punishment for such a small mistake.
+
+        // Note: "!CompositionEmpty => IMEEventReceived" should hold, but just in case
+
+        return IMEEventReceived || !CompositionEmpty;
     }
 
     void IIMEHandler.OnTextChanged(XNATextBox sender) { }

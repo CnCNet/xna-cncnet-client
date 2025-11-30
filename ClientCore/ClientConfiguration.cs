@@ -258,6 +258,8 @@ namespace ClientCore
 
         public bool UseBuiltStatistic => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseBuiltStatistic", false);
 
+        public string WindowedModeKey => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowedModeKey", "Video.Windowed");
+
         public bool CopyResolutionDependentLanguageDLL => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyResolutionDependentLanguageDLL", true);
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
@@ -382,6 +384,8 @@ namespace ClientCore
         public string GameLauncherExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "GameLauncherExecutableName", string.Empty);
 
         public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
+        
+        public bool SaveCampaignGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveCampaignGameOptions", false);
 
         public bool CreateSavedGamesDirectory => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false);
 

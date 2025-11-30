@@ -1,11 +1,15 @@
-﻿using ClientGUI;
-using System;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using Microsoft.Xna.Framework;
+﻿using System;
+
 using ClientCore.Extensions;
 
-namespace DTAClient.DXGUI.Generic
+using ClientGUI;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+
+namespace DTAClient.DXGUI.Campaign
 {
     public class CheaterWindow : XNAWindow
     {

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -168,7 +169,7 @@ namespace ClientGUI
 
             if (!string.IsNullOrEmpty(ddrawDLLPath))
             {
-                FileHelper.CreateHardLinkFromSource(ddrawDllSourcePath, ddrawDllTargetPath);
+                FileExtensions.CreateHardLinkFromSource(ddrawDllSourcePath, ddrawDllTargetPath);
                 new FileInfo(ddrawDllSourcePath).IsReadOnly = true;
                 new FileInfo(ddrawDllTargetPath).IsReadOnly = true;
             }

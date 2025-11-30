@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Linq;
 
 using ClientCore.I18N;
 
@@ -115,4 +116,11 @@ public static class StringExtensions
   
     public static T ToEnum<T>(this string value) where T : Enum 
         => (T)Enum.Parse(typeof(T), value, true);
+
+    public static string[] SplitWithCleanup(this string value, char[] separators = null)
+        => value
+            .Split(separators ?? [','])
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToArray();
 }

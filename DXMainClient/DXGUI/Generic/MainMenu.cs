@@ -23,6 +23,7 @@ using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
 using DXMainClient.Domain;
+using DTAClient.DXGUI.Campaign;
 
 namespace DTAClient.DXGUI.Generic
 {

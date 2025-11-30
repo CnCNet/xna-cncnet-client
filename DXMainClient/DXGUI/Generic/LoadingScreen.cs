@@ -69,6 +69,7 @@ namespace DTAClient.DXGUI.Generic
                 updaterInitTask.Start();
             }
 
+            mapLoader.Initialize();
             mapLoadTask = mapLoader.LoadMapsAsync();
 
             if (Cursor.Visible)

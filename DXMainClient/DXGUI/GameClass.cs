@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Campaign;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
@@ -309,6 +310,8 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<ChatListBox>()
                             .AddTransientXnaControl<GameLobbyCheckBox>()
                             .AddTransientXnaControl<GameLobbyDropDown>()
+                            .AddTransientXnaControl<CampaignCheckBox>()
+                            .AddTransientXnaControl<CampaignDropDown>()
                             .AddTransientXnaControl<SettingCheckBox>()
                             .AddTransientXnaControl<SettingDropDown>()
                             .AddTransientXnaControl<FileSettingCheckBox>()

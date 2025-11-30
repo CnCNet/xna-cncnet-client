@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -12,6 +12,9 @@
     <Trademark>CnCNet</Trademark>
     <!-- GitVersion will rewrite the informational version anyway -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <!-- There is a race condition in GitVersion. Disable writing version info should help a bit -->
+    <WriteVersionInfoToBuildLog>false</WriteVersionInfoToBuildLog>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -30,13 +33,14 @@
     <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
-    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <Platforms>AnyCPU;x86</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
+    <Platform Condition="!$(Engine.Contains(XNA))">AnyCPU</Platform>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
@@ -46,7 +50,7 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SecondStageUpdater'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'SecondStageUpdater' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
@@ -84,5 +88,21 @@
 
   <ItemGroup>
     <CompilerVisibleProperty Include="RootNamespace" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <XNAUIRoot>$(MSBuildThisFileDirectory)Rampastring.XNAUI</XNAUIRoot>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+    <Reference Include="Microsoft.Xna.Framework">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

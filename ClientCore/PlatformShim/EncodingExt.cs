@@ -44,7 +44,7 @@ public static class EncodingExt
         if (encoding is null)
             return ENCODING_AUTO_DETECT;
 
-        // To find a name that can be passed to the GetEncoding method, use the WebName property.
+        // To find a name that can be passed to the GetDetectedEncoding method, use the WebName property.
         return encoding.WebName;
     }
 }
