@@ -41,7 +41,7 @@ namespace DXMainClient.Domain
             _texture = new Texture2D(graphicsDevice, (int)_videoWidth, (int)_videoHeight, false, SurfaceFormat.Color);
 
             _mediaPlayer.SetVideoCallbacks(Lock, Unlock, Display);
-            _mediaPlayer.SetVideoFormat("RGBA", (uint)_videoWidth, (uint)_videoHeight, (uint)_videoWidth * 4); // do not use RV32, use RGBA instead, else it'll go full Allied mode
+            _mediaPlayer.SetVideoFormat("RGBA", (uint)_videoWidth, (uint)_videoHeight, (uint)_videoWidth * 4); // do not use RV32, use RGBA instead, else the color will be messed up as if it were blue
 
             _media = new Media(_libVLC, videoPath, FromType.FromPath);
 
