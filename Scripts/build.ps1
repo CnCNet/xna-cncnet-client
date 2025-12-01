@@ -147,33 +147,41 @@ function Script:Invoke-BuildProject
   }
 }
 
+function Script:Invoke-BuildMigrationTool
+{
+    ForEach ($Engine in 'net8.0', 'net48')
+    {
+        $Private:MTFramework = $Engine
+        $Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
+        $Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
+        $Private:MTOutput = Join-Path $MTCompiledPath 'Resources' $FrameworkBinariesFolderMap[$Engine]
+        $Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
+        $Private:MTArgumentList.Add('publish')
+        $Private:MTArgumentList.Add("$MTProjectPath")
+        $Private:MTArgumentList.Add('--graph')
+        $Private:MTArgumentList.Add("--framework:$MTFramework")
+        $Private:MTArgumentList.Add("--output:$MTOutput\MigrationTool")
+        $Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
+        if ($Log)
+        {
+          $Private:ArgumentList.Add('-verbosity:diagnostic')
+        }
+        if ($NoMove)
+        {
+          $Private:ArgumentList.Add('-property:NoMove=true')
+        }
+
+        echo ''
+        & 'dotnet' $MTArgumentList
+        if ($LASTEXITCODE)
+        {
+          throw "Build failed for Migration Tool"
+        }
+    }
+}
+
 # Build client binaries
 Script:Invoke-BuildProject
 
 # Build migration tool binaries
-$Private:MTFramework='net8.0-windows'
-$Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
-$Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
-$Private:MTOutput = Join-Path $MTCompiledPath 'Resources' $FrameworkBinariesFolderMap['net8.0-windows']
-$Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
-$Private:MTArgumentList.Add('publish')
-$Private:MTArgumentList.Add("$MTProjectPath")
-$Private:MTArgumentList.Add('--graph')
-$Private:MTArgumentList.Add("--framework:$MTFramework")
-$Private:MTArgumentList.Add("--output:$MTOutput\MigrationTool")
-$Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
-if ($Log)
-{
-  $Private:ArgumentList.Add('-verbosity:diagnostic')
-}
-if ($NoMove)
-{
-  $Private:ArgumentList.Add('-property:NoMove=true')
-}
-
-echo ''
-& 'dotnet' $MTArgumentList
-if ($LASTEXITCODE)
-{
-  throw "Build failed for Migration Tool"
-}
+Script:Invoke-BuildMigrationTool
