@@ -8,9 +8,7 @@ This document lists all the breaking changes and how to address them. Each secti
 
 ## TBD
 
-- `PlayerExtraOptionsPanel` control in `GameLobbyBase` has been changed from `XNAWindow` to `XNAPanel`.
-  - INI file `PlayerExtraOptionsPanel.ini` is no longer parsed for control attributes, they should be placed in `GameLobbyBase.ini`
-  - Child controls of `PlayerExtraOptionsPanel` should be prefixed by `PlayerExtraOptionsPanel_` in ini f.ex `[PlayerExtraOptionsPanel_btnClose]`.
+- `PlayerExtraOptionsPanel` control in `GameLobbyBase` has been changed from `XNAWindow` to `XNAPanel`. INI file `PlayerExtraOptionsPanel.ini` is no longer parsed for control attributes, they should be placed in `GameLobbyBase.ini`
 
 ## 2.12.12
 
