@@ -243,6 +243,7 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
+        // TODO: move preview texture caching out of the Map class
         [JsonIgnore]
         public Texture2D PreviewTexture { get; set; }
 
