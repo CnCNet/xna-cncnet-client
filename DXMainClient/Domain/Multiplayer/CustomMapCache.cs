@@ -40,6 +40,11 @@ namespace DTAClient.Domain.Multiplayer
                     FileSize = fileInfo.Length;
                     LastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
                 }
+                else
+                {
+                    FileSize = 0;
+                    LastWriteTimeUtc = DateTime.MinValue;
+                }
             }
 
             public void RefreshIfOutdated()
