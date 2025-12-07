@@ -16,16 +16,16 @@ namespace DTAClient.Domain.Multiplayer
         [JsonPropertyName("maps")]
         public required ConcurrentDictionary<string, Item> Items { get; set; }
 
-        public class Item
+        public record Item
         {
             [JsonInclude]
             public required Map Map { get; init; }
 
             [JsonInclude]
-            public required long FileSize { get; init; }
+            public long FileSize { get; private set; }
 
             [JsonInclude]
-            public required DateTime LastWriteTimeUtc { get; init; }
+            public DateTime LastWriteTimeUtc { get; private set; }
 
             public Item() : base() { }
 
@@ -49,9 +49,15 @@ namespace DTAClient.Domain.Multiplayer
 
             public void RefreshIfOutdated()
             {
-                FileInfo fileInfo = new(Map.CompleteFilePath);
-                bool recalculateSHA = fileInfo.Exists && (fileInfo.Length != FileSize || fileInfo.LastWriteTimeUtc != LastWriteTimeUtc);
-                Map.AfterDeserialize(recalculateSHA);
+                Item refreshedItem = new(Map);
+                bool recalculateSHA = refreshedItem.FileSize != FileSize || refreshedItem.LastWriteTimeUtc != LastWriteTimeUtc;
+                if (recalculateSHA)
+                {
+                    FileSize = refreshedItem.FileSize;
+                    LastWriteTimeUtc = refreshedItem.LastWriteTimeUtc;
+
+                    Map.AfterDeserialize(recalculateSHA);
+                }
             }
         }
     }
