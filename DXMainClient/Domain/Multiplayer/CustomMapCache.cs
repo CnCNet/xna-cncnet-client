@@ -55,9 +55,9 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     FileSize = refreshedItem.FileSize;
                     LastWriteTimeUtc = refreshedItem.LastWriteTimeUtc;
-
-                    Map.AfterDeserialize(recalculateSHA);
                 }
+
+                Map.AfterDeserialize(recalculateSHA);
             }
         }
     }
