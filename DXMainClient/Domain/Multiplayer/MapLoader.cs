@@ -458,7 +458,12 @@ namespace DTAClient.Domain.Multiplayer
                 }));
             }
 
-            Task.WaitAll(tasks.ToArray());
+            while (!Task.WaitAll(tasks.ToArray(), millisecondsTimeout: 1000))
+            {
+                string message = "Waiting for the custom map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Count;
+                Debug.WriteLine(message);
+                Logger.Log(message);
+            }
 
             // remove cached maps that no longer exist locally
             foreach (var missingSHA in customMapCache.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
