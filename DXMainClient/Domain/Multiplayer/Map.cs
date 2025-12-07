@@ -64,12 +64,13 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The name of the map.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public string Name { get; private set; }
 
         /// <summary>
         /// The original untranslated name of the map.
         /// </summary>
+        [JsonInclude]
         public string UntranslatedName { get; private set; }
 
         /// <summary>
@@ -127,7 +128,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The calculated SHA1 of the map.
         /// </summary>
-        [JsonIgnore]
+        [JsonInclude]
         public string SHA1 { get; private set; }
 
         /// <summary>
@@ -641,10 +642,10 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         // Ran after the map has been loaded from cache if it is a custom map.
-        public void AfterDeserialize()
+        public void AfterDeserialize(bool recalculateSHA = true)
         {
-            CalculateSHA();
-            UntranslatedName = Name;
+            if (recalculateSHA)
+                CalculateSHA();
         }
 
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
