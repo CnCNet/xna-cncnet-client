@@ -519,7 +519,7 @@ namespace DTAClient.Domain.Multiplayer
                     return new CustomMapCache() { Version = CurrentCustomMapCacheVersion, Items = [] };
 
                 foreach (CustomMapCache.Item customMap in customMapCache.Items.Values)
-                    customMap.Map.AfterDeserialize();
+                    customMap.Map.AfterDeserialize(recalculateSHA: false);
 
                 // Remove outdated items
                 foreach (var sha1 in customMapCache.Items.Keys.ToList())
