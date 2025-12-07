@@ -44,9 +44,6 @@ namespace DTAClient.Domain.Multiplayer
 
             public void RefreshIfOutdated()
             {
-                if (!File.Exists(Map.CompleteFilePath))
-                    return;
-
                 FileInfo fileInfo = new(Map.CompleteFilePath);
                 bool recalculateSHA = fileInfo.Exists && (fileInfo.Length != FileSize || fileInfo.LastWriteTimeUtc != LastWriteTimeUtc);
                 Map.AfterDeserialize(recalculateSHA);
