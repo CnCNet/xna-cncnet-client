@@ -644,6 +644,7 @@ namespace DTAClient.Domain.Multiplayer
         // Ran after the map has been loaded from cache if it is a custom map.
         public void AfterDeserialize(bool recalculateSHA = true)
         {
+            Name = UntranslatedName;
             if (recalculateSHA)
                 CalculateSHA();
         }
