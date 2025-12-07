@@ -481,7 +481,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Save cache of custom maps.
         /// </summary>
-        /// <param name="customMaps">Custom maps to cache</param>
+        /// <param name="customMapCache">Custom maps to cache</param>
         private void CacheCustomMaps(CustomMapCache customMapCache)
         {
             var jsonData = JsonSerializer.Serialize(customMapCache, jsonSerializerOptions);
