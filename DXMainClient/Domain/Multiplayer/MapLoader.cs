@@ -496,18 +496,15 @@ namespace DTAClient.Domain.Multiplayer
         private CustomMapCache LoadCustomMapCache()
         {
             // Delete any legacy cache files
-            foreach (string legacyCacheFile in LEGACY_CUSTOM_MAP_CACHE_FILES)
+            foreach (string legacyCacheFile in LEGACY_CUSTOM_MAP_CACHE_FILES.Where(File.Exists))
             {
-                if (File.Exists(legacyCacheFile))
+                try
                 {
-                    try
-                    {
-                        File.Delete(legacyCacheFile);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log($"Failed to delete legacy custom map cache file {legacyCacheFile}: {ex.Message}");
-                    }
+                    File.Delete(legacyCacheFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to delete legacy custom map cache file {legacyCacheFile}: {ex.Message}");
                 }
             }
 
