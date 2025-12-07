@@ -47,17 +47,10 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
 
-            public void RefreshIfOutdated()
+            public bool IsOutdated()
             {
                 Item refreshedItem = new(Map);
-                bool recalculateSHA = refreshedItem.FileSize != FileSize || refreshedItem.LastWriteTimeUtc != LastWriteTimeUtc;
-                if (recalculateSHA)
-                {
-                    FileSize = refreshedItem.FileSize;
-                    LastWriteTimeUtc = refreshedItem.LastWriteTimeUtc;
-                }
-
-                Map.AfterDeserialize(recalculateSHA);
+                return refreshedItem.FileSize != FileSize || refreshedItem.LastWriteTimeUtc != LastWriteTimeUtc;
             }
         }
     }
