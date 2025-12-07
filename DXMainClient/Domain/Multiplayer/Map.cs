@@ -637,7 +637,12 @@ namespace DTAClient.Domain.Multiplayer
         {
             Name = UntranslatedName;
             if (recalculateSHA)
+            {
+                // Instead of doing so, we should just remove the Map object from cache when the map file changes.
+                // Otherwise, the metadata can be out of date.
+                Debug.Assert(false, "The map SHA1 should not be recalculated after deserialization. Remove the Map object from cache when the map file changes instead.");
                 CalculateSHA();
+            }
         }
 
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
