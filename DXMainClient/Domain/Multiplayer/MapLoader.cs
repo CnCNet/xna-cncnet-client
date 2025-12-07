@@ -442,26 +442,26 @@ namespace DTAClient.Domain.Multiplayer
             CustomMapCache customMapCache = LoadCustomMapCache();
             var localMapSHAs = new ConcurrentBag<string>();
 
-            var tasks = new List<Task>();
-
-            foreach (FileInfo mapFile in mapFiles)
+            Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
             {
-                tasks.Add(Task.Run(() =>
-                {
-                    string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
-                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
+                baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                    var map = new Map(baseFilePath
-                        .Replace(Path.DirectorySeparatorChar, '/')
-                        .Replace(Path.AltDirectorySeparatorChar, '/'), true);
-                    map.CalculateSHA();
-                    localMapSHAs.Add(map.SHA1);
-                    if (!customMapCache.Items.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
-                        customMapCache.Items.TryAdd(map.SHA1, new CustomMapCache.Item(map));
-                }));
+                var map = new Map(baseFilePath
+                    .Replace(Path.DirectorySeparatorChar, '/')
+                    .Replace(Path.AltDirectorySeparatorChar, '/'), true);
+                map.CalculateSHA();
+                localMapSHAs.Add(map.SHA1);
+                if (!customMapCache.Items.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
+                    customMapCache.Items.TryAdd(map.SHA1, new CustomMapCache.Item(map));
+            })).ToArray();
+
+            while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
+            {
+                string message = "Waiting for the custom map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Length;
+                Debug.WriteLine(message);
+                Logger.Log(message);
             }
-
-            Task.WaitAll(tasks.ToArray());
 
             // remove cached maps that no longer exist locally
             foreach (var missingSHA in customMapCache.Items.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))

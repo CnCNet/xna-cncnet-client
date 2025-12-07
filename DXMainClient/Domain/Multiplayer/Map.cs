@@ -227,9 +227,6 @@ namespace DTAClient.Domain.Multiplayer
         public int height;
 
         [JsonIgnore]
-        private IniFile customMapIni;
-
-        [JsonIgnore]
         private readonly string customMapFilePath;
 
         [JsonInclude]
@@ -247,6 +244,7 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
+        // TODO: move preview texture caching out of the Map class
         [JsonIgnore]
         public Texture2D PreviewTexture { get; set; }
 
@@ -497,17 +495,10 @@ namespace DTAClient.Domain.Multiplayer
             return GetTDRACellPixelCoord(mapPoint.X, mapPoint.Y, x, y, width, height, previewSize);
         }
 
-        /// <summary>
-        /// Due to caching, this may not have been loaded on application start.
-        /// This function provides the ability to load when needed.
-        /// </summary>
-        /// <returns>Returns the loaded INI file of a custom map.</returns>
+        /// <summary>Returns the loaded INI file of a custom map.</summary>
         private IniFile GetCustomMapIniFile()
         {
-            if (customMapIni != null)
-                return customMapIni;
-
-            customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
+            var customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
@@ -619,7 +610,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
-                    string waypoint = GetCustomMapIniFile().GetStringValue("Waypoints", i.ToString(CultureInfo.InvariantCulture), string.Empty);
+                    string waypoint = iniFile.GetStringValue("Waypoints", i.ToString(CultureInfo.InvariantCulture), string.Empty);
 
                     if (string.IsNullOrEmpty(waypoint))
                         break;
@@ -699,6 +690,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
+                // TODO: implement a global cache for the preview texture. Don't cache either the texture or the map ini in the Map object itself.
                 using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
 
                 if (preview != null)
