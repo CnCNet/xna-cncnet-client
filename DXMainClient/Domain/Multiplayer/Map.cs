@@ -73,7 +73,16 @@ namespace DTAClient.Domain.Multiplayer
         /// The original untranslated name of the map.
         /// </summary>
         [JsonInclude]
-        public string UntranslatedName { get; private set; }
+        public string UntranslatedName
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                // Force triggering localization of the name now
+                _ = Name;
+            }
+        }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
