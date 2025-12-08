@@ -65,7 +65,7 @@ namespace DTAClient.Domain.Multiplayer
         /// The name of the map.
         /// </summary>
         [JsonIgnore]
-        public string Name => string.IsNullOrEmpty(UntranslatedName) || string.IsNullOrEmpty(BaseFilePath)
+        public string Name => !Official || string.IsNullOrEmpty(UntranslatedName) || string.IsNullOrEmpty(BaseFilePath)
             ? UntranslatedName
             : UntranslatedName.L10N($"INI:Maps:{BaseFilePath}:Description");
 
