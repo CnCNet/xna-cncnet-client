@@ -32,7 +32,16 @@
     <Platform Solution="WindowsXNADebug|*" Project="x86" />
     <Platform Solution="WindowsXNARelease|*" Project="x86" />
   </Project>
-  <Project Path="Rampastring.XNAUI/Rampastring.Tools/Rampastring.Tools.csproj" />
+  <Project Path="Rampastring.XNAUI/Rampastring.Tools/Rampastring.Tools.csproj">
+    <BuildType Solution="UniversalGLDebug|*" Project="Debug" />
+    <BuildType Solution="UniversalGLRelease|*" Project="Release" />
+    <BuildType Solution="WindowsDXDebug|*" Project="Debug" />
+    <BuildType Solution="WindowsDXRelease|*" Project="Release" />
+    <BuildType Solution="WindowsGLDebug|*" Project="Debug" />
+    <BuildType Solution="WindowsGLRelease|*" Project="Release" />
+    <BuildType Solution="WindowsXNADebug|*" Project="Debug" />
+    <BuildType Solution="WindowsXNARelease|*" Project="Release" />
+  </Project>
   <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
   <Project Path="SecondStageUpdater/SecondStageUpdater.csproj" />
   <Project Path="TranslationNotifierGenerator/TranslationNotifierGenerator.csproj" />
