@@ -496,16 +496,21 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>Returns the loaded INI file of a custom map.</summary>
-        private IniFile GetCustomMapIniFile()
+        private IniFile GetCustomMapIniFile(bool loadPreviewTextureSection = true)
         {
             var customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
-            customMapIni.AddSection("Preview");
-            customMapIni.AddSection("PreviewPack");
             customMapIni.AddSection("ForcedOptions");
             customMapIni.AddSection("ForcedSpawnIniOptions");
+
+            // Optionally load preview sections, to accelerate building custom map caches without reading preview.
+            if (loadPreviewTextureSection)
+            {
+                customMapIni.AddSection("Preview");
+                customMapIni.AddSection("PreviewPack");
+            }
             customMapIni.AllowNewSections = false;
             customMapIni.Parse();
 
@@ -523,7 +528,7 @@ namespace DTAClient.Domain.Multiplayer
 
             try
             {
-                IniFile iniFile = GetCustomMapIniFile();
+                IniFile iniFile = GetCustomMapIniFile(loadPreviewTextureSection: false);
 
                 IniSection basicSection = iniFile.GetSection("Basic");
 
@@ -696,7 +701,7 @@ namespace DTAClient.Domain.Multiplayer
             {
                 // Extract preview from the map itself
                 // TODO: implement a global cache for the preview texture. Don't cache either the texture or the map ini in the Map object itself.
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
 
                 if (preview != null)
                 {
