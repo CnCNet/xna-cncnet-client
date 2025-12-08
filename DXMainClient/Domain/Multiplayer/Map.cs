@@ -65,7 +65,9 @@ namespace DTAClient.Domain.Multiplayer
         /// The name of the map.
         /// </summary>
         [JsonIgnore]
-        public string Name { get; private set; }
+        public string Name => string.IsNullOrEmpty(UntranslatedName) || string.IsNullOrEmpty(BaseFilePath)
+            ? UntranslatedName
+            : UntranslatedName.L10N($"INI:Maps:{BaseFilePath}:Description");
 
         /// <summary>
         /// The original untranslated name of the map.
@@ -290,8 +292,6 @@ namespace DTAClient.Domain.Multiplayer
                 var section = iniFile.GetSection(BaseFilePath);
 
                 UntranslatedName = section.GetStringValue("Description", "Unnamed map");
-                Name = UntranslatedName
-                    .L10N($"INI:Maps:{BaseFilePath}:Description");
 
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
@@ -532,7 +532,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 IniSection basicSection = iniFile.GetSection("Basic");
 
-                UntranslatedName = Name = basicSection.GetStringValue("Name", "Unnamed map");
+                UntranslatedName = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
 
                 string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);
@@ -640,7 +640,6 @@ namespace DTAClient.Domain.Multiplayer
         // Ran after the map has been loaded from cache if it is a custom map.
         public void AfterDeserialize(bool recalculateSHA = true)
         {
-            Name = UntranslatedName;
             if (recalculateSHA)
             {
                 // Instead of doing so, we should just remove the Map object from cache when the map file changes.
