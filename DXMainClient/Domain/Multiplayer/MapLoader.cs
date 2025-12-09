@@ -23,14 +23,17 @@ namespace DTAClient.Domain.Multiplayer
     public class MapLoader
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
+
+        private const int CurrentCustomMapCacheVersion = 3;
+        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v3");
         private static readonly IReadOnlyList<string> LEGACY_CUSTOM_MAP_CACHE_FILES = [
             SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache"),
+            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v2"),
         ];
-        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v2");
+
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
-        private const int CurrentCustomMapCacheVersion = 2;
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
         private MapFileWatcher mapFileWatcher;
         private readonly object mapModificationLock = new object();
