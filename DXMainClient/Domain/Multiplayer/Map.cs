@@ -64,25 +64,13 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The name of the map.
         /// </summary>
-        [JsonIgnore]
-        public string Name => !Official || string.IsNullOrEmpty(UntranslatedName) || string.IsNullOrEmpty(BaseFilePath)
-            ? UntranslatedName
-            : UntranslatedName.L10N($"INI:Maps:{BaseFilePath}:Description");
+        [JsonInclude]
+        public string Name { get; private set; }
 
         /// <summary>
         /// The original untranslated name of the map.
         /// </summary>
-        [JsonInclude]
-        public string UntranslatedName
-        {
-            get => field;
-            private set
-            {
-                field = value;
-                // Force triggering localization of the name now
-                _ = Name;
-            }
-        }
+        public string UntranslatedName { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
@@ -301,6 +289,8 @@ namespace DTAClient.Domain.Multiplayer
                 var section = iniFile.GetSection(BaseFilePath);
 
                 UntranslatedName = section.GetStringValue("Description", "Unnamed map");
+                Name = UntranslatedName
+                    .L10N($"INI:Maps:{BaseFilePath}:Description");
 
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
@@ -541,7 +531,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 IniSection basicSection = iniFile.GetSection("Basic");
 
-                UntranslatedName = basicSection.GetStringValue("Name", "Unnamed map");
+                UntranslatedName = Name = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
 
                 string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);
@@ -656,6 +646,8 @@ namespace DTAClient.Domain.Multiplayer
                 Debug.Assert(false, "The map SHA1 should not be recalculated after deserialization. Remove the Map object from cache when the map file changes instead.");
                 CalculateSHA();
             }
+
+            UntranslatedName = Name;
         }
 
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
