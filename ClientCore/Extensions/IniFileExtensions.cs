@@ -35,7 +35,7 @@ namespace ClientCore.Extensions
 
             public string[] GetStringListValue(string section, string key, string defaultValue, char[] separators = null)
                 => (iniFile.GetSection(section)?.GetStringValue(key, defaultValue) ?? defaultValue)
-                    .SplitWithCleanup();
+                    .SplitWithCleanup(separators);
 
         }
 

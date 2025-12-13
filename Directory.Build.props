@@ -37,10 +37,13 @@
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
+    <!-- We need to define both platforms to make Visual Studio happy when targeting XNA -->
     <Platforms>AnyCPU;x86</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
     <Platform Condition="!$(Engine.Contains(XNA))">AnyCPU</Platform>
+    <PlatformTarget Condition="$(Engine.Contains(XNA))">x86</PlatformTarget>
+    <PlatformTarget Condition="!$(Engine.Contains(XNA))">AnyCPU</PlatformTarget>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
