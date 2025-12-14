@@ -23,11 +23,17 @@ namespace DTAClient.Domain.Multiplayer
     public class MapLoader
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
-        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache");
+
+        private const int CurrentCustomMapCacheVersion = 3;
+        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v3");
+        private static readonly IReadOnlyList<string> LEGACY_CUSTOM_MAP_CACHE_FILES = [
+            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache"),
+            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v2"),
+        ];
+
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
-        private const int CurrentCustomMapCacheVersion = 1;
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
         private MapFileWatcher mapFileWatcher;
         private readonly object mapModificationLock = new object();
@@ -161,7 +167,7 @@ namespace DTAClient.Domain.Multiplayer
                     }
                     catch (IOException)
                     {
-                        if (attempt < _mapChangeRetryCount-1)
+                        if (attempt < _mapChangeRetryCount - 1)
                             await Task.Delay(100);
                         else
                             throw;
@@ -219,7 +225,7 @@ namespace DTAClient.Domain.Multiplayer
                     }
                     catch (IOException)
                     {
-                        if (attempt < _mapChangeRetryCount-1)
+                        if (attempt < _mapChangeRetryCount - 1)
                             await Task.Delay(100);
                         else
                             throw;
@@ -436,40 +442,40 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*.{ClientConfiguration.Instance.MapFileExtension}");
-            ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
+            CustomMapCache customMapCache = LoadCustomMapCache();
             var localMapSHAs = new ConcurrentBag<string>();
 
-            var tasks = new List<Task>();
-
-            foreach (FileInfo mapFile in mapFiles)
+            Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
             {
-                tasks.Add(Task.Run(() =>
-                {
-                    string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
-                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
+                baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                    var map = new Map(baseFilePath
-                        .Replace(Path.DirectorySeparatorChar, '/')
-                        .Replace(Path.AltDirectorySeparatorChar, '/'), true);
-                    map.CalculateSHA();
-                    localMapSHAs.Add(map.SHA1);
-                    if (!customMapCache.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
-                        customMapCache.TryAdd(map.SHA1, map);
-                }));
+                var map = new Map(baseFilePath
+                    .Replace(Path.DirectorySeparatorChar, '/')
+                    .Replace(Path.AltDirectorySeparatorChar, '/'), true);
+                map.CalculateSHA();
+                localMapSHAs.Add(map.SHA1);
+                if (!customMapCache.Items.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
+                    customMapCache.Items.TryAdd(map.SHA1, new CustomMapCache.Item(map));
+            })).ToArray();
+
+            while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
+            {
+                string message = "Waiting for the custom map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Length;
+                Debug.WriteLine(message);
+                Logger.Log(message);
             }
 
-            Task.WaitAll(tasks.ToArray());
-
             // remove cached maps that no longer exist locally
-            foreach (var missingSHA in customMapCache.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
+            foreach (var missingSHA in customMapCache.Items.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
             {
-                customMapCache.TryRemove(missingSHA, out _);
+                customMapCache.Items.TryRemove(missingSHA, out _);
             }
 
             // save cache
             CacheCustomMaps(customMapCache);
 
-            foreach (Map map in customMapCache.Values)
+            foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
                 AddMapToGameModes(map, false);
             }
@@ -478,14 +484,9 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Save cache of custom maps.
         /// </summary>
-        /// <param name="customMaps">Custom maps to cache</param>
-        private void CacheCustomMaps(ConcurrentDictionary<string, Map> customMaps)
+        /// <param name="customMapCache">Custom maps to cache</param>
+        private void CacheCustomMaps(CustomMapCache customMapCache)
         {
-            var customMapCache = new CustomMapCache
-            {
-                Maps = customMaps,
-                Version = CurrentCustomMapCacheVersion
-            };
             var jsonData = JsonSerializer.Serialize(customMapCache, jsonSerializerOptions);
 
             File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
@@ -495,25 +496,48 @@ namespace DTAClient.Domain.Multiplayer
         /// Load previously cached custom maps
         /// </summary>
         /// <returns></returns>
-        private ConcurrentDictionary<string, Map> LoadCustomMapCache()
+        private CustomMapCache LoadCustomMapCache()
         {
+            // Delete any legacy cache files
+            foreach (string legacyCacheFile in LEGACY_CUSTOM_MAP_CACHE_FILES.Where(File.Exists))
+            {
+                try
+                {
+                    File.Delete(legacyCacheFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to delete legacy custom map cache file {legacyCacheFile}: {ex.Message}");
+                }
+            }
+
+            // Load current cache
             try
             {
                 var jsonData = File.ReadAllText(CUSTOM_MAPS_CACHE);
 
                 var customMapCache = JsonSerializer.Deserialize<CustomMapCache>(jsonData, jsonSerializerOptions);
 
-                var customMaps = customMapCache?.Version == CurrentCustomMapCacheVersion && customMapCache.Maps != null
-                    ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();
+                if (customMapCache?.Version != CurrentCustomMapCacheVersion)
+                    return new CustomMapCache() { Version = CurrentCustomMapCacheVersion, Items = [] };
 
-                foreach (var customMap in customMaps.Values)
-                    customMap.AfterDeserialize();
+                foreach (CustomMapCache.Item customMap in customMapCache.Items.Values)
+                    customMap.Map.AfterDeserialize(recalculateSHA: false);
 
-                return customMaps;
+                // Remove outdated items
+                foreach (var sha1 in customMapCache.Items.Keys.ToList())
+                {
+                    if (customMapCache.Items[sha1].IsOutdated())
+                    {
+                        customMapCache.Items.TryRemove(sha1, out _);
+                    }
+                }
+
+                return customMapCache;
             }
             catch (Exception)
             {
-                return new ConcurrentDictionary<string, Map>();
+                return new CustomMapCache() { Version = CurrentCustomMapCacheVersion, Items = [] };
             }
         }
 

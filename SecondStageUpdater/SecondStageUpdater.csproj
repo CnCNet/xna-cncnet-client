@@ -9,6 +9,6 @@
     <Product>CnCNet.SecondStageUpdater</Product>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.Tools" />
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
   </ItemGroup>
 </Project>
