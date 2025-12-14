@@ -900,7 +900,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ManualUpdateQueryWindow_Closed(object sender, EventArgs e)
-            => updateQueryWindow.Enable();
+            => manualUpdateQueryWindow.Disable();
 
         #endregion
 

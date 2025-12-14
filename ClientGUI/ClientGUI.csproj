@@ -6,8 +6,7 @@
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Condition="'$(Configuration.Contains(Debug))'" />
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.XNAUI.csproj" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration.Contains('GL'))">
     <!--Remove WinForm-->
