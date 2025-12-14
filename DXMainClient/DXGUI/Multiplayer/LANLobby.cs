@@ -95,9 +95,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
-        List<NetworkInterface> broadcast_interfaces = new List<NetworkInterface>();
-        Dictionary<string, PlayerIPInfo> player_ipinfo = new Dictionary<string, PlayerIPInfo>();
-        Dictionary<string, PlayerUsernameInfo> player_usernameinfo = new Dictionary<string, PlayerUsernameInfo>();
+        readonly List<NetworkInterface> broadcast_interfaces = new List<NetworkInterface>();
+        readonly Dictionary<string, PlayerIPInfo> player_ipinfo = new Dictionary<string, PlayerIPInfo>();
+        readonly Dictionary<string, PlayerUsernameInfo> player_usernameinfo = new Dictionary<string, PlayerUsernameInfo>();
 
         Thread listener;
 
@@ -368,9 +368,9 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 IPInterfaceProperties prop = iface.GetIPProperties();
                 UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info => info.Address.AddressFamily == AddressFamily.InterNetwork);
-                if (info == null) continue;
+                if (info == null || info.IPv4Mask == null) continue;
                 IPAddress local_ip = info.Address;
-                uint ip = BitConverter.ToUInt32(info.Address.GetAddressBytes(), 0);
+                uint ip = BitConverter.ToUInt32(local_ip.GetAddressBytes(), 0);
                 uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
                 uint broadcast = ip | ~mask;
                 IPAddress broadcast_ip = new IPAddress(BitConverter.GetBytes(broadcast));
@@ -443,10 +443,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             if (for_deletion != null)
             {
-                foreach (NetworkInterface iface in for_deletion)
-                {
-                    broadcast_interfaces.Remove(iface);
-                }
+                broadcast_interfaces.RemoveAll(iface => for_deletion.Contains(iface));
             }
         }
 
@@ -464,18 +461,18 @@ namespace DTAClient.DXGUI.Multiplayer
         private bool ShouldReceive(string username, IPAddress ip)
         {
             DateTime now = DateTime.Now;
-            if (!player_ipinfo.ContainsKey(username))
+            if (!player_ipinfo.TryGetValue(username, out PlayerIPInfo info))
             {
-                player_ipinfo[username] = new PlayerIPInfo(ip, now);
+                info = new PlayerIPInfo(ip, now);
+                player_ipinfo[username] = info;
                 return true;
             }
-            PlayerIPInfo info = player_ipinfo[username];
             if (info.ip.Equals(ip))
             {
                 info.last_msg_time = now;
                 return true;
             }
-            if ((now - info.last_msg_time).Seconds >= 3)
+            if ((now - info.last_msg_time).TotalSeconds >= 3)
             {
                 info.last_msg_time = now;
                 info.ip = ip;
@@ -530,11 +527,11 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        void PlayerListAdd(string username, Texture2D texture)
+        private void PlayerListAdd(string username, Texture2D texture)
         {
-            if (player_usernameinfo.ContainsKey(username))
+            if (player_usernameinfo.TryGetValue(username, out PlayerUsernameInfo info))
             {
-                player_usernameinfo[username].count++;
+                info.count++;
             }
             else
             {
@@ -543,16 +540,16 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        void PlayerListRemove(string username)
+        private void PlayerListRemove(string username)
         {
-            if (!player_usernameinfo.ContainsKey(username)) return;
-            PlayerUsernameInfo info = player_usernameinfo[username];
+            if (!player_usernameinfo.TryGetValue(username, out PlayerUsernameInfo info)) return;
+            
             if (info.count == 1)
             {
                 int idx = info.list_index;
-                foreach (PlayerUsernameInfo oinfo in player_usernameinfo.Values)
+                foreach (PlayerUsernameInfo oinfo in player_usernameinfo.Values.Where(oinfo => oinfo.list_index > idx))
                 {
-                    if (oinfo.list_index > idx) oinfo.list_index--;
+                    oinfo.list_index--;
                 }
                 player_usernameinfo.Remove(username);
                 lbPlayerList.RemoveItem(idx);
@@ -610,7 +607,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
 
-                    if (!ShouldReceive(user.Name, endPoint.Address)) break;
+                    if (!ShouldReceive(user.Name, endPoint.Address)) 
+                        break;
 
                     lbChatMessages.AddMessage(new ChatMessage(user.Name,
                         chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
