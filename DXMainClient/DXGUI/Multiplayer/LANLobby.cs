@@ -95,9 +95,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
-        readonly List<NetworkInterface> broadcast_interfaces = new List<NetworkInterface>();
-        readonly Dictionary<string, PlayerIPInfo> player_ipinfo = new Dictionary<string, PlayerIPInfo>();
-        readonly Dictionary<string, PlayerUsernameInfo> player_usernameinfo = new Dictionary<string, PlayerUsernameInfo>();
+        readonly List<NetworkInterface> broadcastInterfaces = new List<NetworkInterface>();
+        readonly Dictionary<string, PlayerIpInfo> playerIpInfo = new Dictionary<string, PlayerIpInfo>();
+        readonly Dictionary<string, PlayerUsernameInfo> playerUsernameInfo = new Dictionary<string, PlayerUsernameInfo>();
+
+        // for accessing broadcastInterfaces
+        readonly ReaderWriterLockSlim sendMessageLock = new ReaderWriterLockSlim();
+        // for accessing the players list, playerIpInfo, playerUsernameInfo, calling PlayerListAdd and PlayerListRemove
+        private readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
 
         Thread listener;
 
@@ -287,6 +292,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 try
                 {
+                    // has to be with space, otherwise the size of the array split by ' ' will be 1, and it wont be processed
                     SendMessage("QUIT ");
                 }
                 catch (ObjectDisposedException)
@@ -302,7 +308,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 }
             }
-            if (listener != null) listener.Join(1000);
+
+            if (listener != null)
+            {
+                bool success = listener.Join(1000);
+                if (!success)
+                    Logger.Log("Failed to shut down listener after timeout!");
+            }
         }
 
         private void LanGameLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
@@ -350,42 +362,62 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        class NetworkInterface
+        class NetworkInterface(IPAddress localIp, IPEndPoint broadcast)
         {
-            public IPAddress local_ip;
-            public IPEndPoint broadcast;
-            public NetworkInterface(IPAddress local_ip, IPEndPoint broadcast)
-            {
-                this.local_ip = local_ip;
-                this.broadcast = broadcast;
-            }
+            public IPAddress LocalIp = localIp;
+            public readonly IPEndPoint Broadcast = broadcast;
         }
 
         private void AddBroadcastInterfaces()
         {
             SystemNetworkInterface[] interfaces = SystemNetworkInterface.GetAllNetworkInterfaces();
-            foreach (SystemNetworkInterface iface in interfaces)
+            sendMessageLock.EnterWriteLock();
+            try
             {
-                IPInterfaceProperties prop = iface.GetIPProperties();
-                UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info => info.Address.AddressFamily == AddressFamily.InterNetwork);
-                if (info == null || info.IPv4Mask == null) continue;
-                IPAddress local_ip = info.Address;
-                uint ip = BitConverter.ToUInt32(local_ip.GetAddressBytes(), 0);
-                uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
-                uint broadcast = ip | ~mask;
-                IPAddress broadcast_ip = new IPAddress(BitConverter.GetBytes(broadcast));
-                broadcast_interfaces.Add(new NetworkInterface(local_ip, new IPEndPoint(broadcast_ip, ProgramConstants.LAN_LOBBY_PORT)));
+                foreach (SystemNetworkInterface iface in interfaces)
+                {
+                    IPInterfaceProperties prop = iface.GetIPProperties();
+                    UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info =>
+                        info.Address.AddressFamily == AddressFamily.InterNetwork);
+                    if (info == null || info.IPv4Mask == null)
+                        continue;
+                    IPAddress localIp = info.Address;
+                    uint ip = BitConverter.ToUInt32(localIp.GetAddressBytes(), 0);
+                    uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
+                    uint broadcast = ip | ~mask;
+                    IPAddress broadcastIp = new IPAddress(BitConverter.GetBytes(broadcast));
+                    broadcastInterfaces.Add(new NetworkInterface(localIp,
+                        new IPEndPoint(broadcastIp, ProgramConstants.LAN_LOBBY_PORT)));
+                }
             }
+            finally { sendMessageLock.ExitWriteLock(); }
         }
 
         public void Open()
         {
-            players.Clear();
-            lbPlayerList.Clear();
-            lbGameList.ClearGames();
-            broadcast_interfaces.Clear();
-            player_ipinfo.Clear();
-            player_usernameinfo.Clear();
+            playerLock.EnterWriteLock();
+            try
+            {
+                players.Clear();
+                lbPlayerList.Clear();
+                playerIpInfo.Clear();
+                playerUsernameInfo.Clear();
+            }
+            finally { playerLock.ExitWriteLock(); }
+            
+            // this should be synchronzied, because as i observed, these XNAGameLists and other objects are not
+            //   thread safe, but they are called from Open here, and also from HandleNetworkMessage, which, because
+            //   it is called from callbacks, can be accessed by multiple threads
+            // this i believe is not the only way this variable is accessed (because how else are the games removed?, they are only added in this code file)
+            //   so for full thread safety wed need to synchronize its access from wherever the games are also removed, 
+            //   or read from
+            // but for now this provides synchronization against multiple HandleNetworkMessage callbacks, which is
+            //  better than nothing
+            lock (lbGameList) lbGameList.ClearGames();
+            
+            sendMessageLock.EnterWriteLock();
+            try { broadcastInterfaces.Clear(); }
+            finally { sendMessageLock.ExitWriteLock(); }
 
             Visible = true;
             Enabled = true;
@@ -410,6 +442,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234.".L10N("Client:Main:SocketFailure3")));
                 initSuccess = false;
+                
                 return;
             }
 
@@ -428,59 +461,73 @@ namespace DTAClient.DXGUI.Multiplayer
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
-            List<NetworkInterface> for_deletion = null;
-            foreach (NetworkInterface iface in broadcast_interfaces)
+            
+            // if theres an error when we send to the interface,
+            // remove that intrerface
+            // because thats rare,
+            // keep the list as null by default so that it doesnt get constructed every SendMessage
+            List<NetworkInterface> forDeletion = null;
+            sendMessageLock.EnterReadLock();
+            try
             {
-                try
+                foreach (NetworkInterface iface in broadcastInterfaces)
                 {
-                    socket.SendTo(buffer, iface.broadcast);
-                }
-                catch (SocketException)
-                {
-                    if (for_deletion == null) for_deletion = new List<NetworkInterface>();
-                    for_deletion.Add(iface);
+                    try
+                    {
+                        socket.SendTo(buffer, iface.Broadcast);
+                    }
+                    catch (SocketException)
+                    {
+                        if (forDeletion == null) forDeletion = new List<NetworkInterface>();
+                        forDeletion.Add(iface);
+                    }
                 }
             }
-            if (for_deletion != null)
+            finally { sendMessageLock.ExitReadLock(); }
+
+            if (forDeletion != null)
             {
-                broadcast_interfaces.RemoveAll(iface => for_deletion.Contains(iface));
+                sendMessageLock.EnterWriteLock();
+                try { broadcastInterfaces.RemoveAll(iface => forDeletion.Contains(iface)); }
+                finally { sendMessageLock.ExitWriteLock(); }
             }
         }
 
-        class PlayerIPInfo
+        class PlayerIpInfo(IPAddress ip, DateTime lastMsgTime)
         {
-            public IPAddress ip;
-            public DateTime last_msg_time;
-            public PlayerIPInfo(IPAddress ip, DateTime last_msg_time)
-            {
-                this.ip = ip;
-                this.last_msg_time = last_msg_time;
-            }
+            public IPAddress Ip = ip;
+            public DateTime LastMsgTime = lastMsgTime;
         }
 
         private bool ShouldReceive(string username, IPAddress ip)
         {
             DateTime now = DateTime.Now;
-            if (!player_ipinfo.TryGetValue(username, out PlayerIPInfo info))
+            if (!playerIpInfo.TryGetValue(username, out PlayerIpInfo info))
             {
-                info = new PlayerIPInfo(ip, now);
-                player_ipinfo[username] = info;
+                info = new PlayerIpInfo(ip, now);
+                
+                playerLock.EnterWriteLock();
+                try { playerIpInfo[username] = info; }
+                finally { playerLock.ExitWriteLock(); }
+
+
                 return true;
             }
-            if (info.ip.Equals(ip))
+            if (info.Ip.Equals(ip))
             {
-                info.last_msg_time = now;
+                info.LastMsgTime = now;
+                
                 return true;
             }
-            if ((now - info.last_msg_time).TotalSeconds >= 3)
+            if ((now - info.LastMsgTime).TotalSeconds >= 3)
             {
-                info.last_msg_time = now;
-                info.ip = ip;
+                info.LastMsgTime = now;
+                info.Ip = ip;
+                
                 return true;
-            } else
-            {
-                return false;
-            }
+            } 
+            
+            return false;
         }
 
         private void Listen()
@@ -516,47 +563,42 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        class PlayerUsernameInfo
+        class PlayerUsernameInfo(int listIndex, int count)
         {
-            public int list_index;
-            public int count;
-            public PlayerUsernameInfo(int list_index, int count)
-            {
-                this.list_index = list_index;
-                this.count = count;
-            }
+            public int ListIndex = listIndex;
+            public int Count = count;
         }
 
         private void PlayerListAdd(string username, Texture2D texture)
         {
-            if (player_usernameinfo.TryGetValue(username, out PlayerUsernameInfo info))
+            if (playerUsernameInfo.TryGetValue(username, out PlayerUsernameInfo info))
             {
-                info.count++;
+                info.Count++;
             }
             else
             {
-                player_usernameinfo[username] = new PlayerUsernameInfo(lbPlayerList.Items.Count, 1);
+                playerUsernameInfo[username] = new PlayerUsernameInfo(lbPlayerList.Items.Count, 1);
                 lbPlayerList.AddItem(username, texture);
             }
         }
 
         private void PlayerListRemove(string username)
         {
-            if (!player_usernameinfo.TryGetValue(username, out PlayerUsernameInfo info)) return;
+            if (!playerUsernameInfo.TryGetValue(username, out PlayerUsernameInfo info))
+                return;
             
-            if (info.count == 1)
+            if (info.Count == 1)
             {
-                int idx = info.list_index;
-                foreach (PlayerUsernameInfo oinfo in player_usernameinfo.Values.Where(oinfo => oinfo.list_index > idx))
-                {
-                    oinfo.list_index--;
-                }
-                player_usernameinfo.Remove(username);
+                int idx = info.ListIndex;
+                foreach (PlayerUsernameInfo oinfo in playerUsernameInfo.Values.Where(oinfo => oinfo.ListIndex > idx))
+                    oinfo.ListIndex--;
+                playerUsernameInfo.Remove(username);
                 lbPlayerList.RemoveItem(idx);
             }
-            else info.count--;
+            else
+                info.Count--;
         }
-
+        
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
             string[] commandAndParams = data.Split(' ');
@@ -569,81 +611,103 @@ namespace DTAClient.DXGUI.Multiplayer
             string[] parameters = data.Substring(command.Length + 1).Split(
                 new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
-            LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
-
-            switch (command)
+            playerLock.EnterUpgradeableReadLock();
+            try
             {
-                case "ALIVE":
-                    if (parameters.Length < 2)
-                        return;
+                LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
 
-                    int gameIndex = Conversions.IntFromString(parameters[0], -1);
-                    string name = parameters[1];
+                switch (command)
+                {
+                    case "ALIVE":
+                        if (parameters.Length < 2)
+                            return;
 
-                    if (user == null)
-                    {
-                        Texture2D gameTexture = unknownGameIcon;
+                        int gameIndex = Conversions.IntFromString(parameters[0], -1);
+                        string name = parameters[1];
 
-                        if (gameIndex > -1 && gameIndex < gameCollection.GameList.Count)
-                            gameTexture = gameCollection.GameList[gameIndex].Texture;
+                        if (user == null)
+                        {
+                            Texture2D gameTexture = unknownGameIcon;
 
-                        user = new LANLobbyUser(name, gameTexture, endPoint);
-                        players.Add(user);
-                        PlayerListAdd(user.Name, gameTexture);
-                    }
+                            if (gameIndex > -1 && gameIndex < gameCollection.GameList.Count)
+                                gameTexture = gameCollection.GameList[gameIndex].Texture;
 
-                    user.TimeWithoutRefresh = TimeSpan.Zero;
+                            user = new LANLobbyUser(name, gameTexture, endPoint);
+                            
+                            playerLock.EnterWriteLock();
+                            try
+                            {
+                                players.Add(user);
+                                PlayerListAdd(user.Name, gameTexture);
+                            } finally { playerLock.ExitWriteLock();}
+                        }
 
-                    break;
-                case "CHAT":
-                    if (user == null)
-                        return;
+                        user.TimeWithoutRefresh = TimeSpan.Zero;
 
-                    if (parameters.Length < 2)
-                        return;
-
-                    int colorIndex = Conversions.IntFromString(parameters[0], -1);
-
-                    if (colorIndex < 0 || colorIndex >= chatColors.Length)
-                        return;
-
-                    if (!ShouldReceive(user.Name, endPoint.Address)) 
                         break;
+                    case "CHAT":
+                        if (user == null)
+                            return;
 
-                    lbChatMessages.AddMessage(new ChatMessage(user.Name,
-                        chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
+                        if (parameters.Length < 2)
+                            return;
 
-                    break;
-                case "QUIT":
-                    if (user == null)
-                        return;
+                        int colorIndex = Conversions.IntFromString(parameters[0], -1);
 
-                    int index = players.FindIndex(p => p == user);
+                        if (colorIndex < 0 || colorIndex >= chatColors.Length)
+                            return;
 
-                    PlayerListRemove(players[index].Name);
-                    players.RemoveAt(index);
-                    break;
-                case "GAME":
-                    if (user == null)
-                        return;
+                        if (!ShouldReceive(user.Name, endPoint.Address))
+                            break;
 
-                    HostedLANGame game = new HostedLANGame();
-                    if (!game.SetDataFromStringArray(gameCollection, parameters))
-                        return;
-                    game.EndPoint = endPoint;
+                        lock (lbChatMessages)
+                            lbChatMessages.AddMessage(new ChatMessage(user.Name,
+                                chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
 
-                    int existingGameIndex = lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
+                        break;
+                    case "QUIT":
+                        if (user == null)
+                            return;
 
-                    if (existingGameIndex > -1)
-                        lbGameList.HostedGames[existingGameIndex] = game;
-                    else
-                    {
-                        lbGameList.HostedGames.Add(game);
-                    }
+                        int index = players.FindIndex(p => p == user);
 
-                    lbGameList.Refresh();
+                        playerLock.EnterWriteLock();
+                        try
+                        {
+                            PlayerListRemove(players[index].Name);
+                            players.RemoveAt(index);
+                        } finally { playerLock.ExitWriteLock(); }
+                        break;
+                    case "GAME":
+                        if (user == null)
+                            return;
 
-                    break;
+                        HostedLANGame game = new HostedLANGame();
+                        if (!game.SetDataFromStringArray(gameCollection, parameters))
+                            return;
+                        game.EndPoint = endPoint;
+
+                        lock (lbGameList)
+                        {
+                            int existingGameIndex =
+                                lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
+
+                            if (existingGameIndex > -1)
+                                lbGameList.HostedGames[existingGameIndex] = game;
+                            else
+                            {
+                                lbGameList.HostedGames.Add(game);
+                            }
+
+                            lbGameList.Refresh();
+                        }
+
+                        break;
+                }
+            }
+            finally
+            {
+                playerLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -767,6 +831,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
+            // has to be with space, otherwise the size of the array split by ' ' will be 1, and it wont be processed
             SendMessage("QUIT ");
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);
@@ -793,8 +858,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (players[i].TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
-                    PlayerListRemove(players[i].Name);
-                    players.RemoveAt(i);
+                    playerLock.EnterWriteLock();
+                    try
+                    {
+                        PlayerListRemove(players[i].Name);
+                        players.RemoveAt(i);
+                    } finally { playerLock.ExitWriteLock(); }
+
                     i--;
                 }
             }
