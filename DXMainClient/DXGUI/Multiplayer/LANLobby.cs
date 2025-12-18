@@ -292,7 +292,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 try
                 {
-                    // has to be with space, otherwise the size of the array split by ' ' will be 1, and it wont be processed
+                    // has to be with trailing space, otherwise it wont be processed by HandleNetworkMessage
                     SendMessage("QUIT ");
                 }
                 catch (ObjectDisposedException)
@@ -599,6 +599,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 info.Count--;
         }
         
+        // data should at least contain a space, otherwise it will be ignored
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
             string[] commandAndParams = data.Split(' ');
@@ -831,7 +832,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            // has to be with space, otherwise the size of the array split by ' ' will be 1, and it wont be processed
+            // has to be with trailing space, otherwise it wont be processed by HandleNetworkMessage
             SendMessage("QUIT ");
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);
