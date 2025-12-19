@@ -35,6 +35,8 @@ Newtonsoft.Json.Bson.dll
 Newtonsoft.Json.dll
 OpenMcdf.dll
 Rampastring.Tools.dll
+Rampastring.Tools.pdb
+Rampastring.Tools.xml
 SixLabors.ImageSharp.dll
 steam_api64.dll
 System.Buffers.dll

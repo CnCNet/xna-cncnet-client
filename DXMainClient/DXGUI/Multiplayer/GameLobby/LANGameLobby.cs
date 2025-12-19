@@ -652,7 +652,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game".L10N("Client:Main:LockGame");
 
             if (manual)
-                AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnockedByYou"));
+                AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnlockedByYou"));
         }
 
         protected override void LockGame()

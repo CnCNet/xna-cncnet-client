@@ -2,10 +2,13 @@
   <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
-    <!-- Note: specify Prefer32Bit only for .NET 4.8 XNA build. For .NET 8 builds, there are no Prefer32Bit option. -->
-    <!-- For .NET 8, there is a parameter "arch" but frg2089 said it is not necessary to specify this parameter since we don't use AppHost. -->
+    <!-- Specify Prefer32Bit only for .NET 4.8 XNA build. -->    
     <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <Prefer32Bit Condition="'$(Engine)' != 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">false</Prefer32Bit>
+    <!-- For .NET 8 builds, there are no Prefer32Bit option but RuntimeIdentifier. -->
+    <!-- Although it is not necessary to specify this RuntimeIdentifier parameter since we don't use AppHost, we still define it to make the `.deps.json` file correct. -->
+    <RuntimeIdentifier Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' != '.NETFramework'">win-x86</RuntimeIdentifier>
+    <UseCurrentRuntimeIdentifier>false</UseCurrentRuntimeIdentifier>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
     <Description>CnCNet Main Client</Description>
