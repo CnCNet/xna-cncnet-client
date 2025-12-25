@@ -56,9 +56,9 @@ public static class DirectDrawCompatibilityFixer
         {
             if (regValue is string regValueString)
             {
-                newRegValue = string.Join(' ', 
+                newRegValue = string.Join(" ", 
                     regValueString
-                        .SplitWithCleanup([' '])
+                        .SplitWithCleanup(new char[] {' '})
                         .Where(v => !OSCompatibilityValues.Contains(v)));
                 success = true;
             }
