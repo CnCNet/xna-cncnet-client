@@ -15,7 +15,7 @@ namespace DTAClient.Domain;
 [SupportedOSPlatform("windows")]
 public static class DirectDrawCompatibilityFixer
 {
-    private static IReadOnlyList<string> OSCompatibilityValues = [
+    private static readonly IReadOnlyList<string> OSCompatibilityValues = [
         "WIN8RTM", "WIN7RTM", "VISTASP2", "VISTASP1", "VISTARTM", "WINXPSP3", "WINXPSP2", "WIN98", "WIN95"
     ];
     
