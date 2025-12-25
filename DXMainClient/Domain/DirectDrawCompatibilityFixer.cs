@@ -1,4 +1,4 @@
-using System;
+#nullable enable
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -15,22 +15,22 @@ namespace DTAClient.Domain;
 [SupportedOSPlatform("windows")]
 public static class DirectDrawCompatibilityFixer
 {
-    private static IReadOnlyList<string> OSCompatibilityValues = [
+    private readonly static IReadOnlyList<string> OSCompatibilityValues = [
         "WIN8RTM", "WIN7RTM", "VISTASP2", "VISTASP1", "VISTARTM", "WINXPSP3", "WINXPSP2", "WIN98", "WIN95"
     ];
     
     public static void Examine(out bool requireFix, out bool requireAdmin)
     {
-        using RegistryKey hkcuKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
-        using RegistryKey hklmKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+        using RegistryKey? hkcuKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+        using RegistryKey? hklmKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
             
         string gameExeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath,
             ClientConfiguration.Instance.GetGameExecutableName());
             
-        object hkcuValue = hkcuKey?.GetValue(gameExeFullPath);
-        object hklmValue = hklmKey?.GetValue(gameExeFullPath);
+        object? hkcuValue = hkcuKey?.GetValue(gameExeFullPath);
+        object? hklmValue = hklmKey?.GetValue(gameExeFullPath);
 
-        bool IsFixRequired(object regValue)
+        bool IsFixRequired(object? regValue)
             => regValue is string regValueString 
                && regValueString.Split([' ']).Intersect(OSCompatibilityValues).Any();
 
@@ -43,49 +43,49 @@ public static class DirectDrawCompatibilityFixer
 
     public static void Fix()
     {
-        using RegistryKey hkcuKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", writable: true);
-        using RegistryKey hklmKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", writable: true);
+        using RegistryKey hkcuKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", writable: true);
+        using RegistryKey hklmKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", writable: true);
             
         string gameExeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath,
             ClientConfiguration.Instance.GetGameExecutableName());
             
-        object hkcuValue = hkcuKey?.GetValue(gameExeFullPath);
-        object hklmValue = hklmKey?.GetValue(gameExeFullPath);
+        object? hkcuValue = hkcuKey.GetValue(gameExeFullPath);
+        object? hklmValue = hklmKey.GetValue(gameExeFullPath);
 
-        void FixValue(object regValue, out bool success, out string newRegValue)
+        void FixValue(object? regValue, out bool success, out string newRegValue)
         {
             if (regValue is string regValueString)
             {
                 newRegValue = string.Join(" ", 
                     regValueString
-                        .SplitWithCleanup(new char[] {' '})
+                        .SplitWithCleanup(new [] {' '})
                         .Where(v => !OSCompatibilityValues.Contains(v)));
                 success = true;
             }
             else
             {
                 success = false;
-                newRegValue = null;
+                newRegValue = string.Empty;
             }
         }
 
-        FixValue(hkcuValue, out bool hkcuFixSuccess, out string newHKCUValue);
-        FixValue(hklmValue, out bool hklmFixSuccess, out string newHKLMValue);
+        FixValue(hkcuValue, out bool hkcuFixSuccess, out string newHkcuValue);
+        FixValue(hklmValue, out bool hklmFixSuccess, out string newHklmValue);
 
         if (hkcuFixSuccess)
         {
-            if (string.IsNullOrEmpty(newHKCUValue))
+            if (string.IsNullOrEmpty(newHkcuValue))
                 hkcuKey.DeleteValue(gameExeFullPath, false);
             else
-                hkcuKey.SetValue(gameExeFullPath, newHKCUValue, RegistryValueKind.String);
+                hkcuKey.SetValue(gameExeFullPath, newHkcuValue, RegistryValueKind.String);
         }
 
         if (hklmFixSuccess)
         {
-            if (string.IsNullOrEmpty(newHKLMValue))
+            if (string.IsNullOrEmpty(newHklmValue))
                 hklmKey.DeleteValue(gameExeFullPath, false);
             else
-                hklmKey.SetValue(gameExeFullPath, newHKLMValue, RegistryValueKind.String);
+                hklmKey.SetValue(gameExeFullPath, newHklmValue, RegistryValueKind.String);
         }
     }
 }
