@@ -73,9 +73,19 @@ public static class DirectDrawCompatibilityFixer
         FixValue(hklmValue, out bool hklmFixSuccess, out string newHKLMValue);
 
         if (hkcuFixSuccess)
-            hkcuKey.SetValue(gameExeFullPath, newHKCUValue, RegistryValueKind.String);
-        
+        {
+            if (string.IsNullOrEmpty(newHKCUValue))
+                hkcuKey.DeleteValue(gameExeFullPath, false);
+            else
+                hkcuKey.SetValue(gameExeFullPath, newHKCUValue, RegistryValueKind.String);
+        }
+
         if (hklmFixSuccess)
-            hklmKey.SetValue(gameExeFullPath, newHKLMValue, RegistryValueKind.String);
+        {
+            if (string.IsNullOrEmpty(newHKLMValue))
+                hklmKey.DeleteValue(gameExeFullPath, false);
+            else
+                hklmKey.SetValue(gameExeFullPath, newHKLMValue, RegistryValueKind.String);
+        }
     }
 }
