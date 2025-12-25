@@ -21,11 +21,6 @@ using System.Runtime.Versioning;
 using ClientCore.Settings;
 using ClientGUI;
 using Steamworks;
-using System.Diagnostics;
-
-#if WINFORMS
-using System.Windows.Forms;
-#endif
 
 namespace DTAClient
 {
@@ -45,10 +40,6 @@ namespace DTAClient
 
             if (!resourcesDirectory.Exists)
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
-
-#if ISWINDOWS
-            CheckDirectDrawCompatibility();
-#endif
 
             Logger.Log("Initializing updater.");
 
@@ -457,127 +448,5 @@ namespace DTAClient
             }
         }
 
-        /// <summary>
-        /// Checks for DirectDraw compatibility issues and prompts user to fix them.
-        /// </summary>
-        [SupportedOSPlatform("windows")]
-        private static void CheckDirectDrawCompatibility()
-        {
-            try
-            {
-                DirectDrawCompatibilityFixer.Examine(out bool requireFix, out bool requireAdmin);
-
-                if (requireFix)
-                {
-                    Logger.Log("DirectDraw compatibility issue detected.");
-
-                    string message = "Problematic Windows compatibility mode settings have been detected that may interfere with the game.\n\n" +
-                                   "Would you like to remove these compatibility settings now?";
-
-                    if (requireAdmin)
-                    {
-                        message += "\n\nNote: Administrator privileges are required to remove compatibility settings.";
-                    }
-
-#if WINFORMS
-                    DialogResult result = MessageBox.Show(message, "Compatibility Settings Detected",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                    if (result == DialogResult.Yes)
-                    {
-                        if (requireAdmin && !IsRunningAsAdministrator())
-                        {
-                            Logger.Log("Administrator privileges required. Attempting to restart with elevated privileges.");
-
-                            DialogResult restartResult = MessageBox.Show(
-                                "Administrator privileges are required to fix compatibility settings.\n\n" +
-                                "Would you like to restart the application as administrator?",
-                                "Administrator Required",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-
-                            if (restartResult == DialogResult.Yes)
-                            {
-                                RestartWithAdminPrivileges();
-                                Environment.Exit(0);
-                            }
-                            else
-                            {
-                                Logger.Log("User declined to restart with admin privileges.");
-                            }
-                        }
-                        else
-                        {
-                            Logger.Log("Attempting to fix DirectDraw compatibility settings.");
-                            DirectDrawCompatibilityFixer.Fix();
-                            Logger.Log("DirectDraw compatibility settings fixed successfully.");
-
-                            MessageBox.Show("Compatibility settings have been removed successfully.",
-                                          "Fix Applied",
-                                          MessageBoxButtons.OK,
-                                          MessageBoxIcon.Information);
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log("User declined to fix DirectDraw compatibility settings.");
-                    }
-#endif
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error checking DirectDraw compatibility: " + ex.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Checks if the application is running with administrator privileges.
-        /// </summary>
-        /// <returns>True if running as administrator, false otherwise.</returns>
-        [SupportedOSPlatform("windows")]
-        private static bool IsRunningAsAdministrator()
-        {
-            try
-            {
-                using WindowsIdentity identity = WindowsIdentity.GetCurrent();
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Restarts the application with administrator privileges.
-        /// </summary>
-        [SupportedOSPlatform("windows")]
-        private static void RestartWithAdminPrivileges()
-        {
-            try
-            {
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = Process.GetCurrentProcess().MainModule.FileName,
-                    UseShellExecute = true,
-                    Verb = "runas"
-                };
-
-                Process.Start(startInfo);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Failed to restart with admin privileges: " + ex.ToString());
-#if WINFORMS
-                MessageBox.Show("Failed to restart with administrator privileges.\n\n" +
-                              "Please manually run the CnCNet Client as administrator.",
-                              "Error",
-                              MessageBoxButtons.OK,
-                              MessageBoxIcon.Error);
-#endif
-            }
-        }
     }
 }

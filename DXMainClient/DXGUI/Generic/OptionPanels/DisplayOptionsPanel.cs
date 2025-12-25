@@ -1,6 +1,7 @@
 using ClientCore.Extensions;
 using ClientCore;
 using ClientGUI;
+using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -786,6 +787,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
+
+#if ISWINDOWS
+            if (selectedRenderer.InternalName == "DDRAWCompat")
+            {
+                DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
+            }
+#endif
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {

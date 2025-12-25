@@ -3,39 +3,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
-
 using ClientCore;
 using ClientCore.Extensions;
-
+using ClientGUI;
 using Microsoft.Win32;
-
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.Domain;
 
+/// <summary>
+/// Handles checking and fixing DirectDraw compatibility issues with user interaction.
+/// </summary>
 [SupportedOSPlatform("windows")]
-public static class DirectDrawCompatibilityFixer
+public static class DirectDrawCompatibilityChecker
 {
     private static readonly IReadOnlyList<string> OSCompatibilityValues = [
         "WIN8RTM", "WIN7RTM", "VISTASP2", "VISTASP1", "VISTARTM", "WINXPSP3", "WINXPSP2", "WIN98", "WIN95"
     ];
 
-    private static readonly IReadOnlyList<string> StaticExecutablesToCheck = [
-        "CnCNetYRLauncher.exe",
-        "gamemd.exe",
-        "gamemd-spawn.exe"
-    ];
-
     private static IEnumerable<string> GetExecutablesToCheck()
     {
+        string[] configExecutables = ClientConfiguration.Instance.GetCompatibilityCheckExecutables();
+
         // clientdx.exe, clientogl.exe, or clientxna.exe
         string currentExeName = SafePath.GetFile(ProgramConstants.StartupExecutable).Name;
 
-        // static list plus the current executable
-        return StaticExecutablesToCheck.Append(currentExeName);
+        // config list plus the current executable
+        return configExecutables.Append(currentExeName);
     }
 
-    public static void Examine(out bool requireFix, out bool requireAdmin)
+    private static void Examine(out bool requireFix, out bool requireAdmin)
     {
         using RegistryKey? hkcuKey = Registry.CurrentUser.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
@@ -67,7 +65,7 @@ public static class DirectDrawCompatibilityFixer
         requireAdmin = anyHklmRequireFix;
     }
 
-    public static void Fix()
+    private static void Fix()
     {
         void FixValue(object? regValue, out bool success, out string newRegValue)
         {
@@ -121,5 +119,77 @@ public static class DirectDrawCompatibilityFixer
         FixRegistryKey(Registry.CurrentUser, subKeyPath);
 
         FixRegistryKey(Registry.LocalMachine, subKeyPath);
+    }
+
+    /// <summary>
+    /// Checks for DirectDraw compatibility issues and prompts the user to fix them.
+    /// </summary>
+    /// <param name="windowManager">The WindowManager for displaying message boxes.</param>
+    public static void CheckAndPromptFix(WindowManager windowManager)
+    {
+        try
+        {
+            Examine(out bool requireFix, out bool requireAdmin);
+
+            if (!requireFix)
+                return;
+
+            Logger.Log("DirectDraw compatibility issue detected.");
+
+            string message = "Problematic Windows compatibility mode settings have been detected that may interfere with the game.\n\n" +
+                            "Would you like to remove these compatibility settings now?";
+
+            if (requireAdmin)
+            {
+                message += "\n\nNote: Administrator privileges are required to remove compatibility settings.";
+            }
+
+            var messageBox = XNAMessageBox.ShowYesNoDialog(windowManager,
+                "Compatibility Settings Detected",
+                message);
+
+            messageBox.YesClickedAction = _ =>
+            {
+                if (requireAdmin && !AdminRestarter.IsRunningAsAdministrator())
+                {
+                    Logger.Log("Administrator privileges required. Prompting to restart with elevated privileges.");
+
+                    var adminMessageBox = XNAMessageBox.ShowYesNoDialog(windowManager,
+                        "Administrator Required",
+                        "Administrator privileges are required to fix compatibility settings.\n\n" +
+                        "Would you like to restart the application as administrator?");
+
+                    adminMessageBox.YesClickedAction = _ =>
+                    {
+                        if (AdminRestarter.RestartAsAdmin())
+                            Environment.Exit(0);
+                    };
+
+                    adminMessageBox.NoClickedAction = _ =>
+                    {
+                        Logger.Log("User declined to restart with admin privileges.");
+                    };
+                }
+                else
+                {
+                    Logger.Log("Attempting to fix DirectDraw compatibility settings.");
+                    Fix();
+                    Logger.Log("DirectDraw compatibility settings fixed successfully.");
+
+                    XNAMessageBox.Show(windowManager,
+                        "Fix Applied",
+                        "Compatibility settings have been removed successfully.");
+                }
+            };
+
+            messageBox.NoClickedAction = _ =>
+            {
+                Logger.Log("User declined to fix DirectDraw compatibility settings.");
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.Log("Error checking DirectDraw compatibility: " + ex.ToString());
+        }
     }
 }

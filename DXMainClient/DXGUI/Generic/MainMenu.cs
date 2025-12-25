@@ -665,6 +665,10 @@ namespace DTAClient.DXGUI.Generic
 
                 }.Show();
             };
+
+#if ISWINDOWS
+            DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
+#endif
         }
 
         private void LoadThemeSong()

@@ -383,6 +383,13 @@ namespace ClientCore
 
         public string GameLauncherExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "GameLauncherExecutableName", string.Empty);
 
+        public string[] GetCompatibilityCheckExecutables()
+        {
+            string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "CompatibilityCheckExecutables", string.Empty);
+
+            return exeNames;
+        }
+
         public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
         
         public bool SaveCampaignGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveCampaignGameOptions", false);
