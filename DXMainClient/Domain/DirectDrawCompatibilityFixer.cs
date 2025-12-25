@@ -27,8 +27,8 @@ public static class DirectDrawCompatibilityFixer
         string gameExeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath,
             ClientConfiguration.Instance.GetGameExecutableName());
             
-        object hkcuValue = hkcuKey.GetValue(gameExeFullPath);
-        object hklmValue = hklmKey.GetValue(gameExeFullPath);
+        object hkcuValue = hkcuKey?.GetValue(gameExeFullPath);
+        object hklmValue = hklmKey?.GetValue(gameExeFullPath);
 
         bool IsFixRequired(object regValue)
             => regValue is string regValueString 
