@@ -32,7 +32,7 @@ public static class DirectDrawCompatibilityFixer
 
         bool IsFixRequired(object regValue)
             => regValue is string regValueString 
-               && regValueString.Split(" ").Intersect(OSCompatibilityValues).Any();
+               && regValueString.Split([' ']).Intersect(OSCompatibilityValues).Any();
 
         bool hkcuRequireFix = IsFixRequired(hkcuValue);
         bool hklmRequireFix = IsFixRequired(hklmValue);
