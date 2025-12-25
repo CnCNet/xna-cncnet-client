@@ -43,8 +43,8 @@ public static class DirectDrawCompatibilityFixer
 
     public static void Fix()
     {
-        using RegistryKey hkcuKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
-        using RegistryKey hklmKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+        using RegistryKey hkcuKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+        using RegistryKey hklmKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
             
         string gameExeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath,
             ClientConfiguration.Instance.GetGameExecutableName());
