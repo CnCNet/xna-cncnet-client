@@ -2,12 +2,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using ClientCore;
-using Rampastring.Tools;
-using ClientCore.INIProcessing;
 using System.Threading;
-using Rampastring.XNAUI;
+
+using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.INIProcessing;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace ClientGUI
 {
@@ -83,6 +86,8 @@ namespace ClientGUI
 
             GameProcessStarting?.Invoke();
 
+            bool processorAffinityOverride = Environment.ProcessorCount > 1 && SingleCoreAffinity && (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
+
             if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Logger.Log("Windowed mode is enabled - using QRes.");
@@ -112,7 +117,7 @@ namespace ClientGUI
                     return;
                 }
 
-                if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
+                if (processorAffinityOverride)
                     QResProcess.ProcessorAffinity = (IntPtr)2;
             }
             else
@@ -123,6 +128,9 @@ namespace ClientGUI
                     arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else
                     arguments = additionalExecutableName + "-SPAWN";
+
+                if (processorAffinityOverride && ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
+                    arguments += " " + "-AFFINITY:2";
 
                 FileInfo gameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, gameExecutableName);
 
@@ -151,11 +159,8 @@ namespace ClientGUI
                     return;
                 }
 
-                if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    && Environment.ProcessorCount > 1 && SingleCoreAffinity)
-                {
+                if (processorAffinityOverride)
                     gameProcess.ProcessorAffinity = (IntPtr)2;
-                }
             }
 
             GameProcessStarted?.Invoke();
