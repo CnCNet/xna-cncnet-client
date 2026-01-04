@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -27,6 +28,35 @@ namespace ClientGUI
 
         public static bool UseQres { get; set; }
         public static bool SingleCoreAffinity { get; set; }
+
+        public static bool GetProcessorAffinityValue(out int affinity)
+        {
+            if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)))
+            {
+                affinity = 0;
+                return false;
+            }
+
+            if (Environment.ProcessorCount <= 1)
+            {
+                affinity = 1; // Only one CPU core available
+                return true;
+            }
+
+
+            if (SingleCoreAffinity)
+            {
+                affinity = 2; // Use only CPU 1
+                return true;
+            }
+            else
+            {
+                int maximumCpuCountPerProcessorGroup = 64;
+                int cpuCount = Math.Min(Environment.ProcessorCount, maximumCpuCountPerProcessorGroup);
+                affinity = (1 << cpuCount) - 2; // All but CPU 0
+                return true;
+            }
+        }
 
         /// <summary>
         /// Starts the main game process.
@@ -86,7 +116,7 @@ namespace ClientGUI
 
             GameProcessStarting?.Invoke();
 
-            bool processorAffinityOverride = Environment.ProcessorCount > 1 && SingleCoreAffinity && (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
+            bool overrideProcessorAffinity = GetProcessorAffinityValue(out int processorAffinity);
 
             if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -117,8 +147,8 @@ namespace ClientGUI
                     return;
                 }
 
-                if (processorAffinityOverride)
-                    QResProcess.ProcessorAffinity = (IntPtr)2;
+                if (overrideProcessorAffinity)
+                    QResProcess.ProcessorAffinity = (IntPtr)processorAffinity;
             }
             else
             {
@@ -129,8 +159,11 @@ namespace ClientGUI
                 else
                     arguments = additionalExecutableName + "-SPAWN";
 
-                if (processorAffinityOverride && ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
-                    arguments += " " + "-AFFINITY:2";
+                if (overrideProcessorAffinity && ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
+                {
+                    // Ares defaults to use CPU 0 exclusively, unless explicitly overridden.
+                    arguments += " " + "-AFFINITY:" + processorAffinity.ToString(CultureInfo.InvariantCulture);
+                }
 
                 FileInfo gameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, gameExecutableName);
 
@@ -159,8 +192,8 @@ namespace ClientGUI
                     return;
                 }
 
-                if (processorAffinityOverride)
-                    gameProcess.ProcessorAffinity = (IntPtr)2;
+                if (overrideProcessorAffinity)
+                    gameProcess.ProcessorAffinity = (IntPtr)processorAffinity;
             }
 
             GameProcessStarted?.Invoke();
