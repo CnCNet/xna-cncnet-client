@@ -632,6 +632,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             IniSettings.DragDistance.Value = dragDistance;
 
             var newSelectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
+            bool isChangingRenderer = newSelectedRenderer != directDrawWrapperManager.SelectedRenderer;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
                 !newSelectedRenderer.UsesCustomWindowedOption();
@@ -724,7 +725,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
 #if ISWINDOWS
-            if (!directDrawWrapperManager.SelectedRenderer.IsDummy)
+            if (isChangingRenderer && !directDrawWrapperManager.SelectedRenderer.IsDummy)
             {
                 DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
             }
