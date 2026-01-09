@@ -37,7 +37,7 @@ public static class DirectDrawCompatibilityChecker
         return configExecutables.Append(currentExeName);
     }
 
-    private static void Examine(out bool requireFix, out bool requireAdmin)
+    private static void Examine(out bool requireFix, out bool requireAdmin, out List<string> problematicExeNames)
     {
         using RegistryKey? hkcuKey = Registry.CurrentUser.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
@@ -51,6 +51,7 @@ public static class DirectDrawCompatibilityChecker
         bool anyHkcuRequireFix = false;
         bool anyHklmRequireFix = false;
 
+        problematicExeNames = [];
         foreach (string executableName in GetExecutablesToCheck())
         {
             string exeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, executableName);
@@ -62,12 +63,14 @@ public static class DirectDrawCompatibilityChecker
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hkcuValue}");
                 anyHkcuRequireFix = true;
+                problematicExeNames.Add(executableName);
             }
 
             if (IsFixRequired(hklmValue))
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hklmValue}");
                 anyHklmRequireFix = true;
+                problematicExeNames.Add(executableName);
             }
         }
 
@@ -152,7 +155,7 @@ public static class DirectDrawCompatibilityChecker
         // Now check registry compatibility settings for all relevant executables.
         try
         {
-            Examine(out bool requireFix, out bool requireAdmin);
+            Examine(out bool requireFix, out bool requireAdmin, out var problematicExeNames);
 
             if (!requireFix)
                 return;
@@ -160,7 +163,8 @@ public static class DirectDrawCompatibilityChecker
             Logger.Log("DirectDraw compatibility issue detected.");
 
             string message = "Problematic Windows compatibility mode settings have been detected that may interfere with the game.\n\n" +
-                            "Would you like to remove these compatibility settings now?";
+                "Affected executables:" + "\n- " + string.Join("\n- ", problematicExeNames) + "\n\n" +
+                "Would you like to remove these compatibility settings now?";
 
             if (requireAdmin)
             {
