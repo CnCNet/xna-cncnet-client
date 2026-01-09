@@ -49,7 +49,7 @@ namespace DTAClient.Domain
 
             defaultRenderer = renderersIni.GetStringValue("DefaultRenderer", osVersion.ToString(), string.Empty);
 
-            if (defaultRenderer == null)
+            if (string.IsNullOrEmpty(defaultRenderer))
                 throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
 
             string renderer = UserINISettings.Instance.Renderer;
