@@ -70,10 +70,9 @@ namespace DTAClient.Domain
             if (selectedRenderer != originalRenderer ||
                 !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
             {
-                foreach (var renderer in renderers)
+                foreach (var renderer in renderers.Where(renderer => renderer != selectedRenderer))
                 {
-                    if (renderer != selectedRenderer)
-                        renderer.Clean();
+                    renderer.Clean();
                 }
             }
 
