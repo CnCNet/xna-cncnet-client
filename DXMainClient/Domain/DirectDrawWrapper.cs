@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ClientGUI
+namespace DTAClient.Domain
 {
     /// <summary>
     /// A DirectDraw wrapper option.
@@ -74,6 +74,11 @@ namespace ClientGUI
         /// The filename of the configuration INI of the renderer in the game directory.
         /// </summary>
         public string ConfigFileName { get; private set; }
+
+        /// <summary>
+        /// Indicates whether this DirectDrawWrapper is a dummy wrapper (i.e. no wrapper).
+        /// </summary>
+        public bool IsDummy => string.IsNullOrEmpty(ddrawDLLPath);
 
         private string ddrawDLLPath;
         private string resConfigFileName;

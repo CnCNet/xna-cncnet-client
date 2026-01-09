@@ -10,14 +10,16 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using ClientUpdater;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Generic
 {
     public class OptionsWindow : XNAWindow
     {
-        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
+        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection, DirectDrawWrapperManager directDrawWrapperManager) : base(windowManager)
         {
             this.gameCollection = gameCollection;
+            this.directDrawWrapperManager = directDrawWrapperManager;
         }
 
         public event EventHandler OnForceUpdate;
@@ -31,6 +33,7 @@ namespace DTAClient.DXGUI.Generic
         private XNAControl topBar;
 
         private GameCollection gameCollection;
+        private DirectDrawWrapperManager directDrawWrapperManager;
 
         public override void Initialize()
         {
@@ -64,7 +67,7 @@ namespace DTAClient.DXGUI.Generic
             btnSave.Text = "Save".L10N("Client:DTAConfig:ButtonSave");
             btnSave.LeftClick += BtnSave_LeftClick;
 
-            displayOptionsPanel = new DisplayOptionsPanel(WindowManager, UserINISettings.Instance);
+            displayOptionsPanel = new DisplayOptionsPanel(WindowManager, UserINISettings.Instance, directDrawWrapperManager);
             componentsPanel = new ComponentsPanel(WindowManager, UserINISettings.Instance);
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
