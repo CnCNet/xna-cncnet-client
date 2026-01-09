@@ -631,7 +631,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
-            DirectDrawWrapper originalRenderer = directDrawWrapperManager.SelectedRenderer;
             var newSelectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
