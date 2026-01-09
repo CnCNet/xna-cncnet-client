@@ -138,10 +138,14 @@ namespace ClientGUI
                 return;
 
             if (enabled)
+            {
                 if (itemColorTextures.TryGetValue(itemIndex, out var colorTexture))
                     Items[itemIndex].Texture = colorTexture;
+            }
             else
+            {
                 Items[itemIndex].Texture = DisabledItemTexture;
+            }
         }
 
         public enum ItemsKind

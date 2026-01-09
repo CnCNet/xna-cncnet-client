@@ -28,6 +28,7 @@ jobs:
       shell: pwsh
 
     - name: Development Build Check
+      if: "!github.event.release.prerelease"
       shell: pwsh
       run: |
         if ($env:GitVersion_CommitsSinceVersionSource -ne "0") {
