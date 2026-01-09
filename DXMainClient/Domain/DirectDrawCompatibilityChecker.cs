@@ -162,19 +162,21 @@ public static class DirectDrawCompatibilityChecker
 
             Logger.Log("DirectDraw compatibility issue detected.");
 
-            string message = "Problematic Windows compatibility mode settings have been detected that may interfere with the game.\n\n" +
-                "Affected executables:" + "\n- " + string.Join("\n- ", problematicExeNames) + "\n\n" +
-                "Would you like to remove these compatibility settings now?";
+            string localizedMessage = "Problematic Windows compatibility mode settings have been detected that may interfere with the game."
+                .L10N("Client:Main:ProblematicCompatibilityText1") + "\n\n"
+                + "Affected executables:".L10N("Client:Main:ProblematicCompatibilityText2")
+                + "\n- " + string.Join("\n- ", problematicExeNames) + "\n\n" +
+                "Would you like to remove these compatibility settings now?".L10N("Client:Main:ProblematicCompatibilityText3");
 
             if (requireAdmin)
             {
-                message += "\n\nNote: Administrator privileges are required to remove compatibility settings." + " " +
-                    "Clicking Yes will relaunch the client with administrator permissions.";
+                localizedMessage += "\n\n" + ("Note: Administrator privileges are required to remove compatibility settings." + " " +
+                    "Clicking Yes will relaunch the client with administrator permissions.").L10N("Client:Main:ProblematicCompatibilityText4");
             }
 
             var messageBox = XNAMessageBox.ShowYesNoDialog(windowManager,
-                "Compatibility Settings Detected",
-                message);
+                "Problematic Compatibility Settings Detected".L10N("Client:Main:ProblematicCompatibilityTitle"),
+                localizedMessage);
 
             messageBox.YesClickedAction = _ =>
             {
@@ -192,8 +194,8 @@ public static class DirectDrawCompatibilityChecker
                     Logger.Log("DirectDraw compatibility settings fixed successfully.");
 
                     XNAMessageBox.Show(windowManager,
-                        "Fix Applied",
-                        "Compatibility settings have been removed successfully.");
+                        "Fix Applied".L10N("Client:Main:CompatibilityFixAppliedTitle"),
+                        "Compatibility settings have been removed successfully.".L10N("Client:Main:CompatibilityFixAppliedText"));
                 }
             };
 
