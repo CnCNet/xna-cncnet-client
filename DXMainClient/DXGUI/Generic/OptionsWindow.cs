@@ -32,8 +32,8 @@ namespace DTAClient.DXGUI.Generic
         private DisplayOptionsPanel displayOptionsPanel;
         private XNAControl topBar;
 
-        private GameCollection gameCollection;
-        private DirectDrawWrapperManager directDrawWrapperManager;
+        private readonly GameCollection gameCollection;
+        private readonly DirectDrawWrapperManager directDrawWrapperManager;
 
         public override void Initialize()
         {
