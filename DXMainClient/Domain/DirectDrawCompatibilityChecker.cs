@@ -3,10 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
+
 using ClientCore;
 using ClientCore.Extensions;
+
 using ClientGUI;
+
 using Microsoft.Win32;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
@@ -65,16 +69,18 @@ public static class DirectDrawCompatibilityChecker
         requireAdmin = anyHklmRequireFix;
     }
 
+    private static string FixCompatLayerString(string value) => string.Join(" ",
+            value
+                .SplitWithCleanup(new[] { ' ' })
+                .Where(v => !OSCompatibilityValues.Contains(v, StringComparer.InvariantCultureIgnoreCase)));
+
     private static void Fix()
     {
-        void FixValue(object? regValue, out bool success, out string newRegValue)
+        void FixRegValue(object? regValue, out bool success, out string newRegValue)
         {
             if (regValue is string regValueString)
             {
-                newRegValue = string.Join(" ",
-                    regValueString
-                        .SplitWithCleanup(new [] {' '})
-                        .Where(v => !OSCompatibilityValues.Contains(v)));
+                newRegValue = FixCompatLayerString(regValueString);
                 success = true;
             }
             else
@@ -97,7 +103,7 @@ public static class DirectDrawCompatibilityChecker
                     string exeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, executableName);
                     object? value = key.GetValue(exeFullPath);
 
-                    FixValue(value, out bool success, out string newValue);
+                    FixRegValue(value, out bool success, out string newValue);
 
                     if (success)
                     {
@@ -127,6 +133,17 @@ public static class DirectDrawCompatibilityChecker
     /// <param name="windowManager">The WindowManager for displaying message boxes.</param>
     public static void CheckAndPromptFix(WindowManager windowManager)
     {
+        // Fix environment variable __COMPAT_LAYER first, for the client itself.
+        string compatLayerEnv = Environment.GetEnvironmentVariable("__COMPAT_LAYER") ?? string.Empty;
+        string fixedCompatLayerEnv = FixCompatLayerString(compatLayerEnv);
+        if (compatLayerEnv != fixedCompatLayerEnv)
+        {
+            Logger.Log("Fixing __COMPAT_LAYER environment variable. Previous value: " +
+                       $"'{compatLayerEnv}', new value: '{fixedCompatLayerEnv}'");
+            Environment.SetEnvironmentVariable("__COMPAT_LAYER", fixedCompatLayerEnv);
+        }
+
+        // Now check registry compatibility settings for all relevant executables.
         try
         {
             Examine(out bool requireFix, out bool requireAdmin);
