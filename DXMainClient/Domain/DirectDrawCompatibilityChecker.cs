@@ -59,10 +59,16 @@ public static class DirectDrawCompatibilityChecker
             object? hklmValue = hklmKey?.GetValue(exeFullPath);
 
             if (IsFixRequired(hkcuValue))
+            {
+                Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hkcuValue}");
                 anyHkcuRequireFix = true;
+            }
 
             if (IsFixRequired(hklmValue))
+            {
+                Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hklmValue}");
                 anyHklmRequireFix = true;
+            }
         }
 
         requireFix = anyHkcuRequireFix || anyHklmRequireFix;
