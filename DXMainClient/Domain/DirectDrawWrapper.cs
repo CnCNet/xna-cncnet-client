@@ -1,6 +1,8 @@
 ﻿using ClientCore;
 using ClientCore.Extensions;
+
 using Rampastring.Tools;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -220,6 +222,21 @@ namespace DTAClient.Domain
         {
             return !string.IsNullOrEmpty(WindowedModeSection) &&
                 !string.IsNullOrEmpty(WindowedModeKey);
+        }
+
+        // Override == and != operators to compare by InternalName
+        public static bool operator ==(DirectDrawWrapper a, DirectDrawWrapper b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+            if (a is null || b is null)
+                return false;
+            return a.InternalName == b.InternalName;
+        }
+
+        public static bool operator !=(DirectDrawWrapper a, DirectDrawWrapper b)
+        {
+            return !(a == b);
         }
     }
 
