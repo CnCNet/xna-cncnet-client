@@ -168,7 +168,8 @@ public static class DirectDrawCompatibilityChecker
 
             if (requireAdmin)
             {
-                message += "\n\nNote: Administrator privileges are required to remove compatibility settings.";
+                message += "\n\nNote: Administrator privileges are required to remove compatibility settings." + " " +
+                    "Clicking Yes will relaunch the client with administrator permissions.";
             }
 
             var messageBox = XNAMessageBox.ShowYesNoDialog(windowManager,
@@ -179,23 +180,10 @@ public static class DirectDrawCompatibilityChecker
             {
                 if (requireAdmin && !AdminRestarter.IsRunningAsAdministrator())
                 {
-                    Logger.Log("Administrator privileges required. Prompting to restart with elevated privileges.");
+                    Logger.Log("Administrator privileges required. Restart with elevated privileges.");
 
-                    var adminMessageBox = XNAMessageBox.ShowYesNoDialog(windowManager,
-                        "Administrator Required",
-                        "Administrator privileges are required to fix compatibility settings.\n\n" +
-                        "Would you like to restart the application as administrator?");
-
-                    adminMessageBox.YesClickedAction = _ =>
-                    {
-                        if (AdminRestarter.RestartAsAdmin())
-                            Environment.Exit(0);
-                    };
-
-                    adminMessageBox.NoClickedAction = _ =>
-                    {
-                        Logger.Log("User declined to restart with admin privileges.");
-                    };
+                    if (AdminRestarter.RestartAsAdmin())
+                        Environment.Exit(0);
                 }
                 else
                 {
