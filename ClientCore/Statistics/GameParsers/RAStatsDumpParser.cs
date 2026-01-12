@@ -24,7 +24,7 @@ namespace ClientCore.Statistics.GameParsers
 
             var parser = new StatsDumpParser(statsPath);
 
-            foreach (var ra in parser.Players)
+            foreach (var ra in parser.PlayerNames)
             {
                 var ps =
                     Statistics.GetEmptyPlayerByName(ra.Name) ??

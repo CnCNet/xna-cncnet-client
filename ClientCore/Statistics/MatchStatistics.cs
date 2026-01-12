@@ -70,7 +70,8 @@ namespace ClientCore.Statistics
             if (gameName == "RA" || gameName == "RedAlert")
             {
                 parser = new RAStatsDumpParser(this);
-                parser.Parse(gamePath);
+                var parser = new RAStatsDumpParser(this, statsFilePath);
+parser.Parse(); // public method
             }
             else
             {
