@@ -229,8 +229,10 @@ namespace DTAClient.Domain
         {
             if (ReferenceEquals(a, b))
                 return true;
+                
             if (a is null || b is null)
                 return false;
+                
             return a.InternalName == b.InternalName;
         }
 
