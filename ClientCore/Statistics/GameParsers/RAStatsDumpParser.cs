@@ -10,12 +10,6 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
-        // OPTIONAL public entry point if needed later
-        public void Parse(string gamePath)
-        {
-            ParseStatistics(gamePath);
-        }
-
         protected override void ParseStatistics(string gamePath)
         {
             string statsPath = Path.Combine(gamePath, "stats.dmp");
@@ -28,15 +22,12 @@ namespace ClientCore.Statistics.GameParsers
 
             Logger.Log("Parsing Red Alert stats.dmp");
 
-            var parser = new StatsDumpParser(statsPath);
+            var dump = new StatsDumpParser(statsPath);
 
-            int playerCount = parser.PlayerNames.Count;
-
-            for (int i = 0; i < playerCount; i++)
+            for (int i = 0; i < dump.PlayerNames.Length; i++)
             {
-                string name = parser.PlayerNames[i];
-
-                if (string.IsNullOrWhiteSpace(name))
+                string name = dump.PlayerNames[i];
+                if (string.IsNullOrEmpty(name))
                     continue;
 
                 var ps =
@@ -46,10 +37,45 @@ namespace ClientCore.Statistics.GameParsers
                 if (ps == null)
                     continue;
 
-                // Map RA stats → CnCNet stats
-                ps.Score = parser.Credits[i] + parser.MoneyHarvested[i];
-                ps.Kills = parser.UnitsKilled[i] + parser.BuildingsKilled[i];
-                ps.Won   = parser.Won[i];
+                int credits = dump.PlayerCredits[i];
+                int harvested = dump.PlayerMoneyHarvested[i];
+
+                ps.Score = (credits > 0 ? credits : 0)
+                         + (harvested > 0 ? harvested : 0);
+
+                // Units killed
+                int unitKills =
+                    dump.PlayerVehiclesKilled[i].MammothTanks +
+                    dump.PlayerVehiclesKilled[i].HeavyTanks +
+                    dump.PlayerVehiclesKilled[i].MediumTanks +
+                    dump.PlayerVehiclesKilled[i].LightTanks +
+                    dump.PlayerVehiclesKilled[i].APCs +
+                    dump.PlayerInfantryKilled[i].RifleInfantries +
+                    dump.PlayerInfantryKilled[i].RocketSoldiers;
+
+                // Buildings killed (simple approximation)
+                int buildingKills =
+                    dump.PlayerBuildingsKilled[i].ConstructionYards +
+                    dump.PlayerBuildingsKilled[i].WarFactories +
+                    dump.PlayerBuildingsKilled[i].Refineries +
+                    dump.PlayerBuildingsKilled[i].PowerPlants;
+
+                ps.Kills = unitKills + buildingKills;
+
+                ps.UnitsBuilt =
+                    dump.PlayerVehiclesBought[i].HeavyTanks +
+                    dump.PlayerVehiclesBought[i].MediumTanks +
+                    dump.PlayerInfantryBought[i].RifleInfantries;
+
+                ps.BuildingsBuilt =
+                    dump.PlayerBuildingsBought[i].ConstructionYards +
+                    dump.PlayerBuildingsBought[i].WarFactories +
+                    dump.PlayerBuildingsBought[i].Refineries;
+
+                // Determine win state
+                ps.Won =
+                    dump.PlayerDeadStates[i] == 0 &&
+                    dump.PlayersResigned[i] != 1;
 
                 ps.SawEnd = true;
             }
