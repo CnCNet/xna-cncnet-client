@@ -152,6 +152,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientStateButton<SortDirection> btnMapSortAlphabetically;
 
         protected XNASuggestionTextBox tbMapSearch;
+        protected XNAContextMenu searchContextMenu;
+        private XNAContextMenuItem searchCurrentModeItem;
+        private XNAContextMenuItem searchAllModesItem;
+        private bool searchAllGameModes = false;
 
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
@@ -173,6 +177,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int UniqueGameID { get; set; }
         protected int SideCount { get; private set; }
         protected int RandomSelectorCount { get; private set; } = 1;
+
+        /// <summary>
+        /// The maximum number of players allowed in this lobby.
+        /// </summary>
+        protected virtual int MaxPlayerCount => MAX_PLAYER_COUNT;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -303,6 +312,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
+            tbMapSearch.RightClick += TbMapSearch_RightClick;
+
+            searchContextMenu = new XNAContextMenu(WindowManager);
+            searchContextMenu.Name = nameof(searchContextMenu);
+            searchContextMenu.Width = 150;
+
+            searchCurrentModeItem = new XNAContextMenuItem()
+            {
+                Text = "Search current mode".L10N("Client:Main:SearchCurrentMode"),
+                SelectAction = () => SetSearchAllGameModes(false),
+                HintTextGenerator = () => !searchAllGameModes ? "< " : null
+            };
+            searchContextMenu.AddItem(searchCurrentModeItem);
+
+            searchAllModesItem = new XNAContextMenuItem()
+            {
+                Text = "Search all modes".L10N("Client:Main:SearchAllModes"),
+                SelectAction = () => SetSearchAllGameModes(true),
+                HintTextGenerator = () => searchAllGameModes ? "< " : null
+            };
+            searchContextMenu.AddItem(searchAllModesItem);
+            searchAllGameModes = UserINISettings.Instance.SearchAllGameModes.Value;
+
+            AddChild(searchContextMenu);
+
 
             btnPickRandomMap = FindChild<XNAClientButton>(nameof(btnPickRandomMap));
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
@@ -531,6 +565,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
+        private void TbMapSearch_RightClick(object sender, EventArgs e) => searchContextMenu.Open(GetCursorPoint());
+
+        private void SetSearchAllGameModes(bool value)
+        {
+            searchAllGameModes = value;
+            UserINISettings.Instance.SearchAllGameModes.Value = value;
+            UserINISettings.Instance.SaveSettings();
+            ListMaps();
+        }
+
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (disableGameOptionUpdateBroadcast)
@@ -614,7 +658,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected List<GameModeMap> GetSortedGameModeMaps()
         {
-            var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
+            var gameModeMaps = searchAllGameModes ? GameModeMaps.ToList() : gameModeMapFilter.GetGameModeMaps();
 
             // Only apply sort if the map list sort button is available.
             if (btnMapSortAlphabetically.Enabled && btnMapSortAlphabetically.Visible)
@@ -703,7 +747,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
                 var mapNameText = gameModeMap.Map.Name;
-                if (isFavoriteMapsSelected)
+                if (isFavoriteMapsSelected || searchAllGameModes)
                     mapNameText += $" - {gameModeMap.GameMode.UIName}";
 
                 mapNameItem.Text = Renderer.GetSafeString(mapNameText, lbGameModeMapList.FontIndex);
@@ -2103,7 +2147,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             AIPlayers.Clear();
-            for (int cmbId = Players.Count; cmbId < 8; cmbId++)
+            for (int cmbId = Players.Count; cmbId < MaxPlayerCount; cmbId++)
             {
                 XNADropDown dd = ddPlayerNames[cmbId];
                 dd.Items[0].Text = "-";
