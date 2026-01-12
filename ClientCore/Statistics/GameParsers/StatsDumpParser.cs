@@ -989,18 +989,22 @@ namespace ClientCore.Statistics.GameParsers
 
         public int Get_Player_Number_From_ID(string ID)
         {
-            int PlayerNumber = -1;
+            if (string.IsNullOrEmpty(ID) || ID.Length < 4)
+                throw new StatsDumpException("Invalid player ID string");
 
-            string tmp = new string(ID[3], 1);
-            Int32.TryParse(tmp, out PlayerNumber);
+            string tmp = ID.Substring(3, 1);
 
+            if (!int.TryParse(tmp, out int playerNumber))
+            {
+                throw new StatsDumpException("Failed to parse player number from ID string");
+            }
 
-            if (PlayerNumber < 1 || PlayerNumber > 8)
+            if (playerNumber < 1 || playerNumber > 8)
             {
                 throw new StatsDumpException("Player number was incorrectly parsed from ID string");
             }
 
-            return PlayerNumber;
+            return playerNumber;
         }
 
         public void Print_Player_Array(int[] Array, string Format)
