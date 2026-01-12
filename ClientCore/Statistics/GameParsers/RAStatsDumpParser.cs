@@ -1,4 +1,5 @@
 using System.IO;
+
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
@@ -10,6 +11,13 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
+        // ? PUBLIC ENTRY POINT (this is what MatchStatistics calls)
+        public void ParseStats(string gamePath)
+        {
+            ParseStatistics(gamePath);
+        }
+
+        // ?? INTERNAL parsing logic
         protected override void ParseStatistics(string gamePath)
         {
             string statsPath = Path.Combine(gamePath, "stats.dmp");
@@ -40,8 +48,9 @@ namespace ClientCore.Statistics.GameParsers
                 int credits = dump.PlayerCredits[i];
                 int harvested = dump.PlayerMoneyHarvested[i];
 
-                ps.Score = (credits > 0 ? credits : 0)
-                         + (harvested > 0 ? harvested : 0);
+                ps.Score =
+                    (credits > 0 ? credits : 0) +
+                    (harvested > 0 ? harvested : 0);
 
                 // Units killed
                 int unitKills =
@@ -53,7 +62,7 @@ namespace ClientCore.Statistics.GameParsers
                     dump.PlayerInfantryKilled[i].RifleInfantries +
                     dump.PlayerInfantryKilled[i].RocketSoldiers;
 
-                // Buildings killed (simple approximation)
+                // Buildings killed (approximation)
                 int buildingKills =
                     dump.PlayerBuildingsKilled[i].ConstructionYards +
                     dump.PlayerBuildingsKilled[i].WarFactories +
@@ -62,17 +71,7 @@ namespace ClientCore.Statistics.GameParsers
 
                 ps.Kills = unitKills + buildingKills;
 
-                ps.UnitsBuilt =
-                    dump.PlayerVehiclesBought[i].HeavyTanks +
-                    dump.PlayerVehiclesBought[i].MediumTanks +
-                    dump.PlayerInfantryBought[i].RifleInfantries;
-
-                ps.BuildingsBuilt =
-                    dump.PlayerBuildingsBought[i].ConstructionYards +
-                    dump.PlayerBuildingsBought[i].WarFactories +
-                    dump.PlayerBuildingsBought[i].Refineries;
-
-                // Determine win state
+                // Win condition
                 ps.Won =
                     dump.PlayerDeadStates[i] == 0 &&
                     dump.PlayersResigned[i] != 1;

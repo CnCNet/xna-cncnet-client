@@ -65,18 +65,18 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            GenericMatchParser parser;
-
             if (gameName == "RA" || gameName == "RedAlert")
             {
-                parser = new RAStatsDumpParser(this);
-                var parser = new RAStatsDumpParser(this, statsFilePath);
-parser.Parse(); // public method
+                var raParser = new RAStatsDumpParser(this);
+                raParser.ParseStats(gamePath);
             }
             else
             {
                 var logParser = new LogFileStatisticsParser(this, isLoadedGame);
-                logParser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+                logParser.ParseStats(
+                    gamePath,
+                    ClientConfiguration.Instance.StatisticsLogFileName
+                );
             }
         }
 
