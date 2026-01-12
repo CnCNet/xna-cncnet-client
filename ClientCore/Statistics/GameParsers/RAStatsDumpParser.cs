@@ -10,6 +10,12 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
+        // OPTIONAL public entry point if needed later
+        public void Parse(string gamePath)
+        {
+            ParseStatistics(gamePath);
+        }
+
         protected override void ParseStatistics(string gamePath)
         {
             string statsPath = Path.Combine(gamePath, "stats.dmp");
@@ -24,20 +30,27 @@ namespace ClientCore.Statistics.GameParsers
 
             var parser = new StatsDumpParser(statsPath);
 
-            foreach (var ra in parser.PlayerNames)
+            int playerCount = parser.PlayerNames.Count;
+
+            for (int i = 0; i < playerCount; i++)
             {
+                string name = parser.PlayerNames[i];
+
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
                 var ps =
-                    Statistics.GetEmptyPlayerByName(ra.Name) ??
+                    Statistics.GetEmptyPlayerByName(name) ??
                     Statistics.GetFirstEmptyPlayer();
 
                 if (ps == null)
                     continue;
 
-                ps.Score = ra.Credits + ra.MoneyHarvested;
-                ps.Kills = ra.UnitsKilled + ra.BuildingsKilled;
-                ps.UnitsBuilt = ra.UnitsBuilt;
-                ps.BuildingsBuilt = ra.BuildingsBuilt;
-                ps.Won = ra.Won;
+                // Map RA stats → CnCNet stats
+                ps.Score = parser.Credits[i] + parser.MoneyHarvested[i];
+                ps.Kills = parser.UnitsKilled[i] + parser.BuildingsKilled[i];
+                ps.Won   = parser.Won[i];
+
                 ps.SawEnd = true;
             }
 
