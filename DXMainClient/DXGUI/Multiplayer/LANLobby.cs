@@ -93,17 +93,17 @@ namespace DTAClient.DXGUI.Multiplayer
         Socket socket;
         Encoding encoding;
 
-        List<LANLobbyUser> players = new List<LANLobbyUser>();
-
         readonly List<NetworkInterface> broadcastInterfaces = new List<NetworkInterface>();
+
+        // For accessing `broadcastInterfaces`
+        readonly ReaderWriterLockSlim broadcastInterfacesLock = new ReaderWriterLockSlim();
+
+        List<LANLobbyUser> players = new List<LANLobbyUser>();
 
         readonly Dictionary<string, PlayerIpInfo> playerIpInfo = new Dictionary<string, PlayerIpInfo>();
         readonly Dictionary<string, PlayerUsernameInfo> playerUsernameInfo = new Dictionary<string, PlayerUsernameInfo>();
 
-        // For accessing broadcastInterfaces
-        readonly ReaderWriterLockSlim sendMessageLock = new ReaderWriterLockSlim();
-
-        // For accessing the players list, playerIpInfo, playerUsernameInfo, and for calling PlayerListAdd and PlayerListRemove
+        // For accessing `players`, `playerIpInfo`, `playerUsernameInfo`, and for calling `PlayerListAdd()` and `PlayerListRemove()`
         readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
 
         Thread listener;
@@ -365,16 +365,16 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        class NetworkInterface(IPAddress localIp, IPEndPoint broadcast)
+        record NetworkInterface(IPAddress localIP, IPEndPoint broadcast)
         {
-            public IPAddress LocalIp = localIp;
+            public IPAddress LocalIP = localIP;
             public readonly IPEndPoint Broadcast = broadcast;
         }
 
         private void AddBroadcastInterfaces()
         {
             SystemNetworkInterface[] interfaces = SystemNetworkInterface.GetAllNetworkInterfaces();
-            sendMessageLock.EnterWriteLock();
+            broadcastInterfacesLock.EnterWriteLock();
             try
             {
                 foreach (SystemNetworkInterface iface in interfaces)
@@ -397,7 +397,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             finally
             {
-                sendMessageLock.ExitWriteLock();
+                broadcastInterfacesLock.ExitWriteLock();
             }
         }
 
@@ -427,7 +427,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbGameList.ClearGames();
             }
 
-            sendMessageLock.EnterWriteLock();
+            broadcastInterfacesLock.EnterWriteLock();
 
             try
             {
@@ -435,7 +435,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             finally
             {
-                sendMessageLock.ExitWriteLock();
+                broadcastInterfacesLock.ExitWriteLock();
             }
 
             Visible = true;
@@ -484,7 +484,7 @@ namespace DTAClient.DXGUI.Multiplayer
             // If there is a socket error when sending to an interface, remove that interface.
             // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
             List<NetworkInterface> forDeletion = null;
-            sendMessageLock.EnterReadLock();
+            broadcastInterfacesLock.EnterReadLock();
 
             try
             {
@@ -504,12 +504,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             finally
             {
-                sendMessageLock.ExitReadLock();
+                broadcastInterfacesLock.ExitReadLock();
             }
 
             if (forDeletion != null)
             {
-                sendMessageLock.EnterWriteLock();
+                broadcastInterfacesLock.EnterWriteLock();
 
                 try
                 {
@@ -517,12 +517,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 finally
                 {
-                    sendMessageLock.ExitWriteLock();
+                    broadcastInterfacesLock.ExitWriteLock();
                 }
             }
         }
 
-        class PlayerIpInfo(IPAddress ip, DateTime lastMsgTime)
+        record PlayerIpInfo(IPAddress ip, DateTime lastMsgTime)
         {
             public IPAddress Ip = ip;
             public DateTime LastMsgTime = lastMsgTime;
@@ -599,7 +599,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        class PlayerUsernameInfo(int listIndex, int count)
+        record PlayerUsernameInfo(int listIndex, int count)
         {
             public int ListIndex = listIndex;
             public int Count = count;
