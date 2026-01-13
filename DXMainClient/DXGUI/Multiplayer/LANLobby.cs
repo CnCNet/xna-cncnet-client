@@ -372,7 +372,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         record NetworkInterface(IPAddress localIP, IPEndPoint broadcast)
         {
-            public IPAddress LocalIP = localIP;
+            public readonly IPAddress LocalIP = localIP;
             public readonly IPEndPoint Broadcast = broadcast;
         }
 
@@ -527,7 +527,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        record PlayerIPInfo(IPAddress ip, DateTime lastMsgTime)
+        class PlayerIPInfo(IPAddress ip, DateTime lastMsgTime)
         {
             public IPAddress IP = ip;
             public DateTime LastMessageTime = lastMsgTime;
@@ -604,7 +604,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        record PlayerUsernameInfo(int listIndex, int count)
+        class PlayerUsernameInfo(int listIndex, int count)
         {
             public int ListIndex = listIndex;
             public int Count = count;
