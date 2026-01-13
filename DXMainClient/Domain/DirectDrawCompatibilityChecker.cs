@@ -68,7 +68,7 @@ public static class DirectDrawCompatibilityChecker
 
             if (IsFixRequired(hklmValue))
             {
-                Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hklmValue}");
+                Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKLM. Value: {hklmValue}");
                 anyHklmRequireFix = true;
                 problematicExeNames.Add(executableName);
             }
