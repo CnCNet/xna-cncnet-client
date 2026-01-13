@@ -100,10 +100,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
-        readonly Dictionary<string, PlayerIpInfo> playerIpInfo = new Dictionary<string, PlayerIpInfo>();
+        readonly Dictionary<string, PlayerIPInfo> playerIPInfo = new Dictionary<string, PlayerIPInfo>();
         readonly Dictionary<string, PlayerUsernameInfo> playerUsernameInfo = new Dictionary<string, PlayerUsernameInfo>();
 
-        // For accessing `players`, `playerIpInfo`, `playerUsernameInfo`, and for calling `PlayerListAdd()` and `PlayerListRemove()`
+        // For accessing `players`, `playerIPInfo`, `playerUsernameInfo`, and for calling `PlayerListAdd()` and `PlayerListRemove()`
         readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
 
         Thread listener;
@@ -390,9 +390,9 @@ namespace DTAClient.DXGUI.Multiplayer
                     uint ip = BitConverter.ToUInt32(localIPAddress.GetAddressBytes(), 0);
                     uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
                     uint broadcast = ip | ~mask;
-                    IPAddress broadcastIp = new IPAddress(BitConverter.GetBytes(broadcast));
+                    IPAddress broadcastIP = new IPAddress(BitConverter.GetBytes(broadcast));
                     broadcastInterfaces.Add(new NetworkInterface(localIPAddress,
-                        new IPEndPoint(broadcastIp, ProgramConstants.LAN_LOBBY_PORT)));
+                        new IPEndPoint(broadcastIP, ProgramConstants.LAN_LOBBY_PORT)));
                 }
             }
             finally
@@ -409,7 +409,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 players.Clear();
                 lbPlayerList.Clear();
-                playerIpInfo.Clear();
+                playerIPInfo.Clear();
                 playerUsernameInfo.Clear();
             }
             finally
@@ -522,23 +522,23 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        record PlayerIpInfo(IPAddress ip, DateTime lastMsgTime)
+        record PlayerIPInfo(IPAddress ip, DateTime lastMsgTime)
         {
-            public IPAddress Ip = ip;
-            public DateTime LastMsgTime = lastMsgTime;
+            public IPAddress IP = ip;
+            public DateTime LastMessageTime = lastMsgTime;
         }
 
         private bool ShouldReceive(string username, IPAddress ip)
         {
             DateTime now = DateTime.Now;
-            if (!playerIpInfo.TryGetValue(username, out PlayerIpInfo info))
+            if (!playerIPInfo.TryGetValue(username, out PlayerIPInfo ipInfo))
             {
-                info = new PlayerIpInfo(ip, now);
+                ipInfo = new PlayerIPInfo(ip, now);
 
                 playerLock.EnterWriteLock();
                 try
                 {
-                    playerIpInfo[username] = info;
+                    playerIPInfo[username] = ipInfo;
                 }
                 finally
                 {
@@ -548,17 +548,17 @@ namespace DTAClient.DXGUI.Multiplayer
                 return true;
             }
 
-            if (info.Ip.Equals(ip))
+            if (ipInfo.IP.Equals(ip))
             {
-                info.LastMsgTime = now;
+                ipInfo.LastMessageTime = now;
 
                 return true;
             }
 
-            if ((now - info.LastMsgTime).TotalSeconds >= 3)
+            if ((now - ipInfo.LastMessageTime).TotalSeconds >= 3)
             {
-                info.LastMsgTime = now;
-                info.Ip = ip;
+                ipInfo.LastMessageTime = now;
+                ipInfo.IP = ip;
 
                 return true;
             }
