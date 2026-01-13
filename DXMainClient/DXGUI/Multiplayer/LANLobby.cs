@@ -924,8 +924,8 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            // Must include a trailing space; otherwise HandleNetworkMessage will not process it
-            // TODO: Fix this hack by improving HandleNetworkMessage
+            // The trailing space is required because HandleNetworkMessage expects this exact format.
+            // Do not remove it unless the message parsing in HandleNetworkMessage is updated accordingly.
             SendMessage("QUIT ");
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);
