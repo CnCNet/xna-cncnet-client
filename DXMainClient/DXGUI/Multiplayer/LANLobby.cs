@@ -37,6 +37,16 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double INACTIVITY_REMOVE_TIME = 10.0;
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
 
+        // When a client broadcasts to multiple local interfaces, we may receive the same
+        // logical message multiple times from different local source addresses. To avoid
+        // showing duplicate messages we remember the last source IP we received a
+        // message from for a given username and ignore messages from other IPs for a
+        // short grace period. This is a compatibility-friendly approach because it
+        // doesn't change the on-wire protocol (no message ids) and keeps behavior
+        // reasonable for the common case where duplicated deliveries arrive within a
+        // couple of seconds. See also <see cref="ShouldAcceptMessageFromIP(string, IPAddress)"/>.
+        private const double DUPLICATE_MESSAGE_IGNORE_SECONDS = 3.0;
+
         public LANLobby(
             WindowManager windowManager,
             GameCollection gameCollection,
@@ -533,7 +543,24 @@ namespace DTAClient.DXGUI.Multiplayer
             public DateTime LastMessageTime = lastMsgTime;
         }
 
-        private bool ShouldReceive(string username, IPAddress ip)
+        /// <summary>
+        /// Decide whether to accept a message from the given username that arrived
+        /// from the specified IP address. This implements a local duplicate-suppression
+        /// heuristic: remember the last source IP for a username and ignore messages
+        /// from different IPs for a short period defined by
+        /// <see cref="DUPLICATE_MESSAGE_IGNORE_SECONDS"/>.
+        ///
+        /// Rationale:
+        /// - Clients broadcast on all local interfaces which can cause some receivers
+        ///   to get the same logical packet multiple times (once per interface).
+        /// - Introducing message IDs would require a protocol change and would break
+        ///   compatibility with older clients, so we avoid it here.
+        /// - This heuristic may drop messages briefly if a client's primary interface
+        ///   fails and they switch to another interface within the grace period, and
+        ///   it may result in a late duplicate being delivered after the grace period.
+        ///   Both cases are considered acceptably rare on LANs.
+        /// </summary>
+        private bool IsDuplicateMessage(string username, IPAddress ip)
         {
             DateTime now = DateTime.Now;
             if (!playerIPInfo.TryGetValue(username, out PlayerIPInfo ipInfo))
@@ -560,7 +587,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 return true;
             }
 
-            if ((now - ipInfo.LastMessageTime).TotalSeconds >= 3)
+            if ((now - ipInfo.LastMessageTime).TotalSeconds >= DUPLICATE_MESSAGE_IGNORE_SECONDS)
             {
                 ipInfo.LastMessageTime = now;
                 ipInfo.IP = ip;
@@ -706,7 +733,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         if (colorIndex < 0 || colorIndex >= chatColors.Length)
                             return;
 
-                        if (!ShouldReceive(user.Name, endPoint.Address))
+                        if (!IsDuplicateMessage(user.Name, endPoint.Address))
                             break;
 
                         lock (lbChatMessages)
