@@ -544,6 +544,15 @@ In `ClientDefinitions.ini`:
 TrustedDomains=                ; comma-separated list of strings,
                                ; domain names to match links and prevent the message box from appearing before they open by default browser
                                ; example: cncnet.org,github.com,moddb.com
+```
+
+```ini
+[Settings]
 SaveSkirmishGameOptions=false  ; boolean, whether or not previously used game options in skirmish are saved across client sessions
 SaveCampaignGameOptions=false  ; boolean, whether or not previously used game options in campaign are saved across client sessions
+```
+
+```ini
+[Settings]
+CompatibilityCheckExecutables=CnCNetYRLauncher.exe,gamemd.exe,gamemd-spawn.exe ; comma-separated list of strings, to check for DirectDraw compatibility mode issues
 ```
