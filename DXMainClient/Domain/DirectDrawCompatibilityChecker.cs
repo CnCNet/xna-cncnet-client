@@ -46,12 +46,12 @@ public static class DirectDrawCompatibilityChecker
 
     private static void Examine(out bool requireFix, out bool requireAdmin, out IEnumerable<string> problematicExeNames)
     {
-        // Note: since the XNA build runs in x86, it can't access the 64-bit registry view on 64-bit Windows. The function will not work properly in this case.
-        // We accept this limitation since the XNA build is legacy.
+        RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+        RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
 
-        using RegistryKey? hkcuKey = Registry.CurrentUser.OpenSubKey(
+        using RegistryKey? hkcuKey = hkcu.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
-        using RegistryKey? hklmKey = Registry.LocalMachine.OpenSubKey(
+        using RegistryKey? hklmKey = hklm.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
 
         static bool IsFixRequired(object? regValue)
