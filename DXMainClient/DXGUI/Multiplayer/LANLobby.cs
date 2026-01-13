@@ -667,7 +667,10 @@ namespace DTAClient.DXGUI.Multiplayer
                 info.Count--;
         }
 
-        // Data must contain at least one space; otherwise it will be ignored
+        // NOTE: LAN protocol messages are expected to contain a command and a parameter
+        // section separated by a space. Due to the parsing logic below (data.Split(' ')
+        // and the commandAndParams.Length < 2 check), messages that do not contain at
+        // least one space are treated as invalid and are ignored.
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
             string[] commandAndParams = data.Split(' ');
