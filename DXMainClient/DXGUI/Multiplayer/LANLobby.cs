@@ -596,7 +596,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (playerUsernameInfos.TryAdd(username, newInfo))
             {
-                // UI operations remain on the UI thread as before.
                 lbPlayerList.AddItem(username, texture);
                 return;
             }
