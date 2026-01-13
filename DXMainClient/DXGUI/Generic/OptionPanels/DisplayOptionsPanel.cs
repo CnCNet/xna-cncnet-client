@@ -726,9 +726,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
 #if ISWINDOWS
             if (isChangingRenderer && !directDrawWrapperManager.SelectedRenderer.IsDummy)
-            {
                 DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
-            }
 #endif
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)

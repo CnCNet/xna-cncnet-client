@@ -671,9 +671,7 @@ namespace DTAClient.DXGUI.Generic
 
 #if ISWINDOWS
             if (!directDrawWrapperManager.SelectedRenderer.IsDummy)
-            {
                 DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
-            }
 #endif
         }
 
