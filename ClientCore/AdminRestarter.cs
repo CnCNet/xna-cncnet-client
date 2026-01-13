@@ -1,7 +1,9 @@
+#nullable enable
 using System;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Security.Principal;
+
 using Rampastring.Tools;
 
 namespace ClientCore
