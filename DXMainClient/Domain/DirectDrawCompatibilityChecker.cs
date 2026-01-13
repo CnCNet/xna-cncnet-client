@@ -139,9 +139,12 @@ public static class DirectDrawCompatibilityChecker
 
         string subKeyPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers";
 
-        FixRegistryKey(Registry.CurrentUser, subKeyPath);
+        RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+        RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
 
-        FixRegistryKey(Registry.LocalMachine, subKeyPath);
+        FixRegistryKey(hkcu, subKeyPath);
+
+        FixRegistryKey(hklm, subKeyPath);
     }
 
     /// <summary>
