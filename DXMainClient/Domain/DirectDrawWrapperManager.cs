@@ -19,10 +19,13 @@ namespace DTAClient.Domain
         private DirectDrawWrapper selectedRenderer;
         public DirectDrawWrapper SelectedRenderer => selectedRenderer;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor
         public DirectDrawWrapperManager()
         {
+            // This method sets up `renderers`, `defaultRenderer`, and `selectedRenderer`
             RefreshRenderers();
         }
+#pragma warning restore CS8618
 
         public IEnumerable<DirectDrawWrapper> GetRenderers(OSVersion localOS)
             => renderers.Where(r => r.IsCompatibleWithOS(localOS) && !r.Hidden);
