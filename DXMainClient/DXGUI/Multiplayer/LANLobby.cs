@@ -560,7 +560,7 @@ namespace DTAClient.DXGUI.Multiplayer
         ///   it may result in a late duplicate being delivered after the grace period.
         ///   Both cases are considered acceptably rare on LANs.
         /// </summary>
-        private bool IsDuplicateMessage(string username, IPAddress ip)
+        private bool IsNotDuplicateMessage(string username, IPAddress ip)
         {
             DateTime now = DateTime.Now;
             if (!playerIPInfo.TryGetValue(username, out PlayerIPInfo ipInfo))
@@ -733,7 +733,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         if (colorIndex < 0 || colorIndex >= chatColors.Length)
                             return;
 
-                        if (!IsDuplicateMessage(user.Name, endPoint.Address))
+                        if (!IsNotDuplicateMessage(user.Name, endPoint.Address))
                             break;
 
                         lock (lbChatMessages)
