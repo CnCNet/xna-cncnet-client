@@ -106,6 +106,11 @@ namespace DTAClient.DXGUI.Multiplayer
         // For accessing `players`, `playerIPInfo`, `playerUsernameInfo`, and for calling `PlayerListAdd()` and `PlayerListRemove()`
         readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
 
+        ~LANLobby()
+        {
+            broadcastInterfacesLock.Dispose();
+            playerLock.Dispose();
+        }
         Thread listener;
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
