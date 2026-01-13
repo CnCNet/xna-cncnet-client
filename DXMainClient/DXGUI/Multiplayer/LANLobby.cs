@@ -118,9 +118,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
         ~LANLobby()
         {
+            // TODO: Implement the IDisposable pattern and call Dispose() explicitly when the LANLobby is closed. The locks should be disposed in a Dispose() method, not a finalizer.
+
             broadcastInterfacesLock.Dispose();
             playerLock.Dispose();
         }
+
         Thread listener;
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
