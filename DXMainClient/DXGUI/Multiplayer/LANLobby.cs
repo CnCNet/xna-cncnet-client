@@ -402,10 +402,14 @@ namespace DTAClient.DXGUI.Multiplayer
                         continue;
 
                     IPAddress localIPAddress = info.Address;
-                    uint ip = BitConverter.ToUInt32(localIPAddress.GetAddressBytes(), 0);
-                    uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
-                    uint broadcast = ip | ~mask;
-                    IPAddress broadcastIP = new IPAddress(BitConverter.GetBytes(broadcast));
+                    byte[] ipBytes = localIPAddress.GetAddressBytes();
+                    byte[] maskBytes = info.IPv4Mask.GetAddressBytes();
+                    byte[] broadcastBytes = new byte[ipBytes.Length];
+                    for (int i = 0; i < ipBytes.Length; i++)
+                    {
+                        broadcastBytes[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
+                    }
+                    IPAddress broadcastIP = new IPAddress(broadcastBytes);
                     broadcastInterfaces.Add(new NetworkInterface(localIPAddress,
                         new IPEndPoint(broadcastIP, ProgramConstants.LAN_LOBBY_PORT)));
                 }
