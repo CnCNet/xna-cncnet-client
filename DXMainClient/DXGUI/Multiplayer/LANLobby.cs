@@ -96,13 +96,15 @@ namespace DTAClient.DXGUI.Multiplayer
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
         readonly List<NetworkInterface> broadcastInterfaces = new List<NetworkInterface>();
+
         readonly Dictionary<string, PlayerIpInfo> playerIpInfo = new Dictionary<string, PlayerIpInfo>();
         readonly Dictionary<string, PlayerUsernameInfo> playerUsernameInfo = new Dictionary<string, PlayerUsernameInfo>();
 
-        // for accessing broadcastInterfaces
+        // For accessing broadcastInterfaces
         readonly ReaderWriterLockSlim sendMessageLock = new ReaderWriterLockSlim();
-        // for accessing the players list, playerIpInfo, playerUsernameInfo, calling PlayerListAdd and PlayerListRemove
-        private readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
+
+        // For accessing the players list, playerIpInfo, playerUsernameInfo, and for calling PlayerListAdd and PlayerListRemove
+        readonly ReaderWriterLockSlim playerLock = new ReaderWriterLockSlim();
 
         Thread listener;
 
@@ -292,13 +294,14 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 try
                 {
-                    // has to be with trailing space, otherwise it wont be processed by HandleNetworkMessage
+                    // Must include a trailing space; otherwise HandleNetworkMessage will not process it
                     SendMessage("QUIT ");
                 }
                 catch (ObjectDisposedException)
                 {
 
                 }
+
                 try
                 {
                     socket.Close();
@@ -379,23 +382,29 @@ namespace DTAClient.DXGUI.Multiplayer
                     IPInterfaceProperties prop = iface.GetIPProperties();
                     UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info =>
                         info.Address.AddressFamily == AddressFamily.InterNetwork);
+
                     if (info == null || info.IPv4Mask == null)
                         continue;
-                    IPAddress localIp = info.Address;
-                    uint ip = BitConverter.ToUInt32(localIp.GetAddressBytes(), 0);
+
+                    IPAddress localIPAddress = info.Address;
+                    uint ip = BitConverter.ToUInt32(localIPAddress.GetAddressBytes(), 0);
                     uint mask = BitConverter.ToUInt32(info.IPv4Mask.GetAddressBytes(), 0);
                     uint broadcast = ip | ~mask;
                     IPAddress broadcastIp = new IPAddress(BitConverter.GetBytes(broadcast));
-                    broadcastInterfaces.Add(new NetworkInterface(localIp,
+                    broadcastInterfaces.Add(new NetworkInterface(localIPAddress,
                         new IPEndPoint(broadcastIp, ProgramConstants.LAN_LOBBY_PORT)));
                 }
             }
-            finally { sendMessageLock.ExitWriteLock(); }
+            finally
+            {
+                sendMessageLock.ExitWriteLock();
+            }
         }
 
         public void Open()
         {
             playerLock.EnterWriteLock();
+
             try
             {
                 players.Clear();
@@ -403,21 +412,31 @@ namespace DTAClient.DXGUI.Multiplayer
                 playerIpInfo.Clear();
                 playerUsernameInfo.Clear();
             }
-            finally { playerLock.ExitWriteLock(); }
-            
-            // this should be synchronzied, because as i observed, these XNAGameLists and other objects are not
-            //   thread safe, but they are called from Open here, and also from HandleNetworkMessage, which, because
-            //   it is called from callbacks, can be accessed by multiple threads
-            // this i believe is not the only way this variable is accessed (because how else are the games removed?, they are only added in this code file)
-            //   so for full thread safety wed need to synchronize its access from wherever the games are also removed, 
-            //   or read from
-            // but for now this provides synchronization against multiple HandleNetworkMessage callbacks, which is
-            //  better than nothing
-            lock (lbGameList) lbGameList.ClearGames();
-            
+            finally
+            {
+                playerLock.ExitWriteLock();
+            }
+
+            // This should be synchronized because XNA game lists and other UI objects are not thread-safe.
+            // They are accessed both here in Open and from HandleNetworkMessage callbacks.
+            // For full thread safety, access must be synchronized wherever games are added, removed, or read.
+            // The lock below provides synchronization against concurrent HandleNetworkMessage callbacks,
+            // which improves safety even if it does not cover all possible access paths.
+            lock (lbGameList)
+            {
+                lbGameList.ClearGames();
+            }
+
             sendMessageLock.EnterWriteLock();
-            try { broadcastInterfaces.Clear(); }
-            finally { sendMessageLock.ExitWriteLock(); }
+
+            try
+            {
+                broadcastInterfaces.Clear();
+            }
+            finally
+            {
+                sendMessageLock.ExitWriteLock();
+            }
 
             Visible = true;
             Enabled = true;
@@ -442,7 +461,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234.".L10N("Client:Main:SocketFailure3")));
                 initSuccess = false;
-                
+
                 return;
             }
 
@@ -461,13 +480,12 @@ namespace DTAClient.DXGUI.Multiplayer
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
-            
-            // if theres an error when we send to the interface,
-            // remove that intrerface
-            // because thats rare,
-            // keep the list as null by default so that it doesnt get constructed every SendMessage
+
+            // If there is a socket error when sending to an interface, remove that interface.
+            // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
             List<NetworkInterface> forDeletion = null;
             sendMessageLock.EnterReadLock();
+
             try
             {
                 foreach (NetworkInterface iface in broadcastInterfaces)
@@ -478,18 +496,29 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
                     catch (SocketException)
                     {
-                        if (forDeletion == null) forDeletion = new List<NetworkInterface>();
+                        forDeletion ??= [];
                         forDeletion.Add(iface);
                     }
                 }
             }
-            finally { sendMessageLock.ExitReadLock(); }
+
+            finally
+            {
+                sendMessageLock.ExitReadLock();
+            }
 
             if (forDeletion != null)
             {
                 sendMessageLock.EnterWriteLock();
-                try { broadcastInterfaces.RemoveAll(iface => forDeletion.Contains(iface)); }
-                finally { sendMessageLock.ExitWriteLock(); }
+
+                try
+                {
+                    broadcastInterfaces.RemoveAll(iface => forDeletion.Contains(iface));
+                }
+                finally
+                {
+                    sendMessageLock.ExitWriteLock();
+                }
             }
         }
 
@@ -505,28 +534,35 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!playerIpInfo.TryGetValue(username, out PlayerIpInfo info))
             {
                 info = new PlayerIpInfo(ip, now);
-                
-                playerLock.EnterWriteLock();
-                try { playerIpInfo[username] = info; }
-                finally { playerLock.ExitWriteLock(); }
 
+                playerLock.EnterWriteLock();
+                try
+                {
+                    playerIpInfo[username] = info;
+                }
+                finally
+                {
+                    playerLock.ExitWriteLock();
+                }
 
                 return true;
             }
+
             if (info.Ip.Equals(ip))
             {
                 info.LastMsgTime = now;
-                
+
                 return true;
             }
+
             if ((now - info.LastMsgTime).TotalSeconds >= 3)
             {
                 info.LastMsgTime = now;
                 info.Ip = ip;
-                
+
                 return true;
-            } 
-            
+            }
+
             return false;
         }
 
@@ -536,25 +572,25 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 while (true)
                 {
-                    EndPoint ep = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT);
+                    EndPoint endPoint = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT);
                     byte[] buffer = new byte[4096];
                     int receivedBytes = 0;
-                    receivedBytes = socket.ReceiveFrom(buffer, ref ep);
+                    receivedBytes = socket.ReceiveFrom(buffer, ref endPoint);
 
-                    IPEndPoint iep = (IPEndPoint)ep;
+                    IPEndPoint ipEndPoint = (IPEndPoint)endPoint;
                     string data = encoding.GetString(buffer, 0, receivedBytes);
 
                     if (data == string.Empty)
                         continue;
 
-                    AddCallback(new Action<string, IPEndPoint>(HandleNetworkMessage), data, iep);
+                    AddCallback(new Action<string, IPEndPoint>(HandleNetworkMessage), data, ipEndPoint);
                 }
             }
             catch (Exception ex)
             {
-                if (ex is SocketException sex && sex.SocketErrorCode == SocketError.Interrupted)
-                { 
-                    // do nothing, this is how the thread is supposed to end
+                if (ex is SocketException socketEx && socketEx.SocketErrorCode == SocketError.Interrupted)
+                {
+                    // Do nothing; this is the expected way for the listener thread to end.
                 }
                 else
                 {
@@ -586,7 +622,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (!playerUsernameInfo.TryGetValue(username, out PlayerUsernameInfo info))
                 return;
-            
+
             if (info.Count == 1)
             {
                 int idx = info.ListIndex;
@@ -598,8 +634,8 @@ namespace DTAClient.DXGUI.Multiplayer
             else
                 info.Count--;
         }
-        
-        // data should at least contain a space, otherwise it will be ignored
+
+        // Data must contain at least one space; otherwise it will be ignored
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
             string[] commandAndParams = data.Split(' ');
@@ -613,6 +649,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
             playerLock.EnterUpgradeableReadLock();
+
             try
             {
                 LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
@@ -634,13 +671,18 @@ namespace DTAClient.DXGUI.Multiplayer
                                 gameTexture = gameCollection.GameList[gameIndex].Texture;
 
                             user = new LANLobbyUser(name, gameTexture, endPoint);
-                            
+
                             playerLock.EnterWriteLock();
+
                             try
                             {
                                 players.Add(user);
                                 PlayerListAdd(user.Name, gameTexture);
-                            } finally { playerLock.ExitWriteLock();}
+                            }
+                            finally
+                            {
+                                playerLock.ExitWriteLock();
+                            }
                         }
 
                         user.TimeWithoutRefresh = TimeSpan.Zero;
@@ -662,8 +704,10 @@ namespace DTAClient.DXGUI.Multiplayer
                             break;
 
                         lock (lbChatMessages)
+                        {
                             lbChatMessages.AddMessage(new ChatMessage(user.Name,
                                 chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
+                        }
 
                         break;
                     case "QUIT":
@@ -673,11 +717,17 @@ namespace DTAClient.DXGUI.Multiplayer
                         int index = players.FindIndex(p => p == user);
 
                         playerLock.EnterWriteLock();
+
                         try
                         {
                             PlayerListRemove(players[index].Name);
                             players.RemoveAt(index);
-                        } finally { playerLock.ExitWriteLock(); }
+                        }
+                        finally
+                        {
+                            playerLock.ExitWriteLock();
+                        }
+
                         break;
                     case "GAME":
                         if (user == null)
@@ -832,7 +882,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            // has to be with trailing space, otherwise it wont be processed by HandleNetworkMessage
+            // Must include a trailing space; otherwise HandleNetworkMessage will not process it
             SendMessage("QUIT ");
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);
@@ -860,11 +910,16 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (players[i].TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
                     playerLock.EnterWriteLock();
+
                     try
                     {
                         PlayerListRemove(players[i].Name);
                         players.RemoveAt(i);
-                    } finally { playerLock.ExitWriteLock(); }
+                    }
+                    finally
+                    {
+                        playerLock.ExitWriteLock();
+                    }
 
                     i--;
                 }
