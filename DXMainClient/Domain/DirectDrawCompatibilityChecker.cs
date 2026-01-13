@@ -37,7 +37,7 @@ public static class DirectDrawCompatibilityChecker
         return configExecutables.Append(currentExeName);
     }
 
-    private static void Examine(out bool requireFix, out bool requireAdmin, out List<string> problematicExeNames)
+    private static void Examine(out bool requireFix, out bool requireAdmin, out IEnumerable<string> problematicExeNames)
     {
         using RegistryKey? hkcuKey = Registry.CurrentUser.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
@@ -51,7 +51,7 @@ public static class DirectDrawCompatibilityChecker
         bool anyHkcuRequireFix = false;
         bool anyHklmRequireFix = false;
 
-        problematicExeNames = [];
+        var problematicExeNameHashSet = new HashSet<string>();
         foreach (string executableName in GetExecutablesToCheck())
         {
             string exeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, executableName);
@@ -63,19 +63,20 @@ public static class DirectDrawCompatibilityChecker
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hkcuValue}");
                 anyHkcuRequireFix = true;
-                problematicExeNames.Add(executableName);
+                problematicExeNameHashSet.Add(executableName);
             }
 
             if (IsFixRequired(hklmValue))
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKLM. Value: {hklmValue}");
                 anyHklmRequireFix = true;
-                problematicExeNames.Add(executableName);
+                problematicExeNameHashSet.Add(executableName);
             }
         }
 
         requireFix = anyHkcuRequireFix || anyHklmRequireFix;
         requireAdmin = anyHklmRequireFix;
+        problematicExeNames = problematicExeNameHashSet;
     }
 
     private static string FixCompatLayerString(string value) => string.Join(" ",
