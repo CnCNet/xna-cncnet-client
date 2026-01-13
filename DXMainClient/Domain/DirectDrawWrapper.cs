@@ -229,17 +229,25 @@ namespace DTAClient.Domain
         {
             if (ReferenceEquals(a, b))
                 return true;
-                
+
             if (a is null || b is null)
                 return false;
-                
+
             return a.InternalName == b.InternalName;
         }
 
-        public static bool operator !=(DirectDrawWrapper a, DirectDrawWrapper b)
+        public static bool operator !=(DirectDrawWrapper a, DirectDrawWrapper b) => !(a == b);
+
+        public override bool Equals(object obj)
         {
-            return !(a == b);
+            if (obj is DirectDrawWrapper other)
+            {
+                return this == other;
+            }
+            return false;
         }
+
+        public override int GetHashCode() => InternalName.GetHashCode();
     }
 
     /// <summary>
