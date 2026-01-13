@@ -380,11 +380,7 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        record NetworkInterface(IPAddress localIP, IPEndPoint broadcast)
-        {
-            public readonly IPAddress LocalIP = localIP;
-            public readonly IPEndPoint Broadcast = broadcast;
-        }
+        record NetworkInterface(IPAddress LocalIP, IPEndPoint Broadcast);
 
         private void AddBroadcastInterfaces()
         {
