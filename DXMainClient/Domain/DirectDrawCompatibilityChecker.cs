@@ -173,7 +173,7 @@ public static class DirectDrawCompatibilityChecker
                 + "\n- " + string.Join("\n- ", problematicExeNames) + "\n\n" +
                 "Would you like to remove these compatibility settings now?".L10N("Client:Main:ProblematicCompatibilityText3");
 
-            if (requireAdmin)
+            if (requireAdmin && !AdminRestarter.IsRunningAsAdministrator())
             {
                 localizedMessage += "\n\n" + ("Note: Administrator privileges are required to remove compatibility settings." + " " +
                     "Clicking Yes will relaunch the client with administrator permissions.").L10N("Client:Main:ProblematicCompatibilityText4");
