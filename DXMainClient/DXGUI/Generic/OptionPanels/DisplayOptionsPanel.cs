@@ -724,11 +724,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 rendererSettingsIni.WriteIniFile();
             }
 
-#if ISWINDOWS
-            if (isChangingRenderer && !directDrawWrapperManager.SelectedRenderer.IsDummy)
-                DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
-#endif
-
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
                 if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL)
@@ -750,6 +745,12 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                         File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
                 }
             }
+
+#if ISWINDOWS
+            // Since `CheckAndPromptFix` method might restart the client if the admin rights are required, we do this at the end of the Save() method
+            if (isChangingRenderer && !directDrawWrapperManager.SelectedRenderer.IsDummy)
+                DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
+#endif
 
             return restartRequired;
         }
