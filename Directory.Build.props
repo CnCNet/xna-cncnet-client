@@ -97,7 +97,7 @@
     <XNAUIRoot>$(MSBuildThisFileDirectory)Rampastring.XNAUI</XNAUIRoot>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+  <ItemGroup Condition="('$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient') And $(Engine.Contains(XNA))">
     <Reference Include="Microsoft.Xna.Framework">
       <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
     </Reference>

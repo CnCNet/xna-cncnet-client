@@ -1,6 +1,7 @@
 using ClientCore.Extensions;
 using ClientCore;
 using ClientGUI;
+using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -26,11 +27,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
     {
         private const int DRAG_DISTANCE_DEFAULT = 4;
         private const int ORIGINAL_RESOLUTION_WIDTH = 640;
-        private const string RENDERERS_INI = "Renderers.ini";
 
-        public DisplayOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
+        private readonly DirectDrawWrapperManager directDrawWrapperManager;
+
+        public DisplayOptionsPanel(WindowManager windowManager, UserINISettings iniSettings, DirectDrawWrapperManager directDrawWrapperManager)
             : base(windowManager, iniSettings)
         {
+            this.directDrawWrapperManager = directDrawWrapperManager;
         }
 
         private XNAClientDropDown ddIngameResolution;
@@ -44,11 +47,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkIntegerScaledClient;
         private XNAClientDropDown ddClientTheme;
         private XNAClientDropDown ddTranslation;
-
-        private List<DirectDrawWrapper> renderers;
-
-        private string defaultRenderer;
-        private DirectDrawWrapper selectedRenderer = null;
 
         private XNALabel lblCompatibilityFixes;
         private XNALabel lblGameCompatibilityFix;
@@ -127,20 +125,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 ddDetailLevel.Width,
                 ddDetailLevel.Height);
 
-            GetRenderers();
-
-            var localOS = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
-            foreach (var renderer in renderers)
+            foreach (var renderer in directDrawWrapperManager.GetRenderers(ClientConfiguration.Instance.GetOperatingSystemVersion()))
             {
-                if (renderer.IsCompatibleWithOS(localOS) && !renderer.Hidden)
+                ddRenderer.AddItem(new XNADropDownItem()
                 {
-                    ddRenderer.AddItem(new XNADropDownItem()
-                    {
-                        Text = renderer.UIName,
-                        Tag = renderer
-                    });
-                }
+                    Text = renderer.UIName,
+                    Tag = renderer
+                });
             }
 
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
@@ -286,7 +277,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 AddCompatibilityFixControls();
             }
-            
+
             AddChild(chkWindowedMode);
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
@@ -396,45 +387,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
         }
 
-        private void GetRenderers()
-        {
-            renderers = new List<DirectDrawWrapper>();
-
-            var renderersIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), RENDERERS_INI));
-
-            var keys = renderersIni.GetSectionKeys("Renderers");
-            if (keys == null)
-                throw new ClientConfigurationException("[Renderers] not found from Renderers.ini!");
-
-            foreach (string key in keys)
-            {
-                string internalName = renderersIni.GetStringValue("Renderers", key, string.Empty);
-
-                var ddWrapper = new DirectDrawWrapper(internalName, renderersIni);
-                renderers.Add(ddWrapper);
-            }
-
-            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
-            defaultRenderer = renderersIni.GetStringValue("DefaultRenderer", osVersion.ToString(), string.Empty);
-
-            if (defaultRenderer == null)
-                throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
-
-            string renderer = UserINISettings.Instance.Renderer;
-
-            selectedRenderer = renderers.Find(r => r.InternalName == renderer);
-
-            if (selectedRenderer == null)
-                selectedRenderer = renderers.Find(r => r.InternalName == defaultRenderer);
-
-            if (selectedRenderer == null)
-                throw new ClientConfigurationException("Missing renderer: " + renderer);
-
-            GameProcessLogic.UseQres = selectedRenderer.UseQres;
-            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
-        }
-      
         /// <summary>
         /// Asks the user whether they want to install the DTA/TI/TS compatibility fix.
         /// </summary>
@@ -564,14 +516,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private void LoadRenderer()
         {
             int index = ddRenderer.Items.FindIndex(
-                           r => ((DirectDrawWrapper)r.Tag).InternalName == selectedRenderer.InternalName);
+                           r => ((DirectDrawWrapper)r.Tag).InternalName == directDrawWrapperManager.SelectedRenderer.InternalName);
 
-            if (index < 0 && selectedRenderer.Hidden)
+            if (index < 0 && directDrawWrapperManager.SelectedRenderer.Hidden)
             {
                 ddRenderer.AddItem(new XNADropDownItem()
                 {
-                    Text = selectedRenderer.UIName,
-                    Tag = selectedRenderer
+                    Text = directDrawWrapperManager.SelectedRenderer.UIName,
+                    Tag = directDrawWrapperManager.SelectedRenderer
                 });
                 index = ddRenderer.Items.Count - 1;
             }
@@ -679,14 +631,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
-            DirectDrawWrapper originalRenderer = selectedRenderer;
-            selectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
+            var newSelectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
+            bool isChangingRenderer = newSelectedRenderer != directDrawWrapperManager.SelectedRenderer;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
-                !selectedRenderer.UsesCustomWindowedOption();
+                !newSelectedRenderer.UsesCustomWindowedOption();
 
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
-                string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
+                string.IsNullOrEmpty(newSelectedRenderer.BorderlessWindowedModeKey);
 
             ScreenResolution clientRes = (string)ddClientResolution.SelectedItem.Tag;
 
@@ -744,48 +696,33 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     }
                 }
             }
-            
+
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
             else
                 IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
 
-            if (selectedRenderer != originalRenderer ||
-                !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
+            directDrawWrapperManager.Save(newSelectedRenderer);
+
+            if (directDrawWrapperManager.SelectedRenderer.UsesCustomWindowedOption())
             {
-                foreach (var renderer in renderers)
-                {
-                    if (renderer != selectedRenderer)
-                        renderer.Clean();
-                }
-            }
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, directDrawWrapperManager.SelectedRenderer.ConfigFileName));
 
-            selectedRenderer.Apply();
+                rendererSettingsIni.SetBooleanValue(directDrawWrapperManager.SelectedRenderer.WindowedModeSection,
+                    directDrawWrapperManager.SelectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
 
-            GameProcessLogic.UseQres = selectedRenderer.UseQres;
-            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
-
-            if (selectedRenderer.UsesCustomWindowedOption())
-            {
-                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
-
-                rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
-                    selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
-
-                if (!string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey))
+                if (!string.IsNullOrEmpty(directDrawWrapperManager.SelectedRenderer.BorderlessWindowedModeKey))
                 {
                     bool borderlessModeIniValue = chkBorderlessWindowedMode.Checked;
-                    if (selectedRenderer.IsBorderlessWindowedModeKeyReversed)
+                    if (directDrawWrapperManager.SelectedRenderer.IsBorderlessWindowedModeKeyReversed)
                         borderlessModeIniValue = !borderlessModeIniValue;
 
-                    rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
-                        selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
+                    rendererSettingsIni.SetBooleanValue(directDrawWrapperManager.SelectedRenderer.WindowedModeSection,
+                        directDrawWrapperManager.SelectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
                 }
 
                 rendererSettingsIni.WriteIniFile();
             }
-
-            IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
@@ -808,6 +745,12 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                         File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
                 }
             }
+
+#if ISWINDOWS
+            // Since `CheckAndPromptFix` method might restart the client if the admin rights are required, we do this at the end of the Save() method
+            if (isChangingRenderer && !directDrawWrapperManager.SelectedRenderer.IsDummy)
+                DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
+#endif
 
             return restartRequired;
         }

@@ -905,7 +905,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!hg.IsLoadedGame)
                 {
                     password = Utilities.CalculateSHA1ForString
-                        (hg.ChannelName + hg.RoomName).Substring(0, 10);
+                        (hg.ChannelName).Substring(0, 10);
                 }
                 else
                 {
@@ -1045,8 +1045,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             bool isCustomPassword = true;
             if (string.IsNullOrEmpty(password))
             {
-                password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
-                    channelName + e.GameRoomName).Substring(0, 10);
+                password = Utilities.CalculateSHA1ForString(
+                    channelName).Substring(0, 10);
                 isCustomPassword = false;
             }
 
