@@ -34,12 +34,12 @@ public static class DirectDrawCompatibilityChecker
             .ToList();
 
         // clientdx.exe, clientogl.exe, or clientxna.exe
-        string currentExeName = SafePath.GetFile(ProgramConstants.StartupExecutable).FullName;
+        string currentExePath = SafePath.GetFile(ProgramConstants.StartupExecutable).FullName;
 
-        executablePaths.Add(currentExeName);
+        executablePaths.Add(currentExePath);
 
         Logger.Log("Checking compatibility settings for executables: " +
-                   string.Join(", ", currentExeName));
+                   string.Join(", ", executablePaths));
 
         return executablePaths;
     }
