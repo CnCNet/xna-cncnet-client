@@ -649,6 +649,11 @@ namespace DTAClient.DXGUI.Multiplayer
             else
             {
                 playerUsernameInfo[username] = new PlayerUsernameInfo(lbPlayerList.Items.Count, 1);
+
+                // TODO: Thread safety issue: lbPlayerList.AddItem and lbPlayerList.RemoveItem are UI operations that should be called on the UI thread.
+                // Currently, these methods are being called from HandleNetworkMessage which runs on a background thread via AddCallback.
+                // If AddCallback doesn't marshal to the UI thread, this will cause cross-thread access violations.
+                // Verify that AddCallback properly marshals to the UI thread or wrap these UI calls appropriately.
                 lbPlayerList.AddItem(username, texture);
             }
         }
@@ -664,6 +669,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 foreach (PlayerUsernameInfo oinfo in playerUsernameInfo.Values.Where(oinfo => oinfo.ListIndex > idx))
                     oinfo.ListIndex--;
                 playerUsernameInfo.Remove(username);
+
+                // TODO: Thread safety issue. See the `lbPlayerList.AddItem()` call in `PlayerListAdd()` above.
                 lbPlayerList.RemoveItem(idx);
             }
             else
