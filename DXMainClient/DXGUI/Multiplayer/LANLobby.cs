@@ -688,6 +688,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         user.TimeWithoutRefresh = TimeSpan.Zero;
 
                         break;
+
                     case "CHAT":
                         if (user == null)
                             return;
@@ -710,6 +711,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         }
 
                         break;
+
                     case "QUIT":
                         if (user == null)
                             return;
@@ -729,6 +731,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         }
 
                         break;
+
                     case "GAME":
                         if (user == null)
                             return;
@@ -736,6 +739,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         HostedLANGame game = new HostedLANGame();
                         if (!game.SetDataFromStringArray(gameCollection, parameters))
                             return;
+
                         game.EndPoint = endPoint;
 
                         lock (lbGameList)
