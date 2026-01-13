@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 
@@ -26,15 +27,21 @@ public static class DirectDrawCompatibilityChecker
         "WIN8RTM", "WIN7RTM", "VISTASP2", "VISTASP1", "VISTARTM", "WINXPSP3", "WINXPSP2", "WIN98", "WIN95"
     ];
 
-    private static IEnumerable<string> GetExecutablesToCheck()
+    private static IEnumerable<string> GetExecutableFilePathsToCheck()
     {
-        string[] configExecutables = ClientConfiguration.Instance.GetCompatibilityCheckExecutables();
+        List<string> executablePaths = ClientConfiguration.Instance.GetCompatibilityCheckExecutables()
+            .Select(executableName => SafePath.CombineFilePath(ProgramConstants.GamePath, executableName))
+            .ToList();
 
         // clientdx.exe, clientogl.exe, or clientxna.exe
-        string currentExeName = SafePath.GetFile(ProgramConstants.StartupExecutable).Name;
+        string currentExeName = SafePath.GetFile(ProgramConstants.StartupExecutable).FullName;
 
-        // config list plus the current executable
-        return configExecutables.Append(currentExeName);
+        executablePaths.Add(currentExeName);
+
+        Logger.Log("Checking compatibility settings for executables: " +
+                   string.Join(", ", currentExeName));
+
+        return executablePaths;
     }
 
     private static void Examine(out bool requireFix, out bool requireAdmin, out IEnumerable<string> problematicExeNames)
@@ -52,10 +59,8 @@ public static class DirectDrawCompatibilityChecker
         bool anyHklmRequireFix = false;
 
         var problematicExeNameHashSet = new HashSet<string>();
-        foreach (string executableName in GetExecutablesToCheck())
+        foreach (string exeFullPath in GetExecutableFilePathsToCheck())
         {
-            string exeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, executableName);
-
             object? hkcuValue = hkcuKey?.GetValue(exeFullPath);
             object? hklmValue = hklmKey?.GetValue(exeFullPath);
 
@@ -63,14 +68,14 @@ public static class DirectDrawCompatibilityChecker
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKCU. Value: {hkcuValue}");
                 anyHkcuRequireFix = true;
-                problematicExeNameHashSet.Add(executableName);
+                problematicExeNameHashSet.Add(Path.GetFileName(exeFullPath));
             }
 
             if (IsFixRequired(hklmValue))
             {
                 Logger.Log($"Executable '{exeFullPath}' has problematic compatibility settings in HKLM. Value: {hklmValue}");
                 anyHklmRequireFix = true;
-                problematicExeNameHashSet.Add(executableName);
+                problematicExeNameHashSet.Add(Path.GetFileName(exeFullPath));
             }
         }
 
@@ -108,9 +113,8 @@ public static class DirectDrawCompatibilityChecker
                 if (key == null)
                     return;
 
-                foreach (string executableName in GetExecutablesToCheck())
+                foreach (string exeFullPath in GetExecutableFilePathsToCheck())
                 {
-                    string exeFullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, executableName);
                     object? value = key.GetValue(exeFullPath);
 
                     FixRegValue(value, out bool success, out string newValue);
