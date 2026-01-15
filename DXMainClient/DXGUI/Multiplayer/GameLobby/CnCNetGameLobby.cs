@@ -195,8 +195,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
 
-            btnGameLobbySettings = FindChild<XNAClientButton>(nameof(btnGameLobbySettings));
-            btnGameLobbySettings.LeftClick += BtnGameLobbySettings_LeftClick;
+            btnGameLobbySettings = FindChild<XNAClientButton>(nameof(btnGameLobbySettings), optional: true);
+            btnGameLobbySettings?.LeftClick += BtnGameLobbySettings_LeftClick;
 
             gameBroadcastTimer = new XNATimerControl(WindowManager);
             gameBroadcastTimer.AutoReset = true;
