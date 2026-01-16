@@ -105,10 +105,7 @@ namespace DTAClient.DXGUI.Multiplayer
         Encoding encoding;
 
         // ====== Player list ======
-        readonly object lbPlayerListLock = new object();
-        readonly ConcurrentDictionary<string, LANLobbyUser> players = [];
-        readonly ConcurrentDictionary<string, PlayerUsernameInfo> playerUsernameInfos = [];
-        record PlayerUsernameInfo(int ListIndex, int Count);
+        LANPlayerManager playerManager;
         // ========================
 
         // ====== Player's IP address ======
@@ -264,6 +261,9 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.NewGame += GameCreationWindow_NewGame;
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
+            // Initialize player manager after lbPlayerList is created
+            playerManager = new LANPlayerManager(lbPlayerList);
+
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
 
@@ -417,15 +417,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void Open()
         {
-            players.Clear();
-
-            lock (lbPlayerListLock)
-            {
-                lbPlayerList.Clear();
-            }
-
+            playerManager.Clear();
             playerIPInfos.Clear();
-            playerUsernameInfos.Clear();
 
             // This should be synchronized because XNA game lists and other UI objects are not thread-safe.
             // They are accessed both here in Open and from HandleNetworkMessage callbacks.
@@ -590,64 +583,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private void PlayerListAdd(string username, Texture2D texture)
-        {
-            lock (lbPlayerListLock)
-            {
-                // Check if username already exists
-                if (playerUsernameInfos.TryGetValue(username, out PlayerUsernameInfo existingInfo))
-                {
-                    // Increment count atomically
-                    var updated = new PlayerUsernameInfo(existingInfo.ListIndex, existingInfo.Count + 1);
-                    playerUsernameInfos[username] = updated;
-                    return;
-                }
 
-                // Add new entry
-                int index = lbPlayerList.Items.Count;
-                var newInfo = new PlayerUsernameInfo(index, 1);
-                playerUsernameInfos[username] = newInfo;
-                lbPlayerList.AddItem(username, texture);
-            }
-        }
-
-        private void PlayerListRemove(string username)
-        {
-            lock (lbPlayerListLock)
-            {
-                if (!playerUsernameInfos.TryGetValue(username, out PlayerUsernameInfo info))
-                    return;
-
-                if (info.Count == 1)
-                {
-                    int idx = info.ListIndex;
-
-                    // Decrement ListIndex for entries after the removed index
-                    // Create a snapshot and collect entries to update in one pass
-                    var entriesToUpdate = playerUsernameInfos
-                        .ToArray()
-                        .Where(kvp => kvp.Value.ListIndex > idx)
-                        .ToList();
-
-                    // Update the entries
-                    foreach (var entry in entriesToUpdate)
-                    {
-                        var updated = new PlayerUsernameInfo(entry.Value.ListIndex - 1, entry.Value.Count);
-                        playerUsernameInfos[entry.Key] = updated;
-                    }
-
-                    // Remove the username and remove UI item
-                    playerUsernameInfos.TryRemove(username, out _);
-                    lbPlayerList.RemoveItem(idx);
-                }
-                else
-                {
-                    // Decrement count
-                    var updated = new PlayerUsernameInfo(info.ListIndex, info.Count - 1);
-                    playerUsernameInfos[username] = updated;
-                }
-            }
-        }
 
         // NOTE: LAN protocol messages are expected to contain a command and a parameter
         // section separated by a space. Due to the parsing logic below (data.Split(' ')
@@ -665,8 +601,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string[] parameters = data.Substring(command.Length + 1).Split(
                 new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
-            string key = endPoint.ToString();
-            players.TryGetValue(key, out LANLobbyUser user);
+            LANLobbyUser user = playerManager.GetPlayerIfExist(endPoint);
 
             switch (command)
             {
@@ -684,20 +619,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         if (gameIndex > -1 && gameIndex < gameCollection.GameList.Count)
                             gameTexture = gameCollection.GameList[gameIndex].Texture;
 
-                        var newUser = new LANLobbyUser(name, gameTexture, endPoint);
-
-                        // Try to add a new user entry; only the thread that succeeds
-                        // should add the player to the UI list.
-                        if (players.TryAdd(key, newUser))
-                        {
-                            user = newUser;
-                            PlayerListAdd(user.Name, gameTexture);
-                        }
-                        else
-                        {
-                            // Another thread already added this user; use the existing instance.
-                            players.TryGetValue(key, out user);
-                        }
+                        user = playerManager.GetOrCreatePlayer(endPoint, name, gameTexture);
                     }
 
                     user.TimeWithoutRefresh = TimeSpan.Zero;
@@ -731,10 +653,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (user == null)
                         return;
 
-                    if (players.TryRemove(key, out LANLobbyUser removed))
-                    {
-                        PlayerListRemove(removed.Name);
-                    }
+                    playerManager.RemovePlayer(endPoint);
 
                     break;
 
@@ -909,19 +828,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Update(GameTime gameTime)
         {
-            // Copy values to a list to avoid enumerating the concurrent dictionary while modifying it.
-            var playersCopy = players.Values.ToList();
+            // Get a thread-safe snapshot of all players
+            var playersCopy = playerManager.GetAllPlayers();
             foreach (var player in playersCopy)
             {
                 player.TimeWithoutRefresh += gameTime.ElapsedGameTime;
 
                 if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
-                    string key = player.EndPoint.ToString();
-                    if (players.TryRemove(key, out LANLobbyUser removed))
-                    {
-                        PlayerListRemove(removed.Name);
-                    }
+                    playerManager.RemovePlayer(player.EndPoint);
                 }
             }
 
