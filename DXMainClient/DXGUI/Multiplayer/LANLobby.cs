@@ -38,16 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double ALIVE_MESSAGE_INTERVAL = 5.0;
         private const double INACTIVITY_REMOVE_TIME = 10.0;
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
-
-        // When a client broadcasts to multiple local interfaces, we may receive the same
-        // logical message multiple times from different local source addresses. To avoid
-        // showing duplicate messages we remember the last source IP we received a
-        // message from for a given username and ignore messages from other IPs for a
-        // short grace period. This is a compatibility-friendly approach because it
-        // doesn't change the on-wire protocol (no message ids) and keeps behavior
-        // reasonable for the common case where duplicated deliveries arrive within a
-        // couple of seconds. See also <see cref="UpdateLastMessageTime(string, IPAddress, out bool)"/>.
-        private const double DUPLICATE_MESSAGE_IGNORE_SECONDS = 3.0;
+        private const double MESSAGE_ID_EXPIRATION_SECONDS = 60.0;
 
         public LANLobby(
             WindowManager windowManager,
@@ -111,12 +102,9 @@ namespace DTAClient.DXGUI.Multiplayer
         LANPlayerManager playerManager;
         // ========================
 
-        // ====== Deduplicate CHAT messages ======
-        readonly object chatMessagesLock = new object();
-        // playerChatMessages: PlayerMessageInfo.IP.ToString() => PlayerMessageInfo
-        readonly ConcurrentDictionary<string, PlayerMessageInfo> playerChatMessages = [];
-        record PlayerMessageInfo(IPAddress IP, DateTime LastMessageTime);
-        // ================================
+        // ====== Message de-duplication ======
+        LANMessageDeduplicator messageDeduplicator;
+        // ====================================
 
         // ====== Which network interface(s) should be used to broadcast messages ======
         // broadcastInterfaces: PlayerNetworkInterface.LocalIP.ToString() => PlayerNetworkInterface
@@ -266,6 +254,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             // Initialize player manager after lbPlayerList is created
             playerManager = new LANPlayerManager(lbPlayerList);
+            
+            // Initialize message deduplicator with a random seed
+            messageDeduplicator = new LANMessageDeduplicator(random.Next(), MESSAGE_ID_EXPIRATION_SECONDS);
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
@@ -343,6 +334,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (!listenerTerminated)
                     Logger.Log("Failed to shut down listener after timeout!");
             }
+            
+            // Dispose the message deduplicator to stop the cleanup timer
+            messageDeduplicator?.Dispose();
         }
 
         private void LanGameLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
@@ -421,7 +415,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Open()
         {
             playerManager.Clear();
-            playerChatMessages.Clear();
+            messageDeduplicator.Clear();
 
             // This should be synchronized because XNA game lists and other UI objects are not thread-safe.
             // They are accessed both here in Open and from HandleNetworkMessage callbacks.
@@ -474,9 +468,12 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!initSuccess)
                 return;
 
+            // Wrap message with message ID at the beginning
+            string wrappedMessage = messageDeduplicator.WrapMessage(message);
+
             byte[] buffer;
 
-            buffer = encoding.GetBytes(message);
+            buffer = encoding.GetBytes(wrappedMessage);
 
             // If there is a socket error when sending to an interface, remove that interface.
             // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
@@ -509,59 +506,6 @@ namespace DTAClient.DXGUI.Multiplayer
             // Refresh the interfaces and try to rebind the socket.
             if (broadcastInterfaces.IsEmpty)
                 AddBroadcastInterfaces();
-        }
-
-        /// <summary>
-        /// Decide whether to accept a message from the given username that arrived
-        /// from the specified IP address. This implements a local duplicate-suppression
-        /// heuristic: remember the last source IP for a username and ignore messages
-        /// from different IPs for a short period defined by
-        /// <see cref="DUPLICATE_MESSAGE_IGNORE_SECONDS"/>.
-        ///
-        /// Rationale:
-        /// - Clients broadcast on all local interfaces which can cause some receivers
-        ///   to get the same logical packet multiple times (once per interface).
-        /// - Introducing message IDs would require a protocol change and would break
-        ///   compatibility with older clients, so we avoid it here.
-        /// - This heuristic may drop messages briefly if a client's primary interface
-        ///   fails and they switch to another interface within the grace period, and
-        ///   it may result in a late duplicate being delivered after the grace period.
-        ///   Both cases are considered acceptably rare on LANs.
-        /// </summary>
-        private void UpdateLastChatMessageTime(string username, IPAddress ip, out bool isNotDuplicateMessage)
-        {
-            lock (chatMessagesLock)
-            {
-                DateTime now = DateTime.UtcNow;
-
-                if (!playerChatMessages.TryGetValue(username, out PlayerMessageInfo existing))
-                {
-                    // New username - accept and add
-                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
-                    isNotDuplicateMessage = true;
-                    return;
-                }
-
-                if (existing.IP.Equals(ip))
-                {
-                    // Same IP: accept and update timestamp
-                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
-                    isNotDuplicateMessage = true;
-                    return;
-                }
-
-                if ((now - existing.LastMessageTime).TotalSeconds >= DUPLICATE_MESSAGE_IGNORE_SECONDS)
-                {
-                    // Different IP but grace period expired: accept and update to new IP
-                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
-                    isNotDuplicateMessage = true;
-                    return;
-                }
-
-                // Different IP within grace period: reject and keep existing entry
-                isNotDuplicateMessage = false;
-                return;
-            }
         }
 
         private void Listen()
@@ -603,14 +547,23 @@ namespace DTAClient.DXGUI.Multiplayer
         // least one space are treated as invalid and are ignored.
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
-            string[] commandAndParams = data.Split(' ');
+            // Unwrap message to extract message ID and check for duplicates
+            messageDeduplicator.UnwrapMessage(data, out string payload, out bool isDuplicate);
+            
+            if (isDuplicate)
+            {
+                // This is a duplicate message, ignore it
+                return;
+            }
+            
+            string[] commandAndParams = payload.Split(' ');
 
             if (commandAndParams.Length < 2)
                 return;
 
             string command = commandAndParams[0];
 
-            string[] parameters = data.Substring(command.Length + 1).Split(
+            string[] parameters = payload.Substring(command.Length + 1).Split(
                 new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
 
             LANLobbyUser user = playerManager.GetPlayerIfExist(endPoint);
@@ -649,10 +602,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
-
-                    UpdateLastChatMessageTime(user.Name, endPoint.Address, out bool isNotDuplicateMessage);
-                    if (!isNotDuplicateMessage)
-                        break;
 
                     lock (lbChatMessagesLock)
                     {
@@ -850,8 +799,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
                     playerManager.RemovePlayer(player.EndPoint);
-                    // Clean up any associated IP info to prevent memory leaks from stale entries.
-                    playerChatMessages.TryRemove(player.EndPoint.ToString(), out _);
                 }
             }
 
