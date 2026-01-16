@@ -104,22 +104,27 @@ namespace DTAClient.DXGUI.Multiplayer
         Socket socket;
         Encoding encoding;
 
-        // Use a concurrent dictionary keyed by local IP string to represent broadcast interfaces
-        readonly ConcurrentDictionary<string, PlayerNetworkInterface> broadcastInterfaces = [];
-
-        // Use a concurrent dictionary keyed by endpoint string to store players
-        readonly ConcurrentDictionary<string, LANLobbyUser> players = [];
-
-        // Use concurrent dictionary for player IP tracking (accessed via duplicateMessageLock)
-        readonly ConcurrentDictionary<string, PlayerIPInfo> playerIPInfos = [];
-        
-        // Use concurrent dictionary for player username tracking (accessed via lbPlayerListLock)
-        // Note: ConcurrentDictionary is used here for its safe enumeration capabilities.
-        // All modifications are protected by lbPlayerListLock, making indexer assignments safe.
-        readonly ConcurrentDictionary<string, PlayerUsernameInfo> playerUsernameInfos = [];
-        
-        // Locks for UI controls to ensure thread-safe access
+        // ====== Player list ======
         readonly object lbPlayerListLock = new object();
+        readonly ConcurrentDictionary<string, LANLobbyUser> players = [];
+        readonly ConcurrentDictionary<string, PlayerUsernameInfo> playerUsernameInfos = [];
+        record PlayerUsernameInfo(int ListIndex, int Count);
+        // ========================
+
+        // ====== Player's IP address ======
+        readonly object playerIPInfosLock = new object();
+        readonly ConcurrentDictionary<string, PlayerIPInfo> playerIPInfos = [];
+        record PlayerIPInfo(IPAddress IP, DateTime LastMessageTime);
+        // ================================
+
+        // ====== Which network interface should be used to access a player ======
+        // Use a concurrent dictionary keyed by local IP string to represent broadcast interfaces. No additional locking is needed.
+        // Note: local IP is different from player IP -- local IP binds to the local network interface's IP address.
+        readonly ConcurrentDictionary<string, PlayerNetworkInterface> broadcastInterfaces = [];
+        record PlayerNetworkInterface(IPAddress LocalIP, IPEndPoint Broadcast);
+        // ===================================================================
+
+        // Additional locks for UI controls to ensure thread-safe access
         readonly object lbChatMessagesLock = new object();
         readonly object lbGameListLock = new object();
 
@@ -382,8 +387,6 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        record PlayerNetworkInterface(IPAddress LocalIP, IPEndPoint Broadcast);
-
         private void AddBroadcastInterfaces()
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
@@ -415,10 +418,12 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Open()
         {
             players.Clear();
+
             lock (lbPlayerListLock)
             {
                 lbPlayerList.Clear();
             }
+
             playerIPInfos.Clear();
             playerUsernameInfos.Clear();
 
@@ -504,12 +509,6 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        // Immutable per-username IP info used for duplicate suppression.
-        record PlayerIPInfo(IPAddress IP, DateTime LastMessageTime);
-
-        // Lock for duplicate message detection to ensure atomic check-and-update
-        readonly object duplicateMessageLock = new object();
-        
         /// <summary>
         /// Decide whether to accept a message from the given username that arrived
         /// from the specified IP address. This implements a local duplicate-suppression
@@ -529,7 +528,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         private bool IsNotDuplicateMessage(string username, IPAddress ip)
         {
-            lock (duplicateMessageLock)
+            lock (playerIPInfosLock)
             {
                 DateTime now = DateTime.Now;
 
@@ -591,9 +590,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
         }
-
-        // Immutable per-username list metadata
-        record PlayerUsernameInfo(int ListIndex, int Count);
 
         private void PlayerListAdd(string username, Texture2D texture)
         {
@@ -698,7 +694,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         // Use GetOrAdd to ensure atomicity: only add if not present
                         // If the returned value is our new instance, we added it; otherwise another thread did
                         user = players.GetOrAdd(key, newUser);
-                        
+
                         // Only add to player list if we successfully added a new user
                         if (ReferenceEquals(user, newUser))
                         {
