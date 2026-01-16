@@ -86,11 +86,57 @@ namespace ClientCore
         public void RefreshSettings()
         {
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
+            _cachedMainMenuMusicName = null;
         }
 
         #region Client settings
 
-        public string MainMenuMusicName => SafePath.CombineFilePath(DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"));
+        private string _cachedMainMenuMusicName = null;
+        private static readonly Random _random = new Random();
+        private static readonly object _randomLock = new object();
+
+        /// <summary>
+        /// Support list, random selection and caching to ensure consistency across runs.
+        /// </summary>
+        public string MainMenuMusicName
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_cachedMainMenuMusicName))
+                    return _cachedMainMenuMusicName;
+
+                string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu") ?? "mainmenu";
+
+                // Support comma/semicolon/pipe separated lists
+                string[] parts = raw.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(p => p.Trim())
+                                    .Where(p => p.Length > 0)
+                                    .ToArray();
+
+                string chosen;
+                if (parts.Length == 0)
+                {
+                    chosen = "mainmenu";
+                }
+                else if (parts.Length == 1)
+                {
+                    chosen = parts[0];
+                }
+                else
+                {
+                    int idx;
+                    lock (_randomLock)
+                    {
+                        idx = _random.Next(parts.Length);
+                    }
+                    chosen = parts[idx];
+                }
+
+                // Maintain compatibility with the original implementation
+                _cachedMainMenuMusicName = SafePath.CombineFilePath(chosen);
+                return _cachedMainMenuMusicName;
+            }
+        }
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
 
