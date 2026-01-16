@@ -1,35 +1,38 @@
-﻿using ClientCore;
-using DTAClient.Domain.Multiplayer.CnCNet;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+
+using ClientCore;
+using ClientCore.Extensions;
+
 using ClientGUI;
+
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer.LAN;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using ClientCore.Extensions;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Net.NetworkInformation;
-using NetworkInterface = System.Net.NetworkInformation.NetworkInterface;
-using System.Reflection;
-using System.Text;
-using System.Threading;
+
 using SixLabors.ImageSharp;
+
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -95,7 +98,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         EnhancedSoundEffect sndGameCreated;
 
-        Socket socket;
         Encoding encoding;
 
         // ====== Player list ======
@@ -106,17 +108,13 @@ namespace DTAClient.DXGUI.Multiplayer
         LANMessageDeduplicator messageDeduplicator;
         // ====================================
 
-        // ====== Which network interface(s) should be used to broadcast messages ======
-        // broadcastInterfaces: PlayerNetworkInterface.LocalIP.ToString() => PlayerNetworkInterface
-        readonly ConcurrentDictionary<string, PlayerNetworkInterface> broadcastInterfaces = [];
-        record PlayerNetworkInterface(IPAddress LocalIP, IPEndPoint Broadcast);
-        // ===================================================================
+        // ====== Broadcast and socket management ======
+        LANLobbyBroadcastManager broadcastManager;
+        // =============================================
 
         // Additional locks for UI controls to ensure thread-safe access
         readonly object lbChatMessagesLock = new object();
         readonly object lbGameListLock = new object();
-
-        Thread listener;
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
 
@@ -124,8 +122,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         DiscordHandler discordHandler;
         PrivateMessagingWindow pmWindow;
-
-        bool initSuccess = false;
 
         public override void Initialize()
         {
@@ -254,9 +250,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             // Initialize player manager after lbPlayerList is created
             playerManager = new LANPlayerManager(lbPlayerList);
-            
+
             // Initialize message deduplicator with a random seed
             messageDeduplicator = new LANMessageDeduplicator(random.Next(), MESSAGE_ID_EXPIRATION_SECONDS);
+
+            // Initialize broadcast manager
+            encoding = Encoding.UTF8;
+            broadcastManager = new LANLobbyBroadcastManager(ProgramConstants.LAN_LOBBY_PORT, encoding);
+            broadcastManager.MessageReceived += (sender, e)
+                // Dispatch to UI thread
+                => this.AddCallback(() => HandleNetworkMessage(e.Data, e.EndPoint));
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
@@ -264,8 +267,6 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 
             sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
-
-            encoding = Encoding.UTF8;
 
             base.Initialize();
 
@@ -306,35 +307,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
         {
-            if (socket != null && socket.IsBound)
-            {
-                try
-                {
-                    // Must include a trailing space; otherwise HandleNetworkMessage will not process it
-                    SendMessage("QUIT ");
-                }
-                catch (ObjectDisposedException)
-                {
+            // Must include a trailing space; otherwise HandleNetworkMessage will not process it
+            SendMessage("QUIT ");
 
-                }
+            // Dispose the broadcast manager (which closes the socket and stops the listener)
+            broadcastManager?.Dispose();
 
-                try
-                {
-                    socket.Close();
-                }
-                catch (ObjectDisposedException)
-                {
-
-                }
-            }
-
-            if (listener != null)
-            {
-                bool listenerTerminated = listener.Join(millisecondsTimeout: 1000);
-                if (!listenerTerminated)
-                    Logger.Log("Failed to shut down listener after timeout!");
-            }
-            
             // Dispose the message deduplicator to stop the cleanup timer
             messageDeduplicator?.Dispose();
         }
@@ -384,34 +362,6 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        private void AddBroadcastInterfaces()
-        {
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface iface in interfaces)
-            {
-                IPInterfaceProperties prop = iface.GetIPProperties();
-                UnicastIPAddressInformation info = prop.UnicastAddresses.FirstOrDefault(info =>
-                    info.Address.AddressFamily == AddressFamily.InterNetwork);
-
-                if (info == null || info.IPv4Mask == null)
-                    continue;
-
-                IPAddress localIPAddress = info.Address;
-                byte[] ipBytes = localIPAddress.GetAddressBytes();
-                byte[] maskBytes = info.IPv4Mask.GetAddressBytes();
-                byte[] broadcastBytes = new byte[ipBytes.Length];
-                for (int i = 0; i < ipBytes.Length; i++)
-                {
-                    broadcastBytes[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
-                }
-                IPAddress broadcastIP = new IPAddress(broadcastBytes);
-
-                string key = localIPAddress.ToString();
-                var netIf = new PlayerNetworkInterface(localIPAddress, new IPEndPoint(broadcastIP, ProgramConstants.LAN_LOBBY_PORT));
-                broadcastInterfaces[key] = netIf;
-            }
-        }
-
         public void Open()
         {
             playerManager.Clear();
@@ -427,118 +377,34 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbGameList.ClearGames();
             }
 
-            broadcastInterfaces.Clear();
-
             Visible = true;
             Enabled = true;
 
-            Logger.Log("Creating LAN socket.");
-
             try
             {
-                socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                socket.EnableBroadcast = true;
-                socket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT));
-                AddBroadcastInterfaces();
-                initSuccess = true;
+                broadcastManager.Initialize();
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
-                Logger.Log("Creating LAN socket failed! Message: " + ex.ToString());
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message:".L10N("Client:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings.".L10N("Client:Main:SocketFailure2")));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234.".L10N("Client:Main:SocketFailure3")));
-                initSuccess = false;
 
                 return;
             }
-
-            Logger.Log("Starting listener.");
-            listener = new Thread(new ThreadStart(Listen));
-            listener.Start();
 
             SendAlive();
         }
 
         private void SendMessage(string message)
         {
-            if (!initSuccess)
-                return;
-
             // Wrap message with message ID at the beginning
             string wrappedMessage = messageDeduplicator.WrapMessage(message);
 
-            byte[] buffer;
-
-            buffer = encoding.GetBytes(wrappedMessage);
-
-            // If there is a socket error when sending to an interface, remove that interface.
-            // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
-            List<PlayerNetworkInterface> forDeletion = null;
-
-            Debug.Assert(!broadcastInterfaces.IsEmpty, "No broadcast interfaces available in SendMessage!");
-
-            foreach ((string key, PlayerNetworkInterface networkInterface) in broadcastInterfaces)
-            {
-                try
-                {
-                    socket.SendTo(buffer, networkInterface.Broadcast);
-                }
-                catch (SocketException)
-                {
-                    forDeletion ??= new List<PlayerNetworkInterface>();
-                    forDeletion.Add(networkInterface);
-                }
-            }
-
-            if (forDeletion != null)
-            {
-                foreach (var key in forDeletion.Select(iface => iface.LocalIP.ToString()))
-                {
-                    broadcastInterfaces.TryRemove(key, out _);
-                }
-            }
-
-            // If no broadcast interfaces remain, we cannot continue using the socket.
-            // Refresh the interfaces and try to rebind the socket.
-            if (broadcastInterfaces.IsEmpty)
-                AddBroadcastInterfaces();
-        }
-
-        private void Listen()
-        {
-            try
-            {
-                while (true)
-                {
-                    EndPoint endPoint = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT);
-                    byte[] buffer = new byte[4096];
-                    int receivedBytes = 0;
-                    receivedBytes = socket.ReceiveFrom(buffer, ref endPoint);
-
-                    IPEndPoint ipEndPoint = (IPEndPoint)endPoint;
-                    string data = encoding.GetString(buffer, 0, receivedBytes);
-
-                    if (data == string.Empty)
-                        continue;
-
-                    AddCallback(new Action<string, IPEndPoint>(HandleNetworkMessage), data, ipEndPoint);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is SocketException socketEx && socketEx.SocketErrorCode == SocketError.Interrupted)
-                {
-                    // Do nothing; this is the expected way for the listener thread to end.
-                }
-                else
-                {
-                    Logger.Log("LAN socket listener: exception: " + ex.ToString());
-                }
-            }
+            broadcastManager.SendMessage(wrappedMessage);
         }
 
         // NOTE: LAN protocol messages are expected to contain a command and a parameter
@@ -549,13 +415,13 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             // Unwrap message to extract message ID and check for duplicates
             messageDeduplicator.UnwrapMessage(data, out string payload, out bool isDuplicate);
-            
+
             if (isDuplicate)
             {
                 // This is a duplicate message, ignore it
                 return;
             }
-            
+
             string[] commandAndParams = payload.Split(' ');
 
             if (commandAndParams.Length < 2)
@@ -771,7 +637,7 @@ namespace DTAClient.DXGUI.Multiplayer
             // The trailing space is required because HandleNetworkMessage expects this exact format.
             // Do not remove it unless the message parsing in HandleNetworkMessage is updated accordingly.
             SendMessage("QUIT ");
-            socket.Close();
+            broadcastManager.Shutdown();
             Exited?.Invoke(this, EventArgs.Empty);
         }
 
