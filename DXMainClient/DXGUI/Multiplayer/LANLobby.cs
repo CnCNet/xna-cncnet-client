@@ -255,9 +255,9 @@ namespace DTAClient.DXGUI.Multiplayer
             // Initialize broadcast manager
             encoding = Encoding.UTF8;
             broadcastManager = new LANLobbyBroadcastManager(ProgramConstants.LAN_LOBBY_PORT, encoding);
-            broadcastManager.MessageReceived += (sender, e)
-                // Dispatch to UI thread
-                => this.AddCallback(() => HandleNetworkMessage(e.Data, e.EndPoint));
+            // Dispatch to UI thread
+            broadcastManager.MessageReceived += (sender, e) =>
+                AddCallback(() => HandleNetworkMessage(e.Data, e.EndPoint));
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
