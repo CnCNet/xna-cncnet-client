@@ -98,20 +98,13 @@ namespace ClientCore
         /// <summary>
         /// Support list, random selection and caching to ensure consistency across runs.
         /// </summary>
-        public string MainMenuMusicName
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(_cachedMainMenuMusicName))
-                    return _cachedMainMenuMusicName;
-
+       private string _mainMenuMusicName = null;
+       public string MainMenuMusicName => _mainMenuMusicName ??= GetMainMenuMusicName();
+        
+       private string GetMainMenuMusicName()
+       {
                 string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu") ?? "mainmenu";
-
-                // Support comma/semicolon/pipe separated lists
-                string[] parts = raw.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(p => p.Trim())
-                                    .Where(p => p.Length > 0)
-                                    .ToArray();
+                string[] parts = raw.SplitWithCleanup(new[] { ',' });
 
                 string chosen;
                 if (parts.Length == 0)
@@ -132,10 +125,8 @@ namespace ClientCore
                     chosen = parts[idx];
                 }
 
-                // Maintain compatibility with the original implementation
-                _cachedMainMenuMusicName = SafePath.CombineFilePath(chosen);
-                return _cachedMainMenuMusicName;
-            }
+                return SafePath.CombineFilePath(chosen);
+        
         }
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
@@ -168,13 +159,13 @@ namespace ClientCore
 
         public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
 
-        public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
+        公共 string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor"， "255,255,255");
 
-        public string ListBoxHeaderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor", "255,255,255");
+        公共 string ListBoxHeaderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor"， "255,255,255");
 
         public string DefaultChatColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "DefaultChatColor", "0,255,0");
 
-        public string AdminNameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AdminNameColor", "255,0,0");
+        公共 string AdminNameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AdminNameColor", "255,0,0");
 
         public string ReceivedPMColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageOtherUserColor", "196,196,196");
 
@@ -192,7 +183,7 @@ namespace ClientCore
 
         #region Tool tip settings
 
-        public int ToolTipFontIndex => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipFontIndex", 0);
+        公共 int ToolTipFontIndex => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipFontIndex", 0);
 
         public int ToolTipOffsetX => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipOffsetX", 0);
 
