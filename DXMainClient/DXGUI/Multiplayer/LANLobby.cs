@@ -529,7 +529,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             lock (playerIPInfosLock)
             {
-                DateTime now = DateTime.Now;
+                DateTime now = DateTime.UtcNow;
 
                 if (!playerIPInfos.TryGetValue(username, out PlayerIPInfo existing))
                 {
