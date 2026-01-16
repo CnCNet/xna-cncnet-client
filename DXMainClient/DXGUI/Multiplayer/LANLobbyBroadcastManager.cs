@@ -33,15 +33,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         /// <summary>
         /// Event raised when a network message is received.
-        /// The callback is invoked on the main thread (via AddCallback).
+        /// The event is raised on the listener thread; subscribers are responsible
+        /// for marshaling to the main/UI thread if required.
         /// </summary>
         public event EventHandler<NetworkMessageReceivedEventArgs>? MessageReceived;
-
-        /// <summary>
-        /// Delegate for adding callbacks to the main thread.
-        /// This is typically provided by the WindowManager.
-        /// </summary>
-        private readonly Action<Action<string, IPEndPoint>, string, IPEndPoint>? addCallback;
 
         /// <summary>
         /// Record for storing network interface information.
