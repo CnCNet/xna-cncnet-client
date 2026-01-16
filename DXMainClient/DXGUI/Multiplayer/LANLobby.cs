@@ -624,14 +624,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     // Decrement ListIndex for entries after the removed index
                     // Create a snapshot and collect entries to update in one pass
-                    var entriesToUpdate = new List<KeyValuePair<string, PlayerUsernameInfo>>();
-                    foreach (var kvp in playerUsernameInfos.ToArray())
-                    {
-                        if (kvp.Value.ListIndex > idx)
-                        {
-                            entriesToUpdate.Add(kvp);
-                        }
-                    }
+                    var entriesToUpdate = playerUsernameInfos
+                        .ToArray()
+                        .Where(kvp => kvp.Value.ListIndex > idx)
+                        .ToList();
 
                     // Update the entries
                     foreach (var entry in entriesToUpdate)
