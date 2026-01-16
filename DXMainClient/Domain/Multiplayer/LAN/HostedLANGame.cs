@@ -23,7 +23,6 @@ namespace DTAClient.Domain.LAN
             }
         }
 
-
         public string LoadedGameID { get; set; }
 
         public TimeSpan TimeWithoutRefresh { get; set; }
