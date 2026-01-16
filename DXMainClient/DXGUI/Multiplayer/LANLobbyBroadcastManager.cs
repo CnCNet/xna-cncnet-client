@@ -223,7 +223,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         /// <summary>
         /// Background thread that listens for incoming UDP messages.
-        /// Received messages are dispatched to the MessageReceived event on the main thread.
         /// </summary>
         private void Listen()
         {
