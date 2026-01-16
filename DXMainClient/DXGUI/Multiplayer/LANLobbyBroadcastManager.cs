@@ -1,18 +1,15 @@
 #nullable enable
-using ClientCore;
-
-using Rampastring.Tools;
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+
+using Rampastring.Tools;
 
 using NetworkInterface = System.Net.NetworkInformation.NetworkInterface;
 
@@ -186,8 +183,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 byte[] buffer = encoding.GetBytes(message);
 
                 // If there is a socket error when sending to an interface, remove that interface.
-                // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
-                List<PlayerNetworkInterface>? forDeletion = null;
+                // This is rare, so keep `failedInterfaces` null by default to avoid allocating a list on every SendMessage.
+                List<PlayerNetworkInterface>? failedInterfaces = null;
 
                 if (broadcastInterfaces.IsEmpty)
                 {
@@ -202,21 +199,20 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
                     catch (SocketException)
                     {
-                        forDeletion ??= new List<PlayerNetworkInterface>();
-                        forDeletion.Add(networkInterface);
+                        failedInterfaces ??= new List<PlayerNetworkInterface>();
+                        failedInterfaces.Add(networkInterface);
                     }
                 }
 
-                if (forDeletion != null)
+                if (failedInterfaces != null)
                 {
-                    foreach (var key in forDeletion.Select(iface => iface.LocalIP.ToString()))
+                    foreach (var key in failedInterfaces.Select(iface => iface.LocalIP.ToString()))
                     {
                         broadcastInterfaces.TryRemove(key, out _);
                     }
                 }
 
-                // If no broadcast interfaces remain, we cannot continue using the socket.
-                // Refresh the interfaces and try to rebind the socket.
+                // If no broadcast interfaces remain, we cannot continue using the socket. Refresh the interfaces.
                 if (broadcastInterfaces.IsEmpty)
                 {
                     Logger.Log("No broadcast interfaces remain; refreshing interfaces.");
