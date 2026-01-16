@@ -307,8 +307,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
         {
-            // Must include a trailing space; otherwise HandleNetworkMessage will not process it
-            SendMessage("QUIT ");
+            SendMessage("QUIT");
 
             // Dispose the broadcast manager (which closes the socket and stops the listener)
             broadcastManager?.Dispose();
@@ -407,10 +406,6 @@ namespace DTAClient.DXGUI.Multiplayer
             broadcastManager.SendMessage(wrappedMessage);
         }
 
-        // NOTE: LAN protocol messages are expected to contain a command and a parameter
-        // section separated by a space. Due to the parsing logic below (data.Split(' ')
-        // and the commandAndParams.Length < 2 check), messages that do not contain at
-        // least one space are treated as invalid and are ignored.
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
         {
             // Unwrap message to extract message ID and check for duplicates
@@ -424,13 +419,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string[] commandAndParams = payload.Split(' ');
 
-            if (commandAndParams.Length < 2)
+            if (commandAndParams.Length < 1)
                 return;
 
             string command = commandAndParams[0];
 
-            string[] parameters = payload.Substring(command.Length + 1).Split(
-                new char[] { ProgramConstants.LAN_DATA_SEPARATOR });
+            string[] parameters = commandAndParams.Length > 1
+                ? payload.Substring(command.Length + 1).Split(new char[] { ProgramConstants.LAN_DATA_SEPARATOR })
+                : Array.Empty<string>();
 
             LANLobbyUser user = playerManager.GetPlayerIfExist(endPoint);
 
@@ -634,9 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            // The trailing space is required because HandleNetworkMessage expects this exact format.
-            // Do not remove it unless the message parsing in HandleNetworkMessage is updated accordingly.
-            SendMessage("QUIT ");
+            SendMessage("QUIT");
             broadcastManager.Shutdown();
             Exited?.Invoke(this, EventArgs.Empty);
         }
