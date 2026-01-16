@@ -440,9 +440,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string command = commandAndParams[0];
 
-            string[] parameters = commandAndParams.Length > 1
-                ? payload.Substring(command.Length + 1).Split(new char[] { ProgramConstants.LAN_DATA_SEPARATOR })
-                : Array.Empty<string>();
+            string[] parameters;
+            {
+                // For parameterless commands like "QUIT", avoid the potentional out-of-bounds issue by locating the first space first.
+                int firstSpace = payload.IndexOf(' ');
+                parameters = firstSpace >= 0
+                    ? payload.Substring(firstSpace + 1).Split([ProgramConstants.LAN_DATA_SEPARATOR])
+                    : [];
+            }
 
             LANLobbyUser user = playerManager.GetPlayerIfExist(endPoint);
 
