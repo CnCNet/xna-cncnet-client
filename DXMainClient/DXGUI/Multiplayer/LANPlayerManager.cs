@@ -66,6 +66,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 // Add to UI if username not already displayed
                 if (!usernameToListIndex.ContainsKey(name))
                 {
+                    // FIXME: This logic allows multiple players with the same username but different endpoints to exist simultaneously.
+                    // Only the first player with a given username is shown in the UI.
+                    // When that player disconnects, the username is removed from the UI even if other players with the same username are still connected.
+                    // This can lead to invisible players.
+                    // Consider either enforcing unique usernames or updating the UI tracking to handle multiple players per username correctly.
+
                     int index = playerListBox.Items.Count;
                     usernameToListIndex[name] = index;
                     playerListBox.AddItem(name, gameTexture);
