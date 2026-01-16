@@ -454,7 +454,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         user = playerManager.GetOrCreatePlayer(endPoint, name, gameTexture);
                     }
 
-                    user.TimeWithoutRefresh = TimeSpan.Zero;
+                    user.ClearTimeWithoutRefresh();
 
                     break;
 
@@ -657,7 +657,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var playersCopy = playerManager.GetAllPlayers();
             foreach (var player in playersCopy)
             {
-                player.TimeWithoutRefresh += gameTime.ElapsedGameTime;
+                player.AddToTimeWithoutRefresh(gameTime.ElapsedGameTime);
 
                 if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {

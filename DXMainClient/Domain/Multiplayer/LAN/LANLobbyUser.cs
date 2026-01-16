@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using System;
 using System.Net;
-using System.Threading;
+
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.Domain.Multiplayer.LAN
 {
@@ -17,13 +17,24 @@ namespace DTAClient.Domain.Multiplayer.LAN
         public string Name { get; private set; }
         public Texture2D GameTexture { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
-        
-        private long timeWithoutRefreshTicks;
-        
-        public TimeSpan TimeWithoutRefresh
+
+        private readonly object timeWithoutRefreshLock = new();
+        public TimeSpan TimeWithoutRefresh { get; private set; }
+
+        public void ClearTimeWithoutRefresh()
         {
-            get { return TimeSpan.FromTicks(Interlocked.Read(ref timeWithoutRefreshTicks)); }
-            set { Interlocked.Exchange(ref timeWithoutRefreshTicks, value.Ticks); }
+            lock (timeWithoutRefreshLock)
+            {
+                TimeWithoutRefresh = TimeSpan.Zero;
+            }
+        }
+
+        public void AddToTimeWithoutRefresh(TimeSpan timeToAdd)
+        {
+            lock (timeWithoutRefreshLock)
+            {
+                TimeWithoutRefresh += timeToAdd;
+            }
         }
     }
 }
