@@ -18,14 +18,12 @@ namespace DTAClient.Domain.Multiplayer.LAN
         public Texture2D GameTexture { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
         
-        // Use a lock to protect TimeWithoutRefresh from concurrent access
-        private readonly object timeRefreshLock = new object();
-        private TimeSpan timeWithoutRefresh;
+        private long timeWithoutRefreshTicks;
         
         public TimeSpan TimeWithoutRefresh
         {
-            get { lock (timeRefreshLock) { return timeWithoutRefresh; } }
-            set { lock (timeRefreshLock) { timeWithoutRefresh = value; } }
+            get { return TimeSpan.FromTicks(Interlocked.Read(ref timeWithoutRefreshTicks)); }
+            set { Interlocked.Exchange(ref timeWithoutRefreshTicks, value.Ticks); }
         }
     }
 }
