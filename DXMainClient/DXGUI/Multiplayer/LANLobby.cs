@@ -501,9 +501,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (forDeletion != null)
             {
-                foreach (var iface in forDeletion)
+                foreach (var key in forDeletion.Select(iface => iface.LocalIP.ToString()))
                 {
-                    string key = iface.LocalIP.ToString();
                     broadcastInterfaces.TryRemove(key, out _);
                 }
             }
