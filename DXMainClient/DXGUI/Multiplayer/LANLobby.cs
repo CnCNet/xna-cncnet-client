@@ -669,6 +669,9 @@ namespace DTAClient.DXGUI.Multiplayer
             var playersCopy = playerManager.GetAllPlayers();
             foreach (var player in playersCopy)
             {
+                // There is a minor race condition:
+                // if a player is removed via "QUIT" message, `player.ClearTimeWithoutRefresh()` might be called during this loop.
+                // We accept this consequence.
                 player.AddToTimeWithoutRefresh(gameTime.ElapsedGameTime);
 
                 if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
