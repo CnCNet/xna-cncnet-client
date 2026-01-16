@@ -55,7 +55,6 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         /// <param name="lobbyPort">The UDP port to bind for LAN lobby communication.</param>
         /// <param name="encoding">The text encoding to use for messages (typically UTF-8).</param>
-        /// <param name="addCallback">Optional callback for marshalling network messages to the main thread.</param>
         public LANLobbyBroadcastManager(int lobbyPort, Encoding encoding)
         {
             this.lobbyPort = lobbyPort;
