@@ -438,9 +438,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string[] commandAndParams = payload.Split(' ');
 
-            if (commandAndParams.Length < 1)
-                return;
-
             string command = commandAndParams[0];
 
             string[] parameters = commandAndParams.Length > 1
