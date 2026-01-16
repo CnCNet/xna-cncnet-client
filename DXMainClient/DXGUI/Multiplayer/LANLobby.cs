@@ -439,7 +439,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string[] parameters;
             {
-                // For parameterless commands like "QUIT", avoid the potentional out-of-bounds issue by locating the first space first.
+                // For parameterless commands like "QUIT", avoid the potential out-of-bounds issue by locating the first space first.
                 int firstSpace = payload.IndexOf(' ');
                 parameters = firstSpace >= 0
                     ? payload.Substring(firstSpace + 1).Split([ProgramConstants.LAN_DATA_SEPARATOR])
