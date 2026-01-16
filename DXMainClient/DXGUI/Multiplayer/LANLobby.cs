@@ -336,8 +336,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (listener != null)
             {
-                bool success = listener.Join(millisecondsTimeout: 1000);
-                if (!success)
+                bool listenerTerminated = listener.Join(millisecondsTimeout: 1000);
+                if (!listenerTerminated)
                     Logger.Log("Failed to shut down listener after timeout!");
             }
         }
