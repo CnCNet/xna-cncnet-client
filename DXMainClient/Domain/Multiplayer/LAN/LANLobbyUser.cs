@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Net;
+using System.Threading;
 
 namespace DTAClient.Domain.Multiplayer.LAN
 {
@@ -16,6 +17,15 @@ namespace DTAClient.Domain.Multiplayer.LAN
         public string Name { get; private set; }
         public Texture2D GameTexture { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
-        public TimeSpan TimeWithoutRefresh { get; set; }
+        
+        // Use a lock to protect TimeWithoutRefresh from concurrent access
+        private readonly object timeRefreshLock = new object();
+        private TimeSpan timeWithoutRefresh;
+        
+        public TimeSpan TimeWithoutRefresh
+        {
+            get { lock (timeRefreshLock) { return timeWithoutRefresh; } }
+            set { lock (timeRefreshLock) { timeWithoutRefresh = value; } }
+        }
     }
 }
