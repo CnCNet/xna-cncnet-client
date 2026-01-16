@@ -497,9 +497,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         if (existingGameIndex > -1)
                             lbGameList.HostedGames[existingGameIndex] = game;
                         else
-                        {
                             lbGameList.HostedGames.Add(game);
-                        }
 
                         lbGameList.Refresh();
                     }

@@ -22,7 +22,7 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     internal class LANLobbyBroadcastManager : IDisposable
     {
-        private readonly object socketLock = new object();
+        private readonly object socketLock = new();
         private readonly ConcurrentDictionary<string, PlayerNetworkInterface> broadcastInterfaces = new();
         private readonly Encoding encoding;
         private readonly int lobbyPort;
@@ -104,8 +104,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 try
                 {
-                    socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    socket.EnableBroadcast = true;
+                    socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
+                    {
+                        EnableBroadcast = true
+                    };
                     socket.Bind(new IPEndPoint(IPAddress.Any, lobbyPort));
                     AddBroadcastInterfaces();
                 }
@@ -195,11 +197,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     try
                     {
-                        socket.SendTo(buffer, networkInterface.Broadcast);
+                        _ = socket.SendTo(buffer, networkInterface.Broadcast);
                     }
                     catch (SocketException)
                     {
-                        failedInterfaces ??= new List<PlayerNetworkInterface>();
+                        failedInterfaces ??= [];
                         failedInterfaces.Add(networkInterface);
                     }
                 }
@@ -208,7 +210,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     foreach (var key in failedInterfaces.Select(iface => iface.LocalIP.ToString()))
                     {
-                        broadcastInterfaces.TryRemove(key, out _);
+                        _ = broadcastInterfaces.TryRemove(key, out _);
                     }
                 }
 

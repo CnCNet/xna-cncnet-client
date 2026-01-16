@@ -1,14 +1,14 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+
 using DTAClient.Domain.Multiplayer.LAN;
 
 using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.XNAUI.XNAControls;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -19,9 +19,9 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     internal class LANPlayerManager
     {
-        private readonly object lockObject = new object();
-        private readonly Dictionary<string, LANLobbyUser> players = new Dictionary<string, LANLobbyUser>();
-        private readonly Dictionary<string, int> usernameToListIndex = new Dictionary<string, int>();
+        private readonly object lockObject = new();
+        private readonly Dictionary<string, LANLobbyUser> players = [];
+        private readonly Dictionary<string, int> usernameToListIndex = [];
         private readonly XNAListBox playerListBox;
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 string key = GetKeyFromEndPoint(endPoint);
 
                 // If this endpoint already exists, return the existing user
-                if (players.TryGetValue(key, out var existingUser))
+                if (players.TryGetValue(key, out LANLobbyUser? existingUser))
                 {
                     return existingUser;
                 }
@@ -83,7 +83,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lock (lockObject)
             {
                 string key = GetKeyFromEndPoint(endPoint);
-                players.TryGetValue(key, out var user);
+                _ = players.TryGetValue(key, out LANLobbyUser? user);
                 return user;
             }
         }
@@ -98,12 +98,10 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 string key = GetKeyFromEndPoint(endPoint);
 
-                if (!players.TryGetValue(key, out var user))
-                {
+                if (!players.TryGetValue(key, out LANLobbyUser? user))
                     return false;
-                }
 
-                players.Remove(key);
+                _ = players.Remove(key);
 
                 // Check if any other player has the same username
                 bool usernameStillInUse = players.Values.Any(p => p.Name == user.Name);
@@ -111,21 +109,19 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (!usernameStillInUse && usernameToListIndex.TryGetValue(user.Name, out int index))
                 {
                     // Remove from UI
-                    usernameToListIndex.Remove(user.Name);
+                    _ = usernameToListIndex.Remove(user.Name);
                     playerListBox.RemoveItem(index);
 
                     // Update indices for all usernames that came after the removed one
                     // We need to iterate carefully to avoid modifying the dictionary while iterating
-                    var keysToUpdate = usernameToListIndex
+                    List<string> keysToUpdate = usernameToListIndex
                         .Where(kvp => kvp.Value > index)
                         .Select(kvp => kvp.Key)
                         .ToList();
 
                     // Apply the updates
-                    foreach (var username in keysToUpdate)
-                    {
+                    foreach (string username in keysToUpdate)
                         usernameToListIndex[username]--;
-                    }
                 }
 
                 return true;

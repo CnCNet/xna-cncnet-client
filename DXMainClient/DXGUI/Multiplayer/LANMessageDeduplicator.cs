@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace DTAClient.DXGUI.Multiplayer
     internal class LANMessageDeduplicator : IDisposable
     {
         private readonly Random random;
-        private readonly object lockObject = new object();
+        private readonly object lockObject = new();
 
         // Track received message IDs with their expiration time
         private readonly ConcurrentDictionary<string, DateTime> receivedMessageIds = new();
@@ -37,12 +38,12 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="messageIdExpirationSeconds">How long to keep message IDs before expiring them (default 60 seconds).</param>
         public LANMessageDeduplicator(int randomSeed, double messageIdExpirationSeconds = 60.0)
         {
-            this.random = new Random(randomSeed);
+            random = new Random(randomSeed);
             this.messageIdExpirationSeconds = messageIdExpirationSeconds;
 
             // Start automatic cleanup timer
             int cleanupIntervalMs = (int)(CLEANUP_INTERVAL_SECONDS * 1000);
-            this.cleanupTimer = new Timer(CleanupCallback, null, cleanupIntervalMs, cleanupIntervalMs);
+            cleanupTimer = new Timer(CleanupCallback, null, cleanupIntervalMs, cleanupIntervalMs);
         }
 
         private void CleanupCallback(object? state)
@@ -88,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer
             return !string.IsNullOrEmpty(value) &&
                    value.StartsWith("MID_") &&
                    value.Length == MESSAGE_ID_LENGTH &&
-                   value.Substring(MESSAGE_ID_PREFIX_LENGTH).All(c => char.IsLetterOrDigit(c));
+                   value[MESSAGE_ID_PREFIX_LENGTH..].All(char.IsLetterOrDigit);
         }
 
         /// <summary>
@@ -139,12 +140,12 @@ namespace DTAClient.DXGUI.Multiplayer
             // Check if the message starts with a valid message ID
             if (!string.IsNullOrEmpty(wrappedMessage) && wrappedMessage.Length >= MESSAGE_ID_LENGTH)
             {
-                string potentialMessageId = wrappedMessage.Substring(0, MESSAGE_ID_LENGTH);
+                string potentialMessageId = wrappedMessage[..MESSAGE_ID_LENGTH];
                 if (IsValidMessageId(potentialMessageId))
                 {
                     // Extract message ID and payload
                     string messageId = potentialMessageId;
-                    payload = wrappedMessage.Substring(MESSAGE_ID_LENGTH);
+                    payload = wrappedMessage[MESSAGE_ID_LENGTH..];
 
                     // Check for duplicate
                     AddMessage(messageId, out isDuplicate);
@@ -179,25 +180,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
             // Find all expired message IDs
             // ConcurrentDictionary enumeration is thread-safe
-            var expiredIds = receivedMessageIds
+            List<string> expiredIds = receivedMessageIds
                 .Where(kvp => kvp.Value < now)
                 .Select(kvp => kvp.Key)
                 .ToList();
 
             // Remove expired IDs
             // TryRemove is thread-safe
-            foreach (var id in expiredIds)
-                receivedMessageIds.TryRemove(id, out _);
+            foreach (string id in expiredIds)
+                _ = receivedMessageIds.TryRemove(id, out _);
         }
 
         /// <summary>
         /// Gets the current count of tracked message IDs.
         /// Useful for monitoring and debugging.
         /// </summary>
-        public int TrackedMessageCount
-        {
-            get { return receivedMessageIds.Count; }
-        }
+        public int TrackedMessageCount => receivedMessageIds.Count;
 
         /// <summary>
         /// Clears all tracked message IDs.
@@ -214,6 +212,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
                 cleanupTimer?.Dispose();
+
             GC.SuppressFinalize(this);
         }
     }
