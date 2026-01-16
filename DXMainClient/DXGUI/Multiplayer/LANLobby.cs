@@ -664,21 +664,20 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Update(GameTime gameTime)
         {
-            // Get a thread-safe snapshot of all players
-            var playersCopy = playerManager.GetAllPlayers();
-            foreach (var player in playersCopy)
+            // Remove inactive players periodically
             {
-                // There is a minor race condition:
-                // if a player is removed via "QUIT" message, `player.ClearTimeWithoutRefresh()` might be called during this loop.
-                // We accept this consequence.
-                player.AddToTimeWithoutRefresh(gameTime.ElapsedGameTime);
-
-                if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
+                // Get a thread-safe snapshot of all players
+                var playersCopy = playerManager.GetAllPlayers();
+                foreach (var player in playersCopy)
                 {
-                    playerManager.RemovePlayer(player.EndPoint);
+                    player.AddToTimeWithoutRefresh(gameTime.ElapsedGameTime);
+
+                    if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
+                        playerManager.RemovePlayer(player.EndPoint);
                 }
             }
 
+            // Send ALIVE message periodically
             timeSinceAliveMessage += gameTime.ElapsedGameTime;
             if (timeSinceAliveMessage > TimeSpan.FromSeconds(ALIVE_MESSAGE_INTERVAL))
                 SendAlive();
