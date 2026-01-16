@@ -690,14 +690,17 @@ namespace DTAClient.DXGUI.Multiplayer
 
                         var newUser = new LANLobbyUser(name, gameTexture, endPoint);
 
-                        // Use GetOrAdd to ensure atomicity: only add if not present
-                        // If the returned value is our new instance, we added it; otherwise another thread did
-                        user = players.GetOrAdd(key, newUser);
-
-                        // Only add to player list if we successfully added a new user
-                        if (ReferenceEquals(user, newUser))
+                        // Try to add a new user entry; only the thread that succeeds
+                        // should add the player to the UI list.
+                        if (players.TryAdd(key, newUser))
                         {
+                            user = newUser;
                             PlayerListAdd(user.Name, gameTexture);
+                        }
+                        else
+                        {
+                            // Another thread already added this user; use the existing instance.
+                            players.TryGetValue(key, out user);
                         }
                     }
 
