@@ -66,7 +66,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Random random;
 
-        XNAListBox lbPlayerList;
+        // lbPlayerList is now managed by LANPlayerManager `playerManager`
+        // XNAListBox lbPlayerList;
+
         ChatListBox lbChatMessages;
         GameListBox lbGameList;
 
@@ -178,7 +180,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
 
-            lbPlayerList = new XNAListBox(WindowManager);
+            var lbPlayerList = new XNAListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 lbGameList.Y, 190,
