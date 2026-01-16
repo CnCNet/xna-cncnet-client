@@ -160,6 +160,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 var netIf = new PlayerNetworkInterface(localIPAddress, new IPEndPoint(broadcastIP, lobbyPort));
                 broadcastInterfaces[key] = netIf;
             }
+
+            if (broadcastInterfaces.IsEmpty)
+            {
+                Logger.Log("Warning: No broadcast interfaces found! LAN lobby broadcasting will not function. " +
+                    "Please ensure that your network adapters are enabled and have valid IPv4 addresses.");
+                return;
+            }
         }
 
         /// <summary>
