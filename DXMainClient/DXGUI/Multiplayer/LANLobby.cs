@@ -46,7 +46,7 @@ namespace DTAClient.DXGUI.Multiplayer
         // short grace period. This is a compatibility-friendly approach because it
         // doesn't change the on-wire protocol (no message ids) and keeps behavior
         // reasonable for the common case where duplicated deliveries arrive within a
-        // couple of seconds. See also <see cref="IsNotDuplicateMessage(string, IPAddress)"/>.
+        // couple of seconds. See also <see cref="UpdateLastMessageTime(string, IPAddress, out bool)"/>.
         private const double DUPLICATE_MESSAGE_IGNORE_SECONDS = 3.0;
 
         public LANLobby(
