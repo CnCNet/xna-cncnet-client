@@ -113,13 +113,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         // ====== Player's IP address ======
         readonly object playerIPInfosLock = new object();
+        // playerIPInfos: PlayerIPInfo.IP.ToString() => PlayerIPInfo
         readonly ConcurrentDictionary<string, PlayerIPInfo> playerIPInfos = [];
         record PlayerIPInfo(IPAddress IP, DateTime LastMessageTime);
         // ================================
 
-        // ====== Which network interface should be used to access a player ======
-        // Use a concurrent dictionary keyed by local IP string to represent broadcast interfaces. No additional locking is needed.
-        // Note: local IP is different from player IP -- local IP binds to the local network interface's IP address.
+        // ====== Which network interface(s) should be used to broadcast messages ======
+        // broadcastInterfaces: PlayerNetworkInterface.LocalIP.ToString() => PlayerNetworkInterface
         readonly ConcurrentDictionary<string, PlayerNetworkInterface> broadcastInterfaces = [];
         record PlayerNetworkInterface(IPAddress LocalIP, IPEndPoint Broadcast);
         // ===================================================================
