@@ -401,7 +401,14 @@ namespace DTAClient.DXGUI.Multiplayer
             // Wrap message with message ID at the beginning
             string wrappedMessage = messageDeduplicator.WrapMessage(message);
 
-            broadcastManager.SendMessage(wrappedMessage);
+            bool sendSucceeded = broadcastManager.SendMessage(wrappedMessage);
+
+            if (!sendSucceeded)
+            {
+                // Socket is not initialized or sending failed; report this so failures are not silent.
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
+                    "Failed to send LAN broadcast message. The network socket may not be initialized."));
+            }
         }
 
         private void HandleNetworkMessage(string data, IPEndPoint endPoint)
