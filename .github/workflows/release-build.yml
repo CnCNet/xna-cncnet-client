@@ -23,9 +23,13 @@ jobs:
       with:
         global-json-file: ./global.json
 
-    - name: Build
-      run: ./Scripts/build.ps1
-      shell: pwsh
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v0
 
     - name: Development Build Check
       if: "!github.event.release.prerelease"
@@ -35,6 +39,10 @@ jobs:
           Write-Output "::error:: This is a development build and should not be released. Did you forget to create a new tag for the release?"
           exit 1
         }
+
+    - name: Build
+      run: ./Scripts/build.ps1
+      shell: pwsh
 
     - name: Zip Artifact
       run: 7z a -t7z -mx=9 -m0=lzma2 -ms=on -r -- ${{ format('xna-cncnet-client-{0}.7z', env.GitVersion_SemVer) }} ./Compiled/*

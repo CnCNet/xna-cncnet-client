@@ -279,7 +279,7 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
