@@ -520,7 +520,7 @@ namespace DTAClient.DXGUI.Multiplayer
         ///   it may result in a late duplicate being delivered after the grace period.
         ///   Both cases are considered acceptably rare on LANs.
         /// </summary>
-        private bool IsNotDuplicateMessage(string username, IPAddress ip)
+        private void UpdateLastMessageTime(string username, IPAddress ip, out bool isNotDuplicateMessage)
         {
             lock (playerIPInfosLock)
             {
@@ -530,25 +530,29 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     // New username - accept and add
                     playerIPInfos[username] = new PlayerIPInfo(ip, now);
-                    return true;
+                    isNotDuplicateMessage = true;
+                    return;
                 }
 
                 if (existing.IP.Equals(ip))
                 {
                     // Same IP: accept and update timestamp
                     playerIPInfos[username] = new PlayerIPInfo(ip, now);
-                    return true;
+                    isNotDuplicateMessage = true;
+                    return;
                 }
 
                 if ((now - existing.LastMessageTime).TotalSeconds >= DUPLICATE_MESSAGE_IGNORE_SECONDS)
                 {
                     // Different IP but grace period expired: accept and update to new IP
                     playerIPInfos[username] = new PlayerIPInfo(ip, now);
-                    return true;
+                    isNotDuplicateMessage = true;
+                    return;
                 }
 
                 // Different IP within grace period: reject and keep existing entry
-                return false;
+                isNotDuplicateMessage = false;
+                return;
             }
         }
 
@@ -640,7 +644,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
 
-                    if (!IsNotDuplicateMessage(user.Name, endPoint.Address))
+                    UpdateLastMessageTime(user.Name, endPoint.Address, out bool isNotDuplicateMessage);
+                    if (!isNotDuplicateMessage)
                         break;
 
                     lock (lbChatMessagesLock)
