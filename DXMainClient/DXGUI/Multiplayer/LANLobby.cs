@@ -111,11 +111,11 @@ namespace DTAClient.DXGUI.Multiplayer
         LANPlayerManager playerManager;
         // ========================
 
-        // ====== Player's IP address ======
-        readonly object playerIPInfosLock = new object();
-        // playerIPInfos: PlayerIPInfo.IP.ToString() => PlayerIPInfo
-        readonly ConcurrentDictionary<string, PlayerIPInfo> playerIPInfos = [];
-        record PlayerIPInfo(IPAddress IP, DateTime LastMessageTime);
+        // ====== Deduplicate CHAT messages ======
+        readonly object chatMessagesLock = new object();
+        // playerChatMessages: PlayerMessageInfo.IP.ToString() => PlayerMessageInfo
+        readonly ConcurrentDictionary<string, PlayerMessageInfo> playerChatMessages = [];
+        record PlayerMessageInfo(IPAddress IP, DateTime LastMessageTime);
         // ================================
 
         // ====== Which network interface(s) should be used to broadcast messages ======
@@ -421,7 +421,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Open()
         {
             playerManager.Clear();
-            playerIPInfos.Clear();
+            playerChatMessages.Clear();
 
             // This should be synchronized because XNA game lists and other UI objects are not thread-safe.
             // They are accessed both here in Open and from HandleNetworkMessage callbacks.
@@ -528,16 +528,16 @@ namespace DTAClient.DXGUI.Multiplayer
         ///   it may result in a late duplicate being delivered after the grace period.
         ///   Both cases are considered acceptably rare on LANs.
         /// </summary>
-        private void UpdateLastMessageTime(string username, IPAddress ip, out bool isNotDuplicateMessage)
+        private void UpdateLastChatMessageTime(string username, IPAddress ip, out bool isNotDuplicateMessage)
         {
-            lock (playerIPInfosLock)
+            lock (chatMessagesLock)
             {
                 DateTime now = DateTime.UtcNow;
 
-                if (!playerIPInfos.TryGetValue(username, out PlayerIPInfo existing))
+                if (!playerChatMessages.TryGetValue(username, out PlayerMessageInfo existing))
                 {
                     // New username - accept and add
-                    playerIPInfos[username] = new PlayerIPInfo(ip, now);
+                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
                     isNotDuplicateMessage = true;
                     return;
                 }
@@ -545,7 +545,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (existing.IP.Equals(ip))
                 {
                     // Same IP: accept and update timestamp
-                    playerIPInfos[username] = new PlayerIPInfo(ip, now);
+                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
                     isNotDuplicateMessage = true;
                     return;
                 }
@@ -553,7 +553,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if ((now - existing.LastMessageTime).TotalSeconds >= DUPLICATE_MESSAGE_IGNORE_SECONDS)
                 {
                     // Different IP but grace period expired: accept and update to new IP
-                    playerIPInfos[username] = new PlayerIPInfo(ip, now);
+                    playerChatMessages[username] = new PlayerMessageInfo(ip, now);
                     isNotDuplicateMessage = true;
                     return;
                 }
@@ -650,7 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
 
-                    UpdateLastMessageTime(user.Name, endPoint.Address, out bool isNotDuplicateMessage);
+                    UpdateLastChatMessageTime(user.Name, endPoint.Address, out bool isNotDuplicateMessage);
                     if (!isNotDuplicateMessage)
                         break;
 
@@ -851,7 +851,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     playerManager.RemovePlayer(player.EndPoint);
                     // Clean up any associated IP info to prevent memory leaks from stale entries.
-                    playerIPInfos.TryRemove(player.EndPoint, out _);
+                    playerChatMessages.TryRemove(player.EndPoint.ToString(), out _);
                 }
             }
 
