@@ -355,7 +355,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             lock (lbChatMessagesLock)
             {
-                AddChatMessage(message);
+                lbChatMessages.AddMessage(message);
             }
         }
 
@@ -363,7 +363,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             lock (lbChatMessagesLock)
             {
-                AddChatMessage(message);
+                lbChatMessages.AddMessage(message);
             }
         }
 
@@ -371,7 +371,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             lock (lbChatMessagesLock)
             {
-                AddChatMessage(sender, message, color);
+                lbChatMessages.AddMessage(sender, message, color);
             }
         }
 
