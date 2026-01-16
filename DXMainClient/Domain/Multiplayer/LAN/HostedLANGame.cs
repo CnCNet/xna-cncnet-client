@@ -1,23 +1,20 @@
-﻿using ClientCore;
-using DTAClient.Domain.Multiplayer.CnCNet;
-using DTAClient.Domain.Multiplayer;
-using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Net;
+
+using ClientCore;
+
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.LAN
 {
     class HostedLANGame : GenericHostedGame
     {
-        public IPEndPoint EndPoint
-        {
-            get => field;
-            set
-            {
-                field = value;
-                RoomName = HostName + "'s Game" + (value != null ? " [" + value.Address.ToString() + "]" : "");
-            }
-        }
+        public IPEndPoint EndPoint { get; set; }
+
+        public override string RoomName => HostName + "'s Game" + (EndPoint != null ? " [" + EndPoint.Address.ToString() + "]" : "");
 
         public string LoadedGameID { get; set; }
 
