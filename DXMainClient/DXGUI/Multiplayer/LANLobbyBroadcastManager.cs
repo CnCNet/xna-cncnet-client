@@ -173,7 +173,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// If all interfaces are removed, the method attempts to refresh the interface list.
         /// </summary>
         /// <param name="message">The message to broadcast.</param>
-        /// <returns>True if the message was sent successfully, false if the socket is not initialized.</returns>
+        /// <returns>True if the message was sent successfully, false if the socket is not initialized or all interfaces fail.</returns>
         public bool SendMessage(string message)
         {
             lock (socketLock)
@@ -192,11 +192,13 @@ namespace DTAClient.DXGUI.Multiplayer
                     Logger.Log("Warning: No broadcast interfaces available in SendMessage!");
                 }
 
+                bool success = false;
                 foreach ((string key, PlayerNetworkInterface networkInterface) in broadcastInterfaces)
                 {
                     try
                     {
                         _ = socket.SendTo(buffer, networkInterface.Broadcast);
+                        success = true;
                     }
                     catch (SocketException)
                     {
@@ -220,7 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     AddBroadcastInterfaces();
                 }
 
-                return true;
+                return success;
             }
         }
 
