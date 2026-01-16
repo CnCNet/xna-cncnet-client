@@ -484,16 +484,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Debug.Assert(!broadcastInterfaces.IsEmpty, "No broadcast interfaces available in SendMessage!");
 
-            foreach (KeyValuePair<string, PlayerNetworkInterface> kvp in broadcastInterfaces)
+            foreach ((string key, PlayerNetworkInterface networkInterface) in broadcastInterfaces)
             {
                 try
                 {
-                    socket.SendTo(buffer, kvp.Value.Broadcast);
+                    socket.SendTo(buffer, networkInterface.Broadcast);
                 }
                 catch (SocketException)
                 {
                     forDeletion ??= new List<PlayerNetworkInterface>();
-                    forDeletion.Add(kvp.Value);
+                    forDeletion.Add(networkInterface);
                 }
             }
 
@@ -596,8 +596,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
         }
-
-
 
         // NOTE: LAN protocol messages are expected to contain a command and a parameter
         // section separated by a space. Due to the parsing logic below (data.Split(' ')
