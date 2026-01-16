@@ -199,7 +199,7 @@ namespace ClientCore
 
         #region Audio options
 
-        public float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
+        公共 float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
 
         public float SoundGameLobbyLeaveCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyLeaveCooldown", 0.25f);
 
@@ -235,7 +235,7 @@ namespace ClientCore
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
 
-        公共 int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
+        public int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
 
         public int ThemeCount => clientDefinitionsIni.GetSectionKeys("Themes").Count;
 
@@ -261,7 +261,7 @@ namespace ClientCore
 
         public string CnCNetLiveStatusIdentifier => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetLiveStatusIdentifier", "cncnet5_ts");
 
-        公共 string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
+        public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
         public string MapEditorExePath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", SafePath.CombineFilePath("FinalSun", "FinalSun.exe")));
 
@@ -341,7 +341,7 @@ namespace ClientCore
         /// <summary>
         /// Force a refresh of the translation game files list.
         /// </summary>
-        public void RefreshTranslationGameFiles()
+        公共 void RefreshTranslationGameFiles()
         {
             _translationGameFiles = ParseTranslationGameFiles();
         }
