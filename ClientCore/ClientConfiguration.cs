@@ -199,7 +199,7 @@ namespace ClientCore
 
         #region Audio options
 
-        公共 float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
+        public float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
 
         public float SoundGameLobbyLeaveCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyLeaveCooldown", 0.25f);
 
@@ -341,7 +341,7 @@ namespace ClientCore
         /// <summary>
         /// Force a refresh of the translation game files list.
         /// </summary>
-        公共 void RefreshTranslationGameFiles()
+        public void RefreshTranslationGameFiles()
         {
             _translationGameFiles = ParseTranslationGameFiles();
         }
