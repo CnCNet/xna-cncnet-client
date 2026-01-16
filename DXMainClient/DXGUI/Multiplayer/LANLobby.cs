@@ -852,6 +852,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (player.TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
                     playerManager.RemovePlayer(player.EndPoint);
+                    // Clean up any associated IP info to prevent memory leaks from stale entries.
+                    playerIPInfos.TryRemove(player.EndPoint, out _);
                 }
             }
 
