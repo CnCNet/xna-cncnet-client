@@ -59,12 +59,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Random random;
 
-        // lbPlayerList is now managed by LANPlayerManager `playerManager`
-        // XNAListBox lbPlayerList;
-
-        ChatListBox lbChatMessages;
-        GameListBox lbGameList;
-
         XNAClientButton btnMainMenu;
         XNAClientButton btnNewGame;
         XNAClientButton btnJoinGame;
@@ -98,21 +92,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         Encoding encoding;
 
-        // ====== Player list ======
-        LANPlayerManager playerManager;
-        // ========================
-
-        // ====== Message de-duplication ======
-        LANMessageDeduplicator messageDeduplicator;
-        // ====================================
-
-        // ====== Broadcast and socket management ======
-        LANLobbyBroadcastManager broadcastManager;
-        // =============================================
-
-        // Additional locks for UI controls to ensure thread-safe access
         readonly object lbChatMessagesLock = new object();
+        ChatListBox lbChatMessages;
+
         readonly object lbGameListLock = new object();
+        GameListBox lbGameList;
+
+        // lbPlayerList is now managed by LANPlayerManager `playerManager`
+        // XNAListBox lbPlayerList;
+        LANPlayerManager playerManager;
+
+        LANMessageDeduplicator messageDeduplicator;
+
+        LANLobbyBroadcastManager broadcastManager;
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
 
@@ -359,6 +351,30 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
+        void AddChatMessage(ChatMessage message)
+        {
+            lock (lbChatMessagesLock)
+            {
+                AddChatMessage(message);
+            }
+        }
+
+        void AddChatMessage(string message)
+        {
+            lock (lbChatMessagesLock)
+            {
+                AddChatMessage(message);
+            }
+        }
+
+        void AddChatMessage(string sender, string message, Color color)
+        {
+            lock (lbChatMessagesLock)
+            {
+                AddChatMessage(sender, message, color);
+            }
+        }
+
         public void Open()
         {
             playerManager.Clear();
@@ -383,11 +399,9 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    "Creating LAN socket failed! Message:".L10N("Client:Main:SocketFailure1") + " " + ex.Message));
-                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    "Please check your firewall settings.".L10N("Client:Main:SocketFailure2")));
-                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
+                AddChatMessage(new ChatMessage(Color.Red,
+                    "Creating LAN socket failed! Message:".L10N("Client:Main:SocketFailure1") + " " + ex.Message + "\n" +
+                    "Please check your firewall settings.".L10N("Client:Main:SocketFailure2") + " " +
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234.".L10N("Client:Main:SocketFailure3")));
 
                 return;
@@ -406,8 +420,8 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!sendSucceeded)
             {
                 // Socket is not initialized or sending failed; report this so failures are not silent.
-                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    "Failed to send LAN broadcast message. The network socket may not be initialized."));
+                AddChatMessage(new ChatMessage(Color.Red,
+                        "Failed to send LAN broadcast message. The network socket may not be initialized."));
             }
         }
 
@@ -470,11 +484,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (colorIndex < 0 || colorIndex >= chatColors.Length)
                         return;
 
-                    lock (lbChatMessagesLock)
-                    {
-                        lbChatMessages.AddMessage(new ChatMessage(user.Name,
-                            chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
-                    }
+                    AddChatMessage(new ChatMessage(user.Name,
+                        chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
 
                     break;
 
@@ -549,14 +560,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
-                lbChatMessages.AddMessage(
-                    string.Format("The selected game is for {0}!".L10N("Client:Main:GameIsOfPurpose"), gameCollection.GetGameNameFromInternalName(hg.Game.InternalName)));
+                AddChatMessage(
+                    string.Format("The selected game is for {0}!".L10N("Client:Main:GameIsOfPurpose"),
+                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName)));
                 return;
             }
 
             if (hg.Locked)
             {
-                lbChatMessages.AddMessage("The selected game is locked!".L10N("Client:Main:GameLocked"));
+                AddChatMessage("The selected game is locked!".L10N("Client:Main:GameLocked"));
                 return;
             }
 
@@ -564,7 +576,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage("You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame"));
+                    AddChatMessage("You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame"));
                     return;
                 }
             }
@@ -572,7 +584,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage("Your name is already taken in the game.".L10N("Client:Main:NameOccupied"));
+                    AddChatMessage("Your name is already taken in the game.".L10N("Client:Main:NameOccupied"));
                     return;
                 }
             }
@@ -582,7 +594,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 // TODO Show warning
             }
 
-            lbChatMessages.AddMessage(string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName));
+            AddChatMessage(string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName));
 
             try
             {
@@ -624,7 +636,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                lbChatMessages.AddMessage(null,
+                AddChatMessage(null,
                     "Connecting to the game failed! Message:".L10N("Client:Main:ConnectGameFailed") + " " + ex.Message, Color.White);
             }
         }
