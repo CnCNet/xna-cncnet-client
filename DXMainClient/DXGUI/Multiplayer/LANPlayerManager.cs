@@ -116,14 +116,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     // Update indices for all usernames that came after the removed one
                     // We need to iterate carefully to avoid modifying the dictionary while iterating
-                    var keysToUpdate = new List<string>();
-                    foreach (var kvp in usernameToListIndex)
-                    {
-                        if (kvp.Value > index)
-                        {
-                            keysToUpdate.Add(kvp.Key);
-                        }
-                    }
+                    var keysToUpdate = usernameToListIndex
+                        .Where(kvp => kvp.Value > index)
+                        .Select(kvp => kvp.Key)
+                        .ToList();
 
                     // Apply the updates
                     foreach (var username in keysToUpdate)
