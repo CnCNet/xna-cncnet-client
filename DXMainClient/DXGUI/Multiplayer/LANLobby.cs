@@ -430,11 +430,8 @@ namespace DTAClient.DXGUI.Multiplayer
             // Unwrap message to extract message ID and check for duplicates
             messageDeduplicator.UnwrapMessage(data, out string payload, out bool isDuplicate);
 
-            if (isDuplicate)
-            {
-                // This is a duplicate message, ignore it
+            if (isDuplicate || string.IsNullOrWhiteSpace(payload))
                 return;
-            }
 
             string[] commandAndParams = payload.Split(' ');
 
