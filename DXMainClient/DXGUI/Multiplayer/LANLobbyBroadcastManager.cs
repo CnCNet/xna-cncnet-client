@@ -141,7 +141,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (info == null || info.IPv4Mask == null)
                     continue;
 
-                // Note: even if an interface is down, we may still want to broadcast on it in case it's up later. Therefore, there are no check for OperationalStatus.
+                // Note: even if an interface is down, we may still want to broadcast on it in case it's up later. Therefore, there is no check for OperationalStatus.
 
                 IPAddress localIPAddress = info.Address;
                 byte[] ipBytes = localIPAddress.GetAddressBytes();
