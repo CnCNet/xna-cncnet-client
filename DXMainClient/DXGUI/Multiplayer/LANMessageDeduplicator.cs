@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -17,19 +17,19 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private readonly Random random;
         private readonly object lockObject = new object();
-        
+
         // Track received message IDs with their expiration time
         private readonly ConcurrentDictionary<string, DateTime> receivedMessageIds = new();
-        
+
         // Message ID expiration time in seconds
         private readonly double messageIdExpirationSeconds;
-        
+
         // Background cleanup
         private readonly Timer cleanupTimer;
         private const double CLEANUP_INTERVAL_SECONDS = 30.0;
-        
+
         private int disposed = 0;
-        
+
         /// <summary>
         /// Initializes a new instance of the LANMessageDeduplicator class.
         /// </summary>
@@ -39,20 +39,18 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             this.random = new Random(randomSeed);
             this.messageIdExpirationSeconds = messageIdExpirationSeconds;
-            
+
             // Start automatic cleanup timer
             int cleanupIntervalMs = (int)(CLEANUP_INTERVAL_SECONDS * 1000);
             this.cleanupTimer = new Timer(CleanupCallback, null, cleanupIntervalMs, cleanupIntervalMs);
         }
-        
+
         private void CleanupCallback(object? state)
         {
             if (disposed == 0)
-            {
                 CleanupExpiredMessageIds();
-            }
         }
-        
+
         /// <summary>
         /// Generates a unique random message ID.
         /// Message IDs are prefixed with "MID_" followed by 8 alphanumeric characters
@@ -61,21 +59,24 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <returns>A unique message ID string.</returns>
         public string GenerateMessageId()
         {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            char[] id = new char[8];
+
             // Lock is required because Random is not thread-safe
             lock (lockObject)
             {
-                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                char[] id = new char[8];
-                
                 for (int i = 0; i < id.Length; i++)
-                {
                     id[i] = chars[random.Next(chars.Length)];
-                }
-                
-                return "MID_" + new string(id);
             }
+
+            string messageId = "MID_" + new string(id);
+            Debug.Assert(IsValidMessageId(messageId), "Invalid message ID generated.");
+            return messageId;
         }
-        
+
+        public const int MESSAGE_ID_PREFIX_LENGTH = 4; // "MID_"
+        public const int MESSAGE_ID_LENGTH = 12; // "MID_" + 8 characters
+
         /// <summary>
         /// Checks if a string is a valid message ID.
         /// Message IDs must start with "MID_" followed by 8 alphanumeric characters.
@@ -86,10 +87,10 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             return !string.IsNullOrEmpty(value) &&
                    value.StartsWith("MID_") &&
-                   value.Length == 12 &&
-                   value.Substring(4).All(c => char.IsLetterOrDigit(c));
+                   value.Length == MESSAGE_ID_LENGTH &&
+                   value.Substring(MESSAGE_ID_PREFIX_LENGTH).All(c => char.IsLetterOrDigit(c));
         }
-        
+
         /// <summary>
         /// Records a received message ID and determines if it's a duplicate.
         /// Note: Uses DateTime.UtcNow for expiration timing. While a monotonic time source
@@ -107,14 +108,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 isDuplicate = false;
                 return;
             }
-            
+
             DateTime expirationTime = DateTime.UtcNow.AddSeconds(messageIdExpirationSeconds);
-            
+
             // Try to add the message ID with expiration time in one atomic operation
             // If it already exists, it's a duplicate
             isDuplicate = !receivedMessageIds.TryAdd(messageId, expirationTime);
         }
-        
+
         /// <summary>
         /// Wraps a message payload with a message ID at the beginning.
         /// </summary>
@@ -125,7 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string messageId = GenerateMessageId();
             return messageId + payload;
         }
-        
+
         /// <summary>
         /// Unwraps a message, extracting the message ID from the beginning and returning the payload.
         /// Also checks if the message is a duplicate.
@@ -136,26 +137,26 @@ namespace DTAClient.DXGUI.Multiplayer
         public void UnwrapMessage(string wrappedMessage, out string payload, out bool isDuplicate)
         {
             // Check if the message starts with a valid message ID
-            if (!string.IsNullOrEmpty(wrappedMessage) && wrappedMessage.Length >= 12)
+            if (!string.IsNullOrEmpty(wrappedMessage) && wrappedMessage.Length >= MESSAGE_ID_LENGTH)
             {
-                string potentialMessageId = wrappedMessage.Substring(0, 12);
+                string potentialMessageId = wrappedMessage.Substring(0, MESSAGE_ID_LENGTH);
                 if (IsValidMessageId(potentialMessageId))
                 {
                     // Extract message ID and payload
                     string messageId = potentialMessageId;
-                    payload = wrappedMessage.Substring(12);
-                    
+                    payload = wrappedMessage.Substring(MESSAGE_ID_LENGTH);
+
                     // Check for duplicate
                     AddMessage(messageId, out isDuplicate);
                     return;
                 }
             }
-            
+
             // No valid message ID found - treat as non-duplicate for backward compatibility
             payload = wrappedMessage;
             isDuplicate = false;
         }
-        
+
         /// <summary>
         /// Removes expired message IDs from the tracking dictionary.
         /// This is called automatically by the background cleanup timer.
@@ -169,28 +170,26 @@ namespace DTAClient.DXGUI.Multiplayer
             // Check if disposed
             if (disposed != 0)
                 return;
-                
+
             // Quick exit if there's nothing to clean up
             if (receivedMessageIds.IsEmpty)
                 return;
-            
+
             DateTime now = DateTime.UtcNow;
-            
+
             // Find all expired message IDs
             // ConcurrentDictionary enumeration is thread-safe
             var expiredIds = receivedMessageIds
                 .Where(kvp => kvp.Value < now)
                 .Select(kvp => kvp.Key)
                 .ToList();
-            
+
             // Remove expired IDs
             // TryRemove is thread-safe
             foreach (var id in expiredIds)
-            {
                 receivedMessageIds.TryRemove(id, out _);
-            }
         }
-        
+
         /// <summary>
         /// Gets the current count of tracked message IDs.
         /// Useful for monitoring and debugging.
@@ -199,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             get { return receivedMessageIds.Count; }
         }
-        
+
         /// <summary>
         /// Clears all tracked message IDs.
         /// </summary>
@@ -207,16 +206,14 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             receivedMessageIds.Clear();
         }
-        
+
         /// <summary>
         /// Disposes the message deduplicator and stops the cleanup timer.
         /// </summary>
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
-            {
                 cleanupTimer?.Dispose();
-            }
             GC.SuppressFinalize(this);
         }
     }
