@@ -29,6 +29,7 @@ using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -481,6 +482,8 @@ namespace DTAClient.DXGUI.Multiplayer
             // This is rare, so keep `forDeletion` null by default to avoid allocating a list on every SendMessage.
             List<PlayerNetworkInterface> forDeletion = null;
 
+            Debug.Assert(!broadcastInterfaces.IsEmpty, "No broadcast interfaces available in SendMessage!");
+
             foreach (KeyValuePair<string, PlayerNetworkInterface> kvp in broadcastInterfaces)
             {
                 try
@@ -501,6 +504,11 @@ namespace DTAClient.DXGUI.Multiplayer
                     broadcastInterfaces.TryRemove(key, out _);
                 }
             }
+
+            // If no broadcast interfaces remain, we cannot continue using the socket.
+            // Refresh the interfaces and try to rebind the socket.
+            if (broadcastInterfaces.IsEmpty)
+                AddBroadcastInterfaces();
         }
 
         /// <summary>
