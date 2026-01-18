@@ -123,7 +123,10 @@ namespace DTAClient.DXGUI.Multiplayer
                 stopRefresher = false;
 
                 Logger.Log("Starting LAN broadcast message listener.");
-                listener = new Thread(new ThreadStart(Listen));
+                listener = new Thread(new ThreadStart(Listen))
+                {
+                    IsBackground = true
+                };
                 listener.Start();
 
                 Logger.Log("Starting network interface refresh thread.");
