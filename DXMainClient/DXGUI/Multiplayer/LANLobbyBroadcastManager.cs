@@ -421,7 +421,7 @@ namespace DTAClient.DXGUI.Multiplayer
     /// <summary>
     /// Event arguments for network message received events.
     /// </summary>
-    internal class NetworkMessageReceivedEventArgs : EventArgs
+    file class NetworkMessageReceivedEventArgs : EventArgs
     {
         /// <summary>
         /// The received message data.
