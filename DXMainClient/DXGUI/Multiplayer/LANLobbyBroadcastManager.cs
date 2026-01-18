@@ -215,7 +215,7 @@ internal class LANLobbyBroadcastManager : IDisposable
                     _ = socket.SendTo(buffer, networkInterface.Broadcast);
                     success = true;
                 }
-                catch (SocketException ex)
+                catch (SocketException)
                 {
                     // Do nothing
                 }
