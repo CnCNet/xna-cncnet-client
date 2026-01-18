@@ -92,10 +92,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         Encoding encoding;
 
-        readonly object lbChatMessagesLock = new object();
         ChatListBox lbChatMessages;
 
-        readonly object lbGameListLock = new object();
         GameListBox lbGameList;
 
         // lbPlayerList is now managed by LANPlayerManager `playerManager`
@@ -352,43 +350,19 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         void AddChatMessage(ChatMessage message)
-        {
-            lock (lbChatMessagesLock)
-            {
-                lbChatMessages.AddMessage(message);
-            }
-        }
+            => lbChatMessages.AddMessage(message);
 
         void AddChatMessage(string message)
-        {
-            lock (lbChatMessagesLock)
-            {
-                lbChatMessages.AddMessage(message);
-            }
-        }
+            => lbChatMessages.AddMessage(message);
 
         void AddChatMessage(string sender, string message, Color color)
-        {
-            lock (lbChatMessagesLock)
-            {
-                lbChatMessages.AddMessage(sender, message, color);
-            }
-        }
+            => lbChatMessages.AddMessage(sender, message, color);
 
         public void Open()
         {
             playerManager.Clear();
             messageDeduplicator.Clear();
-
-            // This should be synchronized because XNA game lists and other UI objects are not thread-safe.
-            // They are accessed both here in Open and from HandleNetworkMessage callbacks.
-            // For full thread safety, access must be synchronized wherever games are added, removed, or read.
-            // The lock below provides synchronization against concurrent HandleNetworkMessage callbacks,
-            // which improves safety even if it does not cover all possible access paths.
-            lock (lbGameListLock)
-            {
-                lbGameList.ClearGames();
-            }
+            lbGameList.ClearGames();
 
             Visible = true;
             Enabled = true;
@@ -506,18 +480,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     game.EndPoint = endPoint;
 
-                    lock (lbGameListLock)
-                    {
-                        int existingGameIndex =
-                            lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
+                    int existingGameIndex =
+                        lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
 
-                        if (existingGameIndex > -1)
-                            lbGameList.HostedGames[existingGameIndex] = game;
-                        else
-                            lbGameList.HostedGames.Add(game);
+                    if (existingGameIndex > -1)
+                        lbGameList.HostedGames[existingGameIndex] = game;
+                    else
+                        lbGameList.HostedGames.Add(game);
 
-                        lbGameList.Refresh();
-                    }
+                    lbGameList.Refresh();
 
                     break;
             }
