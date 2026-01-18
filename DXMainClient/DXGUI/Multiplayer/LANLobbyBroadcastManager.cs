@@ -29,6 +29,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Socket? socket;
         private Thread? listener;
+        private Thread? interfaceRefresher;
+        private volatile bool stopRefresher = false;
         private int disposed = 0;
 
         /// <summary>
@@ -103,7 +105,13 @@ namespace DTAClient.DXGUI.Multiplayer
                         EnableBroadcast = true
                     };
                     socket.Bind(new IPEndPoint(IPAddress.Any, lobbyPort));
-                    AddBroadcastInterfaces();
+                    
+                    // Discover initial broadcast interfaces
+                    var initialInterfaces = DiscoverBroadcastInterfaces(lobbyPort);
+                    foreach (var (key, netIf) in initialInterfaces)
+                    {
+                        broadcastInterfaces[key] = netIf;
+                    }
                 }
                 catch (SocketException ex)
                 {
@@ -111,24 +119,39 @@ namespace DTAClient.DXGUI.Multiplayer
                     throw;
                 }
 
+                // Reset stop flag for the refresher thread
+                stopRefresher = false;
+
                 Logger.Log("Starting LAN broadcast message listener.");
                 listener = new Thread(new ThreadStart(Listen));
                 listener.Start();
+
+                Logger.Log("Starting network interface refresh thread.");
+                interfaceRefresher = new Thread(new ThreadStart(RefreshInterfacesPeriodically))
+                {
+                    IsBackground = true
+                };
+                interfaceRefresher.Start();
             }
         }
 
         /// <summary>
-        /// Discovers and adds all available network interfaces for broadcasting.
-        /// This method scans all network interfaces and identifies those with valid IPv4 addresses.
+        /// Discovers all available network interfaces for broadcasting.
+        /// This method scans only "up" network interfaces and identifies those with valid IPv4 addresses.
         /// </summary>
-        private void AddBroadcastInterfaces()
+        /// <param name="port">The port to use for broadcast endpoints.</param>
+        /// <returns>A dictionary of network interfaces keyed by their local IP address.</returns>
+        private static Dictionary<string, PlayerNetworkInterface> DiscoverBroadcastInterfaces(int port)
         {
             Logger.Log("Discovering broadcast interfaces.");
 
+            var discoveredInterfaces = new Dictionary<string, PlayerNetworkInterface>();
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             foreach (NetworkInterface iface in interfaces)
             {
-                Logger.Log($"Examining interface: {iface.Name}, Type: {iface.NetworkInterfaceType}, Status: {iface.OperationalStatus}");
+                // Only consider interfaces that are operational (up)
+                if (iface.OperationalStatus != OperationalStatus.Up)
+                    continue;
 
                 IPInterfaceProperties prop = iface.GetIPProperties();
                 UnicastIPAddressInformation? info = prop.UnicastAddresses.FirstOrDefault(info =>
@@ -136,8 +159,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (info == null || info.IPv4Mask == null)
                     continue;
-
-                // Note: even if an interface is down, we may still want to broadcast on it in case it's up later. Therefore, there is no check for OperationalStatus.
 
                 IPAddress localIPAddress = info.Address;
                 byte[] ipBytes = localIPAddress.GetAddressBytes();
@@ -150,25 +171,25 @@ namespace DTAClient.DXGUI.Multiplayer
                 IPAddress broadcastIP = new IPAddress(broadcastBytes);
 
                 string key = localIPAddress.ToString();
-                var netIf = new PlayerNetworkInterface(localIPAddress, new IPEndPoint(broadcastIP, lobbyPort));
-                broadcastInterfaces[key] = netIf;
+                var netIf = new PlayerNetworkInterface(localIPAddress, new IPEndPoint(broadcastIP, port));
+                discoveredInterfaces[key] = netIf;
             }
 
-            if (broadcastInterfaces.IsEmpty)
+            if (discoveredInterfaces.Count == 0)
             {
                 Logger.Log("Warning: No broadcast interfaces found! LAN lobby broadcasting will not function. " +
                     "Please ensure that your network adapters are enabled and have valid IPv4 addresses.");
-                return;
             }
+
+            return discoveredInterfaces;
         }
 
         /// <summary>
         /// Sends a message to all broadcast interfaces.
-        /// If an interface fails, it will be removed from the broadcast list.
-        /// If all interfaces are removed, the method attempts to refresh the interface list.
+        /// Failed interfaces are logged but not removed from the broadcast list.
         /// </summary>
         /// <param name="message">The message to broadcast.</param>
-        /// <returns>True if the message was sent successfully, false if the socket is not initialized or all interfaces fail.</returns>
+        /// <returns>True if the message was sent successfully to at least one interface, false if the socket is not initialized or all interfaces fail.</returns>
         public bool SendMessage(string message)
         {
             lock (socketLock)
@@ -177,10 +198,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     return false;
 
                 byte[] buffer = encoding.GetBytes(message);
-
-                // If there is a socket error when sending to an interface, remove that interface.
-                // This is rare, so keep `failedInterfaces` null by default to avoid allocating a list on every SendMessage.
-                List<PlayerNetworkInterface>? failedInterfaces = null;
 
                 if (broadcastInterfaces.IsEmpty)
                 {
@@ -195,26 +212,10 @@ namespace DTAClient.DXGUI.Multiplayer
                         _ = socket.SendTo(buffer, networkInterface.Broadcast);
                         success = true;
                     }
-                    catch (SocketException)
+                    catch (SocketException ex)
                     {
-                        failedInterfaces ??= [];
-                        failedInterfaces.Add(networkInterface);
+                        // Do nothing
                     }
-                }
-
-                if (failedInterfaces != null)
-                {
-                    foreach (var key in failedInterfaces.Select(iface => iface.LocalIP.ToString()))
-                    {
-                        _ = broadcastInterfaces.TryRemove(key, out _);
-                    }
-                }
-
-                // If no broadcast interfaces remain, we cannot continue using the socket. Refresh the interfaces.
-                if (broadcastInterfaces.IsEmpty)
-                {
-                    Logger.Log("No broadcast interfaces remain; refreshing interfaces.");
-                    AddBroadcastInterfaces();
                 }
 
                 return success;
@@ -274,9 +275,79 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         /// <summary>
-        /// Timeout in milliseconds for waiting for the listener thread to terminate during shutdown.
+        /// Interval in milliseconds for refreshing network interfaces.
         /// </summary>
-        private const int LISTENER_SHUTDOWN_TIMEOUT_MS = 1000;
+        private const int INTERFACE_REFRESH_INTERVAL_MS = 5000;
+
+        /// <summary>
+        /// Interval in milliseconds for checking the stop signal during sleep.
+        /// </summary>
+        private const int STOP_CHECK_INTERVAL_MS = 100;
+
+        /// <summary>
+        /// Background thread that periodically refreshes network interfaces.
+        /// This ensures that the broadcast list stays up-to-date with network changes.
+        /// </summary>
+        private void RefreshInterfacesPeriodically()
+        {
+            try
+            {
+                while (!stopRefresher)
+                {
+                    // Sleep for the refresh interval, but check periodically for stop signal
+                    int iterations = INTERFACE_REFRESH_INTERVAL_MS / STOP_CHECK_INTERVAL_MS;
+                    for (int i = 0; i < iterations && !stopRefresher; i++)
+                        Thread.Sleep(STOP_CHECK_INTERVAL_MS);
+
+                    if (stopRefresher)
+                        break;
+
+                    // Check if we're disposed
+                    if (Volatile.Read(ref disposed) != 0)
+                        break;
+
+                    lock (socketLock)
+                    {
+                        // Check stop flag again inside lock to avoid race condition
+                        if (stopRefresher)
+                            break;
+
+                        // Check if socket is still valid
+                        if (socket == null || !socket.IsBound)
+                            break;
+                    }
+
+                    // Discover new interfaces outside the lock to minimize lock time
+                    var newInterfaces = DiscoverBroadcastInterfaces(lobbyPort);
+
+                    lock (socketLock)
+                    {
+                        // Check again after discovery in case state changed
+                        if (stopRefresher || socket == null || !socket.IsBound)
+                            break;
+
+                        broadcastInterfaces.Clear();
+                        foreach (var (key, netIf) in newInterfaces)
+                        {
+                            broadcastInterfaces[key] = netIf;
+                        }
+                    }
+                }
+            }
+            catch (ThreadInterruptedException)
+            {
+                // Expected when shutting down
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Network interface refresh thread: exception: " + ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Timeout in milliseconds for waiting for threads to terminate during shutdown.
+        /// </summary>
+        private const int THREAD_SHUTDOWN_TIMEOUT_MS = 1000;
 
         /// <summary>
         /// Closes the socket and stops the listening thread.
@@ -285,6 +356,9 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             lock (socketLock)
             {
+                // Signal the refresher thread to stop (inside lock for thread safety)
+                stopRefresher = true;
+
                 if (socket != null && socket.IsBound)
                 {
                     try
@@ -302,11 +376,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (listener != null)
             {
-                bool listenerTerminated = listener.Join(millisecondsTimeout: LISTENER_SHUTDOWN_TIMEOUT_MS);
+                bool listenerTerminated = listener.Join(millisecondsTimeout: THREAD_SHUTDOWN_TIMEOUT_MS);
                 if (!listenerTerminated)
                     Logger.Log("Failed to shut down listener after timeout!");
 
                 listener = null;
+            }
+
+            if (interfaceRefresher != null)
+            {
+                // Interrupt the thread to wake it from sleep
+                interfaceRefresher.Interrupt();
+                bool refresherTerminated = interfaceRefresher.Join(millisecondsTimeout: THREAD_SHUTDOWN_TIMEOUT_MS);
+                if (!refresherTerminated)
+                    Logger.Log("Failed to shut down interface refresher after timeout!");
+
+                interfaceRefresher = null;
             }
 
             // Clear broadcast interfaces
@@ -324,9 +409,8 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
-            {
                 Shutdown();
-            }
+
             GC.SuppressFinalize(this);
         }
     }
