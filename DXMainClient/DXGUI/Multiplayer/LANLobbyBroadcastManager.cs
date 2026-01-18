@@ -19,6 +19,10 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// Thread-safe manager for LAN lobby broadcasting and network communication.
 /// Encapsulates socket management, broadcast interface discovery, message sending,
 /// and network listening to ensure thread-safe operations.
+/// 
+/// This class broadcasts messages to all available network interfaces, and provides a message ID based de-duplication mechanism.
+/// By broadcasting to all interfaces, it ensures that messages reach all clients.
+/// Otherwise, Sending UDP to 255.255.255.255 typically uses the network card with the lowest metric -- this does not fit the use case of players using a dedicated interface for gaming, such as VPNs or a secondary router without Internet access.
 /// </summary>
 internal class LANLobbyBroadcastManager : IDisposable
 {
