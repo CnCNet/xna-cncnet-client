@@ -309,8 +309,11 @@ namespace DTAClient.DXGUI.Multiplayer
             SendMessage(e.Message);
         }
 
-        private void LanGameLobby_GameLeft(object sender, EventArgs e)
+        private void LanGameLobby_GameLeft(object sender, GameLeftEventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(e.Message))
+                AddChatMessage(new ChatMessage(Color.Red, e.Message));
+
             Enable();
         }
 

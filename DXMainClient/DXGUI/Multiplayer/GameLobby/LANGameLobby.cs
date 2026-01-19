@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
-        public event EventHandler GameLeft;
+        public event EventHandler<GameLeftEventArgs> GameLeft;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
         private TcpListener listener;
@@ -372,8 +372,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.ToString());
-                    BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                    // Disconnect from server
+
+                    Logger.Log(string.Format(
+                        "Reading data from the server failed! Server address: {0}. Exception: {1}",
+                        hostEndPoint.Address.ToString(), ex.ToString()));
+
+                    string localizedMessage = string.Format(
+                        "Reading data from the server failed! Server address: {0}. Exception: {1}".L10N("Client:Main:LanServerReadError"),
+                         hostEndPoint.Address.ToString(), ex.Message);
+
+                    LeaveGame(localizedMessage);
                     break;
                 }
 
@@ -408,8 +417,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     continue;
                 }
 
-                Logger.Log("Reading data from the server failed (0 bytes received)!");
-                BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                // Disconnect from server
+                {
+                    Logger.Log(string.Format(
+                        "Reading data from the server failed (0 bytes received)! Server address: {0}", hostEndPoint.Address.ToString()));
+
+                    string localizedMessage = string.Format(
+                        "Reading data from the server failed (0 bytes received)! Server address : {0}".L10N("Client:Main:LanServerReadZero"),
+                         hostEndPoint.Address.ToString());
+
+                    LeaveGame(localizedMessage);
+                }
+
                 break;
             }
         }
@@ -427,10 +446,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
+        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
+
+        protected void LeaveGame(string message = null)
         {
             Clear();
-            GameLeft?.Invoke(this, EventArgs.Empty);
+            GameLeft?.Invoke(this, new GameLeftEventArgs() { Message = message });
             PlayerExtraOptionsPanel?.Disable();
             Disable();
         }
@@ -734,9 +755,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
                 {
+                    string localizedMessage = string.Format(
+                        "Connection to the game host timed out. Server address: {0}".L10N("Client:Main:HostConnectTimeOutWithAddress"),
+                        hostEndPoint.Address.ToString());
+
                     LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("Client:Main:HostConnectTimeOut")));
-                    BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                        new LobbyNotificationEventArgs(localizedMessage));
+                    LeaveGame(localizedMessage);
                 }
             }
 
