@@ -8,7 +8,7 @@
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2026</Copyright>
     <Trademark>CnCNet</Trademark>
     <!-- GitVersion will rewrite the informational version anyway -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

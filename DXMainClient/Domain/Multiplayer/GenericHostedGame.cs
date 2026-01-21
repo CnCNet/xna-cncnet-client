@@ -9,7 +9,7 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public abstract class GenericHostedGame: IEquatable<GenericHostedGame>
     {
-        public string RoomName { get; set; }
+        public virtual string RoomName { get; set; }
         public bool Incompatible { get; set; }
         public bool Locked { get; set; }
         public bool IsLoadedGame { get; set; }
