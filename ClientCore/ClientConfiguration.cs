@@ -86,47 +86,20 @@ namespace ClientCore
         public void RefreshSettings()
         {
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
-            _cachedMainMenuMusicName = null;
         }
 
         #region Client settings
 
         private string _cachedMainMenuMusicName = null;
-        private static readonly Random _random = new Random();
-        private static readonly object _randomLock = new object();
-
-        /// <summary>
-        /// Support list, random selection and caching to ensure consistency across runs.
-        /// </summary>
-       private string _mainMenuMusicName = null;
-       public string MainMenuMusicName => _mainMenuMusicName ??= GetMainMenuMusicName();
-        
-       private string GetMainMenuMusicName()
-       {
-                string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu") ?? "mainmenu";
-                string[] parts = raw.SplitWithCleanup(new[] { ',' });
-
-                string chosen;
-                if (parts.Length == 0)
-                {
-                    chosen = "mainmenu";
-                }
-                else if (parts.Length == 1)
-                {
-                    chosen = parts[0];
-                }
-                else
-                {
-                    int idx;
-                    lock (_randomLock)
-                    {
-                        idx = _random.Next(parts.Length);
-                    }
-                    chosen = parts[idx];
-                }
-
-                return SafePath.CombineFilePath(chosen);
-        
+        public string MainMenuMusicName => _cachedMainMenuMusicName ??= GetMainMenuMusicName();
+        private string GetMainMenuMusicName()
+        {
+            string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu") ?? "mainmenu";
+            string[] parts = raw.SplitWithCleanup(new[] { ',' });
+            string chosen = parts.Length > 0
+                ? parts[new Random().Next(parts.Length)]
+                : "mainmenu";
+            return SafePath.CombineFilePath(chosen);
         }
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
@@ -159,9 +132,9 @@ namespace ClientCore
 
         public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
 
-        public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor"， "255,255,255");
+        public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
 
-        public string ListBoxHeaderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor"， "255,255,255");
+        public string ListBoxHeaderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor", "255,255,255");
 
         public string DefaultChatColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "DefaultChatColor", "0,255,0");
 
@@ -267,7 +240,7 @@ namespace ClientCore
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
-        public bool ModMode => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode"， false);
+        public bool ModMode => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
 
         public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
 
