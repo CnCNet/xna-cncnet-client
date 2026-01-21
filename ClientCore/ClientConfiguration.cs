@@ -94,7 +94,7 @@ namespace ClientCore
         public string MainMenuMusicName => _cachedMainMenuMusicName ??= GetMainMenuMusicName();
         private string GetMainMenuMusicName()
         {
-            string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu") ?? "mainmenu";
+            string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
             string[] parts = raw.SplitWithCleanup(new[] { ',' });
             string chosen = parts.Length > 0
                 ? parts[new Random().Next(parts.Length)]
