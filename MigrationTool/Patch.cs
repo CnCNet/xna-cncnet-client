@@ -45,7 +45,10 @@ internal abstract class Patch
         else
         {
             Logger.Log($"Update {src.FileName}: Add [{section}]->{key}={value}");
-            if (!src.SectionExists(section)) src.AddSection(section);
+            
+            if (!src.SectionExists(section))
+                src.AddSection(section);
+            
             src.GetSection(section).AddKey(key, value);
         }
 
