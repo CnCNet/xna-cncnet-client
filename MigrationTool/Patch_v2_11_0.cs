@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -406,20 +406,22 @@ internal class Patch_v2_11_0 : Patch
         // Add new texture files
         var assembly = Assembly.GetExecutingAssembly();
         foreach (var resourceName in assembly.GetManifestResourceNames())
-            using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
+        {
+            using (Stream? resourceStream = assembly.GetManifestResourceStream(resourceName))
             {
                 var filename = resourceName.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
                 var filepath = SafePath.CombineFilePath(ResouresDir.FullName, filename);
 
                 if (!File.Exists(filepath))
                 {
-                    using (FileStream fileStream = new FileStream(filepath, FileMode.CreateNew))
+                    using (FileStream fileStream = new(filepath, FileMode.CreateNew))
                     {
                         Logger.Log($"Copy {filename} to the {ResouresDir.FullName}");
-                        resourceStream.CopyTo(fileStream);
+                        resourceStream?.CopyTo(fileStream);
                     }
                 }
             }
+        }
 
     }
 }
