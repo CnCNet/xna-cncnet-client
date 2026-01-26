@@ -11,8 +11,8 @@ namespace MigrationTool;
 
 internal sealed class Program
 {
-    private const string errMsg = "Unknown arguments detected. Use -h argument to print help information.";
-    private const string helpMsg =
+    private const string ERROR_MESSAGE = "Unknown arguments detected. Use -h argument to print help information.";
+    private const string HELP_MESSAGE =
         """
         CnCNet Client Migration Tool.
         
@@ -43,13 +43,13 @@ internal sealed class Program
                     or "/?"
                     or "/h")
                 {
-                    Console.WriteLine(helpMsg);
+                    Console.WriteLine(HELP_MESSAGE);
                     return;
                 }
 
                 if (!SafePath.GetDirectory(arg).Exists)
                 {
-                    Console.WriteLine(errMsg);
+                    Console.WriteLine(ERROR_MESSAGE);
                     return;
                 }
 
@@ -86,7 +86,7 @@ internal sealed class Program
                 break;
             case 0:
             default:
-                Console.WriteLine(errMsg);
+                Console.WriteLine(ERROR_MESSAGE);
                 break;
         }
     }
