@@ -258,7 +258,8 @@ namespace DTAClient.DXGUI
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
-                            .AddSingleton<Random>(GetRandom());
+                            .AddSingleton<Random>(GetRandom())
+                            .AddSingleton<DirectDrawWrapperManager>();
 
                         // singleton xna controls - same instance on each request
                         services

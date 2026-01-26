@@ -447,5 +447,6 @@ namespace DTAClient
                 Logger.Log("Failed to write installation path to the Windows registry");
             }
         }
+
     }
 }

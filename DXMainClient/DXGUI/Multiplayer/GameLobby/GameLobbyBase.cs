@@ -285,6 +285,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapContextMenu.AddItem("Delete Map".L10N("Client:Main:DeleteMap"),
                 selectAction: DeleteMapConfirmation,
                 visibilityChecker: CanDeleteMap);
+            mapContextMenu.AddItem("Show in folder".L10N("Client:Main:ShowInFolder"),
+                selectAction: ShowInFolder);
 
             AddChild(mapContextMenu);
 
@@ -822,6 +824,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string.Format("Are you sure you wish to delete the custom map {0}?".L10N("Client:Main:DeleteMapConfirmText"), Map.Name));
             messageBox.YesClickedAction = DeleteSelectedMap;
         }
+
+        private void ShowInFolder() => Map?.OpenContainingFolder();
 
         private void MapPreviewBox_ToggleFavorite(object sender, EventArgs e) =>
             ToggleFavoriteMap();

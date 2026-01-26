@@ -1,12 +1,14 @@
 ﻿using ClientCore;
 using ClientCore.Extensions;
+
 using Rampastring.Tools;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ClientGUI
+namespace DTAClient.Domain
 {
     /// <summary>
     /// A DirectDraw wrapper option.
@@ -74,6 +76,11 @@ namespace ClientGUI
         /// The filename of the configuration INI of the renderer in the game directory.
         /// </summary>
         public string ConfigFileName { get; private set; }
+
+        /// <summary>
+        /// Indicates whether this DirectDrawWrapper is a dummy wrapper (i.e. no wrapper).
+        /// </summary>
+        public bool IsDummy => string.IsNullOrEmpty(ddrawDLLPath);
 
         private string ddrawDLLPath;
         private string resConfigFileName;
@@ -216,6 +223,31 @@ namespace ClientGUI
             return !string.IsNullOrEmpty(WindowedModeSection) &&
                 !string.IsNullOrEmpty(WindowedModeKey);
         }
+
+        // Override == and != operators to compare by InternalName
+        public static bool operator ==(DirectDrawWrapper a, DirectDrawWrapper b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+
+            if (a is null || b is null)
+                return false;
+
+            return a.InternalName == b.InternalName;
+        }
+
+        public static bool operator !=(DirectDrawWrapper a, DirectDrawWrapper b) => !(a == b);
+
+        public override bool Equals(object obj)
+        {
+            if (obj is DirectDrawWrapper other)
+            {
+                return this == other;
+            }
+            return false;
+        }
+
+        public override int GetHashCode() => InternalName.GetHashCode();
     }
 
     /// <summary>

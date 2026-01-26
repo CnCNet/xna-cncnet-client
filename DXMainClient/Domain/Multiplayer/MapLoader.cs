@@ -24,11 +24,12 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
-        private const int CurrentCustomMapCacheVersion = 3;
-        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v3");
+        private const int CurrentCustomMapCacheVersion = 4;
+        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v4");
         private static readonly IReadOnlyList<string> LEGACY_CUSTOM_MAP_CACHE_FILES = [
             SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache"),
             SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v2"),
+            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v3"),
         ];
 
         private const string MultiMapsSection = "MultiMaps";
@@ -443,20 +444,29 @@ namespace DTAClient.Domain.Multiplayer
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*.{ClientConfiguration.Instance.MapFileExtension}");
             CustomMapCache customMapCache = LoadCustomMapCache();
-            var localMapSHAs = new ConcurrentBag<string>();
+            var localMapPaths = new ConcurrentBag<string>();
 
             Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
             {
                 string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
                 baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                var map = new Map(baseFilePath
+                string normalizedPath = baseFilePath
                     .Replace(Path.DirectorySeparatorChar, '/')
-                    .Replace(Path.AltDirectorySeparatorChar, '/'), true);
-                map.CalculateSHA();
-                localMapSHAs.Add(map.SHA1);
-                if (!customMapCache.Items.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
-                    customMapCache.Items.TryAdd(map.SHA1, new CustomMapCache.Item(map));
+                    .Replace(Path.AltDirectorySeparatorChar, '/');
+
+                localMapPaths.Add(normalizedPath);
+
+                if (customMapCache.Items.TryGetValue(normalizedPath, out var cachedItem) && !cachedItem.IsOutdated())
+                {
+                    // Use cached map
+                    return;
+                }
+
+                // Not in cache or outdated
+                var map = new Map(normalizedPath, true);
+                if (map.SetInfoFromCustomMap())
+                    customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
             })).ToArray();
 
             while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
@@ -467,9 +477,9 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             // remove cached maps that no longer exist locally
-            foreach (var missingSHA in customMapCache.Items.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
+            foreach (var missingPath in customMapCache.Items.Keys.Where(cachedPath => !localMapPaths.Contains(cachedPath)))
             {
-                customMapCache.Items.TryRemove(missingSHA, out _);
+                customMapCache.Items.TryRemove(missingPath, out _);
             }
 
             // save cache
@@ -525,11 +535,11 @@ namespace DTAClient.Domain.Multiplayer
                     customMap.Map.AfterDeserialize(recalculateSHA: false);
 
                 // Remove outdated items
-                foreach (var sha1 in customMapCache.Items.Keys.ToList())
+                foreach (var mapPath in customMapCache.Items.Keys.ToList())
                 {
-                    if (customMapCache.Items[sha1].IsOutdated())
+                    if (customMapCache.Items[mapPath].IsOutdated())
                     {
-                        customMapCache.Items.TryRemove(sha1, out _);
+                        customMapCache.Items.TryRemove(mapPath, out _);
                     }
                 }
 
