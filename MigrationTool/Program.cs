@@ -69,7 +69,7 @@ internal sealed class Program
                     foreach (var patchName in patchNames)
                     {
                         Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
-                        patch = (Patch)Activator.CreateInstance(type, arg);
+                        patch = (Patch?)Activator.CreateInstance(type, arg);
                         patch?.Apply();
                         Console.WriteLine("");
                     }
