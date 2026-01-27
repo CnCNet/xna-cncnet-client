@@ -90,8 +90,8 @@ namespace ClientCore
 
         #region Client settings
 
-        private string _MainMenuMusicName = null;
-        public string MainMenuMusicName => _MainMenuMusicName ??= GetMainMenuMusicName();
+        private string _mainMenuMusicName = null;
+        public string MainMenuMusicName => _mainMenuMusicName ??= GetMainMenuMusicName();
         private string GetMainMenuMusicName()
         {
             string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
