@@ -99,6 +99,7 @@ namespace ClientCore
             string chosen = parts.Length > 0
                 ? parts[new Random().Next(parts.Length)]
                 : "mainmenu";
+
             return SafePath.CombineFilePath(chosen);
         }
 
