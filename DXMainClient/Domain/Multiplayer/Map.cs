@@ -53,7 +53,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map(string baseFilePath, bool isCustomMap)
         {
-            Debug.Assert(!baseFilePath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {baseFilePath}. It should not end with the map extension.");
+            Debug.Assert(!baseFilePath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {baseFilePath}. It should end with the map extension.");
 
             BaseFilePath = baseFilePath;
             customMapFilePath = isCustomMap

@@ -90,7 +90,18 @@ namespace ClientCore
 
         #region Client settings
 
-        public string MainMenuMusicName => SafePath.CombineFilePath(DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"));
+        private string _mainMenuMusicName = null;
+        public string MainMenuMusicName => _mainMenuMusicName ??= GetMainMenuMusicName();
+        private string GetMainMenuMusicName()
+        {
+            string raw = DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
+            string[] parts = raw.SplitWithCleanup();
+            string chosen = parts.Length > 0
+                ? parts[new Random().Next(parts.Length)]
+                : "mainmenu";
+
+            return SafePath.CombineFilePath(chosen);
+        }
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
 
