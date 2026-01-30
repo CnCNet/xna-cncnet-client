@@ -1169,5 +1169,34 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public string GetSwitchName() => "Main Menu".L10N("Client:Main:MainMenu");
+
+        var testButton = new XNAButton(WindowManager)
+        {
+            Text = "Test Results",
+            Bounds = new Rectangle(10, 10, 120, 30)
+        };
+        testButton.Click += (s, e) =>
+{
+    ShowTestRAResults();
+    };
+this.AddChild(testButton);
+
+    private void ShowTestRAResults()
+    {
+        var resultsWindow = new RAResultsWindow(WindowManager);
+
+        // Sample test data
+        var testData = new List<PlayerResult>
+    {
+        new PlayerResult { PlayerName = "AlliesPlayer1", Faction = Faction.Allies, Kills = 10, Deaths = 2, Score = 1500 },
+        new PlayerResult { PlayerName = "SovietsPlayer2", Faction = Faction.Soviets, Kills = 8, Deaths = 4, Score = 1200 },
+        new PlayerResult { PlayerName = "AlliesPlayer3", Faction = Faction.Allies, Kills = 5, Deaths = 6, Score = 900 },
+    };
+
+        resultsWindow.SetResults(testData);
+
+        // Add it to the window manager so it shows
+        WindowManager.AddWindow(resultsWindow);
     }
+
 }
