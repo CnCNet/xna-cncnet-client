@@ -311,7 +311,6 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnExit);
             AddChild(lblCnCNetStatus);
             AddChild(lblCnCNetPlayerCount);
-            AddChild(btnResultsWindow);
 
             if (!ClientConfiguration.Instance.ModMode)
             {
