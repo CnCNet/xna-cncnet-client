@@ -250,6 +250,8 @@ namespace DTAClient.DXGUI.Generic
             btnExit.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
             btnExit.LeftClick += BtnExit_LeftClick;
 
+
+
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
             lblCnCNetStatus.Text = "DTA players on CnCNet:".L10N("Client:Main:CnCNetOnlinePlayersCountText");
@@ -268,6 +270,34 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, UIDesignConstants.BUTTON_WIDTH_160, 20);
 
+            // Place this inside MainMenu.Initialize(), after your other AddChild(btnXXX)
+            var btnResultsWindow = new XNAClientButton(WindowManager);
+            btnResultsWindow.Name = "btnResultsWindow";
+            btnResultsWindow.IdleTexture = AssetLoader.LoadTexture("MainMenu/skirmish.png");
+            btnResultsWindow.HoverTexture = AssetLoader.LoadTexture("MainMenu/skirmish_c.png");
+            btnResultsWindow.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
+
+            // Position it somewhere on the menu
+            btnResultsWindow.ClientRectangle = new Rectangle(50, 500, 160, 40);
+
+            btnResultsWindow.LeftClick += (s, e) =>
+            {
+                try
+                {
+                    // Minimal empty stats list for testing
+                    var dummyParser = new StatsDumpParser(new List<PlayerStats>());
+
+                    var resultsWindow = new RAResultsWindow(WindowManager, dummyParser);
+                    WindowManager.AddAndInitializeControl(resultsWindow);
+                    resultsWindow.Enable();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Failed to open RAResultsWindow: " + ex);
+                }
+            };
+
+            AddChild(btnResultsWindow);           
             AddChild(btnNewCampaign);
             AddChild(btnLoadGame);
             AddChild(btnSkirmish);
@@ -281,6 +311,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnExit);
             AddChild(lblCnCNetStatus);
             AddChild(lblCnCNetPlayerCount);
+            AddChild(btnResultsWindow);
 
             if (!ClientConfiguration.Instance.ModMode)
             {
@@ -1169,5 +1200,6 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public string GetSwitchName() => "Main Menu".L10N("Client:Main:MainMenu");
+
     }
 }
