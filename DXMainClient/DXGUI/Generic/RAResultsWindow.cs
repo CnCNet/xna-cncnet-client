@@ -1,161 +1,146 @@
 ﻿using System;
-using System.Collections.Generic;
-using ClientCore;
-using ClientCore.Statistics;
-using ClientGUI;
-using DTAClient.Domain.Multiplayer;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 using System.Linq;
 
+using Microsoft.Xna.Framework;
+
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Generic
 {
-    /// <summary>
-    /// Window that displays the results at the end of a Red Alert match.
-    /// </summary>
     public class RAResultsWindow : XNAWindow
     {
-        private readonly StatsDumpParser stats;
+        private readonly MatchStats matchStats;
 
-        // UI elements
         private XNAPanel playerListPanel;
-        private List<XNALabel> playerLabels = new List<XNALabel>();
 
-        public RAResultsWindow(WindowManager windowManager, StatsDumpParser stats)
+        public RAResultsWindow(WindowManager windowManager, MatchStats matchStats)
             : base(windowManager)
         {
-            this.stats = stats ?? throw new ArgumentNullException(nameof(stats));
+            this.matchStats = matchStats ?? throw new ArgumentNullException(nameof(matchStats));
         }
 
         public override void Initialize()
         {
             base.Initialize();
 
-            // Window setup
-            this.Width = 600;
-            this.Height = 400;
-            this.Text = "Match Results";
+            Width = 600;
+            Height = 400;
+            Text = "Match Results";
 
-            // Panel to hold player stats
             playerListPanel = new XNAPanel(WindowManager)
             {
                 X = 10,
                 Y = 40,
-                Width = this.Width - 20,
-                Height = this.Height - 50,
+                Width = Width - 20,
+                Height = Height - 50
             };
+
             AddChild(playerListPanel);
 
             PopulatePlayerStats();
         }
 
-        /// <summary>
-        /// Populates the player list panel with stats from StatsDumpParser
-        /// </summary>
         private void PopulatePlayerStats()
         {
-            // Remove all children safely
+            // Clear existing UI
             for (int i = playerListPanel.Children.Count - 1; i >= 0; i--)
             {
                 playerListPanel.RemoveChild(playerListPanel.Children[i]);
             }
-            playerLabels.Clear();
 
-            int yOffset = 10;
+            int y = 10;
 
-            foreach (var player in stats.Players)
+            // Headers
+            AddHeader("Player", 10, y);
+            AddHeader("Side", 170, y);
+            AddHeader("Kills", 240, y);
+            AddHeader("Credits", 320, y);
+            AddHeader("Status", 420, y);
+
+            y += 22;
+
+            foreach (var player in matchStats.Players)
             {
-                // Name label
-                XNALabel nameLabel = new XNALabel(WindowManager)
-                {
-                    Text = player.Name,
-                    X = 10,
-                    Y = yOffset,
-                    Width = 150,
-                    Height = 20
-                };
-                playerListPanel.AddChild(nameLabel);
-                playerLabels.Add(nameLabel);
+                AddLabel(player.Name, 10, y);
+                AddLabel(player.Side, 170, y);
+                AddLabel(player.TotalKills.ToString(), 240, y);
+                AddLabel(player.Credits.ToString(), 320, y);
+                AddLabel(player.GetStatusText(), 420, y);
 
-                // Kills label
-                XNALabel killsLabel = new XNALabel(WindowManager)
-                {
-                    Text = $"Kills: {player.Kills}",
-                    X = 170,
-                    Y = yOffset,
-                    Width = 80,
-                    Height = 20
-                };
-                playerListPanel.AddChild(killsLabel);
-                playerLabels.Add(killsLabel);
+                y += 20;
 
-                // Deaths label
-                XNALabel deathsLabel = new XNALabel(WindowManager)
-                {
-                    Text = $"Deaths: {player.Deaths}",
-                    X = 260,
-                    Y = yOffset,
-                    Width = 80,
-                    Height = 20
-                };
-                playerListPanel.AddChild(deathsLabel);
-                playerLabels.Add(deathsLabel);
-
-                // Score label
-                XNALabel scoreLabel = new XNALabel(WindowManager)
-                {
-                    Text = $"Score: {player.Score}",
-                    X = 350,
-                    Y = yOffset,
-                    Width = 100,
-                    Height = 20
-                };
-                playerListPanel.AddChild(scoreLabel);
-                playerLabels.Add(scoreLabel);
-
-                yOffset += 25;
+                // Stop drawing if panel is full (no scrollbars by design)
+                if (y > playerListPanel.Height - 20)
+                    break;
             }
         }
 
-        public override void Update(Microsoft.Xna.Framework.GameTime gameTime)
+        private void AddHeader(string text, int x, int y)
         {
-            base.Update(gameTime);
-            // Could add animations here later if needed
+            playerListPanel.AddChild(new XNALabel(WindowManager)
+            {
+                Text = text,
+                X = x,
+                Y = y,
+                Width = 120,
+                Height = 18,
+                FontIndex = 1
+            });
+        }
+
+        private void AddLabel(string text, int x, int y)
+        {
+            playerListPanel.AddChild(new XNALabel(WindowManager)
+            {
+                Text = text,
+                X = x,
+                Y = y,
+                Width = 120,
+                Height = 18
+            });
         }
     }
 
-    /// <summary>
-    /// Represents a parsed match stats dump.
-    /// You should already have this class; included here for clarity.
-    /// </summary>
-    public class StatsDumpParser
-    {
-        public List<PlayerStats> Players { get; private set; } = new List<PlayerStats>();
+    // =======================
+    // DATA MODELS
+    // =======================
 
-        public StatsDumpParser(List<PlayerStats> players)
-        {
-            Players = players ?? throw new ArgumentNullException(nameof(players));
-        }
+    public class MatchStats
+    {
+        public System.Collections.Generic.List<PlayerStats> Players { get; } = new();
     }
 
     public class PlayerStats
     {
         public string Name { get; set; }
-        public int Kills { get; set; }
-        public int Deaths { get; set; }
-        public int Score { get; set; }
+        public string Side { get; set; }
 
-        public PlayerStats(string name, int kills, int deaths, int score)
+        public bool Dead { get; set; }
+        public bool Resigned { get; set; }
+        public bool Quit { get; set; }
+        public bool Spectator { get; set; }
+
+        public int Credits { get; set; }
+
+        public System.Collections.Generic.Dictionary<string, int> VehiclesKilled { get; } = new();
+        public System.Collections.Generic.Dictionary<string, int> InfantryKilled { get; } = new();
+        public System.Collections.Generic.Dictionary<string, int> PlanesKilled { get; } = new();
+        public System.Collections.Generic.Dictionary<string, int> BuildingsKilled { get; } = new();
+
+        public int TotalKills =>
+            VehiclesKilled.Values.Sum()
+          + InfantryKilled.Values.Sum()
+          + PlanesKilled.Values.Sum()
+          + BuildingsKilled.Values.Sum();
+
+        public string GetStatusText()
         {
-            Name = name;
-            Kills = kills;
-            Deaths = deaths;
-            Score = score;
+            if (Spectator) return "Spectator";
+            if (Resigned) return "Resigned";
+            if (Quit) return "Quit";
+            if (Dead) return "Defeated";
+            return "Active";
         }
     }
 }

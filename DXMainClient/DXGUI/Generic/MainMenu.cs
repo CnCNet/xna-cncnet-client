@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.Domain;
@@ -23,6 +23,9 @@ using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.DXGUI.Campaign;
+using ClientCore.Statistics.GameParsers;
+using ClientCore.Statistics;
+
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -158,6 +161,8 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnStatistics;
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
+        //test stats
+        private RAResultsWindow resultsWindow;
 
         /// <summary>
         /// Initializes the main menu's controls.
@@ -270,34 +275,41 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, UIDesignConstants.BUTTON_WIDTH_160, 20);
 
-            // Place this inside MainMenu.Initialize(), after your other AddChild(btnXXX)
-            var btnResultsWindow = new XNAClientButton(WindowManager);
-            btnResultsWindow.Name = "btnResultsWindow";
-            btnResultsWindow.IdleTexture = AssetLoader.LoadTexture("MainMenu/skirmish.png");
-            btnResultsWindow.HoverTexture = AssetLoader.LoadTexture("MainMenu/skirmish_c.png");
-            btnResultsWindow.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
+            // Inside MainMenu.Initialize(), after your other AddChild calls
+            var btnResultsWindow = new XNAClientButton(WindowManager)
+            {
+                Name = "btnResultsWindow",
+                IdleTexture = AssetLoader.LoadTexture("MainMenu/skirmish.png"),
+                HoverTexture = AssetLoader.LoadTexture("MainMenu/skirmish_c.png"),
+                HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav"),
+                ClientRectangle = new Rectangle(50, 500, 160, 40)
+            };
 
-            // Position it somewhere on the menu
-            btnResultsWindow.ClientRectangle = new Rectangle(50, 500, 160, 40);
+            // Class-level variable
+            RAResultsWindow resultsWindow = null;
 
             btnResultsWindow.LeftClick += (s, e) =>
             {
-                try
+                if (resultsWindow == null)
                 {
-                    // Minimal empty stats list for testing
-                    var dummyParser = new StatsDumpParser(new List<PlayerStats>());
+                    // You need to provide a MatchStats instance here.
+                    // For demonstration, create a dummy MatchStats or get it from your logic.
+                    MatchStats matchStats = new MatchStats(); // Replace with actual stats if available
 
-                    var resultsWindow = new RAResultsWindow(WindowManager, dummyParser);
+                    resultsWindow = new RAResultsWindow(WindowManager, matchStats);
+
+                    // Add to WindowManager
                     WindowManager.AddAndInitializeControl(resultsWindow);
+                }
+
+                // Toggle enable/disable
+                if (resultsWindow.Enabled)
+                    resultsWindow.Disable();
+                else
                     resultsWindow.Enable();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Failed to open RAResultsWindow: " + ex);
-                }
             };
 
-            AddChild(btnResultsWindow);           
+            AddChild(btnResultsWindow);
             AddChild(btnNewCampaign);
             AddChild(btnLoadGame);
             AddChild(btnSkirmish);
