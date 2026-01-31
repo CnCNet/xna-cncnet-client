@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Linq;
 
+using ClientGUI;
 using Microsoft.Xna.Framework;
-
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DTAClient.DXGUI.Generic
 {
