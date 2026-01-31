@@ -66,16 +66,19 @@ namespace ClientCore.Statistics
         {
             Logger.Log("Parsing game statistics.");
 
+            // Calculate game length based on current time
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
-                var dump = new StatsDumpParser(statsDumpPath);
-                var raStats = RAStatsDumpAdapter.BuildRAStats(dump, match);
-                match.SetRAStats(raStats);
+                // Use the provided gamePath to create the stats dump parser
+                var dump = new StatsDumpParser(gamePath); // <-- gamePath instead of undefined statsDumpPath
+                var raStats = RAStatsDumpAdapter.BuildRAStats(dump, this); // <-- 'this' is the current MatchStatistics
+               // this.SetRAStats(raStats); // Apply the parsed stats to this match
             }
             else
             {
+                // Non-RA games
                 var logParser = new LogFileStatisticsParser(this, isLoadedGame);
                 logParser.ParseStats(
                     gamePath,
