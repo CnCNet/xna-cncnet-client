@@ -14,7 +14,7 @@ using System.IO;
 
 namespace ClientCore.Statistics.GameParsers
 {
-    class StatsDumpParser
+   public class StatsDumpParser
     {
         // Stream reading stuff
         public BigEndianReader Bin;

@@ -8,33 +8,33 @@ namespace ClientCore.Statistics
 {
     public class RAPlayerStatistics
     {
-        public string Name { get; }
+        public string Name { get; internal set; }
 
-        public int Credits { get; }
-        public int MoneyHarvested { get; }
-        public int CratesCollected { get; }
+        public int Credits { get; internal set; }
+        public int MoneyHarvested { get; internal set; }
+        public int CratesCollected { get; internal set; }
 
-        public int VehiclesKilled { get; }
-        public int InfantryKilled { get; }
-        public int PlanesKilled { get; }
-        public int BuildingsKilled { get; }
-        public int VesselsKilled { get; }
+        public int VehiclesKilled { get; internal set; }
+        public int InfantryKilled { get; internal set; }
+        public int PlanesKilled { get; internal set; }
+        public int BuildingsKilled { get; internal set; }
+        public int VesselsKilled { get; internal set; }
 
-        public int VehiclesLeft { get; }
-        public int InfantryLeft { get; }
-        public int PlanesLeft { get; }
-        public int BuildingsLeft { get; }
-        public int VesselsLeft { get; }
+        public int VehiclesLeft { get; internal set; }
+        public int InfantryLeft { get; internal set; }
+        public int PlanesLeft { get; internal set; }
+        public int BuildingsLeft { get; internal set; }
+        public int VesselsLeft { get; internal set; }
 
-        public int VehiclesOwned { get; }
-        public int InfantryOwned { get; }
-        public int PlanesOwned { get; }
-        public int BuildingsOwned { get; }
-        public int VesselsOwned { get; }
+        public int VehiclesOwned { get; internal set; }
+        public int InfantryOwned { get; internal set; }
+        public int PlanesOwned { get; internal set; }
+        public int BuildingsOwned { get; internal set; }
+        public int VesselsOwned { get; internal set; }
 
-        public int BuildingsCaptured { get; }
+        public int BuildingsCaptured { get; internal set; }
 
-        public string QuitState { get; }
+        public string QuitState { get; internal set; }
 
         public RAPlayerStatistics(PlayerStatistics ps)
         {

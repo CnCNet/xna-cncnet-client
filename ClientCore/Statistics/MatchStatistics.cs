@@ -4,6 +4,9 @@ using System.IO;
 using System.Text;
 using ClientCore.Statistics.GameParsers;
 using Rampastring.Tools;
+using ClientCore.Enums;
+using ClientCore.Statistics.Adapters;   
+using ClientCore.Statistics.Extensions;
 
 namespace ClientCore.Statistics
 {
@@ -65,10 +68,11 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            if (gameName == "RA" || gameName == "RedAlert")
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
-                var raParser = new RAStatsDumpParser(this);
-                raParser.ParseStats(gamePath);
+                var dump = new StatsDumpParser(statsDumpPath);
+                var raStats = RAStatsDumpAdapter.BuildRAStats(dump, match);
+                match.SetRAStats(raStats);
             }
             else
             {

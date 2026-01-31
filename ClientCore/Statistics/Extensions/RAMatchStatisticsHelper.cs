@@ -2,6 +2,7 @@
 using ClientCore; 
 using System.Collections.Generic;
 using ClientCore.Enums;
+
 namespace ClientCore.Statistics.Extensions
 {
     public static class RAMatchStatisticsHelper
