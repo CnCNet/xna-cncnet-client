@@ -161,8 +161,6 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnStatistics;
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
-        //test stats
-        private RAResultsWindow resultsWindow;
 
         /// <summary>
         /// Initializes the main menu's controls.
@@ -275,41 +273,6 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, UIDesignConstants.BUTTON_WIDTH_160, 20);
 
-            // Inside MainMenu.Initialize(), after your other AddChild calls
-            var btnResultsWindow = new XNAClientButton(WindowManager)
-            {
-                Name = "btnResultsWindow",
-                IdleTexture = AssetLoader.LoadTexture("MainMenu/skirmish.png"),
-                HoverTexture = AssetLoader.LoadTexture("MainMenu/skirmish_c.png"),
-                HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav"),
-                ClientRectangle = new Rectangle(50, 500, 160, 40)
-            };
-
-            // Class-level variable
-            RAResultsWindow resultsWindow = null;
-
-            btnResultsWindow.LeftClick += (s, e) =>
-            {
-                if (resultsWindow == null)
-                {
-                    // You need to provide a MatchStats instance here.
-                    // For demonstration, create a dummy MatchStats or get it from your logic.
-                    MatchStats matchStats = new MatchStats(); // Replace with actual stats if available
-
-                    resultsWindow = new RAResultsWindow(WindowManager, matchStats);
-
-                    // Add to WindowManager
-                    WindowManager.AddAndInitializeControl(resultsWindow);
-                }
-
-                // Toggle enable/disable
-                if (resultsWindow.Enabled)
-                    resultsWindow.Disable();
-                else
-                    resultsWindow.Enable();
-            };
-
-            AddChild(btnResultsWindow);
             AddChild(btnNewCampaign);
             AddChild(btnLoadGame);
             AddChild(btnSkirmish);
