@@ -65,8 +65,19 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            var parser = new LogFileStatisticsParser(this, isLoadedGame);
-            parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+            if (gameName == "RA" || gameName == "RedAlert")
+            {
+                var raParser = new RAStatsDumpParser(this);
+                raParser.ParseStats(gamePath);
+            }
+            else
+            {
+                var logParser = new LogFileStatisticsParser(this, isLoadedGame);
+                logParser.ParseStats(
+                    gamePath,
+                    ClientConfiguration.Instance.StatisticsLogFileName
+                );
+            }
         }
 
         public PlayerStatistics GetEmptyPlayerByName(string playerName)

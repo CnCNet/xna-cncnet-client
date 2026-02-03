@@ -11,6 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClientCore.Enums;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -199,7 +200,15 @@ namespace DTAClient.DXGUI.Generic
             lbGameStatistics.AddColumn("KILLS".L10N("Client:Main:StatisticsKills"), 78);
             lbGameStatistics.AddColumn("LOSSES".L10N("Client:Main:StatisticsLosses"), 78);
             lbGameStatistics.AddColumn(strLblEconomy, 80);
-            lbGameStatistics.AddColumn("SCORE".L10N("Client:Main:StatisticsScore"), 100);
+
+            // 
+            var clientType = ClientConfiguration.Instance.ClientGameType;
+            lbGameStatistics.AddColumn(
+                (clientType == ClientType.RA ? "ECONOMY" : "SCORE")
+                .L10N(clientType == ClientType.RA ? "Client:Main:StatisticsEconomy" : "Client:Main:StatisticsScore"),
+                100
+            );
+
             lbGameStatistics.AddColumn("WON".L10N("Client:Main:StatisticsWon"), 50);
             lbGameStatistics.AddColumn("SIDE".L10N("Client:Main:StatisticsSide"), 100);
             lbGameStatistics.AddColumn("TEAM".L10N("Client:Main:StatisticsTeam"), 60);
