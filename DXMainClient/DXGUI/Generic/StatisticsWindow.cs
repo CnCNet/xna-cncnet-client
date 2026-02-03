@@ -11,6 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClientCore.Statistics.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -484,15 +485,23 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             MatchStatistics ms = sm.GetMatchByIndex(listedGameIndexes[lbGameList.SelectedIndex]);
+            bool isRA = ms.IsRA();
 
             List<PlayerStatistics> players = new List<PlayerStatistics>();
 
-            for (int i = 0; i < ms.GetPlayerCount(); i++)
+            if (!isRA)
             {
-                players.Add(ms.GetPlayer(i));
-            }
+                for (int i = 0; i < ms.GetPlayerCount(); i++)
+                    players.Add(ms.GetPlayer(i));
 
-            players = players.OrderBy(p => p.Score).Reverse().ToList();
+                players = players.OrderBy(p => p.Score).Reverse().ToList();
+            }
+            else
+            {
+                // RA: keep original order for now (details later)
+                for (int i = 0; i < ms.GetPlayerCount(); i++)
+                    players.Add(ms.GetPlayer(i));
+            }
 
             Color textColor = UISettings.ActiveSettings.AltColor;
 

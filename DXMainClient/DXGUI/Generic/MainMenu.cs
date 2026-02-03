@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.Domain;
@@ -23,6 +23,9 @@ using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.DXGUI.Campaign;
+using ClientCore.Statistics.GameParsers;
+using ClientCore.Statistics;
+
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -249,6 +252,8 @@ namespace DTAClient.DXGUI.Generic
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu/exitgame_c.png");
             btnExit.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
             btnExit.LeftClick += BtnExit_LeftClick;
+
+
 
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
@@ -1169,5 +1174,6 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public string GetSwitchName() => "Main Menu".L10N("Client:Main:MainMenu");
+
     }
 }
