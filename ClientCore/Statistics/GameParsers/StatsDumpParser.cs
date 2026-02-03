@@ -1,13 +1,4 @@
-﻿/*
- * StatsDumpParser.cs
- *
- * Credits:
- *   Iran (for stats.dmp parsing logic and guidance) https://github.com/mvdhout1992/ra303pStatsDumpParser
- * Used with permission.
- *
- * Integrated into CnCNet XNA Client by CO2
- */
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;

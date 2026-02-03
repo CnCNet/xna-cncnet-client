@@ -11,13 +11,13 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
-        // Public entry point called by MatchStatistics
+        // ? PUBLIC ENTRY POINT (this is what MatchStatistics calls)
         public void ParseStats(string gamePath)
         {
             ParseStatistics(gamePath);
         }
 
-        // Internal parsing logic
+        // ?? INTERNAL parsing logic
         protected override void ParseStatistics(string gamePath)
         {
             string statsPath = Path.Combine(gamePath, "stats.dmp");
@@ -32,19 +32,6 @@ namespace ClientCore.Statistics.GameParsers
 
             var dump = new StatsDumpParser(statsPath);
 
-            /* ===============================
-             *  Average FPS (GLOBAL MATCH)
-             * =============================== */
-            try
-            {
-                // Most RA dumps expose this
-                Statistics.AverageFPS = dump.AverageFPS;
-            }
-            catch
-            {
-                Statistics.AverageFPS = 0; // Safe fallback
-            }
-
             for (int i = 0; i < dump.PlayerNames.Length; i++)
             {
                 string name = dump.PlayerNames[i];
@@ -58,8 +45,6 @@ namespace ClientCore.Statistics.GameParsers
                 if (ps == null)
                     continue;
 
-                /* ========= SCORE / ECONOMY ========= */
-
                 int credits = dump.PlayerCredits[i];
                 int harvested = dump.PlayerMoneyHarvested[i];
 
@@ -67,11 +52,7 @@ namespace ClientCore.Statistics.GameParsers
                     (credits > 0 ? credits : 0) +
                     (harvested > 0 ? harvested : 0);
 
-                // Economy column (shown as "Built" in UI)
-                ps.Economy = harvested > 0 ? harvested : 0;
-
-                /* ========= KILLS ========= */
-
+                // Units killed
                 int unitKills =
                     dump.PlayerVehiclesKilled[i].MammothTanks +
                     dump.PlayerVehiclesKilled[i].HeavyTanks +
@@ -81,6 +62,7 @@ namespace ClientCore.Statistics.GameParsers
                     dump.PlayerInfantryKilled[i].RifleInfantries +
                     dump.PlayerInfantryKilled[i].RocketSoldiers;
 
+                // Buildings killed (approximation)
                 int buildingKills =
                     dump.PlayerBuildingsKilled[i].ConstructionYards +
                     dump.PlayerBuildingsKilled[i].WarFactories +
@@ -89,36 +71,12 @@ namespace ClientCore.Statistics.GameParsers
 
                 ps.Kills = unitKills + buildingKills;
 
-                /* ========= LOSSES ========= */
-
-                int unitLosses =
-                    dump.PlayerVehiclesBought[i].MammothTanks +
-                    dump.PlayerVehiclesBought[i].HeavyTanks +
-                    dump.PlayerVehiclesBought[i].MediumTanks +
-                    dump.PlayerVehiclesBought[i].LightTanks +
-                    dump.PlayerVehiclesBought[i].APCs +
-                    dump.PlayerInfantryBought[i].RifleInfantries +
-                    dump.PlayerInfantryBought[i].RocketSoldiers;
-
-                int buildingLosses =
-                    dump.PlayerBuildingsBought[i].ConstructionYards +
-                    dump.PlayerBuildingsBought[i].WarFactories +
-                    dump.PlayerBuildingsBought[i].Refineries +
-                    dump.PlayerBuildingsBought[i].PowerPlants;
-
-                ps.Losses = unitLosses + buildingLosses;
-
-                /* ========= WIN STATE ========= */
-
+                // Win condition
                 ps.Won =
                     dump.PlayerDeadStates[i] == 0 &&
                     dump.PlayersResigned[i] != 1;
 
                 ps.SawEnd = true;
-
-                Logger.Log(
-                    $"RA Stats | {ps.Name} | Score={ps.Score} | Kills={ps.Kills} | Losses={ps.Losses} | Economy={ps.Economy} | Won={ps.Won}"
-                );
             }
 
             Statistics.SawCompletion = true;
