@@ -121,7 +121,7 @@ namespace ClientCore.Statistics.GameParsers
                     dump.PlayerBuildingsLeft[i].Refineries +
                     dump.PlayerBuildingsLeft[i].PowerPlants;
 
-                ps.Losses = unitLosses + buildingLosses;
+                ps.Losses = unitLosses + buildingLosses - (unitRemaining + buildingRemaining);
 
                 /* ========= WIN STATE ========= */
 
@@ -132,7 +132,7 @@ namespace ClientCore.Statistics.GameParsers
                 ps.SawEnd = true;
 
                 Logger.Log(
-                    $"RA Stats | {ps.Name} | Score={ps.Score} | Kills={ps.Kills} | Losses={ps.Losses} | Economy={ps.Economy} | Won={ps.Won}"
+                    $"RA Stats | {ps.Name} | Kills={ps.Kills} | Score={ps.Score} | Losses={ps.Losses} | Economy={ps.Economy} | Won={ps.Won}"
                 );
             }
 
