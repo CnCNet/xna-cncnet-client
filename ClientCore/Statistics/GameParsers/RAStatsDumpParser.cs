@@ -106,6 +106,21 @@ namespace ClientCore.Statistics.GameParsers
                     dump.PlayerBuildingsBought[i].Refineries +
                     dump.PlayerBuildingsBought[i].PowerPlants;
 
+                int unitRemaining =
+                    dump.PlayerVehiclesLeft[i].MammothTanks +
+                    dump.PlayerVehiclesLeft[i].HeavyTanks +
+                    dump.PlayerVehiclesLeft[i].MediumTanks +
+                    dump.PlayerVehiclesLeft[i].LightTanks +
+                    dump.PlayerVehiclesLeft[i].APCs +
+                    dump.PlayerInfantryLeft[i].RifleInfantries +
+                    dump.PlayerInfantryLeft[i].RocketSoldiers;
+
+                int buildingRemaining =
+                    dump.PlayerBuildingsLeft[i].ConstructionYards +
+                    dump.PlayerBuildingsLeft[i].WarFactories +
+                    dump.PlayerBuildingsLeft[i].Refineries +
+                    dump.PlayerBuildingsLeft[i].PowerPlants;
+
                 ps.Losses = unitLosses + buildingLosses;
 
                 /* ========= WIN STATE ========= */
