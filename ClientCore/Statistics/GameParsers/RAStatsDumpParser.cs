@@ -1,5 +1,5 @@
 ﻿using System.IO;
-
+using System;
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
@@ -26,19 +26,9 @@ namespace ClientCore.Statistics.GameParsers
                 return;
             }
 
-            Logger.Log("Parsing Red Alert stats.dmp");
-
             var dump = new StatsDumpParser(statsPath);
 
-            // ===== Average FPS (global) =====
-            try
-            {
-                Statistics.AverageFPS = dump.AverageFPS;
-            }
-            catch
-            {
-                Statistics.AverageFPS = 0;
-            }
+            Statistics.AverageFPS = dump.AverageFPS;
 
             for (int i = 0; i < dump.PlayerNames.Length; i++)
             {
@@ -57,78 +47,39 @@ namespace ClientCore.Statistics.GameParsers
 
                 /* ================= ECONOMY ================= */
 
-                int harvested = dump.PlayerMoneyHarvested[i];
-                ps.Economy = harvested > 0 ? harvested : 0;
-
-                // Score is no longer meaningful in RA → zero it
-                ps.Score = 0;
+                ps.Economy = Math.Max(0, dump.PlayerMoneyHarvested[i]);
+                ps.Score = 0; // RA score is meaningless
 
                 /* ================= BUILT ================= */
 
-                int vehiclesBuilt =
-                    dump.PlayerVehiclesBought[i].MammothTanks +
-                    dump.PlayerVehiclesBought[i].HeavyTanks +
-                    dump.PlayerVehiclesBought[i].MediumTanks +
-                    dump.PlayerVehiclesBought[i].LightTanks +
-                    dump.PlayerVehiclesBought[i].APCs;
-
-                int infantryBuilt =
-                    dump.PlayerInfantryBought[i].RifleInfantries +
-                    dump.PlayerInfantryBought[i].RocketSoldiers;
-
-                int buildingsBuilt =
-                    dump.PlayerBuildingsBought[i].ConstructionYards +
-                    dump.PlayerBuildingsBought[i].WarFactories +
-                    dump.PlayerBuildingsBought[i].Refineries +
-                    dump.PlayerBuildingsBought[i].PowerPlants;
+                int built =
+                    SumStructFields(dump.PlayerVehiclesBought[i]) +
+                    SumStructFields(dump.PlayerInfantryBought[i]) +
+                    SumStructFields(dump.PlayerPlanesBought[i]) +
+                    SumStructFields(dump.PlayerVesselsBought[i]) +
+                    SumStructFields(dump.PlayerBuildingsBought[i]);
 
                 /* ================= LEFT ================= */
 
-                int vehiclesLeft =
-                    dump.PlayerVehiclesLeft[i].MammothTanks +
-                    dump.PlayerVehiclesLeft[i].HeavyTanks +
-                    dump.PlayerVehiclesLeft[i].MediumTanks +
-                    dump.PlayerVehiclesLeft[i].LightTanks +
-                    dump.PlayerVehiclesLeft[i].APCs;
-
-                int infantryLeft =
-                    dump.PlayerInfantryLeft[i].RifleInfantries +
-                    dump.PlayerInfantryLeft[i].RocketSoldiers;
-
-                int buildingsLeft =
-                    dump.PlayerBuildingsLeft[i].ConstructionYards +
-                    dump.PlayerBuildingsLeft[i].WarFactories +
-                    dump.PlayerBuildingsLeft[i].Refineries +
-                    dump.PlayerBuildingsLeft[i].PowerPlants;
+                int left =
+                    SumStructFields(dump.PlayerVehiclesLeft[i]) +
+                    SumStructFields(dump.PlayerInfantryLeft[i]) +
+                    SumStructFields(dump.PlayerPlanesLeft[i]) +
+                    SumStructFields(dump.PlayerVesselsLeft[i]) +
+                    SumStructFields(dump.PlayerBuildingsLeft[i]);
 
                 /* ================= LOSSES ================= */
 
-                int vehiclesLost = vehiclesBuilt - vehiclesLeft;
-                int infantryLost = infantryBuilt - infantryLeft;
-                int buildingsLost = buildingsBuilt - buildingsLeft;
-
-                ps.Losses = vehiclesLost + infantryLost + buildingsLost;
+                ps.Losses = Math.Max(0, built - left);
 
                 /* ================= KILLS ================= */
 
-                int vehiclesKilled =
-                    dump.PlayerVehiclesKilled[i].MammothTanks +
-                    dump.PlayerVehiclesKilled[i].HeavyTanks +
-                    dump.PlayerVehiclesKilled[i].MediumTanks +
-                    dump.PlayerVehiclesKilled[i].LightTanks +
-                    dump.PlayerVehiclesKilled[i].APCs;
-
-                int infantryKilled =
-                    dump.PlayerInfantryKilled[i].RifleInfantries +
-                    dump.PlayerInfantryKilled[i].RocketSoldiers;
-
-                int buildingsKilled =
-                    dump.PlayerBuildingsKilled[i].ConstructionYards +
-                    dump.PlayerBuildingsKilled[i].WarFactories +
-                    dump.PlayerBuildingsKilled[i].Refineries +
-                    dump.PlayerBuildingsKilled[i].PowerPlants;
-
-                ps.Kills = vehiclesKilled + infantryKilled + buildingsKilled;
+                ps.Kills =
+                    SumStructFields(dump.PlayerVehiclesKilled[i]) +
+                    SumStructFields(dump.PlayerInfantryKilled[i]) +
+                    SumStructFields(dump.PlayerPlanesKilled[i]) +
+                    SumStructFields(dump.PlayerVesselsKilled[i]) +
+                    SumStructFields(dump.PlayerBuildingsKilled[i]);
 
                 /* ================= WIN STATE ================= */
 
@@ -139,11 +90,25 @@ namespace ClientCore.Statistics.GameParsers
                 ps.SawEnd = true;
 
                 Logger.Log(
-                    $"RA Stats | {ps.Name} | Eco={ps.Economy} | Kills={ps.Kills} | Losses={ps.Losses} | Won={ps.Won}"
+                    $"RA | {ps.Name} | Eco={ps.Economy} | Kills={ps.Kills} | Losses={ps.Losses} | Won={ps.Won}"
                 );
             }
 
             Statistics.SawCompletion = true;
+        }
+
+        private static int SumStructFields<T>(T struc)
+        {
+            int sum = 0;
+            var fields = typeof(T).GetFields();
+
+            foreach (var f in fields)
+            {
+                if (f.FieldType == typeof(int))
+                    sum += (int)f.GetValue(struc);
+            }
+
+            return sum;
         }
     }
 }
