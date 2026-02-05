@@ -47,8 +47,8 @@ namespace ClientCore.Statistics.GameParsers
 
                 /* ================= ECONOMY ================= */
 
-                ps.Economy = Math.Max(0, dump.PlayerMoneyHarvested[i]);
-                ps.Score = 0; // RA score is meaningless
+                ps.Score = Math.Max(0, dump.PlayerMoneyHarvested[i]);
+                //ps.Economy = 0; // RA score is meaningless
 
                 /* ================= BUILT ================= */
 
@@ -58,6 +58,8 @@ namespace ClientCore.Statistics.GameParsers
                     SumStructFields(dump.PlayerPlanesBought[i]) +
                     SumStructFields(dump.PlayerVesselsBought[i]) +
                     SumStructFields(dump.PlayerBuildingsBought[i]);
+
+                ps.Economy = built;
 
                 /* ================= LEFT ================= */
 
