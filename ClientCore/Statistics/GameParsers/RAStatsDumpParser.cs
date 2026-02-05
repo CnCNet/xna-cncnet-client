@@ -11,13 +11,11 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
-        // Public entry point called by MatchStatistics
         public void ParseStats(string gamePath)
         {
             ParseStatistics(gamePath);
         }
 
-        // Internal parsing logic
         protected override void ParseStatistics(string gamePath)
         {
             string statsPath = Path.Combine(gamePath, "stats.dmp");
@@ -32,17 +30,14 @@ namespace ClientCore.Statistics.GameParsers
 
             var dump = new StatsDumpParser(statsPath);
 
-            /* ===============================
-             *  Average FPS (GLOBAL MATCH)
-             * =============================== */
+            // ===== Average FPS (global) =====
             try
             {
-                // Most RA dumps expose this
                 Statistics.AverageFPS = dump.AverageFPS;
             }
             catch
             {
-                Statistics.AverageFPS = 0; // Safe fallback
+                Statistics.AverageFPS = 0;
             }
 
             for (int i = 0; i < dump.PlayerNames.Length; i++)
@@ -58,72 +53,84 @@ namespace ClientCore.Statistics.GameParsers
                 if (ps == null)
                     continue;
 
-                /* ========= SCORE / ECONOMY ========= */
+                ps.Name = name;
 
-                int credits = dump.PlayerCredits[i];
+                /* ================= ECONOMY ================= */
+
                 int harvested = dump.PlayerMoneyHarvested[i];
-
-                ps.Score =
-                    (credits > 0 ? credits : 0) +
-                    (harvested > 0 ? harvested : 0);
-
-                // Economy column (shown as "Built" in UI)
                 ps.Economy = harvested > 0 ? harvested : 0;
 
-                /* ========= KILLS ========= */
+                // Score is no longer meaningful in RA → zero it
+                ps.Score = 0;
 
-                int unitKills =
-                    dump.PlayerVehiclesKilled[i].MammothTanks +
-                    dump.PlayerVehiclesKilled[i].HeavyTanks +
-                    dump.PlayerVehiclesKilled[i].MediumTanks +
-                    dump.PlayerVehiclesKilled[i].LightTanks +
-                    dump.PlayerVehiclesKilled[i].APCs +
-                    dump.PlayerInfantryKilled[i].RifleInfantries +
-                    dump.PlayerInfantryKilled[i].RocketSoldiers;
+                /* ================= BUILT ================= */
 
-                int buildingKills =
-                    dump.PlayerBuildingsKilled[i].ConstructionYards +
-                    dump.PlayerBuildingsKilled[i].WarFactories +
-                    dump.PlayerBuildingsKilled[i].Refineries +
-                    dump.PlayerBuildingsKilled[i].PowerPlants;
-
-                ps.Kills = unitKills + buildingKills;
-
-                /* ========= LOSSES ========= */
-
-                int unitLosses =
+                int vehiclesBuilt =
                     dump.PlayerVehiclesBought[i].MammothTanks +
                     dump.PlayerVehiclesBought[i].HeavyTanks +
                     dump.PlayerVehiclesBought[i].MediumTanks +
                     dump.PlayerVehiclesBought[i].LightTanks +
-                    dump.PlayerVehiclesBought[i].APCs +
+                    dump.PlayerVehiclesBought[i].APCs;
+
+                int infantryBuilt =
                     dump.PlayerInfantryBought[i].RifleInfantries +
                     dump.PlayerInfantryBought[i].RocketSoldiers;
 
-                int buildingLosses =
+                int buildingsBuilt =
                     dump.PlayerBuildingsBought[i].ConstructionYards +
                     dump.PlayerBuildingsBought[i].WarFactories +
                     dump.PlayerBuildingsBought[i].Refineries +
                     dump.PlayerBuildingsBought[i].PowerPlants;
 
-                int unitRemaining =
+                /* ================= LEFT ================= */
+
+                int vehiclesLeft =
                     dump.PlayerVehiclesLeft[i].MammothTanks +
                     dump.PlayerVehiclesLeft[i].HeavyTanks +
                     dump.PlayerVehiclesLeft[i].MediumTanks +
                     dump.PlayerVehiclesLeft[i].LightTanks +
-                    dump.PlayerVehiclesLeft[i].APCs +
+                    dump.PlayerVehiclesLeft[i].APCs;
+
+                int infantryLeft =
                     dump.PlayerInfantryLeft[i].RifleInfantries +
                     dump.PlayerInfantryLeft[i].RocketSoldiers;
 
-                int buildingRemaining =
+                int buildingsLeft =
                     dump.PlayerBuildingsLeft[i].ConstructionYards +
                     dump.PlayerBuildingsLeft[i].WarFactories +
                     dump.PlayerBuildingsLeft[i].Refineries +
                     dump.PlayerBuildingsLeft[i].PowerPlants;
 
-                ps.Losses = unitLosses + buildingLosses - (unitRemaining + buildingRemaining);
+                /* ================= LOSSES ================= */
 
-                /* ========= WIN STATE ========= */
+                int vehiclesLost = vehiclesBuilt - vehiclesLeft;
+                int infantryLost = infantryBuilt - infantryLeft;
+                int buildingsLost = buildingsBuilt - buildingsLeft;
+
+                ps.Losses = vehiclesLost + infantryLost + buildingsLost;
+
+                /* ================= KILLS ================= */
+
+                int vehiclesKilled =
+                    dump.PlayerVehiclesKilled[i].MammothTanks +
+                    dump.PlayerVehiclesKilled[i].HeavyTanks +
+                    dump.PlayerVehiclesKilled[i].MediumTanks +
+                    dump.PlayerVehiclesKilled[i].LightTanks +
+                    dump.PlayerVehiclesKilled[i].APCs;
+
+                int infantryKilled =
+                    dump.PlayerInfantryKilled[i].RifleInfantries +
+                    dump.PlayerInfantryKilled[i].RocketSoldiers;
+
+                int buildingsKilled =
+                    dump.PlayerBuildingsKilled[i].ConstructionYards +
+                    dump.PlayerBuildingsKilled[i].WarFactories +
+                    dump.PlayerBuildingsKilled[i].Refineries +
+                    dump.PlayerBuildingsKilled[i].PowerPlants;
+
+                ps.Kills = vehiclesKilled + infantryKilled + buildingsKilled;
+
+                /* ================= WIN STATE ================= */
 
                 ps.Won =
                     dump.PlayerDeadStates[i] == 0 &&
@@ -132,7 +139,7 @@ namespace ClientCore.Statistics.GameParsers
                 ps.SawEnd = true;
 
                 Logger.Log(
-                    $"RA Stats | {ps.Name} | Kills={ps.Kills} | Score={ps.Score} | Losses={ps.Losses} | Economy={ps.Economy} | Won={ps.Won}"
+                    $"RA Stats | {ps.Name} | Eco={ps.Economy} | Kills={ps.Kills} | Losses={ps.Losses} | Won={ps.Won}"
                 );
             }
 
