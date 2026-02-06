@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ClientCore;
+using ClientCore.Extensions;
 
 using Rampastring.Tools;
 
@@ -560,6 +561,13 @@ namespace DTAClient.Domain.Multiplayer
         public Map LoadCustomMap(string mapPath, out string resultMessage)
         {
             Debug.Assert(!mapPath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {mapPath}. It should end with the map extension.");
+
+            if (mapPath != mapPath.ToWin32FileName())
+            {
+                Logger.Log("LoadCustomMap: Map " + FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}") + " contains WIN32API reserved characters!");
+                resultMessage = $"Map file {FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}")} doesn't exist!";
+                return null;
+            }
 
             string customMapFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}"));
             FileInfo customMapFile = SafePath.GetFile(customMapFilePath);
