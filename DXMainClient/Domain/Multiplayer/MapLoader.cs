@@ -565,7 +565,7 @@ namespace DTAClient.Domain.Multiplayer
             if (mapPath != mapPath.ToWin32FileName())
             {
                 Logger.Log("LoadCustomMap: Map " + FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}") + " contains WIN32API reserved characters!");
-                resultMessage = $"Map file {FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}")} doesn't exist!";
+                resultMessage = string.Format("Map file {0} doesn't exist!".L10N("Client:MapLoader:MapFileDoesNotExist"), FormattableString.Invariant($"{mapPath}.{ClientConfiguration.Instance.MapFileExtension}"));
                 return null;
             }
 
@@ -575,7 +575,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!customMapFile.Exists)
             {
                 Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " not found!");
-                resultMessage = $"Map file {customMapFile.Name} doesn't exist!";
+                resultMessage = string.Format("Map file {0} doesn't exist!".L10N("Client:MapLoader:MapFileDoesNotExist"), customMapFile.Name);
 
                 return null;
             }
@@ -591,7 +591,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
                     {
                         Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
-                        resultMessage = $"Map {map.Name} is already loaded.";
+                        resultMessage = string.Format("Map {0} is already loaded.".L10N("Client:MapLoader:MapAlreadyLoaded"), map.Name);
 
                         return null;
                     }
@@ -603,13 +603,13 @@ namespace DTAClient.Domain.Multiplayer
                 var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
                 GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
-                resultMessage = $"Map {map.Name} loaded successfully.";
+                resultMessage = string.Format("Map {0} loaded successfully.".L10N("Client:MapLoader:MapLoadedSuccessfully"), map.Name);
 
                 return map;
             }
 
             Logger.Log("LoadCustomMap: Loading map " + customMapFile.FullName + " failed!");
-            resultMessage = $"Loading map {Path.GetFileNameWithoutExtension(customMapFile.Name)} failed!";
+            resultMessage = string.Format("Loading map {0} failed!".L10N("Client:MapLoader:MapLoadingFailed"), Path.GetFileNameWithoutExtension(customMapFile.Name));
 
             return null;
         }
