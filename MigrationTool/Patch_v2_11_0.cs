@@ -21,12 +21,21 @@ internal class Patch_v2_11_0 : Patch
         base.Apply();
 
         // Remove Rampastring.Tools from Resources directory (not recursive)
-        Logger.Log("Remove Resources\\Rampastring.Tools.* (* -- dll, pdb, xml)");
-        SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.dll");
-        SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.pdb");
-        SafePath.DeleteFileIfExists(ResouresDir.FullName, "Rampastring.Tools.xml");
+        List<string> rmptFiles = [SafePath.CombineFilePath(ResouresDir.FullName, "Rampastring.Tools.dll"), 
+            SafePath.CombineFilePath(ResouresDir.FullName, "Rampastring.Tools.pdb"), 
+            SafePath.CombineFilePath(ResouresDir.FullName, "Rampastring.Tools.xml")];
+        
+        foreach (var file in rmptFiles)
+        {
+            if (!File.Exists(file))
+                continue;
+
+            Logger.Log($"Remove {file}");
+            SafePath.DeleteFileIfExists(file);
+        }
 
         // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
+        // and rename [ExtraControls] => [$ExtraControls]
         {
             var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
             AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
