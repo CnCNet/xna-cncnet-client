@@ -142,6 +142,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private Random random;
 
+        private bool ctcpInvalidGameMessageShown = false;
+        private bool ctcpNoTunnelMessageShown = false;
+        private bool ctcpNoTunnelForGamesMessageShown = false;
+
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
             panelGameFilters.ClientRectangle = lbGameList.ClientRectangle;
@@ -1438,6 +1442,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 item.Texture = gameCollection.GameList[ircUser.GameID].Texture;
         }
 
+        private void OnChatMessagesCleared()
+        {
+            ctcpInvalidGameMessageShown = false;
+            ctcpNoTunnelMessageShown = false;
+            ctcpNoTunnelForGamesMessageShown = false;
+        }
+
         private void AddMessageToChat(ChatMessage message)
         {
             if (!string.IsNullOrEmpty(message.SenderIdent) &&
@@ -1470,17 +1481,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 // dismiss any outstanding invitations that are no longer valid
                 DismissInvalidInvitations();
             }
-        }
-
-        private bool ctcpInvalidGameMessageShown = false;
-        private bool ctcpNoTunnelMessageShown = false;
-        private bool ctcpNoTunnelForGamesMessageShown = false;
-
-        private void OnChatMessagesCleared()
-        {
-            ctcpInvalidGameMessageShown = false;
-            ctcpNoTunnelMessageShown = false;
-            ctcpNoTunnelForGamesMessageShown = false;
         }
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
