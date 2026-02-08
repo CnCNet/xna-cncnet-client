@@ -1378,6 +1378,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbChatMessages.TopIndex = 0;
             lbChatMessages.Clear();
+            OnChatMessagesCleared();
             currentChatChannel.Messages.ForEach(msg => AddMessageToChat(msg));
 
             RefreshPlayerList(this, EventArgs.Empty);
@@ -1474,6 +1475,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private bool ctcpInvalidGameMessageShown = false;
         private bool ctcpNoTunnelMessageShown = false;
         private bool ctcpNoTunnelForGamesMessageShown = false;
+
+        private void OnChatMessagesCleared()
+        {
+            ctcpInvalidGameMessageShown = false;
+            ctcpNoTunnelMessageShown = false;
+            ctcpNoTunnelForGamesMessageShown = false;
+        }
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
         {
