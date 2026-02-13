@@ -58,8 +58,11 @@ namespace DTAClient.Domain.Multiplayer
             Official = string.IsNullOrWhiteSpace(customMapFilePath);
         }
 
-#region CommonMapConfig
+        // TODO: need to test whether the map cache is broken or not
 
+        #region CommonMapConfig
+
+        [JsonInclude]
         private CommonMapConfig CommonMapConfig = new();
 
         public const int MAX_PLAYERS = CommonMapConfig.MAX_PLAYERS;
@@ -67,13 +70,13 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The maximum amount of players supported by the map or a game mode (such as a 2v2 mode).
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public int? MaxPlayers => CommonMapConfig.MaxPlayers;
 
         /// <summary>
         /// The minimum amount of players supported by the map or a game mode.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public int? MinPlayers => CommonMapConfig.MinPlayers;
 
         /// <summary>
@@ -81,53 +84,53 @@ namespace DTAClient.Domain.Multiplayer
         /// If false (which is the default), MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? EnforceMaxPlayers => CommonMapConfig.EnforceMaxPlayers;
 
         /// <summary>
         /// The allowed starting locations for this map or game mode.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public List<int>? AllowedStartingLocations => CommonMapConfig.AllowedStartingLocations;
 
         /// <summary>
         /// Controls if the map is meant for a co-operation game mode
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? IsCoop => CommonMapConfig.IsCoop;
 
         /// <summary>
         /// Contains co-op information.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public CoopMapInfo? CoopInfo => CommonMapConfig.CoopInfo;
 
-        [JsonInclude]
+        [JsonIgnore]
         public int? CoopDifficultyLevel => CommonMapConfig.CoopDifficultyLevel;
 
         /// <summary>
         /// If set, this map cannot be played on Skirmish.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? MultiplayerOnly => CommonMapConfig.MultiplayerOnly;
 
         /// <summary>
         /// If set, this map cannot be played with AI players.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? HumanPlayersOnly => CommonMapConfig.HumanPlayersOnly;
 
         /// <summary>
         /// If set, players are forced to random starting locations on this map.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? ForceRandomStartLocations => CommonMapConfig.ForceRandomStartLocations;
 
         /// <summary>
         /// If set, players are forced to different teams on this map.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public bool? ForceNoTeams => CommonMapConfig.ForceNoTeams;
         #endregion
 
