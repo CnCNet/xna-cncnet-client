@@ -555,9 +555,8 @@ namespace ClientCore
                     throw new ClientConfigurationException($"Configuration key '{copyAsKey}' is required when '{extensionKey}' is present for supplement file {index}.");
                 
                 // Validate that extension is unique
-                if (extensionToIndex.ContainsKey(extension))
+                if (extensionToIndex.TryGetValue(extension, out int firstIndex))
                 {
-                    int firstIndex = extensionToIndex[extension];
                     throw new ClientConfigurationException($"Duplicate extension '{extension}' found in supplement files. Extension is used in both file {firstIndex} and file {index}.");
                 }
                 
