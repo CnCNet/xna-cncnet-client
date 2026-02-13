@@ -939,14 +939,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void InsufficientPlayersNotification()
         {
             Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
-            AddNotice(string.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification1"),
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotificationV2"),
                 GameModeMap.ToString(), GameModeMap.MinPlayers));
         }
 
         protected virtual void TooManyPlayersNotification()
         {
             Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
-            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotification1"),
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotificationV2"),
                 GameModeMap.ToString(), GameModeMap.MaxPlayers));
         }
 
