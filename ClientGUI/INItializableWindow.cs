@@ -35,6 +35,7 @@ namespace ClientGUI
             foreach (XNAControl child in list)
             {
                 bool matched = isTargetControl(child);
+
                 if (matched)
                     return true;
 
