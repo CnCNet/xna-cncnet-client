@@ -70,7 +70,7 @@ namespace ClientGUI
         {
             List<T> result = new List<T>();
 
-            AnyChildMatches(new List<XNAControl>() { this }, (control) =>
+            AnyChildMatches(new List<XNAControl>() { this }, control =>
             {
                 if (string.IsNullOrEmpty(prefix) ||
                     !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
