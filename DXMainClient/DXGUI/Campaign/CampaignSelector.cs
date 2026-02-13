@@ -216,7 +216,7 @@ namespace DTAClient.DXGUI.Campaign
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
-            // TODO
+            // Save user settings before launching the mission
             userSettings.ForEach(c => c.Save());
 
             SaveSettings();
