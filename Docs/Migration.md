@@ -6,6 +6,9 @@ This document lists all the breaking changes and how to address them. Each secti
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
+## 2.13.0
+- The `CampaignSelector` window has been migrated to `INItializableWindow`. Therefore, you must edit `CampaignSelector.ini` file. An example will be provided later.
+
 ## 2.12.12
 
 - The `DTAConfig` library has been removed and its functionality merged into other parts of the client. Therefore, if using automatic updater, you must append the following lines to the `[Delete]` section of your `updateexec` file to prevent issues during the update process:
