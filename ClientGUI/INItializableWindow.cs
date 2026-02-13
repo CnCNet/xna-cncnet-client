@@ -30,7 +30,7 @@ namespace ClientGUI
         /// </summary>
         protected string IniNameOverride { get; set; }
 
-        private static bool VisitChildren(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
+        private static bool AnyChildMatches(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
         {
             foreach (XNAControl child in list)
             {
@@ -38,7 +38,7 @@ namespace ClientGUI
                 if (matched)
                     return true;
 
-                matched = VisitChildren(child.Children, isTargetControl);
+                matched = AnyChildMatches(child.Children, isTargetControl);
 
                 if (matched)
                     return true;
@@ -51,7 +51,7 @@ namespace ClientGUI
         {
             XNAControl result = null;
 
-            VisitChildren(new List<XNAControl>() { this }, control =>
+            AnyChildMatches(new List<XNAControl>() { this }, control =>
             {
                 if (control.Name != childName)
                     return false;
@@ -70,7 +70,7 @@ namespace ClientGUI
         {
             List<T> result = new List<T>();
 
-            VisitChildren(new List<XNAControl>() { this }, (control) =>
+            AnyChildMatches(new List<XNAControl>() { this }, (control) =>
             {
                 if (string.IsNullOrEmpty(prefix) ||
                     !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
