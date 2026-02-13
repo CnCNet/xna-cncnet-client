@@ -1886,9 +1886,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniFile globalCodeIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", "GlobalCode.ini"));
 
             foreach (IniFile iniFile in GameMode.GetMapRulesIniFiles(pseudoRandom))
-            {
                 MapCodeHelper.ApplyMapCode(mapIni, iniFile);
-            }
 
             MapCodeHelper.ApplyMapCode(mapIni, globalCodeIni);
 
