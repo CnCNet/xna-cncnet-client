@@ -534,7 +534,7 @@ namespace ClientCore
         public List<(string extension, string copyAs)> GetCustomMissionSupplementFiles()
         {
             List<(string extension, string copyAs)> files = new();
-            HashSet<string> seenExtensions = new();
+            Dictionary<string, int> extensionToIndex = new();
             
             int index = 0;
             while (true)
@@ -555,14 +555,13 @@ namespace ClientCore
                     throw new ClientConfigurationException($"Configuration key '{copyAsKey}' is required when '{extensionKey}' is present for supplement file {index}.");
                 
                 // Validate that extension is unique
-                if (seenExtensions.Contains(extension))
+                if (extensionToIndex.ContainsKey(extension))
                 {
-                    // Find the first occurrence to provide better error message
-                    int firstIndex = files.FindIndex(f => f.extension == extension);
+                    int firstIndex = extensionToIndex[extension];
                     throw new ClientConfigurationException($"Duplicate extension '{extension}' found in supplement files. Extension is used in both file {firstIndex} and file {index}.");
                 }
                 
-                seenExtensions.Add(extension);
+                extensionToIndex.Add(extension, index);
                 files.Add((extension, copyAs));
                 index++;
             }
