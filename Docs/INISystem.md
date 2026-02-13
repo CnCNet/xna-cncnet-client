@@ -563,7 +563,7 @@ CustomMissionSupplementFile2Extension=shp ; extension of the third supplement fi
 CustomMissionSupplementFile2CopyAs=custommission.shp ; target filename for the third supplement file (required if Extension is present)
 ; supplement files that are supposed to be copied to the game folder when a custom mission is played
 ; the iteration stops if a number is missing (e.g., if File3Extension is missing, only File0, File1, and File2 are processed)
-; both Extension and CopyAs must be provided for each file number
+; both Extension and CopyAs must be provided for each file number; each Extension value must be unique - duplicate extensions are not allowed
 ```
 
 ```ini

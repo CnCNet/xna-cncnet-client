@@ -534,7 +534,7 @@ namespace ClientCore
         public List<(string extension, string copyAs)> GetCustomMissionSupplementFiles()
         {
             List<(string extension, string copyAs)> files = new();
-            Dictionary<string, int> extensionToIndex = new();
+            Dictionary<string, int> extensionToIndex = new(StringComparer.OrdinalIgnoreCase);
             
             int index = 0;
             while (true)
