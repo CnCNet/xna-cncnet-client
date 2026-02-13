@@ -547,7 +547,11 @@ namespace ClientCore
                 if (string.IsNullOrEmpty(extension))
                     break;
                 
-                string copyAs = clientDefinitionsIni.GetStringValue(SETTINGS, copyAsKey, string.Empty);
+                string copyAs = clientDefinitionsIni.GetStringValue(SETTINGS, copyAsKey, null);
+                
+                // Validate that copyAs is not empty
+                if (string.IsNullOrEmpty(copyAs))
+                    throw new ClientConfigurationException($"Missing or empty value for '{copyAsKey}' in configuration.");
                 
                 files.Add((extension, copyAs));
                 index++;
