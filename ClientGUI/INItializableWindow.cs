@@ -71,7 +71,7 @@ namespace ClientGUI
 
             VisitChild(new List<XNAControl>() { this }, (control) =>
             {
-                if (string.IsNullOrEmpty(prefix) || 
+                if (string.IsNullOrEmpty(prefix) ||
                     !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
                     result.Add((T)control);
 
