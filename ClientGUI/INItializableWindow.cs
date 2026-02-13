@@ -29,42 +29,55 @@ namespace ClientGUI
         /// instead of the window's name.
         /// </summary>
         protected string IniNameOverride { get; set; }
-        private bool VisitChild(IEnumerable<XNAControl> list, Func<XNAControl, bool> judge)
+        private bool VisitChild(IEnumerable<XNAControl> list, Func<XNAControl, bool> shouldStop)
         {
             foreach (XNAControl child in list)
             {
-                bool stop = judge(child);
-                if (stop) return true;
-                stop = VisitChild(child.Children, judge);
-                if (stop) return true;
+                bool stop = shouldStop(child);
+                if (stop)
+                    return true;
+
+                stop = VisitChild(child.Children, shouldStop);
+
+                if (stop)
+                    return true;
             }
+
             return false;
         }
 
         public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
         {
             XNAControl result = null;
+
             VisitChild(new List<XNAControl>() { this }, control =>
             {
-                if (control.Name != childName) return false;
+                if (control.Name != childName)
+                    return false;
+
                 result = control;
                 return true;
             });
+
             if (result == null && !optional)
                 throw new KeyNotFoundException("Could not find required child control: " + childName);
+
             return (T)result;
         }
 
         public List<T> FindChildrenStartWith<T>(string prefix) where T : XNAControl
         {
             List<T> result = new List<T>();
+
             VisitChild(new List<XNAControl>() { this }, (control) =>
             {
-                if (string.IsNullOrEmpty(prefix) ||
-                !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
+                if (string.IsNullOrEmpty(prefix) || 
+                    !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
                     result.Add((T)control);
+
                 return false;
             });
+
             return result;
         }
 
