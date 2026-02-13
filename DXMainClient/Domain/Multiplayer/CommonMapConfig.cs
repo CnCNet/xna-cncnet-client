@@ -12,7 +12,7 @@ using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
 {
-    public abstract class GameModeMapBase
+    public class CommonMapConfig
     {
         public const int MAX_PLAYERS = 8;
 
@@ -82,7 +82,7 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public bool? ForceNoTeams { get; private set; }
 
-        protected void InitializeBaseSettingsFromIniSection(IniSection section, bool isCustomMap)
+        public void InitializeBaseSettingsFromIniSection(IniSection section, bool isCustomMap)
         {
             // MinPlayers
             MinPlayers = section.GetIntValueOrNull(isCustomMap ? "MinPlayer" : "MinPlayers");
