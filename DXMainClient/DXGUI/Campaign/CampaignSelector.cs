@@ -513,13 +513,6 @@ namespace DTAClient.DXGUI.Campaign
             if (mapFiles.Length == 0)
                 return;
 
-            // The codes below are disabled, in favor of being defined in a `Battle.ini` file.
-            // // Add a dummy mission to separate custom missions from official missions
-            // IniSection customMissionSeparatorSection = new();
-            // customMissionSeparatorSection.AddKey("Description", "-------- Custom Scenarios --------".L10N("Client:Main:CustomMissionSeparator"));
-            // Mission separator = Mission.NewCustomMission(customMissionSeparatorSection, "__XCUSTOM", string.Empty, null);
-            // AddMission(separator);
-
             foreach (string mapFilePath in mapFiles)
             {
                 var mapFile = new IniFile(mapFilePath);
