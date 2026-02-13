@@ -78,12 +78,12 @@ namespace DTAClient.Domain.Multiplayer
         public void Initialize()
         {
             IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
-            IniSection section = forcedOptionsIni.GetSection(Name);
+            IniSection section = forcedOptionsIni.GetSection(Name) ?? new IniSection(Name);
 
             UntranslatedUIName = section.GetStringValue("UIName", Name);
             UIName = UntranslatedUIName.L10N($"INI:GameModes:{Name}:UIName");
 
-            InitializeBaseSettingsFromIniSection(forcedOptionsIni.GetSection(Name), isCustomMap: false);
+            InitializeBaseSettingsFromIniSection(section, isCustomMap: false);
 
             MinPlayersOverride = section.GetIntValueOrNull("MinPlayersOverride");
             MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
