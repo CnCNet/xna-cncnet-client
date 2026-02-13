@@ -556,9 +556,7 @@ namespace ClientCore
 
                 // Validate that extension is unique
                 if (extensionToIndex.TryGetValue(extension, out int firstIndex))
-                {
                     throw new ClientConfigurationException($"Duplicate extension '{extension}' found in supplement files. Extension is used in both file {firstIndex} and file {index}.");
-                }
 
                 extensionToIndex.Add(extension, index);
                 files.Add((extension, copyAs));
