@@ -551,7 +551,7 @@ namespace ClientCore
                 
                 // Validate that copyAs is not empty
                 if (string.IsNullOrEmpty(copyAs))
-                    throw new ClientConfigurationException($"Missing or empty value for '{copyAsKey}' in configuration.");
+                    throw new ClientConfigurationException($"Configuration key '{copyAsKey}' is required when '{extensionKey}' is present.");
                 
                 files.Add((extension, copyAs));
                 index++;
