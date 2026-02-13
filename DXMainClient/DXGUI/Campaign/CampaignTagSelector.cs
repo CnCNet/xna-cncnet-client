@@ -30,7 +30,7 @@ namespace DTAClient.DXGUI.Campaign
 
         protected XNAClientButton btnCancel;
         protected XNAClientButton btnShowAllMission;
-        protected XNAClientButton btnShowCustomMission;
+
         public override void Initialize()
         {
             CampaignSelector = new CampaignSelector(WindowManager, discordHandler, this);
@@ -57,15 +57,6 @@ namespace DTAClient.DXGUI.Campaign
                 CampaignSelector.LoadMissionsWithFilter(null, disableCustomMissions: false, disableOfficialMissions: false);
                 NoFadeSwitch();
             };
-
-            // The following codes are disabled, in favor of a `ButtonTag_CUSTOM` button.
-            // btnShowCustomMission = FindChild<XNAClientButton>(nameof(btnShowCustomMission));
-            // btnShowCustomMission.LeftClick += (sender, e) =>
-            // {
-            //     CampaignSelector.LoadMissionsWithFilter(null, disableCustomMissions:false, disableOfficialMissions:true);
-            //     CampaignSelector.Enable();
-            //     Disable();
-            // };
 
             const string TagButtonsPrefix = "ButtonTag_";
             var tagButtons = FindChildrenStartWith<XNAClientButton>(TagButtonsPrefix);
@@ -105,7 +96,7 @@ namespace DTAClient.DXGUI.Campaign
             var dp = CampaignSelector.Parent as DarkeningPanel;
             dp?.ToggleFade(false);
 
-             if (Visible)
+            if (Visible)
                 CampaignSelector.Enable();
             else
                 CampaignSelector.Disable();
