@@ -29,17 +29,18 @@ namespace ClientGUI
         /// instead of the window's name.
         /// </summary>
         protected string IniNameOverride { get; set; }
-        private bool VisitChild(IEnumerable<XNAControl> list, Func<XNAControl, bool> shouldStop)
+
+        private static bool VisitChildren(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
         {
             foreach (XNAControl child in list)
             {
-                bool stop = shouldStop(child);
-                if (stop)
+                bool matched = isTargetControl(child);
+                if (matched)
                     return true;
 
-                stop = VisitChild(child.Children, shouldStop);
+                matched = VisitChildren(child.Children, isTargetControl);
 
-                if (stop)
+                if (matched)
                     return true;
             }
 
@@ -50,7 +51,7 @@ namespace ClientGUI
         {
             XNAControl result = null;
 
-            VisitChild(new List<XNAControl>() { this }, control =>
+            VisitChildren(new List<XNAControl>() { this }, control =>
             {
                 if (control.Name != childName)
                     return false;
@@ -69,7 +70,7 @@ namespace ClientGUI
         {
             List<T> result = new List<T>();
 
-            VisitChild(new List<XNAControl>() { this }, (control) =>
+            VisitChildren(new List<XNAControl>() { this }, (control) =>
             {
                 if (string.IsNullOrEmpty(prefix) ||
                     !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
