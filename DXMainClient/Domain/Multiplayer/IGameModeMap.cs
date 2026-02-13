@@ -5,16 +5,16 @@ namespace DTAClient.Domain.Multiplayer
 {
     public interface IGameModeMap
     {
-        List<int> AllowedStartingLocations { get; }
-        int CoopDifficultyLevel { get; }
-        CoopMapInfo? CoopInfo { get; }
-        bool EnforceMaxPlayers { get; }
-        bool ForceNoTeams { get; }
-        bool ForceRandomStartLocations { get; }
-        bool HumanPlayersOnly { get; }
-        bool IsCoop { get; }
-        int MaxPlayers { get; }
-        int MinPlayers { get; }
-        bool MultiplayerOnly { get; }
+        public List<int> AllowedStartingLocations { get; }
+        public int CoopDifficultyLevel { get; }
+        public CoopMapInfo? CoopInfo { get; }
+        public bool EnforceMaxPlayers { get; }
+        public bool ForceNoTeams { get; }
+        public bool ForceRandomStartLocations { get; }
+        public bool HumanPlayersOnly { get; }
+        public bool IsCoop { get; }
+        public int MaxPlayers { get; }
+        public int MinPlayers { get; }
+        public bool MultiplayerOnly { get; }
     }
 }
