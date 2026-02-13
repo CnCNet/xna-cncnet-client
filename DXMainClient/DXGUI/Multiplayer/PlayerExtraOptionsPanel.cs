@@ -38,48 +38,47 @@ namespace DTAClient.DXGUI.Multiplayer
         {
         }
 
-        public bool IsForcedRandomSides
+        public bool ForcedRandomSides
         {
             get => chkBoxForceRandomSides.Checked;
             set => chkBoxForceRandomSides.Checked = value;
         }
 
-        public bool IsForcedNoTeams
+        public bool ForcedNoTeams
         {
             get => chkBoxForceNoTeams.Checked;
             set => chkBoxForceNoTeams.Checked = value;
         }
 
-        private bool _isForcedNoTeamsAllowChecking = true;
-        public bool IsForcedNoTeamsAllowChecking
+        public bool ForcedNoTeamsAllowChecking
         {
-            get => _isForcedNoTeamsAllowChecking;
+            get => field;
             set
             {
-                _isForcedNoTeamsAllowChecking = value;
+                field = value;
                 RefreshChkBoxForceNoTeams_AllowChecking();
             }
         }
 
-        public bool IsForcedRandomColors
+        public bool ForcedRandomColors
         {
             get => chkBoxForceRandomColors.Checked;
             set => chkBoxForceRandomColors.Checked = value;
         }
 
-        public bool IsForcedRandomStarts
+        public bool ForcedRandomStarts
         {
             get => chkBoxForceRandomStarts.Checked;
             set => chkBoxForceRandomStarts.Checked = value;
         }
 
-        public bool IsUseTeamStartMappings
+        public bool UseTeamStartMappings
         {
             get => chkBoxUseTeamStartMappings.Checked;
             set => chkBoxUseTeamStartMappings.Checked = value;
         }
 
-        public bool IsUseTeamStartMappingsAllowChecking
+        public bool UseTeamStartMappingsAllowChecking
         {
             get => chkBoxUseTeamStartMappings.AllowChecking;
             set => chkBoxUseTeamStartMappings.AllowChecking = value;
@@ -108,7 +107,7 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         private void RefreshChkBoxForceNoTeams_AllowChecking()
-            => chkBoxForceNoTeams.AllowChecking = IsForcedNoTeamsAllowChecking && !chkBoxUseTeamStartMappings.Checked;
+            => chkBoxForceNoTeams.AllowChecking = ForcedNoTeamsAllowChecking && !chkBoxUseTeamStartMappings.Checked;
 
         private void RefreshTeamStartMappingsPanel()
         {
@@ -153,7 +152,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 var teamStartMappingPanel = teamStartMappingPanels[i];
                 teamStartMappingPanel.ClearSelections();
-                if (!IsUseTeamStartMappings)
+                if (!UseTeamStartMappings)
                     continue;
 
                 teamStartMappingPanel.EnableControls(_isHost && chkBoxUseTeamStartMappings.Checked && _gameModeMap != null && _gameModeMap.AllowedStartingLocations.Contains(i + 1));
@@ -326,11 +325,11 @@ namespace DTAClient.DXGUI.Multiplayer
         public PlayerExtraOptions GetPlayerExtraOptions()
             => new PlayerExtraOptions()
             {
-                IsForceRandomSides = IsForcedRandomSides,
-                IsForceRandomColors = IsForcedRandomColors,
-                IsForceRandomStarts = IsForcedRandomStarts,
-                IsForceNoTeams = IsForcedNoTeams,
-                IsUseTeamStartMappings = IsUseTeamStartMappings,
+                IsForceRandomSides = ForcedRandomSides,
+                IsForceRandomColors = ForcedRandomColors,
+                IsForceRandomStarts = ForcedRandomStarts,
+                IsForceNoTeams = ForcedNoTeams,
+                IsUseTeamStartMappings = UseTeamStartMappings,
                 TeamStartMappings = GetTeamStartMappings()
             };
 

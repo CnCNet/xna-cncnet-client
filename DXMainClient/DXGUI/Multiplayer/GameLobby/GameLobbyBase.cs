@@ -634,19 +634,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (PlayerExtraOptionsPanel != null)
             {
-                if (playerExtraOptions.IsForceRandomSides != PlayerExtraOptionsPanel.IsForcedRandomSides)
+                if (playerExtraOptions.IsForceRandomSides != PlayerExtraOptionsPanel.ForcedRandomSides)
                     AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomSides, "side selection".L10N("Client:Main:SideAsANoun"));
 
-                if (playerExtraOptions.IsForceRandomColors != PlayerExtraOptionsPanel.IsForcedRandomColors)
+                if (playerExtraOptions.IsForceRandomColors != PlayerExtraOptionsPanel.ForcedRandomColors)
                     AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomColors, "color selection".L10N("Client:Main:ColorAsANoun"));
 
-                if (playerExtraOptions.IsForceRandomStarts != PlayerExtraOptionsPanel.IsForcedRandomStarts)
+                if (playerExtraOptions.IsForceRandomStarts != PlayerExtraOptionsPanel.ForcedRandomStarts)
                     AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomStarts, "start selection".L10N("Client:Main:StartPositionAsANoun"));
 
-                if (playerExtraOptions.IsForceNoTeams != PlayerExtraOptionsPanel.IsForcedNoTeams)
+                if (playerExtraOptions.IsForceNoTeams != PlayerExtraOptionsPanel.ForcedNoTeams)
                     AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceNoTeams, "team selection".L10N("Client:Main:TeamAsANoun"));
 
-                if (playerExtraOptions.IsUseTeamStartMappings != PlayerExtraOptionsPanel.IsUseTeamStartMappings)
+                if (playerExtraOptions.IsUseTeamStartMappings != PlayerExtraOptionsPanel.UseTeamStartMappings)
                     AddPlayerExtraOptionForcedNotice(!playerExtraOptions.IsUseTeamStartMappings, "auto ally".L10N("Client:Main:AutoAllyAsANoun"));
             }
 
@@ -2552,19 +2552,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (PlayerOptionsPanel != null)
                 {
-                    PlayerExtraOptionsPanel.IsForcedNoTeamsAllowChecking = false;
-                    PlayerExtraOptionsPanel.IsForcedNoTeams = false;
+                    PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = false;
+                    PlayerExtraOptionsPanel.ForcedNoTeams = false;
 
-                    PlayerExtraOptionsPanel.IsUseTeamStartMappingsAllowChecking = false;
-                    PlayerExtraOptionsPanel.IsUseTeamStartMappings = false;
+                    PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = false;
+                    PlayerExtraOptionsPanel.UseTeamStartMappings = false;
                 }
             }
             else
             {
                 if (PlayerOptionsPanel != null)
                 {
-                    PlayerExtraOptionsPanel.IsForcedNoTeamsAllowChecking = true;
-                    PlayerExtraOptionsPanel.IsUseTeamStartMappingsAllowChecking = true;
+                    PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
+                    PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
                 }
             }
 
