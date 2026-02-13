@@ -542,7 +542,7 @@ namespace ClientCore
                 string extensionKey = $"CustomMissionSupplementFile{index}Extension";
                 string copyAsKey = $"CustomMissionSupplementFile{index}CopyAs";
 
-                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null).Trim();
+                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null)?.Trim();
 
                 // Stop iteration if the extension key is missing
                 if (string.IsNullOrWhiteSpace(extension))
