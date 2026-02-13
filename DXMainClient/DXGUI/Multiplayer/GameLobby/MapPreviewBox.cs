@@ -283,7 +283,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             SoundPlayer.Play(sndDropdownSound);
 
-            if (GameModeMap.Map.EnforceMaxPlayers)
+            if (GameModeMap.EnforceMaxPlayers)
             {
                 foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                 {
@@ -324,7 +324,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!EnableContextMenu)
             {
-                if (GameModeMap.Map.EnforceMaxPlayers)
+                if (GameModeMap.EnforceMaxPlayers)
                 {
                     foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                     {
@@ -485,17 +485,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 indicator.Disable();
             }
             
-            for (int i = 0; i < startingLocations.Count && i < GameModeMap.Map.MaxPlayers; i++)
+            for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
-                PlayerLocationIndicator indicator = startingLocationIndicators[i];
+                bool showLocation = i < startingLocations.Count && GameModeMap.AllowedStartingLocations.Contains(i + 1);
+                if (showLocation)
+                {
+                    PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
-                Point location = new Point(
-                    texturePositionX + (int)(startingLocations[i].X * ratio),
-                    texturePositionY + (int)(startingLocations[i].Y * ratio));
+                    Point location = new Point(
+                        texturePositionX + (int)(startingLocations[i].X * ratio),
+                        texturePositionY + (int)(startingLocations[i].Y * ratio));
 
-                indicator.SetPosition(location);
-                indicator.Enabled = true;
-                indicator.Visible = true;
+                    indicator.SetPosition(location);
+                    indicator.Enabled = true;
+                    indicator.Visible = true;
+                }
+                else
+                {
+                    startingLocationIndicators[i].Disable();
+                }
             }
 
             foreach (var mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
