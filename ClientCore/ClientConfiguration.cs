@@ -530,8 +530,31 @@ namespace ClientCore
         public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
         
         public string CustomMissionPath => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPath", "Maps/CustomMissions");
-        public string CustomMissionSupplementDefinition // e.g., "csf|stringtable99.csf|pal|custommission.pal|shp|custommission.shp"
-            => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionSupplementDefinition", string.Empty);
+        
+        public List<(string extension, string copyAs)> GetCustomMissionSupplementFiles()
+        {
+            List<(string extension, string copyAs)> files = new();
+            
+            int index = 0;
+            while (true)
+            {
+                string extensionKey = $"CustomMissionSupplementFile{index}Extension";
+                string copyAsKey = $"CustomMissionSupplementFile{index}CopyAs";
+                
+                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null);
+                
+                // Stop iteration if the extension key is missing
+                if (string.IsNullOrEmpty(extension))
+                    break;
+                
+                string copyAs = clientDefinitionsIni.GetStringValue(SETTINGS, copyAsKey, string.Empty);
+                
+                files.Add((extension, copyAs));
+                index++;
+            }
+            
+            return files;
+        }
 
         public OSVersion GetOperatingSystemVersion()
         {

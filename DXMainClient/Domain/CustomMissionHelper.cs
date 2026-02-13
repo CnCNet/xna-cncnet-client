@@ -28,19 +28,13 @@ internal static class CustomMissionHelper
 
     public static List<(string extension, string filename)> GetCustomMissionSupplementDefinition()
     {
-        string rawDefinition = ClientConfiguration.Instance.CustomMissionSupplementDefinition;
-        string[] definitionItems = rawDefinition.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-        int fileCount = definitionItems.Length / 2;
-
+        List<(string extension, string copyAs)> configFiles = ClientConfiguration.Instance.GetCustomMissionSupplementFiles();
+        
         HashSet<string> extensions = [];
-
         List<(string extension, string filename)> ret = [];
 
-        for (int i = 0; i < fileCount; i++)
+        foreach ((string extension, string filename) in configFiles)
         {
-            string extension = definitionItems[2 * i];
-            string filename = definitionItems[2 * i + 1];
-
             if (!IsValidExtension(extension))
             {
                 throw new Exception(string.Format("Invalid extension {0}", extension));

@@ -555,7 +555,14 @@ SaveCampaignGameOptions=false  ; boolean, whether or not previously used game op
 ```ini
 [Settings]
 CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
-CustomMissionSupplementDefinition=csf|stringtable99.csf|pal|custommission.pal|shp|custommission.shp ; supplement files that are supposed to be copied to the game folder when a custom mission is played
+CustomMissionSupplementFile0Extension=csf ; extension of the first supplement file
+CustomMissionSupplementFile0CopyAs=stringtable99.csf ; target filename for the first supplement file
+CustomMissionSupplementFile1Extension=pal ; extension of the second supplement file
+CustomMissionSupplementFile1CopyAs=custommission.pal ; target filename for the second supplement file
+CustomMissionSupplementFile2Extension=shp ; extension of the third supplement file
+CustomMissionSupplementFile2CopyAs=custommission.shp ; target filename for the third supplement file
+; supplement files that are supposed to be copied to the game folder when a custom mission is played
+; the iteration stops if a number is missing
 ```
 
 ```ini
