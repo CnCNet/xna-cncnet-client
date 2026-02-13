@@ -30,7 +30,7 @@ internal static class CustomMissionHelper
     {
         List<(string extension, string copyAs)> configFiles = ClientConfiguration.Instance.GetCustomMissionSupplementFiles();
         
-        HashSet<string> extensions = [];
+        HashSet<string> extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         List<(string extension, string filename)> ret = [];
 
         foreach ((string extension, string filename) in configFiles)
