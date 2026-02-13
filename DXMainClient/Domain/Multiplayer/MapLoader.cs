@@ -25,13 +25,14 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
-        private const int CurrentCustomMapCacheVersion = 4;
-        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v4");
-        private static readonly IReadOnlyList<string> LEGACY_CUSTOM_MAP_CACHE_FILES = [
-            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache"),
-            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v2"),
-            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache_v3"),
-        ];
+        private const int CurrentCustomMapCacheVersion = 5;
+
+        private static string GetCustomMapCacheFileName(int version) => version == 1 ? "custom_map_cache" : $"custom_map_cache_v{version}";
+
+        private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, GetCustomMapCacheFileName(CurrentCustomMapCacheVersion));
+        private static readonly IReadOnlyList<string> LEGACY_CUSTOM_MAP_CACHE_FILES = Enumerable.Range(0, CurrentCustomMapCacheVersion)
+            .Select(version => SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, GetCustomMapCacheFileName(version)))
+            .ToList();
 
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
