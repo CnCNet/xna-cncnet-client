@@ -542,16 +542,16 @@ namespace ClientCore
                 string extensionKey = $"CustomMissionSupplementFile{index}Extension";
                 string copyAsKey = $"CustomMissionSupplementFile{index}CopyAs";
                 
-                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null);
+                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null).Trim();
                 
                 // Stop iteration if the extension key is missing
-                if (string.IsNullOrEmpty(extension))
+                if (string.IsNullOrWhiteSpace(extension))
                     break;
                 
                 string copyAs = clientDefinitionsIni.GetStringValue(SETTINGS, copyAsKey, null);
                 
                 // Validate that copyAs is not empty
-                if (string.IsNullOrEmpty(copyAs))
+                if (string.IsNullOrWhiteSpace(copyAs))
                     throw new ClientConfigurationException($"Configuration key '{copyAsKey}' is required when '{extensionKey}' is present for supplement file {index}.");
                 
                 // Validate that extension is unique
