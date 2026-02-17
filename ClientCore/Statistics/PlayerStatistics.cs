@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.IO;
 
 namespace ClientCore.Statistics
@@ -8,7 +7,7 @@ namespace ClientCore.Statistics
     {
         public PlayerStatistics() { }
 
-        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, 
+        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
             Name = name;
@@ -23,7 +22,7 @@ namespace ClientCore.Statistics
 
         public string Name { get; set; }
         public int Kills { get; set; }
-        public int Losses {get; set;}
+        public int Losses { get; set; }
         public int Economy { get; set; }
         public int Score { get; set; }
         public int Side { get; set; }
@@ -44,17 +43,9 @@ namespace ClientCore.Statistics
             // 1 byte for IsLocalPlayer
             stream.WriteBool(IsLocalPlayer);
             // 4 bytes for kills
-            {
-                byte[] killsBuffer = new byte[sizeof(int)];
-                BinaryPrimitives.WriteInt32LittleEndian(killsBuffer, Kills);
-                stream.Write(killsBuffer, 0, sizeof(int));
-            }
+            stream.WriteInt(Kills);
             // 4 bytes for losses
-            {
-                byte[] lossesBuffer = new byte[sizeof(int)];
-                BinaryPrimitives.WriteInt32LittleEndian(lossesBuffer, Losses);
-                stream.Write(lossesBuffer, 0, sizeof(int));
-            }
+            stream.WriteInt(Losses);
             // Name takes 32 bytes
             stream.WriteString(Name, 32);
             // 1 byte for SawEnd
