@@ -590,7 +590,7 @@ namespace DTAClient.Domain.Multiplayer
             SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
         /// <summary>
-        /// Loads and returns the map preview texture.
+        /// Loads and returns the map preview texture. The caller is responsible for disposing the returned texture.
         /// </summary>
         public Texture2D LoadPreviewTexture()
         {
