@@ -136,6 +136,9 @@ namespace DTAClient.Domain.Multiplayer
 
             _gameModes.RemoveAll(g => g.Maps.Count < 1);
             _gameModeMaps = new GameModeMapCollection(_gameModes);
+            
+            // Rebuild the hash index for fast lookups
+            RebuildMapHashIndex();
 
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
@@ -645,6 +648,12 @@ namespace DTAClient.Domain.Multiplayer
                 AddMapToGameModes(map, true);
                 var gameModes = _gameModes.Where(gm => gm.Maps.Contains(map));
                 _gameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
+                
+                // Add the new map to the hash index
+                if (!string.IsNullOrEmpty(map.SHA1) && !mapHashIndex.ContainsKey(map.SHA1))
+                {
+                    mapHashIndex[map.SHA1] = map;
+                }
 
                 resultMessage = string.Format("Map {0} loaded successfully.".L10N("Client:MapLoader:MapLoadedSuccessfully"), map.Name);
 
@@ -667,6 +676,12 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             _gameModeMaps.Remove(gameModeMap);
+            
+            // Remove the map from the hash index
+            if (!string.IsNullOrEmpty(gameModeMap.Map.SHA1))
+            {
+                mapHashIndex.Remove(gameModeMap.Map.SHA1);
+            }
         }
 
         /// <summary>
