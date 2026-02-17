@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer;
 
@@ -63,6 +64,8 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// </summary>
 public class MapTextureCacheManager : IDisposable
 {
+    private const int WorkerThreadShutdownTimeoutMs = 2000;
+
     private readonly int capacity;
     private readonly object cacheLock = new();
     private readonly Dictionary<Map, CacheEntry> cache = new();
@@ -272,9 +275,12 @@ public class MapTextureCacheManager : IDisposable
                     // Notify callback
                     request.Callback?.Invoke(texture);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Silently handle errors and notify callback with null
+                    // Log the error for debugging purposes
+                    Logger.Log($"MapTextureCacheManager: Failed to load texture for map. Error: {ex.Message}");
+                    
+                    // Notify callback with null
                     request.Callback?.Invoke(null);
                 }
             }
