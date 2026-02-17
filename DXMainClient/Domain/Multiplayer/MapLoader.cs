@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -13,6 +14,8 @@ using ClientCore.Extensions;
 using DTAClient.DXGUI.Multiplayer;
 
 using Rampastring.Tools;
+
+using SixLabors.ImageSharp;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -82,12 +85,11 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
-        public readonly MapTextureCacheManager MapTextureCacheManager;
+        public const int MapPreviewCacheCapacity = 500;
 
-        public MapLoader(MapTextureCacheManager mapTextureCacheManager)
-        {
-            MapTextureCacheManager = mapTextureCacheManager;
-        }
+        public readonly IMapPreviewCacheManager MapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
+
+        public MapLoader() { }
 
         /// <summary>
         /// Sets up file watching for maps.
@@ -712,6 +714,19 @@ namespace DTAClient.Domain.Multiplayer
 
                 UserINISettings.Instance.WriteFavoriteMaps();
             }
+        }
+
+        public Image GetCachedPreviewImageFromMap(Map map, bool loadEvenUncached = false)
+        {
+            Image image;
+            if (map?.IsImmediatePreviewImageAvailable() ?? false)
+                image = map.GetImmediatePreviewImage();
+            else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
+                image = MapPreviewCacheManager.RequestImage(map) ?? (loadEvenUncached ? map.GetNonImmediatePreviewImage() : null);
+            else
+                image = null;
+
+            return image;
         }
     }
 }

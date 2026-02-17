@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 using DTAClient.Domain.Multiplayer;
@@ -17,55 +16,8 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// Thread-safe manager for caching map preview images with LRU eviction policy.
 /// Processes image extraction requests sequentially to limit CPU usage to a single thread.
 /// Note: this manager assumes the `Image` objects are managed, so it never disposes them directly.
-/// 
-/// <para>
-/// <b>Usage Example:</b>
-/// <code>
-/// // Create a cache manager with capacity of 50 images
-/// var cacheManager = new MapTextureCacheManager(capacity: 50);
-/// 
-/// // Synchronous check - returns immediately if cached
-/// if (cacheManager.TryGetImage(map, out Image? image))
-/// {
-///     // Convert to texture for rendering
-///     var texture = AssetLoader.TextureFromImage(image);
-/// }
-/// 
-/// // Asynchronous request - queues for extraction if not cached
-/// cacheManager.RequestImage(map, loadedImage =>
-/// {
-///     if (loadedImage != null)
-///     {
-///         // Convert to texture for rendering
-///         var texture = AssetLoader.TextureFromImage(loadedImage);
-///     }
-/// });
-/// 
-/// // Manually add a pre-extracted image
-/// Image preloadedImage = MapPreviewExtractor.ExtractMapPreview(mapIni);
-/// cacheManager.AddToCache(map, preloadedImage);
-/// 
-/// // Clean up
-/// cacheManager.Dispose();
-/// </code>
-/// </para>
-/// 
-/// <para>
-/// <b>Thread Safety:</b><br/>
-/// - All public methods are thread-safe<br/>
-/// - TryGetImage can be called from any thread<br/>
-/// - RequestImage callbacks are invoked on the worker thread<br/>
-/// - The worker thread processes one extraction at a time to limit CPU usage
-/// </para>
-/// 
-/// <para>
-/// <b>Memory Management:</b><br/>
-/// - When cache reaches capacity, least recently used images are evicted<br/>
-/// - Images use managed memory only and will be garbage collected automatically<br/>
-/// - The cache holds references to images; evicted images become eligible for GC
-/// </para>
 /// </summary>
-public class MapTextureCacheManager : IDisposable
+public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 {
     private const int WorkerThreadShutdownTimeoutMs = 2000;
 
@@ -111,7 +63,7 @@ public class MapTextureCacheManager : IDisposable
     /// </summary>
     /// <param name="capacity">Maximum number of images to keep in cache. Must be positive.</param>
     /// <param name="startWorker">Whether to start the worker thread immediately. Default is true.</param>
-    public MapTextureCacheManager(int capacity, bool startWorker = true)
+    public MapPreviewCacheManager(int capacity, bool startWorker = true)
     {
         if (capacity <= 0)
             throw new ArgumentException("Capacity must be positive.", nameof(capacity));
@@ -136,7 +88,7 @@ public class MapTextureCacheManager : IDisposable
     /// <param name="map">The map to get the image for.</param>
     /// <param name="image">The cached image if found; otherwise null.</param>
     /// <returns>True if the image was found in cache; otherwise false.</returns>
-    public bool TryGetImage(Map map, out Image? image)
+    private bool TryGetImage(Map map, out Image? image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -168,7 +120,7 @@ public class MapTextureCacheManager : IDisposable
             throw new ArgumentNullException(nameof(map));
 
         if (isDisposed)
-            throw new ObjectDisposedException(nameof(MapTextureCacheManager));
+            throw new ObjectDisposedException(nameof(MapPreviewCacheManager));
 
         // Check if already cached
         if (TryGetImage(map, out Image? cachedImage))
@@ -191,7 +143,7 @@ public class MapTextureCacheManager : IDisposable
     /// <param name="map">The map associated with the image.</param>
     /// <param name="image">The image to cache.</param>
     /// <returns>True if the image was added to cache; false if map was already cached.</returns>
-    public bool AddToCache(Map map, Image image)
+    private bool AddToCache(Map map, Image image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));

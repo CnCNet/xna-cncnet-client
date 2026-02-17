@@ -15,6 +15,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using Image = SixLabors.ImageSharp.Image;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -51,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
 
-        private bool disposeTextures = false;
+        private bool mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
         private Texture2D mapTexture = null;
         private Texture2D noMapPreviewTexture = null;
 
@@ -247,24 +249,27 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
+                Debug.Assert(!mapTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
-                // TODO: here!!
+                Map map = mapLoader.GameModeMaps.FirstOrDefault(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase))?.Map;
 
-                mapTexture = mapLoader.GameModeMaps
-                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase) &&
-                               m.Map.IsImmediatePreviewTextureAvailable())?.Map?.LoadPreviewTexture();
+                Image mapTextureImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, loadEvenUncached: false) : null;
 
-                Debug.Assert(!disposeTextures, "disposeTextures should be false before loading a new texture.");
-
-                if (mapTexture == null && noMapPreviewTexture != null)
+                if (mapTextureImage != null)
+                {
+                    mapTexture = AssetLoader.TextureFromImage(mapTextureImage);
+                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
+                }
+                else if (noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
                     mapTexture = noMapPreviewTexture;
-                    disposeTextures = false;
+                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
                 else
                 {
-                    disposeTextures = true;
+                    mapTexture = null;
+                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
             }
 
@@ -485,7 +490,7 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            if (mapTexture != null && disposeTextures)
+            if (mapTexture != null && mapTextureNeedsToBeDisposedBeforeLoadingTheNext)
             {
                 Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
                 mapTexture.Dispose();

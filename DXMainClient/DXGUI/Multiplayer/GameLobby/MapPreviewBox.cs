@@ -13,6 +13,8 @@ using System.Linq;
 using ClientGUI;
 using ClientCore.Extensions;
 using System.Diagnostics;
+using Color = Microsoft.Xna.Framework.Color;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -46,7 +48,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public event EventHandler StartingLocationApplied;
 
-        public MapPreviewBox(WindowManager windowManager) : base(windowManager)
+        private readonly MapLoader mapLoader;
+
+        public MapPreviewBox(WindowManager windowManager, MapLoader mapLoader) : base(windowManager)
         {
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             FontIndex = 1;
@@ -57,6 +61,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CoopBriefingBox.Disable();
 
             NameChanged += MapPreviewBox_NameChanged;
+
+            this.mapLoader = mapLoader;
         }
 
         private void MapPreviewBox_NameChanged(object sender, EventArgs e)
@@ -160,7 +166,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private Texture2D previewTexture = null;
 
-        private bool disposeTextures = false;
+        private bool previewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
 
         private bool useNearestNeighbour = false;
 
@@ -404,10 +410,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void UpdateMap()
         {
-            if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
+            if (previewTextureNeedsToBeDisposedBeforeLoadingTheNext && previewTexture != null && !previewTexture.IsDisposed)
             {
                 previewTexture.Dispose();
-                disposeTextures = false;
+                previewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
             }
 
             extraTextures.Clear();
@@ -425,12 +431,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            Debug.Assert(!disposeTextures, "disposeTextures should be false before loading a new texture, otherwise the previously loaded texture will not be disposed.");
+            Debug.Assert(!previewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
-            // TODO: here!!
-
-            previewTexture = GameModeMap.Map.LoadPreviewTexture();
-            disposeTextures = true;
+            Image previewTextureImage = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, loadEvenUncached: true);
+            previewTexture = previewTextureImage != null ? AssetLoader.TextureFromImage(previewTextureImage) : AssetLoader.CreateTexture(Color.Black, Width, Height);
+            previewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {

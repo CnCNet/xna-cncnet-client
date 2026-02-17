@@ -578,16 +578,16 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsImmediatePreviewTextureAvailable() =>
+        public bool IsImmediatePreviewImageAvailable() =>
             SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
-        public Image GetImmediatePreviewTexture() => IsImmediatePreviewTextureAvailable()
+        public Image GetImmediatePreviewImage() => IsImmediatePreviewImageAvailable()
             ? Image.Load(SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName)
             : throw new FileNotFoundException("Immediate preview texture not found for map " + BaseFilePath);
 
-        public bool IsNonImmediatePreviewTextureAvailable() => File.Exists(customMapFilePath);
+        public bool IsNonImmediatePreviewImageAvailable() => File.Exists(customMapFilePath);
 
-        public Image GetNonImmediatePreviewTexture() => IsNonImmediatePreviewTextureAvailable()
+        public Image GetNonImmediatePreviewImage() => IsNonImmediatePreviewImageAvailable()
             ? MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true))
             : throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
 
