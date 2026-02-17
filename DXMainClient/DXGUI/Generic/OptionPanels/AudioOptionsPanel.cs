@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using ClientCore.Enums;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {
@@ -229,10 +230,21 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         public override void Load()
         {
-            base.Load();
+            base.Load();           
 
-            trbScoreVolume.Value = (int)(IniSettings.ScoreVolume * VOLUME_SCALE);
-            trbSoundVolume.Value = (int)(IniSettings.SoundVolume * VOLUME_SCALE);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+            {
+                int scoreVolume = IniSettings.GetValue(UserINISettings.OPTIONS, "ScoreVolume", 7);
+                int soundVolume = IniSettings.GetValue(UserINISettings.OPTIONS, "Volume", 7);
+
+                trbScoreVolume.Value = scoreVolume;
+                trbSoundVolume.Value = soundVolume;
+            }
+            else
+            {
+                trbScoreVolume.Value = (int)(IniSettings.ScoreVolume.Value * VOLUME_SCALE);
+                trbSoundVolume.Value = (int)(IniSettings.SoundVolume.Value * VOLUME_SCALE);
+            }
             trbVoiceVolume.Value = (int)(IniSettings.VoiceVolume * VOLUME_SCALE);
 
             chkScoreShuffle.Checked = IniSettings.IsScoreShuffle;
@@ -248,8 +260,16 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         {
             bool restartRequired = base.Save();
 
-            IniSettings.ScoreVolume.Value = trbScoreVolume.Value / (double)VOLUME_SCALE;
-            IniSettings.SoundVolume.Value = trbSoundVolume.Value / (double)VOLUME_SCALE;
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+            {
+                IniSettings.SetValue(UserINISettings.OPTIONS, "ScoreVolume", trbScoreVolume.Value);
+                IniSettings.SetValue(UserINISettings.OPTIONS, "Volume", trbSoundVolume.Value);
+            }
+            else
+            {
+                IniSettings.ScoreVolume.Value = trbScoreVolume.Value / (double)VOLUME_SCALE;
+                IniSettings.SoundVolume.Value = trbSoundVolume.Value / (double)VOLUME_SCALE;
+            }
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / (double)VOLUME_SCALE;
 
             IniSettings.IsScoreShuffle.Value = chkScoreShuffle.Checked;
