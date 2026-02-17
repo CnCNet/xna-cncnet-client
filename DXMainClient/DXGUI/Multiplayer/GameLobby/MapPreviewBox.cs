@@ -427,6 +427,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Debug.Assert(!disposeTextures, "disposeTextures should be false before loading a new texture, otherwise the previously loaded texture will not be disposed.");
 
+            // TODO: here!!
+
             previewTexture = GameModeMap.Map.LoadPreviewTexture();
             disposeTextures = true;
 

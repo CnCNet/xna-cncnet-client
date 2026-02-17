@@ -252,7 +252,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 mapTexture = mapLoader.GameModeMaps
                     .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase) &&
-                               m.Map.IsPreviewTextureAvailableAsFile())?.Map?.LoadPreviewTexture();
+                               m.Map.IsImmediatePreviewTextureAvailable())?.Map?.LoadPreviewTexture();
 
                 Debug.Assert(!disposeTextures, "disposeTextures should be false before loading a new texture.");
 

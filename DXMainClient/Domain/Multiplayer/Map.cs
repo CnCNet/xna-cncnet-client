@@ -588,39 +588,20 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsPreviewTextureAvailableAsFile() =>
+        public bool IsImmediatePreviewTextureAvailable() =>
             SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
-        public Image ExtractMapPreview() =>
-            MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
+        public Image GetImmediatePreviewTexture() => IsImmediatePreviewTextureAvailable()
+            ? Image.Load(SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName)
+            : throw new FileNotFoundException("Immediate preview texture not found for map " + BaseFilePath);
 
-        /// <summary>
-        /// Loads and returns the map preview texture. The caller is responsible for disposing the returned texture.
-        /// </summary>
-        public Texture2D LoadPreviewTexture()
-        {
-            if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
-                return AssetLoader.LoadTextureUncached(PreviewPath);
+        public bool IsNonImmediatePreviewTextureAvailable() => File.Exists(customMapFilePath);
 
-            if (!Official)
-            {
-                // Extract preview from the map itself
-                // TODO: implement a global cache for the preview texture. Don't cache either the texture or the map ini in the Map object itself.
+        public Image GetNonImmediatePreviewTexture() => IsNonImmediatePreviewTextureAvailable()
+            ? MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true))
+            : throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
 
-                // TODO here!
-
-                using Image preview = ExtractMapPreview();
-
-                if (preview != null)
-                {
-                    Texture2D texture = AssetLoader.TextureFromImage(preview);
-                    if (texture != null)
-                        return texture;
-                }
-            }
-
-            return AssetLoader.CreateTexture(Color.Black, 10, 10);
-        }
+        // TODO: AssetLoader.TextureFromImage
 
         public IniFile GetMapIni()
         {
