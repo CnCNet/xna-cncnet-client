@@ -236,12 +236,19 @@ namespace DTAClient.Online
             }
         }
 
-        private static string BytesToString(byte[] bytes) =>
-#if NET5_0_OR_GREATER
-            Convert.ToHexString(bytes).ToLowerInvariant();
-#else
-            BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
-#endif
+        private static string BytesToString(byte[] bytes)
+        {
+            char[] result = new char[bytes.Length * 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = bytes[i];
+                result[i * 2] = GetHexChar(b >> 4);
+                result[i * 2 + 1] = GetHexChar(b & 0x0F);
+            }
+            return new string(result);
+        }
+
+        private static char GetHexChar(int value) => (char)(value < 10 ? '0' + value : 'a' + value - 10);
 
         private class FileHashes()
         {

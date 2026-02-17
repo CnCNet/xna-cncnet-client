@@ -953,7 +953,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            Span<byte> bytes = stackalloc byte[4];
+            byte[] bytes = new byte[4];
             BinaryPrimitives.WriteInt32LittleEndian(bytes, options);
 
             int side = bytes[0];
@@ -1135,7 +1135,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerOptions == -1)
                     return;
 
-                Span<byte> byteArray = stackalloc byte[4];
+                byte[] byteArray = new byte[4];
                 BinaryPrimitives.WriteInt32LittleEndian(byteArray, playerOptions);
 
                 int team = byteArray[0];
@@ -1336,9 +1336,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                Span<byte> byteArray = stackalloc byte[4];
+                byte[] byteArray = new byte[4];
                 BinaryPrimitives.WriteInt32LittleEndian(byteArray, checkBoxStatusInt);
-                bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray.ToArray());
+                bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray);
 
                 for (int optionIndex = 0; optionIndex < boolArray.Length; optionIndex++)
                 {
