@@ -660,3 +660,8 @@ CampaignTagSelectorEnabled=false ; turns on the campaign tag selector, showing a
 [Settings]
 CompatibilityCheckExecutables=CnCNetYRLauncher.exe,gamemd.exe,gamemd-spawn.exe ; comma-separated list of strings, to check for DirectDraw compatibility mode issues
 ```
+
+```ini
+[Settings]
+ShowGameIconInGameList=true ; boolean, whether to show the game icon in the game listing. Defaults to true.
+```
