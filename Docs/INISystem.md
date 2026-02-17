@@ -288,12 +288,12 @@ _(inherits XNADropDown)_
 ToolTip=            ; text, tooltip for dropdown.
 ```
 
-#### [XNAColorDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAColorDropDown.cs)
+#### [XNAClientColorDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientColorDropDown.cs)
 
 _(inherits XNAClientDropDown)_
 
 ```ini
-[SOMECOLORDROPDOWN] ; XNAColorDropDown
+[SOMECOLORDROPDOWN] ; XNAClientColorDropDown
 ItemsDrawMode=TextAndIcon         ; enum (Text | Icon | TextAndIcon),
                                   ; this will set what combination of texture and text should client use.
 RandomColorTexture=randomicon.png ; string, the file to load as texture for random color.
