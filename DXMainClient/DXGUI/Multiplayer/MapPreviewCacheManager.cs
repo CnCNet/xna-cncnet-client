@@ -119,8 +119,8 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         {
             if (requestQueue.Add(map))
             {
-                // Only signal if we actually added a new item
-                requestEvent.Set();
+                // Signal worker thread that new work is available
+                Monitor.Pulse(queueLock);
             }
         }
 
@@ -184,10 +184,18 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         {
             Map? map = null;
 
-            // Atomically check for work and wait if none available
             lock (queueLock)
             {
-                // Get first item from HashSet if available
+                // Wait for work or disposal
+                while (requestQueue.Count == 0 && !isDisposed)
+                {
+                    Monitor.Wait(queueLock);
+                }
+
+                if (isDisposed)
+                    break;
+
+                // Get first item from HashSet
                 using var enumerator = requestQueue.GetEnumerator();
                 if (enumerator.MoveNext())
                 {
@@ -196,15 +204,8 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 }
             }
 
-            // If no work available, wait for signal
             if (map == null)
-            {
-                requestEvent.WaitOne();
                 continue;
-            }
-
-            if (isDisposed)
-                break;
 
             try
             {
@@ -260,7 +261,10 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         isDisposed = true;
 
         // Signal worker thread to stop
-        requestEvent.Set();
+        lock (queueLock)
+        {
+            Monitor.Pulse(queueLock);
+        }
 
         // Wait for worker thread to finish
         if (workerThread != null && workerThread.IsAlive)
