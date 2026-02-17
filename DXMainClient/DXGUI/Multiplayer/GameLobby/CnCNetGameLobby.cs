@@ -1295,7 +1295,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
             if (GameModeMap == null)
             {
                 ChangeMap(null);
@@ -1949,7 +1949,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice($"Map {e.Map.Name} loaded successfully.");
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == e.Map.SHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == e.Map.SHA1);
             ChangeMap(GameModeMap);
 
             if (isFromChatCommand)
@@ -2185,7 +2185,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sha1 = sha1.Replace("?", "");
 
             // See if the user already has this map, with any filename, before attempting to download it.
-            GameModeMap loadedMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+            GameModeMap loadedMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == sha1);
 
             if (loadedMap != null)
             {

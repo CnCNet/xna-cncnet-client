@@ -46,12 +46,15 @@ namespace DTAClient.Domain.Multiplayer
         private readonly object mapModificationLock = new object();
         private const int _mapChangeRetryCount = 3;
 
+        private readonly List<GameMode> _gameModes = [];
+
         /// <summary>
         /// List of game modes.
         /// </summary>
-        public List<GameMode> GameModes = new List<GameMode>();
+        public IReadOnlyList<GameMode> GameModes => _gameModes;
 
-        public GameModeMapCollection GameModeMaps;
+        private GameModeMapCollection _gameModeMaps;
+        public IReadOnlyGameModeMapCollection GameModeMaps => _gameModeMaps;
 
         /// <summary>
         /// An event that is fired when the maps have been loaded.
@@ -131,8 +134,8 @@ namespace DTAClient.Domain.Multiplayer
             LoadMultiMaps(mpMapsIni);
             LoadCustomMaps();
 
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
+            _gameModes.RemoveAll(g => g.Maps.Count < 1);
+            _gameModeMaps = new GameModeMapCollection(_gameModes);
 
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
@@ -357,27 +360,27 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         private bool IsMapAlreadyLoaded(string sha1)
-            => GameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
+            => _gameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
 
         private Map FindMapBySHA1(string sha1)
-            => GameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
+            => _gameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
 
         private string FindMapSHA1ByFilePath(string baseFilePath)
-            => GameModes.SelectMany(gm => gm.Maps)
+            => _gameModes.SelectMany(gm => gm.Maps)
                 .Where(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault()?.SHA1;
 
         private void RemoveMapBySHA1(string sha1)
         {
-            foreach (var gameMode in GameModes)
+            foreach (var gameMode in _gameModes)
                 gameMode.Maps.RemoveAll(map => map.SHA1 == sha1);
         }
 
         private void UpdateGameModeMaps()
         {
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
-            
+            _gameModes.RemoveAll(g => g.Maps.Count < 1);
+            _gameModeMaps = new GameModeMapCollection(_gameModes);
+
             // Rebuild the hash index for fast lookups
             RebuildMapHashIndex();
         }
@@ -389,8 +392,8 @@ namespace DTAClient.Domain.Multiplayer
         private void RebuildMapHashIndex()
         {
             mapHashIndex.Clear();
-            
-            foreach (var gameModeMap in GameModeMaps)
+
+            foreach (var gameModeMap in _gameModeMaps)
             {
                 var map = gameModeMap.Map;
                 if (!string.IsNullOrEmpty(map.SHA1) && !mapHashIndex.ContainsKey(map.SHA1))
@@ -450,7 +453,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (!string.IsNullOrEmpty(gameModeName))
                     {
                         GameMode gm = new GameMode(gameModeName);
-                        GameModes.Add(gm);
+                        _gameModes.Add(gm);
                     }
                 }
             }
@@ -626,7 +629,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (map.InitializeFromCustomMap())
             {
-                foreach (GameMode gm in GameModes)
+                foreach (GameMode gm in _gameModes)
                 {
                     if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
                     {
@@ -640,8 +643,8 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added successfully.");
 
                 AddMapToGameModes(map, true);
-                var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
-                GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
+                var gameModes = _gameModes.Where(gm => gm.Maps.Contains(map));
+                _gameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
                 resultMessage = string.Format("Map {0} loaded successfully.".L10N("Client:MapLoader:MapLoadedSuccessfully"), map.Name);
 
@@ -658,12 +661,12 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
-            foreach (GameMode gameMode in GameModeMaps.GameModes)
+            foreach (GameMode gameMode in _gameModeMaps.GameModes)
             {
                 gameMode.Maps.Remove(gameModeMap.Map);
             }
 
-            GameModeMaps.Remove(gameModeMap);
+            _gameModeMaps.Remove(gameModeMap);
         }
 
         /// <summary>
@@ -683,11 +686,11 @@ namespace DTAClient.Domain.Multiplayer
                     if (!map.Official && !(AllowedGameModes.Contains(gameMode) || AllowedGameModes.Contains(gameModeAlias)))
                         continue;
 
-                    GameMode gm = GameModes.Find(g => g.Name == gameModeAlias);
+                    GameMode gm = _gameModes.Find(g => g.Name == gameModeAlias);
                     if (gm == null)
                     {
                         gm = new GameMode(gameModeAlias);
-                        GameModes.Add(gm);
+                        _gameModes.Add(gm);
                     }
 
                     gm.Maps.Add(map);
@@ -719,7 +722,7 @@ namespace DTAClient.Domain.Multiplayer
                 string gameModeName = parts[1];
 
                 // Check if there's a corresponding SHA1-based entry for any map with this name
-                var gameMode = GameModes.FirstOrDefault(gm => gm.Name == gameModeName);
+                var gameMode = _gameModes.FirstOrDefault(gm => gm.Name == gameModeName);
                 if (gameMode != null)
                 {
                     bool hasMigratedVersion = gameMode.Maps
@@ -764,7 +767,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             if (string.IsNullOrEmpty(mapHash))
                 return null;
-                
+
             // Use dictionary for O(1) lookup instead of linear search
             mapHashIndex.TryGetValue(mapHash, out Map map);
             return map;

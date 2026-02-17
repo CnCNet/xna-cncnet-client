@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
 using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer
 {
-    public class GameModeMapCollection : List<GameModeMap>
+    public class GameModeMapCollection : List<GameModeMap>, IReadOnlyGameModeMapCollection
     {
         public GameModeMapCollection(IEnumerable<GameMode> gameModes) :
             base(gameModes.SelectMany(gm => gm.Maps.Select(map =>
@@ -12,6 +13,6 @@ namespace DTAClient.Domain.Multiplayer
         {
         }
 
-        public List<GameMode> GameModes => this.Select(gmm => gmm.GameMode).Distinct().ToList();
+        public IReadOnlyList<GameMode> GameModes => this.Select(gmm => gmm.GameMode).Distinct().ToList();
     }
 }
