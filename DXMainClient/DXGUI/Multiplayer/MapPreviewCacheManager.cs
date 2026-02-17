@@ -229,7 +229,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             {
                 // Log the error for debugging purposes with map identifier
                 string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
-                Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
+                Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.ToString()}");
             }
 
             Thread.Sleep(0);
