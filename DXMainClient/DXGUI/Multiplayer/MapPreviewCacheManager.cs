@@ -204,8 +204,9 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 }
             }
 
-            if (map == null)
-                continue;
+            // Skip if no map available or disposed
+            if (map == null || isDisposed)
+                break;
 
             try
             {
