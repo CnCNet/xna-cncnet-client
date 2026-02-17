@@ -1,6 +1,6 @@
-﻿using ClientCore;
-using ClientCore.CnCNet5;
+using ClientCore;
 using ClientGUI;
+using ClientGUI.IME;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
 using ClientCore.Extensions;
@@ -10,26 +10,23 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
-using ClientGUI;
+using System.Buffers.Binary;
+using System.Diagnostics;
+using System.IO;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Campaign;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using DTAConfig;
-using DTAConfig.Settings;
+using ClientGUI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
-#if DX || (GL && WINFORMS)
-using System.Diagnostics;
-using System.IO;
-#endif
 #if WINFORMS
 using System.Windows.Forms;
-using System.IO;
 #endif
 
 namespace DTAClient.DXGUI
@@ -144,22 +141,12 @@ namespace DTAClient.DXGUI
 #endif
             InitializeUISettings();
 
-            WindowManager wm = new WindowManager(this, graphics);
+            WindowManager wm = new(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+            IMEHandler imeHandler = IMEHandler.Create(this);
+            wm.IMEHandler = imeHandler;
 
             wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
-
-            MainClientConstants.DisplayErrorAction = (title, error, exit) =>
-            {
-                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
-                {
-                    OKClickedAction = _ =>
-                    {
-                        if (exit)
-                            Environment.Exit(1);
-                    }
-                }.Show();
-            };
 
             SetGraphicsMode(wm);
 
@@ -192,6 +179,11 @@ namespace DTAClient.DXGUI
                 //        SetGraphicsMode(wm, currentWindowSize.Width, currentWindowSize.Height, centerOnScreen: false);
                 //    }
                 //};
+
+                wm.WindowSizeChangedByUser += (sender, e) =>
+                {
+                    imeHandler.SetIMETextInputRectangle(wm);
+                };
             }
 #endif
 
@@ -240,6 +232,15 @@ namespace DTAClient.DXGUI
                 (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
         }
 
+        private static Random GetRandom()
+        {
+            var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            byte[] intBytes = new byte[sizeof(int)];
+            rng.GetBytes(intBytes);
+            int seed = BinaryPrimitives.ReadInt32LittleEndian(intBytes);
+            return new Random(seed);
+        }
+
         private IServiceProvider BuildServiceProvider(WindowManager windowManager)
         {
             // Create host - this allows for things like DependencyInjection
@@ -258,7 +259,9 @@ namespace DTAClient.DXGUI
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
-                            .AddSingleton<MapTextureCacheManager>();
+                            .AddSingleton<MapTextureCacheManager>()
+                            .AddSingleton<Random>(GetRandom())
+                            .AddSingleton<DirectDrawWrapperManager>();
 
                         // singleton xna controls - same instance on each request
                         services
@@ -276,7 +279,14 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<MainMenu>()
                             .AddSingletonXnaControl<MapPreviewBox>()
                             .AddSingletonXnaControl<GameLaunchButton>()
-                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>();
+                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>()
+                            .AddSingletonXnaControl<CampaignTagSelector>()
+                            .AddSingletonXnaControl<GameLoadingWindow>()
+                            .AddSingletonXnaControl<StatisticsWindow>()
+                            .AddSingletonXnaControl<UpdateQueryWindow>()
+                            .AddSingletonXnaControl<ManualUpdateQueryWindow>()
+                            .AddSingletonXnaControl<UpdateWindow>()
+                            .AddSingletonXnaControl<ExtrasWindow>();
 
                         // transient xna controls - new instance on each request
                         services
@@ -298,11 +308,14 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNAProgressBar>()
                             .AddTransientXnaControl<XNASuggestionTextBox>()
                             .AddTransientXnaControl<XNATextBox>()
+                            .AddTransientXnaControl<XNATextBlock>()
                             .AddTransientXnaControl<XNATrackbar>()
                             .AddTransientXnaControl<XNAChatTextBox>()
                             .AddTransientXnaControl<ChatListBox>()
                             .AddTransientXnaControl<GameLobbyCheckBox>()
                             .AddTransientXnaControl<GameLobbyDropDown>()
+                            .AddTransientXnaControl<CampaignCheckBox>()
+                            .AddTransientXnaControl<CampaignDropDown>()
                             .AddTransientXnaControl<SettingCheckBox>()
                             .AddTransientXnaControl<SettingDropDown>()
                             .AddTransientXnaControl<FileSettingCheckBox>()

@@ -1,4 +1,4 @@
-﻿// Copyright 2022-2024 CnCNet
+﻿// Copyright 2022-2025 CnCNet
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,6 +12,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+#pragma warning disable IDE0057 // Use range operator
 
 namespace SecondStageUpdater;
 
@@ -113,7 +115,8 @@ internal sealed class Program
 
                 IEnumerable<FileInfo> files = updaterDirectory.EnumerateFiles("*", SearchOption.AllDirectories);
                 FileInfo executableFile = SafePath.GetFile(Assembly.GetExecutingAssembly().Location);
-                FileInfo relativeExecutableFile = SafePath.GetFile(executableFile.FullName[baseDirectory.FullName.Length..]);
+                FileInfo relativeExecutableFile = SafePath.GetFile(executableFile.FullName.Substring(baseDirectory.FullName.Length));
+
                 const string versionFileName = "version";
 
                 Write($"{nameof(SecondStageUpdater)}: {relativeExecutableFile}");
@@ -122,16 +125,21 @@ internal sealed class Program
 
                 foreach (FileInfo fileInfo in files)
                 {
-                    string relativeFileName = fileInfo.FullName[updaterDirectory.FullName.Length..];
+                    string relativeFileName = fileInfo.FullName.Substring(updaterDirectory.FullName.Length);
                     string fileExtension = fileInfo.Extension;
+                    string relativeFileNameWithoutExtension = relativeFileName.Substring(0, relativeFileName.Length - fileExtension.Length);
 
-                    if (relativeFileName[..^fileExtension.Length].Equals(relativeExecutableFile.FullName[..^relativeExecutableFile.Extension.Length], StringComparison.OrdinalIgnoreCase)
-                        || relativeFileName[..^fileExtension.Length].Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
+                    string relativeExecutableFileFullName = relativeExecutableFile.FullName;
+                    string relativeExecutableFileExtension = relativeExecutableFile.Extension;
+                    string relativeExecutableFileFullNameWithoutExtension = relativeExecutableFileFullName.Substring(0, relativeExecutableFileFullName.Length - relativeExecutableFileExtension.Length);
+
+                    if (relativeFileNameWithoutExtension.Equals(relativeExecutableFileFullNameWithoutExtension, StringComparison.OrdinalIgnoreCase)
+                        || relativeFileNameWithoutExtension.Equals(SafePath.CombineFilePath("Resources", Path.GetFileNameWithoutExtension(relativeExecutableFile.Name)), StringComparison.OrdinalIgnoreCase))
                     {
                         Write($"Skipping {nameof(SecondStageUpdater)} file {relativeFileName}");
                     }
-                    else if (assemblies.Any(q => relativeFileName[..^fileExtension.Length].Equals(q.Name, StringComparison.OrdinalIgnoreCase))
-                        || assemblies.Any(q => relativeFileName[..^fileExtension.Length].Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
+                    else if (assemblies.Any(q => relativeFileNameWithoutExtension.Equals(q.Name, StringComparison.OrdinalIgnoreCase))
+                        || assemblies.Any(q => relativeFileNameWithoutExtension.Equals(SafePath.CombineFilePath("Resources", q.Name), StringComparison.OrdinalIgnoreCase)))
                     {
                         Write($"Skipping {nameof(SecondStageUpdater)} dependency {relativeFileName}");
                     }
@@ -173,7 +181,7 @@ internal sealed class Program
                 if (versionFile.Exists)
                 {
                     FileInfo destinationFile = SafePath.GetFile(baseDirectory.FullName, versionFile.Name);
-                    FileInfo relativeFileInfo = SafePath.GetFile(destinationFile.FullName[baseDirectory.FullName.Length..]);
+                    FileInfo relativeFileInfo = SafePath.GetFile(destinationFile.FullName.Substring(baseDirectory.FullName.Length));
 
                     Write($"Updating {relativeFileInfo}");
                     versionFile.CopyTo(destinationFile.FullName, true);
@@ -188,11 +196,11 @@ internal sealed class Program
 
                     string[] lines = File.ReadAllLines(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini"));
                     string launcherPropertyName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LauncherExe" : "UnixLauncherExe";
-                    string line = lines.Single(q => q.Trim().StartsWith(launcherPropertyName, StringComparison.OrdinalIgnoreCase) && q.Contains("=", StringComparison.OrdinalIgnoreCase));
+                    string line = lines.Single(q => q.Trim().StartsWith(launcherPropertyName, StringComparison.OrdinalIgnoreCase) && q.Contains('='));
                     int commentStart = line.IndexOf(";", StringComparison.OrdinalIgnoreCase);
 
                     if (commentStart >= 0)
-                        line = line[..commentStart];
+                        line = line.Substring(0, commentStart);
 
                     launcherExe = line.Split('=')[1].Trim();
                 }

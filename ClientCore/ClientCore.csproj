@@ -3,13 +3,10 @@
     <Description>CnCNet Client Core Library</Description>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Resources\*.png" />
-    <EmbeddedResource Include="Resources\*.png" />
+    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <PackageReference Include="Ude.NetStandard" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.Tools" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Condition="'$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
   </ItemGroup>
 </Project>

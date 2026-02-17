@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+
 using ClientCore.Extensions;
+using ClientCore.PlatformShim;
+
 using Rampastring.Tools;
-using Rampastring.XNAUI.XNAControls;
 
 namespace ClientCore.I18N;
 
@@ -50,6 +53,9 @@ public class Translation : ICloneable
     /// <summary>The author(s) of the translation.</summary>
     public string Author { get; private set; } = string.Empty;
 
+    /// <summary>Override the default encoding used for reading/writing map files. Null ("Auto") means detecting the encoding from each file (sometimes unreliable). </summary>
+    public Encoding MapEncoding = EncodingExt.UTF8NoBOM;
+
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
     private Dictionary<string, string> Values { get; } = new();
 
@@ -60,15 +66,6 @@ public class Translation : ICloneable
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
-
-    /// <summary>Used for hardcoded strings.</summary>
-    public const string CLIENT_PREFIX = "Client";
-    /// <summary>Used for INI values.</summary>
-    public const string INI_PREFIX = "INI";
-    /// <summary>Used for INI-defined control values.</summary>
-    public const string CONTROLS_PREFIX = "Controls";
-    /// <summary>Used for parent-agnostic INI values.</summary>
-    public const string GLOBAL_PREFIX = "Global";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Translation"/> class.
@@ -94,6 +91,8 @@ public class Translation : ICloneable
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
         Author = metadataSection?.GetStringValue(nameof(Author), string.Empty);
+
+        MapEncoding = EncodingExt.GetEncodingWithAuto(metadataSection?.GetStringValue(nameof(MapEncoding), null));
 
         string cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
         if (cultureName is not null)
@@ -122,6 +121,7 @@ public class Translation : ICloneable
         _name = other._name;
         _culture = other._culture;
         Author = other.Author;
+        MapEncoding = other.MapEncoding;
 
         foreach (var (key, value) in other.Values)
             Values.Add(key, value);
@@ -176,7 +176,7 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
-            result = new CultureInfo(localeCode).DisplayName;
+            result = new CultureInfo(localeCode).NativeName;
 
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;
@@ -251,6 +251,8 @@ public class Translation : ICloneable
 
         general.AddKey(nameof(Author), Author);
 
+        general.AddKey(nameof(MapEncoding), EncodingExt.EncodingWithAutoToString(MapEncoding));
+
         ini.AddSection(nameof(Values));
         IniSection translation = ini.GetSection(nameof(Values));
 
@@ -299,26 +301,23 @@ public class Translation : ICloneable
     }
 
     /// <summary>
-    /// Looks up the translated value that corresponds to the given INI-defined control attribute.
+    /// Looks up the translated value that corresponds to the given key with a fallback to the value of global key.
     /// </summary>
-    /// <param name="control">The control to look up the attribute value for.</param>
-    /// <param name="attributeName">The attribute name as written in the INI.</param>
+    /// <param name="key">The translation key (identifier).</param>
+    /// <param name="fallbackKey">The fallback translation key (identifier).</param>
     /// <param name="defaultValue">The value to fall back to in case there's no translated value.</param>
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
+    /// <param name="notify">Whether to add this key and value to the list of missing key-values. Doesn't include the fallback key.</param>
     /// <returns>The translated value or a default value.</returns>
-    public string LookUp(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+    public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
-        string key = $"{INI_PREFIX}:{CONTROLS_PREFIX}:{control.Parent?.Name ?? GLOBAL_PREFIX}:{control.Name}:{attributeName}";
-        string globalKey = $"{INI_PREFIX}:{CONTROLS_PREFIX}:{GLOBAL_PREFIX}:{control.Name}:{attributeName}";
-
         string result;
         if (Values.ContainsKey(key))
         {
             result = Values[key];
         }
-        else if (key != globalKey && Values.ContainsKey(globalKey))
+        else if (key != fallbackKey && Values.ContainsKey(fallbackKey))
         {
-            result = Values[globalKey];
+            result = Values[fallbackKey];
         }
         else
         {

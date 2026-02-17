@@ -7,7 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
 using System.Reflection;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -78,7 +78,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.DrawBorders = false;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.dtaicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
 
             gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);

@@ -14,9 +14,6 @@
   Builds XNA CnCNet Client using specified parameters.
 .DESCRIPTION
   You can use this script to make publish packages for your game.
-.PARAMETER Games
-  What game(s) to build the client for?
-  If not specified - builds the client for all games.
 .PARAMETER IsDebug
   Build projects in debug mode.
 .PARAMETER Log
@@ -36,9 +33,6 @@
   Build for ares game on debug mode.
 #>
 param(
-  [Parameter(ValueFromRemainingArguments)]
-  [string[]]
-  $Games,
   [Parameter()]
   [switch]
   $IsDebug,
@@ -84,11 +78,7 @@ if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) {
 function Script:Invoke-BuildProject {
   [CmdletBinding(DefaultParameterSetName = 'ByGame')]
   param (
-    [Parameter(ParameterSetName = 'ByGame', Position = 0)]
     [Parameter(Mandatory, ParameterSetName = 'Detail', Position = 0)]
-    [string]
-    $Game,
-    [Parameter(Mandatory, ParameterSetName = 'Detail')]
     [string]
     $Engine,
     [Parameter(Mandatory, ParameterSetName = 'Detail')]
@@ -98,13 +88,13 @@ function Script:Invoke-BuildProject {
   
   process {
     if ($Engine) {
-      $Output = Join-Path $CompiledRoot $Game $Output 'Resources' ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
-  
+      $Output = Join-Path $CompiledRoot 'Resources' ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
+
       $Private:ArgumentList = [System.Collections.Generic.List[string]]::new(11)
       $Private:ArgumentList.Add('publish')
       $Private:ArgumentList.Add("$ProjectPath")
       $Private:ArgumentList.Add('--graph')
-      $Private:ArgumentList.Add("--configuration:${Game}${Engine}$Script:ConfigurationSuffix")
+      $Private:ArgumentList.Add("--configuration:${Engine}$Script:ConfigurationSuffix")
       $Private:ArgumentList.Add("--framework:$Framework")
       $Private:ArgumentList.Add("--output:$Output")
       $Private:ArgumentList.Add('-property:SatelliteResourceLanguages=en')
@@ -118,17 +108,17 @@ function Script:Invoke-BuildProject {
       # $Private:ArgumentList.Add("-property:FileVersion=$AssemblySemFileVer")
       # $Private:ArgumentList.Add("-property:InformationalVersion=$InformationalVersion")
   
-      if ($Engine -eq 'WindowsXNA') {
-        $Private:ArgumentList.Add('--arch=x86')
-      }
+      # if ($Engine -eq 'WindowsXNA') {
+      #   $Private:ArgumentList.Add('--arch=x86')
+      # }
   
-      & 'dotnet' $Private:ArgumentList  
+      & 'dotnet' $Private:ArgumentList
       if ($LASTEXITCODE) {
-        throw "Build failed for ${Game}${Engine}$Script:ConfigurationSuffix $Framework"
+        throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $LASTEXITCODE)"
       }
     }
-    elseif ($Game) {
-      Invoke-BuildProject -Game $Game -Engine 'UniversalGL' -Framework 'net8.0'
+    else {
+      Invoke-BuildProject -Engine 'UniversalGL' -Framework 'net8.0'
       if ($IsWindows) {
         @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
           $Private:Engine = $PSItem
@@ -136,22 +126,12 @@ function Script:Invoke-BuildProject {
           @('net48', 'net8.0-windows') | ForEach-Object {
             $Private:Framework = $PSItem
   
-            Invoke-BuildProject -Game $Game -Engine $Private:Engine -Framework $Private:Framework
+            Invoke-BuildProject -Engine $Private:Engine -Framework $Private:Framework
           }
         }
-      }
-    }
-    else {
-      @('Ares', 'TS', 'YR') | ForEach-Object {
-        Invoke-BuildProject -Game $PSItem
       }
     }
   }
 }
 
-if ($Games.Count -EQ 0) {
-  Script:Invoke-BuildProject
-}
-else {
-  $Games | ForEach-Object { Script:Invoke-BuildProject $PSItem }
-}
+Script:Invoke-BuildProject

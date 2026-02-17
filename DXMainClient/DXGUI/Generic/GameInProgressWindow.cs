@@ -6,14 +6,13 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
+using ClientCore.Enums;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-#if ARES
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
-#endif
 
 namespace DTAClient.DXGUI
 {
@@ -33,12 +32,9 @@ namespace DTAClient.DXGUI
         private bool initialized = false;
         private bool nativeCursorUsed = false;
 
-#if ARES
         private List<string> debugSnapshotDirectories;
         private DateTime debugLogLastWriteTime;
-#else
         private bool deletingLogFilesFailed = false;
-#endif
 
         public override void Initialize()
         {
@@ -79,39 +75,43 @@ namespace DTAClient.DXGUI
             Visible = false;
             Enabled = false;
 
-#if ARES
-            try
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
-                FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
+                try
+                {
+                    FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
 
-                if (debugLogFileInfo.Exists)
-                    debugLogLastWriteTime = debugLogFileInfo.LastWriteTime;
+                    if (debugLogFileInfo.Exists)
+                        debugLogLastWriteTime = debugLogFileInfo.LastWriteTime;
+                }
+                catch { }
             }
-            catch { }
-#endif
+
         }
 
         private void SharedUILogic_GameProcessStarted()
         {
-
-#if ARES
-            debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
-#else
-            try
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "EXCEPT.TXT");
-
-                for (int i = 0; i < 8; i++)
-                    SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "SYNC" + i + ".TXT");
-
-                deletingLogFilesFailed = false;
+                debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
             }
-            catch (Exception ex)
+            else
             {
-                Logger.Log("Exception when deleting error log files! Message: " + ex.ToString());
-                deletingLogFilesFailed = true;
+                try
+                {
+                    SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "EXCEPT.TXT");
+
+                    for (int i = 0; i < 8; i++)
+                        SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "SYNC" + i + ".TXT");
+
+                    deletingLogFilesFailed = false;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Exception when deleting error log files! Message: " + ex.ToString());
+                    deletingLogFilesFailed = true;
+                }
             }
-#endif
 
             Visible = true;
             Enabled = true;
@@ -129,7 +129,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessExited()
         {
-            AddCallback(new Action(HandleGameProcessExited), null);
+            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
         }
 
         private void HandleGameProcessExited()
@@ -165,50 +165,53 @@ namespace DTAClient.DXGUI
 
             DateTime dtn = DateTime.Now;
 
-#if ARES
-            Task.Factory.StartNew(ProcessScreenshots);
-
-            // TODO: Ares debug log handling should be addressed in Ares DLL itself.
-            // For now the following are handled here:
-            // 1. Make a copy of syringe.log in debug snapshot directory on both crash and desync.
-            // 2. Move SYNCX.txt from game directory to debug snapshot directory on desync.
-            // 3. Make a debug snapshot directory & copy debug.log to it on desync even if full crash dump wasn't created.
-            // 4. Handle the empty snapshot directories created on a crash if debug logging was disabled.
-
-            string snapshotDirectory = GetNewestDebugSnapshotDirectory();
-            bool snapshotCreated = snapshotDirectory != null;
-
-            snapshotDirectory = snapshotDirectory ?? SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug", FormattableString.Invariant($"snapshot-{dtn.ToString("yyyyMMdd-HHmmss")}"));
-
-            bool debugLogModified = false;
-            FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
-            DateTime lastWriteTime = new DateTime();
-
-            if (debugLogFileInfo.Exists)
-                lastWriteTime = debugLogFileInfo.LastAccessTime;
-
-            if (!lastWriteTime.Equals(debugLogLastWriteTime))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
             {
-                debugLogModified = true;
-                debugLogLastWriteTime = lastWriteTime;
-            }
+                Task.Run(ProcessScreenshots);
 
-            if (CopySyncErrorLogs(snapshotDirectory, null) || snapshotCreated)
+                // TODO: Ares debug log handling should be addressed in Ares DLL itself.
+                // For now the following are handled here:
+                // 1. Make a copy of syringe.log in debug snapshot directory on both crash and desync.
+                // 2. Move SYNCX.txt from game directory to debug snapshot directory on desync.
+                // 3. Make a debug snapshot directory & copy debug.log to it on desync even if full crash dump wasn't created.
+                // 4. Handle the empty snapshot directories created on a crash if debug logging was disabled.
+
+                string snapshotDirectory = GetNewestDebugSnapshotDirectory();
+                bool snapshotCreated = snapshotDirectory != null;
+
+                snapshotDirectory = snapshotDirectory ?? SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug", FormattableString.Invariant($"snapshot-{dtn.ToString("yyyyMMdd-HHmmss")}"));
+
+                bool debugLogModified = false;
+                FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
+                DateTime lastWriteTime = new DateTime();
+
+                if (debugLogFileInfo.Exists)
+                    lastWriteTime = debugLogFileInfo.LastAccessTime;
+
+                if (!lastWriteTime.Equals(debugLogLastWriteTime))
+                {
+                    debugLogModified = true;
+                    debugLogLastWriteTime = lastWriteTime;
+                }
+
+                if (CopySyncErrorLogs(snapshotDirectory, null) || snapshotCreated)
+                {
+                    FileInfo snapShotDebugLogFileInfo = SafePath.GetFile(snapshotDirectory, "debug.log");
+
+                    if (debugLogFileInfo.Exists && !snapShotDebugLogFileInfo.Exists && debugLogModified)
+                        File.Copy(debugLogFileInfo.FullName, snapShotDebugLogFileInfo.FullName);
+
+                    CopyErrorLog(snapshotDirectory, "syringe.log", null);
+                }
+            }
+            else
             {
-                FileInfo snapShotDebugLogFileInfo = SafePath.GetFile(snapshotDirectory, "debug.log");
+                if (deletingLogFilesFailed)
+                    return;
 
-                if (debugLogFileInfo.Exists && !snapShotDebugLogFileInfo.Exists && debugLogModified)
-                    File.Copy(debugLogFileInfo.FullName, snapShotDebugLogFileInfo.FullName);
-
-                CopyErrorLog(snapshotDirectory, "syringe.log", null);
+                CopyErrorLog(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "GameCrashLogs"), "EXCEPT.TXT", dtn);
+                CopySyncErrorLogs(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SyncErrorLogs"), dtn);
             }
-#else
-            if (deletingLogFilesFailed)
-                return;
-
-            CopyErrorLog(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "GameCrashLogs"), "EXCEPT.TXT", dtn);
-            CopySyncErrorLogs(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SyncErrorLogs"), dtn);
-#endif
         }
 
         /// <summary>
@@ -295,7 +298,6 @@ namespace DTAClient.DXGUI
             return copied;
         }
 
-#if ARES
         /// <summary>
         /// Returns the first debug snapshot directory found in Ares debug log directory that was created after last game launch and isn't empty.
         /// Additionally any empty snapshot directories encountered are deleted.
@@ -386,6 +388,5 @@ namespace DTAClient.DXGUI
                 file.Delete();
             }
         }
-#endif
     }
 }

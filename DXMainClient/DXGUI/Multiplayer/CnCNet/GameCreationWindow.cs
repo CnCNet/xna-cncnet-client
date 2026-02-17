@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ddSkillLevel.AddItem(localizedSkillLevel);
             }
 
-            ddSkillLevel.SelectedIndex = 0;
+            ddSkillLevel.SelectedIndex = ClientConfiguration.Instance.DefaultSkillLevelIndex;
 
             lblSkillLevel = new XNALabel(WindowManager);
             lblSkillLevel.Name = nameof(lblSkillLevel);
@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
             btnDisplayAdvancedOptions.Name = nameof(btnDisplayAdvancedOptions);
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
-                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnDisplayAdvancedOptions.Text = "Advanced Options".L10N("Client:Main:AdvancedOptions");
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
 
@@ -181,9 +181,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 AddChild(btnLoadMPGame);
             AddChild(btnCancel);
 
-            base.Initialize();
-
             Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
+
+            base.Initialize();
 
             CenterOnParent();
 
@@ -219,9 +219,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnLoadMPGame_LeftClick(object sender, EventArgs e)
         {
-            string gameName = tbGameName.Text.Replace(";", string.Empty);
+            string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            if (string.IsNullOrEmpty(gameName) || !lbTunnelList.IsValidIndexSelected())
+            NameValidationError validationError = NameValidator.IsGameNameValid(gameName, out string errorMessage);
+            if (validationError != NameValidationError.None)
+            {
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
+                    errorMessage);
+                return;
+            }
+
+            if (!lbTunnelList.IsValidIndexSelected())
                 return;
 
             IniFile spawnSGIni =
@@ -239,17 +247,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnCreateGame_LeftClick(object sender, EventArgs e)
         {
-            string gameName = tbGameName.Text.Replace(";", string.Empty);
+            string gameName = NameValidator.GetSanitizedGameName(tbGameName.Text);
 
-            if (string.IsNullOrEmpty(gameName))
+            NameValidationError validationError = NameValidator.IsGameNameValid(gameName, out string errorMessage);
+            if (validationError != NameValidationError.None)
             {
-                return;
-            }
-
-            if (new ProfanityFilter().IsOffensive(gameName))
-            {
-                XNAMessageBox.Show(WindowManager, "Offensive game name".L10N("Client:Main:GameNameOffensiveTitle"),
-                    "Please enter a less offensive game name.".L10N("Client:Main:GameNameOffensiveText"));
+                XNAMessageBox.Show(WindowManager, "Invalid game name".L10N("Client:Main:InvalidGameName"),
+                    errorMessage);
                 return;
             }
 
@@ -258,8 +262,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            GameCreated?.Invoke(this, 
-                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text), 
+            GameCreated?.Invoke(this,
+                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text),
                 tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
                 ddSkillLevel.SelectedIndex)
             );

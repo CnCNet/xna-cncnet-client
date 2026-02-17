@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,8 +32,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
-    public class MapPreviewBox : XNAPanel
+    public class MapPreviewBox : XNAPanel, ICompositeControl
     {
+        public IReadOnlyList<XNAControl> SubControls => [CoopBriefingBox];
+
         private const int MAX_STARTING_LOCATIONS = 8;
 
         public delegate void LocalStartingLocationSelectedEventHandler(object sender,
@@ -47,8 +49,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             FontIndex = 1;
+
+            CoopBriefingBox = new CoopBriefingBox(windowManager);
+            CoopBriefingBox.DrawOrder = 100;  // not a magic number, just high enough so don't need to change it later
+            CoopBriefingBox.UpdateOrder = 100;
+            CoopBriefingBox.Disable();
+
+            NameChanged += MapPreviewBox_NameChanged;
         }
 
+        private void MapPreviewBox_NameChanged(object sender, EventArgs e)
+        {
+            CoopBriefingBox.Name = $"{Name}_CoopBriefingBox";
+        }
 
         public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
         {
@@ -90,10 +103,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 AddChild(indicator);
             }
-
-            briefingBox = new CoopBriefingBox(WindowManager);
-            AddChild(briefingBox);
-            briefingBox.Disable();
 
             ClientRectangleUpdated += (s, e) => UpdateMap();
         }
@@ -140,10 +149,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private XNAContextMenu mapContextMenu;
         private XNAContextMenuItem toggleFavoriteMapItem;
         private XNAContextMenuItem toggleExtraTexturesItem;
+        private XNAContextMenuItem showInFolderItem;
         private XNAClientButton btnToggleFavoriteMap;
         private XNAClientButton btnToggleExtraTextures;
 
-        private CoopBriefingBox briefingBox;
+        private CoopBriefingBox CoopBriefingBox;
 
         private Rectangle textureRectangle;
 
@@ -198,10 +208,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 SelectableChecker = () => GameModeMap != null,
                 VisibilityChecker = () => extraTextures.Any(x => x.Toggleable)
             };
+            showInFolderItem = new XNAContextMenuItem()
+            {
+                Text = "Show in folder".L10N("Client:Main:ShowInFolder"),
+                SelectAction = ShowInFolder,
+                SelectableChecker = () => GameModeMap != null
+            };
             mapContextMenu = new XNAContextMenu(WindowManager);
             mapContextMenu.ClientRectangle = new Rectangle(0, 0, 120, 2);
             mapContextMenu.AddItem(toggleFavoriteMapItem);
             mapContextMenu.AddItem(toggleExtraTexturesItem);
+            mapContextMenu.AddItem(showInFolderItem);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
             btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
@@ -216,6 +233,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddChild(mapContextMenu);
             mapContextMenu.Disable();
+
+            // this is needed for the control composition to work properly, as otherwise
+            // the controls will be initialized twice via INItializableWindow system
+            AddChildWithoutInitialize(CoopBriefingBox);
 
             sndClickSound = new EnhancedSoundEffect("button.wav");
 
@@ -256,11 +277,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             RefreshExtraTexturesBtn();
         }
 
+        private void ShowInFolder() => GameModeMap?.Map.OpenContainingFolder();
+
         private void ContextMenu_OptionSelected(int index)
         {
             SoundPlayer.Play(sndDropdownSound);
 
-            if (GameModeMap.Map.EnforceMaxPlayers)
+            if (GameModeMap.EnforceMaxPlayers)
             {
                 foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                 {
@@ -301,7 +324,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!EnableContextMenu)
             {
-                if (GameModeMap.Map.EnforceMaxPlayers)
+                if (GameModeMap.EnforceMaxPlayers)
                 {
                     foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                     {
@@ -392,7 +415,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (GameModeMap == null)
             {
                 previewTexture = null;
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
                 contextMenu.Disable();
 
@@ -415,13 +438,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(GameModeMap.Map.Briefing);
-                briefingBox.Enable();
+                CoopBriefingBox.SetText(GameModeMap.Map.Briefing);
+                CoopBriefingBox.Enable();
                 if (IsActive)
-                    briefingBox.SetAlpha(0f);
+                    CoopBriefingBox.SetAlpha(0f);
             }
             else
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
             double xRatio = (Width - 2) / (double)previewTexture.Width;
             double yRatio = (Height - 2) / (double)previewTexture.Height;
@@ -455,24 +478,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             List<Point> startingLocations = GameModeMap.Map.GetStartingLocationPreviewCoords(new Point(previewTexture.Width, previewTexture.Height));
 
-            for (int i = 0; i < startingLocations.Count && i < GameModeMap.Map.MaxPlayers; i++)
+            // Disable all indicators to be able updated after changing
+            // locations when 2 or more of them have same location (RA1 specifics)
+            foreach (var indicator in startingLocationIndicators)
             {
-                PlayerLocationIndicator indicator = startingLocationIndicators[i];
-
-                Point location = new Point(
-                    texturePositionX + (int)(startingLocations[i].X * ratio),
-                    texturePositionY + (int)(startingLocations[i].Y * ratio));
-
-                indicator.SetPosition(location);
-                indicator.Enabled = true;
-                indicator.Visible = true;
+                indicator.Disable();
             }
-
-            for (int i = startingLocations.Count; i < MAX_STARTING_LOCATIONS; i++)
+            
+            for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
-                startingLocationIndicators[i].Disable();
-            }
+                bool showLocation = i < startingLocations.Count && GameModeMap.AllowedStartingLocations.Contains(i + 1);
+                if (showLocation)
+                {
+                    PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
+                    Point location = new Point(
+                        texturePositionX + (int)(startingLocations[i].X * ratio),
+                        texturePositionY + (int)(startingLocations[i].Y * ratio));
+
+                    indicator.SetPosition(location);
+                    indicator.Enabled = true;
+                    indicator.Visible = true;
+                }
+                else
+                {
+                    startingLocationIndicators[i].Disable();
+                }
+            }
 
             foreach (var mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
             {
@@ -509,7 +541,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void RefreshFavoriteBtn()
         {
-            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.UntranslatedName, GameModeMap?.GameMode.Name);
+            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.SHA1, GameModeMap?.Map.UntranslatedName, GameModeMap?.GameMode.Name);
             var textureName = isFav ? "favActive.png" : "favInactive.png";
             var hoverTextureName = isFav ? "favActive_c.png" : "favInactive_c.png";
             var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
@@ -595,10 +627,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetFadeVisibility(false);
+                CoopBriefingBox.SetFadeVisibility(false);
             }
             else
-                briefingBox.Disable();
+                CoopBriefingBox.Disable();
 
             base.OnMouseEnter();
         }
@@ -610,24 +642,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(GameModeMap.Map.Briefing);
-                briefingBox.SetFadeVisibility(true);
+                CoopBriefingBox.SetText(GameModeMap.Map.Briefing);
+                CoopBriefingBox.SetFadeVisibility(true);
             }
 
             base.OnMouseLeave();
         }
 
-        public override void OnLeftClick()
+        public override void OnLeftClick(InputEventArgs inputEventArgs)
         {
+            inputEventArgs.Handled = true;
+
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
 
                 if (previewFileInfo.Exists)
-                    ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
+                {
+                    try
+                    {
+                        ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
+                    }
+                    catch { }
+                }
             }
 
-            base.OnLeftClick();
+            base.OnLeftClick(inputEventArgs);
         }
 
         public override void Draw(GameTime gameTime)

@@ -1,12 +1,16 @@
 # Migrating from older versions - INI configuration
 
-Migrating to client version [2.11.0.0][client] from pre-2.11.0.0.
+Migrating to client version [2.11.0.0][client_2.11] or [2.12.0][client_2.12] from pre-2.11.0.0.
 
 This guide uses [YR mod base][mod_base] configuration as an example by migrating from commit [`6ce7db7`](https://github.com/Starkku/cncnet-client-mod-base/commit/6ce7db7fd753df329fb435c3aa5ba90505e5f3a2) to [`34efc04`](https://github.com/Starkku/cncnet-client-mod-base/commit/34efc0454c64e4af28e8177e63f3d9546cbbc6fb). The majority of changes also applies to non-YR client configurations.
 
 It is **highly recommended** to make a complete backup of your game/mod before starting.
 
 ## Edit `ClientDefinitions.ini`
+
+Since v2.12, the client has unified different builds among game types. The game type must be defined in `ClientDefinitions.ini` now.
+
+- Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TS, YR, Ares)
 
 The way the client is launched on Unix systems has changed.
 
@@ -900,7 +904,7 @@ Location=12,189
 
 ## Appendix
 
-For completion's sake, below are additional steps required for a complete migration (beyond INI changes) to client version [2.11.0.0][client] from pre-2.11.0.0.
+For completion's sake, below are additional steps required for a complete migration (beyond INI changes) to client version [2.11.0.0][client_2.11] from pre-2.11.0.0.
 
 ### Update client binary files
 
@@ -927,7 +931,7 @@ The `Resources` directory should look like this (omitting configuration files an
 
 ### Update the client launcher
 
-The client launcher (that resides in the game directory) has been updated. You can replace the old one with version [2.0.7](https://github.com/CnCNet/dta-mg-client-launcher/releases/tag/v2.0.7). Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e. `YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
+The client launcher (that resides in the game directory) has been updated. You can replace the old one with the latest version [here](https://github.com/CnCNet/xna-cncnet-client-launcher/releases). Remember to rename it from `CncNetLauncherStub.exe` to your launcher name, i.e. `YRLauncher.exe`, `MentalOmegaLauncher.exe`. Rename the `.config` file appropriately, i.e. `YRLauncher.exe.config`, `MentalOmegaLauncher.exe.config`.
 
 ### Keep the old second-stage updater
 
@@ -945,5 +949,6 @@ Every file here can be placed either in `Resources` or in theme directories:
 
 You can find example assets in the [YR mod base][mod_base].
 
-[client]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.0.0
+[client_2.11]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.11.0.0
+[client_2.12]: https://github.com/CnCNet/xna-cncnet-client/releases/tag/2.12.0
 [mod_base]: https://github.com/Starkku/cncnet-client-mod-base

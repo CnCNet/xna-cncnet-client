@@ -19,9 +19,11 @@
 *********************************************************************/
 
 using ClientCore;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using System;
 using System.Collections.Generic;
 
@@ -227,7 +229,7 @@ namespace ClientGUI
                 if (char.IsWhiteSpace(c))
                     break;
 
-                if (!char.IsLetterOrDigit(c) && c != '_' && c != '$')
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != '$' && c != '.')
                     break;
 
                 identifierName += c.ToString();

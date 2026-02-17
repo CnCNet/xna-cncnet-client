@@ -12,15 +12,15 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using ClientCore.Enums;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.Settings;
-using Microsoft.Xna.Framework.Graphics;
-using DTAConfig;
-using System.Collections.Generic;
+using ClientGUI;
+using Steamworks;
 
 namespace DTAClient
 {
@@ -62,12 +62,14 @@ namespace DTAClient
                 thread.Start();
             }
 
-            GenerateOnlineIdAsync();
+            // Using tasks here causes crashes on Wine for some reason
+            Thread onlineIdThread = new Thread(GenerateOnlineId);
+            onlineIdThread.Start();
 
-#if ARES
-            Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
-#endif
-            Task.Factory.StartNew(MigrateOldLogFiles);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
+                Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+
+            Task.Run(MigrateOldLogFiles);
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
 
@@ -131,9 +133,7 @@ namespace DTAClient
             if (!UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Find the largest recommended resolution as the default windowed resolution
-                List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-                SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
-                var bestRecommendedResolution = scaledRecommendedResolutions.Max();
+                var bestRecommendedResolution = ScreenResolution.GetBestRecommendedResolution();
 
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
@@ -154,10 +154,37 @@ namespace DTAClient
             }
 #endif
 
+#if ISWINDOWS
+            if (UserINISettings.Instance.SteamIntegration)
+            {
+                try
+                {
+                    if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229850);
+                    }
+                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229880);
+                    }
+                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                    {
+                        Logger.Log("Steam init called");
+                        SteamClient.Init(2229840);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Logger.Log("Steam init failed: " + e.Message);
+                    // Couldn't init for some reason (steam is closed etc)
+                }
+            }
+#endif
             gameClass.Run();
         }
 
-#if ARES
         /// <summary>
         /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
         /// If directory is empty after deleting files, the directory itself will also be deleted.
@@ -201,7 +228,6 @@ namespace DTAClient
                    directory.Name + ". Message: " + ex.ToString());
             }
         }
-#endif
 
         /// <summary>
         /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.
@@ -329,7 +355,7 @@ namespace DTAClient
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
-        private static async Task GenerateOnlineIdAsync()
+        private static void GenerateOnlineId()
         {
 #if !WINFORMS
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -338,7 +364,6 @@ namespace DTAClient
 #pragma warning disable format
                 try
                 {
-                    await Task.CompletedTask;
                     ManagementObjectCollection mbsList = null;
                     ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
                     mbsList = mbs.Get();
@@ -386,7 +411,7 @@ namespace DTAClient
             {
                 try
                 {
-                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id");
+                    string machineId = File.ReadAllText("/var/lib/dbus/machine-id");
 
                     Connection.SetId(machineId);
                 }
@@ -422,5 +447,6 @@ namespace DTAClient
                 Logger.Log("Failed to write installation path to the Windows registry");
             }
         }
+
     }
 }

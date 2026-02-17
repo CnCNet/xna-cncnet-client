@@ -75,6 +75,9 @@ dotnet_code_quality_unused_parameters = all:suggestion
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# CA1806: Do not ignore method results
+dotnet_diagnostic.CA1806.severity = error
+
 #### C# Coding Conventions ####
 [*.cs]
 

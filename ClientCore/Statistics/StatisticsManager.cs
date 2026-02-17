@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
 using Rampastring.Tools;
+using System.Diagnostics;
 
 namespace ClientCore.Statistics
 {
@@ -13,6 +15,8 @@ namespace ClientCore.Statistics
         private const string SCORE_FILE_PATH = "Client/dscore.dat";
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
+
+        private bool _statisticsInitialized = false;
 
         public event EventHandler GameAdded;
 
@@ -34,6 +38,7 @@ namespace ClientCore.Statistics
             if (!scoreFileInfo.Exists)
             {
                 Logger.Log("Skipping reading statistics because the file doesn't exist!");
+                _statisticsInitialized = true;
                 return;
             }
 
@@ -57,6 +62,8 @@ namespace ClientCore.Statistics
 
                 SaveDatabase();
             }
+
+            _statisticsInitialized = true;
         }
 
         /// <summary>
@@ -124,7 +131,7 @@ namespace ClientCore.Statistics
                     fs.Position = 4; // Skip version
                     byte[] readBuffer = new byte[128];
                     fs.Read(readBuffer, 0, 4); // First 4 bytes following the version mean the amount of games
-                    int gameCount = BitConverter.ToInt32(readBuffer, 0);
+                    int gameCount = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
 
                     for (int i = 0; i < gameCount; i++)
                     {
@@ -132,14 +139,14 @@ namespace ClientCore.Statistics
 
                         // First 4 bytes of game info is the length in seconds
                         fs.Read(readBuffer, 0, 4);
-                        int lengthInSeconds = BitConverter.ToInt32(readBuffer, 0);
+                        int lengthInSeconds = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                         ms.LengthInSeconds = lengthInSeconds;
                         // Next 8 are the game version
                         fs.Read(readBuffer, 0, 8);
                         ms.GameVersion = System.Text.Encoding.ASCII.GetString(readBuffer, 0, 8);
                         // Then comes the date and time, also 8 bytes
                         fs.Read(readBuffer, 0, 8);
-                        long dateData = BitConverter.ToInt64(readBuffer, 0);
+                        long dateData = BinaryPrimitives.ReadInt64LittleEndian(readBuffer);
                         ms.DateAndTime = DateTime.FromBinary(dateData);
                         // Then one byte for SawCompletion
                         fs.Read(readBuffer, 0, 1);
@@ -151,7 +158,7 @@ namespace ClientCore.Statistics
                         {
                             // 4 bytes for average FPS
                             fs.Read(readBuffer, 0, 4);
-                            ms.AverageFPS = BitConverter.ToInt32(readBuffer, 0);
+                            ms.AverageFPS = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                         }
 
                         int mapNameLength = 64;
@@ -173,7 +180,7 @@ namespace ClientCore.Statistics
                         {
                             // Unique game ID, 32 bytes (int32)
                             fs.Read(readBuffer, 0, 4);
-                            ms.GameID = BitConverter.ToInt32(readBuffer, 0);
+                            ms.GameID = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                         }
 
                         if (version > 5)
@@ -191,7 +198,7 @@ namespace ClientCore.Statistics
                             {
                                 // Economy is shared for the Built stat in YR
                                 fs.Read(readBuffer, 0, 4);
-                                ps.Economy = BitConverter.ToInt32(readBuffer, 0);
+                                ps.Economy = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                             }
                             else
                             {
@@ -208,10 +215,10 @@ namespace ClientCore.Statistics
                             ps.IsLocalPlayer = Convert.ToBoolean(readBuffer[0]);
                             // Kills take 4 bytes
                             fs.Read(readBuffer, 0, 4);
-                            ps.Kills = BitConverter.ToInt32(readBuffer, 0);
+                            ps.Kills = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                             // Losses also take 4 bytes
                             fs.Read(readBuffer, 0, 4);
-                            ps.Losses = BitConverter.ToInt32(readBuffer, 0);
+                            ps.Losses = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                             // 32 bytes for the name
                             fs.Read(readBuffer, 0, 32);
                             ps.Name = System.Text.Encoding.Unicode.GetString(readBuffer, 0, 32);
@@ -221,7 +228,7 @@ namespace ClientCore.Statistics
                             ps.SawEnd = Convert.ToBoolean(readBuffer[0]);
                             // 4 bytes for Score
                             fs.Read(readBuffer, 0, 4);
-                            ps.Score = BitConverter.ToInt32(readBuffer, 0);
+                            ps.Score = BinaryPrimitives.ReadInt32LittleEndian(readBuffer);
                             // 1 byte for Side
                             fs.Read(readBuffer, 0, 1);
                             ps.Side = readBuffer[0];
@@ -286,10 +293,17 @@ namespace ClientCore.Statistics
         {
             Statistics.Clear();
             CreateDummyFile();
+            _statisticsInitialized = true;
         }
 
         public void AddMatchAndSaveDatabase(bool addMatch, MatchStatistics ms)
         {
+            if (ms == null)
+            {
+                Logger.Log("Skipping adding match to statistics because match statistics is null.");
+                return;
+            }
+
             // Skip adding stats if the game only had one player, make exception for co-op since it doesn't recognize pre-placed houses as players.
             if (ms.GetPlayerCount() <= 1 && !ms.MapIsCoop)
             {
@@ -361,6 +375,7 @@ namespace ClientCore.Statistics
 
         public bool HasBeatCoOpMap(string mapName, string gameMode)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
@@ -380,6 +395,7 @@ namespace ClientCore.Statistics
 
         public int GetCoopRankForDefaultMap(string mapName, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
@@ -485,6 +501,7 @@ namespace ClientCore.Statistics
 
         public bool HasWonMapInPvP(string mapName, string gameMode, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             foreach (MatchStatistics ms in Statistics)
@@ -550,6 +567,7 @@ namespace ClientCore.Statistics
 
         public int GetSkirmishRankForDefaultMap(string mapName, int requiredPlayerCount)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             List<MatchStatistics> matches = new List<MatchStatistics>();
 
             // Filter out unfitting games
@@ -665,11 +683,13 @@ namespace ClientCore.Statistics
 
         public bool IsGameIdUnique(int gameId)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             return Statistics.Find(m => m.GameID == gameId) == null;
         }
 
         public MatchStatistics GetMatchWithGameID(int gameId)
         {
+            Debug.Assert(_statisticsInitialized, "StatisticsManager must have been initialized before.");
             return Statistics.Find(m => m.GameID == gameId);
         }
 

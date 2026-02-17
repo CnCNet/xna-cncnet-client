@@ -8,7 +8,7 @@ namespace DTAClient.Domain.Multiplayer
     {
         public GameModeMapCollection(IEnumerable<GameMode> gameModes) :
             base(gameModes.SelectMany(gm => gm.Maps.Select(map =>
-                new GameModeMap(gm, map, UserINISettings.Instance.IsFavoriteMap(map.UntranslatedName, gm.Name)))).Distinct())
+                new GameModeMap(gm, map, UserINISettings.Instance.IsFavoriteMap(map.SHA1, map.UntranslatedName, gm.Name)))).Distinct())
         {
         }
 

@@ -1,26 +1,31 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
+
 using ClientCore.I18N;
 
 namespace ClientCore.Extensions;
 
 public static class StringExtensions
 {
-    public static string GetLink(this string text)
+    private static Regex extractLinksRE = new Regex(@"((http[s]?)|(ftp))\S+");
+
+    public static string[] GetLinks(this string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
-        int index = text.IndexOf("http://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("ftp://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("https://", StringComparison.Ordinal);
+        var matches = extractLinksRE.Matches(text);
 
-        if (index == -1)
+        if (matches.Count == 0)
             return null; // No link found
 
-        string link = text.Substring(index);
-        return link.Split(' ')[0]; // Nuke any words coming after the link
+        string[] links = new string[matches.Count];
+        for (int i = 0; i < links.Length; i++)
+            links[i] = matches[i].Value.Trim();
+            
+        return links;
     }
 
     private const string ESCAPED_INI_NEWLINE_PATTERN = $"\\{ProgramConstants.INI_NEWLINE_PATTERN}";
@@ -77,4 +82,45 @@ public static class StringExtensions
         => string.IsNullOrEmpty(defaultValue)
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notify);
+
+    /// <summary>
+    /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
+    /// </summary>
+    /// <param name="defaultValue">The default string value.</param>
+    /// <returns>File name without special characters or reserved combinations.</returns>
+    /// <remarks>
+    /// Reference: <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file">Naming Files, Paths, and Namespaces</a>.
+    /// </remarks>
+    public static string ToWin32FileName(this string filename)
+    {
+        foreach (char ch in "/\\:*?<>|")
+            filename = filename.Replace(ch, '_');
+
+        // If the user is somehow using "con" or any other filename that is
+        // reserved by WIN32API, it would be better to rename it.
+
+        HashSet<string> reservedFileNames = new HashSet<string>(new List<string>(){
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
+        if (reservedFileNames.Contains(filename))
+            filename += "_";
+
+        return filename;
+    }
+  
+    public static T ToEnum<T>(this string value) where T : Enum 
+        => (T)Enum.Parse(typeof(T), value, true);
+
+    public static string[] SplitWithCleanup(this string value, char[] separators = null)
+        => value
+            .Split(separators ?? [','])
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToArray();
 }

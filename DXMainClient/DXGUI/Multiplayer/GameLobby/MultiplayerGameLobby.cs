@@ -16,6 +16,7 @@ using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -28,10 +29,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow)
-            : base(windowManager, iniName, mapLoader, true, discordHandler)
+            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow, Random random)
+            : base(windowManager, iniName, mapLoader, true, discordHandler, random)
         {
             TopBar = topBar;
+            this.random = random;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
@@ -60,6 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
         protected XNAClientCheckBox chkAutoReady;
+
+        private Random random;
 
         protected bool IsHost = false;
 
@@ -264,8 +268,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
 
-            for (int pId = 0; pId < Players.Count; pId++)
-                Players[pId].IsInGame = true;
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = false;
 
             base.StartGame();
         }
@@ -279,6 +283,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             pInfo.IsInGame = false;
+
+            if (UserINISettings.Instance.StopGameLobbyMessageAudio)
+                sndMessageSound.Enabled = true;
 
             base.GameProcessExited();
 
@@ -519,7 +526,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int[] results = new int[dieCount];
-            Random random = new Random();
             for (int i = 0; i < dieCount; i++)
             {
                 results[i] = random.Next(1, dieSides + 1);
@@ -700,6 +706,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
+
+            SetMapLabels();
         }
 
         private void ShowMapList()
@@ -728,6 +736,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
             ReadINIForControl(btnMapSortAlphabetically);
+
+            SetMapLabels();
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -792,7 +802,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            if (Map.EnforceMaxPlayers)
+            if (GameModeMap.EnforceMaxPlayers)
             {
                 foreach (PlayerInfo pInfo in Players)
                 {
@@ -827,14 +837,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                     + AIPlayers.Count;
 
-                int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
+                int minPlayers = GameModeMap.MinPlayers;
                 if (totalPlayerCount < minPlayers)
                 {
                     InsufficientPlayersNotification();
                     return;
                 }
 
-                if (Map.EnforceMaxPlayers && totalPlayerCount > Map.MaxPlayers)
+                if (GameModeMap.EnforceMaxPlayers && totalPlayerCount > GameModeMap.MaxPlayers)
                 {
                     TooManyPlayersNotification();
                     return;
@@ -886,14 +896,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     GetReadyNotification();
                     return;
                 }
-                
+
             }
 
             HostLaunchGame();
         }
 
         protected virtual void LockGameNotification() =>
-            AddNotice("You need to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
+            AddNotice("The host needs to lock the game room before launching the game.".L10N("Client:Main:LockGameNotificationV2"));
 
         protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
@@ -928,19 +938,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void InsufficientPlayersNotification()
         {
-            if (GameMode != null && GameMode.MinPlayersOverride > -1)
-                AddNotice(String.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification1"),
-                    GameMode.UIName, GameMode.MinPlayersOverride));
-            else if (Map != null)
-                AddNotice(String.Format("Unable to launch game: this map cannot be played with fewer than {0} players.".L10N("Client:Main:InsufficientPlayersNotification2"),
-                    Map.MinPlayers));
+            Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotificationV2"),
+                GameModeMap.ToString(), GameModeMap.MinPlayers));
         }
 
         protected virtual void TooManyPlayersNotification()
         {
-            if (Map != null)
-                AddNotice(String.Format("Unable to launch game: this map cannot be played with more than {0} players.".L10N("Client:Main:TooManyPlayersNotification"),
-                    Map.MaxPlayers));
+            Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotificationV2"),
+                GameModeMap.ToString(), GameModeMap.MaxPlayers));
         }
 
         public virtual void Clear()
@@ -1008,7 +1015,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     StatusIndicators[pId].SwitchTexture("error");
                 }
-                else */ if (Players[pId].IsInGame) // If player is ingame
+                else */
+                if (Players[pId].IsInGame) // If player is ingame
                 {
                     StatusIndicators[pId].SwitchTexture(PlayerSlotState.InGame);
                 }
@@ -1126,7 +1134,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ToggleFavoriteMap();
 
-            if (GameModeMap.IsFavorite || !IsHost)
+            if ((GameModeMap != null && GameModeMap.IsFavorite) || !IsHost)
                 return;
 
             RefreshForFavoriteMapRemoved();
@@ -1143,10 +1151,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            if (gameModeMap.Map.MaxPlayers > 3)
-                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.Map.MaxPlayers);
+            if (gameModeMap.MaxPlayers > 3)
+                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.MaxPlayers);
 
-            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName, gameModeMap.Map.MaxPlayers))
+            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName, gameModeMap.MaxPlayers))
                 return 2;
 
             return -1;
@@ -1162,7 +1170,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null && GameMode != null)
             {
-                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
+                bool disablestartlocs = GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts;
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }

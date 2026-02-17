@@ -1,4 +1,4 @@
-// Copyright 2022-2024 CnCNet
+// Copyright 2022-2025 CnCNet
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ClientUpdater.Compression;
+using ClientCore.Extensions;
 
 using Rampastring.Tools;
 
@@ -142,7 +143,7 @@ public static class Updater
     private static IniFile settingsINI;
     private static List<CustomComponent> customComponents;
     private static List<UpdateMirror> updateMirrors;
-    private static string[] ignoreMasks = new string[] { ".rtf", ".txt", "Theme.ini", "gui_settings.xml" };
+    private static string[] ignoreMasks = [".rtf", ".txt", "Theme.ini", "gui_settings.xml"];
 
     // File infos.
     private static readonly List<UpdaterFileInfo> FileInfosToDownload = new();
@@ -152,7 +153,11 @@ public static class Updater
 #if NETFRAMEWORK
     private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
     {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+            System.Security.Authentication.SslProtocols.Tls11 |
+            System.Security.Authentication.SslProtocols.Tls12 |
+            System.Security.Authentication.SslProtocols.Tls13,
     });
 
     private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
@@ -253,11 +258,11 @@ public static class Updater
 
         if (sectionKeys != null)
         {
+            char[] separator = new char[] { ',' };
             foreach (string str in sectionKeys)
             {
-                char[] separator = new char[] { ',' };
-                string[] strArray = file.GetStringValue("FileVersions", str, string.Empty).Split(separator);
-                string[] strArrayArch = file.GetStringValue("ArchivedFiles", str, string.Empty).Split(separator);
+                string[] strArray = file.GetStringListValue("FileVersions", str, string.Empty, separator);
+                string[] strArrayArch = file.GetStringListValue("ArchivedFiles", str, string.Empty, separator);
                 bool archiveAvailable = strArrayArch is { Length: >= 2 };
 
                 if (strArray.Length >= 2)
@@ -407,10 +412,10 @@ public static class Updater
         httpClient.DefaultRequestHeaders.UserAgent.Clear();
 
         if (GameVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame, GameVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(LocalGame.Replace(' ', '-'), GameVersion.Replace(' ', '-')));
 
         if (UpdaterVersion != "N/A")
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new(nameof(Updater), UpdaterVersion.Replace(' ', '-')));
 
         httpClient.DefaultRequestHeaders.UserAgent.Add(new("Client", GitVersionInformation.AssemblySemVer));
     }
@@ -482,7 +487,8 @@ public static class Updater
         else
         {
             var updaterConfig = new IniFile(configFile.FullName);
-            ignoreMasks = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks)).Split(',');
+            string maskString = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks));
+            ignoreMasks = maskString.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             List<string> keys = updaterConfig.GetSectionKeys("DownloadMirrors");
 
@@ -641,7 +647,7 @@ public static class Updater
                     }
                     catch (Exception e)
                     {
-                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.Message);
+                        Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.ToString());
                         Logger.Log("Updater: Seeking other mirrors...");
                         currentUpdateMirrorIndex++;
 
@@ -1351,6 +1357,8 @@ public static class Updater
                             }
 
                             // copy SecondStageUpdater dependencies
+                            // warning: for unknown reasons, `System.Runtime.CompilerServices.Unsafe.dll` file is not listed here.
+                            // Therefore, Polyfill (requiring this dll file) is excluded from the second-stage updater.
                             AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterExecutable.FullName).GetReferencedAssemblies();
 
                             foreach (AssemblyName assembly in assemblies)
@@ -1582,9 +1590,9 @@ public static class Updater
     /// <returns>True if path contains any ignore masks, otherwise false.</returns>
     private static bool ContainsAnyMask(string filePath)
     {
-        foreach (string str2 in ignoreMasks)
+        foreach (string mask in ignoreMasks)
         {
-            if (filePath.Contains(str2, StringComparison.OrdinalIgnoreCase))
+            if (filePath.Contains(mask, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
@@ -1633,16 +1641,11 @@ public static class Updater
     /// <returns>File identifier if check is successful, otherwise null.</returns>
     private static string CheckFileIdentifiers(string fileInfoFilename, string localFilename, string fileInfoIdentifier)
     {
-        string identifier;
         if (ContainsAnyMask(fileInfoFilename))
-            identifier = fileInfoIdentifier;
-        else
-            identifier = GetUniqueIdForFile(localFilename);
-
-        if (fileInfoIdentifier == identifier)
             return null;
-
-        return identifier;
+        
+        string identifier;  identifier = GetUniqueIdForFile(localFilename);
+        return fileInfoIdentifier == identifier ? null : identifier;
     }
 
     public static event NoParamEventHandler FileIdentifiersUpdated;

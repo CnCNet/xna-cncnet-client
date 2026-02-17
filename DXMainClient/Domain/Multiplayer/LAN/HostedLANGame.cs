@@ -1,15 +1,28 @@
-﻿using ClientCore;
-using ClientCore.CnCNet5;
-using DTAClient.Domain.Multiplayer;
-using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Net;
+
+using ClientCore;
+
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.LAN
 {
     class HostedLANGame : GenericHostedGame
     {
         public IPEndPoint EndPoint { get; set; }
+
+        public override string RoomName
+        {
+            get => HostName + "'s Game" + (EndPoint != null ? " [" + EndPoint.Address.ToString() + "]" : "");
+            set
+            {
+                // RoomName is generated from HostName and EndPoint. Setting it has no effect.
+            }
+        }
+
         public string LoadedGameID { get; set; }
 
         public TimeSpan TimeWithoutRefresh { get; set; }
@@ -24,7 +37,7 @@ namespace DTAClient.Domain.LAN
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {
-            if (parameters.Length != 9)
+            if (parameters.Length != 10)
             {
                 Logger.Log("Ignoring LAN GAME message because of an incorrect number of parameters.");
                 return false;
@@ -50,7 +63,11 @@ namespace DTAClient.Domain.LAN
             IsLoadedGame = Conversions.IntFromString(parameters[8], 0) > 0;
             LastRefreshTime = DateTime.Now;
             TimeWithoutRefresh = TimeSpan.Zero;
-            RoomName = HostName + "'s Game";
+
+            // RoomName is now generated from HostName and EndPoint. Setting it has no effect.
+            // RoomName = HostName + "'s Game";
+
+            MapHash = parameters[9];
 
             return true;
         }

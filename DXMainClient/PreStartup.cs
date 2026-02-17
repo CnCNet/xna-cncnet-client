@@ -17,7 +17,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.I18N;
 using System.Globalization;
+using System.Security;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -87,8 +89,6 @@ namespace DTAClient
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
 
-            MainClientConstants.Initialize();
-
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
 
             string clientVersion = GitVersionInformation.AssemblySemVer;
@@ -102,6 +102,7 @@ namespace DTAClient
 #if DEVELOPMENT_BUILD
             Logger.Log("This is a development build of the client. Stability and reliability may not be fully guaranteed.");
 #endif
+            MainClientConstants.Initialize();
 
             // Log information about given startup params
             if (parameters.NoAudio)
@@ -175,7 +176,7 @@ namespace DTAClient
                     // Lookup all compile-time available strings
                     ClientCore.Generated.TranslationNotifier.Register();
                     ClientGUI.Generated.TranslationNotifier.Register();
-                    DTAConfig.Generated.TranslationNotifier.Register();
+                    ClientUpdater.Generated.TranslationNotifier.Register();
                     DTAClient.Generated.TranslationNotifier.Register();
                 }
             }
@@ -183,6 +184,10 @@ namespace DTAClient
             {
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
+
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             // Delete obsolete files from old target project versions
 
@@ -233,16 +238,16 @@ namespace DTAClient
             Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
-            Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
+            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
 
             if (ex.InnerException is not null)
                 LogException(ex.InnerException, true);
         }
 
-        static void HandleException(object sender, Exception ex)
+        public static void HandleException(object sender, Exception ex)
         {
-            LogException(ex);
+            LogException(ex, innerException: false);
 
             string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
@@ -279,7 +284,7 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
@@ -291,12 +296,7 @@ namespace DTAClient
             DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
             {
-                using var _ = Process.Start(new ProcessStartInfo
-                {
-                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                    Verb = "runas",
-                    UseShellExecute = true,
-                });
+                AdminRestarter.RestartAsAdmin();
             }
 #else
             MainClientConstants.DisplayErrorAction(title, error, true);
@@ -345,11 +345,19 @@ namespace DTAClient
                         if (ntAccount == null)
                             continue;
 
-                        if (principal.IsInRole(ntAccount.Value))
+                        try
                         {
-                            if (fsAccessRule.AccessControlType == AccessControlType.Deny)
-                                return false;
-                            isInRoleWithAccess = true;
+                            if (principal.IsInRole(ntAccount.Value))
+                            {
+                                if (fsAccessRule.AccessControlType == AccessControlType.Deny)
+                                    return false;
+                                isInRoleWithAccess = true;
+                            }
+                        }
+                        catch (SecurityException)
+                        {
+                            //IsInRole may throw for selected roles when running in Wine, keep iterating other rules 
+                            continue;
                         }
                     }
                 }

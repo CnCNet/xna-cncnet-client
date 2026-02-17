@@ -1,5 +1,7 @@
 ClientUpdater.dll
+ClientUpdater.pdb
 DiscordRPC.dll
+Facepunch.Steamworks.Win64.dll
 lzo.net.dll
 Microsoft.Bcl.AsyncInterfaces.dll
 Microsoft.Extensions.Configuration.Abstractions.dll
@@ -33,7 +35,10 @@ Newtonsoft.Json.Bson.dll
 Newtonsoft.Json.dll
 OpenMcdf.dll
 Rampastring.Tools.dll
+Rampastring.Tools.pdb
+Rampastring.Tools.xml
 SixLabors.ImageSharp.dll
+steam_api64.dll
 System.Buffers.dll
 System.CodeDom.dll
 System.Diagnostics.DiagnosticSource.dll

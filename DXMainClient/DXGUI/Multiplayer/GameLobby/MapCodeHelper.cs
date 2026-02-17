@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+
 using ClientCore;
+using ClientCore.I18N;
+using ClientCore.Extensions;
+
 using DTAClient.Domain.Multiplayer;
+
 using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public static class MapCodeHelper
     {
+        public static Encoding GetMapEncoding(string filepath) => Translation.Instance.MapEncoding ?? FileExtensions.GetDetectedEncoding(filepath);
+
         /// <summary>
         /// Applies code from a component custom INI file to a map INI file.
         /// </summary>
@@ -17,14 +25,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public static void ApplyMapCode(IniFile mapIni, string customIniPath, GameMode gameMode)
         {
-            IniFile associatedIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath));
+            string associatedIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath);
+            Encoding associatedIniEncoding = GetMapEncoding(associatedIniPath);
+            IniFile associatedIni = new IniFile(associatedIniPath, associatedIniEncoding);
             string extraIniName = null;
             if (gameMode != null)
                 extraIniName = associatedIni.GetStringValue("GameModeIncludes", gameMode.Name, null);
             associatedIni.EraseSectionKeys("GameModeIncludes");
             ApplyMapCode(mapIni, associatedIni);
             if (!String.IsNullOrEmpty(extraIniName))
-                ApplyMapCode(mapIni, new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName)));
+            {
+                string extraIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName);
+                Encoding extraIniEncoding = GetMapEncoding(extraIniPath);
+                ApplyMapCode(mapIni, new IniFile(extraIniPath, extraIniEncoding));
+            }
         }
 
         /// <summary>

@@ -31,6 +31,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private const int SUPPORTED_TUNNEL_VERSION = 2;
 
+        private readonly object _refreshLock = new object();
+        private bool _refreshInProgress = false;
+
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
             this.wm = wm;
@@ -78,26 +81,65 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void RefreshTunnelsAsync()
         {
-            Task.Factory.StartNew(() =>
+            lock (_refreshLock)
             {
-                List<CnCNetTunnel> tunnels = RefreshTunnels();
-                wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
+                if (_refreshInProgress)
+                    return;
+                _refreshInProgress = true;
+            }
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    List<CnCNetTunnel> tunnels = RefreshTunnels();
+                    wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
+                }
+                finally
+                {
+                    lock (_refreshLock)
+                    {
+                        _refreshInProgress = false;
+                    }
+                }
             });
         }
 
-        private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels)
+        private void HandleRefreshedTunnels(List<CnCNetTunnel> newTunnels)
         {
-            if (tunnels.Count > 0)
-                Tunnels = tunnels;
+            if (newTunnels.Count == 0)
+            {
+                TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
+                return;
+            }
 
+            var existingTunnels = Tunnels.ToDictionary(t => $"{t.Address}:{t.Port}");
+            var updatedTunnels = new List<CnCNetTunnel>();
+
+            foreach (var newTunnel in newTunnels)
+            {
+                string key = $"{newTunnel.Address}:{newTunnel.Port}";
+                if (existingTunnels.TryGetValue(key, out var existingTunnel))
+                {
+                    // update existing tunnels
+                    existingTunnel.UpdateFrom(newTunnel);
+                    updatedTunnels.Add(existingTunnel);
+                }
+                else
+                {
+                    // add new tunnels
+                    updatedTunnels.Add(newTunnel);
+                }
+            }
+
+            // remove old tunnels
+            Tunnels = updatedTunnels;
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
-
-            Task[] pingTasks = new Task[Tunnels.Count];
 
             for (int i = 0; i < Tunnels.Count; i++)
             {
                 if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    pingTasks[i] = PingListTunnelAsync(i);
+                    _ = PingListTunnelAsync(i);
             }
 
             if (CurrentTunnel != null)
@@ -120,7 +162,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Task PingListTunnelAsync(int index)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
                 Tunnels[index].UpdatePing();
                 DoTunnelPinged(index);
@@ -129,14 +171,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Task PingCurrentTunnelAsync(bool checkTunnelList = false)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
-                CurrentTunnel.UpdatePing();
+                var tunnel = CurrentTunnel;
+                if (tunnel == null) return;
+
+                tunnel.UpdatePing();
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
                 {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == tunnel.Address && t.Port == tunnel.Port);
                     if (tunnelIndex > -1)
                         DoTunnelPinged(tunnelIndex);
                 }
@@ -209,6 +254,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private List<CnCNetTunnel> RefreshTunnels()
         {
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
+            var seenAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
@@ -234,6 +280,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         continue;
 
                     if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
+                        continue;
+
+                    if (!seenAddresses.Add($"{tunnel.Address}:{tunnel.Port}"))
                         continue;
 
                     returnValue.Add(tunnel);

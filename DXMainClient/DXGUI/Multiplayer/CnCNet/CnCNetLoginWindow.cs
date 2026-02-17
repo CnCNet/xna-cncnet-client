@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
@@ -49,6 +49,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbPlayerName.Name = "tbPlayerName";
             tbPlayerName.ClientRectangle = new Rectangle(Width - 132, 50, 120, 19);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
+            tbPlayerName.IMEDisabled = true;
             string defgame = ClientConfiguration.Instance.LocalGame;
 
             lblPlayerName = new XNALabel(WindowManager);
@@ -135,9 +136,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnConnect_LeftClick(object sender, EventArgs e)
         {
-            string errorMessage = NameValidator.IsNameValid(tbPlayerName.Text);
+            NameValidationError validationError = NameValidator.IsNameValid(tbPlayerName.Text, out string errorMessage);
 
-            if (!string.IsNullOrEmpty(errorMessage))
+            if (validationError != NameValidationError.None)
             {
                 XNAMessageBox.Show(WindowManager, "Invalid Player Name".L10N("Client:Main:InvalidPlayerName"), errorMessage);
                 return;

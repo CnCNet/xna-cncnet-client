@@ -42,12 +42,12 @@ namespace DTAClient.Online
             return default(T);
         }
 
-        public LinkedListNode<T> GetFirst()
+        LinkedListNode<T> IUserCollection<T>.GetFirst()
         {
             throw new NotImplementedException();
         }
 
-        public void Reinsert(string username)
+        void IUserCollection<T>.Reinsert(string username)
         {
             throw new NotImplementedException();
         }

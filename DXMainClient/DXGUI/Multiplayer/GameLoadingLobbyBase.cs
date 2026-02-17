@@ -384,7 +384,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// and information in the saved spawn.ini file, as well
         /// as information on whether the local player is the host of the game.
         /// </summary>
-        public void Refresh(bool isHost)
+        public virtual void Refresh(bool isHost)
         {
             isSettingUp = true;
             IsHost = isHost;

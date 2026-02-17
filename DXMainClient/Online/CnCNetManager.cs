@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
@@ -46,11 +46,11 @@ namespace DTAClient.Online
         public event EventHandler<UserNameIndexEventArgs> UserRemoved;
         public event EventHandler MultipleUsersAdded;
 
-        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData)
+        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData, Random random)
         {
             gameCollection = gc;
             this.cncNetUserData = cncNetUserData;
-            connection = new Connection(this);
+            connection = new Connection(this, random);
 
             this.wm = wm;
 
@@ -61,19 +61,19 @@ namespace DTAClient.Online
                 new IRCColor("Default color".L10N("Client:Main:ColorDefault"), false, cDefaultChatColor, 0),
                 new IRCColor("Default color #2".L10N("Client:Main:ColorDefault2"), false, cDefaultChatColor, 1),
                 new IRCColor("Light Blue".L10N("Client:Main:ColorLightBlue"), true, Color.LightBlue, 2),
-                new IRCColor("Green".L10N("Client:Main:ColorForestGreen"), true, Color.ForestGreen, 3),
+                new IRCColor("Green".L10N("Client:Main:ColorGreen"), true, Color.ForestGreen, 3),
                 new IRCColor("Dark Red".L10N("Client:Main:ColorDarkRed"), true, new Color(180, 0, 0, 255), 4),
                 new IRCColor("Red".L10N("Client:Main:ColorRed"), true, Color.Red, 5),
-                new IRCColor("Purple".L10N("Client:Main:ColorMediumOrchid"), true, Color.MediumOrchid, 6),
+                new IRCColor("Purple".L10N("Client:Main:ColorPurple"), true, Color.MediumPurple, 6),
                 new IRCColor("Orange".L10N("Client:Main:ColorOrange"), true, Color.Orange, 7),
                 new IRCColor("Yellow".L10N("Client:Main:ColorYellow"), true, Color.Yellow, 8),
-                new IRCColor("Lime Green".L10N("Client:Main:ColorLime"), true, Color.Lime, 9),
+                new IRCColor("Lime Green".L10N("Client:Main:ColorLimeGreen"), true, Color.LimeGreen, 9),
                 new IRCColor("Turquoise".L10N("Client:Main:ColorTurquoise"), true, Color.Turquoise, 10),
-                new IRCColor("Sky Blue".L10N("Client:Main:ColorLightSkyBlue"), true, Color.LightSkyBlue, 11),
-                new IRCColor("Blue".L10N("Client:Main:ColorRoyalBlue"), true, Color.RoyalBlue, 12),
-                new IRCColor("Pink".L10N("Client:Main:ColorFuchsia"), true, Color.Fuchsia, 13),
-                new IRCColor("Gray".L10N("Client:Main:ColorLightGray"), true, Color.LightGray, 14),
-                new IRCColor("Gray #2".L10N("Client:Main:ColorGray2"), false, Color.Gray, 15)
+                new IRCColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), true, Color.LightSkyBlue, 11),
+                new IRCColor("Blue".L10N("Client:Main:ColorBlue"), true, Color.RoyalBlue, 12),
+                new IRCColor("Pink".L10N("Client:Main:ColorPink"), true, Color.DeepPink, 13),
+                new IRCColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), true, Color.LightGray, 14),
+                new IRCColor("Gray".L10N("Client:Main:ColorGray"), false, Color.Gray, 15)
             };
         }
 
@@ -283,6 +283,17 @@ namespace DTAClient.Online
                             if (user == null)
                                 break;
                             user.IsAdmin = addMode;
+                            break;
+
+                        // Add/remove voice status on user.
+                        case 'v':
+                            if (parameterCount >= modeParameters.Count)
+                                break;
+                            string vParam = modeParameters[parameterCount++];
+                            ChannelUser vUser = channel.Users.Find(vParam);
+                            if (vUser == null)
+                                break;
+                            vUser.IRCUser.HasVoice = addMode;
                             break;
                     }
                 }
@@ -739,6 +750,7 @@ namespace DTAClient.Online
             {
                 string name = userName;
                 bool isAdmin = false;
+                bool hasVoice = false;
 
                 if (userName.StartsWith("@"))
                 {
@@ -746,7 +758,10 @@ namespace DTAClient.Online
                     name = userName.Substring(1);
                 }
                 else if (userName.StartsWith("+"))
+                {
+                    hasVoice = true;
                     name = userName.Substring(1);
+                }
 
                 // Check if we already know the IRC user from another channel
                 IRCUser ircUser = UserList.Find(u => u.Name == name);
@@ -762,6 +777,7 @@ namespace DTAClient.Online
                 var channelUser = new ChannelUser(ircUser);
                 channelUser.IsAdmin = isAdmin;
                 channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+                channelUser.IRCUser.HasVoice = hasVoice;
 
                 channelUserList.Add(channelUser);
             }

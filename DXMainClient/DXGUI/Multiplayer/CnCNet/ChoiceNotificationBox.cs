@@ -7,7 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
 using System.Reflection;
-using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "MAKE A CHOICE".L10N("Client:Main:MakeAChoice");
             AddChild(lblHeader);
 
-            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.dtaicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
 
             gameIconPanel = new XNAPanel(WindowManager);

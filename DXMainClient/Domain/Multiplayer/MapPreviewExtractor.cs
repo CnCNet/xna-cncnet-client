@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using lzo.net;
 using SixLabors.ImageSharp;
@@ -43,7 +45,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            string[] previewSizes = mapIni.GetStringValue("Preview", "Size", "").Split(',');
+            string[] previewSizes = mapIni.GetStringListValue("Preview", "Size", string.Empty);
             int previewWidth = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[2], -1) : -1;
             int previewHeight = previewSizes.Length > 3 ? Conversions.IntFromString(previewSizes[3], -1) : -1;
 
@@ -110,9 +112,9 @@ namespace DTAClient.Domain.Multiplayer
                     if (readBytes >= dataSource.Length)
                         break;
 
-                    ushort sizeCompressed = BitConverter.ToUInt16(dataSource, readBytes);
+                    ushort sizeCompressed = BinaryPrimitives.ReadUInt16LittleEndian(dataSource.AsSpan(readBytes));
                     readBytes += 2;
-                    ushort sizeUncompressed = BitConverter.ToUInt16(dataSource, readBytes);
+                    ushort sizeUncompressed = BinaryPrimitives.ReadUInt16LittleEndian(dataSource.AsSpan(readBytes));
                     readBytes += 2;
 
                     if (sizeCompressed == 0 || sizeUncompressed == 0)

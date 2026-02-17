@@ -79,6 +79,8 @@ namespace DTAClient.DXGUI.Generic
 
         private List<MultiplayerColor> mpColors;
 
+        private bool initialized = false;
+
         public override void Initialize()
         {
             sm = StatisticsManager.Instance;
@@ -94,9 +96,10 @@ namespace DTAClient.DXGUI.Generic
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
             ClientRectangle = new Rectangle(0, 0, 700, 521);
+            VisibleChanged += StatisticsWindow_VisibleChanged;
 
             tabControl = new XNAClientTabControl(WindowManager);
-            tabControl.Name = "tabControl";
+            tabControl.Name = nameof(tabControl);
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
@@ -105,14 +108,14 @@ namespace DTAClient.DXGUI.Generic
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);
-            lblFilter.Name = "lblFilter";
+            lblFilter.Name = nameof(lblFilter);
             lblFilter.FontIndex = 1;
             lblFilter.Text = "FILTER:".L10N("Client:Main:Filter");
             lblFilter.ClientRectangle = new Rectangle(527, 12, 0, 0);
 
             cmbGameClassFilter = new XNAClientDropDown(WindowManager);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
-            cmbGameClassFilter.Name = "cmbGameClassFilter";
+            cmbGameClassFilter.Name = nameof(cmbGameClassFilter);
             cmbGameClassFilter.AddItem("All games".L10N("Client:Main:FilterAll"));
             cmbGameClassFilter.AddItem("Online games".L10N("Client:Main:FilterOnline"));
             cmbGameClassFilter.AddItem("Online PvP".L10N("Client:Main:FilterPvP"));
@@ -415,9 +418,15 @@ namespace DTAClient.DXGUI.Generic
 
             ReadStatistics();
             ListGameModes();
-            ListGames();
 
             StatisticsManager.Instance.GameAdded += Instance_GameAdded;
+
+            initialized = true;
+        }
+
+        private void StatisticsWindow_VisibleChanged(object sender, EventArgs e)
+        {
+            ListGames();
         }
 
         private void Instance_GameAdded(object sender, EventArgs e)
@@ -613,6 +622,9 @@ namespace DTAClient.DXGUI.Generic
 
         private void ListGames()
         {
+            if (!Visible || !initialized)
+                return;
+
             lbGameList.SelectedIndex = -1;
             lbGameList.SetTopIndex(0);
 
@@ -1009,9 +1021,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
-            // To hide the control, just set Enabled=false
-            // and MainMenuDarkeningPanel will deal with the rest
-            Enabled = false;
+            Disable();
         }
 
         private void BtnClearStatistics_LeftClick(object sender, EventArgs e)

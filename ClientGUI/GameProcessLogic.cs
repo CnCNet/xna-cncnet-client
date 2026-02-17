@@ -37,13 +37,16 @@ namespace ClientGUI
             int waitTimes = 0;
             while (PreprocessorBackgroundTask.Instance.IsRunning)
             {
+                Logger.Log("The preprocessor background task is still running. Wait for it...");
                 Thread.Sleep(1000);
                 waitTimes++;
                 if (waitTimes > 10)
                 {
-                    XNAMessageBox.Show(windowManager, "INI preprocessing not complete", "INI preprocessing not complete. Please try " +
+                    XNAMessageBox.Show(windowManager, 
+                        "INI preprocessing not complete".L10N("Client:ClientGUI:INIPreprocessingNotCompleteTitle"),
+                        ("INI preprocessing not complete. Please try " +
                         "launching the game again. If the problem persists, " +
-                        "contact the game or mod authors for support.");
+                        "contact the game or mod authors for support.").L10N("Client:ClientGUI:INIPreprocessingNotCompleteText"));
                     return;
                 }
             }
@@ -52,6 +55,11 @@ namespace ClientGUI
 
             string gameExecutableName;
             string additionalExecutableName = string.Empty;
+
+            string errorLaunchingTitle = "Error launching game".L10N("Client:ClientGUI:ErrorLaunchingTitle");
+            string errorLaunchingText = ("Error launching {0}. Please check that your anti-virus isn't blocking the CnCNet Client. " +
+                        "You can also try running the client as an administrator.\n\nYou are unable to participate in this match. \n\n" +
+                        "Returned error: {1}").L10N("Client:ClientGUI:ErrorLaunchingText");
 
             if (osVersion == OSVersion.UNIX)
                 gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
@@ -98,10 +106,8 @@ namespace ClientGUI
                 {
                     Logger.Log("Error launching QRes: " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
-                        "Error launching game".L10N("Client:ClientGUI:ErrorLaunchQresTitle"),
-                        string.Format("Error launching {0}. Please check that your anti-virus isn't blocking the CnCNet Client. " +
-                        "You can also try running the client as an administrator.\n\nYou are unable to participate in this match. \n\n" +
-                        "Returned error: {1}".L10N("Client:ClientGUI:ErrorLaunchQresText"), ProgramConstants.QRES_EXECUTABLE, ex.Message));
+                        errorLaunchingTitle,
+                        string.Format(errorLaunchingText, ProgramConstants.QRES_EXECUTABLE, ex.Message));
                     Process_Exited(QResProcess, EventArgs.Empty);
                     return;
                 }
@@ -130,7 +136,6 @@ namespace ClientGUI
 
                 Logger.Log("Launch executable: " + gameProcess.StartInfo.FileName);
                 Logger.Log("Launch arguments: " + gameProcess.StartInfo.Arguments);
-
                 try
                 {
                     gameProcess.Start();
@@ -139,9 +144,9 @@ namespace ClientGUI
                 catch (Exception ex)
                 {
                     Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.ToString());
-                    XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + gameFileInfo.Name + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
-                        "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
-                        Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);
+                    XNAMessageBox.Show(windowManager,
+                        errorLaunchingTitle,
+                        string.Format(errorLaunchingText, gameFileInfo.Name, ex.Message));
                     Process_Exited(gameProcess, EventArgs.Empty);
                     return;
                 }

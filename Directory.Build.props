@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -8,30 +8,24 @@
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2026</Copyright>
     <Trademark>CnCNet</Trademark>
     <!-- GitVersion will rewrite the informational version anyway -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <!-- There is a race condition in GitVersion. Disable writing version info should help a bit -->
+    <WriteVersionInfoToBuildLog>false</WriteVersionInfoToBuildLog>
   </PropertyGroup>
 
   <PropertyGroup>
     <Configurations>
-      AresWindowsDXDebug;AresUniversalGLDebug;AresWindowsGLDebug;AresWindowsXNADebug;
-      AresWindowsDXRelease;AresUniversalGLRelease;AresWindowsGLRelease;AresWindowsXNARelease;
-      TSWindowsDXDebug;TSUniversalGLDebug;TSWindowsGLDebug;TSWindowsXNADebug;
-      TSWindowsDXRelease;TSUniversalGLRelease;TSWindowsGLRelease;TSWindowsXNARelease;
-      YRWindowsDXDebug;YRUniversalGLDebug;YRWindowsGLDebug;YRWindowsXNADebug;
-      YRWindowsDXRelease;YRUniversalGLRelease;YRWindowsGLRelease;YRWindowsXNARelease
+      UniversalGLDebug;WindowsDXDebug;WindowsGLDebug;WindowsXNADebug;
+      UniversalGLRelease;WindowsDXRelease;WindowsGLRelease;WindowsXNARelease
     </Configurations>
   </PropertyGroup>
 
   <!-- For Internal Logic -->
   <PropertyGroup>
-    <!-- Game -->
-    <Game Condition="$(Configuration.Contains(Ares))">Ares</Game>
-    <Game Condition="$(Configuration.Contains(TS))">TS</Game>
-    <Game Condition="$(Configuration.Contains(YR))">YR</Game>
-
     <!-- Rendering Engine -->
     <Engine Condition="$(Configuration.Contains(WindowsDX))">WindowsDX</Engine>
     <Engine Condition="$(Configuration.Contains(UniversalGL))">UniversalGL</Engine>
@@ -39,15 +33,17 @@
     <Engine Condition="$(Configuration.Contains(WindowsXNA))">WindowsXNA</Engine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient'">
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
-    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <Platforms Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platforms>
+    <!-- We need to define both platforms to make Visual Studio happy when targeting XNA -->
+    <Platforms>AnyCPU;x86</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
-    <Platform Condition="'$(MSBuildProjectName)' == 'TranslationNotifierGenerator'">AnyCPU</Platform>
+    <Platform Condition="!$(Engine.Contains(XNA))">AnyCPU</Platform>
+    <PlatformTarget Condition="$(Engine.Contains(XNA))">x86</PlatformTarget>
+    <PlatformTarget Condition="!$(Engine.Contains(XNA))">AnyCPU</PlatformTarget>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
@@ -57,7 +53,7 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientUpdater' OR '$(MSBuildProjectName)' == 'SecondStageUpdater'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'SecondStageUpdater' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
@@ -73,18 +69,13 @@
     <DefineConstants Condition="$(Engine.Contains('XNA'))">$(DefineConstants);XNA</DefineConstants>
     <DefineConstants Condition="$(Engine.Contains('Windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(UseWindowsForms)' == 'true'">$(DefineConstants);WINFORMS</DefineConstants>
-
-    <!-- Games-->
-    <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>
-    <DefineConstants Condition="'$(Game)' == 'TS'">$(DefineConstants);TS</DefineConstants>
-    <DefineConstants Condition="'$(Game)' == 'YR'">$(DefineConstants);YR</DefineConstants>
   </PropertyGroup>
 
   <!-- Output Path Hack -->
   <PropertyGroup>
     <ClientConfiguration Condition="$(Configuration.Contains(Debug))">Debug</ClientConfiguration>
     <ClientConfiguration Condition="$(Configuration.Contains(Release))">Release</ClientConfiguration>
-    <OutputPathSuffix>$(ClientConfiguration)\$(Game)\$(Engine)\</OutputPathSuffix>
+    <OutputPathSuffix>$(ClientConfiguration)\$(Engine)\</OutputPathSuffix>
     <OutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseOutputPath)bin\$(OutputPathSuffix)</OutputPath>
     <IntermediateOutputPath Condition="'$(ClientConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(OutputPathSuffix)</IntermediateOutputPath>
     <ArtifactsPivots>$(OutputPathSuffix)$(TargetFramework)</ArtifactsPivots>
@@ -96,9 +87,25 @@
   </PropertyGroup>
 
   <!-- Allow a game specific build prop file to be imported, if available -->
-  <Import Project="$(MSBuildThisFileDirectory)Directory.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.$(Game).props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Directory.props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.props')" />
 
   <ItemGroup>
     <CompilerVisibleProperty Include="RootNamespace" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <XNAUIRoot>$(MSBuildThisFileDirectory)Rampastring.XNAUI</XNAUIRoot>
+  </PropertyGroup>
+
+  <ItemGroup Condition="('$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient') And $(Engine.Contains(XNA))">
+    <Reference Include="Microsoft.Xna.Framework">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics">
+      <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

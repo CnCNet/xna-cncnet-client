@@ -44,8 +44,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow) :
-            base(windowManager, iniName, topBar, mapLoader, discordHandler, pmWindow)
+            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler, PrivateMessagingWindow pmWindow, Random random) :
+            base(windowManager, iniName, topBar, mapLoader, discordHandler, pmWindow, random)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -77,6 +77,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             localGame = ClientConfiguration.Instance.LocalGame;
 
             WindowManager.GameClosing += WindowManager_GameClosing;
+
+            this.random = random;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -99,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
-        public event EventHandler GameLeft;
+        public event EventHandler<GameLeftEventArgs> GameLeft;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
         private TcpListener listener;
@@ -123,6 +125,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string localFileHash;
 
+        private Random random;
+
         public override void Initialize()
         {
             IniNameOverride = nameof(LANGameLobby);
@@ -139,7 +143,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
 
@@ -368,8 +372,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.ToString());
-                    BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                    // Disconnect from server
+
+                    Logger.Log(string.Format(
+                        "Reading data from the server failed! Server address: {0}. Exception: {1}",
+                        hostEndPoint.Address.ToString(), ex.ToString()));
+
+                    string localizedMessage = string.Format(
+                        "Reading data from the server failed! Server address: {0}. Exception: {1}".L10N("Client:Main:LanServerReadError"),
+                         hostEndPoint.Address.ToString(), ex.Message);
+
+                    LeaveGame(localizedMessage);
                     break;
                 }
 
@@ -404,8 +417,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     continue;
                 }
 
-                Logger.Log("Reading data from the server failed (0 bytes received)!");
-                BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                // Disconnect from server
+                {
+                    Logger.Log(string.Format(
+                        "Reading data from the server failed (0 bytes received)! Server address: {0}", hostEndPoint.Address.ToString()));
+
+                    string localizedMessage = string.Format(
+                        "Reading data from the server failed (0 bytes received)! Server address: {0}".L10N("Client:Main:LanServerReadZero"),
+                         hostEndPoint.Address.ToString());
+
+                    LeaveGame(localizedMessage);
+                }
+
                 break;
             }
         }
@@ -423,10 +446,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
+        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
+
+        protected void LeaveGame(string message = null)
         {
             Clear();
-            GameLeft?.Invoke(this, EventArgs.Empty);
+            GameLeft?.Invoke(this, new GameLeftEventArgs() { Message = message });
             PlayerExtraOptionsPanel?.Disable();
             Disable();
         }
@@ -648,7 +673,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game".L10N("Client:Main:LockGame");
 
             if (manual)
-                AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnockedByYou"));
+                AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnlockedByYou"));
         }
 
         protected override void LockGame()
@@ -669,7 +694,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                RandomSeed = new Random().Next();
+                RandomSeed = random.Next();
                 OnGameOptionChanged();
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
@@ -730,9 +755,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
                 {
+                    string localizedMessage = string.Format(
+                        "Connection to the game host timed out. Server address: {0}".L10N("Client:Main:HostConnectTimeOutWithAddress"),
+                        hostEndPoint.Address.ToString());
+
                     LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("Client:Main:HostConnectTimeOut")));
-                    BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                        new LobbyNotificationEventArgs(localizedMessage));
+                    LeaveGame(localizedMessage);
                 }
             }
 
@@ -755,6 +784,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(sbPlayers.ToString());
             sb.Append(Convert.ToInt32(Locked));
             sb.Append(0); // IsLoadedGame
+            sb.Append(Map?.SHA1);
 
             GameBroadcast?.Invoke(this, new GameBroadcastEventArgs(sb.ToString()));
         }
@@ -836,16 +866,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (color < 0 || color > MPColors.Count)
                 return;
 
-            if (Map.CoopInfo != null)
+            var disallowedSides = GetDisallowedSides();
+
+            if (side > 0 && side <= SideCount && disallowedSides[side - 1])
+                return;
+
+            if (GameModeMap.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
+                if (GameModeMap.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
-                if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
+                if (GameModeMap.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
                     return;
             }
 
-            if (start < 0 || start > Map.MaxPlayers)
+            if (!(start == 0 || (GameModeMap?.AllowedStartingLocations?.Contains(start) ?? true)))
                 return;
 
             if (team < 0 || team > 4)
@@ -946,6 +981,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
+
             localPlayer = FindLocalPlayer();
             if (localPlayer != null && oldSideId != localPlayer.SideId)
                 UpdateDiscordPresence();

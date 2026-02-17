@@ -70,20 +70,20 @@ namespace DTAClient.DXGUI.Generic
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Text = string.Empty;
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
 
             var lblCurrentFileProgressPercentage = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:".L10N("Client:Main:CurrentFileProgressPercentage");
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
-            lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
+            lblCurrentFileProgressPercentage.Name = nameof(lblCurrentFileProgressPercentage);
 
             lblCurrentFileProgressPercentageValue = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentageValue.Text = "0%";
             lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.Y, 0, 0);
-            lblCurrentFileProgressPercentageValue.Name = "lblCurrentFileProgressPercentageValue";
+            lblCurrentFileProgressPercentageValue.Name = nameof(lblCurrentFileProgressPercentageValue);
 
             prgCurrentFile = new XNAProgressBar(WindowManager);
-            prgCurrentFile.Name = "prgCurrentFile";
+            prgCurrentFile.Name = nameof(prgCurrentFile);
             prgCurrentFile.Maximum = 100;
             prgCurrentFile.ClientRectangle = new Rectangle(12, 110, 422, 30);
             //prgCurrentFile.BorderColor = UISettings.WindowBorderColor;
@@ -91,27 +91,27 @@ namespace DTAClient.DXGUI.Generic
             prgCurrentFile.SmoothTransitionRate = 10;
 
             lblCurrentFile = new XNALabel(WindowManager);
-            lblCurrentFile.Name = "lblCurrentFile";
+            lblCurrentFile.Name = nameof(lblCurrentFile);
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
             var lblTotalProgressPercentage = new XNALabel(WindowManager);
             lblTotalProgressPercentage.Text = "Total progress percentage:".L10N("Client:Main:TotalProgressPercentage");
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
-            lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
+            lblTotalProgressPercentage.Name = nameof(lblTotalProgressPercentage);
 
             lblTotalProgressPercentageValue = new XNALabel(WindowManager);
             lblTotalProgressPercentageValue.Text = "0%";
             lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.Y, 0, 0);
-            lblTotalProgressPercentageValue.Name = "lblTotalProgressPercentageValue";
+            lblTotalProgressPercentageValue.Name = nameof(lblTotalProgressPercentageValue);
 
             prgTotal = new XNAProgressBar(WindowManager);
-            prgTotal.Name = "prgTotal";
+            prgTotal.Name = nameof(prgTotal);
             prgTotal.Maximum = 100;
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.Width, prgCurrentFile.Height);
             //prgTotal.BorderColor = UISettings.WindowBorderColor;
 
             lblUpdaterStatus = new XNALabel(WindowManager);
-            lblUpdaterStatus.Name = "lblUpdaterStatus";
+            lblUpdaterStatus.Name = nameof(lblUpdaterStatus);
             lblUpdaterStatus.Text = "Preparing".L10N("Client:Main:StatusPreparing");
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 

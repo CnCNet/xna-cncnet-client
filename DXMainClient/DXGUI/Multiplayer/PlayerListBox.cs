@@ -1,4 +1,4 @@
-﻿using ClientCore.CnCNet5;
+﻿using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
@@ -25,9 +25,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
-        private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
+        private Texture2D? voiceIcon;
 
         private GameCollection gameCollection;
 
@@ -38,14 +38,17 @@ namespace DTAClient.DXGUI.Multiplayer
             Users = new List<ChannelUser>();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
-            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
 
             adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
-            badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
+
+            const string voiceIconName = "voiceicon.png";
+            if (AssetLoader.AssetExists(voiceIconName))
+                voiceIcon = AssetLoader.LoadTexture(voiceIconName);
         }
 
         public void AddUser(ChannelUser user)
@@ -119,14 +122,14 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += ignoreIcon.Width + MARGIN;
                 }
 
-                // Badge Icon - coming soon
-                /*
-                Renderer.DrawTexture(badgeGameIcon,
-                    new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                    badgeGameIcon.Width, badgeGameIcon.Height), Color.White);
+                // Voice Icon
+                if (user.HasVoice && voiceIcon != null)
+                {
+                    DrawTexture(voiceIcon,
+                        new Rectangle(x, height, voiceIcon.Width, voiceIcon.Height), Color.White);
 
-                x += badgeGameIcon.Width + margin;
-                */
+                    x += voiceIcon.Width + MARGIN;
+                }
 
                 // Player Name
                 string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("Client:Main:AdminSuffix") : user.IRCUser.Name;

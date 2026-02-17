@@ -22,13 +22,18 @@ The client has 2 variants: .NET 4.8 and .NET 8.0.
 * The DirectX11 and OpenGL builds rely on MonoGame.
 * The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
 
-Building the solution for **any** platform requires Visual Studio 2022 17.8 or newer and/or the .NET SDK 8.0.200. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
-To debug WindowsXNA builds the .NET SDK 8.0 x86 is additionally required.
+To build this project, you must use Git to clone the repository, instead of downloading a ZIP archive. After cloning, make sure to initialize and update the submodules using the following command:
+```shell
+git submodule update --init --recursive
+```
+
+Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requires Visual Studio 2026 or newer, or Rider 2025.3 or newer. A modern version of Visual Studio Code also works, but is not officially supported.
+To debug WindowsXNA builds the .NET SDK 10.0 x86 is additionally required.
 When using the included build scripts PowerShell 7.2 or newer is required.[^install-powershell]
 
 ## Compiling and debugging
 
-* Compiling itself is simple: assuming you have the .NET 8.0 SDK installed, you can just open the solution with Visual Studio and compile it right away.
+* Compiling itself is simple: assuming you have the .NET SDK 10.0 installed, you can just open the solution with Visual Studio and compile it right away.
 * When built as a debug build, the client executable expects to reside in the same directory with the target project's main game executable. Resources should exist in a "Resources" sub-directory in the same directory. The repository contains sample resources and post-build commands for copying them so that you can immediately run the client in debug mode by just hitting the Debug button in Visual Studio.
 * When built in release mode, the client executables expect to reside in the `Resources` sub-directory itself for .NET 4.8, named `clientdx.exe`, `clientogl.exe` and `clientxna.exe`. Each `.exe` file or `.dll` file expects a `.pdb` file for diagnostics purpose. It's advised not to delete these `.pdb` files. Keep all `.pdb` files even for end users.
 * The `Scripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
@@ -43,8 +48,11 @@ When using the included build scripts PowerShell 7.2 or newer is required.[^inst
 <details>
   <summary>Development workarounds</summary>
 
-* If you switch among different solution configurations in Visual Studio (e.g. switch to `TSUniversalGLRelease` from `AresWindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is highly advised to close Visual Studio when building the client using the scripts in `Scripts` folder.
+* If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is highly advised to close Visual Studio when building the client using the scripts in `Scripts` folder.
 * Some dependencies are stored in `References` folder instead of the official NuGet source. This folder is also useful if you are working on modifying a dependency and debugging in your local machine without publishing the modification to NuGet. However, if you have replaced the `.(s)nupkg` files of a package, without altering the package version, be sure to remove the corresponding package from `%USERPROFILE%\.nuget\packages` folder (Windows) to purge the old version. 
+
+Refer to [Docs/Build.md](/Docs/Build.md) for more information about building the client.
+
 </details>
 
 ## End-user usage
@@ -81,7 +89,7 @@ When using the included build scripts PowerShell 7.2 or newer is required.[^inst
 * [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
 
 Windows 7 SP1 and Windows 8.x additionally require:
-* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
+* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe). Note: the latest version of this redistributable is named "Microsoft Visual C++ 2015-2026 Redistributable", available [here](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist). We recommend using the latest version instead of the 2015-2019 version.
 
 Windows 7 SP1 additionally requires:
 * KB3063858 [64-bit](https://www.microsoft.com/download/details.aspx?id=47442) / [32-bit](https://www.microsoft.com/download/details.aspx?id=47409).
@@ -90,7 +98,7 @@ Windows 7 SP1 additionally requires:
 ## Client launcher
 
 This repository does not contain the client launcher (for example, `DTA.exe` in Dawn of the Tiberium Age) that selects which platform's client executable is most suitable for each user's system.
-See [dta-mg-client-launcher](https://github.com/CnCNet/dta-mg-client-launcher).
+See [xna-cncnet-client-launcher](https://github.com/CnCNet/xna-cncnet-client-launcher).
 
 ## Branches
 
@@ -100,6 +108,34 @@ Currently there are only two major active branches. `develop` is where developme
 
 ![Screenshot](cncnetchatlobby.png?raw=true "CnCNet IRC Chat Lobby")
 ![Screenshot](cncnetgamelobby.png?raw=true "CnCNet Game Lobby")
+
+## License
+
+CnCNet Client
+Copyright (C) 2013-2026 CnCNet, Rampastring
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+### Additional permission under GNU GPL version 3 section 7
+
+If you modify this program, or any covered work, by linking or combining it with the Steamworks SDK (or a modified version of that library), containing parts covered by the terms of the Steamworks SDK's license, the licensors of this program grant you additional permission to convey the resulting work.
+
+Sponsored by
+------------
+<a href="https://www.digitalocean.com/?refcode=337544e2ec7b&utm_campaign=Referral_Invite&utm_medium=opensource&utm_source=CnCNet" title="Powered by Digital Ocean" target="_blank">
+    <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_blue.svg" width="201px" alt="Powered By Digital Ocean" />
+</a>
 
 
 [^install-powershell]: [How To Install PowerShell Core](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows)
