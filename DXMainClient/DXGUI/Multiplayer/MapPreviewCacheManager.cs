@@ -182,52 +182,50 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     {
         while (!isDisposed)
         {
-            // Wait for a request or disposal (no timeout - rely on requestEvent.Set() in Dispose)
-            requestEvent.WaitOne();
+            Map? map = null;
 
-            Map? map;
-            while (true)
+            // Atomically check for work and wait if none available
+            lock (queueLock)
             {
-                lock (queueLock)
+                // Get first item from HashSet if available
+                using var enumerator = requestQueue.GetEnumerator();
+                if (enumerator.MoveNext())
                 {
-                    // Get first item from HashSet
-                    using var enumerator = requestQueue.GetEnumerator();
-                    if (enumerator.MoveNext())
-                    {
-                        map = enumerator.Current;
-                        requestQueue.Remove(map);
-                    }
-                    else
-                    {
-                        map = null;
-                        break;
-                    }
+                    map = enumerator.Current;
+                    requestQueue.Remove(map);
                 }
+            }
 
-                if (isDisposed || map == null)
-                    break;
+            // If no work available, wait for signal
+            if (map == null)
+            {
+                requestEvent.WaitOne();
+                continue;
+            }
 
-                try
-                {
-                    // Check if already cached (might have been extracted by another request)
-                    if (TryGetImage(map, out Image? cachedImage))
-                        continue;
+            if (isDisposed)
+                break;
 
-                    if (!map.IsNonImmediatePreviewImageAvailable())
-                        continue;
+            try
+            {
+                // Check if already cached (might have been extracted by another request)
+                if (TryGetImage(map, out Image? cachedImage))
+                    continue;
 
-                    // Load the full map ini and extract the preview image. This operation is CPU-intensive.
-                    Image? image = map.GetNonImmediatePreviewImage();
+                if (!map.IsNonImmediatePreviewImageAvailable())
+                    continue;
 
-                    if (image != null)
-                        AddToCache(map, image);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error for debugging purposes with map identifier
-                    string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
-                    Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
-                }
+                // Load the full map ini and extract the preview image. This operation is CPU-intensive.
+                Image? image = map.GetNonImmediatePreviewImage();
+
+                if (image != null)
+                    AddToCache(map, image);
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging purposes with map identifier
+                string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
+                Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
             }
         }
     }
