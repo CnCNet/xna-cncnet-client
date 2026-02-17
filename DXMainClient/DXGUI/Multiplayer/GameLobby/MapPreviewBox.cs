@@ -164,9 +164,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private Rectangle textureRectangle;
 
-        private Texture2D previewTexture = null;
-
-        private bool previewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+        private Texture2D mapPreviewTexture = null;
+        private bool mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
 
         private bool useNearestNeighbour = false;
 
@@ -410,17 +409,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void UpdateMap()
         {
-            if (previewTextureNeedsToBeDisposedBeforeLoadingTheNext && previewTexture != null && !previewTexture.IsDisposed)
+            if (mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext && mapPreviewTexture != null && !mapPreviewTexture.IsDisposed)
             {
-                previewTexture.Dispose();
-                previewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                mapPreviewTexture.Dispose();
+                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
             }
 
             extraTextures.Clear();
 
             if (GameModeMap == null)
             {
-                previewTexture = null;
+                mapPreviewTexture = null;
                 CoopBriefingBox.Disable();
 
                 contextMenu.Disable();
@@ -431,11 +430,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            Debug.Assert(!previewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
+            Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
             Image previewTextureImage = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, loadEvenUncached: true);
-            previewTexture = previewTextureImage != null ? AssetLoader.TextureFromImage(previewTextureImage) : AssetLoader.CreateTexture(Color.Black, Width, Height);
-            previewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
+            mapPreviewTexture = previewTextureImage != null ? AssetLoader.TextureFromImage(previewTextureImage) : AssetLoader.CreateTexture(Color.Black, Width, Height);
+            mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
@@ -447,8 +446,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 CoopBriefingBox.Disable();
 
-            double xRatio = (Width - 2) / (double)previewTexture.Width;
-            double yRatio = (Height - 2) / (double)previewTexture.Height;
+            double xRatio = (Width - 2) / (double)mapPreviewTexture.Width;
+            double yRatio = (Height - 2) / (double)mapPreviewTexture.Height;
 
             double ratio;
 
@@ -461,14 +460,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 ratio = yRatio;
                 textureHeight = Height - 2;
-                textureWidth = (int)(previewTexture.Width * ratio);
+                textureWidth = (int)(mapPreviewTexture.Width * ratio);
                 texturePositionX = (int)(Width - 2 - textureWidth) / 2;
             }
             else
             {
                 ratio = xRatio;
                 textureWidth = Width - 2;
-                textureHeight = (int)(previewTexture.Height * ratio);
+                textureHeight = (int)(mapPreviewTexture.Height * ratio);
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
@@ -477,7 +476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
 
-            List<Point> startingLocations = GameModeMap.Map.GetStartingLocationPreviewCoords(new Point(previewTexture.Width, previewTexture.Height));
+            List<Point> startingLocations = GameModeMap.Map.GetStartingLocationPreviewCoords(new Point(mapPreviewTexture.Width, mapPreviewTexture.Height));
 
             // Disable all indicators to be able updated after changing
             // locations when 2 or more of them have same location (RA1 specifics)
@@ -514,8 +513,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
                 Point location = PreviewTexturePointToControlAreaPoint(
                     GameModeMap.Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
-                    new Point(previewTexture.Width - (extraTexture.Width / 2),
-                              previewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
+                    new Point(mapPreviewTexture.Width - (extraTexture.Width / 2),
+                              mapPreviewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
                               ratio);
 
                 extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
@@ -675,7 +674,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             DrawPanel();
 
-            if (previewTexture != null)
+            if (mapPreviewTexture != null)
             {
                 Point renderPoint = GetRenderPoint();
 
@@ -714,7 +713,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void DrawPreviewTexture(Point renderPoint)
         {
-            Renderer.DrawTexture(previewTexture,
+            Renderer.DrawTexture(mapPreviewTexture,
                 new Rectangle(renderPoint.X + textureRectangle.X,
                 renderPoint.Y + textureRectangle.Y,
                 textureRectangle.Width, textureRectangle.Height),

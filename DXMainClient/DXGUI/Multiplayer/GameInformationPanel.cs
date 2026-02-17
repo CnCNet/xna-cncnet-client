@@ -53,8 +53,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
 
-        private bool mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
-        private Texture2D mapTexture = null;
+        private bool mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+        private Texture2D mapPreviewTexture = null;
+
         private Texture2D noMapPreviewTexture = null;
 
         private Texture2D txLockedGame;
@@ -249,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                Debug.Assert(!mapTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
+                Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
                 Map map = mapLoader.GameModeMaps.FirstOrDefault(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase))?.Map;
 
@@ -257,19 +258,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (mapTextureImage != null)
                 {
-                    mapTexture = AssetLoader.TextureFromImage(mapTextureImage);
-                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
+                    mapPreviewTexture = AssetLoader.TextureFromImage(mapTextureImage);
+                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
                 }
                 else if (noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
-                    mapTexture = noMapPreviewTexture;
-                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                    mapPreviewTexture = noMapPreviewTexture;
+                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
                 else
                 {
-                    mapTexture = null;
-                    mapTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                    mapPreviewTexture = null;
+                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
             }
 
@@ -490,11 +491,11 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            if (mapTexture != null && mapTextureNeedsToBeDisposedBeforeLoadingTheNext)
+            if (mapPreviewTexture != null && mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext)
             {
-                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
-                mapTexture.Dispose();
-                mapTexture = null;
+                Debug.Assert(!mapPreviewTexture.IsDisposed, "mapTexture should not be disposed.");
+                mapPreviewTexture.Dispose();
+                mapPreviewTexture = null;
             }
         }
 
@@ -504,7 +505,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 base.Draw(gameTime);
 
-                if (game != null && mapTexture != null)
+                if (game != null && mapPreviewTexture != null)
                     RenderMapPreview();
             }
         }
@@ -512,26 +513,26 @@ namespace DTAClient.DXGUI.Multiplayer
         private void RenderMapPreview()
         {
             // Calculate map preview area based on right half of ClientRectangle
-            double xRatio = (ClientRectangle.Width / 2 - mapPreviewHorizontalMargin) / (double)mapTexture.Width;
-            double yRatio = (ClientRectangle.Height - mapPreviewVerticalMargin) / (double)mapTexture.Height;
+            double xRatio = (ClientRectangle.Width / 2 - mapPreviewHorizontalMargin) / (double)mapPreviewTexture.Width;
+            double yRatio = (ClientRectangle.Height - mapPreviewVerticalMargin) / (double)mapPreviewTexture.Height;
 
             double ratio = Math.Min(xRatio, yRatio); // Choose the smaller ratio for scaling
-            int textureWidth = (int)(mapTexture.Width * ratio);
-            int textureHeight = (int)(mapTexture.Height * ratio);
+            int textureWidth = (int)(mapPreviewTexture.Width * ratio);
+            int textureHeight = (int)(mapPreviewTexture.Height * ratio);
 
             // Apply max height constraint
             if (textureHeight > maxPreviewHeight)
             {
-                ratio = maxPreviewHeight / (double)mapTexture.Height;
+                ratio = maxPreviewHeight / (double)mapPreviewTexture.Height;
                 textureHeight = maxPreviewHeight;
-                textureWidth = (int)(mapTexture.Width * ratio); // Recalculate width to maintain aspect ratio
+                textureWidth = (int)(mapPreviewTexture.Width * ratio); // Recalculate width to maintain aspect ratio
             }
 
             int texturePositionX = rightColumnPositionX + (ClientRectangle.Width / 2 - textureWidth) / 2; // Center in the right column
             int texturePositionY = mapPreviewPositionY;
 
             DrawTexture(
-                mapTexture,
+                mapPreviewTexture,
                 new Rectangle(texturePositionX, texturePositionY, textureWidth, textureHeight),
                 Color.White
             );
