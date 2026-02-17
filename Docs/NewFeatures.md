@@ -97,7 +97,7 @@ NotifyOnUserListChange=False
 
 ## 2.12.6
 
-- A `MapEncoding` key can be specified in the `Translation.ini` file. However, **you should not specify it** unless you fully understand its implications. This feature is primarily intended for Tiberian Sun and should never be used for Red Alert 2.
+- A `MapEncoding` key can be specified in the `Translation.ini` file. However, **you should not specify it** unless you fully understand what you are doing. For example, you should **NOT** select GB2312/GBK/GB18030/BIG5 for a Chinese translation. This feature is primarily intended for Tiberian Sun and should never be used for Red Alert 2.
 
 - Three drawing modes are now available for `XNAClientColorDropDown` components. See `XNAColorDropDown` in [INISystem.md](INISystem.md).
 
