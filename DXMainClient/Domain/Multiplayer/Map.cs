@@ -171,6 +171,7 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public int height;
 
+        // TODO: json ignore? test whether this path still exists after loading from cache. This variable is still useful to get the map preview image
         [JsonIgnore]
         private readonly string customMapFilePath;
 
@@ -238,6 +239,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 FileInfo mapFile = SafePath.GetFile(BaseFilePath);
                 PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                if (!SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
+                    PreviewPath = null;
 
                 Briefing = section.GetStringValue("Briefing", string.Empty)
                     .FromIniString()
@@ -481,6 +484,8 @@ namespace DTAClient.Domain.Multiplayer
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
 
                 PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
+                if (!SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
+                    PreviewPath = null;
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
@@ -578,14 +583,13 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsImmediatePreviewImageAvailable() =>
-            SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
+        public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
         public Image GetImmediatePreviewImage() => IsImmediatePreviewImageAvailable()
             ? Image.Load(SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName)
             : throw new FileNotFoundException("Immediate preview texture not found for map " + BaseFilePath);
 
-        public bool IsNonImmediatePreviewImageAvailable() => File.Exists(customMapFilePath);
+        public bool IsNonImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(customMapFilePath) && File.Exists(customMapFilePath);
 
         public Image GetNonImmediatePreviewImage() => IsNonImmediatePreviewImageAvailable()
             ? MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true))
