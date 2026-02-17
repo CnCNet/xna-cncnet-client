@@ -62,7 +62,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             workerThread = new Thread(ProcessRequests)
             {
                 IsBackground = true,
-                Name = "MapTextureCacheWorker"
+                Name = nameof(MapPreviewCacheManager) + "Worker"
             };
             workerThread.Start();
         }
