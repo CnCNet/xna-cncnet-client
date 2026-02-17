@@ -194,12 +194,6 @@ namespace DTAClient.Domain.Multiplayer
             SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
         }
 
-        /// <summary>
-        /// If false, the preview shouldn't be extracted for this (custom) map.
-        /// </summary>
-        [JsonInclude]
-        public bool ExtractCustomPreview { get; set; } = true;
-
         [JsonInclude]
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
 
