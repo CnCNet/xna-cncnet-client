@@ -739,15 +739,6 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map FindMapByHash(string mapHash) => _gameModeMaps?.FindMapByHash(mapHash);
 
-        public void Dispose()
-        {
-            MapPreviewCacheManager?.Dispose();
-
-            if (mapFileWatcher != null)
-            {
-                mapFileWatcher.EnableRaisingEvents = false;
-                mapFileWatcher.Dispose();
-            }
-        }
+        public void Dispose() => MapPreviewCacheManager?.Dispose();
     }
 }
