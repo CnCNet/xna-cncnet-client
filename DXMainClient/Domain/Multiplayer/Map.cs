@@ -188,10 +188,6 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
-        // TODO: move preview texture caching out of the Map class
-        [JsonIgnore]
-        public Texture2D PreviewTexture { get; set; }
-
         public void CalculateSHA()
         {
             SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
@@ -330,9 +326,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 GetTeamStartMappingPresets(section);
 #if !GL
-
-                if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = LoadPreviewTexture();
+                // Preview texture loading removed - use MapTextureCacheManager instead
 #endif
 
                 // Parse forced options

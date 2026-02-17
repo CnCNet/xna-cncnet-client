@@ -425,16 +425,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            if (GameModeMap.Map.PreviewTexture == null)
-            {
-                previewTexture = GameModeMap.Map.LoadPreviewTexture();
-                disposeTextures = true;
-            }
-            else
-            {
-                previewTexture = GameModeMap.Map.PreviewTexture;
-                disposeTextures = false;
-            }
+            // Always load texture on demand (no caching in Map object)
+            previewTexture = GameModeMap.Map.LoadPreviewTexture();
+            disposeTextures = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {

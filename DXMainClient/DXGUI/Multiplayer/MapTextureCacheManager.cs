@@ -23,8 +23,7 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// // Synchronous check - returns immediately if cached
 /// if (cacheManager.TryGetImage(map, out Image? image))
 /// {
-///     // IMPORTANT: Convert to texture immediately or clone the image
-///     // The cache owns the image and will dispose it when evicted
+///     // Convert to texture for rendering
 ///     var texture = AssetLoader.TextureFromImage(image);
 /// }
 /// 
@@ -33,8 +32,7 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// {
 ///     if (loadedImage != null)
 ///     {
-///         // IMPORTANT: Convert to texture immediately or clone the image
-///         // The cache owns the image and will dispose it when evicted
+///         // Convert to texture for rendering
 ///         var texture = AssetLoader.TextureFromImage(loadedImage);
 ///     }
 /// });
@@ -58,10 +56,9 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// 
 /// <para>
 /// <b>Memory Management:</b><br/>
-/// - When cache reaches capacity, least recently used images are evicted and disposed<br/>
-/// - The cache owns cached images and disposes them on eviction<br/>
-/// - Callers should convert Image to Texture2D immediately or clone if keeping reference<br/>
-/// - Use Dispose(disposeImages: true) to dispose all cached images on shutdown
+/// - When cache reaches capacity, least recently used images are evicted<br/>
+/// - Images use managed memory only and will be garbage collected automatically<br/>
+/// - The cache holds references to images; evicted images become eligible for GC
 /// </para>
 /// </summary>
 public class MapTextureCacheManager : IDisposable
@@ -227,20 +224,10 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Clears all cached images.
     /// </summary>
-    /// <param name="disposeImages">Whether to dispose the images when clearing. Default is false.</param>
-    public void Clear(bool disposeImages = false)
+    public void Clear()
     {
         lock (cacheLock)
         {
-            if (disposeImages)
-            {
-                // Dispose images if requested
-                foreach (var entry in cache.Values)
-                {
-                    entry.Image.Dispose();
-                }
-            }
-
             cache.Clear();
             lruList.Clear();
         }
@@ -309,8 +296,7 @@ public class MapTextureCacheManager : IDisposable
 
         if (cache.TryGetValue(lruMap, out CacheEntry? entry))
         {
-            // Dispose the image to free memory since it's being evicted
-            entry.Image.Dispose();
+            // Remove from cache; image will be garbage collected
             cache.Remove(lruMap);
         }
     }
@@ -318,8 +304,7 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Disposes the cache manager and releases all resources.
     /// </summary>
-    /// <param name="disposeImages">Whether to dispose cached images. Default is false.</param>
-    public void Dispose(bool disposeImages = false)
+    public void Dispose()
     {
         if (isDisposed)
             return;
@@ -340,17 +325,9 @@ public class MapTextureCacheManager : IDisposable
         }
 
         // Clear cache
-        Clear(disposeImages);
+        Clear();
 
         // Dispose synchronization primitives
         requestEvent.Dispose();
-    }
-
-    /// <summary>
-    /// Disposes the cache manager and releases all resources.
-    /// </summary>
-    void IDisposable.Dispose()
-    {
-        Dispose(disposeImages: false);
     }
 }
