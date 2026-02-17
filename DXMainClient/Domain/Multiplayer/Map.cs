@@ -598,6 +598,9 @@ namespace DTAClient.Domain.Multiplayer
             {
                 // Extract preview from the map itself
                 // TODO: implement a global cache for the preview texture. Don't cache either the texture or the map ini in the Map object itself.
+
+                // TODO here!
+
                 using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
 
                 if (preview != null)
