@@ -4,8 +4,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+
 using DTAClient.Domain.Multiplayer;
+
 using Rampastring.Tools;
+
 using SixLabors.ImageSharp;
 
 namespace DTAClient.DXGUI.Multiplayer;
@@ -13,6 +16,7 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// <summary>
 /// Thread-safe manager for caching map preview images with LRU eviction policy.
 /// Processes image extraction requests sequentially to limit CPU usage to a single thread.
+/// Note: this manager assumes the `Image` objects are managed, so it never disposes them directly.
 /// 
 /// <para>
 /// <b>Usage Example:</b>
@@ -92,15 +96,13 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Represents an image extraction request with completion notification.
     /// </summary>
-    private class ImageRequest
+    private sealed record ImageRequest
     {
         public Map Map { get; }
-        public Action<Image?>? Callback { get; }
 
-        public ImageRequest(Map map, Action<Image?>? callback)
+        public ImageRequest(Map map)
         {
             Map = map;
-            Callback = callback;
         }
     }
 
@@ -157,12 +159,10 @@ public class MapTextureCacheManager : IDisposable
 
     /// <summary>
     /// Requests an image to be extracted for the specified map.
-    /// If the image is already cached, the callback is invoked immediately.
-    /// Otherwise, the request is queued for processing on the worker thread.
     /// </summary>
     /// <param name="map">The map to extract the image for.</param>
-    /// <param name="callback">Optional callback to invoke when the image is ready.</param>
-    public void RequestImage(Map map, Action<Image?>? callback = null)
+    /// <returns>The cached image if already available; otherwise null. The image will be extracted and cached asynchronously.</returns>
+    public Image? RequestImage(Map map)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -173,20 +173,20 @@ public class MapTextureCacheManager : IDisposable
         // Check if already cached
         if (TryGetImage(map, out Image? cachedImage))
         {
-            callback?.Invoke(cachedImage);
-            return;
+            return cachedImage;
         }
 
         // Queue for processing
-        requestQueue.Enqueue(new ImageRequest(map, callback));
+        requestQueue.Enqueue(new ImageRequest(map));
         requestEvent.Set();
+
+        return null;
     }
 
     /// <summary>
     /// Manually adds an image to the cache.
     /// Useful for pre-loading or when image is obtained from other sources.
-    /// Note: If the map is already cached, this method updates LRU order but does NOT
-    /// replace the cached image. The caller is responsible for disposing the provided image parameter.
+    /// Note: If the map is already cached, this method updates LRU order but does NOT replace the cached image.
     /// </summary>
     /// <param name="map">The map associated with the image.</param>
     /// <param name="image">The image to cache.</param>
@@ -205,7 +205,7 @@ public class MapTextureCacheManager : IDisposable
             {
                 lruList.Remove(existingEntry.LruNode);
                 existingEntry.LruNode = lruList.AddFirst(map);
-                return false; // Caller should dispose their image
+                return false;
             }
 
             // Evict if at capacity
@@ -253,11 +253,10 @@ public class MapTextureCacheManager : IDisposable
                     // Check if already cached (might have been extracted by another request)
                     if (TryGetImage(request.Map, out Image? cachedImage))
                     {
-                        request.Callback?.Invoke(cachedImage);
                         continue;
                     }
 
-                    // Extract the preview image (this is the CPU-intensive operation)
+                    // Load the full map ini and extract the preview image. This operation is CPU-intensive.
                     Image? image = MapPreviewExtractor.ExtractMapPreview(
                         request.Map.GetCustomMapIniFile(loadPreviewTextureSection: true));
 
@@ -265,18 +264,12 @@ public class MapTextureCacheManager : IDisposable
                     {
                         AddToCache(request.Map, image);
                     }
-
-                    // Notify callback
-                    request.Callback?.Invoke(image);
                 }
                 catch (Exception ex)
                 {
                     // Log the error for debugging purposes with map identifier
                     string mapIdentifier = request.Map.Name ?? request.Map.BaseFilePath ?? "Unknown";
                     Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
-                    
-                    // Notify callback with null
-                    request.Callback?.Invoke(null);
                 }
             }
         }
@@ -302,7 +295,7 @@ public class MapTextureCacheManager : IDisposable
     }
 
     /// <summary>
-    /// Disposes the cache manager and releases all resources.
+    /// Disposes the cache manager. Does not dispose cached images directly; left to garbage collector.
     /// </summary>
     public void Dispose()
     {
