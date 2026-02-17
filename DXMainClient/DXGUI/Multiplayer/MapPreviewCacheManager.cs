@@ -246,6 +246,11 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         if (cache.TryGetValue(lruMap, out CacheEntry? entry))
         {
             // Remove from cache but does not call image.Dispose() since we assume images are managed and will be collected by GC
+            // https://web.archive.org/web/20250703050850/https://docs.sixlabors.com/articles/imagesharp/memorymanagement.html
+            // > Strictly speaking, ImageSharp is safe against memory leaks. ... However, ... performance issues ... OutOfMemoryException...
+
+            // Since we can't determine if the image is still in use elsewhere, we leave the memory management to the garbage collector.
+            // If we were to dispose it here, it could cause exceptions if the image is still being used by the UI or other parts of the code.
             cache.Remove(lruMap);
         }
     }
