@@ -16,7 +16,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Image = SixLabors.ImageSharp.Image;
-using System.Diagnostics.CodeAnalysis;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
