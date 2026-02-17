@@ -13,14 +13,10 @@ using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 
-using Microsoft.Xna.Framework.Graphics;
-
 using Rampastring.Tools;
-using Rampastring.XNAUI;
 
 using SixLabors.ImageSharp;
 
-using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 
 namespace DTAClient.Domain.Multiplayer
@@ -600,8 +596,6 @@ namespace DTAClient.Domain.Multiplayer
         public Image GetNonImmediatePreviewTexture() => IsNonImmediatePreviewTextureAvailable()
             ? MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true))
             : throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
-
-        // TODO: AssetLoader.TextureFromImage
 
         public IniFile GetMapIni()
         {
