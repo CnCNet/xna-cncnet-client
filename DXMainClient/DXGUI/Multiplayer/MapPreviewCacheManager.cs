@@ -207,7 +207,10 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
             // If no map, loop back to wait
             if (map == null)
+            {
+                Thread.Sleep(0);
                 continue;
+            }
 
             try
             {
@@ -230,6 +233,8 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
                 Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
             }
+
+            Thread.Sleep(0);
         }
     }
 
