@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain.Multiplayer;
@@ -236,7 +237,7 @@ namespace DTAClient.DXGUI
             var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             byte[] intBytes = new byte[sizeof(int)];
             rng.GetBytes(intBytes);
-            int seed = BitConverter.ToInt32(intBytes, 0);
+            int seed = BinaryPrimitives.ReadInt32LittleEndian(intBytes);
             return new Random(seed);
         }
 

@@ -237,7 +237,7 @@ namespace DTAClient.Online
         }
 
         private static string BytesToString(byte[] bytes) =>
-            BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+            Convert.ToHexString(bytes).ToLowerInvariant();
 
         private class FileHashes()
         {

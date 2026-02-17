@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 
 namespace ClientCore.Statistics
@@ -43,9 +44,13 @@ namespace ClientCore.Statistics
             // 1 byte for IsLocalPlayer
             stream.WriteBool(IsLocalPlayer);
             // 4 bytes for kills
-            stream.Write(BitConverter.GetBytes(Kills), 0, 4);
+            Span<byte> killsBuffer = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(killsBuffer, Kills);
+            stream.Write(killsBuffer);
             // 4 bytes for losses
-            stream.Write(BitConverter.GetBytes(Losses), 0, 4);
+            Span<byte> lossesBuffer = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(lossesBuffer, Losses);
+            stream.Write(lossesBuffer);
             // Name takes 32 bytes
             stream.WriteString(Name, 32);
             // 1 byte for SawEnd

@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using Rampastring.Tools;
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using OpenMcdf;
 using System.Diagnostics;
@@ -41,7 +42,7 @@ namespace DTAClient.Domain
                     GUIName = System.Text.Encoding.Unicode.GetString(cf.RootStorage.GetStream("Scenario Description").GetData()).TrimEnd(['\0']);
                     try
                     {
-                        CustomMissionID = BitConverter.ToInt32(cf.RootStorage.GetStream("CustomMissionID").GetData(), 0);
+                        CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(cf.RootStorage.GetStream("CustomMissionID").GetData());
                     }
                     catch (CFItemNotFound)
                     {

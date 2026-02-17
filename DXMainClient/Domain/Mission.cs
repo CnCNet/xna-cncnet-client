@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -70,7 +71,7 @@ namespace DTAClient.Domain
 #pragma warning disable CA1850 // Prefer static 'HashData' method over 'ComputeHash'
             using var sha1 = SHA1.Create();
             byte[] digest = sha1.ComputeHash(Encoding.UTF8.GetBytes(missionCodeName));
-            return BitConverter.ToInt32(digest, 0);
+            return BinaryPrimitives.ReadInt32LittleEndian(digest);
 #pragma warning restore CA1850 // Prefer static 'HashData' method over 'ComputeHash'
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
         }
