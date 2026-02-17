@@ -131,7 +131,7 @@ DisallowedComputerPlayerSides=4,5,6 ; new - disallows sides for computer players
 
 ## 2.11.2.0
 
-- In versions 2.11.0.0 and 2.11.1.0, `ClientUpdater.xml` and `SecondStageUpdater.xml` files were released with the client binaries. These files are no longer necessary and can be safely removed.
+- In versions 2.11.0.0 and 2.11.1.0, `ClientUpdater.xml` and `SecondStageUpdater.xml` files were released with the client binaries. These files are not necessary and can be safely removed.
 
 ## 2.11.1.0
 
