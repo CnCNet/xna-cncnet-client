@@ -23,7 +23,8 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// // Synchronous check - returns immediately if cached
 /// if (cacheManager.TryGetImage(map, out Image? image))
 /// {
-///     // Use the cached image (convert to texture as needed)
+///     // IMPORTANT: Convert to texture immediately or clone the image
+///     // The cache owns the image and will dispose it when evicted
 ///     var texture = AssetLoader.TextureFromImage(image);
 /// }
 /// 
@@ -32,7 +33,8 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// {
 ///     if (loadedImage != null)
 ///     {
-///         // Image extracted, convert to texture on appropriate thread
+///         // IMPORTANT: Convert to texture immediately or clone the image
+///         // The cache owns the image and will dispose it when evicted
 ///         var texture = AssetLoader.TextureFromImage(loadedImage);
 ///     }
 /// });
@@ -56,10 +58,10 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// 
 /// <para>
 /// <b>Memory Management:</b><br/>
-/// - When cache reaches capacity, least recently used images are evicted<br/>
-/// - Evicted images are NOT disposed automatically<br/>
-/// - Use Dispose(disposeImages: true) to dispose all cached images<br/>
-/// - Caller is responsible for image lifetime management
+/// - When cache reaches capacity, least recently used images are evicted and disposed<br/>
+/// - The cache owns cached images and disposes them on eviction<br/>
+/// - Callers should convert Image to Texture2D immediately or clone if keeping reference<br/>
+/// - Use Dispose(disposeImages: true) to dispose all cached images on shutdown
 /// </para>
 /// </summary>
 public class MapTextureCacheManager : IDisposable
@@ -231,7 +233,7 @@ public class MapTextureCacheManager : IDisposable
                 // Dispose images if requested
                 foreach (var entry in cache.Values)
                 {
-                    entry.Image?.Dispose();
+                    entry.Image.Dispose();
                 }
             }
 
@@ -247,8 +249,8 @@ public class MapTextureCacheManager : IDisposable
     {
         while (!isDisposed)
         {
-            // Wait for a request or disposal
-            requestEvent.WaitOne(1000); // Timeout to periodically check disposal
+            // Wait for a request or disposal (no timeout - rely on requestEvent.Set() in Dispose)
+            requestEvent.WaitOne();
 
             while (requestQueue.TryDequeue(out ImageRequest? request))
             {
@@ -278,8 +280,9 @@ public class MapTextureCacheManager : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    // Log the error for debugging purposes
-                    Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map. Error: {ex.Message}");
+                    // Log the error for debugging purposes with map identifier
+                    string mapIdentifier = request.Map.Name ?? request.Map.BaseFilePath ?? "Unknown";
+                    Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
                     
                     // Notify callback with null
                     request.Callback?.Invoke(null);
@@ -302,8 +305,8 @@ public class MapTextureCacheManager : IDisposable
 
         if (cache.TryGetValue(lruMap, out CacheEntry? entry))
         {
-            // Note: We don't dispose the image here as it might still be in use elsewhere.
-            // The caller is responsible for managing image lifetime if needed.
+            // Dispose the image to free memory since it's being evicted
+            entry.Image.Dispose();
             cache.Remove(lruMap);
         }
     }
@@ -323,7 +326,14 @@ public class MapTextureCacheManager : IDisposable
         requestEvent.Set();
 
         // Wait for worker thread to finish
-        workerThread?.Join(WorkerThreadShutdownTimeoutMs);
+        if (workerThread != null && workerThread.IsAlive)
+        {
+            if (!workerThread.Join(WorkerThreadShutdownTimeoutMs))
+            {
+                // Log warning if thread doesn't terminate gracefully
+                Logger.Log("MapTextureCacheManager: Worker thread did not terminate within timeout period.");
+            }
+        }
 
         // Clear cache
         Clear(disposeImages);
