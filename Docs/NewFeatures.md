@@ -155,10 +155,11 @@ CnCNetMapDBDownloadURL=https://mapdb.cncnet.org
 CnCNetMapDBUploadURL=https://mapdb.cncnet.org/upload
 DisableDiscordIntegration=False
 
+; https://gamesurge.net/servers
 [IRCServers]
 1=irc.gamesurge.net|GameSurge|6667
-2=LAN-Team.DE.EU.GameSurge.net|GameSurge Germany, IL|6660,6666,6667,6668,6669
-3=Stockholm.SE.EU.GameSurge.net|GameSurge Newark, NJ|6666,6669,7000,8080
+2=LAN-Team.DE.EU.GameSurge.net|GameSurge Nuremberg, Germany|6660,6666,6667,6668,6669
+3=Stockholm.SE.EU.GameSurge.net|GameSurge Stockholm, Sweden|6666,6669,7000,8080
 4=NuclearFallout.WA.US.GameSurge.net|GameSurge Seattle, WA|6667,5960
 5=Prothid.NY.US.GameSurge.Net|GameSurge NYC, NY|5960,6660,6666,6667,6668,6669,6697
 6=192.223.27.109|GameSurge IP 192.223.27.109|5960,6660,6666,6667,6668,6669
