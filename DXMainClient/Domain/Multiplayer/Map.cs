@@ -856,6 +856,6 @@ namespace DTAClient.Domain.Multiplayer
             return string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : BaseFilePath.GetHashCode();
+        public override int GetHashCode() => SHA1 != null ? StringComparer.InvariantCultureIgnoreCase.GetHashCode(SHA1) : 0;
     }
 }
