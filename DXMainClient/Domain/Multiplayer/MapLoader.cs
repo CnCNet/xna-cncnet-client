@@ -25,7 +25,7 @@ namespace DTAClient.Domain.Multiplayer
         Removed
     }
 
-    public class MapLoader
+    public class MapLoader : IDisposable
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
@@ -737,10 +737,8 @@ namespace DTAClient.Domain.Multiplayer
             return image;
         }
 
-        public Map FindMapByHash(string mapHash)
-        {
-            return _gameModeMaps?.FindMapByHash(mapHash);
-        }
+        public Map FindMapByHash(string mapHash) => _gameModeMaps?.FindMapByHash(mapHash);
 
+        public void Dispose() => MapPreviewCacheManager?.Dispose();
     }
 }
