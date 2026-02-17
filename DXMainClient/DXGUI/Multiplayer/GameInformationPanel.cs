@@ -253,16 +253,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
 
-                Image mapTextureImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, loadEvenUncached: false) : null;
+                Image mapPreviewImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, loadEvenUncached: false) : null;
 
-                if (mapTextureImage != null)
+                if (mapPreviewImage != null)
                 {
-                    mapPreviewTexture = AssetLoader.TextureFromImage(mapTextureImage);
+                    mapPreviewTexture = AssetLoader.TextureFromImage(mapPreviewImage);
                     mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
                 }
                 else if (noMapPreviewTexture != null)
                 {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
+                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
                     mapPreviewTexture = noMapPreviewTexture;
                     mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
@@ -492,7 +492,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapPreviewTexture != null && mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext)
             {
-                Debug.Assert(!mapPreviewTexture.IsDisposed, "mapTexture should not be disposed.");
+                Debug.Assert(!mapPreviewTexture.IsDisposed, "mapPreviewTexture should not be disposed before this call");
                 mapPreviewTexture.Dispose();
                 mapPreviewTexture = null;
             }
