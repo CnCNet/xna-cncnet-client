@@ -247,6 +247,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
+
+                // TODO: here!!
+
                 mapTexture = mapLoader.GameModeMaps
                     .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase) &&
                                m.Map.IsPreviewTextureAvailableAsFile())?.Map?.LoadPreviewTexture();
