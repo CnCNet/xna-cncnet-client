@@ -405,7 +405,7 @@ SortOrder=0                                ; integer, display order for icons in
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
 
-Use this control type for game lobby checkboxes in `GameLobbyBase.ini` (see [Migration-INI.md](Migration-INI.md)). Inherits all properties from `GameSessionCheckBox`.
+Use this control type for game lobby checkboxes in `GameLobbyBase.ini`. Inherits all properties from `GameSessionCheckBox`.
 
 ##### [GameSessionDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionDropDown.cs)
 
@@ -444,7 +444,7 @@ SortOrder=0                                ; integer, display order for icons in
 
 _(inherits [GameSessionDropDown](#GameSessionDropDown))_
 
-Use this control type for game lobby dropdowns in `GameLobbyBase.ini` (see [Migration-INI.md](Migration-INI.md)). Inherits all properties from `GameSessionDropDown`.
+Use this control type for game lobby dropdowns in `GameLobbyBase.ini`. Inherits all properties from `GameSessionDropDown`.
 
 #### XNAOptionsPanel Controls
 
