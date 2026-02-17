@@ -44,13 +44,17 @@ namespace ClientCore.Statistics
             // 1 byte for IsLocalPlayer
             stream.WriteBool(IsLocalPlayer);
             // 4 bytes for kills
-            byte[] killsBuffer = new byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(killsBuffer, Kills);
-            stream.Write(killsBuffer, 0, 4);
+            {
+                byte[] killsBuffer = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(killsBuffer, Kills);
+                stream.Write(killsBuffer, 0, sizeof(int));
+            }
             // 4 bytes for losses
-            byte[] lossesBuffer = new byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(lossesBuffer, Losses);
-            stream.Write(lossesBuffer, 0, 4);
+            {
+                byte[] lossesBuffer = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(lossesBuffer, Losses);
+                stream.Write(lossesBuffer, 0, sizeof(int));
+            }
             // Name takes 32 bytes
             stream.WriteString(Name, 32);
             // 1 byte for SawEnd

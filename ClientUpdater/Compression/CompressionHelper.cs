@@ -44,9 +44,9 @@ public static class CompressionHelper
             using (outputStream)
             {
                 encoder.WriteCoderProperties(outputStream);
-                byte[] lengthBytes = new byte[8];
+                byte[] lengthBytes = new byte[sizeof(long)];
                 BinaryPrimitives.WriteInt64LittleEndian(lengthBytes, inputStream.Length);
-                await outputStream.WriteAsync(lengthBytes.AsMemory(0, 8), cancellationToken).ConfigureAwait(false);
+                await outputStream.WriteAsync(lengthBytes.AsMemory(0, sizeof(long)), cancellationToken).ConfigureAwait(false);
                 encoder.Code(inputStream, outputStream, inputStream.Length, outputStream.Length, null);
             }
         }
