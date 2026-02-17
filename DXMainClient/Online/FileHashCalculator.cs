@@ -237,7 +237,11 @@ namespace DTAClient.Online
         }
 
         private static string BytesToString(byte[] bytes) =>
+#if NET5_0_OR_GREATER
             Convert.ToHexString(bytes).ToLowerInvariant();
+#else
+            BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+#endif
 
         private class FileHashes()
         {

@@ -11,14 +11,22 @@ namespace ClientCore.Statistics
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+#if NET6_0_OR_GREATER
             stream.Write(buffer);
+#else
+            stream.Write(buffer.ToArray(), 0, sizeof(int));
+#endif
         }
 
         public static void WriteLong(this Stream stream, long value)
         {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
+#if NET6_0_OR_GREATER
             stream.Write(buffer);
+#else
+            stream.Write(buffer.ToArray(), 0, sizeof(long));
+#endif
         }
 
         public static void WriteBool(this Stream stream, bool value)
