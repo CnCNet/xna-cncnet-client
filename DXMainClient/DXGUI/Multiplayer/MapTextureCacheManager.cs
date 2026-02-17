@@ -188,10 +188,13 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Manually adds an image to the cache.
     /// Useful for pre-loading or when image is obtained from other sources.
+    /// Note: If the map is already cached, this method updates LRU order but does NOT
+    /// replace the cached image. The caller is responsible for disposing the provided image parameter.
     /// </summary>
     /// <param name="map">The map associated with the image.</param>
     /// <param name="image">The image to cache.</param>
-    public void AddToCache(Map map, Image image)
+    /// <returns>True if the image was added to cache; false if map was already cached.</returns>
+    public bool AddToCache(Map map, Image image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -200,12 +203,12 @@ public class MapTextureCacheManager : IDisposable
 
         lock (cacheLock)
         {
-            // If already cached, update LRU order
+            // If already cached, update LRU order but don't replace
             if (cache.TryGetValue(map, out CacheEntry? existingEntry))
             {
                 lruList.Remove(existingEntry.LruNode);
                 existingEntry.LruNode = lruList.AddFirst(map);
-                return;
+                return false; // Caller should dispose their image
             }
 
             // Evict if at capacity
@@ -217,6 +220,7 @@ public class MapTextureCacheManager : IDisposable
             // Add new entry
             LinkedListNode<Map> node = lruList.AddFirst(map);
             cache[map] = new CacheEntry(image, node);
+            return true;
         }
     }
 
