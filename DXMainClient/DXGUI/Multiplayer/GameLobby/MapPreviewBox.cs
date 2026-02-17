@@ -18,16 +18,16 @@ using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    struct ExtraMapPreviewTexture
+    struct MapPreviewBoxExtraMapPreviewTexture
     {
         public Texture2D Texture;
-        public Point Point;
+        public Point ControlAreaPoint;
         public bool Toggleable;
 
-        public ExtraMapPreviewTexture(Texture2D texture, Point point, bool toggleable)
+        public MapPreviewBoxExtraMapPreviewTexture(Texture2D texture, Point point, bool toggleable)
         {
             Texture = texture;
-            Point = point;
+            ControlAreaPoint = point;
             Toggleable = toggleable;
         }
     }
@@ -175,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private EnhancedSoundEffect sndDropdownSound;
 
-        private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+        private List<MapPreviewBoxExtraMapPreviewTexture> extraTextures = new List<MapPreviewBoxExtraMapPreviewTexture>(0);
 
         public EventHandler ToggleFavorite;
 
@@ -506,7 +506,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            foreach (var mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
+            foreach (ExtraMapPreviewTexture mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
             {
                 // LoadTexture makes use of a texture cache 
                 // so we don't need to cache the textures manually
@@ -517,7 +517,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                               mapPreviewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
                               ratio);
 
-                extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
+                extraTextures.Add(new MapPreviewBoxExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
             }
 
             int buttonX = Width;
@@ -697,8 +697,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (!extraTexture.Toggleable || UserINISettings.Instance.DisplayToggleableExtraTextures)
                     {
                         Renderer.DrawTexture(extraTexture.Texture,
-                            new Rectangle(renderPoint.X + extraTexture.Point.X,
-                            renderPoint.Y + extraTexture.Point.Y,
+                            new Rectangle(renderPoint.X + extraTexture.ControlAreaPoint.X,
+                            renderPoint.Y + extraTexture.ControlAreaPoint.Y,
                             extraTexture.Texture.Width, extraTexture.Texture.Height), Color.White);
                     }
                 }
