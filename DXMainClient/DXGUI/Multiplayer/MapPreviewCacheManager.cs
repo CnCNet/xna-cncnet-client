@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -28,7 +27,6 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     private readonly HashSet<Map> requestQueue = new();
     private readonly object queueLock = new();
     private readonly Thread? workerThread;
-    private readonly AutoResetEvent requestEvent = new(false);
     private volatile bool isDisposed = false;
 
     /// <summary>
@@ -285,8 +283,5 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
         // Clear cache
         Clear();
-
-        // Dispose synchronization primitives
-        requestEvent.Dispose();
     }
 }
