@@ -7,7 +7,10 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 ## 2.13.0
 
 - Custom mission support and game mode updates offer several new features. Details will be provided later.
-- The "Broadcast and filter game options" update offers several new features. Details will be provided later.
+
+- The following controls are now available to support broadcasting customized game options to the CnCNet lobby and displaying them in the game list and filters. `GameSessionCheckBox`, `GameLobbyCheckBox`, `GameSessionDropDown`, `GameLobbyDropDown`. See [INISystem.md](INISystem.md).
+
+- The game icon in the game lobby list can be turned off. See `ShowGameIconInGameList` in [INISystem.md](INISystem.md).
 
 ## 2.12.18
 
