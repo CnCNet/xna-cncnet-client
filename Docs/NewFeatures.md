@@ -2,7 +2,7 @@
 
 This document describes optional, non-breaking changes. While not mandatory, adopting these updates unlocks new client features.
 
-Breaking changes are not covered here; see [Migration.md] instead.
+Breaking changes are not covered here; see [./Migration.md] instead.
 
 ## 2.13.0
 
@@ -62,7 +62,7 @@ Windows Registry Editor Version 5.00
 
 ## 2.12.13
 
-- SpriteFont files have been revised. Please download the new [SpriteFont0.xnb](../DXMainClient/Resources/DTA/SpriteFont0.xnb) and [SpriteFont1.xnb](../DXMainClient/Resources/DTA/SpriteFont1.xnb) files and replace the old ones in the `Resources` folder. The client no longer relies on the remaining font files (SpriteFont2, 3, 4, 5, …) unless they are explicitly specified as `FontIndex` in your `.ini` files; you may remove them if unused.
+- SpriteFont files have been revised. Please download the new [SpriteFont0.xnb](/DXMainClient/Resources/DTA/SpriteFont0.xnb) and [SpriteFont1.xnb](/DXMainClient/Resources/DTA/SpriteFont1.xnb) files and replace the old ones in the `Resources` folder. The client no longer relies on the remaining font files (SpriteFont2, 3, 4, 5, …) unless they are explicitly specified as `FontIndex` in your `.ini` files; you may remove them if unused.
 
 ## 2.12.12
 
@@ -70,7 +70,7 @@ Windows Registry Editor Version 5.00
 
 ## 2.12.10
 
-- `VersionWriter.exe` has been updated with new settings: `ExcludeHiddenAndSystemFiles`, `ApplyTimestampOnVersion`, `NoCopyMode`, and the `[ExcludeDirectories]` section. See [Updater.md].
+- `VersionWriter.exe` has been updated with new settings: `ExcludeHiddenAndSystemFiles`, `ApplyTimestampOnVersion`, `NoCopyMode`, and the `[ExcludeDirectories]` section. See [./Updater.md].
 
 ## 2.12.8
 
@@ -99,7 +99,7 @@ NotifyOnUserListChange=False
 
 - A `MapEncoding` key can be specified in the `Translation.ini` file. However, **you should not specify it** unless you fully understand its implications. This feature is primarily intended for Tiberian Sun and should never be used for Red Alert 2.
 
-- Three drawing modes are now available for `XNAClientColorDropDown` components. See `XNAColorDropDown` in [INISystem.md].
+- Three drawing modes are now available for `XNAClientColorDropDown` components. See `XNAColorDropDown` in [./INISystem.md].
 
 ## 2.12.5
 
@@ -107,11 +107,11 @@ NotifyOnUserListChange=False
 
 ## 2.12.4
 
-- The client now displays a warning before opening unknown HTTP/HTTPS links from chat messages. You can override the default list of trusted domains using the `TrustedDomains` key in the `[Settings]` section of `ClientDefinitions.ini`. See [INISystem.md].
+- The client now displays a warning before opening unknown HTTP/HTTPS links from chat messages. You can override the default list of trusted domains using the `TrustedDomains` key in the `[Settings]` section of `ClientDefinitions.ini`. See [./INISystem.md].
 
 ## 2.12.2
 
-- The client now supports randomly selecting one loading screen from multiple images. See the `LoadingScreen` section in [INISystem.md].
+- The client now supports randomly selecting one loading screen from multiple images. See the `LoadingScreen` section in [./INISystem.md].
 
 ## 2.11.7.0
 
@@ -141,7 +141,7 @@ DisallowedComputerPlayerSides=4,5,6 ; new - disallows sides for computer players
 
 ## 2.11.0.0
 
-- A localization system has been implemented. See [Translation.md].
+- A localization system has been implemented. See [./Translation.md].
 
 - The OpenGL variant of the client can now load background music from `.ogg` files. An `.ogg` file placed alongside the corresponding `.wma` file will be recognized.
 
