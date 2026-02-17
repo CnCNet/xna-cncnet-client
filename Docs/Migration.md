@@ -35,11 +35,11 @@ This document lists all the breaking changes and how to address them. Each secti
   Resources\BinariesNET8\XNA\DTAConfig.pdb
   ```
 
-# 2.12.10
+## 2.12.10
 
 - The `FontIndex` property of `CoopBriefingBox` has been changed from 3 to 0, eliminating all hard-coded font usages except for fonts 0 and 1. Normally, you can ignore this change, but if you do want to use a different font for the map briefing, check the documentation of `CoopBriefingBox` in [INISystem.md] file.
 
-# 2.12.6
+## 2.12.6
 
 - The color dropdown now defaults to show both text and color. To revert to the text-only behavior, set `ItemsDrawMode=Text` in `[ddPlayerColor0]` to `[ddPlayerColor7]` sections in `GameLobbyBase.ini` file.
 
