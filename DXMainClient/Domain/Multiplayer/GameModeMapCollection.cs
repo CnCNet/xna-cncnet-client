@@ -31,6 +31,7 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        // TODO: The GameModes property creates a new list with every access by calling Select().Distinct().ToList(). This is inefficient if called frequently. Consider caching this value or computing it once during construction.
         public IReadOnlyList<GameMode> GameModes => items.Select(gmm => gmm.GameMode).Distinct().ToList();
 
         /// <summary>
