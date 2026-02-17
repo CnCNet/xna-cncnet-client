@@ -46,7 +46,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     }
 
     /// <summary>
-    /// Initializes a new instance of the MapTextureCacheManager.
+    /// Initializes a new instance of the MapPreviewCacheManager.
     /// </summary>
     /// <param name="capacity">Maximum number of images to keep in cache. Must be positive.</param>
     /// <param name="startWorker">Whether to start the worker thread immediately. Default is true.</param>
@@ -202,7 +202,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 {
                     // Log the error for debugging purposes with map identifier
                     string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
-                    Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
+                    Logger.Log($"MapPreviewCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
                 }
             }
         }
@@ -246,7 +246,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             if (!workerThread.Join(WorkerThreadShutdownTimeoutMs))
             {
                 // Log warning if thread doesn't terminate gracefully
-                Logger.Log("MapTextureCacheManager: Worker thread did not terminate within timeout period.");
+                Logger.Log("MapPreviewCacheManager: Worker thread did not terminate within timeout period.");
             }
         }
 
