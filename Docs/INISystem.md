@@ -366,6 +366,41 @@ Some controls are only available under specific circumstances.
 FontIndex=0
 ```
 
+#### GameLobbyBase Controls
+
+Following controls are only available as children of `GameLobbyBase` and derived controls.
+
+##### [GameSessionCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionCheckBox.cs)
+
+_(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
+
+Game option checkbox for the game lobby. Supports broadcasting game options to the CnCNet lobby and displaying them in the game list and filters.
+
+```ini
+[SOMEGAMESESSIONCHECKBOX]                  ; GameSessionCheckBox
+SpawnIniOption=                            ; string,  spawn INI option to set when checked/unchecked.
+EnabledSpawnIniValue=True                  ; string,  spawn INI value when checkbox is checked. Defaults to `True`.
+DisabledSpawnIniValue=False                ; string,  spawn INI value when checkbox is unchecked. Defaults to `False`.
+CustomIniPath=                             ; string,  custom INI path for map-specific settings.
+Reversed=false                             ; boolean, reverse the checkbox behavior.
+Checked=false                              ; boolean, initial checked state.
+MapScoringMode=Irrelevant                  ; enum (Irrelevant | DenyWhenChecked | DenyWhenUnchecked),
+                                           ;          controls whether the setting affects map scoring.
+BroadcastToLobby=false                     ; boolean, include this checkbox in the GAME broadcast to CnCNet lobby.
+ShowInGameList=false                       ; boolean, show icon/text in the game list.
+ShowInGameListOnRight=false                ; boolean, show icon on the right side of the game list. Only applies if 
+                                           ;          `ShowInGameList` is `true`.
+ShowInGameInformationPanel=false           ; boolean, show icon/text in the game information panel.
+ShowInGameInformationPanelAsIconOnly=false ; boolean, show only the icon in the game information panel. Only applies if 
+                                           ;          `ShowInGameInformationPanel` is `true`.
+ShowIconInGameLobby=false                  ; boolean, show icon in the game lobby control.
+ShowInFilters=false                        ; boolean, show this setting in the filters panel for game filtering.
+EnabledIcon=                               ; string,  texture name for the icon when setting is enabled.
+DisabledIcon=                              ; string,  texture name for the icon when setting is disabled.
+SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
+                                           ;          Lower values appear first.
+```
+
 #### XNAOptionsPanel Controls
 
 Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
