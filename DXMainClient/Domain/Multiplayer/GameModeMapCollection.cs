@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,6 @@ using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer
 {
-    /// <summary>
-    /// An optimized collection of GameModeMaps with O(1) map lookup by SHA1 hash.
-    /// </summary>
     public class GameModeMapCollection : IReadOnlyGameModeMapCollection
     {
         private readonly List<GameModeMap> items;
@@ -38,17 +36,36 @@ namespace DTAClient.Domain.Multiplayer
         public IReadOnlyList<GameMode> GameModes => items.Select(gmm => gmm.GameMode).Distinct().ToList();
 
         /// <summary>
-        /// Finds a map by its SHA1 hash with O(1) performance.
+        /// Finds a map by its SHA1 hash with optimized performance.
         /// </summary>
         /// <param name="mapHash">The SHA1 hash of the map.</param>
         /// <returns>The map if found, null otherwise.</returns>
-        public Map FindMapByHash(string mapHash)
+        public Map? FindMapByHash(string mapHash)
         {
             if (string.IsNullOrEmpty(mapHash))
                 return null;
 
-            mapHashIndex.TryGetValue(mapHash, out Map map);
+            mapHashIndex.TryGetValue(mapHash, out Map? map);
             return map;
+        }
+
+        /// <summary>
+        /// Adds the specified game mode map to the collection.
+        /// </summary>
+        /// <param name="gameModeMap">The game mode map to add to the collection.</param>
+        public void Add(GameModeMap gameModeMap)
+        {
+            items.Add(gameModeMap);
+
+            // Update the hash index
+            Map? map = gameModeMap?.Map;
+            if (map != null)
+            {
+                string sha1 = map.SHA1;
+
+                if (!string.IsNullOrEmpty(sha1) && !mapHashIndex.ContainsKey(sha1))
+                    mapHashIndex[sha1] = map;
+            }
         }
 
         /// <summary>
@@ -57,16 +74,7 @@ namespace DTAClient.Domain.Multiplayer
         public void AddRange(IEnumerable<GameModeMap> gameModeMapCollection)
         {
             foreach (var gameModeMap in gameModeMapCollection)
-            {
-                items.Add(gameModeMap);
-                
-                // Update the hash index
-                var map = gameModeMap.Map;
-                if (!string.IsNullOrEmpty(map.SHA1) && !mapHashIndex.ContainsKey(map.SHA1))
-                {
-                    mapHashIndex[map.SHA1] = map;
-                }
-            }
+                Add(gameModeMap);
         }
 
         /// <summary>
@@ -75,22 +83,21 @@ namespace DTAClient.Domain.Multiplayer
         public bool Remove(GameModeMap gameModeMap)
         {
             bool removed = items.Remove(gameModeMap);
-            
+
             if (removed)
             {
                 var map = gameModeMap.Map;
                 // Only remove from index if no other GameModeMap references this map
-                if (!string.IsNullOrEmpty(map.SHA1) && 
+                if (!string.IsNullOrEmpty(map.SHA1) &&
                     !items.Any(gmm => gmm.Map.SHA1 == map.SHA1))
                 {
                     mapHashIndex.Remove(map.SHA1);
                 }
             }
-            
+
             return removed;
         }
 
-        // IReadOnlyList<GameModeMap> implementation
         public GameModeMap this[int index] => items[index];
         public int Count => items.Count;
 
