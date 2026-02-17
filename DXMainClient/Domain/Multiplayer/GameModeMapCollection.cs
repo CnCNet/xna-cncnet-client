@@ -27,9 +27,7 @@ namespace DTAClient.Domain.Multiplayer
             {
                 var map = gameModeMap.Map;
                 if (!string.IsNullOrEmpty(map.SHA1) && !mapHashIndex.ContainsKey(map.SHA1))
-                {
                     mapHashIndex[map.SHA1] = map;
-                }
             }
         }
 
@@ -90,9 +88,7 @@ namespace DTAClient.Domain.Multiplayer
                 // Only remove from index if no other GameModeMap references this map
                 if (!string.IsNullOrEmpty(map.SHA1) &&
                     !items.Any(gmm => gmm.Map.SHA1 == map.SHA1))
-                {
                     mapHashIndex.Remove(map.SHA1);
-                }
             }
 
             return removed;
