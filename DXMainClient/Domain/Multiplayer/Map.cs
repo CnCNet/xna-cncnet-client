@@ -245,9 +245,18 @@ namespace DTAClient.Domain.Multiplayer
                 // Initialize PreviewPath
                 {
                     FileInfo mapFile = SafePath.GetFile(BaseFilePath);
-                    string previewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
-                    if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
-                        previewPath = null;
+                    string? previewPath = null;
+                    var mapDirectory = SafePath.GetDirectory(mapFile.FullName);
+                    var parentDirectory = mapDirectory?.Parent;
+                    if (parentDirectory != null)
+                    {
+                        string relativeParentPath = parentDirectory.FullName[ProgramConstants.GamePath.Length..];
+                        previewPath = SafePath.CombineFilePath(
+                            relativeParentPath,
+                            FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                        if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
+                            previewPath = null;
+                    }
 
                     PreviewPath = previewPath;
                 }

@@ -25,7 +25,8 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     private readonly object cacheLock = new();
     private readonly Dictionary<Map, CacheEntry> cache = new();
     private readonly LinkedList<Map> lruList = new();
-    private readonly ConcurrentQueue<Map> requestQueue = new();
+    private readonly HashSet<Map> requestQueue = new();
+    private readonly object queueLock = new();
     private readonly Thread? workerThread;
     private readonly AutoResetEvent requestEvent = new(false);
     private volatile bool isDisposed = false;
@@ -113,9 +114,15 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         if (TryGetImage(map, out Image? cachedImage))
             return cachedImage;
 
-        // Queue for processing
-        requestQueue.Enqueue(map);
-        requestEvent.Set();
+        // Queue for processing (HashSet prevents duplicates)
+        lock (queueLock)
+        {
+            if (requestQueue.Add(map))
+            {
+                // Only signal if we actually added a new item
+                requestEvent.Set();
+            }
+        }
 
         return null;
     }
@@ -178,9 +185,26 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             // Wait for a request or disposal (no timeout - rely on requestEvent.Set() in Dispose)
             requestEvent.WaitOne();
 
-            while (requestQueue.TryDequeue(out Map? map))
+            Map? map;
+            while (true)
             {
-                if (isDisposed)
+                lock (queueLock)
+                {
+                    // Get first item from HashSet
+                    var enumerator = requestQueue.GetEnumerator();
+                    if (enumerator.MoveNext())
+                    {
+                        map = enumerator.Current;
+                        requestQueue.Remove(map);
+                    }
+                    else
+                    {
+                        map = null;
+                        break;
+                    }
+                }
+
+                if (isDisposed || map == null)
                     break;
 
                 try
