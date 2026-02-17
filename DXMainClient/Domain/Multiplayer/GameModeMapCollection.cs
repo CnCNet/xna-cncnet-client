@@ -88,7 +88,7 @@ namespace DTAClient.Domain.Multiplayer
                 var map = gameModeMap.Map;
                 // Only remove from index if no other GameModeMap references this map
                 if (!string.IsNullOrEmpty(map.SHA1) &&
-                    !items.Any(gmm => gmm.Map.SHA1 == map.SHA1))
+                    !items.Any(gmm => string.Equals(gmm.Map.SHA1, map.SHA1, StringComparison.OrdinalIgnoreCase)))
                     mapHashIndex.Remove(map.SHA1);
             }
 
