@@ -37,7 +37,7 @@ This document lists all the breaking changes and how to address them. Each secti
 
 ## 2.12.10
 
-- The `FontIndex` property of `CoopBriefingBox` has been changed from 3 to 0, eliminating all hard-coded font usages except for fonts 0 and 1. Normally, you can ignore this change, but if you do want to use a different font for the map briefing, check the documentation of `CoopBriefingBox` in [./INISystem.md] file.
+- The `FontIndex` property of `CoopBriefingBox` has been changed from 3 to 0, eliminating all hard-coded font usages except for fonts 0 and 1. Normally, you can ignore this change, but if you do want to use a different font for the map briefing, check the documentation of `CoopBriefingBox` in [INISystem.md](INISystem.md) file.
 
 ## 2.12.6
 
