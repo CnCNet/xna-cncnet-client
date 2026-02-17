@@ -237,10 +237,15 @@ namespace DTAClient.Domain.Multiplayer
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
-                FileInfo mapFile = SafePath.GetFile(BaseFilePath);
-                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
-                if (!SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
-                    PreviewPath = null;
+                // Initialize PreviewPath
+                {
+                    FileInfo mapFile = SafePath.GetFile(BaseFilePath);
+                    string previewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                    if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
+                        previewPath = null;
+
+                    PreviewPath = previewPath;
+                }
 
                 Briefing = section.GetStringValue("Briefing", string.Empty)
                     .FromIniString()
@@ -483,9 +488,14 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
 
-                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
-                if (!SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
-                    PreviewPath = null;
+                // Initialize PreviewPath
+                {
+                    string previewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
+                    if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
+                        previewPath = null;
+
+                    PreviewPath = previewPath;
+                }
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
