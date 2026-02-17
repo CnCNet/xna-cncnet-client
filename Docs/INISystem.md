@@ -401,6 +401,51 @@ SortOrder=0                                ; integer, display order for icons in
                                            ;          Lower values appear first.
 ```
 
+##### [GameLobbyCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyCheckBox.cs)
+
+_(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
+
+Use this control type for game lobby checkboxes in `GameLobbyBase.ini` (see [Migration-INI.md](Migration-INI.md)). Inherits all properties from `GameSessionCheckBox`.
+
+##### [GameSessionDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionDropDown.cs)
+
+_(inherits [XNAClientDropDown](#XNAClientDropDown))_
+
+Game option dropdown for the game lobby. Supports broadcasting game options to the CnCNet lobby and displaying them in the game list and filters.
+
+```ini
+[SOMEGAMESESSIONDROPDOWN]                  ; GameSessionDropDown
+Items=                                     ; comma-separated strings,
+                                           ;          comma-separated list of item values for the dropdown.
+ItemLabels=                                ; comma-separated strings,
+                                           ;          optional comma-separated list of display labels for items.
+SpawnIniOption=                            ; string,  spawn INI option to set based on selected item.
+DefaultIndex=0                             ; integer, default selected item index.
+DataWriteMode=STRING                       ; enum (STRING | INDEX | BOOLEAN | MAPCODE),
+                                           ;          determines how the value is written to spawn INI.
+OptionName=                                ; string,  display name for this option.
+BroadcastToLobby=false                     ; boolean, include this dropdown in the GAME broadcast to CnCNet lobby.
+ShowInGameList=false                       ; boolean, show icon/text in the game list.
+ShowInGameListOnRight=false                ; boolean, show icon on the right side of the game list. Only applies if 
+                                           ;          `ShowInGameList` is `true`.
+ShowInGameInformationPanel=false           ; boolean, show icon/text in the game information panel.
+ShowInGameInformationPanelAsIconOnly=false ; boolean, show only the icon in the game information panel. Only applies if 
+                                           ;          `ShowInGameInformationPanel` is `true`.
+ShowIconInGameLobby=false                  ; boolean, show icon in the game lobby control.
+ShowInFilters=false                        ; boolean, show this setting in the filters panel for game filtering.
+Icons=                                     ; comma-separated strings,
+                                           ;          texture names for the icons for each dropdown option. Should match the 
+                                           ;          number of items.
+SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
+                                           ;          Lower values appear first.
+```
+
+##### [GameLobbyDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyDropDown.cs)
+
+_(inherits [GameSessionDropDown](#GameSessionDropDown))_
+
+Use this control type for game lobby dropdowns in `GameLobbyBase.ini` (see [Migration-INI.md](Migration-INI.md)). Inherits all properties from `GameSessionDropDown`.
+
 #### XNAOptionsPanel Controls
 
 Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
