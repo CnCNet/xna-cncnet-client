@@ -89,7 +89,9 @@ PlayMainMenuMusic=False
 NotifyOnUserListChange=False
 ```
 
-- For `XNAClientColorDropDown` components, the `DisabledItemTexture` key is now recognized.
+We recommend specifying `IntegerScaledClient=True` as the default.
+
+- For `XNAClientColorDropDown` components, the `DisabledItemTexture` key can be used.
 
 ## 2.12.7
 
@@ -143,7 +145,7 @@ DisallowedComputerPlayerSides=4,5,6 ; new - disallows sides for computer players
 
 - A localization system has been implemented. See [Translation.md](Translation.md).
 
-- The OpenGL variant of the client can now load background music from `.ogg` files. An `.ogg` file placed alongside the corresponding `.wma` file will be recognized.
+- The OpenGL variant of the client can now load background music from an `.ogg` file that is placed alongside the corresponding `.wma` file.
 
 - Several network-related definitions can now be customized. Example in `NetworkDefinitions.ini` located in the `Resources` folder:
 
