@@ -863,7 +863,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public override int GetHashCode() => SHA1 != null ? StringComparer.InvariantCultureIgnoreCase.GetHashCode(SHA1) : 0;
 
-        public static bool operator ==(Map left, Map right) => left == null ? right == null : left.Equals(right);
+        public static bool operator ==(Map left, Map right) => left is null ? right is null : left.Equals(right);
 
         public static bool operator !=(Map left, Map right) => !(left == right);
     }
