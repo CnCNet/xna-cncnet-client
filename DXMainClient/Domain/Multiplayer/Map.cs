@@ -50,6 +50,9 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map(string baseFilePath, bool isCustomMap)
         {
+            if (string.IsNullOrWhiteSpace(baseFilePath))
+                throw new ArgumentNullException(nameof(baseFilePath));
+
             Debug.Assert(!baseFilePath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {baseFilePath}. It should end with the map extension.");
 
             BaseFilePath = baseFilePath;
