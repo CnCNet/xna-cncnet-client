@@ -25,7 +25,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     private readonly object cacheLock = new();
     private readonly Dictionary<Map, CacheEntry> cache = new();
     private readonly LinkedList<Map> lruList = new();
-    private readonly ConcurrentQueue<ImageRequest> requestQueue = new();
+    private readonly ConcurrentQueue<Map> requestQueue = new();
     private readonly Thread? workerThread;
     private readonly AutoResetEvent requestEvent = new(false);
     private volatile bool isDisposed = false;
@@ -42,19 +42,6 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         {
             Image = image;
             LruNode = lruNode;
-        }
-    }
-
-    /// <summary>
-    /// Represents an image extraction request with completion notification.
-    /// </summary>
-    private sealed record ImageRequest
-    {
-        public Map Map { get; }
-
-        public ImageRequest(Map map)
-        {
-            Map = map;
         }
     }
 
@@ -129,7 +116,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         }
 
         // Queue for processing
-        requestQueue.Enqueue(new ImageRequest(map));
+        requestQueue.Enqueue(map);
         requestEvent.Set();
 
         return null;
@@ -195,7 +182,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             // Wait for a request or disposal (no timeout - rely on requestEvent.Set() in Dispose)
             requestEvent.WaitOne();
 
-            while (requestQueue.TryDequeue(out ImageRequest? request))
+            while (requestQueue.TryDequeue(out Map? map))
             {
                 if (isDisposed)
                     break;
@@ -203,24 +190,24 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 try
                 {
                     // Check if already cached (might have been extracted by another request)
-                    if (TryGetImage(request.Map, out Image? cachedImage))
+                    if (TryGetImage(map, out Image? cachedImage))
                     {
                         continue;
                     }
 
                     // Load the full map ini and extract the preview image. This operation is CPU-intensive.
                     Image? image = MapPreviewExtractor.ExtractMapPreview(
-                        request.Map.GetCustomMapIniFile(loadPreviewTextureSection: true));
+                        map.GetCustomMapIniFile(loadPreviewTextureSection: true));
 
                     if (image != null)
                     {
-                        AddToCache(request.Map, image);
+                        AddToCache(map, image);
                     }
                 }
                 catch (Exception ex)
                 {
                     // Log the error for debugging purposes with map identifier
-                    string mapIdentifier = request.Map.Name ?? request.Map.BaseFilePath ?? "Unknown";
+                    string mapIdentifier = map.Name ?? map.BaseFilePath ?? "Unknown";
                     Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map '{mapIdentifier}'. Error: {ex.Message}");
                 }
             }
