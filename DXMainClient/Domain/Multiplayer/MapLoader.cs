@@ -88,6 +88,11 @@ namespace DTAClient.Domain.Multiplayer
 
         public readonly IMapPreviewCacheManager MapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
 
+        /// <summary>
+        /// Dictionary for fast O(1) map lookups by SHA1 hash.
+        /// </summary>
+        private Dictionary<string, Map> mapHashIndex = new Dictionary<string, Map>(StringComparer.OrdinalIgnoreCase);
+
         public MapLoader() { }
 
         /// <summary>
@@ -372,6 +377,27 @@ namespace DTAClient.Domain.Multiplayer
         {
             GameModes.RemoveAll(g => g.Maps.Count < 1);
             GameModeMaps = new GameModeMapCollection(GameModes);
+            
+            // Rebuild the hash index for fast lookups
+            RebuildMapHashIndex();
+        }
+
+        /// <summary>
+        /// Rebuilds the map hash index from all maps in GameModeMaps.
+        /// This provides O(1) lookup performance for FindMapByHash.
+        /// </summary>
+        private void RebuildMapHashIndex()
+        {
+            mapHashIndex.Clear();
+            
+            foreach (var gameModeMap in GameModeMaps)
+            {
+                var map = gameModeMap.Map;
+                if (!string.IsNullOrEmpty(map.SHA1) && !mapHashIndex.ContainsKey(map.SHA1))
+                {
+                    mapHashIndex[map.SHA1] = map;
+                }
+            }
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
@@ -736,8 +762,12 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map FindMapByHash(string mapHash)
         {
-            // TODO: optimize performance
-            return GameModeMaps.Find(m => m.Map.SHA1.Equals(mapHash, StringComparison.OrdinalIgnoreCase))?.Map;
+            if (string.IsNullOrEmpty(mapHash))
+                return null;
+                
+            // Use dictionary for O(1) lookup instead of linear search
+            mapHashIndex.TryGetValue(mapHash, out Map map);
+            return map;
         }
 
     }
