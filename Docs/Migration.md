@@ -35,6 +35,15 @@ This document lists all the breaking changes and how to address them. Each secti
   Resources\BinariesNET8\XNA\DTAConfig.pdb
   ```
 
+# 2.12.10
+
+- The `FontIndex` property of `CoopBriefingBox` has been changed from 3 to 0, eliminating all hard-coded font usages except for fonts 0 and 1. Normally, you can ignore this change, but if you do want to use a different font for the map briefing, check the documentation of `CoopBriefingBox` in [INISystem.md] file.
+
+# 2.12.6
+
+- The color dropdown now defaults to show both text and color. To revert to the text-only behavior, set `ItemsDrawMode=Text` in `[ddPlayerColor0]` to `[ddPlayerColor7]` sections in `GameLobbyBase.ini` file.
+- It it advised to remove the `Size` property for `[GameCreationWindow]` and `[GameCreationWindow_Advanced]` (might be defined in either `GenericWindow.ini` or `GameCreationWindow.ini`) after upgrading to this version.
+
 ## 2.12.0
 
 - The client now has unified different builds among game types. The game type must be defined in the `ClientDefinitions.ini` file. Please specify `ClientGameType` in `[Settings]` section of the `ClientDefinitions.ini` file, e.g., `ClientGameType=Ares`. See [this file](https://github.com/CnCNet/xna-cncnet-client/blob/0554d7974cb741170c881116568144265e6cbabb/ClientCore/Enums/ClientType.cs) for a list of available values.
