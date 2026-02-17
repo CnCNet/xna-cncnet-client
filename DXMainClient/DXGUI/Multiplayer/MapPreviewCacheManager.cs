@@ -194,7 +194,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
                 // Exit if disposed
                 if (isDisposed)
-                    continue;
+                    break;
 
                 // Recheck queue after wake (defensive)
                 if (requestQueue.Count > 0)
