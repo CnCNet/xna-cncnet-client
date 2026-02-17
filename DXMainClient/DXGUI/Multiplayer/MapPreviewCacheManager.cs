@@ -111,9 +111,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
         // Check if already cached
         if (TryGetImage(map, out Image? cachedImage))
-        {
             return cachedImage;
-        }
 
         // Queue for processing
         requestQueue.Enqueue(map);

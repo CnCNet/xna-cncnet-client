@@ -171,7 +171,9 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public int height;
 
-        // TODO: json ignore? test whether this path still exists after loading from cache. This variable is still useful to get the map preview image
+        /// <summary>
+        /// The full path of custom map INI file. It gets re-initialized in JsonConstructor, so it won't be serialized / deserialized directly.
+        /// </summary>
         [JsonIgnore]
         private readonly string customMapFilePath;
 
