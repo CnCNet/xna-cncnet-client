@@ -5,6 +5,7 @@ using System.Linq;
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
@@ -40,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer
             SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
         }
 
-        private List<Texture2D?> txSkillLevelIcons =  new();
+        private List<Texture2D?> txSkillLevelIcons = new();
 
         private int loadedGameTextWidth;
 
@@ -126,6 +127,9 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             HostedGames.Add(game);
 
+            // Early notify the map preview cache
+            mapLoader.PrefetchCachedPreviewImageFromMap(mapLoader.FindMapByHash(game.MapHash));
+
             Refresh();
         }
 
@@ -207,7 +211,7 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < SkillLevelOptions.Length; i++)
             {
                 string fileName = $"skillLevel{i}.png";
-                    
+
                 txSkillLevelIcons.Add(AssetLoader.AssetExists(fileName)
                     ? AssetLoader.LoadTexture(fileName)
                     : null);

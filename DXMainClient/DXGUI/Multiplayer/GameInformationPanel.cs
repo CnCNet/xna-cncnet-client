@@ -191,11 +191,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!string.IsNullOrEmpty(game.MapHash) && mapLoader != null)
             {
-                var mapEntry = mapLoader.GameModeMaps
-                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase));
+                Map map = mapLoader.FindMapByHash(game.MapHash);
 
-                if (mapEntry != null)
-                    translatedMapName = mapEntry.Map.Name ?? mapEntry.Map.UntranslatedName;
+                if (map != null)
+                    translatedMapName = map.Name ?? map.UntranslatedName;
                 else if (!string.IsNullOrEmpty(game.Map))
                     translatedMapName = game.Map; // fallback to broadcasted name
             }
@@ -252,7 +251,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
-                Map map = mapLoader.GameModeMaps.FirstOrDefault(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase))?.Map;
+                Map map = mapLoader.FindMapByHash(game.MapHash);
 
                 Image mapTextureImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, loadEvenUncached: false) : null;
 

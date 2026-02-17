@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -716,6 +715,12 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        public void PrefetchCachedPreviewImageFromMap(Map map)
+        {
+            if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
+                _ = MapPreviewCacheManager.RequestImage(map);
+        }
+
         public Image GetCachedPreviewImageFromMap(Map map, bool loadEvenUncached = false)
         {
             Image image;
@@ -728,5 +733,12 @@ namespace DTAClient.Domain.Multiplayer
 
             return image;
         }
+
+        public Map FindMapByHash(string mapHash)
+        {
+            // TODO: optimize performance
+            return GameModeMaps.Find(m => m.Map.SHA1.Equals(mapHash, StringComparison.OrdinalIgnoreCase))?.Map;
+        }
+
     }
 }
