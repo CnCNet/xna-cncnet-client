@@ -1,22 +1,27 @@
-﻿using ClientCore;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.Json.Serialization;
-using SixLabors.ImageSharp;
-using Color = Microsoft.Xna.Framework.Color;
-using Point = Microsoft.Xna.Framework.Point;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using ClientCore.PlatformShim;
+using System.Text.Json.Serialization;
+
+using ClientCore;
+using ClientCore.Extensions;
+
 using DTAClient.DXGUI.Multiplayer.GameLobby;
+
+using Microsoft.Xna.Framework.Graphics;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+
+using SixLabors.ImageSharp;
+
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -583,8 +588,11 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsPreviewTextureCached() =>
+        public bool IsPreviewTextureAvailableAsFile() =>
             SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
+
+        public Image ExtractMapPreview() =>
+            MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
 
         /// <summary>
         /// Loads and returns the map preview texture. The caller is responsible for disposing the returned texture.
@@ -601,7 +609,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 // TODO here!
 
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
+                using Image preview = ExtractMapPreview();
 
                 if (preview != null)
                 {
@@ -860,6 +868,6 @@ namespace DTAClient.Domain.Multiplayer
             return string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : 0;
+        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : BaseFilePath.GetHashCode();
     }
 }
