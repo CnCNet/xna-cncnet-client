@@ -272,7 +272,18 @@ namespace DTAClient.DXGUI.Multiplayer
                     mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
                 }
             }
+            else
+            {
+                if (mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext &&
+                    mapPreviewTexture != null &&
+                    !mapPreviewTexture.IsDisposed)
+                {
+                    mapPreviewTexture.Dispose();
+                }
 
+                mapPreviewTexture = null;
+                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+            }
             SetGameOptionsInfo(game);
             SetLegendInfo(game);
         }
