@@ -196,16 +196,12 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 if (isDisposed)
                     break;
 
-                // Recheck queue after wake (defensive)
-                if (requestQueue.Count > 0)
+                // Get first item from HashSet
+                using var enumerator = requestQueue.GetEnumerator();
+                if (enumerator.MoveNext())
                 {
-                    // Get first item from HashSet
-                    using var enumerator = requestQueue.GetEnumerator();
-                    if (enumerator.MoveNext())
-                    {
-                        map = enumerator.Current;
-                        requestQueue.Remove(map);
-                    }
+                    map = enumerator.Current;
+                    requestQueue.Remove(map);
                 }
             }
 
@@ -216,7 +212,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
             try
             {
                 // Check if already cached (might have been extracted by another request)
-                if (TryGetImage(map, out Image? cachedImage))
+                if (TryGetImage(map, out _))
                     continue;
 
                 if (!map.IsNonImmediatePreviewImageAvailable())
