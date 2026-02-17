@@ -5,41 +5,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DTAClient.Domain.Multiplayer;
-using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
+using SixLabors.ImageSharp;
 
 namespace DTAClient.DXGUI.Multiplayer;
 
 /// <summary>
-/// Thread-safe manager for caching map preview textures with LRU eviction policy.
-/// Processes texture extraction requests sequentially to limit CPU usage to a single thread.
+/// Thread-safe manager for caching map preview images with LRU eviction policy.
+/// Processes image extraction requests sequentially to limit CPU usage to a single thread.
 /// 
 /// <para>
 /// <b>Usage Example:</b>
 /// <code>
-/// // Create a cache manager with capacity of 50 textures
+/// // Create a cache manager with capacity of 50 images
 /// var cacheManager = new MapTextureCacheManager(capacity: 50);
 /// 
 /// // Synchronous check - returns immediately if cached
-/// if (cacheManager.TryGetTexture(map, out Texture2D? texture))
+/// if (cacheManager.TryGetImage(map, out Image? image))
 /// {
-///     // Use the cached texture
-///     DrawTexture(texture);
+///     // Use the cached image (convert to texture as needed)
+///     var texture = AssetLoader.TextureFromImage(image);
 /// }
 /// 
-/// // Asynchronous request - queues for loading if not cached
-/// cacheManager.RequestTexture(map, loadedTexture =>
+/// // Asynchronous request - queues for extraction if not cached
+/// cacheManager.RequestImage(map, loadedImage =>
 /// {
-///     if (loadedTexture != null)
+///     if (loadedImage != null)
 ///     {
-///         // Texture loaded, update UI on appropriate thread
-///         DrawTexture(loadedTexture);
+///         // Image extracted, convert to texture on appropriate thread
+///         var texture = AssetLoader.TextureFromImage(loadedImage);
 ///     }
 /// });
 /// 
-/// // Manually add a pre-loaded texture
-/// Texture2D preloadedTexture = LoadTextureFromFile("preview.png");
-/// cacheManager.AddToCache(map, preloadedTexture);
+/// // Manually add a pre-extracted image
+/// Image preloadedImage = MapPreviewExtractor.ExtractMapPreview(mapIni);
+/// cacheManager.AddToCache(map, preloadedImage);
 /// 
 /// // Clean up
 /// cacheManager.Dispose();
@@ -49,17 +49,17 @@ namespace DTAClient.DXGUI.Multiplayer;
 /// <para>
 /// <b>Thread Safety:</b><br/>
 /// - All public methods are thread-safe<br/>
-/// - TryGetTexture can be called from any thread<br/>
-/// - RequestTexture callbacks are invoked on the worker thread<br/>
-/// - The worker thread processes one texture at a time to limit CPU usage
+/// - TryGetImage can be called from any thread<br/>
+/// - RequestImage callbacks are invoked on the worker thread<br/>
+/// - The worker thread processes one extraction at a time to limit CPU usage
 /// </para>
 /// 
 /// <para>
 /// <b>Memory Management:</b><br/>
-/// - When cache reaches capacity, least recently used textures are evicted<br/>
-/// - Evicted textures are NOT disposed automatically<br/>
-/// - Use Dispose(disposeTextures: true) to dispose all cached textures<br/>
-/// - Caller is responsible for texture lifetime management
+/// - When cache reaches capacity, least recently used images are evicted<br/>
+/// - Evicted images are NOT disposed automatically<br/>
+/// - Use Dispose(disposeImages: true) to dispose all cached images<br/>
+/// - Caller is responsible for image lifetime management
 /// </para>
 /// </summary>
 public class MapTextureCacheManager : IDisposable
@@ -70,35 +70,35 @@ public class MapTextureCacheManager : IDisposable
     private readonly object cacheLock = new();
     private readonly Dictionary<Map, CacheEntry> cache = new();
     private readonly LinkedList<Map> lruList = new();
-    private readonly ConcurrentQueue<TextureRequest> requestQueue = new();
+    private readonly ConcurrentQueue<ImageRequest> requestQueue = new();
     private readonly Thread? workerThread;
     private readonly AutoResetEvent requestEvent = new(false);
     private volatile bool isDisposed = false;
 
     /// <summary>
-    /// Represents a cached texture entry with its position in the LRU list.
+    /// Represents a cached image entry with its position in the LRU list.
     /// </summary>
     private class CacheEntry
     {
-        public Texture2D Texture { get; }
+        public Image Image { get; }
         public LinkedListNode<Map> LruNode { get; set; }
 
-        public CacheEntry(Texture2D texture, LinkedListNode<Map> lruNode)
+        public CacheEntry(Image image, LinkedListNode<Map> lruNode)
         {
-            Texture = texture;
+            Image = image;
             LruNode = lruNode;
         }
     }
 
     /// <summary>
-    /// Represents a texture loading request with completion notification.
+    /// Represents an image extraction request with completion notification.
     /// </summary>
-    private class TextureRequest
+    private class ImageRequest
     {
         public Map Map { get; }
-        public Action<Texture2D?>? Callback { get; }
+        public Action<Image?>? Callback { get; }
 
-        public TextureRequest(Map map, Action<Texture2D?>? callback)
+        public ImageRequest(Map map, Action<Image?>? callback)
         {
             Map = map;
             Callback = callback;
@@ -108,7 +108,7 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Initializes a new instance of the MapTextureCacheManager.
     /// </summary>
-    /// <param name="capacity">Maximum number of textures to keep in cache. Must be positive.</param>
+    /// <param name="capacity">Maximum number of images to keep in cache. Must be positive.</param>
     /// <param name="startWorker">Whether to start the worker thread immediately. Default is true.</param>
     public MapTextureCacheManager(int capacity, bool startWorker = true)
     {
@@ -129,13 +129,13 @@ public class MapTextureCacheManager : IDisposable
     }
 
     /// <summary>
-    /// Attempts to get a cached texture for the specified map.
+    /// Attempts to get a cached image for the specified map.
     /// Updates LRU order if found.
     /// </summary>
-    /// <param name="map">The map to get the texture for.</param>
-    /// <param name="texture">The cached texture if found; otherwise null.</param>
-    /// <returns>True if the texture was found in cache; otherwise false.</returns>
-    public bool TryGetTexture(Map map, out Texture2D? texture)
+    /// <param name="map">The map to get the image for.</param>
+    /// <param name="image">The cached image if found; otherwise null.</param>
+    /// <returns>True if the image was found in cache; otherwise false.</returns>
+    public bool TryGetImage(Map map, out Image? image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -147,23 +147,23 @@ public class MapTextureCacheManager : IDisposable
                 // Move to front of LRU list (most recently used)
                 lruList.Remove(entry.LruNode);
                 entry.LruNode = lruList.AddFirst(map);
-                texture = entry.Texture;
+                image = entry.Image;
                 return true;
             }
 
-            texture = null;
+            image = null;
             return false;
         }
     }
 
     /// <summary>
-    /// Requests a texture to be loaded for the specified map.
-    /// If the texture is already cached, the callback is invoked immediately.
+    /// Requests an image to be extracted for the specified map.
+    /// If the image is already cached, the callback is invoked immediately.
     /// Otherwise, the request is queued for processing on the worker thread.
     /// </summary>
-    /// <param name="map">The map to load the texture for.</param>
-    /// <param name="callback">Optional callback to invoke when the texture is ready.</param>
-    public void RequestTexture(Map map, Action<Texture2D?>? callback = null)
+    /// <param name="map">The map to extract the image for.</param>
+    /// <param name="callback">Optional callback to invoke when the image is ready.</param>
+    public void RequestImage(Map map, Action<Image?>? callback = null)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -172,29 +172,29 @@ public class MapTextureCacheManager : IDisposable
             throw new ObjectDisposedException(nameof(MapTextureCacheManager));
 
         // Check if already cached
-        if (TryGetTexture(map, out Texture2D? cachedTexture))
+        if (TryGetImage(map, out Image? cachedImage))
         {
-            callback?.Invoke(cachedTexture);
+            callback?.Invoke(cachedImage);
             return;
         }
 
         // Queue for processing
-        requestQueue.Enqueue(new TextureRequest(map, callback));
+        requestQueue.Enqueue(new ImageRequest(map, callback));
         requestEvent.Set();
     }
 
     /// <summary>
-    /// Manually adds a texture to the cache.
-    /// Useful for pre-loading or when texture is obtained from other sources.
+    /// Manually adds an image to the cache.
+    /// Useful for pre-loading or when image is obtained from other sources.
     /// </summary>
-    /// <param name="map">The map associated with the texture.</param>
-    /// <param name="texture">The texture to cache.</param>
-    public void AddToCache(Map map, Texture2D texture)
+    /// <param name="map">The map associated with the image.</param>
+    /// <param name="image">The image to cache.</param>
+    public void AddToCache(Map map, Image image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
-        if (texture == null)
-            throw new ArgumentNullException(nameof(texture));
+        if (image == null)
+            throw new ArgumentNullException(nameof(image));
 
         lock (cacheLock)
         {
@@ -214,24 +214,24 @@ public class MapTextureCacheManager : IDisposable
 
             // Add new entry
             LinkedListNode<Map> node = lruList.AddFirst(map);
-            cache[map] = new CacheEntry(texture, node);
+            cache[map] = new CacheEntry(image, node);
         }
     }
 
     /// <summary>
-    /// Clears all cached textures.
+    /// Clears all cached images.
     /// </summary>
-    /// <param name="disposeTextures">Whether to dispose the textures when clearing. Default is false.</param>
-    public void Clear(bool disposeTextures = false)
+    /// <param name="disposeImages">Whether to dispose the images when clearing. Default is false.</param>
+    public void Clear(bool disposeImages = false)
     {
         lock (cacheLock)
         {
-            if (disposeTextures)
+            if (disposeImages)
             {
-                // Dispose textures if requested
+                // Dispose images if requested
                 foreach (var entry in cache.Values)
                 {
-                    entry.Texture?.Dispose();
+                    entry.Image?.Dispose();
                 }
             }
 
@@ -241,7 +241,7 @@ public class MapTextureCacheManager : IDisposable
     }
 
     /// <summary>
-    /// Worker thread that processes texture loading requests sequentially.
+    /// Worker thread that processes image extraction requests sequentially.
     /// </summary>
     private void ProcessRequests()
     {
@@ -250,35 +250,36 @@ public class MapTextureCacheManager : IDisposable
             // Wait for a request or disposal
             requestEvent.WaitOne(1000); // Timeout to periodically check disposal
 
-            while (requestQueue.TryDequeue(out TextureRequest? request))
+            while (requestQueue.TryDequeue(out ImageRequest? request))
             {
                 if (isDisposed)
                     break;
 
                 try
                 {
-                    // Check if already cached (might have been loaded by another request)
-                    if (TryGetTexture(request.Map, out Texture2D? cachedTexture))
+                    // Check if already cached (might have been extracted by another request)
+                    if (TryGetImage(request.Map, out Image? cachedImage))
                     {
-                        request.Callback?.Invoke(cachedTexture);
+                        request.Callback?.Invoke(cachedImage);
                         continue;
                     }
 
-                    // Load the texture (this is the CPU-intensive operation)
-                    Texture2D? texture = request.Map.LoadPreviewTexture();
+                    // Extract the preview image (this is the CPU-intensive operation)
+                    Image? image = MapPreviewExtractor.ExtractMapPreview(
+                        request.Map.GetCustomMapIniFile(loadPreviewTextureSection: true));
 
-                    if (texture != null)
+                    if (image != null)
                     {
-                        AddToCache(request.Map, texture);
+                        AddToCache(request.Map, image);
                     }
 
                     // Notify callback
-                    request.Callback?.Invoke(texture);
+                    request.Callback?.Invoke(image);
                 }
                 catch (Exception ex)
                 {
                     // Log the error for debugging purposes
-                    Logger.Log($"MapTextureCacheManager: Failed to load texture for map. Error: {ex.Message}");
+                    Logger.Log($"MapTextureCacheManager: Failed to extract preview image for map. Error: {ex.Message}");
                     
                     // Notify callback with null
                     request.Callback?.Invoke(null);
@@ -288,7 +289,7 @@ public class MapTextureCacheManager : IDisposable
     }
 
     /// <summary>
-    /// Evicts the least recently used texture from the cache.
+    /// Evicts the least recently used image from the cache.
     /// Must be called within cacheLock.
     /// </summary>
     private void EvictLeastRecentlyUsed()
@@ -301,8 +302,8 @@ public class MapTextureCacheManager : IDisposable
 
         if (cache.TryGetValue(lruMap, out CacheEntry? entry))
         {
-            // Note: We don't dispose the texture here as it might still be in use elsewhere.
-            // The caller is responsible for managing texture lifetime if needed.
+            // Note: We don't dispose the image here as it might still be in use elsewhere.
+            // The caller is responsible for managing image lifetime if needed.
             cache.Remove(lruMap);
         }
     }
@@ -310,8 +311,8 @@ public class MapTextureCacheManager : IDisposable
     /// <summary>
     /// Disposes the cache manager and releases all resources.
     /// </summary>
-    /// <param name="disposeTextures">Whether to dispose cached textures. Default is false.</param>
-    public void Dispose(bool disposeTextures = false)
+    /// <param name="disposeImages">Whether to dispose cached images. Default is false.</param>
+    public void Dispose(bool disposeImages = false)
     {
         if (isDisposed)
             return;
@@ -322,10 +323,10 @@ public class MapTextureCacheManager : IDisposable
         requestEvent.Set();
 
         // Wait for worker thread to finish
-        workerThread?.Join(2000);
+        workerThread?.Join(WorkerThreadShutdownTimeoutMs);
 
         // Clear cache
-        Clear(disposeTextures);
+        Clear(disposeImages);
 
         // Dispose synchronization primitives
         requestEvent.Dispose();
@@ -336,6 +337,6 @@ public class MapTextureCacheManager : IDisposable
     /// </summary>
     void IDisposable.Dispose()
     {
-        Dispose(disposeTextures: false);
+        Dispose(disposeImages: false);
     }
 }
