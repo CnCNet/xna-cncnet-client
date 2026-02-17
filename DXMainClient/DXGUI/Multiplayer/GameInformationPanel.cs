@@ -506,6 +506,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 Debug.Assert(!mapPreviewTexture.IsDisposed, "mapPreviewTexture should not be disposed before this call");
                 mapPreviewTexture.Dispose();
                 mapPreviewTexture = null;
+                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
             }
         }
 
