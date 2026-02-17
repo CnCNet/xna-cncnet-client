@@ -42,6 +42,7 @@ This document lists all the breaking changes and how to address them. Each secti
 # 2.12.6
 
 - The color dropdown now defaults to show both text and color. To revert to the text-only behavior, set `ItemsDrawMode=Text` in `[ddPlayerColor0]` to `[ddPlayerColor7]` sections in `GameLobbyBase.ini` file.
+
 - It it advised to remove the `Size` property for `[GameCreationWindow]` and `[GameCreationWindow_Advanced]` (might be defined in either `GenericWindow.ini` or `GameCreationWindow.ini`) after upgrading to this version.
 
 ## 2.12.0
