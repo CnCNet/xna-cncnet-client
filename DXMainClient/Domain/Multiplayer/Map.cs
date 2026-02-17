@@ -850,12 +850,21 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        protected bool Equals(Map other)
+        public override bool Equals(object other)
         {
-            Debug.Assert(other?.SHA1 != null || SHA1 != null);
-            return string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
+            if (other is Map otherMap)
+            {
+                Debug.Assert(otherMap?.SHA1 != null || SHA1 != null);
+                return string.Equals(SHA1, otherMap?.SHA1, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return false;
         }
 
         public override int GetHashCode() => SHA1 != null ? StringComparer.InvariantCultureIgnoreCase.GetHashCode(SHA1) : 0;
+
+        public static bool operator ==(Map left, Map right) => left == null ? right == null : left.Equals(right);
+
+        public static bool operator !=(Map left, Map right) => !(left == right);
     }
 }
