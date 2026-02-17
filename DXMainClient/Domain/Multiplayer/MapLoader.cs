@@ -89,7 +89,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public const int MapPreviewCacheCapacity = 500;
 
-        public readonly IMapPreviewCacheManager MapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
+        private readonly IMapPreviewCacheManager mapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
 
         public MapLoader() { }
 
@@ -721,7 +721,7 @@ namespace DTAClient.Domain.Multiplayer
         public void PrefetchCachedPreviewImageFromMap(Map map)
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                _ = MapPreviewCacheManager.RequestImage(map);
+                _ = mapPreviewCacheManager.RequestImage(map);
         }
 
         public Image GetCachedPreviewImageFromMap(Map map, bool loadEvenUncached = false)
@@ -730,7 +730,7 @@ namespace DTAClient.Domain.Multiplayer
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
                 image = map.GetImmediatePreviewImage();
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                image = MapPreviewCacheManager.RequestImage(map) ?? (loadEvenUncached ? map.GetNonImmediatePreviewImage() : null);
+                image = mapPreviewCacheManager.RequestImage(map) ?? (loadEvenUncached ? map.GetNonImmediatePreviewImage() : null);
             else
                 image = null;
 
@@ -739,6 +739,6 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map FindMapByHash(string mapHash) => _gameModeMaps?.FindMapByHash(mapHash);
 
-        public void Dispose() => MapPreviewCacheManager?.Dispose();
+        public void Dispose() => mapPreviewCacheManager?.Dispose();
     }
 }
