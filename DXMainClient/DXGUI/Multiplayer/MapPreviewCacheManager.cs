@@ -149,9 +149,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
             // Evict if at capacity
             if (cache.Count >= capacity)
-            {
                 EvictLeastRecentlyUsed();
-            }
 
             // Add new entry
             LinkedListNode<Map> node = lruList.AddFirst(map);
@@ -191,18 +189,16 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 {
                     // Check if already cached (might have been extracted by another request)
                     if (TryGetImage(map, out Image? cachedImage))
-                    {
                         continue;
-                    }
+
+                    if (!map.IsNonImmediatePreviewImageAvailable())
+                        continue;
 
                     // Load the full map ini and extract the preview image. This operation is CPU-intensive.
-                    Image? image = MapPreviewExtractor.ExtractMapPreview(
-                        map.GetCustomMapIniFile(loadPreviewTextureSection: true));
+                    Image? image = map.GetNonImmediatePreviewImage();
 
                     if (image != null)
-                    {
                         AddToCache(map, image);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -228,7 +224,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
         if (cache.TryGetValue(lruMap, out CacheEntry? entry))
         {
-            // Remove from cache; image will be garbage collected
+            // Remove from cache but does not call image.Dispose() since we assume images are managed and will be collected by GC
             cache.Remove(lruMap);
         }
     }
