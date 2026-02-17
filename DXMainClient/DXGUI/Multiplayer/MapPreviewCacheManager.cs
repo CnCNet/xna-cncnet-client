@@ -191,7 +191,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 lock (queueLock)
                 {
                     // Get first item from HashSet
-                    var enumerator = requestQueue.GetEnumerator();
+                    using var enumerator = requestQueue.GetEnumerator();
                     if (enumerator.MoveNext())
                     {
                         map = enumerator.Current;
