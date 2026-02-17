@@ -150,7 +150,7 @@ DisallowedComputerPlayerSides=4,5,6 ; new - disallows sides for computer players
 
 - The OpenGL variant of the client can now load background music from an `.ogg` file that is placed alongside the corresponding `.wma` file.
 
-- Several network-related definitions can now be customized. Example in `NetworkDefinitions.ini` located in the `Resources` folder:
+- Several network-related definitions can now be customized via `NetworkDefinitions.ini` file in the `Resources` folder. An example is shown below.
 
 ```ini
 [Settings]
