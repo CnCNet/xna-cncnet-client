@@ -248,7 +248,11 @@ namespace DTAClient.Online
             return new string(result);
         }
 
-        private static char GetHexChar(int value) => (char)(value < 10 ? '0' + value : 'a' + value - 10);
+        private static char GetHexChar(int digit)
+        {
+            Debug.Assert(digit >= 0 && digit < 16, $"Value {digit} is out of range for a hex digit.");
+            return (char)(digit < 10 ? '0' + digit : 'a' + digit - 10);
+        }
 
         private class FileHashes()
         {
