@@ -192,21 +192,26 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                     Monitor.Wait(queueLock);
                 }
 
+                // Exit if disposed
                 if (isDisposed)
-                    break;
+                    continue;
 
-                // Get first item from HashSet
-                using var enumerator = requestQueue.GetEnumerator();
-                if (enumerator.MoveNext())
+                // Recheck queue after wake (defensive)
+                if (requestQueue.Count > 0)
                 {
-                    map = enumerator.Current;
-                    requestQueue.Remove(map);
+                    // Get first item from HashSet
+                    using var enumerator = requestQueue.GetEnumerator();
+                    if (enumerator.MoveNext())
+                    {
+                        map = enumerator.Current;
+                        requestQueue.Remove(map);
+                    }
                 }
             }
 
-            // Skip if no map available or disposed
-            if (map == null || isDisposed)
-                break;
+            // If no map, loop back to wait
+            if (map == null)
+                continue;
 
             try
             {
