@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using ClientGUI;
 using ClientCore.Extensions;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -157,9 +158,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private Rectangle textureRectangle;
 
-        private Texture2D previewTexture;
+        private Texture2D previewTexture = null;
 
-        private bool disposeTextures = true;
+        private bool disposeTextures = false;
 
         private bool useNearestNeighbour = false;
 
@@ -178,10 +179,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             EnableStartLocationSelection = true;
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-#if !GL
-
-            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
-#endif
 
             mainContextMenu = new XNAContextMenu(WindowManager);
             mainContextMenu.Name = nameof(mainContextMenu);
@@ -408,7 +405,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void UpdateMap()
         {
             if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
+            {
                 previewTexture.Dispose();
+                disposeTextures = false;
+            }
 
             extraTextures.Clear();
 
@@ -425,7 +425,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            // Always load texture on demand (no caching in Map object)
+            Debug.Assert(!disposeTextures, "disposeTextures should be false before loading a new texture, otherwise the previously loaded texture will not be disposed.");
+
             previewTexture = GameModeMap.Map.LoadPreviewTexture();
             disposeTextures = true;
 
@@ -477,7 +478,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 indicator.Disable();
             }
-            
+
             for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
                 bool showLocation = i < startingLocations.Count && GameModeMap.AllowedStartingLocations.Contains(i + 1);

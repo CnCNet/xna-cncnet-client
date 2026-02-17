@@ -325,9 +325,6 @@ namespace DTAClient.Domain.Multiplayer
                 }
 
                 GetTeamStartMappingPresets(section);
-#if !GL
-                // Preview texture loading removed - use MapTextureCacheManager instead
-#endif
 
                 // Parse forced options
 
