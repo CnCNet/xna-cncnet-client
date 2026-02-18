@@ -108,11 +108,11 @@ namespace ClientCore
                 ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
 
                 // Remove binding completely
-                DetailLevel = null;
-                DragDistance = null;
-                WindowedMode = null;
-                BorderlessWindowedMode = null;
-                BackBufferInVRAM = null;
+                // DetailLevel = null;
+               // DragDistance = null;
+                // WindowedMode = null;
+               // BorderlessWindowedMode = null;
+               // BackBufferInVRAM = null;
 
                 // ====================
                 // AUDIO
