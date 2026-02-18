@@ -17,7 +17,7 @@ public interface ICacheManager<TInput, TOutput> : IDisposable
     public void Clear();
 
     /// <summary>
-    /// Requests an output to be extracted for the specified input.
+    /// Requests an output to be computed for the specified input.
     /// </summary>
     /// <param name="input">The input to get the output.</param>
     /// <param name="output">The cached output if found or computed.</param>

@@ -219,7 +219,7 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
 
             try
             {
-                // Check if already cached (might have been extracted by another request)
+                // Check if already cached (might have been computed by another request)
                 if (TryGet(input!, out _))
                     continue;
 
