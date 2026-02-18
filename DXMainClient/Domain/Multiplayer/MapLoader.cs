@@ -105,11 +105,11 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public void LoadMaps()
         {
-            Logger.Log("Map loading task started.");
+            Logger.Log("MapLoader: Map loading task started.");
 
             string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
 
-            Logger.Log($"Loading maps from {mpMapsPath}.");
+            Logger.Log($"MapLoader: Loading maps from {mpMapsPath}.");
 
             IniFile mpMapsIni = new IniFile(mpMapsPath);
 
@@ -124,7 +124,7 @@ namespace DTAClient.Domain.Multiplayer
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
 
-            Logger.Log("Map loading complete.");
+            Logger.Log("MapLoader: Map loading complete.");
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
