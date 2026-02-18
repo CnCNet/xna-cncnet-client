@@ -611,7 +611,8 @@ namespace DTAClient.Domain.Multiplayer
             if (!IsNonImmediatePreviewImageAvailable())
                 throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
 
-            Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
+            // Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
+
             return MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
         }
 
