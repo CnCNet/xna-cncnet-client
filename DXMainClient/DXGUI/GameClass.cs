@@ -58,10 +58,12 @@ namespace DTAClient.DXGUI
         private static GraphicsDeviceManager graphics;
         ContentManager content;
 
-        private string GetWindowTitle()
+        protected override void Initialize()
         {
+            Logger.Log("Initializing GameClass.");
+
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            windowTitle = string.IsNullOrEmpty(windowTitle) ?
+            Window.Title = string.IsNullOrEmpty(windowTitle) ?
                 string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             {
@@ -69,18 +71,9 @@ namespace DTAClient.DXGUI
 
 #if DEVELOPMENT_BUILD
                 if (ClientConfiguration.Instance.ShowDevelopmentBuildWarnings)
-                    windowTitle += $" ({developBuildTitle})";
+                    Window.Title += $" ({developBuildTitle})";
 #endif
             }
-
-            return windowTitle;
-        }
-
-        protected override void Initialize()
-        {
-            Logger.Log("Initializing GameClass.");
-
-            Window.Title = GetWindowTitle();
 
             base.Initialize();
 
