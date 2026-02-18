@@ -489,10 +489,10 @@ namespace DTAClient.Domain.Multiplayer
             Logger.Log("MapLoader: Finished processing uncached custom maps.");
 
             // remove cached maps that no longer exist locally
-            Logger.Log("MapLoader: Removing missing maps from cache...");
+            Logger.Log("MapLoader: Removing outdated maps from cache...");
             foreach (var missingPath in customMapCache.Items.Keys.Where(cachedPath => !localMapPaths.Contains(cachedPath)))
                 customMapCache.Items.TryRemove(missingPath, out _);
-            Logger.Log("MapLoader: Finished removing missing maps from cache.");
+            Logger.Log("MapLoader: Finished removing outdated maps from cache.");
 
             // save cache
             Logger.Log("MapLoader: Saving new custom map cache with " + customMapCache.Items.Count + " items.");
