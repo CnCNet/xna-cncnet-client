@@ -45,26 +45,22 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     }
 
     /// <summary>
-    /// Initializes a new instance of the MapPreviewCacheManager.
+    /// Initializes a new instance of the MapPreviewCacheManager and start the worker thread immediately.
     /// </summary>
     /// <param name="capacity">Maximum number of images to keep in cache. Must be positive.</param>
-    /// <param name="startWorker">Whether to start the worker thread immediately. Default is true.</param>
-    public MapPreviewCacheManager(int capacity, bool startWorker = true)
+    public MapPreviewCacheManager(int capacity)
     {
         if (capacity <= 0)
             throw new ArgumentException("Capacity must be positive.", nameof(capacity));
 
         this.capacity = capacity;
 
-        if (startWorker)
+        workerThread = new Thread(ProcessRequests)
         {
-            workerThread = new Thread(ProcessRequests)
-            {
-                IsBackground = true,
-                Name = nameof(MapPreviewCacheManager) + "Worker"
-            };
-            workerThread.Start();
-        }
+            IsBackground = true,
+            Name = nameof(MapPreviewCacheManager) + "Worker"
+        };
+        workerThread.Start();
     }
 
     /// <summary>
