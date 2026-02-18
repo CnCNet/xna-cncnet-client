@@ -458,10 +458,12 @@ namespace DTAClient.Domain.Multiplayer
             {
                 ConcurrentBag<string> localMapPathsConcurrentBag = [];
 
+                int mapFileExtensionWithDotLength = $".{ClientConfiguration.Instance.MapFileExtension}".Length;
+
                 Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
                 {
                     string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
-                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - mapFileExtensionWithDotLength);
 
                     string normalizedPath = baseFilePath
                         .Replace(Path.DirectorySeparatorChar, '/')
