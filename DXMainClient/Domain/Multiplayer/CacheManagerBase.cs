@@ -179,6 +179,11 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
         }
     }
 
+    /// <summary>
+    /// Computes the output for a given input. This method may or might not being called by the worker thread and may be CPU-intensive.
+    /// </summary>
+    /// <param name="input">The input.</param>
+    /// <returns>The output.</returns>
     protected abstract TOutput? ComputeOutputForInput(TInput input);
 
     /// <summary>
