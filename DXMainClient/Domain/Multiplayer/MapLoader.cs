@@ -454,43 +454,48 @@ namespace DTAClient.Domain.Multiplayer
 
             Logger.Log("MapLoader: Finished loading custom map cache. Processing uncached custom maps...");
 
-            var localMapPaths = new ConcurrentBag<string>();
-
-            Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
+            List<string> localMapPaths;
             {
-                string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
-                baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                ConcurrentBag<string> localMapPathsConcurrentBag = [];
 
-                string normalizedPath = baseFilePath
-                    .Replace(Path.DirectorySeparatorChar, '/')
-                    .Replace(Path.AltDirectorySeparatorChar, '/');
-
-                localMapPaths.Add(normalizedPath);
-
-                if (customMapCache.Items.TryGetValue(normalizedPath, out var cachedItem) && !cachedItem.IsOutdated())
+                Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
                 {
-                    // Use cached map
-                    return;
+                    string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
+                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+
+                    string normalizedPath = baseFilePath
+                        .Replace(Path.DirectorySeparatorChar, '/')
+                        .Replace(Path.AltDirectorySeparatorChar, '/');
+
+                    localMapPathsConcurrentBag.Add(normalizedPath);
+
+                    if (customMapCache.Items.TryGetValue(normalizedPath, out var cachedItem) && !cachedItem.IsOutdated())
+                    {
+                        // Use cached map
+                        return;
+                    }
+
+                    // Not in cache or outdated
+                    var map = new Map(normalizedPath, true);
+                    if (map.InitializeFromCustomMap())
+                        customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
+                })).ToArray();
+
+                while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
+                {
+                    string message = "MapLoader: Waiting for the custom map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Length;
+                    Debug.WriteLine(message);
+                    Logger.Log(message);
                 }
 
-                // Not in cache or outdated
-                var map = new Map(normalizedPath, true);
-                if (map.InitializeFromCustomMap())
-                    customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
-            })).ToArray();
-
-            while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
-            {
-                string message = "MapLoader: Waiting for the custom map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Length;
-                Debug.WriteLine(message);
-                Logger.Log(message);
+                localMapPaths = localMapPathsConcurrentBag.ToList();
             }
 
             Logger.Log("MapLoader: Finished processing uncached custom maps.");
 
             // remove cached maps that no longer exist locally
             Logger.Log("MapLoader: Removing missing maps from cache...");
-            foreach (var missingPath in customMapCache.Items.Keys.Where(cachedPath => !localMapPaths.Contains(cachedPath)))
+            foreach (string missingPath in customMapCache.Items.Keys.AsParallel().Where(cachedPath => !localMapPaths.Contains(cachedPath)))
                 customMapCache.Items.TryRemove(missingPath, out _);
             Logger.Log("MapLoader: Finished removing missing maps from cache.");
 
