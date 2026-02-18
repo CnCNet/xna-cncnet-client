@@ -52,7 +52,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GenericHostedGame game = null;
 
-        private bool mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+        /// <summary>
+        /// Indicates whether `mapPreviewTexture` needs to be disposed before loading the next texture. This is true if the current `mapPreviewTexture` was created from a map preview image and not assigned from the shared `noMapPreviewTexture`.
+        /// </summary>
+        private bool mapPreviewTextureNeedsDispose = false;
         private Texture2D mapPreviewTexture = null;
 
         private Texture2D noMapPreviewTexture = null;
@@ -248,7 +251,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
 
@@ -257,23 +260,23 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (mapPreviewImage != null)
                 {
                     mapPreviewTexture = AssetLoader.TextureFromImage(mapPreviewImage);
-                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
+                    mapPreviewTextureNeedsDispose = true;
                 }
                 else if (noMapPreviewTexture != null)
                 {
                     Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
                     mapPreviewTexture = noMapPreviewTexture;
-                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                    mapPreviewTextureNeedsDispose = false;
                 }
                 else
                 {
                     mapPreviewTexture = null;
-                    mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                    mapPreviewTextureNeedsDispose = false;
                 }
             }
             else
             {
-                if (mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext &&
+                if (mapPreviewTextureNeedsDispose &&
                     mapPreviewTexture != null &&
                     !mapPreviewTexture.IsDisposed)
                 {
@@ -281,7 +284,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
 
                 mapPreviewTexture = null;
-                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                mapPreviewTextureNeedsDispose = false;
             }
             SetGameOptionsInfo(game);
             SetLegendInfo(game);
@@ -500,12 +503,12 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            if (mapPreviewTexture != null && mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext)
+            if (mapPreviewTexture != null && mapPreviewTextureNeedsDispose)
             {
                 Debug.Assert(!mapPreviewTexture.IsDisposed, "mapPreviewTexture should not be disposed before this call");
                 mapPreviewTexture.Dispose();
                 mapPreviewTexture = null;
-                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                mapPreviewTextureNeedsDispose = false;
             }
         }
 

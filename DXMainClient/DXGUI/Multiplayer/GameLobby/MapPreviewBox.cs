@@ -164,8 +164,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private Rectangle textureRectangle;
 
+        /// <summary>
+        /// Indicates whether `mapPreviewTexture` needs to be disposed before loading the next texture.
+        /// </summary>
+        private bool mapPreviewTextureNeedsDispose = false;
         private Texture2D mapPreviewTexture = null;
-        private bool mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
 
         private bool useNearestNeighbour = false;
 
@@ -409,10 +412,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void UpdateMap()
         {
-            if (mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext && mapPreviewTexture != null && !mapPreviewTexture.IsDisposed)
+            if (mapPreviewTextureNeedsDispose && mapPreviewTexture != null && !mapPreviewTexture.IsDisposed)
             {
                 mapPreviewTexture.Dispose();
-                mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = false;
+                mapPreviewTextureNeedsDispose = false;
             }
 
             extraTextures.Clear();
@@ -430,7 +433,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
+            Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
             Image previewTextureImage = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true);
 
@@ -440,7 +443,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
                 : AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2);
 
-            mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
+            mapPreviewTextureNeedsDispose = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
