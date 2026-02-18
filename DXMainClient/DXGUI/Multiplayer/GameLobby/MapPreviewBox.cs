@@ -433,8 +433,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Debug.Assert(!mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext, "previous texture must be disposed before loading a new texture");
 
             Image previewTextureImage = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, loadEvenUncached: true);
-            mapPreviewTexture = previewTextureImage != null 
-                ? AssetLoader.TextureFromImage(previewTextureImage) 
+            mapPreviewTexture = previewTextureImage != null
+                ? AssetLoader.TextureFromImage(previewTextureImage)
                 : AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2); // Use `- 2` to let xRatio and yRatio get calculated as 1
             mapPreviewTextureNeedsToBeDisposedBeforeLoadingTheNext = true;
 
