@@ -64,16 +64,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         {
             base.Initialize();
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                // Disable settings that are not relevant for RA
-                ddDetailLevel.Disable();
-                chkWindowedMode.Disable();
-                chkBorderlessWindowedMode.Disable();
-                chkBackBufferInVRAM.Disable();
-                ddRenderer.Disable();
-            }
-
             Name = "DisplayOptionsPanel";
 
             var lblIngameResolution = new XNALabel(WindowManager);
@@ -545,27 +535,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         {
             base.Load();
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                IniFile raIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "RA.INI"));
-                int raWidth = raIni.GetIntValue("Options", "Width", 640);
-                int raHeight = raIni.GetIntValue("Options", "Height", 400);
-
-                string raResText = $"{raWidth}x{raHeight}";
-                int raResIndex = ddIngameResolution.Items.FindIndex(i => i.Text == raResText);
-                ddIngameResolution.SelectedIndex = raResIndex > -1 ? raResIndex : 0;
-
-                // Disable everything else
-                ddDetailLevel.Disable();
-                chkWindowedMode.Disable();
-                chkBorderlessWindowedMode.Disable();
-                chkBackBufferInVRAM.Disable();
-                ddRenderer.Disable();
-
-                // Stop executing the rest of Load for RA
-                return;
-            }
-
             LoadRenderer();
             ddDetailLevel.SelectedIndex = UserINISettings.Instance.DetailLevel;
 
@@ -651,22 +620,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         public override bool Save()
         {
             bool restartRequired = base.Save();
-
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                string raResText = ddIngameResolution.SelectedItem.Text;
-                string[] parts = raResText.Split('x');
-                int raWidth = int.Parse(parts[0]);
-                int raHeight = int.Parse(parts[1]);
-
-                IniFile raIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "RA.INI"));
-                raIni.SetIntValue("Options", "Width", raWidth);
-                raIni.SetIntValue("Options", "Height", raHeight);
-                raIni.WriteIniFile();
-
-                // Only resolution changed, no restart required
-                return false;
-            }
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;
 

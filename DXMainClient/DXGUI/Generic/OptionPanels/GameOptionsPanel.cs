@@ -206,16 +206,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         {
             base.Load();
             
-            int scrollRate;
-
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                scrollRate = IniSettings.ScrollRate.Value;
-            }
-            else
-            {
-                scrollRate = ReverseScrollRate(IniSettings.ScrollRate);
-            }
+            int scrollRate = ReverseScrollRate(IniSettings.ScrollRate);
 
             if (scrollRate >= trbScrollRate.MinValue && scrollRate <= trbScrollRate.MaxValue)
             {
@@ -230,14 +221,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         {
             bool restartRequired = base.Save();
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                IniSettings.ScrollRate.Value = trbScrollRate.Value;
-            }
-            else
-            {
-                IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
-            }
+            IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
 
             string playerName = NameValidator.GetValidOfflineName(tbPlayerName.Text);
 
