@@ -751,7 +751,7 @@ namespace DTAClient.Domain.Multiplayer
         public void PrefetchCachedPreviewImageFromMap(Map map)
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                _ = mapPreviewCacheManager.RequestImage(map, out Image _, addToQueue: true);
+                _ = mapPreviewCacheManager.Request(map, out Image _, addToQueue: true);
         }
 
         public Image GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
@@ -762,7 +762,7 @@ namespace DTAClient.Domain.Multiplayer
             }
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {
-                if (mapPreviewCacheManager.RequestImage(map, out Image image, syncLoadOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
+                if (mapPreviewCacheManager.Request(map, out Image image, syncComputeOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
                     return image;
                 else
                     return null;
