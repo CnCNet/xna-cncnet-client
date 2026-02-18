@@ -580,6 +580,8 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            Logger.Log("Main menu post-initialization started.");
+
             foreach (XNAControl control in new XNAControl[]
             {
                 statisticsWindow, // Note: StatisticsWindow must be initialized before any lobbies that extends GameLobbyBase. This is because StatisticsManager is accessed when initializing GameLobbyBase.
@@ -655,6 +657,8 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+
+            Logger.Log("Main menu initialization complete.");
 
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {

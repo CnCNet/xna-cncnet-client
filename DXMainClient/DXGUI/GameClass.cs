@@ -58,12 +58,10 @@ namespace DTAClient.DXGUI
         private static GraphicsDeviceManager graphics;
         ContentManager content;
 
-        protected override void Initialize()
+        private string GetWindowTitle()
         {
-            Logger.Log("Initializing GameClass.");
-
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            Window.Title = string.IsNullOrEmpty(windowTitle) ?
+            windowTitle = string.IsNullOrEmpty(windowTitle) ?
                 string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             {
@@ -71,9 +69,18 @@ namespace DTAClient.DXGUI
 
 #if DEVELOPMENT_BUILD
                 if (ClientConfiguration.Instance.ShowDevelopmentBuildWarnings)
-                    Window.Title += $" ({developBuildTitle})";
+                    windowTitle += $" ({developBuildTitle})";
 #endif
             }
+
+            return windowTitle;
+        }
+
+        protected override void Initialize()
+        {
+            Logger.Log("Initializing GameClass.");
+
+            Window.Title = GetWindowTitle();
 
             base.Initialize();
 
@@ -226,6 +233,8 @@ namespace DTAClient.DXGUI
             UserINISettings.Instance.PlayerName.Value = playerName;
 
             IServiceProvider serviceProvider = BuildServiceProvider(wm);
+
+            Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
