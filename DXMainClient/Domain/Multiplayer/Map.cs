@@ -606,9 +606,14 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool IsNonImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(customMapFilePath) && File.Exists(customMapFilePath);
 
-        public Image GetNonImmediatePreviewImage() => IsNonImmediatePreviewImageAvailable()
-            ? MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true))
-            : throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
+        public Image GetNonImmediatePreviewImage()
+        {
+            if (!IsNonImmediatePreviewImageAvailable())
+                throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
+
+            Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
+            return MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
+        }
 
         public IniFile GetMapIni()
         {
