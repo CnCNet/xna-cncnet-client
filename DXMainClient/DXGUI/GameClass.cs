@@ -226,6 +226,8 @@ namespace DTAClient.DXGUI
             UserINISettings.Instance.PlayerName.Value = playerName;
 
             IServiceProvider serviceProvider = BuildServiceProvider(wm);
+
+            Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
