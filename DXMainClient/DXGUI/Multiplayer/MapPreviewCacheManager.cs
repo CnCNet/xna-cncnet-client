@@ -29,15 +29,17 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     private readonly Thread? workerThread;
     private volatile bool isDisposed = false;
 
+    public int Count => cache.Count;
+
     /// <summary>
     /// Represents a cached image entry with its position in the LRU list.
     /// </summary>
     private class CacheEntry
     {
-        public Image Image { get; }
+        public Image? Image { get; }
         public LinkedListNode<Map> LruNode { get; set; }
 
-        public CacheEntry(Image image, LinkedListNode<Map> lruNode)
+        public CacheEntry(Image? image, LinkedListNode<Map> lruNode)
         {
             Image = image;
             LruNode = lruNode;
@@ -68,7 +70,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     /// Updates LRU order if found.
     /// </summary>
     /// <param name="map">The map to get the image for.</param>
-    /// <param name="image">The cached image if found; otherwise null.</param>
+    /// <param name="image">The cached image if found.</param>
     /// <returns>True if the image was found in cache; otherwise false.</returns>
     private bool TryGetImage(Map map, out Image? image)
     {
@@ -91,12 +93,7 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         }
     }
 
-    /// <summary>
-    /// Requests an image to be extracted for the specified map.
-    /// </summary>
-    /// <param name="map">The map to extract the image for.</param>
-    /// <returns>The cached image if already available; otherwise null. The image will be extracted and cached asynchronously.</returns>
-    public Image? RequestImage(Map map)
+    public bool RequestImage(Map map, out Image? image, bool syncLoadOnCacheMiss = false, bool addToQueue = true)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
@@ -106,19 +103,39 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
 
         // Check if already cached
         if (TryGetImage(map, out Image? cachedImage))
-            return cachedImage;
+        {
+            image = cachedImage;
+
+            return true;
+        }
+
+        // If not cached and sync load is allowed, attempt to load immediately (may be CPU-intensive)
+        if (syncLoadOnCacheMiss)
+        {
+            image = map.GetNonImmediatePreviewImage();
+
+            // Add to cache even if the image is null
+            AddToCache(map, image);
+
+            return true;
+        }
 
         // Queue for processing (HashSet prevents duplicates)
-        lock (queueLock)
+        if (addToQueue)
         {
-            if (requestQueue.Add(map))
+            lock (queueLock)
             {
-                // Signal worker thread that new work is available
-                Monitor.Pulse(queueLock);
+                if (requestQueue.Add(map))
+                {
+                    // Signal worker thread that new work is available
+                    Monitor.Pulse(queueLock);
+                }
             }
         }
 
-        return null;
+        image = null;
+
+        return false;
     }
 
     /// <summary>
@@ -129,12 +146,10 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
     /// <param name="map">The map associated with the image.</param>
     /// <param name="image">The image to cache.</param>
     /// <returns>True if the image was added to cache; false if map was already cached.</returns>
-    private bool AddToCache(Map map, Image image)
+    private bool AddToCache(Map map, Image? image)
     {
         if (map == null)
             throw new ArgumentNullException(nameof(map));
-        if (image == null)
-            throw new ArgumentNullException(nameof(image));
 
         lock (cacheLock)
         {
@@ -157,9 +172,6 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
         }
     }
 
-    /// <summary>
-    /// Clears all cached images.
-    /// </summary>
     public void Clear()
     {
         lock (cacheLock)
@@ -215,8 +227,8 @@ public class MapPreviewCacheManager : IDisposable, IMapPreviewCacheManager
                 // Load the full map ini and extract the preview image. This operation is CPU-intensive.
                 Image? image = map.GetNonImmediatePreviewImage();
 
-                if (image != null)
-                    AddToCache(map, image);
+                // Add to cache even if the image is null
+                AddToCache(map, image);
             }
             catch (Exception ex)
             {

@@ -87,7 +87,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
-        public const int MapPreviewCacheCapacity = 500;
+        public const int MapPreviewCacheCapacity = 100;
 
         private readonly IMapPreviewCacheManager mapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
 
@@ -751,20 +751,26 @@ namespace DTAClient.Domain.Multiplayer
         public void PrefetchCachedPreviewImageFromMap(Map map)
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                _ = mapPreviewCacheManager.RequestImage(map);
+                _ = mapPreviewCacheManager.RequestImage(map, out Image _, addToQueue: true);
         }
 
-        public Image GetCachedPreviewImageFromMap(Map map, bool loadEvenUncached = false)
+        public Image GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
         {
-            Image image;
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
-                image = map.GetImmediatePreviewImage();
+            {
+                return map.GetImmediatePreviewImage();
+            }
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                image = mapPreviewCacheManager.RequestImage(map) ?? (loadEvenUncached ? map.GetNonImmediatePreviewImage() : null);
+            {
+                if (mapPreviewCacheManager.RequestImage(map, out Image image, syncLoadOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
+                    return image;
+                else
+                    return null;
+            }
             else
-                image = null;
-
-            return image;
+            {
+                return null;
+            }
         }
 
         public Map FindMapByHash(string mapHash) => _gameModeMaps?.FindMapByHash(mapHash);
