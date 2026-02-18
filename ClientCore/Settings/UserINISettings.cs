@@ -87,7 +87,7 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+          /* if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
                 // ====================
                 // Display (Resolution)
@@ -107,12 +107,15 @@ namespace ClientCore
                 // ====================
                 ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
 
+                Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
+                GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
+
                 // Remove binding completely
                 // DetailLevel = null;
-               // DragDistance = null;
+                // DragDistance = null;
                 // WindowedMode = null;
-               // BorderlessWindowedMode = null;
-               // BackBufferInVRAM = null;
+                // BorderlessWindowedMode = null;
+                // BackBufferInVRAM = null;
 
                 // ====================
                 // AUDIO
@@ -156,9 +159,7 @@ namespace ClientCore
 
                 PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
                 IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
-                CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);
-                Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);             
-                GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
+                CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);               
                 PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);               
                 MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
                 AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
@@ -175,7 +176,7 @@ namespace ClientCore
                 LoadFavoriteMaps(iniFile);
             }
             else
-            {              
+            {   */           
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
@@ -254,7 +255,7 @@ namespace ClientCore
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
             LoadFavoriteMaps(iniFile);
-            }
+            
         }
 
         public IniFile SettingsIni { get; private set; }
