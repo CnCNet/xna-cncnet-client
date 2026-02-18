@@ -6,6 +6,11 @@ This document lists all the breaking changes and how to address them. Each secti
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
+## 2.13.0
+- The `CampaignSelector` window has been migrated to `INItializableWindow`. You must update the `CampaignSelector.ini` file. An example will be provided later.
+
+- The control `chkBoxForceRandomTeams` has been renamed to chkBoxForceNoTeams. Please update `PlayerExtraOptionsPanel.ini` file by renaming the `[chkBoxForceRandomTeams]` section to `[chkBoxForceNoTeams]`.
+
 ## 2.12.12
 
 - The `DTAConfig` library has been removed and its functionality merged into other parts of the client. Therefore, if using automatic updater, you must append the following lines to the `[Delete]` section of your `updateexec` file to prevent issues during the update process:
@@ -29,6 +34,16 @@ This document lists all the breaking changes and how to address them. Each secti
   Resources\BinariesNET8\XNA\DTAConfig.dll
   Resources\BinariesNET8\XNA\DTAConfig.pdb
   ```
+
+## 2.12.10
+
+- The `FontIndex` property of `CoopBriefingBox` has been changed from 3 to 0, eliminating all hard-coded font usages except for fonts 0 and 1. Normally, you can ignore this change, but if you do want to use a different font for the map briefing, check the documentation of `CoopBriefingBox` in [INISystem.md](INISystem.md) file.
+
+## 2.12.6
+
+- The color dropdown now defaults to show both text and color. To revert to the text-only behavior, set `ItemsDrawMode=Text` in `[ddPlayerColor0]` to `[ddPlayerColor7]` sections in `GameLobbyBase.ini` file.
+
+- It is advised to remove the `Size` property for `[GameCreationWindow]` and `[GameCreationWindow_Advanced]` (might be defined in either `GenericWindow.ini` or `GameCreationWindow.ini`) after upgrading to this version.
 
 ## 2.12.0
 

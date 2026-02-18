@@ -5,6 +5,9 @@ using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Generic;
 
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -14,7 +17,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby;
 public class GameLobbyCheckBox : GameSessionCheckBox
 {
     public GameLobbyCheckBox(WindowManager windowManager) : base(windowManager) { }
-    
+
     public bool IsMultiplayer { get; set; }
 
     /// <summary>
@@ -36,7 +39,7 @@ public class GameLobbyCheckBox : GameSessionCheckBox
     /// Defaults to -1, which means none.
     /// </summary>
     public List<int> DisallowedSideIndices = new();
-    
+
     public override void Initialize()
     {
         // Find the game lobby that this control belongs to and register ourselves as a game option.
@@ -82,10 +85,10 @@ public class GameLobbyCheckBox : GameSessionCheckBox
                 DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                 return;
         }
-        
+
         base.ParseControlINIAttribute(iniFile, key, value);
     }
-    
+
     /// <summary>
     /// Applies the check-box's disallowed side index to a bool
     /// array that determines which sides are disabled.
@@ -105,17 +108,39 @@ public class GameLobbyCheckBox : GameSessionCheckBox
             }
         }
     }
-    
+
     public override void OnLeftClick(InputEventArgs inputEventArgs)
     {
         // FIXME there's a discrepancy with how base XNAUI handles this
         // it doesn't set handled if changing the setting is not allowed
         inputEventArgs.Handled = true;
-            
+
         if (!AllowChanges)
             return;
 
         base.OnLeftClick(inputEventArgs);
         UserChecked = Checked;
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        if (ShowIconInGameLobby)
+        {
+            string iconName = Checked ? EnabledIcon : DisabledIcon;
+            if (!string.IsNullOrEmpty(iconName))
+            {
+                Texture2D icon = AssetLoader.LoadTexture(iconName);
+                if (icon != null)
+                {
+                    const int iconSpacing = 6;
+                    int iconX = -icon.Width - iconSpacing;
+                    int iconY = (Height - icon.Height) / 2;
+
+                    DrawTexture(icon, new Rectangle(iconX, iconY, icon.Width, icon.Height), Color.White);
+                }
+            }
+        }
+
+        base.Draw(gameTime);
     }
 }

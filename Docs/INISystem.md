@@ -288,12 +288,12 @@ _(inherits XNADropDown)_
 ToolTip=            ; text, tooltip for dropdown.
 ```
 
-#### [XNAColorDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAColorDropDown.cs)
+#### [XNAClientColorDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientColorDropDown.cs)
 
 _(inherits XNAClientDropDown)_
 
 ```ini
-[SOMECOLORDROPDOWN] ; XNAColorDropDown
+[SOMECOLORDROPDOWN] ; XNAClientColorDropDown
 ItemsDrawMode=TextAndIcon         ; enum (Text | Icon | TextAndIcon),
                                   ; this will set what combination of texture and text should client use.
 RandomColorTexture=randomicon.png ; string, the file to load as texture for random color.
@@ -365,6 +365,86 @@ Some controls are only available under specific circumstances.
 [MapPreviewBox_CoopBriefingBox]
 FontIndex=0
 ```
+
+#### GameLobbyBase Controls
+
+Following controls are only available as children of `GameLobbyBase` and derived controls.
+
+##### [GameSessionCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionCheckBox.cs)
+
+_(inherits [XNAClientCheckBox](#XNAClientCheckBox))_
+
+Game option checkbox for the game lobby. Supports broadcasting game options to the CnCNet lobby and displaying them in the game list and filters.
+
+```ini
+[SOMEGAMESESSIONCHECKBOX]                  ; GameSessionCheckBox
+SpawnIniOption=                            ; string,  spawn INI option to set when checked/unchecked.
+EnabledSpawnIniValue=True                  ; string,  spawn INI value when checkbox is checked. Defaults to `True`.
+DisabledSpawnIniValue=False                ; string,  spawn INI value when checkbox is unchecked. Defaults to `False`.
+CustomIniPath=                             ; string,  custom INI path for map-specific settings.
+Reversed=false                             ; boolean, reverse the checkbox behavior.
+Checked=false                              ; boolean, initial checked state.
+MapScoringMode=Irrelevant                  ; enum (Irrelevant | DenyWhenChecked | DenyWhenUnchecked),
+                                           ;          controls whether the setting affects map scoring.
+BroadcastToLobby=false                     ; boolean, include this checkbox in the GAME broadcast to CnCNet lobby.
+ShowInGameList=false                       ; boolean, show icon/text in the game list.
+ShowInGameListOnRight=false                ; boolean, show icon on the right side of the game list. Only applies if 
+                                           ;          `ShowInGameList` is `true`.
+ShowInGameInformationPanel=false           ; boolean, show icon/text in the game information panel.
+ShowInGameInformationPanelAsIconOnly=false ; boolean, show only the icon in the game information panel. Only applies if 
+                                           ;          `ShowInGameInformationPanel` is `true`.
+ShowIconInGameLobby=false                  ; boolean, show icon in the game lobby control.
+ShowInFilters=false                        ; boolean, show this setting in the filters panel for game filtering.
+EnabledIcon=                               ; string,  texture name for the icon when setting is enabled.
+DisabledIcon=                              ; string,  texture name for the icon when setting is disabled.
+SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
+                                           ;          Lower values appear first.
+```
+
+##### [GameLobbyCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyCheckBox.cs)
+
+_(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
+
+Use this control type for game lobby checkboxes in `GameLobbyBase.ini`. Inherits all properties from `GameSessionCheckBox`.
+
+##### [GameSessionDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionDropDown.cs)
+
+_(inherits [XNAClientDropDown](#XNAClientDropDown))_
+
+Game option dropdown for the game lobby. Supports broadcasting game options to the CnCNet lobby and displaying them in the game list and filters.
+
+```ini
+[SOMEGAMESESSIONDROPDOWN]                  ; GameSessionDropDown
+Items=                                     ; comma-separated strings,
+                                           ;          comma-separated list of item values for the dropdown.
+ItemLabels=                                ; comma-separated strings,
+                                           ;          optional comma-separated list of display labels for items.
+SpawnIniOption=                            ; string,  spawn INI option to set based on selected item.
+DefaultIndex=0                             ; integer, default selected item index.
+DataWriteMode=STRING                       ; enum (STRING | INDEX | BOOLEAN | MAPCODE),
+                                           ;          determines how the value is written to spawn INI.
+OptionName=                                ; string,  display name for this option.
+BroadcastToLobby=false                     ; boolean, include this dropdown in the GAME broadcast to CnCNet lobby.
+ShowInGameList=false                       ; boolean, show icon/text in the game list.
+ShowInGameListOnRight=false                ; boolean, show icon on the right side of the game list. Only applies if 
+                                           ;          `ShowInGameList` is `true`.
+ShowInGameInformationPanel=false           ; boolean, show icon/text in the game information panel.
+ShowInGameInformationPanelAsIconOnly=false ; boolean, show only the icon in the game information panel. Only applies if 
+                                           ;          `ShowInGameInformationPanel` is `true`.
+ShowIconInGameLobby=false                  ; boolean, show icon in the game lobby control.
+ShowInFilters=false                        ; boolean, show this setting in the filters panel for game filtering.
+Icons=                                     ; comma-separated strings,
+                                           ;          texture names for the icons for each dropdown option. Should match the 
+                                           ;          number of items.
+SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
+                                           ;          Lower values appear first.
+```
+
+##### [GameLobbyDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyDropDown.cs)
+
+_(inherits [GameSessionDropDown](#GameSessionDropDown))_
+
+Use this control type for game lobby dropdowns in `GameLobbyBase.ini`. Inherits all properties from `GameSessionDropDown`.
 
 #### XNAOptionsPanel Controls
 
@@ -554,5 +634,34 @@ SaveCampaignGameOptions=false  ; boolean, whether or not previously used game op
 
 ```ini
 [Settings]
+CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
+CustomMissionSupplementFile0Extension=csf ; extension of the first supplement file
+CustomMissionSupplementFile0CopyAs=stringtable99.csf ; target filename for the first supplement file (required if Extension is present)
+CustomMissionSupplementFile1Extension=pal ; extension of the second supplement file
+CustomMissionSupplementFile1CopyAs=custommission.pal ; target filename for the second supplement file (required if Extension is present)
+CustomMissionSupplementFile2Extension=shp ; extension of the third supplement file
+CustomMissionSupplementFile2CopyAs=custommission.shp ; target filename for the third supplement file (required if Extension is present)
+; supplement files that are supposed to be copied to the game folder when a custom mission is played
+; the iteration stops if a number is missing (e.g., if File3Extension is missing, only File0, File1, and File2 are processed)
+; both Extension and CopyAs must be provided for each file number; each Extension value must be unique - duplicate extensions are not allowed
+```
+
+```ini
+[Settings]
+ReturnToMainMenuOnMissionLaunch=true ; whether or not client returns to main menu when launching a mission
+```
+
+```ini
+[Settings]
+CampaignTagSelectorEnabled=false ; turns on the campaign tag selector, showing a window to let users choose which group of missions to play
+```
+
+```ini
+[Settings]
 CompatibilityCheckExecutables=CnCNetYRLauncher.exe,gamemd.exe,gamemd-spawn.exe ; comma-separated list of strings, to check for DirectDraw compatibility mode issues
+```
+
+```ini
+[Settings]
+ShowGameIconInGameList=true ; boolean, whether to show the game icon in the game listing. Defaults to true.
 ```
