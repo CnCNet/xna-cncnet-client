@@ -88,7 +88,7 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-          /* if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+           if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
                 // ====================
                 // Display (Resolution)
@@ -175,9 +175,9 @@ namespace ClientCore
                 MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
                 LoadFavoriteMaps(iniFile);
-            }
+           }
             else
-            {   */           
+            {            
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
@@ -256,7 +256,7 @@ namespace ClientCore
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
             LoadFavoriteMaps(iniFile);
-            
+            }
         }
 
         public IniFile SettingsIni { get; private set; }
