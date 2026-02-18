@@ -3,13 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using DTAClient.Domain.Multiplayer;
-
 using Rampastring.Tools;
 
 using SixLabors.ImageSharp;
 
-namespace DTAClient.DXGUI.Multiplayer;
+namespace DTAClient.Domain.Multiplayer;
 
 /// <summary>
 /// Thread-safe manager for caching map preview images with LRU eviction policy.
