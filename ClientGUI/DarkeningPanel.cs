@@ -11,7 +11,6 @@ namespace ClientGUI
     public class DarkeningPanel : XNAPanel
     {
         public const float ALPHA_RATE = 0.6f;
-        private bool _fadeEnabled = true;
 
         public DarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
@@ -25,7 +24,7 @@ namespace ClientGUI
             Name = "DarkeningPanel";
 
             SetPositionAndSize();
-
+            
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             DrawBorders = false;
@@ -68,17 +67,8 @@ namespace ClientGUI
         {
             Enabled = true;
             Visible = true;
-
-            if (_fadeEnabled)
-            {
-                AlphaRate = ALPHA_RATE;
-                Alpha = 0.01f;
-            }
-            else
-            {
-                AlphaRate = 1.0f;
-                Alpha = 1.0f;
-            }
+            AlphaRate = ALPHA_RATE;
+            Alpha = 0.01f;
 
             foreach (XNAControl child in Children)
             {
@@ -89,16 +79,7 @@ namespace ClientGUI
 
         public void Hide()
         {
-            if (_fadeEnabled)
-            {
-                AlphaRate = -ALPHA_RATE;
-            }
-            else
-            {
-                Enabled = false;
-                Visible = false;
-                Hidden?.Invoke(this, EventArgs.Empty);
-            }
+            AlphaRate = -ALPHA_RATE;
 
             foreach (XNAControl child in Children)
             {
@@ -124,11 +105,6 @@ namespace ClientGUI
             var dp = new DarkeningPanel(wm);
             wm.AddAndInitializeControl(dp);
             dp.AddChild(control);
-        }
-
-        public void ToggleFade(bool enabled)
-        {
-            _fadeEnabled = enabled;
         }
     }
 }

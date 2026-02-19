@@ -1,6 +1,6 @@
 ﻿namespace ClientGUI.Settings
 {
-    public interface IUserSetting
+    interface IUserSetting
     {
 
         /// <summary>
@@ -18,11 +18,6 @@
         /// in order to be correctly applied.
         /// </summary>
         bool RestartRequired { get; }
-
-        /// <summary>
-        /// Determines if the setting should reset to its default value where applicable once game process exits.
-        /// </summary>
-        public bool ResetToDefaultOnGameExit { get; }
 
         /// <summary>
         /// Loads the current value for the user setting.

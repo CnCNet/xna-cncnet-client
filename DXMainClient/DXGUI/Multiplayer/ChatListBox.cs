@@ -1,6 +1,5 @@
 ﻿using System;
 
-using ClientCore;
 using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Generic;

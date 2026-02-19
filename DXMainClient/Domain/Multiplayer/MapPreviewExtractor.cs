@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -112,9 +111,9 @@ namespace DTAClient.Domain.Multiplayer
                     if (readBytes >= dataSource.Length)
                         break;
 
-                    ushort sizeCompressed = BinaryPrimitives.ReadUInt16LittleEndian(dataSource.AsSpan(readBytes));
+                    ushort sizeCompressed = BitConverter.ToUInt16(dataSource, readBytes);
                     readBytes += 2;
-                    ushort sizeUncompressed = BinaryPrimitives.ReadUInt16LittleEndian(dataSource.AsSpan(readBytes));
+                    ushort sizeUncompressed = BitConverter.ToUInt16(dataSource, readBytes);
                     readBytes += 2;
 
                     if (sizeCompressed == 0 || sizeUncompressed == 0)

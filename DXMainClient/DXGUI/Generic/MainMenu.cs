@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Generic
             PrivateMessagingWindow privateMessagingWindow,
             GameInProgressWindow gameInProgressWindow,
             MapLoader mapLoader,
-            CampaignTagSelector campaignTagSelector,
+            CampaignSelector campaignSelector,
             GameLoadingWindow gameLoadingWindow,
             StatisticsWindow statisticsWindow,
             UpdateQueryWindow updateQueryWindow,
@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
             this.privateMessagingWindow = privateMessagingWindow;
             this.gameInProgressWindow = gameInProgressWindow;
             this.mapLoader = mapLoader;
-            this.campaignTagSelector = campaignTagSelector;
+            this.campaignSelector = campaignSelector;
             this.gameLoadingWindow = gameLoadingWindow;
             this.statisticsWindow = statisticsWindow;
             this.updateQueryWindow = updateQueryWindow;
@@ -112,7 +112,7 @@ namespace DTAClient.DXGUI.Generic
         private readonly PrivateMessagingWindow privateMessagingWindow;
         private readonly GameInProgressWindow gameInProgressWindow;
         private readonly MapLoader mapLoader;
-        private readonly CampaignTagSelector campaignTagSelector;
+        private readonly CampaignSelector campaignSelector;
         private readonly GameLoadingWindow gameLoadingWindow;
         private readonly StatisticsWindow statisticsWindow;
         private readonly UpdateQueryWindow updateQueryWindow;
@@ -580,8 +580,6 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
-            Logger.Log("Main menu post-initialization started.");
-
             foreach (XNAControl control in new XNAControl[]
             {
                 statisticsWindow, // Note: StatisticsWindow must be initialized before any lobbies that extends GameLobbyBase. This is because StatisticsManager is accessed when initializing GameLobbyBase.
@@ -590,7 +588,7 @@ namespace DTAClient.DXGUI.Generic
                 cnCNetGameLobby,
                 cncnetLobby,
                 lanLobby,
-                campaignTagSelector,
+                campaignSelector,
                 gameLoadingWindow,
                 updateQueryWindow,
                 manualUpdateQueryWindow,
@@ -618,7 +616,7 @@ namespace DTAClient.DXGUI.Generic
                 privateMessagingWindow,
                 optionsWindow,
 
-                campaignTagSelector,
+                campaignSelector,
                 gameLoadingWindow,
                 statisticsWindow,
                 updateQueryWindow,
@@ -657,8 +655,6 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
-
-            Logger.Log("Main menu initialization complete.");
 
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {
@@ -920,7 +916,7 @@ namespace DTAClient.DXGUI.Generic
             => optionsWindow.Open();
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
-            => campaignTagSelector.Open();
+            => campaignSelector.Enable();
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
             => gameLoadingWindow.Enable();

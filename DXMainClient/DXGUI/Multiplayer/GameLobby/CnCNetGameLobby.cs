@@ -12,7 +12,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -901,7 +900,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 (byte)team
             };
 
-            int intValue = BinaryPrimitives.ReadInt32LittleEndian(value);
+            int intValue = BitConverter.ToInt32(value, 0);
 
             channel.SendCTCPMessage(
                 string.Format("OR {0}", intValue),
@@ -953,8 +952,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            byte[] bytes = new byte[sizeof(int)];
-            BinaryPrimitives.WriteInt32LittleEndian(bytes, options);
+            byte[] bytes = BitConverter.GetBytes(options);
 
             int side = bytes[0];
             int color = bytes[1];
@@ -979,16 +977,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (0 < side && side < SideCount && disallowedSides[side])
                 return;
 
-            if (GameModeMap?.CoopInfo != null)
+            if (Map?.CoopInfo != null)
             {
-                if (GameModeMap.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
-                if (GameModeMap.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
+                if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
                     return;
             }
 
-            if (!(start == 0 || (GameModeMap?.AllowedStartingLocations?.Contains(start) ?? true)))
+            if (start < 0 || start > Map?.MaxPlayers)
                 return;
 
             if (team < 0 || team > 4)
@@ -1056,7 +1054,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     (byte)pInfo.SideId,
                 };
 
-                int value = BinaryPrimitives.ReadInt32LittleEndian(byteArray);
+                int value = BitConverter.ToInt32(byteArray, 0);
                 sb.Append(value);
                 sb.Append(";");
                 if (!pInfo.IsAI)
@@ -1135,8 +1133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerOptions == -1)
                     return;
 
-                byte[] byteArray = new byte[sizeof(int)];
-                BinaryPrimitives.WriteInt32LittleEndian(byteArray, playerOptions);
+                byte[] byteArray = BitConverter.GetBytes(playerOptions);
 
                 int team = byteArray[0];
                 int start = byteArray[1];
@@ -1217,7 +1214,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
 
             for (int i = 0; i < integerCount; i++)
-                sb.Append(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
+                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
 
             // We don't gain much in most cases by packing the drop-down values
             // (because they're bytes to begin with, and usually non-zero),
@@ -1336,8 +1333,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                byte[] byteArray = new byte[sizeof(int)];
-                BinaryPrimitives.WriteInt32LittleEndian(byteArray, checkBoxStatusInt);
+                byte[] byteArray = BitConverter.GetBytes(checkBoxStatusInt);
                 bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray);
 
                 for (int optionIndex = 0; optionIndex < boolArray.Length; optionIndex++)
@@ -2273,39 +2269,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(skillLevel); // SkillLevel
             sb.Append(";");
             sb.Append(Map?.SHA1);
-
-            List<IGameSessionSetting> broadcastableSettings = GetBroadcastableSettings();
-
-            List<int> gameOptionValues = new();
-
-            int checkboxCount = CheckBoxes.Count(cb => cb.BroadcastToLobby);
-            if (checkboxCount > 0)
-            {
-                bool[] checkboxValues = new bool[checkboxCount];
-                for (int i = 0; i < checkboxCount; i++)
-                    checkboxValues[i] = CheckBoxes.Where(cb => cb.BroadcastToLobby).ElementAt(i).Checked;
-
-                List<byte> byteList = Conversions.BoolArrayIntoBytes(checkboxValues).ToList();
-
-                // Pad to multiple of 4 bytes
-                while (byteList.Count % 4 != 0)
-                    byteList.Add(0);
-
-                byte[] byteArray = byteList.ToArray();
-
-                // Convert bytes to integers
-                for (int i = 0; i < byteArray.Length / 4; i++)
-                    gameOptionValues.Add(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
-            }
-
-            // Add dropdown indices
-            int dropdownCount = DropDowns.Count(dd => dd.BroadcastToLobby);
-            if (dropdownCount > 0)
-                gameOptionValues.AddRange(DropDowns.Where(dd => dd.BroadcastToLobby).Select(dd => dd.SelectedIndex));
-
-            sb.Append(";");
-            if (gameOptionValues.Count > 0)
-                sb.Append(string.Join(",", gameOptionValues));
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

@@ -1,19 +1,15 @@
 ﻿using ClientCore;
 using ClientCore.Extensions;
-
 using Rampastring.Tools;
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A multiplayer game mode.
     /// </summary>
-    public class GameMode : GameModeMapBase
+    public class GameMode
     {
         public GameMode(string name)
         {
@@ -40,6 +36,26 @@ namespace DTAClient.Domain.Multiplayer
         public string UntranslatedUIName { get; private set; }
 
         /// <summary>
+        /// If set, this game mode cannot be played on Skirmish.
+        /// </summary>
+        public bool MultiplayerOnly { get; private set; }
+
+        /// <summary>
+        /// If set, this game mode cannot be played with AI players.
+        /// </summary>
+        public bool HumanPlayersOnly { get; private set; }
+
+        /// <summary>
+        /// If set, players are forced to random starting locations on this game mode.
+        /// </summary>
+        public bool ForceRandomStartLocations { get; private set; }
+
+        /// <summary>
+        /// If set, players are forced to different teams on this game mode.
+        /// </summary>
+        public bool ForceNoTeams { get; private set; }
+
+        /// <summary>
         /// List of side indices players cannot select in this game mode.
         /// </summary>
         public List<int> DisallowedPlayerSides = new List<int>();
@@ -54,17 +70,13 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public List<int> DisallowedComputerPlayerSides = new List<int>();
 
+
         /// </summary>
         /// Override for minimum amount of players needed to play any map in this game mode.
-        /// Priority sequences: GameMode.MinPlayersOverride, Map.MinPlayers, GameMode.MinPlayers.
         /// </summary>
-        public int? MinPlayersOverride { get; private set; }
-
-        public int? MaxPlayersOverride { get; private set; }
+        public int MinPlayersOverride { get; private set; } = -1;
 
         private string mapCodeININame;
-        private List<string> randomizedMapCodeININames;
-        private int randomizedMapCodesCount;
 
         private string forcedOptionsSection;
 
@@ -75,27 +87,39 @@ namespace DTAClient.Domain.Multiplayer
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
+        public int CoopDifficultyLevel { get; set; }
+
         public void Initialize()
         {
             IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
-            IniSection section = forcedOptionsIni.GetSection(Name) ?? new IniSection(Name);
 
-            UntranslatedUIName = section.GetStringValue("UIName", Name);
+            CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
+            UntranslatedUIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
             UIName = UntranslatedUIName.L10N($"INI:GameModes:{Name}:UIName");
+            MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
+            HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
+            ForceRandomStartLocations = forcedOptionsIni.GetBooleanValue(Name, "ForceRandomStartLocations", false);
+            ForceNoTeams = forcedOptionsIni.GetBooleanValue(Name, "ForceNoTeams", false);
+            MinPlayersOverride = forcedOptionsIni.GetIntValue(Name, "MinPlayersOverride", -1);
+            forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
+            mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
 
-            InitializeBaseSettingsFromIniSection(section, isCustomMap: false);
+            string[] disallowedSides = forcedOptionsIni.GetStringListValue(Name, "DisallowedPlayerSides", string.Empty);
 
-            MinPlayersOverride = section.GetIntValueOrNull("MinPlayersOverride");
-            MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
+            foreach (string sideIndex in disallowedSides)
+                DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
-            forcedOptionsSection = section.GetStringValue("ForcedOptions", string.Empty);
-            mapCodeININame = section.GetStringValue("MapCodeININame", Name + ".ini");
-            randomizedMapCodeININames = section.GetStringValue("RandomizedMapCodeININames", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-            randomizedMapCodesCount = section.GetIntValue("RandomizedMapCodesCount", 1);
+            disallowedSides = forcedOptionsIni
+                .GetStringListValue(Name, "DisallowedHumanPlayerSides", string.Empty);
 
-            DisallowedPlayerSides = section.GetListValue("DisallowedPlayerSides", ',', int.Parse);
-            DisallowedHumanPlayerSides = section.GetListValue("DisallowedHumanPlayerSides", ',', int.Parse);
-            DisallowedComputerPlayerSides = section.GetListValue("DisallowedComputerPlayerSides", ',', int.Parse);
+            foreach (string sideIndex in disallowedSides)
+                DisallowedHumanPlayerSides.Add(int.Parse(sideIndex));
+
+            disallowedSides = forcedOptionsIni
+                .GetStringListValue(Name, "DisallowedComputerPlayerSides", string.Empty);
+
+            foreach (string sideIndex in disallowedSides)
+                DisallowedComputerPlayerSides.Add(int.Parse(sideIndex));
 
             ParseForcedOptions(forcedOptionsIni);
 
@@ -150,23 +174,9 @@ namespace DTAClient.Domain.Multiplayer
                 spawnIni.SetStringValue("Settings", key.Key, key.Value);
         }
 
-        public List<IniFile> GetMapRulesIniFiles(Random pseudoRandom)
+        public IniFile GetMapRulesIniFile()
         {
-            var mapRules = new List<IniFile>() { new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame)) };
-            if (randomizedMapCodeININames.Count == 0)
-                return mapRules;
-
-            Dictionary<string, int> randomOrder = new();
-            foreach (string name in randomizedMapCodeININames)
-            {
-                randomOrder[name] = pseudoRandom.Next();
-            }
-
-            mapRules.AddRange(
-                from iniName in randomizedMapCodeININames.OrderBy(x => randomOrder[x]).Take(randomizedMapCodesCount)
-                select new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, iniName)));
-
-            return mapRules;
+            return new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame));
         }
 
         protected bool Equals(GameMode other) => string.Equals(Name, other?.Name, StringComparison.InvariantCultureIgnoreCase);

@@ -1,10 +1,8 @@
 ﻿using ClientCore;
 using Rampastring.Tools;
 using System;
-using System.Buffers.Binary;
 using System.IO;
 using OpenMcdf;
-using System.Diagnostics;
 
 namespace DTAClient.Domain
 {
@@ -23,7 +21,20 @@ namespace DTAClient.Domain
         public string FileName { get; private set; }
         public string GUIName { get; private set; }
         public DateTime LastModified { get; private set; }
-        public int CustomMissionID { get; private set; }
+
+        /// <summary>
+        /// Get the saved game's name from a .sav file.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static string GetArchiveName(Stream file)
+        {
+            var cf = new CompoundFile(file);
+            var archiveNameBytes = cf.RootStorage.GetStream("Scenario Description").GetData();
+            var archiveName = System.Text.Encoding.Unicode.GetString(archiveNameBytes);
+            archiveName = archiveName.TrimEnd(new char[] { '\0' });
+            return archiveName;
+        }
 
         /// <summary>
         /// Reads and sets the saved game's name and last modified date, and returns true if succesful.
@@ -37,17 +48,7 @@ namespace DTAClient.Domain
 
                 using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
                 {
-                    var cf = new CompoundFile(file);
-
-                    GUIName = System.Text.Encoding.Unicode.GetString(cf.RootStorage.GetStream("Scenario Description").GetData()).TrimEnd(['\0']);
-                    try
-                    {
-                        CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(cf.RootStorage.GetStream("CustomMissionID").GetData());
-                    }
-                    catch (CFItemNotFound)
-                    {
-                        CustomMissionID = 0;
-                    }
+                    GUIName = GetArchiveName(file);
                 }
 
                 LastModified = savedGameFileInfo.LastWriteTime;

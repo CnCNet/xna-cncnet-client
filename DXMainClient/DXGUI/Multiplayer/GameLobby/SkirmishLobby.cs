@@ -111,24 +111,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                 + AIPlayers.Count;
 
-            if (GameModeMap.MultiplayerOnly)
+            if (GameMode.MultiplayerOnly)
             {
-                return string.Format("{0} can only be played on CnCNet and LAN.".L10N("Client:Main:GameModeMultiplayerOnly"),
-                    GameModeMap.ToString());
+                return String.Format("{0} can only be played on CnCNet and LAN.".L10N("Client:Main:GameModeMultiplayerOnly"),
+                    GameMode.UIName);
             }
 
-            if (totalPlayerCount < GameModeMap.MinPlayers)
+            if (GameMode.MinPlayersOverride > -1 && totalPlayerCount < GameMode.MinPlayersOverride)
             {
-                return string.Format("{0} cannot be played with less than {1} players.".L10N("Client:Main:GameModeInsufficientPlayers"),
-                    GameModeMap.ToString(), GameModeMap.MinPlayers);
+                return String.Format("{0} cannot be played with less than {1} players.".L10N("Client:Main:GameModeInsufficientPlayers"),
+                         GameMode.UIName, GameMode.MinPlayersOverride);
             }
 
-            if (GameModeMap.EnforceMaxPlayers)
+            if (Map.MultiplayerOnly)
             {
-                if (totalPlayerCount > GameModeMap.MaxPlayers)
+                return "The selected map can only be played on CnCNet and LAN.".L10N("Client:Main:MapMultiplayerOnly");
+            }
+
+            if (totalPlayerCount < Map.MinPlayers)
+            {
+                return String.Format("The selected map cannot be played with less than {0} players.".L10N("Client:Main:MapInsufficientPlayers"),
+                    Map.MinPlayers);
+            }
+
+            if (Map.EnforceMaxPlayers)
+            {
+                if (totalPlayerCount > Map.MaxPlayers)
                 {
-                    return string.Format("{0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayers"),
-                        GameModeMap.ToString(), GameModeMap.MaxPlayers);
+                    return String.Format("The selected map cannot be played with more than {0} players.".L10N("Client:Main:MapTooManyPlayers"),
+                        Map.MaxPlayers);
                 }
 
                 IEnumerable<PlayerInfo> concatList = Players.Concat(AIPlayers);
@@ -145,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            if (GameModeMap.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
+            if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
             {
                 return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.".L10N("Client:Main:CoOpMissionSpectatorPrompt");
             }
@@ -214,7 +225,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.MaxPlayers);
+            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.Map.MaxPlayers);
         }
 
         protected override void GameProcessExited()
@@ -360,7 +371,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //return;
             }
 
-            bool AIAllowed = !GameModeMap.HumanPlayersOnly;
+            bool AIAllowed = !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
             foreach (string key in keys)
             {
                 if (!AIAllowed) break;
@@ -460,13 +471,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count ||
-                !GameModeMap.IsCoop && GameModeMap.ForceNoTeams)
+                !Map.IsCoop && (Map.ForceNoTeams || GameMode.ForceNoTeams))
             {
                 pInfo.TeamId = 0;
             }
 
             if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT ||
-                GameModeMap.ForceRandomStartLocations)
+                !Map.IsCoop && (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations))
             {
                 pInfo.StartingLocation = 0;
             }
@@ -488,7 +499,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateMapPreviewBoxEnabledStatus()
         {
-            MapPreviewBox.EnableContextMenu = !(GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
+            MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations) || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
 

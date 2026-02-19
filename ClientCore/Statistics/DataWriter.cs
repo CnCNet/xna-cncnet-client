@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 
@@ -9,16 +8,12 @@ namespace ClientCore.Statistics
     {
         public static void WriteInt(this Stream stream, int value)
         {
-            byte[] buffer = new byte[sizeof(int)];
-            BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
-            stream.Write(buffer, 0, sizeof(int));
+            stream.Write(BitConverter.GetBytes(value), 0, sizeof(int));
         }
 
         public static void WriteLong(this Stream stream, long value)
         {
-            byte[] buffer = new byte[sizeof(long)];
-            BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
-            stream.Write(buffer, 0, sizeof(long));
+            stream.Write(BitConverter.GetBytes(value), 0, sizeof(long));
         }
 
         public static void WriteBool(this Stream stream, bool value)

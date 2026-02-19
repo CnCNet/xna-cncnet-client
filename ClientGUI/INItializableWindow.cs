@@ -30,57 +30,28 @@ namespace ClientGUI
         /// </summary>
         protected string IniNameOverride { get; set; }
 
-        private static bool AnyChildMatches(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
+        public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
+        {
+            T child = FindChild<T>(Children, childName);
+            if (child == null && !optional)
+                throw new KeyNotFoundException("Could not find required child control: " + childName);
+
+            return child;
+        }
+
+        private T FindChild<T>(IEnumerable<XNAControl> list, string controlName) where T : XNAControl
         {
             foreach (XNAControl child in list)
             {
-                bool matched = isTargetControl(child);
+                if (child.Name == controlName)
+                    return (T)child;
 
-                if (matched)
-                    return true;
-
-                matched = AnyChildMatches(child.Children, isTargetControl);
-
-                if (matched)
-                    return true;
+                T childOfChild = FindChild<T>(child.Children, controlName);
+                if (childOfChild != null)
+                    return childOfChild;
             }
 
-            return false;
-        }
-
-        public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
-        {
-            XNAControl result = null;
-
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (control.Name != childName)
-                    return false;
-
-                result = control;
-                return true;
-            });
-
-            if (result == null && !optional)
-                throw new KeyNotFoundException("Could not find required child control: " + childName);
-
-            return (T)result;
-        }
-
-        public List<T> FindChildrenStartWith<T>(string prefix) where T : XNAControl
-        {
-            List<T> result = new List<T>();
-
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (string.IsNullOrEmpty(prefix) ||
-                    !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
-                    result.Add((T)control);
-
-                return false;
-            });
-
-            return result;
+            return null;
         }
 
         /// <summary>

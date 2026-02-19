@@ -871,16 +871,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (side > 0 && side <= SideCount && disallowedSides[side - 1])
                 return;
 
-            if (GameModeMap.CoopInfo != null)
+            if (Map.CoopInfo != null)
             {
-                if (GameModeMap.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
-                if (GameModeMap.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
+                if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
                     return;
             }
 
-            if (!(start == 0 || (GameModeMap?.AllowedStartingLocations?.Contains(start) ?? true)))
+            if (start < 0 || start > Map.MaxPlayers)
                 return;
 
             if (team < 0 || team > 4)

@@ -10,7 +10,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
-using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain.Multiplayer;
@@ -226,8 +225,6 @@ namespace DTAClient.DXGUI
             UserINISettings.Instance.PlayerName.Value = playerName;
 
             IServiceProvider serviceProvider = BuildServiceProvider(wm);
-
-            Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
@@ -239,7 +236,7 @@ namespace DTAClient.DXGUI
             var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             byte[] intBytes = new byte[sizeof(int)];
             rng.GetBytes(intBytes);
-            int seed = BinaryPrimitives.ReadInt32LittleEndian(intBytes);
+            int seed = BitConverter.ToInt32(intBytes, 0);
             return new Random(seed);
         }
 
@@ -281,7 +278,7 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<MapPreviewBox>()
                             .AddSingletonXnaControl<GameLaunchButton>()
                             .AddSingletonXnaControl<PlayerExtraOptionsPanel>()
-                            .AddSingletonXnaControl<CampaignTagSelector>()
+                            .AddSingletonXnaControl<CampaignSelector>()
                             .AddSingletonXnaControl<GameLoadingWindow>()
                             .AddSingletonXnaControl<StatisticsWindow>()
                             .AddSingletonXnaControl<UpdateQueryWindow>()
@@ -309,7 +306,6 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNAProgressBar>()
                             .AddTransientXnaControl<XNASuggestionTextBox>()
                             .AddTransientXnaControl<XNATextBox>()
-                            .AddTransientXnaControl<XNATextBlock>()
                             .AddTransientXnaControl<XNATrackbar>()
                             .AddTransientXnaControl<XNAChatTextBox>()
                             .AddTransientXnaControl<ChatListBox>()

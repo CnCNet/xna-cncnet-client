@@ -236,23 +236,8 @@ namespace DTAClient.Online
             }
         }
 
-        private static string BytesToString(byte[] bytes)
-        {
-            char[] result = new char[bytes.Length * 2];
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                byte b = bytes[i];
-                result[i * 2] = GetHexChar(b >> 4);
-                result[i * 2 + 1] = GetHexChar(b & 0x0F);
-            }
-            return new string(result);
-        }
-
-        private static char GetHexChar(int digit)
-        {
-            Debug.Assert(digit >= 0 && digit < 16, $"Value {digit} is out of range for a hex digit.");
-            return (char)(digit < 10 ? '0' + digit : 'a' + digit - 10);
-        }
+        private static string BytesToString(byte[] bytes) =>
+            BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
 
         private class FileHashes()
         {
