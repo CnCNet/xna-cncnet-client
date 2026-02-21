@@ -148,7 +148,8 @@ namespace DTAClient.Online
                         existingUser.IsFriend = user.IsFriend;
 
                         // Note: IUserCollection.Reinsert() is not guaranteed to be implemented, unless it is a SortedUserCollection
-                        Debug.Assert(users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
+                        Dev.Assert(users is SortedUserCollection<ChannelUser>, "Channel 'users' is supposed to be a SortedUserCollection");
+
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }
