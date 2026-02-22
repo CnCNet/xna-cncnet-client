@@ -177,7 +177,7 @@ namespace ClientCore
                 MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
                 LoadFavoriteMaps(iniFile);
-           }
+            }
             else
             {            
 
