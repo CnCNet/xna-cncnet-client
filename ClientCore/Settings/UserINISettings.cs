@@ -258,6 +258,7 @@ namespace ClientCore
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
             LoadFavoriteMaps(iniFile);
+            }
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -294,6 +295,7 @@ namespace ClientCore
         /* AUDIO */
         /*********/
 
+        public DoubleSetting MultiplayerScoreVolume { get; private set; }
         public DoubleSetting ScoreVolume { get; private set; }
         public DoubleSetting SoundVolume { get; private set; }
         public DoubleSetting VoiceVolume { get; private set; }
