@@ -96,13 +96,15 @@ namespace ClientCore
                 IngameScreenWidth = new IntSetting(iniFile, OPTIONS, "Width", 1024);
                 IngameScreenHeight = new IntSetting(iniFile, OPTIONS, "Height", 768);
                 ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
-                Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());               
-                Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);               
+                Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
+                DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
+                Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
+                WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
+                BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
                 BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", ClientConfiguration.Instance.UserDefault_BorderlessWindowedClient);
                 IntegerScaledClient = new BoolSetting(iniFile, VIDEO, "IntegerScaledClient", ClientConfiguration.Instance.UserDefault_IntegerScaledClient);
                 ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
                 DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
-
                 // ====================
                 // GAME
                 // ====================
