@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using ClientCore;
 using ClientCore.Enums;
 
 using ClientGUI;
+using ClientGUI.Settings;
 
 using ClientUpdater;
 
 using DTAClient.Domain;
 
-using ClientGUI.Settings;
-
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -63,6 +64,10 @@ namespace DTAClient.DXGUI.Campaign
         public List<CampaignDropDown> DropDowns { get; } = new();
         
         private IniFile gameOptionsIni;
+
+        private Texture2D missionPreviewTexture;
+        private bool missionPreviewNeedsDispose;
+        private XNAPanel pnlMissionPreview;
 
         private string[] filesToCheck = new string[]
         {
@@ -172,12 +177,29 @@ namespace DTAClient.DXGUI.Campaign
             cheaterWindow.Disable();
             
             LoadSettings();
+
+            pnlMissionPreview = new XNAPanel(WindowManager);
+            pnlMissionPreview.Name = "pnlMissionPreview";
+            pnlMissionPreview.X = 500;
+            pnlMissionPreview.Y = 60;
+            pnlMissionPreview.Width = 350;
+            pnlMissionPreview.Height = 220;
+
+            // Use built-in background drawing
+            pnlMissionPreview.PanelBackgroundDrawMode =
+                PanelBackgroundImageDrawMode.STRETCHED;
+
+            
+
+            AddChild(pnlMissionPreview);
         }
 
+        
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbCampaignList.SelectedIndex == -1)
             {
+                pnlMissionPreview.BackgroundTexture = null;
                 tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
                 return;
@@ -187,6 +209,7 @@ namespace DTAClient.DXGUI.Campaign
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
+                pnlMissionPreview.BackgroundTexture = null;
                 tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
                 return;
@@ -196,9 +219,13 @@ namespace DTAClient.DXGUI.Campaign
 
             if (!mission.Enabled)
             {
+                pnlMissionPreview.BackgroundTexture = null;
                 btnLaunch.AllowClick = false;
                 return;
             }
+
+            pnlMissionPreview.BackgroundTexture =
+                AssetLoader.LoadTexture(mission.PreviewImage);
 
             btnLaunch.AllowClick = true;
         }

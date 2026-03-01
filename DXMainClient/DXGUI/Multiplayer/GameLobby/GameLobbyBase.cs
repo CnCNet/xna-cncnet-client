@@ -2569,11 +2569,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                if (PlayerOptionsPanel != null)
-                {
-                    PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
-                    PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
-                }
+                if (PlayerOptionsPanel == null) return;
+                if (PlayerExtraOptionsPanel == null) return;
+                PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
+                PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
             }
 
             OnGameOptionChanged();

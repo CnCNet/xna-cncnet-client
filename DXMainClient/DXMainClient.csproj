@@ -55,6 +55,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
+    <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">

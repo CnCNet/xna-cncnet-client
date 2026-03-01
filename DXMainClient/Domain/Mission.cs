@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -13,6 +14,8 @@ using ClientCore.Enums;
 using ClientCore.Extensions;
 
 using Rampastring.Tools;
+
+using static System.Collections.Specialized.BitVector32;
 
 namespace DTAClient.Domain
 {
@@ -51,6 +54,7 @@ namespace DTAClient.Domain
 
             CodeName = missionCodeName;
             CustomMissionID = ComputeCustomMissionID(missionCodeName);
+            PreviewImage = missionSection.GetStringValue("PreviewImage", "none");
         }
 
         public static Mission NewCustomMission(IniSection clientMissionConfigSection, string missionCodeName, string scenario, IniSection? gameMissionConfigSection)
@@ -107,5 +111,7 @@ namespace DTAClient.Domain
         public bool IsCustomMission { get; private set; }
 
         public IniSection? GameMissionConfigSection { get; set; }
+
+        public string PreviewImage { get; private set; }
     }
 }
