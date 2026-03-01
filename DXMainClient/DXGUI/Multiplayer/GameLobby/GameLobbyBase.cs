@@ -2201,7 +2201,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             AIPlayers.Clear();
-            for (int cmbId = Players.Count; cmbId < MaxPlayerCount; cmbId++)
+            for (int cmbId = Players.Count; cmbId < MAX_PLAYER_COUNT; cmbId++)
             {
                 XNADropDown dd = ddPlayerNames[cmbId];
                 dd.Items[0].Text = "-";
