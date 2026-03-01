@@ -224,8 +224,22 @@ namespace DTAClient.DXGUI.Campaign
                 return;
             }
 
-            pnlMissionPreview.BackgroundTexture =
-                AssetLoader.LoadTexture(mission.PreviewImage);
+            string fullPath = SafePath.CombineFilePath
+                (
+                ProgramConstants.GamePath,
+                "Resources",
+                mission.PreviewImage
+                );
+
+            if (File.Exists(fullPath))
+            {
+                pnlMissionPreview.BackgroundTexture =
+                Texture2D.FromFile(WindowManager.GraphicsDevice, fullPath);
+            }
+            else
+            {
+                Logger.Log("File not found: " + fullPath);
+            }
 
             btnLaunch.AllowClick = true;
         }

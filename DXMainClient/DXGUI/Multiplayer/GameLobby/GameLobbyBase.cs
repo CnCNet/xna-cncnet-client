@@ -1293,8 +1293,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
 
         /// <summary>
-        /// Updates Discord Rich Presence with actual information.
         /// </summary>
+        /// Updates Discord Rich Presence with actual information.
         /// <param name="resetTimer">Whether to restart the "Elapsed" timer or not</param>
         protected abstract void UpdateDiscordPresence(bool resetTimer = false);
 
