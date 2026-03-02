@@ -233,8 +233,11 @@ namespace DTAClient.DXGUI.Campaign
 
             if (File.Exists(fullPath))
             {
-                pnlMissionPreview.BackgroundTexture =
-                Texture2D.FromFile(WindowManager.GraphicsDevice, fullPath);
+                using (var stream = File.OpenRead(fullPath))
+                {
+                    pnlMissionPreview.BackgroundTexture =
+                        Texture2D.FromStream(WindowManager.GraphicsDevice, stream);
+                }
             }
             else
             {
