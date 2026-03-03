@@ -174,10 +174,6 @@ namespace DTAClient.DXGUI.Campaign
             
             LoadSettings();
 
-            pnlMissionPreview = FindChild<XNAPanel>(nameof(pnlMissionPreview));
-            // Use built-in background drawing
-            pnlMissionPreview.PanelBackgroundDrawMode =
-                PanelBackgroundImageDrawMode.STRETCHED;
 
             // find existing child first (the GUICreator/layout might already create it)
             XNAPanel existingPanel = FindChild<XNAPanel>("pnlMissionPreview", true);
@@ -199,6 +195,8 @@ namespace DTAClient.DXGUI.Campaign
             {
                 // reuse the already-created control
                 pnlMissionPreview = existingPanel;
+                // Use built-in background drawing
+                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
                 // if it was parented somewhere else, reparent it here to avoid sharing
                 if (pnlMissionPreview.Parent != this)
