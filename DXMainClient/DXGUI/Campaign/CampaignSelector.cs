@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 using ClientCore;
 using ClientCore.Enums;
@@ -50,6 +49,7 @@ namespace DTAClient.DXGUI.Campaign
         private CampaignTagSelector campaignTagSelector;
 
         private List<Mission> selectedMissions = [];
+        private XNAPanel pnlMissionPreview;
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
         private XNAClientButton btnCancel;
@@ -64,10 +64,6 @@ namespace DTAClient.DXGUI.Campaign
         public List<CampaignDropDown> DropDowns { get; } = new();
         
         private IniFile gameOptionsIni;
-
-        private Texture2D missionPreviewTexture;
-        private bool missionPreviewNeedsDispose;
-        private XNAPanel pnlMissionPreview;
 
         private string[] filesToCheck = new string[]
         {
@@ -178,38 +174,92 @@ namespace DTAClient.DXGUI.Campaign
             
             LoadSettings();
 
-            pnlMissionPreview = new XNAPanel(WindowManager);
-            pnlMissionPreview.Name = "pnlMissionPreview";
-            pnlMissionPreview.X = 500;
-            pnlMissionPreview.Y = 60;
-            pnlMissionPreview.Width = 350;
-            pnlMissionPreview.Height = 220;
-
+            pnlMissionPreview = FindChild<XNAPanel>(nameof(pnlMissionPreview));
             // Use built-in background drawing
             pnlMissionPreview.PanelBackgroundDrawMode =
                 PanelBackgroundImageDrawMode.STRETCHED;
 
-            
+            // find existing child first (the GUICreator/layout might already create it)
+            XNAPanel existingPanel = FindChild<XNAPanel>("pnlMissionPreview", true);
+            if (existingPanel == null)
+            {
+                pnlMissionPreview = new XNAPanel(WindowManager);
+                pnlMissionPreview.Name = "pnlMissionPreview";
+                pnlMissionPreview.X = 500;
+                pnlMissionPreview.Y = 60;
+                pnlMissionPreview.Width = 350;
+                pnlMissionPreview.Height = 220;
 
-            AddChild(pnlMissionPreview);
+                // Use built-in background drawing
+                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+                AddChild(pnlMissionPreview);
+            }
+            else
+            {
+                // reuse the already-created control
+                pnlMissionPreview = existingPanel;
+
+                // if it was parented somewhere else, reparent it here to avoid sharing
+                if (pnlMissionPreview.Parent != this)
+                {
+                    pnlMissionPreview.Parent?.RemoveChild(pnlMissionPreview);
+                    AddChild(pnlMissionPreview);
+                }
+            }
         }
 
-        
+
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
+            bool missionPreviewNeedsDispose = false;
+            Texture2D previewTexture;
+
             if (lbCampaignList.SelectedIndex == -1)
             {
-                pnlMissionPreview.BackgroundTexture = null;
                 tbMissionDescription.Text = string.Empty;
+
+                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                {
+                    pnlMissionPreview.BackgroundTexture.Dispose();
+                    missionPreviewNeedsDispose = false;
+                }
+
+                pnlMissionPreview.BackgroundTexture = null;
                 btnLaunch.AllowClick = false;
                 return;
             }
 
             Mission mission = selectedMissions[lbCampaignList.SelectedIndex];
 
+            string relativePath = Path.Combine("Resources", mission.PreviewImage);
+            string fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, relativePath);
+            // Test path for testing purposes.
+            string testPath = Path.Combine("Resources","Default Theme","MainMenu", "dbak.png");
+            string defaultPath = SafePath.CombineFilePath(ProgramConstants.GamePath, testPath);
+
+
+            if (File.Exists(fullPath))
+            {
+                // Load uncached preview so we can own and dispose it safely
+                previewTexture = AssetLoader.LoadTextureUncached(fullPath);
+            }
+            else
+            {
+                // If not available, use a default texture.
+                previewTexture = AssetLoader.LoadTextureUncached(defaultPath);
+            }
+
             if (string.IsNullOrEmpty(mission.Scenario))
             {
+                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                {
+                    pnlMissionPreview.BackgroundTexture.Dispose();
+                    missionPreviewNeedsDispose = false;
+                }
+
                 pnlMissionPreview.BackgroundTexture = null;
+                previewTexture.Dispose();
                 tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
                 return;
@@ -219,30 +269,26 @@ namespace DTAClient.DXGUI.Campaign
 
             if (!mission.Enabled)
             {
+                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                {
+                    pnlMissionPreview.BackgroundTexture.Dispose();
+                    missionPreviewNeedsDispose = false;
+                }
+
                 pnlMissionPreview.BackgroundTexture = null;
+                previewTexture.Dispose();
                 btnLaunch.AllowClick = false;
                 return;
             }
 
-            string fullPath = SafePath.CombineFilePath
-                (
-                ProgramConstants.GamePath,
-                "Resources",
-                mission.PreviewImage
-                );
+            // Dispose previous preview only if we loaded it uncached and therefore own it
+            if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+            {
+                pnlMissionPreview.BackgroundTexture.Dispose();
+            }
 
-            if (File.Exists(fullPath))
-            {
-                using (var stream = File.OpenRead(fullPath))
-                {
-                    pnlMissionPreview.BackgroundTexture =
-                        Texture2D.FromStream(WindowManager.GraphicsDevice, stream);
-                }
-            }
-            else
-            {
-                Logger.Log("File not found: " + fullPath);
-            }
+            pnlMissionPreview.BackgroundTexture = previewTexture;
+            missionPreviewNeedsDispose = true;
 
             btnLaunch.AllowClick = true;
         }

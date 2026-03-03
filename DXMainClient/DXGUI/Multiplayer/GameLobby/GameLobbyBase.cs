@@ -1293,8 +1293,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
 
         /// <summary>
-        /// </summary>
         /// Updates Discord Rich Presence with actual information.
+        /// </summary>
         /// <param name="resetTimer">Whether to restart the "Elapsed" timer or not</param>
         protected abstract void UpdateDiscordPresence(bool resetTimer = false);
 
@@ -2569,10 +2569,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                if (PlayerOptionsPanel == null) return;
-                if (PlayerExtraOptionsPanel == null) return;
-                PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
-                PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
+                if (PlayerOptionsPanel != null)
+                {
+                    PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
+                    PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
+                }
             }
 
             OnGameOptionChanged();
