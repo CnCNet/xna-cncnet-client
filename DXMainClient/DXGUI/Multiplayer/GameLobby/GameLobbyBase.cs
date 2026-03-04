@@ -2560,7 +2560,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (PlayerInfo pInfo in concatPlayerList)
                     pInfo.TeamId = 1;
 
-                if (PlayerOptionsPanel != null)
+                if (PlayerExtraOptionsPanel != null)
                 {
                     PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = false;
                     PlayerExtraOptionsPanel.ForcedNoTeams = false;
@@ -2571,7 +2571,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                if (PlayerOptionsPanel != null)
+                if (PlayerExtraOptionsPanel != null)
                 {
                     PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
                     PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;
