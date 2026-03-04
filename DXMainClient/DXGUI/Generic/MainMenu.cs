@@ -53,13 +53,14 @@ namespace DTAClient.DXGUI.Generic
             PrivateMessagingWindow privateMessagingWindow,
             GameInProgressWindow gameInProgressWindow,
             MapLoader mapLoader,
-            CampaignSelector campaignSelector,
+            CampaignTagSelector campaignTagSelector,
             GameLoadingWindow gameLoadingWindow,
             StatisticsWindow statisticsWindow,
             UpdateQueryWindow updateQueryWindow,
             ManualUpdateQueryWindow manualUpdateQueryWindow,
             UpdateWindow updateWindow,
-            ExtrasWindow extrasWindow
+            ExtrasWindow extrasWindow,
+            DirectDrawWrapperManager directDrawWrapperManager
         ) : base(windowManager)
         {
             this.lanLobby = lanLobby;
@@ -75,13 +76,14 @@ namespace DTAClient.DXGUI.Generic
             this.privateMessagingWindow = privateMessagingWindow;
             this.gameInProgressWindow = gameInProgressWindow;
             this.mapLoader = mapLoader;
-            this.campaignSelector = campaignSelector;
+            this.campaignTagSelector = campaignTagSelector;
             this.gameLoadingWindow = gameLoadingWindow;
             this.statisticsWindow = statisticsWindow;
             this.updateQueryWindow = updateQueryWindow;
             this.manualUpdateQueryWindow = manualUpdateQueryWindow;
             this.updateWindow = updateWindow;
             this.extrasWindow = extrasWindow;
+            this.directDrawWrapperManager = directDrawWrapperManager;
 
             this.cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
@@ -110,13 +112,14 @@ namespace DTAClient.DXGUI.Generic
         private readonly PrivateMessagingWindow privateMessagingWindow;
         private readonly GameInProgressWindow gameInProgressWindow;
         private readonly MapLoader mapLoader;
-        private readonly CampaignSelector campaignSelector;
+        private readonly CampaignTagSelector campaignTagSelector;
         private readonly GameLoadingWindow gameLoadingWindow;
         private readonly StatisticsWindow statisticsWindow;
         private readonly UpdateQueryWindow updateQueryWindow;
         private readonly ManualUpdateQueryWindow manualUpdateQueryWindow;
         private readonly UpdateWindow updateWindow;
         private readonly ExtrasWindow extrasWindow;
+        private readonly DirectDrawWrapperManager directDrawWrapperManager;
 
         private XNAMessageBox firstRunMessageBox;
 
@@ -577,6 +580,8 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            Logger.Log("Main menu post-initialization started.");
+
             foreach (XNAControl control in new XNAControl[]
             {
                 statisticsWindow, // Note: StatisticsWindow must be initialized before any lobbies that extends GameLobbyBase. This is because StatisticsManager is accessed when initializing GameLobbyBase.
@@ -585,7 +590,7 @@ namespace DTAClient.DXGUI.Generic
                 cnCNetGameLobby,
                 cncnetLobby,
                 lanLobby,
-                campaignSelector,
+                campaignTagSelector,
                 gameLoadingWindow,
                 updateQueryWindow,
                 manualUpdateQueryWindow,
@@ -613,7 +618,7 @@ namespace DTAClient.DXGUI.Generic
                 privateMessagingWindow,
                 optionsWindow,
 
-                campaignSelector,
+                campaignTagSelector,
                 gameLoadingWindow,
                 statisticsWindow,
                 updateQueryWindow,
@@ -653,6 +658,8 @@ namespace DTAClient.DXGUI.Generic
             CheckForbiddenFiles();
             CheckIfFirstRun();
 
+            Logger.Log("Main menu initialization complete.");
+
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {
                 new XNAMessageBox(WindowManager, title, error, XNAMessageBoxButtons.OK)
@@ -665,6 +672,11 @@ namespace DTAClient.DXGUI.Generic
 
                 }.Show();
             };
+
+#if ISWINDOWS
+            if (!directDrawWrapperManager.SelectedRenderer.IsDummy)
+                DirectDrawCompatibilityChecker.CheckAndPromptFix(WindowManager);
+#endif
         }
 
         private void LoadThemeSong()
@@ -908,7 +920,7 @@ namespace DTAClient.DXGUI.Generic
             => optionsWindow.Open();
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
-            => campaignSelector.Enable();
+            => campaignTagSelector.Open();
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
             => gameLoadingWindow.Enable();

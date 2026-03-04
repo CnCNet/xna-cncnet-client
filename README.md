@@ -112,7 +112,7 @@ Currently there are only two major active branches. `develop` is where developme
 ## License
 
 CnCNet Client
-Copyright (C) 2013-2025 CnCNet, Rampastring
+Copyright (C) 2013-2026 CnCNet, Rampastring
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

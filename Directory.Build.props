@@ -8,7 +8,7 @@
     <Title>CnCNet Client</Title>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2024</Copyright>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2026</Copyright>
     <Trademark>CnCNet</Trademark>
     <!-- GitVersion will rewrite the informational version anyway -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -37,10 +37,13 @@
     <TargetFrameworks Condition="$(Engine.Contains(Windows))">net48;net8.0-windows</TargetFrameworks>
     <TargetFrameworks Condition="!$(Engine.Contains(Windows))">net8.0</TargetFrameworks>
 
+    <!-- We need to define both platforms to make Visual Studio happy when targeting XNA -->
     <Platforms>AnyCPU;x86</Platforms>
     <!-- XNA only supports x86, but the other engines support any CPU. -->
     <Platform Condition="$(Engine.Contains(XNA))">x86</Platform>
     <Platform Condition="!$(Engine.Contains(XNA))">AnyCPU</Platform>
+    <PlatformTarget Condition="$(Engine.Contains(XNA))">x86</PlatformTarget>
+    <PlatformTarget Condition="!$(Engine.Contains(XNA))">AnyCPU</PlatformTarget>
     <!-- WinForms Auto Configure -->
     <UseWindowsForms Condition="$(Engine.Contains(Windows))">true</UseWindowsForms>
   </PropertyGroup>
@@ -94,7 +97,7 @@
     <XNAUIRoot>$(MSBuildThisFileDirectory)Rampastring.XNAUI</XNAUIRoot>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+  <ItemGroup Condition="('$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DXMainClient') And $(Engine.Contains(XNA))">
     <Reference Include="Microsoft.Xna.Framework">
       <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
     </Reference>

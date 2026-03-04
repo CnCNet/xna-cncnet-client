@@ -12,6 +12,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -91,7 +92,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
-                new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage)
+                new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage),
+                new StringCommandHandler("GSETTINGS", ApplyGameLobbySettings)
             };
 
             MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
@@ -113,7 +115,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private TunnelHandler tunnelHandler;
         private TunnelSelectionWindow tunnelSelectionWindow;
+        private GameLobbySettingsWindow gameLobbySettingsWindow;
         private XNAClientButton btnChangeTunnel;
+        private XNAClientButton btnGameLobbySettings;
 
         private Channel channel;
         private CnCNetManager connectionManager;
@@ -136,9 +140,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int playerLimit;
 
+        protected override int MaxPlayerCount => playerLimit;
+
         private bool closed = false;
 
         private int skillLevel = ClientConfiguration.Instance.DefaultSkillLevelIndex;
+
+        private string gameRoomName;
 
         private bool isCustomPassword = false;
 
@@ -188,6 +196,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
 
+            btnGameLobbySettings = FindChild<XNAClientButton>(nameof(btnGameLobbySettings), optional: true);
+            btnGameLobbySettings?.LeftClick += BtnGameLobbySettings_LeftClick;
+
             gameBroadcastTimer = new XNATimerControl(WindowManager);
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
@@ -202,6 +213,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelSelectionWindow.CenterOnParent();
             tunnelSelectionWindow.Disable();
             tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
+
+            gameLobbySettingsWindow = new GameLobbySettingsWindow(WindowManager);
+            gameLobbySettingsWindow.Initialize();
+            gameLobbySettingsWindow.DrawOrder = 1;
+            gameLobbySettingsWindow.UpdateOrder = 1;
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, gameLobbySettingsWindow);
+            gameLobbySettingsWindow.CenterOnParent();
+            gameLobbySettingsWindow.Disable();
+            gameLobbySettingsWindow.SettingsChanged += GameLobbySettingsWindow_SettingsChanged;
 
             MapLoader.MapChanged += MapLoader_MapChanged;
             mapSharingConfirmationPanel = new MapSharingConfirmationPanel(WindowManager);
@@ -249,12 +269,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
             this.skillLevel = skillLevel;
+            this.gameRoomName = channel.UIName;
 
             if (isHost)
             {
                 RandomSeed = random.Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+                btnGameLobbySettings?.Enable();
                 StartInactiveCheck();
             }
             else
@@ -262,6 +284,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.ChannelModesChanged += Channel_ChannelModesChanged;
                 AIPlayers.Clear();
                 btnChangeTunnel.Disable();
+                btnGameLobbySettings?.Disable();
             }
 
             tunnelHandler.CurrentTunnel = tunnel;
@@ -374,6 +397,167 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.SendCTCPMessage($"{CHANGE_TUNNEL_SERVER_MESSAGE} {e.Tunnel.Address}:{e.Tunnel.Port}",
                 QueuedMessageType.SYSTEM_MESSAGE, 10);
             HandleTunnelServerChange(e.Tunnel);
+        }
+
+        private void BtnGameLobbySettings_LeftClick(object sender, EventArgs e)
+        {
+            if (!IsHost)
+                return;
+
+            string displayPassword = isCustomPassword ? channel.Password : string.Empty;
+            gameLobbySettingsWindow.Open(gameRoomName, playerLimit, skillLevel, displayPassword);
+        }
+
+        private void GameLobbySettingsWindow_SettingsChanged(object sender, GameLobbySettingsEventArgs e)
+        {
+            if (!IsHost)
+                return;
+
+            UpdateGameLobbySettings(e.GameRoomName, e.MaxPlayers, e.SkillLevel, e.Password);
+        }
+
+        private void UpdateGameLobbySettings(string newGameRoomName, int newMaxPlayers, int newSkillLevel, string newPassword)
+        {
+            if (!IsHost)
+                return;
+
+            bool gameNameChanged = gameRoomName != newGameRoomName;
+            bool maxPlayersChanged = playerLimit != newMaxPlayers;
+            bool skillLevelChanged = skillLevel != newSkillLevel;
+
+            string currentUserPassword = isCustomPassword ? channel.Password : string.Empty;
+            bool passwordChanged = currentUserPassword != newPassword;
+
+            // ensure max players isn't less than current player count
+            if (newMaxPlayers < Players.Count + AIPlayers.Count)
+            {
+                AddNotice(string.Format("Cannot reduce maximum players to {0} with {1} players currently in game."
+                    .L10N("Client:Main:CannotReduceMaxPlayers"), newMaxPlayers, Players.Count + AIPlayers.Count));
+                return;
+            }
+
+            string oldGameRoomName = gameRoomName;
+            bool oldIsCustomPassword = isCustomPassword;
+            gameRoomName = newGameRoomName;
+            playerLimit = newMaxPlayers;
+            skillLevel = newSkillLevel;
+
+            if (passwordChanged)
+            {
+                // if new password is empty, generate password from channel name
+                string actualNewPassword = newPassword;
+                if (string.IsNullOrEmpty(newPassword))
+                {
+                    actualNewPassword = Utilities.CalculateSHA1ForString(channel.ChannelName).Substring(0, 10);
+                    isCustomPassword = false;
+                }
+                else
+                {
+                    isCustomPassword = true;
+                }
+
+                channel.ChangePassword(actualNewPassword, 10);
+            }
+
+            BroadcastGameLobbySettings();
+
+            if (gameNameChanged)
+            {
+                AddNotice(string.Format("Game room name changed from \"{0}\" to \"{1}\"."
+                    .L10N("Client:Main:GameNameChanged"), oldGameRoomName, gameRoomName));
+            }
+
+            if (maxPlayersChanged)
+            {
+                CopyPlayerDataToUI();
+                AddNotice(string.Format("Maximum players changed to {0}."
+                    .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+            }
+
+            if (skillLevelChanged)
+            {
+                string[] skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+                string skillLevelName = skillLevelOptions[newSkillLevel];
+                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{newSkillLevel}");
+                AddNotice(string.Format("Skill level changed to {0}."
+                    .L10N("Client:Main:SkillLevelChanged"), localizedSkillLevel));
+            }
+
+            if (passwordChanged)
+            {
+                if (string.IsNullOrEmpty(newPassword))
+                    AddNotice("Password removed from the game.".L10N("Client:Main:PasswordRemoved"));
+                else if (!oldIsCustomPassword)
+                    AddNotice("Password added to the game.".L10N("Client:Main:PasswordAdded"));
+                else
+                    AddNotice("Password changed.".L10N("Client:Main:PasswordChanged"));
+            }
+
+            BroadcastGame();
+        }
+
+        private void BroadcastGameLobbySettings()
+        {
+            if (!IsHost)
+                return;
+
+            StringBuilder sb = new StringBuilder("GSETTINGS ");
+            sb.Append(gameRoomName);
+            sb.Append(";");
+            sb.Append(playerLimit);
+            sb.Append(";");
+            sb.Append(skillLevel);
+            sb.Append(";");
+            sb.Append(Convert.ToInt32(isCustomPassword));
+
+            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
+        }
+
+        private void ApplyGameLobbySettings(string sender, string message)
+        {
+            if (IsHost)
+                return;
+
+            string[] parts = message.Split(';');
+
+            if (parts.Length < 4)
+                return;
+
+            string newGameRoomName = parts[0];
+            int newMaxPlayers = Conversions.IntFromString(parts[1], playerLimit);
+            int newSkillLevel = Conversions.IntFromString(parts[2], skillLevel);
+            bool newIsCustomPassword = Convert.ToBoolean(Conversions.IntFromString(parts[3], 0));
+
+            bool gameNameChanged = gameRoomName != newGameRoomName;
+            bool maxPlayersChanged = playerLimit != newMaxPlayers;
+            bool skillLevelChanged = skillLevel != newSkillLevel;
+
+            gameRoomName = newGameRoomName;
+            playerLimit = newMaxPlayers;
+            skillLevel = newSkillLevel;
+            isCustomPassword = newIsCustomPassword;
+
+            if (gameNameChanged)
+            {
+                AddNotice(string.Format("{0} changed game room name to \"{1}\"."
+                    .L10N("Client:Main:HostChangedGameName"), sender, gameRoomName));
+            }
+
+            if (maxPlayersChanged)
+            {
+                CopyPlayerDataToUI();
+                AddNotice(string.Format("{0} changed maximum players to {1}."
+                    .L10N("Client:Main:HostChangedMaxPlayers"), sender, newMaxPlayers));
+            }
+
+            if (skillLevelChanged)
+            {
+                string[] skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+                string skillLevelName = skillLevelOptions[newSkillLevel];
+                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{newSkillLevel}");
+                AddNotice(string.Format("{0} changed skill level to {1}."
+                    .L10N("Client:Main:HostChangedSkillLevel"), sender, localizedSkillLevel));
+            }
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -702,7 +886,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Logger.Log("One player MP -- starting!");
             }
 
-            cncnetUserData.AddRecentPlayers(Players.Select(p => p.Name), channel.UIName);
+            cncnetUserData.AddRecentPlayers(Players.Select(p => p.Name), gameRoomName);
 
             StartGame();
         }
@@ -717,7 +901,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 (byte)team
             };
 
-            int intValue = BitConverter.ToInt32(value, 0);
+            int intValue = BinaryPrimitives.ReadInt32LittleEndian(value);
 
             channel.SendCTCPMessage(
                 string.Format("OR {0}", intValue),
@@ -769,7 +953,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            byte[] bytes = BitConverter.GetBytes(options);
+            byte[] bytes = new byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32LittleEndian(bytes, options);
 
             int side = bytes[0];
             int color = bytes[1];
@@ -794,16 +979,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (0 < side && side < SideCount && disallowedSides[side])
                 return;
 
-            if (Map?.CoopInfo != null)
+            if (GameModeMap?.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
+                if (GameModeMap.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
-                if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
+                if (GameModeMap.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
                     return;
             }
 
-            if (start < 0 || start > Map?.MaxPlayers)
+            if (!(start == 0 || (GameModeMap?.AllowedStartingLocations?.Contains(start) ?? true)))
                 return;
 
             if (team < 0 || team > 4)
@@ -871,7 +1056,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     (byte)pInfo.SideId,
                 };
 
-                int value = BitConverter.ToInt32(byteArray, 0);
+                int value = BinaryPrimitives.ReadInt32LittleEndian(byteArray);
                 sb.Append(value);
                 sb.Append(";");
                 if (!pInfo.IsAI)
@@ -950,7 +1135,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerOptions == -1)
                     return;
 
-                byte[] byteArray = BitConverter.GetBytes(playerOptions);
+                byte[] byteArray = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(byteArray, playerOptions);
 
                 int team = byteArray[0];
                 int start = byteArray[1];
@@ -1031,7 +1217,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
 
             for (int i = 0; i < integerCount; i++)
-                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
+                sb.Append(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
 
             // We don't gain much in most cases by packing the drop-down values
             // (because they're bytes to begin with, and usually non-zero),
@@ -1109,7 +1295,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
             if (GameModeMap == null)
             {
                 ChangeMap(null);
@@ -1150,7 +1336,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                byte[] byteArray = BitConverter.GetBytes(checkBoxStatusInt);
+                byte[] byteArray = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(byteArray, checkBoxStatusInt);
                 bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray);
 
                 for (int optionIndex = 0; optionIndex < boolArray.Length; optionIndex++)
@@ -1377,7 +1564,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Port = port;
                 recentPlayers.Add(pName);
             }
-            cncnetUserData.AddRecentPlayers(recentPlayers, channel.UIName);
+            cncnetUserData.AddRecentPlayers(recentPlayers, gameRoomName);
 
             StartGame();
         }
@@ -1595,7 +1782,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 if (Players.Count < playerLimit)
                 {
-                    AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnockedByYou"));
+                    AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnlockedByYou"));
                     UnlockGame(false);
                 }
                 else
@@ -1762,7 +1949,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice($"Map {e.Map.Name} loaded successfully.");
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == e.Map.SHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == e.Map.SHA1);
             ChangeMap(GameModeMap);
 
             if (isFromChatCommand)
@@ -1998,7 +2185,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sha1 = sha1.Replace("?", "");
 
             // See if the user already has this map, with any filename, before attempting to download it.
-            GameModeMap loadedMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+            GameModeMap loadedMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == sha1);
 
             if (loadedMap != null)
             {
@@ -2056,7 +2243,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(";");
             sb.Append(channel.ChannelName);
             sb.Append(";");
-            sb.Append(channel.UIName);
+            sb.Append(gameRoomName);
             sb.Append(";");
             if (Locked)
                 sb.Append("1");
@@ -2086,6 +2273,39 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(skillLevel); // SkillLevel
             sb.Append(";");
             sb.Append(Map?.SHA1);
+
+            List<IGameSessionSetting> broadcastableSettings = GetBroadcastableSettings();
+
+            List<int> gameOptionValues = new();
+
+            int checkboxCount = CheckBoxes.Count(cb => cb.BroadcastToLobby);
+            if (checkboxCount > 0)
+            {
+                bool[] checkboxValues = new bool[checkboxCount];
+                for (int i = 0; i < checkboxCount; i++)
+                    checkboxValues[i] = CheckBoxes.Where(cb => cb.BroadcastToLobby).ElementAt(i).Checked;
+
+                List<byte> byteList = Conversions.BoolArrayIntoBytes(checkboxValues).ToList();
+
+                // Pad to multiple of 4 bytes
+                while (byteList.Count % 4 != 0)
+                    byteList.Add(0);
+
+                byte[] byteArray = byteList.ToArray();
+
+                // Convert bytes to integers
+                for (int i = 0; i < byteArray.Length / 4; i++)
+                    gameOptionValues.Add(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
+            }
+
+            // Add dropdown indices
+            int dropdownCount = DropDowns.Count(dd => dd.BroadcastToLobby);
+            if (dropdownCount > 0)
+                gameOptionValues.AddRange(DropDowns.Where(dd => dd.BroadcastToLobby).Select(dd => dd.SelectedIndex));
+
+            sb.Append(";");
+            if (gameOptionValues.Count > 0)
+                sb.Append(string.Join(",", gameOptionValues));
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

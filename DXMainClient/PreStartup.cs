@@ -19,6 +19,7 @@ using ClientCore.I18N;
 using System.Globalization;
 using System.Security;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -184,6 +185,10 @@ namespace DTAClient
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+
             // Delete obsolete files from old target project versions
 
             gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
@@ -279,7 +284,7 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
@@ -291,12 +296,7 @@ namespace DTAClient
             DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
             {
-                using var _ = Process.Start(new ProcessStartInfo
-                {
-                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                    Verb = "runas",
-                    UseShellExecute = true,
-                });
+                AdminRestarter.RestartAsAdmin();
             }
 #else
             MainClientConstants.DisplayErrorAction(title, error, true);
