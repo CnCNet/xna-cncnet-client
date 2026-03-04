@@ -174,24 +174,14 @@ namespace DTAClient.DXGUI.Campaign
             
             LoadSettings();
 
+            LoadPreview();
+        }
 
+        private void LoadPreview()
+        {
             // find existing child first (the GUICreator/layout might already create it)
             XNAPanel existingPanel = FindChild<XNAPanel>("pnlMissionPreview", true);
-            if (existingPanel == null)
-            {
-                pnlMissionPreview = new XNAPanel(WindowManager);
-                pnlMissionPreview.Name = "pnlMissionPreview";
-                pnlMissionPreview.X = 500;
-                pnlMissionPreview.Y = 60;
-                pnlMissionPreview.Width = 350;
-                pnlMissionPreview.Height = 220;
-
-                // Use built-in background drawing
-                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
-                AddChild(pnlMissionPreview);
-            }
-            else
+            if (existingPanel != null)
             {
                 // reuse the already-created control
                 pnlMissionPreview = existingPanel;
@@ -207,20 +197,19 @@ namespace DTAClient.DXGUI.Campaign
             }
         }
 
-
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool missionPreviewNeedsDispose = false;
+            bool previewNeedsPreplace = false;
             Texture2D previewTexture;
 
             if (lbCampaignList.SelectedIndex == -1)
             {
                 tbMissionDescription.Text = string.Empty;
 
-                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                if (pnlMissionPreview?.BackgroundTexture != null && previewNeedsPreplace)
                 {
                     pnlMissionPreview.BackgroundTexture.Dispose();
-                    missionPreviewNeedsDispose = false;
+                    previewNeedsPreplace = false;
                 }
 
                 pnlMissionPreview.BackgroundTexture = null;
@@ -231,29 +220,24 @@ namespace DTAClient.DXGUI.Campaign
             Mission mission = selectedMissions[lbCampaignList.SelectedIndex];
 
             string relativePath = Path.Combine("Resources", mission.PreviewImage);
-            string fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, relativePath);
-            // Test path for testing purposes.
-            string testPath = Path.Combine("Resources","Default Theme","MainMenu", "dbak.png");
-            string defaultPath = SafePath.CombineFilePath(ProgramConstants.GamePath, testPath);
 
-
-            if (File.Exists(fullPath))
+            if (File.Exists(relativePath))
             {
                 // Load uncached preview so we can own and dispose it safely
-                previewTexture = AssetLoader.LoadTextureUncached(fullPath);
+                previewTexture = AssetLoader.LoadTextureUncached(relativePath);
             }
             else
             {
-                // If not available, use a default texture.
-                previewTexture = AssetLoader.LoadTextureUncached(defaultPath);
+                // If not available, returns pink. Should not be removed.
+                previewTexture = AssetLoader.LoadTextureUncached("");
             }
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
-                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                if (pnlMissionPreview?.BackgroundTexture != null && previewNeedsPreplace)
                 {
                     pnlMissionPreview.BackgroundTexture.Dispose();
-                    missionPreviewNeedsDispose = false;
+                    previewNeedsPreplace = false;
                 }
 
                 pnlMissionPreview.BackgroundTexture = null;
@@ -267,26 +251,32 @@ namespace DTAClient.DXGUI.Campaign
 
             if (!mission.Enabled)
             {
-                if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+                // If the mission is disabled, we show the preview but disable the launch button.
+                if (pnlMissionPreview != null)
                 {
-                    pnlMissionPreview.BackgroundTexture.Dispose();
-                    missionPreviewNeedsDispose = false;
-                }
+                    // Dispose previous preview only if we loaded it uncached and therefore own it
+                    if (pnlMissionPreview.BackgroundTexture != null && previewNeedsPreplace)
+                        pnlMissionPreview.BackgroundTexture.Dispose();
 
-                pnlMissionPreview.BackgroundTexture = null;
-                previewTexture.Dispose();
+                    pnlMissionPreview.BackgroundTexture = previewTexture;
+                    previewNeedsPreplace = true;
+                }
                 btnLaunch.AllowClick = false;
                 return;
             }
 
-            // Dispose previous preview only if we loaded it uncached and therefore own it
-            if (pnlMissionPreview.BackgroundTexture != null && missionPreviewNeedsDispose)
+            if (pnlMissionPreview != null)
             {
-                pnlMissionPreview.BackgroundTexture.Dispose();
-            }
 
-            pnlMissionPreview.BackgroundTexture = previewTexture;
-            missionPreviewNeedsDispose = true;
+                // Dispose previous preview only if we loaded it uncached and therefore own it
+                if (pnlMissionPreview.BackgroundTexture != null && previewNeedsPreplace)
+                    pnlMissionPreview.BackgroundTexture.Dispose();
+
+
+                pnlMissionPreview.BackgroundTexture = previewTexture;
+                previewNeedsPreplace = true;
+            }
+            
 
             btnLaunch.AllowClick = true;
         }
