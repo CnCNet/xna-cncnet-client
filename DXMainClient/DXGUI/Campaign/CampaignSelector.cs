@@ -119,8 +119,19 @@ namespace DTAClient.DXGUI.Campaign
 
             WindowManager.CenterControlOnScreen(this);
 
-            lbCampaignList = FindChild<XNAListBox>(nameof(lbCampaignList));
-            lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
+            try
+            {
+                lbCampaignList = FindChild<XNAListBox>(nameof(lbCampaignList));
+                lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(string.Format("It seems the client configuration was not migrated to accommodate for the v2.13.0 changes.\n\n" +
+                    "Please refer to documentation of the client {0} for more details. This link can also be found in the log file.\n\n" +
+                    "Error message: {1}",
+                    "https://github.com/CnCNet/xna-cncnet-client/",
+                    ex.Message));
+            }
 
             tbMissionDescription = FindChild<XNATextBlock>(nameof(tbMissionDescription));
 
