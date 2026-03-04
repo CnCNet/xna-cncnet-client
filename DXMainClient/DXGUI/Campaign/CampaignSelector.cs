@@ -3,14 +3,20 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+
 using ClientGUI;
 using ClientGUI.Settings;
+
 using ClientUpdater;
+
 using DTAClient.Domain;
+
 using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -99,11 +105,13 @@ namespace DTAClient.DXGUI.Campaign
 
         public override void Initialize()
         {
+            Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
-            Name = "CampaignSelector";
+            gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
+                ClientConfiguration.GAME_OPTIONS));
 
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = nameof(lblSelectCampaign);
@@ -209,9 +217,6 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
-
-            gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
-                ClientConfiguration.GAME_OPTIONS));
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
