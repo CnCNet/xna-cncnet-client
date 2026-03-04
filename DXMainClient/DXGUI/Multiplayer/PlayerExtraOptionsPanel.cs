@@ -230,7 +230,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(chkBoxForceRandomColors);
 
             chkBoxForceNoTeams = new XNAClientCheckBox(WindowManager);
-            chkBoxForceNoTeams.Name = nameof(chkBoxForceNoTeams);
+            chkBoxForceNoTeams.Name = "chkBoxForceNoTeams";
             chkBoxForceNoTeams.Text = "Force No Teams".L10N("Client:Main:ForceNoTeams");
             chkBoxForceNoTeams.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomColors.Bottom + 4, 0, 0);
             chkBoxForceNoTeams.CheckedChanged += Options_Changed;
