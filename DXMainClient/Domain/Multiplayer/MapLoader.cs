@@ -12,6 +12,8 @@ using ClientCore.Extensions;
 
 using Rampastring.Tools;
 
+using SixLabors.ImageSharp;
+
 namespace DTAClient.Domain.Multiplayer
 {
     public enum MapChangeType
@@ -21,7 +23,7 @@ namespace DTAClient.Domain.Multiplayer
         Removed
     }
 
-    public class MapLoader
+    public class MapLoader : IDisposable
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
@@ -42,12 +44,15 @@ namespace DTAClient.Domain.Multiplayer
         private readonly object mapModificationLock = new object();
         private const int _mapChangeRetryCount = 3;
 
+        private readonly List<GameMode> _gameModes = [];
+
         /// <summary>
         /// List of game modes.
         /// </summary>
-        public List<GameMode> GameModes = new List<GameMode>();
+        public IReadOnlyList<GameMode> GameModes => _gameModes;
 
-        public GameModeMapCollection GameModeMaps;
+        private GameModeMapCollection _gameModeMaps;
+        public IReadOnlyGameModeMapCollection GameModeMaps => _gameModeMaps;
 
         /// <summary>
         /// An event that is fired when the maps have been loaded.
@@ -79,6 +84,12 @@ namespace DTAClient.Domain.Multiplayer
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
+
+        public const int MapPreviewCacheCapacity = 100;
+
+        private readonly IMapPreviewCacheManager mapPreviewCacheManager = new MapPreviewCacheManager(capacity: MapPreviewCacheCapacity);
+
+        public MapLoader() { }
 
         /// <summary>
         /// Sets up file watching for maps.
@@ -118,8 +129,8 @@ namespace DTAClient.Domain.Multiplayer
             LoadMultiMaps(mpMapsIni);
             LoadCustomMaps();
 
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
+            _gameModes.RemoveAll(g => g.Maps.Count < 1);
+            _gameModeMaps = new GameModeMapCollection(_gameModes);
 
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
@@ -363,8 +374,8 @@ namespace DTAClient.Domain.Multiplayer
 
         private void UpdateGameModeMaps()
         {
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
+            _gameModes.RemoveAll(g => g.Maps.Count < 1);
+            _gameModeMaps = new GameModeMapCollection(_gameModes);
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
@@ -417,7 +428,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (!string.IsNullOrEmpty(gameModeName))
                     {
                         GameMode gm = new GameMode(gameModeName);
-                        GameModes.Add(gm);
+                        _gameModes.Add(gm);
                     }
                 }
             }
@@ -635,7 +646,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 AddMapToGameModes(map, true);
                 var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
-                GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
+                _gameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
                 resultMessage = string.Format("Map {0} loaded successfully.".L10N("Client:MapLoader:MapLoadedSuccessfully"), map.Name);
 
@@ -657,7 +668,7 @@ namespace DTAClient.Domain.Multiplayer
                 gameMode.Maps.Remove(gameModeMap.Map);
             }
 
-            GameModeMaps.Remove(gameModeMap);
+            _gameModeMaps.Remove(gameModeMap);
         }
 
         /// <summary>
@@ -677,11 +688,11 @@ namespace DTAClient.Domain.Multiplayer
                     if (!map.Official && !(AllowedGameModes.Contains(gameMode) || AllowedGameModes.Contains(gameModeAlias)))
                         continue;
 
-                    GameMode gm = GameModes.Find(g => g.Name == gameModeAlias);
+                    GameMode gm = GameModes.FirstOrDefault(g => g.Name == gameModeAlias);
                     if (gm == null)
                     {
                         gm = new GameMode(gameModeAlias);
-                        GameModes.Add(gm);
+                        _gameModes.Add(gm);
                     }
 
                     gm.Maps.Add(map);
@@ -734,5 +745,34 @@ namespace DTAClient.Domain.Multiplayer
                 UserINISettings.Instance.WriteFavoriteMaps();
             }
         }
+
+        public void PrefetchCachedPreviewImageFromMap(Map map)
+        {
+            if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
+                _ = mapPreviewCacheManager.Request(map, out Image _, addToQueue: true);
+        }
+
+        public Image GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
+        {
+            if (map?.IsImmediatePreviewImageAvailable() ?? false)
+            {
+                return map.GetImmediatePreviewImage();
+            }
+            else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
+            {
+                if (mapPreviewCacheManager.Request(map, out Image image, syncComputeOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
+                    return image;
+                else
+                    return null;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public Map FindMapByHash(string mapHash) => GameModeMaps?.FindMapByHash(mapHash);
+
+        public void Dispose() => mapPreviewCacheManager?.Dispose();
     }
 }

@@ -110,7 +110,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// The list of multiplayer game mode maps.
         /// Each is an instance of a map for a specific game mode.
         /// </summary>
-        protected GameModeMapCollection GameModeMaps => MapLoader.GameModeMaps;
+        protected IReadOnlyGameModeMapCollection GameModeMaps => MapLoader.GameModeMaps;
 
         protected GameModeMapFilter gameModeMapFilter;
 
@@ -873,7 +873,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (GameMode.Maps.Count == 0)
                 {
                     // this will trigger another GameMode to be selected
-                    GameModeMap = GameModeMaps.Find(gm => gm.GameMode.Maps.Count > 0);
+                    GameModeMap = GameModeMaps.FirstOrDefault(gm => gm.GameMode.Maps.Count > 0);
                 }
                 else
                 {
@@ -936,7 +936,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int randomValue = random.Next(0, maps.Count);
             bool isFavoriteMapsSelected = IsFavoriteMapsSelected();
-            GameModeMap = GameModeMaps.Find(gmm => (gmm.GameMode == GameMode || gmm.IsFavorite && isFavoriteMapsSelected) && gmm.Map == maps[randomValue]);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => (gmm.GameMode == GameMode || gmm.IsFavorite && isFavoriteMapsSelected) && gmm.Map == maps[randomValue]);
             Logger.Log("PickRandomMap: Rolled " + randomValue + " out of " + maps.Count + ". Picked map: " + Map.Name);
 
             ChangeMap(GameModeMap);
@@ -1162,9 +1162,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblTeam);
 
             btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), true);
+
             if (btnPlayerExtraOptionsOpen != null)
             {
                 PlayerExtraOptionsPanel = FindChild<PlayerExtraOptionsPanel>(nameof(PlayerExtraOptionsPanel));
+                ReadINIForControl(PlayerExtraOptionsPanel);
 
                 foreach (var child in PlayerExtraOptionsPanel.Children)
                 {
@@ -2201,7 +2203,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             AIPlayers.Clear();
-            for (int cmbId = Players.Count; cmbId < MaxPlayerCount; cmbId++)
+            for (int cmbId = Players.Count; cmbId < MAX_PLAYER_COUNT; cmbId++)
             {
                 XNADropDown dd = ddPlayerNames[cmbId];
                 dd.Items[0].Text = "-";
@@ -2558,7 +2560,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (PlayerInfo pInfo in concatPlayerList)
                     pInfo.TeamId = 1;
 
-                if (PlayerOptionsPanel != null)
+                if (PlayerExtraOptionsPanel != null)
                 {
                     PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = false;
                     PlayerExtraOptionsPanel.ForcedNoTeams = false;
@@ -2569,7 +2571,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                if (PlayerOptionsPanel != null)
+                if (PlayerExtraOptionsPanel != null)
                 {
                     PlayerExtraOptionsPanel.ForcedNoTeamsAllowChecking = true;
                     PlayerExtraOptionsPanel.UseTeamStartMappingsAllowChecking = true;

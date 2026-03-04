@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         GameCollection gameCollection;
 
-        private List<GameMode> gameModes => mapLoader.GameModes;
+        private IReadOnlyList<GameMode> gameModes => mapLoader.GameModes;
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
 

@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string localFileHash;
 
-        private List<GameMode> gameModes => mapLoader.GameModes;
+        private IReadOnlyList<GameMode> gameModes => mapLoader.GameModes;
 
         private int loadedGameId;
 

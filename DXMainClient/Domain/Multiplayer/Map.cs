@@ -1,22 +1,23 @@
-﻿using ClientCore;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.Json.Serialization;
-using SixLabors.ImageSharp;
-using Color = Microsoft.Xna.Framework.Color;
-using Point = Microsoft.Xna.Framework.Point;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using ClientCore.PlatformShim;
+using System.Text.Json.Serialization;
+
+using ClientCore;
+using ClientCore.Extensions;
+
 using DTAClient.DXGUI.Multiplayer.GameLobby;
+
+using Rampastring.Tools;
+
+using SixLabors.ImageSharp;
+
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -49,6 +50,9 @@ namespace DTAClient.Domain.Multiplayer
 
         public Map(string baseFilePath, bool isCustomMap)
         {
+            if (string.IsNullOrWhiteSpace(baseFilePath))
+                throw new ArgumentNullException(nameof(baseFilePath));
+
             Debug.Assert(!baseFilePath.EndsWith($".{ClientConfiguration.Instance.MapFileExtension}", StringComparison.InvariantCultureIgnoreCase), $"Unexpected map path {baseFilePath}. It should not end with the map extension.");
 
             BaseFilePath = baseFilePath;
@@ -170,6 +174,9 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public int height;
 
+        /// <summary>
+        /// The full path of custom map INI file. It gets re-initialized in JsonConstructor, so it won't be serialized / deserialized directly.
+        /// </summary>
         [JsonIgnore]
         private readonly string customMapFilePath;
 
@@ -188,20 +195,10 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
-        // TODO: move preview texture caching out of the Map class
-        [JsonIgnore]
-        public Texture2D PreviewTexture { get; set; }
-
         public void CalculateSHA()
         {
             SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
         }
-
-        /// <summary>
-        /// If false, the preview shouldn't be extracted for this (custom) map.
-        /// </summary>
-        [JsonInclude]
-        public bool ExtractCustomPreview { get; set; } = true;
 
         [JsonInclude]
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
@@ -245,8 +242,15 @@ namespace DTAClient.Domain.Multiplayer
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
-                FileInfo mapFile = SafePath.GetFile(BaseFilePath);
-                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                // Initialize PreviewPath
+                {
+                    FileInfo mapFile = SafePath.GetFile(BaseFilePath);
+                    string previewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.FullName).Parent.FullName[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
+                    if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
+                        previewPath = null;
+
+                    PreviewPath = previewPath;
+                }
 
                 Briefing = section.GetStringValue("Briefing", string.Empty)
                     .FromIniString()
@@ -329,11 +333,6 @@ namespace DTAClient.Domain.Multiplayer
                 }
 
                 GetTeamStartMappingPresets(section);
-#if !GL
-
-                if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = LoadPreviewTexture();
-#endif
 
                 // Parse forced options
 
@@ -494,7 +493,14 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
 
-                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
+                // Initialize PreviewPath
+                {
+                    string previewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
+                    if (!SafePath.GetFile(ProgramConstants.GamePath, previewPath).Exists)
+                        previewPath = null;
+
+                    PreviewPath = previewPath;
+                }
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
@@ -592,32 +598,22 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public bool IsPreviewTextureCached() =>
-            SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
+        public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
-        /// <summary>
-        /// Loads and returns the map preview texture.
-        /// </summary>
-        public Texture2D LoadPreviewTexture()
+        public Image GetImmediatePreviewImage() => IsImmediatePreviewImageAvailable()
+            ? Image.Load(SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName)
+            : throw new FileNotFoundException("Immediate preview texture not found for map " + BaseFilePath);
+
+        public bool IsNonImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(customMapFilePath) && File.Exists(customMapFilePath);
+
+        public Image GetNonImmediatePreviewImage()
         {
-            if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
-                return AssetLoader.LoadTextureUncached(PreviewPath);
+            if (!IsNonImmediatePreviewImageAvailable())
+                throw new FileNotFoundException("Custom map file not found for map " + BaseFilePath);
 
-            if (!Official)
-            {
-                // Extract preview from the map itself
-                // TODO: implement a global cache for the preview texture. Don't cache either the texture or the map ini in the Map object itself.
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
+            // Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
 
-                if (preview != null)
-                {
-                    Texture2D texture = AssetLoader.TextureFromImage(preview);
-                    if (texture != null)
-                        return texture;
-                }
-            }
-
-            return AssetLoader.CreateTexture(Color.Black, 10, 10);
+            return MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
         }
 
         public IniFile GetMapIni()
@@ -860,12 +856,21 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        protected bool Equals(Map other)
+        public override bool Equals(object other)
         {
-            Debug.Assert(other?.SHA1 != null || SHA1 != null);
-            return string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
+            if (other is Map otherMap)
+            {
+                Debug.Assert(otherMap?.SHA1 != null || SHA1 != null);
+                return string.Equals(SHA1, otherMap?.SHA1, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return false;
         }
 
-        public override int GetHashCode() => SHA1 != null ? SHA1.GetHashCode() : 0;
+        public override int GetHashCode() => SHA1 != null ? StringComparer.InvariantCultureIgnoreCase.GetHashCode(SHA1) : 0;
+
+        public static bool operator ==(Map left, Map right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(Map left, Map right) => !(left == right);
     }
 }
