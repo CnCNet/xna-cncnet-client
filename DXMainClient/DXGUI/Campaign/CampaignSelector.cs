@@ -107,15 +107,16 @@ namespace DTAClient.DXGUI.Campaign
 
         public override void Initialize()
         {
+            // Read customizable window size from the campaign settings INI (fall back to defaults)
+            var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
+            bool missionPreviewEnabled = settingsIni.GetBooleanValue("General", "pnlMissionPreviewVisible", false);
             Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
-            int windowWidth = settingsIni.GetIntValue("Window", "Width", DEFAULT_WIDTH);
-            int windowHeight = settingsIni.GetIntValue("Window", "Height", DEFAULT_HEIGHT);
             ClientRectangle = new Rectangle(
                 0, 
-                0,
-                windowWidth,
-                windowHeight);
+                0, 
+                DEFAULT_WIDTH, 
+                DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
             gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
@@ -124,17 +125,11 @@ namespace DTAClient.DXGUI.Campaign
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = nameof(lblSelectCampaign);
             lblSelectCampaign.FontIndex = 1;
-            // Read control rectangle values from campaign settings INI, with defaults
-            int lblSelectCampaignX = settingsIni.GetIntValue("Controls", "lblSelectCampaignX", 12);
-            int lblSelectCampaignY = settingsIni.GetIntValue("Controls", "lblSelectCampaignY", 12);
-            int lblSelectCampaignWidth = settingsIni.GetIntValue("Controls", "lblSelectCampaignWidth", 0);
-            int lblSelectCampaignHeight = settingsIni.GetIntValue("Controls", "lblSelectCampaignHeight", 0);
-
             lblSelectCampaign.ClientRectangle = new Rectangle(
-                lblSelectCampaignX,
-                lblSelectCampaignY,
-                lblSelectCampaignWidth,
-                lblSelectCampaignHeight);
+                12, 
+                12, 
+                0, 
+                0);
             lblSelectCampaign.Text = "MISSIONS:".L10N("Client:Main:Missions");
 
             lbCampaignList = new XNAListBox(WindowManager);
@@ -244,8 +239,6 @@ namespace DTAClient.DXGUI.Campaign
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-<<<<<<< Updated upstream
-=======
             pnlMissionPreview = new XNAPanel(WindowManager);
             pnlMissionPreview.Name = nameof(pnlMissionPreview);
             pnlMissionPreview.ClientRectangle = new Rectangle(
@@ -256,7 +249,6 @@ namespace DTAClient.DXGUI.Campaign
             pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             pnlMissionPreview.Visible = missionPreviewEnabled;
 
->>>>>>> Stashed changes
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
             AddChild(lbCampaignList);
@@ -268,6 +260,7 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
+            AddChild(pnlMissionPreview);
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
