@@ -163,7 +163,7 @@ namespace ClientCore
                 PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
                 IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
                 CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);               
-                PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);               
+                // PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);               
                 MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
                 AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
                 GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
