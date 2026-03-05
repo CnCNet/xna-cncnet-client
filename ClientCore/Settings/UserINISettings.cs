@@ -115,6 +115,9 @@ namespace ClientCore
                 GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
                 DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+                ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
+                DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
+                ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
 
                 // Remove binding completely
                 // DetailLevel = null;
