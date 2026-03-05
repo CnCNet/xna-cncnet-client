@@ -109,7 +109,13 @@ namespace DTAClient.DXGUI.Campaign
         {
             Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
-            ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            int windowWidth = settingsIni.GetIntValue("Window", "Width", DEFAULT_WIDTH);
+            int windowHeight = settingsIni.GetIntValue("Window", "Height", DEFAULT_HEIGHT);
+            ClientRectangle = new Rectangle(
+                0, 
+                0,
+                windowWidth,
+                windowHeight);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
             gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
@@ -118,15 +124,28 @@ namespace DTAClient.DXGUI.Campaign
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = nameof(lblSelectCampaign);
             lblSelectCampaign.FontIndex = 1;
-            lblSelectCampaign.ClientRectangle = new Rectangle(12, 12, 0, 0);
+            // Read control rectangle values from campaign settings INI, with defaults
+            int lblSelectCampaignX = settingsIni.GetIntValue("Controls", "lblSelectCampaignX", 12);
+            int lblSelectCampaignY = settingsIni.GetIntValue("Controls", "lblSelectCampaignY", 12);
+            int lblSelectCampaignWidth = settingsIni.GetIntValue("Controls", "lblSelectCampaignWidth", 0);
+            int lblSelectCampaignHeight = settingsIni.GetIntValue("Controls", "lblSelectCampaignHeight", 0);
+
+            lblSelectCampaign.ClientRectangle = new Rectangle(
+                lblSelectCampaignX,
+                lblSelectCampaignY,
+                lblSelectCampaignWidth,
+                lblSelectCampaignHeight);
             lblSelectCampaign.Text = "MISSIONS:".L10N("Client:Main:Missions");
 
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = nameof(lbCampaignList);
             lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             lbCampaignList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbCampaignList.ClientRectangle = new Rectangle(12,
-                lblSelectCampaign.Bottom + 6, 300, 516);
+            lbCampaignList.ClientRectangle = new Rectangle(
+                12,
+                lblSelectCampaign.Bottom + 6,
+                300, 
+                516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
             var lblMissionDescriptionHeader = new XNALabel(WindowManager);
@@ -134,7 +153,9 @@ namespace DTAClient.DXGUI.Campaign
             lblMissionDescriptionHeader.FontIndex = 1;
             lblMissionDescriptionHeader.ClientRectangle = new Rectangle(
                 lbCampaignList.Right + 12,
-                lblSelectCampaign.Y, 0, 0);
+                lblSelectCampaign.Y, 
+                0, 
+                0);
             lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:".L10N("Client:Main:MissionDescription");
 
             tbMissionDescription = new XNATextBlock(WindowManager);
@@ -142,7 +163,8 @@ namespace DTAClient.DXGUI.Campaign
             tbMissionDescription.ClientRectangle = new Rectangle(
                 lblMissionDescriptionHeader.X,
                 lblMissionDescriptionHeader.Bottom + 6,
-                Width - 24 - lbCampaignList.Right, 430);
+                Width - 24 - lbCampaignList.Right,
+                430);
             tbMissionDescription.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
 
@@ -161,8 +183,10 @@ namespace DTAClient.DXGUI.Campaign
             trbDifficultySelector = new XNATrackbar(WindowManager);
             trbDifficultySelector.Name = nameof(trbDifficultySelector);
             trbDifficultySelector.ClientRectangle = new Rectangle(
-                tbMissionDescription.X, lblDifficultyLevel.Bottom + 6,
-                tbMissionDescription.Width, 30);
+                tbMissionDescription.X,
+                lblDifficultyLevel.Bottom + 6,
+                tbMissionDescription.Width, 
+                30);
             trbDifficultySelector.MinValue = 0;
             trbDifficultySelector.MaxValue = 2;
             trbDifficultySelector.BackgroundTexture = AssetLoader.CreateTexture(
@@ -174,8 +198,11 @@ namespace DTAClient.DXGUI.Campaign
             lblEasy.Name = nameof(lblEasy);
             lblEasy.FontIndex = 1;
             lblEasy.Text = "EASY".L10N("Client:Main:DifficultyEasy");
-            lblEasy.ClientRectangle = new Rectangle(trbDifficultySelector.X,
-                trbDifficultySelector.Bottom + 6, 1, 1);
+            lblEasy.ClientRectangle = new Rectangle(
+                trbDifficultySelector.X,
+                trbDifficultySelector.Bottom + 6,
+                1, 
+                1);
 
             var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = nameof(lblNormal);
@@ -192,22 +219,44 @@ namespace DTAClient.DXGUI.Campaign
             lblHard.Text = "HARD".L10N("Client:Main:DifficultyHard");
             lblHard.ClientRectangle = new Rectangle(
                 tbMissionDescription.Right - lblHard.Width,
-                lblEasy.Y, 1, 1);
+                lblEasy.Y, 
+                1, 
+                1);
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = nameof(btnLaunch);
-            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnLaunch.ClientRectangle = new Rectangle(
+                12,
+                Height - 35,
+                UIDesignConstants.BUTTON_WIDTH_133,
+                UIDesignConstants.BUTTON_HEIGHT);
             btnLaunch.Text = "Launch".L10N("Client:Main:ButtonLaunch");
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
-            btnCancel.ClientRectangle = new Rectangle(Width - 145,
-                btnLaunch.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.ClientRectangle = new Rectangle(
+                Width - 145,
+                btnLaunch.Y,
+                UIDesignConstants.BUTTON_WIDTH_133, 
+                UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+<<<<<<< Updated upstream
+=======
+            pnlMissionPreview = new XNAPanel(WindowManager);
+            pnlMissionPreview.Name = nameof(pnlMissionPreview);
+            pnlMissionPreview.ClientRectangle = new Rectangle(
+                pnlMissionPreview.X, 
+                pnlMissionPreview.Y, 
+                pnlMissionPreview.Width, 
+                pnlMissionPreview.Height);
+            pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            pnlMissionPreview.Visible = missionPreviewEnabled;
+
+>>>>>>> Stashed changes
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
             AddChild(lbCampaignList);
@@ -259,27 +308,6 @@ namespace DTAClient.DXGUI.Campaign
             cheaterWindow.Disable();
 
             LoadSettings();
-            LoadPreview();
-        }
-
-        private void LoadPreview()
-        {
-            // find existing child first (the GUICreator/layout might already create it)
-            var existingPanel = Children.OfType<XNAPanel>().FirstOrDefault(c => c.Name == "pnlMissionPreview");
-            if (existingPanel != null)
-            {
-                // reuse the already-created control
-                pnlMissionPreview = existingPanel;
-                // Use built-in background drawing
-                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
-                // if it was parented somewhere else, reparent it here to avoid sharing
-                if (pnlMissionPreview.Parent != this)
-                {
-                    pnlMissionPreview.Parent?.RemoveChild(pnlMissionPreview);
-                    AddChild(pnlMissionPreview);
-                }
-            }
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
