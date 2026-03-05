@@ -107,6 +107,10 @@ namespace DTAClient.DXGUI.Campaign
 
         public override void Initialize()
         {
+            // Read customizable window size from the campaign settings INI (fall back to defaults)
+            var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
+            bool missionPreviewEnabled = settingsIni.GetBooleanValue("Controls", "pnlMissionPreviewVisible", false);
+
             Name = nameof(CampaignSelector);
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -214,6 +218,7 @@ namespace DTAClient.DXGUI.Campaign
             //pnlMissionPreview.Name = nameof(pnlMissionPreview);
             //pnlMissionPreview.ClientRectangle = new Rectangle(500, 60, 350, 220);
             //pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            pnlMissionPreview = new XNAPanel(WindowManager);
 
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
@@ -226,6 +231,7 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
+            AddChild(pnlMissionPreview);
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
@@ -266,7 +272,6 @@ namespace DTAClient.DXGUI.Campaign
             cheaterWindow.Disable();
 
             LoadSettings();
-
             LoadPreview();
         }
 
