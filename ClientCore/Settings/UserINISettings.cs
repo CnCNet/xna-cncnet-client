@@ -112,6 +112,8 @@ namespace ClientCore
 
                 Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
                 GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
+                BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
+                DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
 
                 // Remove binding completely
                 // DetailLevel = null;
