@@ -107,11 +107,7 @@ namespace DTAClient.DXGUI.Campaign
 
         public override void Initialize()
         {
-            // Read customizable window size from the campaign settings INI (fall back to defaults)
-            var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
-            bool missionPreviewEnabled = settingsIni.GetBooleanValue("Controls", "pnlMissionPreviewVisible", false);
-
-            Name = nameof(CampaignSelector);
+            Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
@@ -212,14 +208,6 @@ namespace DTAClient.DXGUI.Campaign
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-            
-
-            //pnlMissionPreview = new XNAPanel(WindowManager);
-            //pnlMissionPreview.Name = nameof(pnlMissionPreview);
-            //pnlMissionPreview.ClientRectangle = new Rectangle(500, 60, 350, 220);
-            //pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            pnlMissionPreview = new XNAPanel(WindowManager);
-
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
             AddChild(lbCampaignList);
@@ -231,7 +219,6 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
-            AddChild(pnlMissionPreview);
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {

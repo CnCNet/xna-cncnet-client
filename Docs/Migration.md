@@ -7,7 +7,6 @@ This document lists all the breaking changes and how to address them. Each secti
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
 ## 2.13.0
-- The `CampaignSelector` window has been migrated to `INItializableWindow`. You must update the `CampaignSelector.ini` file. An example will be provided later.
 
 - `PlayerExtraOptionsPanel` control in `GameLobbyBase` has been changed from `XNAWindow` to `XNAPanel`. INI file `PlayerExtraOptionsPanel.ini` is no longer parsed for control attributes, and therefore all contents in this file should be appended to `GameLobbyBase.ini`. In addition, the control `chkBoxForceRandomTeams` has been renamed to `chkBoxForceNoTeams`, so please rename the `[chkBoxForceRandomTeams]` section to `[chkBoxForceNoTeams]`.
 
