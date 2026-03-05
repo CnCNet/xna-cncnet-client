@@ -325,7 +325,8 @@ namespace DTAClient.DXGUI.Campaign
 
             Mission mission = selectedMissions[lbCampaignList.SelectedIndex];
 
-            string relativePath = Path.Combine("Resources", mission.PreviewImage);
+            string relativePath = Path.Combine("Resources", "Mission Previews", mission.PreviewImage);
+            string defaultPath = Path.Combine("Resources", "Mission Previews", "Default Preview.png");
 
             if (File.Exists(relativePath))
             {
@@ -335,7 +336,7 @@ namespace DTAClient.DXGUI.Campaign
             else
             {
                 // If not available, returns pink. Should not be removed.
-                previewTexture = AssetLoader.LoadTextureUncached("");
+                previewTexture = AssetLoader.LoadTextureUncached(defaultPath);
             }
 
             if (string.IsNullOrEmpty(mission.Scenario))
