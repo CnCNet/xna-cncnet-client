@@ -109,12 +109,11 @@ namespace DTAClient.DXGUI.Campaign
         {
             // Read customizable window size from the campaign settings INI (fall back to defaults)
             var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
-            bool missionPreviewEnabled = settingsIni.GetBooleanValue("General", "pnlMissionPreviewVisible", false);
             Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             ClientRectangle = new Rectangle(
                 0, 
-                0, 
+                0,
                 DEFAULT_WIDTH, 
                 DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
@@ -139,7 +138,7 @@ namespace DTAClient.DXGUI.Campaign
             lbCampaignList.ClientRectangle = new Rectangle(
                 12,
                 lblSelectCampaign.Bottom + 6,
-                300, 
+                300,
                 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
@@ -239,13 +238,14 @@ namespace DTAClient.DXGUI.Campaign
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+            bool missionPreviewEnabled = settingsIni.GetBooleanValue("General", "pnlMissionPreviewVisible", false);
             pnlMissionPreview = new XNAPanel(WindowManager);
             pnlMissionPreview.Name = nameof(pnlMissionPreview);
             pnlMissionPreview.ClientRectangle = new Rectangle(
-                pnlMissionPreview.X, 
-                pnlMissionPreview.Y, 
-                pnlMissionPreview.Width, 
-                pnlMissionPreview.Height);
+                500,
+                60,
+                350, 
+                220);
             pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             pnlMissionPreview.Visible = missionPreviewEnabled;
 
