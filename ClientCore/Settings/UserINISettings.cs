@@ -86,114 +86,27 @@ namespace ClientCore
 
         protected UserINISettings(IniFile iniFile)
         {
+            bool isRA = ClientConfiguration.Instance.ClientGameType == ClientType.RA;
+
             SettingsIni = iniFile;
-
-           if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                // ====================
-                // Display (Resolution)
-                // ====================
-                IngameScreenWidth = new IntSetting(iniFile, OPTIONS, "Width", 1024);
-                IngameScreenHeight = new IntSetting(iniFile, OPTIONS, "Height", 768);
-                ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
-                Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
-                DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
-                Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
-                WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
-                BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
-                BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", ClientConfiguration.Instance.UserDefault_BorderlessWindowedClient);
-                IntegerScaledClient = new BoolSetting(iniFile, VIDEO, "IntegerScaledClient", ClientConfiguration.Instance.UserDefault_IntegerScaledClient);
-                ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
-                DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
-                Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
-                // ====================
-                // GAME
-                // ====================
-                ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
-
-                Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
-                GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
-                BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-                DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
-                ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
-                DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
-                ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
-
-                // Remove binding completely
-                // DetailLevel = null;
-                // DragDistance = null;
-                // WindowedMode = null;
-                // BorderlessWindowedMode = null;
-                // BackBufferInVRAM = null;
-
-                // ====================
-                // AUDIO
-                // ====================
-                SoundVolume = new DoubleSetting(iniFile, OPTIONS, "Volume", 0.7);
-                ScoreVolume = new DoubleSetting(iniFile, OPTIONS, "ScoreVolume", 0.7);
-                MultiplayerScoreVolume = new DoubleSetting(iniFile, OPTIONS, "MultiplayerScoreVolume", 0.7);
-                VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
-                IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
-                ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
-                PlayMainMenuMusic = new BoolSetting(iniFile, AUDIO, "PlayMainMenuMusic", true);
-                StopMusicOnMenu = new BoolSetting(iniFile, AUDIO, "StopMusicOnMenu", true);
-                StopGameLobbyMessageAudio = new BoolSetting(iniFile, AUDIO, "StopGameLobbyMessageAudio", true);
-                MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
-
-                // ====================
-                // Multiplayer
-                // ====================
-                PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
-
-                ChatColor = new IntSetting(iniFile, MULTIPLAYER, "ChatColor", -1);
-                LANChatColor = new IntSetting(iniFile, MULTIPLAYER, "LANChatColor", -1);
-                PingUnofficialCnCNetTunnels = new BoolSetting(iniFile, MULTIPLAYER, "PingCustomTunnels", true);
-                WritePathToRegistry = new BoolSetting(iniFile, OPTIONS, "WriteInstallationPathToRegistry", ClientConfiguration.Instance.UserDefault_WriteInstallationPathToRegistry);
-                PlaySoundOnGameHosted = new BoolSetting(iniFile, MULTIPLAYER, "PlaySoundOnGameHosted", true);
-                SkipConnectDialog = new BoolSetting(iniFile, MULTIPLAYER, "SkipConnectDialog", false);
-                PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
-                AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
-                DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
-                SteamIntegration = new BoolSetting(iniFile, MULTIPLAYER, "SteamIntegration", true);
-                AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
-                NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
-                DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
-                AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
-                EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
-                AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
-                MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
-                SearchAllGameModes = new BoolSetting(iniFile, MULTIPLAYER, "SearchAllGameModes", false);
-
-                CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
-
-                PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
-                IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
-                CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);               
-                //PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);               
-                MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
-                AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
-                GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
-                GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
-
-                SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
-                ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
-                HideLockedGames = new BoolSetting(iniFile, GAME_FILTERS, "HideLockedGames", DEFAULT_HIDE_LOCKED_GAMES);
-                HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
-                HideIncompatibleGames = new BoolSetting(iniFile, GAME_FILTERS, "HideIncompatibleGames", DEFAULT_HIDE_INCOMPATIBLE_GAMES);
-                MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
-
-                LoadFavoriteMaps(iniFile);
-            }
-            else
-            {            
-
+            
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
-            IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
-            IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
+            IngameScreenWidth = new IntSetting(
+                iniFile, 
+                isRA ? OPTIONS : VIDEO, 
+                isRA ? "Width" : "ScreenWidth", 
+                1024);
+
+            IngameScreenHeight = new IntSetting(
+                iniFile, 
+                isRA ? OPTIONS : VIDEO, 
+                isRA ? "Height" : "ScreenHeight", 
+                768);
+
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
@@ -205,8 +118,29 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
-            SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
+            ScoreVolume = new DoubleSetting(
+            iniFile, 
+            isRA ? OPTIONS : AUDIO, 
+            "ScoreVolume", 
+            0.7);
+
+            MultiplayerScoreVolume = new DoubleSetting(
+                iniFile,
+                OPTIONS,
+                "MultiplayerScoreVolume",
+                ScoreVolume.Value);
+
+            ScoreVolume.ValueChanged += (s, e) =>
+            {
+                MultiplayerScoreVolume.Value = ScoreVolume.Value;
+            };   
+
+            SoundVolume = new DoubleSetting(
+                iniFile, 
+                isRA ? OPTIONS : AUDIO, 
+                isRA ? "Volume" : "SoundVolume", 
+                0.7);
+
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
@@ -263,7 +197,6 @@ namespace ClientCore
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
 
             LoadFavoriteMaps(iniFile);
-            }
         }
 
         public IniFile SettingsIni { get; private set; }
