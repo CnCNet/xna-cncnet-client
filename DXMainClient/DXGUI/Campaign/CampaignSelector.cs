@@ -87,6 +87,8 @@ namespace DTAClient.DXGUI.Campaign
         private Dictionary<int, Mission> _uniqueIDToMissions = new();
         public IReadOnlyDictionary<int, Mission> UniqueIDToMissions => _uniqueIDToMissions;
 
+        private bool pnlMissionPreviewTextureNeedsDispose  = false;
+
         private void AddMission(Mission mission)
         {
             // no matter whether the key is duplicated, the mission is always added to AllMissions
@@ -305,17 +307,17 @@ namespace DTAClient.DXGUI.Campaign
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool previewNeedsPreplace = false;
+            
             Texture2D previewTexture;
 
             if (lbCampaignList.SelectedIndex == -1)
             {
                 tbMissionDescription.Text = string.Empty;
 
-                if (pnlMissionPreview?.BackgroundTexture != null && previewNeedsPreplace)
+                if (pnlMissionPreview?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
                 {
                     pnlMissionPreview.BackgroundTexture.Dispose();
-                    previewNeedsPreplace = false;
+                    pnlMissionPreviewTextureNeedsDispose  = false;
                 }
 
                 pnlMissionPreview.BackgroundTexture = null;
@@ -341,10 +343,10 @@ namespace DTAClient.DXGUI.Campaign
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
-                if (pnlMissionPreview?.BackgroundTexture != null && previewNeedsPreplace)
+                if (pnlMissionPreview?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
                 {
                     pnlMissionPreview.BackgroundTexture.Dispose();
-                    previewNeedsPreplace = false;
+                    pnlMissionPreviewTextureNeedsDispose  = false;
                 }
 
                 pnlMissionPreview.BackgroundTexture = null;
@@ -362,11 +364,11 @@ namespace DTAClient.DXGUI.Campaign
                 if (pnlMissionPreview != null)
                 {
                     // Dispose previous preview only if we loaded it uncached and therefore own it
-                    if (pnlMissionPreview.BackgroundTexture != null && previewNeedsPreplace)
+                    if (pnlMissionPreview.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
                         pnlMissionPreview.BackgroundTexture.Dispose();
 
                     pnlMissionPreview.BackgroundTexture = previewTexture;
-                    previewNeedsPreplace = true;
+                    pnlMissionPreviewTextureNeedsDispose  = true;
                 }
                 btnLaunch.AllowClick = false;
                 return;
@@ -376,12 +378,12 @@ namespace DTAClient.DXGUI.Campaign
             {
 
                 // Dispose previous preview only if we loaded it uncached and therefore own it
-                if (pnlMissionPreview.BackgroundTexture != null && previewNeedsPreplace)
+                if (pnlMissionPreview.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
                     pnlMissionPreview.BackgroundTexture.Dispose();
 
 
                 pnlMissionPreview.BackgroundTexture = previewTexture;
-                previewNeedsPreplace = true;
+                pnlMissionPreviewTextureNeedsDispose  = true;
             }
             
 
