@@ -118,13 +118,13 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            ScoreVolume = new DoubleSetting(
+            ScoreVolume = new IntSetting(
             iniFile, 
             isRA ? OPTIONS : AUDIO, 
             "ScoreVolume", 
             0.7);
 
-            MultiplayerScoreVolume = new DoubleSetting(
+            MultiplayerScoreVolume = new IntSetting(
                 iniFile,
                 OPTIONS,
                 "MultiplayerScoreVolume",
@@ -233,8 +233,8 @@ namespace ClientCore
         /* AUDIO */
         /*********/
 
-        public DoubleSetting MultiplayerScoreVolume { get; private set; }
-        public DoubleSetting ScoreVolume { get; private set; }
+        public IntSetting MultiplayerScoreVolume { get; private set; }
+        public IntSetting ScoreVolume { get; private set; }
         public DoubleSetting SoundVolume { get; private set; }
         public DoubleSetting VoiceVolume { get; private set; }
         public BoolSetting IsScoreShuffle { get; private set; }
