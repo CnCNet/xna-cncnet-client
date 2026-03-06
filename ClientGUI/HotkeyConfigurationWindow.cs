@@ -15,8 +15,7 @@ namespace ClientGUI
     /// </summary>
     public class HotkeyConfigurationWindow : XNAWindow
     {
-        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");
-        private const string HOTKEY_INI_SECTION = "Hotkey";
+        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");      
         private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
@@ -298,7 +297,7 @@ namespace ClientGUI
             {
                 foreach (var command in gameCommands)
                 {
-                    int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
+                    int hotkey = keyboardINI.GetIntValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, 0);
 
                     Hotkey hotkeyStruct = new Hotkey(hotkey);
                     command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
@@ -482,10 +481,13 @@ namespace ClientGUI
 
         private void WriteKeyboardINI()
         {
-            var keyboardIni = new IniFile();
+            var keyboardIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+
+            keyboardIni.RemoveSection(ClientConfiguration.Instance.KeyboardHotkeySection);
+
             foreach (var command in gameCommands)
             {
-                keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
+                keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
             keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
