@@ -1,4 +1,5 @@
 ﻿using Rampastring.Tools;
+using System;
 
 namespace ClientCore.Settings
 {
