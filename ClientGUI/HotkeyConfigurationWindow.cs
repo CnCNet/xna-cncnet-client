@@ -490,7 +490,7 @@ namespace ClientGUI
                 keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            keyboardIni.Write();
         }
 
         /// <summary>
