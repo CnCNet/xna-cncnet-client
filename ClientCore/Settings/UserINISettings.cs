@@ -481,7 +481,10 @@ namespace ClientCore
             ApplyDefaults();
             // CleanUpLegacySettings();
 
-            SettingsIni.RemoveSection("WinHotkeys");
+            string hotkeySection = ClientConfiguration.Instance.KeyboardHotkeySection;
+
+            if (!string.IsNullOrEmpty(hotkeySection))
+                SettingsIni.RemoveSection(hotkeySection);
 
             SettingsIni.WriteIniFile();
 
