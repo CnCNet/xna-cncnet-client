@@ -481,6 +481,8 @@ namespace ClientCore
             ApplyDefaults();
             // CleanUpLegacySettings();
 
+            SettingsIni.RemoveSection("WinHotkeys");
+
             SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
