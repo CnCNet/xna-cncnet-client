@@ -130,25 +130,13 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            ScoreVolume = new DoubleSetting(
-            iniFile, 
-            isRA ? OPTIONS : AUDIO, 
-            "ScoreVolume", 
-            0.7);
+            // MultiplayerScoreVolume is handled on save for RA1
+            ScoreVolume = new DoubleSetting(iniFile,
+                isRA ? OPTIONS : AUDIO, 
+                "ScoreVolume", 
+                0.7);
 
-            MultiplayerScoreVolume = new DoubleSetting(
-                iniFile,
-                OPTIONS,
-                "MultiplayerScoreVolume",
-                ScoreVolume.Value);
-
-            ScoreVolume.ValueChanged += (s, e) =>
-            {
-                MultiplayerScoreVolume.Value = ScoreVolume.Value;
-            };   
-
-            SoundVolume = new DoubleSetting(
-                iniFile, 
+            SoundVolume = new DoubleSetting(iniFile,
                 isRA ? OPTIONS : AUDIO, 
                 isRA ? "Volume" : "SoundVolume", 
                 0.7);
@@ -511,6 +499,10 @@ namespace ClientCore
 
             ApplyDefaults();
             // CleanUpLegacySettings();
+
+            // RA1 has separate volume settings for some reason, this is the cleanest way for now, albeit a bit hacky
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                SettingsIni.SetDoubleValue(OPTIONS, "MultiplayerScoreVolume", SettingsIni.GetDoubleValue(OPTIONS, "ScoreVolume", 0.7));
 
             SettingsIni.WriteIniFile();
 
