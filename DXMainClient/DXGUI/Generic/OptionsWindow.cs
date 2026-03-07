@@ -191,6 +191,9 @@ namespace DTAClient.DXGUI.Generic
                 foreach (var panel in optionsPanels)
                     restartRequired = panel.Save() || restartRequired;
 
+                if (HotkeyConfigurationWindow.Instance != null)
+                    HotkeyConfigurationWindow.Instance.WriteKeyboardINI();
+
                 UserINISettings.Instance.SaveSettings();
             }
             catch (Exception ex)
