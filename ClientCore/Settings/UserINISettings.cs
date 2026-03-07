@@ -48,6 +48,12 @@ namespace ClientCore
 
             var userIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userIniFileName));
 
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+            {
+                _instance = new UserINISettings(userIni);
+                return;
+            }
+
             string userDefaultIniFilePath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), "UserDefaults.ini");
 
             if (!File.Exists(userDefaultIniFilePath))
