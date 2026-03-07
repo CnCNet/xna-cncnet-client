@@ -520,7 +520,7 @@ namespace ClientCore
         /// </summary>
         private void CleanUpLegacySettings()
             => SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
-        
+
         /// <summary>
         /// Previously, favorite maps were stored under a single key under the [Options] section.
         /// This attempts to read in that legacy key.
