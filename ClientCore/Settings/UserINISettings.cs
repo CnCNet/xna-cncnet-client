@@ -69,7 +69,13 @@ namespace ClientCore
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
-            {
+            {   
+                if (sectionName.Equals(ClientConfiguration.Instance.KeyboardHotkeySection, StringComparison.OrdinalIgnoreCase))
+                {
+                    combinedUserIni.AddSection(userIni.GetSection(sectionName));
+                    continue;
+                }
+                
                 IniSection userSection = userIni.GetSection(sectionName);
 
                 IniSection combinedUserSection = combinedUserIni.GetSection(sectionName);
@@ -475,6 +481,7 @@ namespace ClientCore
 
         public void ApplyDefaults()
         {
+            
             ForceLowestDetailLevel.SetDefaultIfNonexistent();
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
@@ -486,8 +493,18 @@ namespace ClientCore
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
-                if (ini.GetSection("WinHotkeys") == null)
-                    ini.AddSection(new IniSection("WinHotkeys"));
+                string hotkeySection = ClientConfiguration.Instance.KeyboardHotkeySection;
+
+                var existingSection = ini.GetSection(hotkeySection);
+
+                if (existingSection == null)
+                {
+                    var fileIni = new IniFile(ini.FileName);
+                    var diskSection = fileIni.GetSection(hotkeySection);
+
+                    if (diskSection != null)
+                        ini.AddSection(diskSection);
+                }
             }
             
             Logger.Log("Writing settings INI.");
@@ -540,8 +557,13 @@ namespace ClientCore
         /// Used to remove old sections/keys to avoid confusion when viewing the ini file directly.
         /// </summary>
         private void CleanUpLegacySettings()
-            => SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
+        {
+            var section = SettingsIni.GetSection(GAME_FILTERS);
 
+            if (section != null)
+                section.RemoveKey("SortAlpha");
+        }
+        
         /// <summary>
         /// Previously, favorite maps were stored under a single key under the [Options] section.
         /// This attempts to read in that legacy key.
