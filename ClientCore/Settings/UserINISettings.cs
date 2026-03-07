@@ -482,7 +482,7 @@ namespace ClientCore
 
         public void SaveSettings()
         {
-            var ini = UserINISettings.Instance.IniFile;
+            var ini = SettingsIni;
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
