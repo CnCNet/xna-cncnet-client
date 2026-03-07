@@ -7,6 +7,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using ClientCore.Enums;
 
 namespace ClientGUI
 {
