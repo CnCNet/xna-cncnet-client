@@ -479,9 +479,12 @@ namespace ClientGUI
             return currentModifiers;
         }
 
-         private void WriteKeyboardINI()
+        private void WriteKeyboardINI()
         {
-            var keyboardIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
+            return;
+
+            var keyboardIni = UserINISettings.Instance.SettingsIni;
 
             keyboardIni.RemoveSection(ClientConfiguration.Instance.KeyboardHotkeySection);
 
@@ -490,7 +493,7 @@ namespace ClientGUI
                 keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            keyboardIni.WriteIniFile();
         }
 
         /// <summary>
