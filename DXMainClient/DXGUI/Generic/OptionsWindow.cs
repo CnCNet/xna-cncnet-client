@@ -181,9 +181,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void SaveSettings()
         {
-            var hotkeySectionName = ClientConfiguration.Instance.KeyboardHotkeySection;
-            var hotkeySection = UserINISettings.Instance.SettingsIni.GetSection(hotkeySectionName)?.Clone();
-            
             if (RefreshOptionPanels())
                 return;
 
@@ -195,14 +192,6 @@ namespace DTAClient.DXGUI.Generic
                     restartRequired = panel.Save() || restartRequired;
 
                 UserINISettings.Instance.SaveSettings();
-                
-                if (hotkeySection != null)
-                {
-                    var ini = UserINISettings.Instance.SettingsIni;
-                    ini.RemoveSection(hotkeySectionName);
-                    ini.AddSection(hotkeySection);
-                    ini.WriteIniFile();
-                }
             }
             catch (Exception ex)
             {

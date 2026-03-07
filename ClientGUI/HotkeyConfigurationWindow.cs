@@ -16,7 +16,7 @@ namespace ClientGUI
     /// </summary>
     public class HotkeyConfigurationWindow : XNAWindow
     {
-        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");      
+        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");
         private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
@@ -292,9 +292,14 @@ namespace ClientGUI
 
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            keyboardINI = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
 
-            if (SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
+            // TODO verify how RA1 behaves when hotkeys are missing from the INI
+            if (ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? keyboardINI.SectionExists(ClientConfiguration.Instance.KeyboardHotkeySection)
+                : SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
             {
                 foreach (var command in gameCommands)
                 {
@@ -482,19 +487,18 @@ namespace ClientGUI
 
         private void WriteKeyboardINI()
         {
-            if (ClientConfiguration.Instance.ClientGameType != ClientType.RA)
-            return;
-
-            var keyboardIni = UserINISettings.Instance.SettingsIni;
-
-            keyboardIni.RemoveSection(ClientConfiguration.Instance.KeyboardHotkeySection);
-
+            var keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile();
+            
             foreach (var command in gameCommands)
             {
                 keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            keyboardIni.WriteIniFile();
+            // TODO should it be like this and main settings window will handle it, or should we flush even here, saving all settings?
+            if (!ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
+                keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
         }
 
         /// <summary>

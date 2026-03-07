@@ -48,12 +48,6 @@ namespace ClientCore
 
             var userIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, userIniFileName));
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                _instance = new UserINISettings(userIni);
-                return;
-            }
-
             string userDefaultIniFilePath = SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), "UserDefaults.ini");
 
             if (!File.Exists(userDefaultIniFilePath))
@@ -98,9 +92,9 @@ namespace ClientCore
 
         protected UserINISettings(IniFile iniFile)
         {
-            bool isRA = ClientConfiguration.Instance.ClientGameType == ClientType.RA;
-
             SettingsIni = iniFile;
+
+            bool isRA = ClientConfiguration.Instance.ClientGameType == ClientType.RA;
             
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
@@ -233,7 +227,6 @@ namespace ClientCore
         /* AUDIO */
         /*********/
 
-        public DoubleSetting MultiplayerScoreVolume { get; private set; }
         public DoubleSetting ScoreVolume { get; private set; }
         public DoubleSetting SoundVolume { get; private set; }
         public DoubleSetting VoiceVolume { get; private set; }
@@ -469,7 +462,6 @@ namespace ClientCore
 
         public void ApplyDefaults()
         {
-            
             ForceLowestDetailLevel.SetDefaultIfNonexistent();
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
@@ -477,24 +469,6 @@ namespace ClientCore
 
         public void SaveSettings()
         {
-            var ini = SettingsIni;
-
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-            {
-                string hotkeySection = ClientConfiguration.Instance.KeyboardHotkeySection;
-
-                var existingSection = ini.GetSection(hotkeySection);
-
-                if (existingSection == null)
-                {
-                    var fileIni = new IniFile(ini.FileName);
-                    var diskSection = fileIni.GetSection(hotkeySection);
-
-                    if (diskSection != null)
-                        ini.AddSection(diskSection);
-                }
-            }
-            
             Logger.Log("Writing settings INI.");
 
             ApplyDefaults();
@@ -549,12 +523,7 @@ namespace ClientCore
         /// Used to remove old sections/keys to avoid confusion when viewing the ini file directly.
         /// </summary>
         private void CleanUpLegacySettings()
-        {
-            var section = SettingsIni.GetSection(GAME_FILTERS);
-
-            if (section != null)
-                section.RemoveKey("SortAlpha");
-        }
+            => SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
         
         /// <summary>
         /// Previously, favorite maps were stored under a single key under the [Options] section.

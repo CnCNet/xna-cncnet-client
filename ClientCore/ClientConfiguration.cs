@@ -365,6 +365,8 @@ namespace ClientCore
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
+        public bool SettingsIniAsKeyboardIni => SettingsIniName == KeyboardINI;
+        
         public string KeyboardHotkeySection => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardHotkeySection", "Hotkey");
 
         public int MinimumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640);
