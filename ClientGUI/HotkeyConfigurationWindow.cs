@@ -481,14 +481,12 @@ namespace ClientGUI
 
          private void WriteKeyboardINI()
         {
-            var keyboardIni = new IniFile();
             var keyboardIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
 
             keyboardIni.RemoveSection(ClientConfiguration.Instance.KeyboardHotkeySection);
 
             foreach (var command in gameCommands)
             {
-                keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
                 keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
