@@ -64,11 +64,7 @@ namespace ClientCore
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
             {   
-                if (sectionName.Equals(ClientConfiguration.Instance.KeyboardHotkeySection, StringComparison.OrdinalIgnoreCase))
-                {
-                    combinedUserIni.AddSection(userIni.GetSection(sectionName));
-                    continue;
-                }
+                // TODO should we somehow handle hotkey section specially here when settings ini = keyboard ini? 
                 
                 IniSection userSection = userIni.GetSection(sectionName);
 
