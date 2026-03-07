@@ -482,6 +482,14 @@ namespace ClientCore
 
         public void SaveSettings()
         {
+            var ini = UserINISettings.Instance.IniFile;
+
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+            {
+                if (ini.GetSection("WinHotkeys") == null)
+                    ini.AddSection(new IniSection("WinHotkeys"));
+            }
+            
             Logger.Log("Writing settings INI.");
 
             ApplyDefaults();
