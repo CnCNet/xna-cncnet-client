@@ -227,7 +227,6 @@ namespace DTAClient.DXGUI.Campaign
 
                 pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
-                // TODO: Modify XNAUI by adding PanelBackgroundImageDrawMode.LETTERBOXED as a new draw mode.
                 pnlMissionPreview.BackgroundTexture = CreateLetterboxedTexture(AssetLoader.LoadTextureUncached(defaultMissionPreviewPath), pnlMissionPreview.Width, pnlMissionPreview.Height);
                 pnlMissionPreviewBackgroundTextureNeedsDispose = true;
             }
@@ -328,6 +327,7 @@ namespace DTAClient.DXGUI.Campaign
             btnLaunch.AllowClick = true;
         }
 
+        // TODO: Modify XNAUI by adding PanelBackgroundImageDrawMode.LETTERBOXED as a new draw mode.
         private Texture2D CreateLetterboxedTexture(Texture2D sourceTexture, int targetWidth, int targetHeight, bool disposeSourceTexture = true)
         {
             // Calculate aspect ratios
