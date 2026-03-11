@@ -226,6 +226,8 @@ namespace DTAClient.DXGUI.Campaign
                     200);
 
                 pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+                // TODO: Modify XNAUI by adding PanelBackgroundImageDrawMode.LETTERBOXED as a new draw mode.
                 pnlMissionPreview.BackgroundTexture = CreateLetterboxedTexture(AssetLoader.LoadTextureUncached(defaultMissionPreviewPath), pnlMissionPreview.Width, pnlMissionPreview.Height);
                 pnlMissionPreviewBackgroundTextureNeedsDispose = true;
             }
