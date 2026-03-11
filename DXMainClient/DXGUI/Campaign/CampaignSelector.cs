@@ -112,7 +112,7 @@ namespace DTAClient.DXGUI.Campaign
         {
             Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
-            ClientRectangle = new Rectangle(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT);
+            ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
             gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
