@@ -898,7 +898,9 @@ namespace DTAClient.DXGUI.Campaign
                 pnlMissionPreviewBackgroundTextureNeedsDispose = false;
             }
 
-            string previewFilePath = SafePath.CombineFilePath(missionPreviewFolder, missionPreviewFileName);
+            string previewFilePath = null;
+            if (!string.IsNullOrEmpty(missionPreviewFileName))
+                previewFilePath = SafePath.CombineFilePath(missionPreviewFolder, missionPreviewFileName);
 
             if (string.IsNullOrEmpty(missionPreviewFileName) || !File.Exists(previewFilePath))
             {
