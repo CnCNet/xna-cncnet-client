@@ -401,6 +401,17 @@ SortOrder=0                                ; integer, display order for icons in
                                            ;          Lower values appear first.
 ```
 
+##### [CampaignCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignCheckBox.cs)
+
+_(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
+
+Use this control type for campaign dropdowns in `CampaignSelector.ini`. Inherits all properties from `GameSessionCheckBox`. Additional properties for this control type are shown below.
+
+```ini
+[SOMECAMPAIGNCHECKBOX]                  ; CampaignCheckBox
+ResetToDefaultOnGameExit=false          ; boolean, reset the checkbox to default value when the game exits.
+```
+
 ##### [GameLobbyCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyCheckBox.cs)
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
@@ -439,6 +450,12 @@ Icons=                                     ; comma-separated strings,
 SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
                                            ;          Lower values appear first.
 ```
+
+##### [CampaignDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignDropDown.cs)
+
+_(inherits [GameSessionDropDown](#GameSessionDropDown))_
+
+Use this control type for campaign dropdowns in `CampaignSelector.ini`. Inherits all properties from `GameSessionDropDown`.
 
 ##### [GameLobbyDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Multiplayer/GameLobby/GameLobbyDropDown.cs)
 

@@ -556,24 +556,36 @@ namespace DTAClient.DXGUI.Campaign
             if (!ClientConfiguration.Instance.ReturnToMainMenuOnMissionLaunch)
                 ToggleControls(true);
 
-            bool altered = false;
-
-            foreach (IUserSetting setting in userSettings)
+            // Handle ResetToDefaultOnGameExit
             {
-                if (!setting.ResetToDefaultOnGameExit)
-                    continue;
+                // Reset campaign checkboxes
+                foreach (CampaignCheckBox cb in CheckBoxes)
+                {
+                    if (cb.ResetToDefaultOnGameExit)
+                        cb.ResetToDefault();
+                }
 
-                if (setting is SettingCheckBoxBase cb)
-                    cb.Checked = cb.DefaultValue;
-                else if (setting is SettingDropDownBase dd)
-                    dd.SelectedIndex = dd.DefaultValue;
+                // Reset user settings
+                bool userSettingsAltered = false;
 
-                setting.Save();
-                altered = true;
+                foreach (IUserSetting setting in userSettings)
+                {
+                    if (!setting.ResetToDefaultOnGameExit)
+                        continue;
+
+                    if (setting is SettingCheckBoxBase cb)
+                        cb.Checked = cb.DefaultValue;
+                    else if (setting is SettingDropDownBase dd)
+                        dd.SelectedIndex = dd.DefaultValue;
+
+                    setting.Save();
+                    userSettingsAltered = true;
+                }
+
+                if (userSettingsAltered)
+                    UserINISettings.Instance.SaveSettings();
             }
 
-            if (altered)
-                UserINISettings.Instance.SaveSettings();
         }
 
         private void ReadMissionList()

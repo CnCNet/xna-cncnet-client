@@ -211,4 +211,12 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
 
         base.OnLeftClick(inputEventArgs);
     }
+
+    public void ResetToDefault()
+    {
+        if (!AllowChanges)
+            throw new InvalidOperationException("Cannot reset to default when changes are not allowed.");
+
+        Checked = false;
+    }
 }
