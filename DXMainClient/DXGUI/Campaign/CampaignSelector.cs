@@ -214,6 +214,7 @@ namespace DTAClient.DXGUI.Campaign
 
             pnlMissionPreview = new XNAPanel(WindowManager);
             pnlMissionPreview.Name = nameof(pnlMissionPreview);
+                
             pnlMissionPreview.Visible = false;
 
             // pnlPreviewDummy is used for displaying mission preview images.
@@ -257,6 +258,14 @@ namespace DTAClient.DXGUI.Campaign
 
             // Set control attributes from INI file
             base.Initialize();
+
+            // Set mission preview panel background after initializing controls.
+            if (pnlMissionPreview.Width > 0 && pnlMissionPreview.Height > 0)
+            {
+                pnlMissionPreview.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor),
+                pnlMissionPreview.Width, pnlMissionPreview.Height);
+                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            }
 
             // Center on screen
             CenterOnParent();
