@@ -630,7 +630,7 @@ You can configure the preview image panel location and sizes in `CampaignSelecto
 
 ### Mission Preview Configuration
 
-To configure which preview image in `Resources/MissionPreviews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the ``Resoureces/MissionPreviews`` folder.
+To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the `Resoureces/Mission Previews` folder.
 
 In `Battle.ini`:
 ```ini
