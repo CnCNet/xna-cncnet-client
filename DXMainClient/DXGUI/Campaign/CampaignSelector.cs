@@ -51,6 +51,7 @@ namespace DTAClient.DXGUI.Campaign
 
         private List<Mission> selectedMissions = [];
         private XNAPanel pnlMissionPreview;
+        private XNAPanel pnlPreviewDummy;
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
         private XNAClientButton btnCancel;
@@ -109,15 +110,9 @@ namespace DTAClient.DXGUI.Campaign
 
         public override void Initialize()
         {
-            // Read customizable window size from the campaign settings INI (fall back to defaults)
-            var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
             Name = "CampaignSelector";
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
-            ClientRectangle = new Rectangle(
-                0, 
-                0,
-                DEFAULT_WIDTH, 
-                DEFAULT_HEIGHT);
+            ClientRectangle = new Rectangle(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT);
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
 
             gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
@@ -126,22 +121,15 @@ namespace DTAClient.DXGUI.Campaign
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = nameof(lblSelectCampaign);
             lblSelectCampaign.FontIndex = 1;
-            lblSelectCampaign.ClientRectangle = new Rectangle(
-                12, 
-                12, 
-                0, 
-                0);
+            lblSelectCampaign.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblSelectCampaign.Text = "MISSIONS:".L10N("Client:Main:Missions");
 
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = nameof(lbCampaignList);
             lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             lbCampaignList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbCampaignList.ClientRectangle = new Rectangle(
-                12,
-                lblSelectCampaign.Bottom + 6,
-                300,
-                516);
+            lbCampaignList.ClientRectangle = new Rectangle(12,
+                lblSelectCampaign.Bottom + 6, 300, 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
             var lblMissionDescriptionHeader = new XNALabel(WindowManager);
@@ -149,9 +137,7 @@ namespace DTAClient.DXGUI.Campaign
             lblMissionDescriptionHeader.FontIndex = 1;
             lblMissionDescriptionHeader.ClientRectangle = new Rectangle(
                 lbCampaignList.Right + 12,
-                lblSelectCampaign.Y, 
-                0, 
-                0);
+                lblSelectCampaign.Y, 0, 0);
             lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:".L10N("Client:Main:MissionDescription");
 
             tbMissionDescription = new XNATextBlock(WindowManager);
@@ -159,11 +145,9 @@ namespace DTAClient.DXGUI.Campaign
             tbMissionDescription.ClientRectangle = new Rectangle(
                 lblMissionDescriptionHeader.X,
                 lblMissionDescriptionHeader.Bottom + 6,
-                Width - 24 - lbCampaignList.Right,
-                430);
+                Width - 24 - lbCampaignList.Right, 430);
             tbMissionDescription.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
-
             tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor),
                 tbMissionDescription.Width, tbMissionDescription.Height);
 
@@ -179,10 +163,8 @@ namespace DTAClient.DXGUI.Campaign
             trbDifficultySelector = new XNATrackbar(WindowManager);
             trbDifficultySelector.Name = nameof(trbDifficultySelector);
             trbDifficultySelector.ClientRectangle = new Rectangle(
-                tbMissionDescription.X,
-                lblDifficultyLevel.Bottom + 6,
-                tbMissionDescription.Width, 
-                30);
+                tbMissionDescription.X, lblDifficultyLevel.Bottom + 6,
+                tbMissionDescription.Width, 30);
             trbDifficultySelector.MinValue = 0;
             trbDifficultySelector.MaxValue = 2;
             trbDifficultySelector.BackgroundTexture = AssetLoader.CreateTexture(
@@ -194,11 +176,8 @@ namespace DTAClient.DXGUI.Campaign
             lblEasy.Name = nameof(lblEasy);
             lblEasy.FontIndex = 1;
             lblEasy.Text = "EASY".L10N("Client:Main:DifficultyEasy");
-            lblEasy.ClientRectangle = new Rectangle(
-                trbDifficultySelector.X,
-                trbDifficultySelector.Bottom + 6,
-                1, 
-                1);
+            lblEasy.ClientRectangle = new Rectangle(trbDifficultySelector.X,
+                trbDifficultySelector.Bottom + 6, 1, 1);
 
             var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = nameof(lblNormal);
@@ -215,41 +194,40 @@ namespace DTAClient.DXGUI.Campaign
             lblHard.Text = "HARD".L10N("Client:Main:DifficultyHard");
             lblHard.ClientRectangle = new Rectangle(
                 tbMissionDescription.Right - lblHard.Width,
-                lblEasy.Y, 
-                1, 
-                1);
+                lblEasy.Y, 1, 1);
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = nameof(btnLaunch);
-            btnLaunch.ClientRectangle = new Rectangle(
-                12,
-                Height - 35,
-                UIDesignConstants.BUTTON_WIDTH_133,
-                UIDesignConstants.BUTTON_HEIGHT);
+            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLaunch.Text = "Launch".L10N("Client:Main:ButtonLaunch");
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
-            btnCancel.ClientRectangle = new Rectangle(
-                Width - 145,
-                btnLaunch.Y,
-                UIDesignConstants.BUTTON_WIDTH_133, 
-                UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.ClientRectangle = new Rectangle(Width - 145,
+                btnLaunch.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-            bool missionPreviewEnabled = settingsIni.GetBooleanValue("General", "pnlMissionPreviewVisible", false);
+            // Do not set default for pnlMissionPreview Client Rectangle.
+
             pnlMissionPreview = new XNAPanel(WindowManager);
             pnlMissionPreview.Name = nameof(pnlMissionPreview);
-            pnlMissionPreview.ClientRectangle = new Rectangle(
-                500,
-                60,
-                350, 
-                220);
-            pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            pnlMissionPreview.Visible = missionPreviewEnabled;
+            pnlMissionPreview.Visible = false;
+
+            // pnlPreviewDummy is used for displaying mission preview images.
+            // It is defined to make sure it will not lock its position and size
+            // when selected mission index is changed, which may cause the panel to
+            // lock in its place.
+            // This is a hack to solve the issue of CampaignSelector not really taking changes in
+            // CampaignSelector.ini into account, which is caused by the fact that controls defined in
+            // INI files will only take the value in CampaignSelection.ini after being initialized.
+            // For future mission preview rendering purposes, prefers to pnlPreviewDummy.
+
+            pnlPreviewDummy = new XNAPanel(WindowManager);
+            pnlPreviewDummy.Name = nameof(pnlPreviewDummy);
+            pnlPreviewDummy.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
@@ -263,6 +241,7 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblNormal);
             AddChild(lblHard);
             AddChild(pnlMissionPreview);
+            AddChild(pnlPreviewDummy);
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
@@ -307,20 +286,19 @@ namespace DTAClient.DXGUI.Campaign
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
             Texture2D previewTexture;
 
             if (lbCampaignList.SelectedIndex == -1)
             {
                 tbMissionDescription.Text = string.Empty;
 
-                if (pnlMissionPreview?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
+                if (pnlPreviewDummy?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose)
                 {
-                    pnlMissionPreview.BackgroundTexture.Dispose();
-                    pnlMissionPreviewTextureNeedsDispose  = false;
+                    pnlPreviewDummy.BackgroundTexture.Dispose();
+                    pnlMissionPreviewTextureNeedsDispose = false;
                 }
 
-                pnlMissionPreview.BackgroundTexture = null;
+                pnlPreviewDummy.BackgroundTexture = null;
                 btnLaunch.AllowClick = false;
                 return;
             }
@@ -343,13 +321,13 @@ namespace DTAClient.DXGUI.Campaign
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
-                if (pnlMissionPreview?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
+                if (pnlPreviewDummy?.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose)
                 {
-                    pnlMissionPreview.BackgroundTexture.Dispose();
-                    pnlMissionPreviewTextureNeedsDispose  = false;
+                    pnlPreviewDummy.BackgroundTexture.Dispose();
+                    pnlMissionPreviewTextureNeedsDispose = false;
                 }
 
-                pnlMissionPreview.BackgroundTexture = null;
+                pnlPreviewDummy.BackgroundTexture = null;
                 previewTexture.Dispose();
                 tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
@@ -361,33 +339,139 @@ namespace DTAClient.DXGUI.Campaign
             if (!mission.Enabled)
             {
                 // If the mission is disabled, we show the preview but disable the launch button.
-                if (pnlMissionPreview != null)
+                if (pnlPreviewDummy != null)
                 {
                     // Dispose previous preview only if we loaded it uncached and therefore own it
-                    if (pnlMissionPreview.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
-                        pnlMissionPreview.BackgroundTexture.Dispose();
+                    if (pnlPreviewDummy.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose)
+                        pnlPreviewDummy.BackgroundTexture.Dispose();
 
-                    pnlMissionPreview.BackgroundTexture = previewTexture;
-                    pnlMissionPreviewTextureNeedsDispose  = true;
+                    if (defaultPath is not null || pnlMissionPreview.Visible is true)
+                    {
+                        if (pnlMissionPreview.Visible is true && pnlMissionPreview.Width > 0 && pnlMissionPreview.Height > 0)
+                        {
+                            pnlPreviewDummy.ClientRectangle = new Rectangle(
+                                pnlMissionPreview.X,
+                                pnlMissionPreview.Y,
+                                pnlMissionPreview.Width,
+                                pnlMissionPreview.Height);
+                        }
+                        else
+                        {
+                            tbMissionDescription.ClientRectangle = new Rectangle(
+                            tbMissionDescription.X,
+                            tbMissionDescription.Y,
+                            tbMissionDescription.Width,
+                            430 - 200 - 12);
+
+                            pnlPreviewDummy.ClientRectangle = new Rectangle(
+                            tbMissionDescription.X,
+                            tbMissionDescription.Bottom + 12,
+                            tbMissionDescription.Width,
+                            200);
+                        }
+
+                        pnlPreviewDummy.BackgroundTexture = CreateLetterboxedTexture(previewTexture);
+                        pnlMissionPreviewTextureNeedsDispose = true;
+                        previewTexture.Dispose();
+                    }    
                 }
                 btnLaunch.AllowClick = false;
                 return;
             }
 
-            if (pnlMissionPreview != null)
+            if (pnlPreviewDummy != null)
             {
-
                 // Dispose previous preview only if we loaded it uncached and therefore own it
-                if (pnlMissionPreview.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose )
-                    pnlMissionPreview.BackgroundTexture.Dispose();
+                if (pnlPreviewDummy.BackgroundTexture != null && pnlMissionPreviewTextureNeedsDispose)
+                    pnlPreviewDummy.BackgroundTexture.Dispose();
 
+                if(defaultPath is not null || pnlMissionPreview.Visible is true)
+                {
+                    if (pnlMissionPreview.Visible is true && pnlMissionPreview.Width > 0 && pnlMissionPreview.Height > 0)
+                    {
+                        pnlPreviewDummy.ClientRectangle = new Rectangle(
+                            pnlMissionPreview.X,
+                            pnlMissionPreview.Y,
+                            pnlMissionPreview.Width,
+                            pnlMissionPreview.Height);
+                    }
+                    else
+                    {
+                        tbMissionDescription.ClientRectangle = new Rectangle(
+                        tbMissionDescription.X,
+                        tbMissionDescription.Y,
+                        tbMissionDescription.Width,
+                        430 - 200 - 12);
 
-                pnlMissionPreview.BackgroundTexture = previewTexture;
-                pnlMissionPreviewTextureNeedsDispose  = true;
+                        pnlPreviewDummy.ClientRectangle = new Rectangle(
+                        tbMissionDescription.X,
+                        tbMissionDescription.Bottom + 12,
+                        tbMissionDescription.Width,
+                        200);
+                    }
+
+                    pnlPreviewDummy.BackgroundTexture = CreateLetterboxedTexture(previewTexture);
+                    pnlMissionPreviewTextureNeedsDispose = true;
+                    previewTexture.Dispose();
+                }
             }
-            
 
             btnLaunch.AllowClick = true;
+        }
+
+        private Texture2D CreateLetterboxedTexture(Texture2D sourceTexture)
+        {
+            int targetWidth = pnlPreviewDummy.Width;
+            int targetHeight = pnlPreviewDummy.Height;
+
+            // Calculate aspect ratios
+            float sourceAspect = (float)sourceTexture.Width / sourceTexture.Height;
+            float targetAspect = (float)targetWidth / targetHeight;
+
+            int drawWidth, drawHeight, drawX, drawY;
+
+            // Determine scaled dimensions while maintaining aspect ratio
+            if (sourceAspect > targetAspect)
+            {
+                // Source is wider - fit to width
+                drawWidth = targetWidth;
+                drawHeight = (int)(targetWidth / sourceAspect);
+                drawX = 0;
+                drawY = (targetHeight - drawHeight) / 2;
+            }
+            else
+            {
+                // Source is taller - fit to height
+                drawHeight = targetHeight;
+                drawWidth = (int)(targetHeight * sourceAspect);
+                drawX = (targetWidth - drawWidth) / 2;
+                drawY = 0;
+            }
+
+            // Create the composite texture
+            RenderTarget2D renderTarget = new RenderTarget2D(
+                WindowManager.GraphicsDevice,
+                targetWidth,
+                targetHeight,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.None);
+
+            WindowManager.GraphicsDevice.SetRenderTarget(renderTarget);
+            WindowManager.GraphicsDevice.Clear(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor));
+
+            var spriteBatch = new SpriteBatch(WindowManager.GraphicsDevice);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            spriteBatch.Draw(
+                sourceTexture,
+                new Rectangle(drawX, drawY, drawWidth, drawHeight),
+                Color.White);
+            spriteBatch.End();
+            spriteBatch.Dispose();
+
+            WindowManager.GraphicsDevice.SetRenderTarget(null);
+
+            return renderTarget;
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
