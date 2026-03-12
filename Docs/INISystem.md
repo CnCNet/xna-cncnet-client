@@ -635,10 +635,10 @@ To configure which preview image in `Resources/Mission Previews` folder to use f
 In `Battle.ini`:
 ```ini
 [Mission]
-PreviewImage= ; string, path to the image file relative to the `Resoureces/MissionPreviews` folder to use as mission preview image.
+PreviewImage= ; string, path to the image file relative to the `Resoureces/Mission Previews` folder to use as mission preview image.
 ```
 
-If `PreviewImage` property is not set for a mission, `Resources/MissionPreviews/Default.png` will be used as default.
+If `PreviewImage` property is not set for a mission, `Resources/Mission Previews/Default.png` will be used as default.
 
 # Global Config Files
 
