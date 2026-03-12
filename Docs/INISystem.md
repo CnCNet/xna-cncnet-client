@@ -610,41 +610,22 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
                            ; paths of files to use randomly as BackgroundTexture
 ```
 
-### [CampaignSelector](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
+## [CampaignSelector](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
-#### Mission Preview Panel
-
-##### Mission Preview Panel Control
-
-###### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
+### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
 _(inherits [XNAPanel](#XNAPanel))_
 
-You can now set the preview image for each mission in the campaign selector.
+You can now set the preview image for each mission in the campaign selector, known as the mission preview panel.
 
-To activate the feature, in `Resources` folder, create a `Mission Previews` folder. Then put any image of your desire inside and rename it as `Default.png`.
+To activate this feature, in `Resources` folder, create a `Mission Previews` folder. Then put an image of your desire inside and rename it as `Default.png`.
 
-Use this control type for Campaign selection mission preview in `CampaignSelector.ini`. Inherits all properties from `XNAPanel`.
+To adjust panel size and position, modify `pnlMissionPreview` in `CampaignSelector.ini`. Inherits all properties from `XNAPanel`.
 
 ```ini
 [pnlMissionPreview]          ; XNAPanel
 ...
 ```
-
-#### [tbMissionDescription](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
-
-_(inherits [XNATextBlock](#XNATextBlock))_
-
-When Mission Preview Panel is active, mission description text block size will be automatically changed.
-
-To adjust the text block size, use this control type for mission description text block in `CampaignSelector.ini`. Inherits all properties from `XNATextBlock`.
-
-```ini
-[tbMissionDescription]       ; XNATextBlock
-...
-```
-
-### Mission Preview Configuration
 
 To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the `Resources/Mission Previews` folder.
 
@@ -655,6 +636,19 @@ PreviewImage= ; string, path to the image file relative to the `Resources/Missio
 ```
 
 If `PreviewImage` property is not set for a mission, `Resources/Mission Previews/Default.png` will be used as default.
+
+### [tbMissionDescription](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
+
+_(inherits [XNATextBlock](#XNATextBlock))_
+
+This control shows the mission description in the campaign selector. Note that, when mission preview panel is active, the *default* size of mission description text block size will be automatically changed.
+
+To adjust the text block size and position, modify `tbMissionDescription` in `CampaignSelector.ini`. Inherits all properties from `XNATextBlock`.
+
+```ini
+[tbMissionDescription]       ; XNATextBlock
+...
+```
 
 # Global Config Files
 
