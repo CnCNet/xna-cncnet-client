@@ -612,9 +612,11 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
 
 # [CampaignSelector](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
-## Mission Preview Box
+## Mission Preview Panel
 
-### Mission Preview Box Control
+### Mission Preview Panel Control
+
+[pnlMissionControl](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 _(inherits [XNAPanel](#XNAPanel))_
 
 You can now set the preview image for each mission in the campaign selector.
@@ -623,7 +625,7 @@ To activate the feature, in `Resources` folder, create a `Mission Previews` fold
 
 Mission Description panel will be automatically resized to fit the panel size by default, if Mission description panel size is undefined, the image will be shown in the bottom of mission description panel as a preview for the mission.
 
-You can configure the preview image panel location and sizes in `CampaignSelector.ini` as `[pnlMissionPreview]` similar to [XNAPanel](#XNAPanel):
+Use this control type for Campaign selection mission preview in `CampaignSelector.ini`. Inherits all properties from `XNAPanel`.
 
 ```ini
 [pnlMissionPreview]          ; XNAPanel
@@ -637,7 +639,7 @@ To configure which preview image in `Resources/Mission Previews` folder to use f
 In `Battle.ini`:
 ```ini
 [Mission]
-PreviewImage= ; string, path to the image file relative to the `Resoureces/Mission Previews` folder to use as mission preview image.
+PreviewImage= ; string, path to the image file relative to the `Resources/Mission Previews` folder to use as mission preview image.
 ```
 
 If `PreviewImage` property is not set for a mission, `Resources/Mission Previews/Default.png` will be used as default.
