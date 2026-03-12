@@ -293,8 +293,6 @@ namespace DTAClient.DXGUI.Campaign
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Texture2D previewTexture;
-
             if (lbCampaignList.SelectedIndex == -1)
             {
                 tbMissionDescription.Text = string.Empty;
