@@ -618,8 +618,11 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
 _(inherits [XNAPanel](#XNAPanel))_
 
 You can now set the preview image for each mission in the campaign selector.
+
 To activate the feature, in `Resources` folder, create a `Mission Previews` folder. Then put any image of your desire inside and rename it as `Default.png`.
+
 Mission Description panel will be automatically resized to fit the panel size by default, if Mission description panel size is undefined, the image will be shown in the bottom of mission description panel as a preview for the mission.
+
 You can configure the preview image panel location and sizes in `CampaignSelector.ini` as `[pnlMissionPreview]` similar to [XNAPanel](#XNAPanel):
 
 ```ini
