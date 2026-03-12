@@ -639,7 +639,7 @@ To configure which preview image in `Resources/Mission Previews` folder to use f
 
 In `Battle.ini`:
 ```ini
-[Mission]
+[YourMissionSection]
 PreviewImage= ; string, path to the image file relative to the `Resources/Mission Previews` folder to use as mission preview image.
 ```
 
