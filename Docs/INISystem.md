@@ -619,8 +619,7 @@ _(inherits [XNAPanel](#XNAPanel))_
 
 You can now set the preview image for each mission in the campaign selector.
 To activate the feature, in `Resources` folder, create a `Mission Previews` folder. Then put any image of your desire inside and rename it as `Default.png`.
-Mission Description panel will be automatically resized to fit the panel size by default, if Mission description panel size is undefined.
-The image will be shown in the bottom of mission description panel as a preview for the mission.
+Mission Description panel will be automatically resized to fit the panel size by default, if Mission description panel size is undefined, the image will be shown in the bottom of mission description panel as a preview for the mission.
 You can configure the preview image panel location and sizes in `CampaignSelector.ini` as `[pnlMissionPreview]` similar to [XNAPanel](#XNAPanel):
 
 ```ini
@@ -630,7 +629,7 @@ You can configure the preview image panel location and sizes in `CampaignSelecto
 
 ### Mission Preview Configuration
 
-To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the `Resoureces/Mission Previews` folder.
+To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the `Resources/Mission Previews` folder.
 
 In `Battle.ini`:
 ```ini
