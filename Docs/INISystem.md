@@ -624,12 +624,23 @@ You can now set the preview image for each mission in the campaign selector.
 
 To activate the feature, in `Resources` folder, create a `Mission Previews` folder. Then put any image of your desire inside and rename it as `Default.png`.
 
-Mission Description panel will be automatically resized to fit the panel size by default, if Mission description panel size is undefined, the image will be shown in the bottom of mission description panel as a preview for the mission.
-
 Use this control type for Campaign selection mission preview in `CampaignSelector.ini`. Inherits all properties from `XNAPanel`.
 
 ```ini
 [pnlMissionPreview]          ; XNAPanel
+...
+```
+
+#### [tbMissionDescription](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
+
+_(inherits [XNATextBlock](#XNATextBlock))_
+
+When Mission Preview Panel is active, mission description text block size will be automatically changed.
+
+To adjust the text block size, use this control type for mission description text block in `CampaignSelector.ini`. Inherits all properties from `XNATextBlock`.
+
+```ini
+[tbMissionDescription]       ; XNATextBlock
 ...
 ```
 
