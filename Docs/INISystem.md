@@ -617,6 +617,7 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
 ### Mission Preview Panel Control
 
 #### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
+
 _(inherits [XNAPanel](#XNAPanel))_
 
 You can now set the preview image for each mission in the campaign selector.
