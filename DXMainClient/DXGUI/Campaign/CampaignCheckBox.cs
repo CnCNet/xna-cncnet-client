@@ -45,7 +45,7 @@ public class CampaignCheckBox : GameSessionCheckBox
         {
             case "ResetToDefaultOnGameExit":
                 ResetToDefaultOnGameExit = Conversions.BooleanFromString(value, false);
-                break;
+                return;
 
             case "CustomIniPath" when !ClientConfiguration.Instance.CopyMissionsToSpawnmapINI:
                 throw new Exception($"Campaign settings can't affect map code if {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)} is disabled!\n\n"
