@@ -567,8 +567,6 @@ namespace DTAClient.DXGUI.Campaign
                         cb.Checked = cb.DefaultValue;
                     else if (setting is SettingDropDownBase dd)
                         dd.SelectedIndex = dd.DefaultValue;
-
-                    setting.Save();
                 }
 
                 SaveSettings();
