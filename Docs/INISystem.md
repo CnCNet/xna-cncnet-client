@@ -405,7 +405,7 @@ SortOrder=0                                ; integer, display order for icons in
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
 
-Use this control type for campaign dropdowns in `CampaignSelector.ini`. Inherits all properties from `GameSessionCheckBox`. Additional properties for this control type are shown below.
+Use this control type for campaign checkboxes in `CampaignSelector.ini`. Inherits all properties from `GameSessionCheckBox`. Additional properties for this control type are shown below.
 
 ```ini
 [SOMECAMPAIGNCHECKBOX]                  ; CampaignCheckBox
