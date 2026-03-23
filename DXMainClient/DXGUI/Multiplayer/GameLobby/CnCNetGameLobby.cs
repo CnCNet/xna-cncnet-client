@@ -152,6 +152,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string gameFilesHash;
 
+        /// <summary>
+        /// On non-host clients: tracks map SHA1s for which the host has already communicated
+        /// their final result (either MAPOK or MAPFAIL). Used to prevent the client from
+        /// sending repeated MAPREQ messages when the host has already tried.
+        /// </summary>
         private List<string> hostUploadedMaps = new List<string>();
         private List<string> chatCommandDownloadedMaps = new List<string>();
 
@@ -2028,8 +2033,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapUploadComplete(MapEventArgs e)
         {
-            hostUploadedMaps.Add(e.Map.SHA1);
-
             AddNotice(string.Format("Uploading map {0} to the CnCNet map database complete.".L10N("Client:Main:UpdateMapToDBSuccess"), e.Map.Name));
             if (e.Map == Map)
             {
