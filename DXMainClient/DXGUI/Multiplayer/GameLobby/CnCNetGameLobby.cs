@@ -2047,6 +2047,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (hostUploadedMaps.Contains(mapSHA1))
             {
                 Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded!");
+
+                // If the map was successfully uploaded, notify the requester so they can download it.
+                if (MapSharer.IsMapUploaded(mapSHA1) && Map != null && Map.SHA1 == mapSHA1)
+                    channel.SendCTCPMessage(MAP_SHARING_DOWNLOAD_REQUEST + " " + mapSHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+
                 return;
             }
 
