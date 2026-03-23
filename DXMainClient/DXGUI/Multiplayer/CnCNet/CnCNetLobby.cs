@@ -928,8 +928,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
             }
 
-            // if (hg.GameVersion != ProgramConstants.GAME_VERSION)
-            // TODO Show warning
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
+                messageView.AddMessage(new ChatMessage(Color.Yellow, "The game host is on a different game version than you. Version incompatibilities may cause issues.".L10N("Client:Main:JoinGameVersionMismatch")));
 
             if (hg.Passworded)
             {

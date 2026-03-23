@@ -1,0 +1,42 @@
+name: Copilot setup steps
+
+# Automatically run the setup steps when they are changed to allow for easy validation, and
+# allow manual testing through the repository's "Actions" tab
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code with full history and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      
+      # the set-branches call is required to collapse the shallow-clone's specific-branch refspec back to the glob, preventing a LibGit2Sharp crash in GitVersion 5.12.0
+      - name: Unshallow clone and fetch develop branch
+        run: |
+          git fetch --unshallow origin || true
+          git remote set-branches origin '*'
+          git fetch origin develop
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: Restore NuGet packages
+        run: dotnet restore -p:Configuration=UniversalGLRelease

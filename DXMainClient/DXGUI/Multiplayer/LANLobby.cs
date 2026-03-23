@@ -574,7 +574,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             {
-                // TODO Show warning
+                AddChatMessage(new ChatMessage(Color.Yellow, "The game host is on a different game version than you. Version incompatibilities may cause issues.".L10N("Client:Main:JoinGameVersionMismatch")));
             }
 
             AddChatMessage(string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName));
