@@ -17,11 +17,16 @@ The build system uses **GitVersion.MsBuild** to compute version numbers at compi
 - A full (non-shallow) commit history.
 - The `develop` branch reachable as a remote-tracking ref (it is the mainline branch in `GitVersion.yml`). Without it, any branch that is not `develop` or `master` fails with `Gitversion could not determine which branch to treat as the development branch`.
 
-Run both commands unconditionally. The first is a no-op when already unshallowed (the `|| true` prevents it from aborting); the second is a no-op when `origin/develop` is already up to date.
+Run all three commands unconditionally:
+
+- `--unshallow` is a no-op on an already-full clone (`|| true` prevents it from aborting).
+- `set-branches` resets the remote's fetch refspec to the standard glob `+refs/heads/*:refs/remotes/origin/*`, removing any single-branch refspec that a shallow clone may have injected. Without this, LibGit2Sharp (used by GitVersion 5.12.0) crashes with `ref 'refs/remotes/origin/develop' doesn't match the destination` because it iterates refspecs in order and fails on the first non-matching one instead of falling through to the glob.
+- The final fetch brings `refs/remotes/origin/develop` into the local ref store through that glob refspec so GitVersion can find it.
 
 ```shell
 git fetch --unshallow origin || true
-git fetch origin develop:refs/remotes/origin/develop
+git remote set-branches origin '*'
+git fetch origin develop
 ```
 
 ## Step 3 — Restore NuGet packages
