@@ -1,6 +1,6 @@
 # Agent Instructions
 
-## GitHub Copilot Coding Agent Setup Instructions
+## GitHub Copilot coding agent setup instructions
 
 This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
