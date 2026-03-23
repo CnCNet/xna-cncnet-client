@@ -20,12 +20,13 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout code with full history and submodules
         uses: actions/checkout@v4
-
-      - name: Initialize git submodules
-        run: git submodule update --init --recursive
-
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      
+      # the set-branches call is required to collapse the shallow-clone's specific-branch refspec back to the glob, preventing a LibGit2Sharp crash in GitVersion 5.12.0
       - name: Unshallow clone and fetch develop branch
         run: |
           git fetch --unshallow origin || true
