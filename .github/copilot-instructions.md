@@ -4,7 +4,7 @@
 
 This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
-You already have this repository checked out. Run the commands below in order every time you start a new session before making or building any changes.
+The steps below are automatically executed before the agent starts via `.github/workflows/copilot-setup-steps.yml`. **Only run them manually if you encounter a build failure** — for example, if GitVersion cannot determine the version, if submodules are missing, or if NuGet restore fails.
 
 ### Step 1 — Initialize git submodules
 
