@@ -2,7 +2,7 @@
 
 ## GitHub Copilot Coding Agent Setup Instructions
 
-This section only applies to the GitHub Copilot coding agent, running in a GitHub Action environment. It does not apply to other environments, such as local development.
+This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
 You already have this repository checked out. Run the commands below in order every time you start a new session before making or building any changes.
 
