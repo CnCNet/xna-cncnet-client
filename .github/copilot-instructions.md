@@ -1,111 +1,63 @@
 # GitHub Copilot Instructions
 
-This document provides guidance for AI coding agents (such as GitHub Copilot) working on this repository. It covers the two most common failure points when building the project in an automated or agent environment on Linux.
+You already have this repository checked out. Run the commands below in order every time you start a new session before making or building any changes.
 
-## Building on Linux (UniversalGL)
+## Step 1 — Initialize git submodules
 
-The only configuration supported on Linux is **UniversalGL** (`net8.0`). Windows-only configurations (`WindowsDX`, `WindowsGL`, `WindowsXNA`) require Windows and are not available on Linux.
-
-### Prerequisites
-
-- [.NET SDK 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) — required by `global.json` (the `rollForward` policy will accept any 10.x feature-band release)
-- Git with submodule support
-- PowerShell 7.2 or newer (optional, only required for the `Scripts/build.ps1` helper script)
-
-### Step 1 — Clone with Git (never download a ZIP archive)
-
-The repository **must** be cloned with Git, not downloaded as a ZIP. The project relies on Git metadata for versioning (GitVersion) and for submodule tracking.
-
-```shell
-git clone https://github.com/SadPencil/xna-cncnet-client.git
-cd xna-cncnet-client
-```
-
-### Step 2 — Initialize git submodules
-
-The `Rampastring.XNAUI` library (and its own submodule `Rampastring.Tools`) are tracked as git submodules. They are **not** included in the repository checkout automatically and must be initialized explicitly:
+`Rampastring.XNAUI` (and its nested submodule `Rampastring.Tools`) are **never** pre-initialized. Missing them causes compile errors about unknown `Rampastring.*` types.
 
 ```shell
 git submodule update --init --recursive
 ```
 
-Skipping this step will cause compilation errors because source files inside `Rampastring.XNAUI/` will be missing.
+## Step 2 — Unshallow the clone and fetch `develop`
 
-### Step 3 — Ensure a full git history and required branches for GitVersion
+The build system uses **GitVersion.MsBuild** to compute version numbers at compile time. It requires two things:
 
-This project uses [GitVersion.MsBuild](https://gitversion.net/) to automatically compute the assembly version at build time. GitVersion requires:
+- A full (non-shallow) commit history.
+- The `develop` branch reachable as a remote-tracking ref (it is the mainline branch in `GitVersion.yml`). Without it, any branch that is not `develop` or `master` fails with `Gitversion could not determine which branch to treat as the development branch`.
 
-1. **A full (non-shallow) commit history.** Shallow clones (e.g., created with `git clone --depth 1` or by many CI systems by default) will cause GitVersion to fail. Unshallow the clone if needed:
-
-   ```shell
-   git fetch --unshallow origin
-   ```
-
-2. **The `develop` branch must be reachable** (as a local branch or a remote-tracking ref). GitVersion's configuration (`GitVersion.yml`) defines `develop` and `master` as the mainline branches. When working on any other branch (such as a feature or Copilot-generated branch), GitVersion needs to see at least one of those branches to inherit its version-calculation strategy. Fetch it explicitly if it is not already present:
-
-   ```shell
-   git fetch origin develop:refs/remotes/origin/develop
-   ```
-
-   If neither `develop` nor `master` is reachable, the build will fail with:
-   > `Gitversion could not determine which branch to treat as the development branch`
-
-### Step 4 — Restore NuGet packages
+Run both commands unconditionally. The first is a no-op when already unshallowed (the `|| true` prevents it from aborting); the second is a no-op when `origin/develop` is already up to date.
 
 ```shell
-dotnet restore DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease
+git fetch --unshallow origin || true
+git fetch origin develop:refs/remotes/origin/develop
 ```
 
-### Step 5 — Build
+## Step 3 — Restore NuGet packages
+
+Run restore from the **repo root** so that the solution file (`DXClient.slnx`) is used. This ensures all projects — including `SecondStageUpdater`, which the build pulls in transitively — are restored. Always pass the `Configuration` property; omitting it picks the wrong target frameworks.
 
 ```shell
-dotnet build DXMainClient/DXMainClient.csproj \
-    -p:Configuration=UniversalGLRelease \
-    -f net8.0 \
-    --no-restore
+dotnet restore -p:Configuration=UniversalGLRelease
 ```
 
-A successful build produces output under `bin/Release/UniversalGL/net8.0/`.
-
-### Step 6 — Publish (optional, creates a deployable package)
+## Step 4 — Build
 
 ```shell
-dotnet publish DXMainClient/DXMainClient.csproj \
-    --configuration UniversalGLRelease \
-    --framework net8.0 \
-    --output Compiled/Resources/BinariesNET8/UniversalGL
+dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
 ```
 
-Alternatively, use the included PowerShell build script (requires PowerShell 7.2+), which handles all configurations and output folder layout automatically:
+A successful build ends with `0 Error(s)` and produces output under `bin/Release/UniversalGL/net8.0/`.
+
+## Publish (optional)
 
 ```shell
-pwsh Scripts/build.ps1
+dotnet publish DXMainClient/DXMainClient.csproj --configuration UniversalGLRelease --framework net8.0 --output Compiled/Resources/BinariesNET8/UniversalGL
 ```
 
-On Linux, `build.ps1` will only build the `UniversalGL` configuration because the Windows-only configurations are skipped when `$IsWindows` is false.
-
-## Summary of common failure causes
-
-| Symptom | Root cause | Fix |
-|---------|-----------|-----|
-| Missing source files / compile errors about `Rampastring.*` types | Git submodules not initialized | `git submodule update --init --recursive` |
-| `Gitversion could not determine which branch to treat as the development branch` | `develop` (or `master`) branch not reachable locally | `git fetch origin develop:refs/remotes/origin/develop` |
-| GitVersion exits with code 1 and mentions "shallow" | Shallow clone with no full history | `git fetch --unshallow origin` |
-| `NETSDK1004: Assets file … not found` | NuGet restore not run, or run without the correct `Configuration` property | `dotnet restore … -p:Configuration=UniversalGLRelease` |
-
-## Project structure quick reference
+## Project structure
 
 | Path | Description |
 |------|-------------|
-| `DXMainClient/` | Main entry-point project; the build target for all configurations |
+| `DXMainClient/` | Main entry-point project — always the build target |
 | `ClientCore/` | Core game-client logic |
 | `ClientGUI/` | UI layer |
 | `ClientUpdater/` | Auto-updater logic |
 | `SecondStageUpdater/` | Secondary updater executable |
-| `Rampastring.XNAUI/` | UI framework (git submodule) |
-| `Scripts/build.ps1` | PowerShell build script |
-| `Docs/Build.md` | Human-oriented build documentation |
+| `Rampastring.XNAUI/` | UI framework (git submodule — must be initialized, see Step 1) |
 | `GitVersion.yml` | GitVersion branch and versioning strategy |
-| `global.json` | Pins the required .NET SDK version |
+| `global.json` | Pins the required .NET SDK version (10.0, any feature band) |
 | `Directory.Build.props` | MSBuild properties shared across all projects |
 | `Directory.Packages.props` | Central NuGet package version management |
+| `Docs/Build.md` | Human-oriented build documentation |
