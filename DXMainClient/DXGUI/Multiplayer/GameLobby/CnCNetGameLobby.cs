@@ -1904,7 +1904,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadFailed(SHA1EventArgs e)
         {
-            // If the host has already uploaded the map, we shouldn't request them to re-upload it
+            // If the host has already communicated their upload result (MAPOK or MAPFAIL),
+            // we should not request them to re-upload the map — it won't help.
+            // Notify the channel that this player cannot get the map.
             if (hostUploadedMaps.Contains(e.SHA1))
             {
                 AddNotice("Download of the custom map failed. The host needs to change the map or you will be unable to participate in this match.".L10N("Client:Main:DownloadCustomMapFailed"));
@@ -2013,8 +2015,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Map map = e.Map;
 
-            hostUploadedMaps.Add(map.SHA1);
-
             AddNotice(string.Format("Uploading map {0} to the CnCNet map database failed.".L10N("Client:Main:UpdateMapToDBFailed"), map.Name));
             if (map == Map)
             {
@@ -2044,12 +2044,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapSHA1">The SHA1 of the requested map.</param>
         private void HandleMapUploadRequest(string sender, string mapSHA1)
         {
-            if (hostUploadedMaps.Contains(mapSHA1))
+            // If the map was already successfully uploaded, send a download notification
+            // immediately instead of re-uploading it.
+            if (MapSharer.IsMapUploaded(mapSHA1))
             {
-                Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded!");
+                Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded, sending download notification.");
 
-                // If the map was successfully uploaded, notify the requester so they can download it.
-                if (MapSharer.IsMapUploaded(mapSHA1) && Map != null && Map.SHA1 == mapSHA1)
+                if (Map != null && Map.SHA1 == mapSHA1)
                     channel.SendCTCPMessage(MAP_SHARING_DOWNLOAD_REQUEST + " " + mapSHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
 
                 return;
