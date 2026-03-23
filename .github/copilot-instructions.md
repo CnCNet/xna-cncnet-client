@@ -1,8 +1,12 @@
-# GitHub Copilot Instructions
+# Agent Instructions
+
+## GitHub Copilot Coding Agent Setup Instructions
+
+This section only applies to the GitHub Copilot coding agent, running in a GitHub Action environment. It does not apply to other environments, such as local development.
 
 You already have this repository checked out. Run the commands below in order every time you start a new session before making or building any changes.
 
-## Step 1 — Initialize git submodules
+### Step 1 — Initialize git submodules
 
 `Rampastring.XNAUI` (and its nested submodule `Rampastring.Tools`) are **never** pre-initialized. Missing them causes compile errors about unknown `Rampastring.*` types.
 
@@ -10,7 +14,7 @@ You already have this repository checked out. Run the commands below in order ev
 git submodule update --init --recursive
 ```
 
-## Step 2 — Unshallow the clone and fetch `develop`
+### Step 2 — Unshallow the clone and fetch `develop`
 
 The build system uses **GitVersion.MsBuild** to compute version numbers at compile time. It requires two things:
 
@@ -24,7 +28,7 @@ git fetch --unshallow origin || true
 git fetch origin develop:refs/remotes/origin/develop
 ```
 
-## Step 3 — Restore NuGet packages
+### Step 3 — Restore NuGet packages
 
 Run restore from the **repo root** so that the solution file (`DXClient.slnx`) is used. This ensures all projects — including `SecondStageUpdater`, which the build pulls in transitively — are restored. Always pass the `Configuration` property; omitting it picks the wrong target frameworks.
 
@@ -32,7 +36,7 @@ Run restore from the **repo root** so that the solution file (`DXClient.slnx`) i
 dotnet restore -p:Configuration=UniversalGLRelease
 ```
 
-## Step 4 — Build
+### Step 4 — Build
 
 ```shell
 dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
@@ -40,13 +44,9 @@ dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLReleas
 
 A successful build ends with `0 Error(s)` and produces output under `bin/Release/UniversalGL/net8.0/`.
 
-## Publish (optional)
+## General information
 
-```shell
-dotnet publish DXMainClient/DXMainClient.csproj --configuration UniversalGLRelease --framework net8.0 --output Compiled/Resources/BinariesNET8/UniversalGL
-```
-
-## Project structure
+### Project structure
 
 | Path | Description |
 |------|-------------|
@@ -61,3 +61,11 @@ dotnet publish DXMainClient/DXMainClient.csproj --configuration UniversalGLRelea
 | `Directory.Build.props` | MSBuild properties shared across all projects |
 | `Directory.Packages.props` | Central NuGet package version management |
 | `Docs/Build.md` | Human-oriented build documentation |
+
+### Build the project
+
+```shell
+dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
+```
+
+A successful build ends with `0 Error(s)` and produces output under `bin/Release/UniversalGL/net8.0/`.
