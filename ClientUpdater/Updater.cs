@@ -508,8 +508,10 @@ public static class Updater
 
                     if (values.Length < 2)
                         continue;
-                    if (mirrors.FindIndex(i => i.URL == values[0].Trim()) < 0)
-                        mirrors.Add(new(values[0].Trim(), values[1].Trim(), values.Length > 2 ? values[2].Trim() : string.Empty));
+                    string url = values[0].Trim().TrimEnd('/') + "/";
+
+                    if (mirrors.FindIndex(i => i.URL == url) < 0)
+                        mirrors.Add(new(url, values[1].Trim(), values.Length > 2 ? values[2].Trim() : string.Empty));
                 }
             }
 
@@ -591,7 +593,7 @@ public static class Updater
             if (array.Length < 3)
                 continue;
 
-            string url = array[0].Trim();
+            string url = array[0].Trim().TrimEnd('/') + "/";
             string name = array[1].Trim();
             string location = array[2].Trim();
             updateMirrors.Add(new(url, name, location));
