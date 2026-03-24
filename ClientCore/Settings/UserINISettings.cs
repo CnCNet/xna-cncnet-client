@@ -433,6 +433,42 @@ namespace ClientCore
 
         public void ReloadSettings() => SettingsIni.Reload();
 
+        /// <summary>
+        /// Copies or hard-links translation game files to the game directory based on the
+        /// currently selected translation. Files are only updated when their content differs.
+        /// If the source file no longer exists, the destination file is deleted.
+        /// </summary>
+        public void ApplyTranslationGameFiles()
+        {
+            ClientConfiguration.Instance.RefreshTranslationGameFiles();
+
+            foreach (var tgf in ClientConfiguration.Instance.TranslationGameFiles)
+            {
+                string sourcePath = SafePath.CombineFilePath(TranslationFolderPath, tgf.Source);
+                string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
+
+                if (File.Exists(sourcePath))
+                {
+                    string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
+                    string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
+
+                    if (sourceHash != destinationHash)
+                    {
+                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                        new FileInfo(targetPath).IsReadOnly = true;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(targetPath))
+                    {
+                        new FileInfo(targetPath).IsReadOnly = false;
+                        File.Delete(targetPath);
+                    }
+                }
+            }
+        }
+
         public void ApplyDefaults()
         {
             ForceLowestDetailLevel.SetDefaultIfNonexistent();
