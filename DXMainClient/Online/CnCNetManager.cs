@@ -344,23 +344,34 @@ namespace DTAClient.Online
                 // Previously there was an "ACTION" handling, to be compatible with Funky's client, but we don't officially support Funky's client anymore.
 
                 // Color parsing
-                if (message.Contains(Convert.ToString((char)03)))
+                if (message.Length > 0 && message[0] == '\x03')
                 {
-                    if (message.Length < 3)
+                    int colorCodeEnd = 1; // Position after \x03
+                    string colorString = string.Empty;
+
+                    // Extract up to 2 digits for foreground color
+                    while (colorCodeEnd < message.Length && colorCodeEnd < 3 && char.IsDigit(message[colorCodeEnd]))
                     {
-                        foreColor = cDefaultChatColor;
+                        colorString += message[colorCodeEnd];
+                        colorCodeEnd++;
                     }
-                    else
+
+                    // If we found color digits, try to parse them
+                    if (colorString.Length > 0)
                     {
-                        string colorString = message.Substring(1, 2);
-                        message = message.Remove(0, 3);
                         int colorIndex = Conversions.IntFromString(colorString, -1);
-                        // Try to parse message color info; if fails, use default color
                         if (colorIndex < ircChatColors.Length && colorIndex > -1)
                             foreColor = ircChatColors[colorIndex].XnaColor;
                         else
                             foreColor = cDefaultChatColor;
                     }
+                    else
+                    {
+                        foreColor = cDefaultChatColor;
+                    }
+
+                    // Remove the color code from the message
+                    message = message.Substring(colorCodeEnd);
                 }
                 else
                     foreColor = cDefaultChatColor;
