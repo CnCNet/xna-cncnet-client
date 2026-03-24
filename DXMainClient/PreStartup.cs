@@ -157,6 +157,7 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
+            // The `IsFirstRun` determination must be done before MainMenu.CheckIfFirstRun()
             if (UserINISettings.Instance.IsFirstRun)
                 UserINISettings.Instance.ApplyTranslationGameFiles();
 
