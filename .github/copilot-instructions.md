@@ -34,4 +34,4 @@ See [Contributing.md](../Contributing.md) for coding style, formatting, and othe
 
 This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
-The steps in the [copilot-coding-agent-setup.md](./copilot-coding-agent-setup.md) file are automatically executed before the agent starts. **Only read and run them manually if you encounter a build failure**.
+The steps in the [copilot-coding-agent-setup.md](./copilot-coding-agent-setup.md) file are automatically executed via a GitHub Action workflow before the agent starts. **Only read and run them manually if you encounter a build failure**.
