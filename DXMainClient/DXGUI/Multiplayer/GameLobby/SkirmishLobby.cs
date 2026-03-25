@@ -360,7 +360,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //return;
             }
 
-            bool AIAllowed = !GameModeMap.HumanPlayersOnly;
+            bool AIAllowed = GameModeMap != null && !GameModeMap.HumanPlayersOnly;
             foreach (string key in keys)
             {
                 if (!AIAllowed) break;
