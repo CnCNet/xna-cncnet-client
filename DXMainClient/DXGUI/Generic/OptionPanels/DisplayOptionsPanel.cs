@@ -664,10 +664,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
-            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
-
-            IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
-
+            string newTranslationValue = (string)ddTranslation.SelectedItem.Tag;
+            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals(newTranslationValue, StringComparison.InvariantCultureIgnoreCase);
+            IniSettings.Translation.Value = newTranslationValue;
             Translation.ApplyTranslationGameFiles(IniSettings.Translation.Value);
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
