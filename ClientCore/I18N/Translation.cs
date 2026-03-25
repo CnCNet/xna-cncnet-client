@@ -199,25 +199,25 @@ public class Translation : ICloneable
         foreach (var tgf in ClientConfiguration.Instance.TranslationGameFiles)
         {
             string sourcePath = SafePath.CombineFilePath(translationFolderPath, tgf.Source);
-            string destinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
 
             if (File.Exists(sourcePath))
             {
                 string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
-                string destinationHash = Utilities.CalculateSHA1ForFile(destinationPath);
+                string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
 
                 if (sourceHash != destinationHash)
                 {
-                    FileExtensions.CreateHardLinkFromSource(sourcePath, destinationPath);
-                    new FileInfo(destinationPath).IsReadOnly = true;
+                    FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                    new FileInfo(targetPath).IsReadOnly = true;
                 }
             }
             else
             {
-                if (File.Exists(destinationPath))
+                if (File.Exists(targetPath))
                 {
-                    new FileInfo(destinationPath).IsReadOnly = false;
-                    File.Delete(destinationPath);
+                    new FileInfo(targetPath).IsReadOnly = false;
+                    File.Delete(targetPath);
                 }
             }
         }
