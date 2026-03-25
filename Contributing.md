@@ -230,7 +230,6 @@ class MyClass
     public static string GreetingMessage = "Hello, world!".L10N("Client:MyClass:GreetingMessage");
 }
 ```
-
 - The literal string must not start or end with whitespace. Use `"literal string".L10N("key") + " "` if you need to add whitespace at the end of the literal string for formatting reasons.
 ```cs
 // OK
