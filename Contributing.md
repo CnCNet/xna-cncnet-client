@@ -159,5 +159,10 @@ The project has mixed usages of nullability annotations.
 
 - You should not use `BitConverter`, because its behavior depends on platform endianness via `BitConverter.IsLittleEndian`. Instead, you should use `BinaryPrimitives` for byte conversions.
 
+### Text encoding
+- Before converting between byte arrays and strings, you should always think carefully about the encoding to be used.
+    - For client-side text, you should use UTF-8 encoding without BOM, unless you have a good reason not to.
+    - For game-related text, you should carefully examine the encoding used by the game and use that encoding for conversions, and you MUST also check if the encoding is the retrieved encoding or the system ANSI (which varies by system locale) encoding, and use the correct one accordingly. Use ASCII encoding if you can't determine the encoding and the string seems to only contain ASCII characters.
+        - Example: if you get a Windows-1252 encoding from the game, it might be either a constant usage of Windows-1252 encoding or the system ANSI encoding, so you should check by making sure the string contains at least one non-ASCII character and running the game in a virtual machine with a different system locale (e.g. Russian, Chinese, etc.).
 
 Note: This guide is not exhaustive and may be adjusted in the future.
