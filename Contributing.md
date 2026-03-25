@@ -234,7 +234,7 @@ class MyClass
 - The literal string must not start or end with whitespace. Use `"literal string".L10N("key") + " "` if you need to add whitespace at the end of the literal string for formatting reasons.
 ```cs
 // OK
-string message = "An error occurred. Error: ".L10N("Client:Main:ErrorMessage") + " " + errorDetails;
+string message = "An error occurred. Error:".L10N("Client:Main:ErrorMessage") + " " + errorDetails;
 
 // Not OK
 string message = "An error occurred. Error: ".L10N("Client:Main:ErrorMessage") + errorDetails;
