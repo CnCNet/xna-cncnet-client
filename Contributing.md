@@ -166,7 +166,7 @@ The project has mixed usages of nullability annotations.
         - Example: if you get a Windows-1252 encoding from the game, it might be either a constant usage of Windows-1252 encoding or the system ANSI encoding, so you should check by making sure the string contains at least one non-ASCII character, running the game in a virtual machine with a different system locale (e.g. Russian, Chinese, Polish) and observing whether the encoding changes.
 
 ### Literal strings
-- This codebase contains a unique literal string localization system. Use `"literal string".L10N("key")` to mark literal strings for localization. This extension method requires `using ClientCore.Extensions;` to be in scope.
+- This codebase contains a literal string localization system. Use `"literal string".L10N("key")` to mark literal strings for localization. This extension method requires `using ClientCore.Extensions;` to be in scope.
 
 - You must make sure both the literal string and the key are compile-time constant and they must be consistent across all platforms. Use `/` for the path separator and `\n` for the line break in the literal string, instead of using `Environment.NewLine` or `Path.DirectorySeparatorChar`. The key must be in the format of `Namespace:SubNamespace:...:KeyName` and should be as descriptive as possible to make it easier for translators to understand the context. Below demonstrates some examples of bad usages violating the constant requirement:
     - Do not localize non-literal strings.
