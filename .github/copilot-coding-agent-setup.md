@@ -2,11 +2,11 @@
 
 This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
-The steps below are automatically executed before the agent starts via `.github/workflows/copilot-setup-steps.yml`. **Only run them manually if you encounter a build failure** — for example, if GitVersion cannot determine the version, if submodules are missing, or if NuGet restore fails.
+The GitHub Actions workflow `.github/workflows/copilot-setup-steps.yml` runs the core setup steps automatically (checkout, fetching `develop`, installing .NET, and `dotnet restore`). The commands below are the manual equivalent and **should only be run if you encounter a build failure** — for example, if GitVersion cannot determine the version, if submodules are missing, or if NuGet restore fails.
 
 ## Step 1 — Initialize git submodules
 
-`Rampastring.XNAUI` (and its nested submodule `Rampastring.Tools`) are not pre-initialized. Missing them causes compile errors about unknown `Rampastring.*` types.
+`Rampastring.XNAUI` (and its nested submodule `Rampastring.Tools`) may not be pre-initialized. Missing them causes compile errors about unknown `Rampastring.*` types.
 
 ```shell
 git submodule update --init --recursive
