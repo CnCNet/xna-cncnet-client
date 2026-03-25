@@ -139,4 +139,22 @@ var something = 6;
 - Classes, namespaces, and properties are always written in `PascalCase`.
 - Class fields that can be set via INI tags should be named exactly like ini tags with dots replaced with underscores.
 
-Note: The style guide is not exhaustive and may be adjusted in the future.
+#### Formatter requirements
+
+- If you have made medium or significant (> 50%) changes to a file, you should run the code formatter on the whole file using Visual Studio. You should also apply the removal and sorting of `using` directives to the whole file.
+- If you have only made minor changes to a file (< 25%), you should only format the lines that you have changed to keep the style of the file consistent. You should also apply the removal and sorting of `using` directives only to the lines that you have changed.
+
+#### C# nullability requirements
+
+The project has mixed usages of nullability annotations. 
+
+- When you are adding new `.cs` files, you must write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
+- When you are modifying existing `.cs` files, if you have made significant changes to the file (> 75%), you should write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
+- If you are only making minor or medium changes to an existing `.cs` file (< 75%), you should write code without nullability annotations to keep the style of the file consistent.
+
+### Forbidden APIs
+
+- You should not use `BitConverter`, because its behavior depends on platform endianness via `BitConverter.IsLittleEndian`. Instead, you should use `BinaryPrimitives` for byte conversions.
+
+
+Note: This guide is not exhaustive and may be adjusted in the future.
