@@ -188,6 +188,9 @@ public class Translation : ICloneable
     /// Applies (hard-links or copies) the translation game files for a given locale to the game directory,
     /// and removes any destination files whose source no longer exists.
     /// </summary>
+    public void ApplyTranslationGameFiles() => ApplyTranslationGameFiles(LocaleCode);
+
+    /// <inheritdoc cref="ApplyTranslationGameFiles()"/>
     /// <param name="localeCode">The locale code identifying the translation whose game files should be applied.</param>
     public static void ApplyTranslationGameFiles(string localeCode)
     {
