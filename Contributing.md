@@ -149,8 +149,7 @@ var something = 6;
 The project has mixed usages of nullability annotations. 
 
 - When you are adding new `.cs` files, you must write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
-- When you are modifying existing `.cs` files, if you have made significant changes to the file (> 75%), you should write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
-- If you are only making minor or medium changes to an existing `.cs` file (< 75%), you should write code without nullability annotations to keep the style of the file consistent.
+- When you are modifying existing `.cs` files, if you have made significant changes to the file (> 75%), you should write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe. If you are only making minor or medium changes to an existing `.cs` file (< 75%), you should write code without nullability annotations to keep the style of the file consistent.
 
 ### Forbidden APIs
 
