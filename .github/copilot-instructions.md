@@ -12,7 +12,7 @@
 | `ClientGUI/` | UI layer |
 | `ClientUpdater/` | Auto-updater logic |
 | `SecondStageUpdater/` | Secondary updater executable |
-| `Rampastring.XNAUI/` | UI framework (git submodule — must be initialized) |
+| `Rampastring.XNAUI/` | UI framework (git submodule) |
 | `GitVersion.yml` | GitVersion branch and versioning strategy |
 | `global.json` | Pins the required .NET SDK version (10.0, any feature band) |
 | `Directory.Build.props` | MSBuild properties shared across all projects |
