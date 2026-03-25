@@ -204,9 +204,9 @@ public class Translation : ICloneable
             if (File.Exists(sourcePath))
             {
                 string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
-                string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
+                string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
 
-                if (sourceHash != destinationHash)
+                if (sourceHash != targetHash)
                 {
                     FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
                     new FileInfo(targetPath).IsReadOnly = true;
