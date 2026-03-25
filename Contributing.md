@@ -238,6 +238,9 @@ string message = "An error occurred. Error:".L10N("Client:Main:ErrorMessage") + 
 
 // Not OK
 string message = "An error occurred. Error: ".L10N("Client:Main:ErrorMessage") + errorDetails;
+
+// Not OK
+string message = "An error occurred. Error:".L10N("Client:Main:ErrorMessage") + errorDetails; // This violates the English punctuation rules
 ```
 
 Note: This guide is not exhaustive and may be adjusted in the future.
