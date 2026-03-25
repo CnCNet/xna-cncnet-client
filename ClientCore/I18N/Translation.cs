@@ -189,7 +189,7 @@ public class Translation : ICloneable
     /// and removes any destination files whose source no longer exists.
     /// </summary>
     /// <param name="localeCode">The locale code identifying the translation whose game files should be applied.</param>
-    public static void ApplyGameFiles(string localeCode)
+    public static void ApplyTranslationGameFiles(string localeCode)
     {
         ClientConfiguration.Instance.RefreshTranslationGameFiles();
 
