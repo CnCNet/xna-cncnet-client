@@ -488,7 +488,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateMapPreviewBoxEnabledStatus()
         {
-            MapPreviewBox.EnableContextMenu = !(GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
+            MapPreviewBox.EnableContextMenu = GameModeMap != null && !(GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
 
