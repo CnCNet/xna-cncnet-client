@@ -141,7 +141,7 @@ var something = 6;
 
 #### Formatter requirements
 
-- If you have made medium or significant (> 25%) changes to a file, you should run the code formatter on the whole file using Visual Studio.
+- If you have made medium or significant changes to a file (> 25%), you should run the code formatter on the whole file using Visual Studio.
 - If you have only made minor changes to a file (≤ 25%), you should only format the lines that you have changed to keep the style of the file consistent.
 
 - You should apply the removal and sorting of `using` directives to the whole file if one of the following is true, and you should not apply it otherwise:
