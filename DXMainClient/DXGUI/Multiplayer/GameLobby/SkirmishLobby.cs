@@ -1,19 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Rampastring.XNAUI;
-using ClientCore;
-using ClientCore.Statistics;
-using DTAClient.DXGUI.Generic;
-using DTAClient.Domain.Multiplayer;
-using ClientGUI;
-using Rampastring.Tools;
+using System.Diagnostics;
 using System.IO;
-using DTAClient.Domain;
-using Microsoft.Xna.Framework;
-using ClientCore.Extensions;
+using System.Linq;
 
-using DTAClient.DXGUI.Multiplayer.CnCNet;
+using ClientCore;
+using ClientCore.Extensions;
+using ClientCore.Statistics;
+
+using ClientGUI;
+
+using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Generic;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -268,7 +272,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     skirmishSettingsIni.SetStringValue("AIPlayers", i.ToString(), AIPlayers[i].ToString());
                 }
 
-                skirmishSettingsIni.SetStringValue("Settings", "Map", Map.SHA1);
+                skirmishSettingsIni.SetStringValue("Settings", "Map", Map?.SHA1 ?? string.Empty);
                 skirmishSettingsIni.SetStringValue("Settings", "GameModeMapFilter", ddGameModeMapFilter.SelectedItem?.Text);
 
                 if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
@@ -289,6 +293,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             catch (Exception ex)
             {
                 Logger.Log("Saving skirmish settings failed! Reason: " + ex.ToString());
+
+#if DEBUG
+                Debugger.Break();
+#endif
             }
         }
 
@@ -313,7 +321,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (gameModeMapFilter == null || !gameModeMapFilter.Any())
                 gameModeMapFilter = GetDefaultGameModeMapFilter();
 
-            var gameModeMap = gameModeMapFilter.GetGameModeMaps().First();
+            var gameModeMap = gameModeMapFilter.GetGameModeMaps().FirstOrDefault();
 
             if (gameModeMap != null)
             {
@@ -360,7 +368,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //return;
             }
 
-            bool AIAllowed = !GameModeMap.HumanPlayersOnly;
+            bool AIAllowed = GameModeMap != null && !GameModeMap.HumanPlayersOnly;
             foreach (string key in keys)
             {
                 if (!AIAllowed) break;
@@ -460,13 +468,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count ||
-                !GameModeMap.IsCoop && GameModeMap.ForceNoTeams)
+                (!GameModeMap?.IsCoop ?? false) && GameModeMap.ForceNoTeams)
             {
                 pInfo.TeamId = 0;
             }
 
             if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT ||
-                GameModeMap.ForceRandomStartLocations)
+                (GameModeMap?.ForceRandomStartLocations ?? false))
             {
                 pInfo.StartingLocation = 0;
             }
@@ -488,7 +496,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateMapPreviewBoxEnabledStatus()
         {
-            MapPreviewBox.EnableContextMenu = !(GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
+            MapPreviewBox.EnableContextMenu = GameModeMap != null && !(GameModeMap.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
 

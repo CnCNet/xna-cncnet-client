@@ -1317,7 +1317,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected int GetDefaultGameModeMapFilterIndex()
         {
-            return ddGameModeMapFilter.Items.FindIndex(i => (i.Tag as GameModeMapFilter)?.Any() ?? false);
+            int firstNonEmptyFilter = ddGameModeMapFilter.Items.FindIndex(i => (i.Tag as GameModeMapFilter)?.Any() ?? false);
+            if (firstNonEmptyFilter == -1)
+                firstNonEmptyFilter = 0;
+
+            return firstNonEmptyFilter;
         }
 
         protected GameModeMapFilter GetDefaultGameModeMapFilter()

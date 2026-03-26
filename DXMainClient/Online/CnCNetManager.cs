@@ -344,9 +344,13 @@ namespace DTAClient.Online
 
                 // Replace Funky's game identifiers with real game names
                 for (int i = 0; i < gameCollection.GameList.Count; i++)
-                    // TODO localize this or not?
+                {
+                    // No localization needed. This message is always in English.
+                    // Only the short game identifier is replaced with the full game name;
+                    // the surrounding "new ... game" text is left unmodified.
                     message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
                         "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
+                }
 
                 foreColor = Color.White;
             }

@@ -51,6 +51,7 @@ namespace DTAClient.Domain
 
             CodeName = missionCodeName;
             CustomMissionID = ComputeCustomMissionID(missionCodeName);
+            PreviewImage = missionSection.GetStringValue("PreviewImage", string.Empty);
         }
 
         public static Mission NewCustomMission(IniSection clientMissionConfigSection, string missionCodeName, string scenario, IniSection? gameMissionConfigSection)
@@ -107,5 +108,7 @@ namespace DTAClient.Domain
         public bool IsCustomMission { get; private set; }
 
         public IniSection? GameMissionConfigSection { get; set; }
+
+        public string PreviewImage { get; private set; }
     }
 }

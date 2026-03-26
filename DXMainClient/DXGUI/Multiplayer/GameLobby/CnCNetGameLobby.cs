@@ -439,6 +439,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string oldGameRoomName = gameRoomName;
             bool oldIsCustomPassword = isCustomPassword;
             gameRoomName = newGameRoomName;
+            channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
             skillLevel = newSkillLevel;
 
@@ -533,6 +534,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool skillLevelChanged = skillLevel != newSkillLevel;
 
             gameRoomName = newGameRoomName;
+            channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
             skillLevel = newSkillLevel;
             isCustomPassword = newIsCustomPassword;

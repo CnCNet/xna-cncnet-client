@@ -877,7 +877,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return "Cannot join game. The host is on a different game version than you.".L10N("Client:Main:DisallowJoiningIncompatibleGames");
 
             if (hg.Locked)
-                return "The selected game is locked!".L10N("Client:Main:GameLocked");
+                return string.Format("The game {0} is locked!".L10N("Client:Main:GameLockedWithName"), hg.RoomName);
 
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
@@ -928,8 +928,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
             }
 
-            // if (hg.GameVersion != ProgramConstants.GAME_VERSION)
-            // TODO Show warning
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
+                messageView.AddMessage(new ChatMessage(Color.Yellow, "The game host is on a different game version than you. Version incompatibilities may cause issues.".L10N("Client:Main:JoinGameVersionMismatch")));
 
             if (hg.Passworded)
             {
@@ -1005,14 +1005,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameChannel_InviteOnlyErrorOnJoin(object sender, EventArgs e)
         {
-            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
             var channel = (Channel)sender;
 
             var game = FindGameByChannelName(channel.ChannelName);
             if (game != null)
             {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, string.Format("The game {0} is locked!".L10N("Client:Main:GameLockedWithName"), game.RoomName)));
                 game.Locked = true;
                 SortAndRefreshHostedGames();
+            }
+            else
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
             }
 
             ClearGameJoinAttempt((Channel)sender);
@@ -1883,6 +1887,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 messageView.AddMessage(new ChatMessage(Color.White, string.Format("{0} is not in a game!".L10N("Client:Main:UserNotInGame"), user.Name)));
                 return;
+            }
+
+            int gameIndex = lbGameList.Items.FindIndex(item => item.Tag == game);
+            if (gameIndex >= 0)
+            {
+                lbGameList.SelectedIndex = gameIndex;
+                lbGameList.ScrollToSelectedElement();
             }
 
             JoinGame(game, string.Empty, messageView);

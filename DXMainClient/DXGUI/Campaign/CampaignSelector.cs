@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ using ClientUpdater;
 using DTAClient.Domain;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -49,6 +51,13 @@ namespace DTAClient.DXGUI.Campaign
         private CampaignTagSelector campaignTagSelector;
 
         private List<Mission> selectedMissions = [];
+
+        private XNAPanel pnlMissionPreview;
+        private bool pnlMissionPreviewBackgroundTextureNeedsDispose = false;
+        private string missionPreviewFolder => SafePath.CombineDirectoryPath(ProgramConstants.GetBaseResourcePath(), "Mission Previews");
+        private string defaultMissionPreviewPath => SafePath.CombineFilePath(missionPreviewFolder, "Default.png");
+        private bool pnlMissionPreviewEnabled => File.Exists(defaultMissionPreviewPath);
+
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
         private XNAClientButton btnCancel;
@@ -58,10 +67,10 @@ namespace DTAClient.DXGUI.Campaign
         private List<IUserSetting> userSettings = new List<IUserSetting>();
 
         private CheaterWindow cheaterWindow;
-        
+
         public List<CampaignCheckBox> CheckBoxes { get; } = new();
         public List<CampaignDropDown> DropDowns { get; } = new();
-        
+
         private IniFile gameOptionsIni;
 
         private string[] filesToCheck = new string[]
@@ -140,10 +149,10 @@ namespace DTAClient.DXGUI.Campaign
             tbMissionDescription.ClientRectangle = new Rectangle(
                 lblMissionDescriptionHeader.X,
                 lblMissionDescriptionHeader.Bottom + 6,
-                Width - 24 - lbCampaignList.Right, 430);
+                Width - 24 - lbCampaignList.Right,
+                pnlMissionPreviewEnabled ? 430 - 200 - 12 : 430);
             tbMissionDescription.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
-
             tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor),
                 tbMissionDescription.Width, tbMissionDescription.Height);
 
@@ -206,6 +215,26 @@ namespace DTAClient.DXGUI.Campaign
             btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+            if (pnlMissionPreviewEnabled)
+            {
+                pnlMissionPreview = new XNAPanel(WindowManager);
+                pnlMissionPreview.Name = nameof(pnlMissionPreview);
+                pnlMissionPreview.ClientRectangle = new Rectangle(
+                    tbMissionDescription.X,
+                    tbMissionDescription.Bottom + 12,
+                    tbMissionDescription.Width,
+                    200);
+
+                pnlMissionPreview.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+                pnlMissionPreview.BackgroundTexture = CreateLetterboxedTexture(AssetLoader.LoadTextureUncached(defaultMissionPreviewPath), pnlMissionPreview.Width, pnlMissionPreview.Height);
+                pnlMissionPreviewBackgroundTextureNeedsDispose = true;
+            }
+            else
+            {
+                pnlMissionPreview = null;
+            }
+
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
             AddChild(lbCampaignList);
@@ -217,6 +246,9 @@ namespace DTAClient.DXGUI.Campaign
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
+
+            if (pnlMissionPreview != null)
+                AddChild(pnlMissionPreview);
 
             if (ClientConfiguration.Instance.CampaignTagSelectorEnabled)
             {
@@ -240,11 +272,6 @@ namespace DTAClient.DXGUI.Campaign
 
             userSettings.AddRange(Children.OfType<IUserSetting>());
 
-            foreach (var cb in userSettings)
-            {
-                cb.Load();
-            }
-
             ReadMissionList();
 
             cheaterWindow = new CheaterWindow(WindowManager);
@@ -255,7 +282,7 @@ namespace DTAClient.DXGUI.Campaign
             cheaterWindow.CenterOnParent();
             cheaterWindow.YesClicked += CheaterWindow_YesClicked;
             cheaterWindow.Disable();
-            
+
             LoadSettings();
         }
 
@@ -264,11 +291,16 @@ namespace DTAClient.DXGUI.Campaign
             if (lbCampaignList.SelectedIndex == -1)
             {
                 tbMissionDescription.Text = string.Empty;
+
+                UpdateMissionPreview(string.Empty);
+
                 btnLaunch.AllowClick = false;
                 return;
             }
 
             Mission mission = selectedMissions[lbCampaignList.SelectedIndex];
+
+            UpdateMissionPreview(mission.PreviewImage);
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
@@ -288,6 +320,62 @@ namespace DTAClient.DXGUI.Campaign
             btnLaunch.AllowClick = true;
         }
 
+        // TODO: Modify XNAUI by adding PanelBackgroundImageDrawMode.LETTERBOXED as a new draw mode.
+        private Texture2D CreateLetterboxedTexture(Texture2D sourceTexture, int targetWidth, int targetHeight, bool disposeSourceTexture = true)
+        {
+            // Calculate aspect ratios
+            float sourceAspect = (float)sourceTexture.Width / sourceTexture.Height;
+            float targetAspect = (float)targetWidth / targetHeight;
+
+            int drawWidth, drawHeight, drawX, drawY;
+
+            // Determine scaled dimensions while maintaining aspect ratio
+            if (sourceAspect > targetAspect)
+            {
+                // Source is wider - fit to width
+                drawWidth = targetWidth;
+                drawHeight = (int)(targetWidth / sourceAspect);
+                drawX = 0;
+                drawY = (targetHeight - drawHeight) / 2;
+            }
+            else
+            {
+                // Source is taller - fit to height
+                drawHeight = targetHeight;
+                drawWidth = (int)(targetHeight * sourceAspect);
+                drawX = (targetWidth - drawWidth) / 2;
+                drawY = 0;
+            }
+
+            // Create the composite texture
+            RenderTarget2D renderTarget = new RenderTarget2D(
+                WindowManager.GraphicsDevice,
+                targetWidth,
+                targetHeight,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.None);
+
+            WindowManager.GraphicsDevice.SetRenderTarget(renderTarget);
+            WindowManager.GraphicsDevice.Clear(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor));
+
+            var spriteBatch = new SpriteBatch(WindowManager.GraphicsDevice);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            spriteBatch.Draw(
+                sourceTexture,
+                new Rectangle(drawX, drawY, drawWidth, drawHeight),
+                Color.White);
+            spriteBatch.End();
+            spriteBatch.Dispose();
+
+            WindowManager.GraphicsDevice.SetRenderTarget(null);
+
+            if (disposeSourceTexture)
+                sourceTexture.Dispose();
+
+            return renderTarget;
+        }
+
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             SaveSettings();
@@ -301,11 +389,8 @@ namespace DTAClient.DXGUI.Campaign
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
-            // Save user settings before launching the mission
-            userSettings.ForEach(c => c.Save());
-
             SaveSettings();
-            
+
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
             Mission mission = selectedMissions[selectedMissionId];
@@ -350,7 +435,7 @@ namespace DTAClient.DXGUI.Campaign
             CustomMissionHelper.CopySupplementalMissionFiles(mission);
 
             string scenario = mission.Scenario;
-            
+
             FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
             spawnerSettingsFile.Delete();
@@ -434,15 +519,15 @@ namespace DTAClient.DXGUI.Campaign
             if (copyMapsToSpawnmapINI)
             {
                 var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
-                
+
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
-                
+
                 foreach (CampaignCheckBox chkBox in CheckBoxes)
                     chkBox.ApplyMapCode(mapIni, gameMode: null);
-                
+
                 foreach (CampaignDropDown dd in DropDowns)
                     dd.ApplyMapCode(mapIni, gameMode: null);
-                
+
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
             }
 
@@ -496,7 +581,7 @@ namespace DTAClient.DXGUI.Campaign
                 if (string.IsNullOrEmpty(loadingScreenName))
                 {
                     string lsFilename = CustomMissionHelper.CustomMissionSupplementDefinition.FirstOrDefault(x => x.extension.Equals("shp", StringComparison.InvariantCultureIgnoreCase)).filename;
-                    
+
                     if (!string.IsNullOrEmpty(lsFilename))
                     {
                         spawnIniMissionIniSection.AddOrReplaceKey("LS640BkgdName", lsFilename);
@@ -506,7 +591,7 @@ namespace DTAClient.DXGUI.Campaign
                 if (string.IsNullOrEmpty(loadingScreenPalName))
                 {
                     string palFilename = CustomMissionHelper.CustomMissionSupplementDefinition.FirstOrDefault(x => x.extension.Equals("pal", StringComparison.InvariantCultureIgnoreCase)).filename;
-                    
+
                     if (!string.IsNullOrEmpty(palFilename))
                         spawnIniMissionIniSection.AddOrReplaceKey("LS800BkgdPal", palFilename);
                 }
@@ -556,24 +641,30 @@ namespace DTAClient.DXGUI.Campaign
             if (!ClientConfiguration.Instance.ReturnToMainMenuOnMissionLaunch)
                 ToggleControls(true);
 
-            bool altered = false;
-
-            foreach (IUserSetting setting in userSettings)
+            // Handle ResetToDefaultOnGameExit
             {
-                if (!setting.ResetToDefaultOnGameExit)
-                    continue;
+                // Reset campaign checkboxes
+                foreach (CampaignCheckBox cb in CheckBoxes)
+                {
+                    if (cb.ResetToDefaultOnGameExit)
+                        cb.ResetToDefault();
+                }
 
-                if (setting is SettingCheckBoxBase cb)
-                    cb.Checked = cb.DefaultValue;
-                else if (setting is SettingDropDownBase dd)
-                    dd.SelectedIndex = dd.DefaultValue;
+                // Reset user settings
+                foreach (IUserSetting setting in userSettings)
+                {
+                    if (!setting.ResetToDefaultOnGameExit)
+                        continue;
 
-                setting.Save();
-                altered = true;
+                    if (setting is SettingCheckBoxBase cb)
+                        cb.Checked = cb.DefaultValue;
+                    else if (setting is SettingDropDownBase dd)
+                        dd.SelectedIndex = dd.DefaultValue;
+                }
+
+                SaveSettings();
             }
 
-            if (altered)
-                UserINISettings.Instance.SaveSettings();
         }
 
         private void ReadMissionList()
@@ -691,7 +782,7 @@ namespace DTAClient.DXGUI.Campaign
             else if (disableOfficialMissions)
             {
                 missions = missions.Where(mission => mission.IsCustomMission);
-            }                
+            }
             else
             {
                 // do nothing
@@ -737,6 +828,18 @@ namespace DTAClient.DXGUI.Campaign
         /// </summary>
         private void SaveSettings()
         {
+            SaveUserSettings();
+            SaveCampaignSettings();
+        }
+
+        private void SaveUserSettings()
+        {
+            userSettings.ForEach(c => c.Save());
+            UserINISettings.Instance.SaveSettings();
+        }
+
+        private void SaveCampaignSettings()
+        {
             if (!ClientConfiguration.Instance.SaveCampaignGameOptions)
                 return;
 
@@ -747,7 +850,7 @@ namespace DTAClient.DXGUI.Campaign
                 settingsFileInfo.Delete();
 
                 var settingsIni = new IniFile(settingsFileInfo.FullName);
-                
+
                 foreach (CampaignDropDown dd in DropDowns)
                     settingsIni.SetStringValue("GameOptions", dd.Name, dd.SelectedIndex.ToString());
 
@@ -761,17 +864,25 @@ namespace DTAClient.DXGUI.Campaign
                 Logger.Log($"Saving campaign settings failed! Reason: {ex}");
             }
         }
-        
+
         /// <summary>
         /// Loads settings from an INI file on the file system.
         /// </summary>
         private void LoadSettings()
         {
+            LoadUserSettings();
+            LoadCampaignSettings();
+        }
+
+        private void LoadUserSettings() => userSettings.ForEach(c => c.Load());
+
+        private void LoadCampaignSettings()
+        {
             if (!ClientConfiguration.Instance.SaveCampaignGameOptions)
                 return;
 
             var settingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
-                
+
             foreach (CampaignDropDown dd in DropDowns)
             {
                 dd.SelectedIndex = settingsIni.GetIntValue("GameOptions", dd.Name, dd.SelectedIndex);
@@ -787,6 +898,38 @@ namespace DTAClient.DXGUI.Campaign
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
+        }
+
+        private void UpdateMissionPreview(string missionPreviewFileName)
+        {
+            if (pnlMissionPreview == null)
+                return;
+
+            if (pnlMissionPreviewBackgroundTextureNeedsDispose)
+            {
+                Debug.Assert(pnlMissionPreview.BackgroundTexture != null, "Expected background texture to dispose, but it was null.");
+
+                pnlMissionPreview.BackgroundTexture.Dispose();
+                pnlMissionPreview.BackgroundTexture = null;
+                pnlMissionPreviewBackgroundTextureNeedsDispose = false;
+            }
+
+            string previewFilePath = null;
+            if (!string.IsNullOrEmpty(missionPreviewFileName))
+                previewFilePath = SafePath.CombineFilePath(missionPreviewFolder, missionPreviewFileName);
+
+            if (string.IsNullOrEmpty(missionPreviewFileName) || !File.Exists(previewFilePath))
+            {
+                pnlMissionPreview.BackgroundTexture = CreateLetterboxedTexture(
+                    AssetLoader.LoadTextureUncached(defaultMissionPreviewPath), pnlMissionPreview.Width, pnlMissionPreview.Height);
+            }
+            else
+            {
+                pnlMissionPreview.BackgroundTexture = CreateLetterboxedTexture(
+                    AssetLoader.LoadTextureUncached(previewFilePath), pnlMissionPreview.Width, pnlMissionPreview.Height);
+            }
+
+            pnlMissionPreviewBackgroundTextureNeedsDispose = true;
         }
     }
 }
