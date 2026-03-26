@@ -19,6 +19,7 @@ using ClientCore.I18N;
 using System.Globalization;
 using System.Security;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -156,6 +157,9 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
+            if (UserINISettings.Instance.IsFirstRun)
+                Translation.Instance.ApplyTranslationGameFiles();
+
             try
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)
@@ -183,6 +187,10 @@ namespace DTAClient
             {
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
+
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             // Delete obsolete files from old target project versions
 

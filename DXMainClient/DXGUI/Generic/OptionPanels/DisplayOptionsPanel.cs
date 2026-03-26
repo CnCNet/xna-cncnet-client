@@ -668,34 +668,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
-            ClientConfiguration.Instance.RefreshTranslationGameFiles();
-
-            // copy translation files to the game directory
-            foreach (var tgf in ClientConfiguration.Instance.TranslationGameFiles)
-            {
-                string sourcePath = SafePath.CombineFilePath(IniSettings.TranslationFolderPath, tgf.Source);
-                string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
-
-                if (File.Exists(sourcePath))
-                {
-                    string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
-                    string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
-
-                    if (sourceHash != destinationHash)
-                    {
-                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
-                        new FileInfo(targetPath).IsReadOnly = true;
-                    }
-                }
-                else
-                {
-                    if (File.Exists(targetPath))
-                    {
-                        new FileInfo(targetPath).IsReadOnly = false;
-                        File.Delete(targetPath);
-                    }
-                }
-            }
+            Translation.ApplyTranslationGameFiles(IniSettings.Translation.Value);
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
