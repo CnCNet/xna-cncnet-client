@@ -28,7 +28,7 @@ dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLReleas
 A successful build ends with `0 Error(s)`.
 
 ### Contributing guidelines
-See [Contributing.md](../Contributing.md) for coding style, formatting, and other contribution guidelines.
+See [Contributing.md](../Contributing.md) for coding style, formatting, and other contribution guidelines. Be aware, Copilot, you MUST read and follow this file, even if the user did not explicitly ask you to.
 
 ## GitHub Copilot coding agent setup instructions
 
