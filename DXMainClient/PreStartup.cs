@@ -157,20 +157,6 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
-            if (ClientConfiguration.Instance.ModMode || UserINISettings.Instance.TranslationGameFilesVersion.Value != ClientUpdater.Updater.GameVersion)
-            {
-                try
-                {
-                    Translation.Instance.ApplyTranslationGameFiles();
-                    UserINISettings.Instance.TranslationGameFilesVersion.Value = ClientUpdater.Updater.GameVersion;
-                    UserINISettings.Instance.SaveSettings();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Failed to apply translation game files update. " + ex.ToString());
-                }
-            }
-
             try
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)

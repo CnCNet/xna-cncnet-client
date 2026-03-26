@@ -1,5 +1,6 @@
 using ClientCore;
 using ClientCore.Enums;
+using ClientCore.I18N;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -517,6 +518,29 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.PostInit();
         }
 
+        private void CheckAndApplyTranslationGameFiles()
+        {
+            // In ModMode there is no updater, so always apply translation game files.
+            // Otherwise, skip if already applied for the current game version.
+            if (!ClientConfiguration.Instance.ModMode &&
+                UserINISettings.Instance.TranslationGameFilesVersion.Value == Updater.GameVersion)
+                return;
+
+            try
+            {
+                Translation.Instance.ApplyTranslationGameFiles();
+                UserINISettings.Instance.TranslationGameFilesVersion.Value = Updater.GameVersion;
+                UserINISettings.Instance.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to apply translation game files. " + ex.ToString());
+                XNAMessageBox.Show(WindowManager,
+                    "Applying Translation Files Failed".L10N("Client:Main:ApplyTranslationFilesFailTitle"),
+                    "Applying translation files failed! Error message:".L10N("Client:Main:ApplyTranslationFilesFailText") + " " + ex.Message);
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -657,6 +681,7 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+            CheckAndApplyTranslationGameFiles();
 
             Logger.Log("Main menu initialization complete.");
 
