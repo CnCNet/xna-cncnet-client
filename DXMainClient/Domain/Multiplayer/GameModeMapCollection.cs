@@ -13,6 +13,10 @@ namespace DTAClient.Domain.Multiplayer
         private readonly List<GameModeMap> items;
         private readonly Dictionary<string, Map> mapHashIndex;
 
+        // Note: whenever `items` is modified, we must invalidate the cached GameModes list by setting `_gameModes` to null.
+        private List<GameMode>? _gameModes = null;
+        public IReadOnlyList<GameMode> GameModes => _gameModes ??= items.Select(gmm => gmm.GameMode).Distinct().ToList();
+
         public GameModeMapCollection(IEnumerable<GameMode> gameModes)
         {
             // Build the list of GameModeMaps
@@ -30,10 +34,6 @@ namespace DTAClient.Domain.Multiplayer
                     mapHashIndex[map.SHA1] = map;
             }
         }
-
-        // Note: whenever `items` is modified, we must invalidate the cached GameModes list by setting `_gameModes` to null.
-        private List<GameMode>? _gameModes = null;
-        public IReadOnlyList<GameMode> GameModes => _gameModes ??= items.Select(gmm => gmm.GameMode).Distinct().ToList();
 
         /// <summary>
         /// Finds a map by its SHA1 hash with optimized performance.
