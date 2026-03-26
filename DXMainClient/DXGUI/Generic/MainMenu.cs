@@ -518,11 +518,11 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.PostInit();
         }
 
-        private void CheckAndApplyTranslationGameFiles()
+        private void CheckAndApplyTranslationGameFiles(bool skipVersionCheck = false)
         {
             // In ModMode there is no updater, so always apply translation game files.
             // Otherwise, skip if already applied for the current game version.
-            if (!ClientConfiguration.Instance.ModMode &&
+            if (!skipVersionCheck && !ClientConfiguration.Instance.ModMode &&
                 UserINISettings.Instance.TranslationGameFilesVersion.Value == Updater.GameVersion)
                 return;
 
@@ -790,6 +790,12 @@ namespace DTAClient.DXGUI.Generic
             UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = false;
+
+            // The update completed without requiring a client restart, so apply
+            // translation game files immediately for the new game version.
+            // (If a restart were required, Updater.Restart fires and the client
+            // exits; the next startup naturally detects the version change.)
+            CheckAndApplyTranslationGameFiles(skipVersionCheck: true);
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
