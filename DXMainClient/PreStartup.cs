@@ -159,9 +159,16 @@ namespace DTAClient
 
             if (UserINISettings.Instance.TranslationGameFilesUpdateRequired)
             {
-                Translation.Instance.ApplyTranslationGameFiles();
-                UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = false;
-                UserINISettings.Instance.SaveSettings();
+                try
+                {
+                    Translation.Instance.ApplyTranslationGameFiles();
+                    UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = false;
+                    UserINISettings.Instance.SaveSettings();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Failed to apply translation game files update. " + ex.ToString());
+                }
             }
 
             try
