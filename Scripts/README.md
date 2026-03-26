@@ -5,7 +5,7 @@
 
 ## Build the client
 
-Click the following script file: `Build.bat`.
+Double-click the following script file: `Build.bat`.
 
 ## Update the common assembly list
 
