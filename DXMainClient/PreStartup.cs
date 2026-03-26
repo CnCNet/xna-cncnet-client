@@ -157,7 +157,7 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
-            if (UserINISettings.Instance.TranslationGameFilesVersion.Value != ClientUpdater.Updater.GameVersion)
+            if (ClientConfiguration.Instance.ModMode || UserINISettings.Instance.TranslationGameFilesVersion.Value != ClientUpdater.Updater.GameVersion)
             {
                 try
                 {
