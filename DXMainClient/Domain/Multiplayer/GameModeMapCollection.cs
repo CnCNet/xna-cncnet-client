@@ -12,7 +12,6 @@ namespace DTAClient.Domain.Multiplayer
     {
         private readonly List<GameModeMap> items;
         private readonly Dictionary<string, Map> mapHashIndex;
-        private List<GameMode>? _gameModes;
 
         public GameModeMapCollection(IEnumerable<GameMode> gameModes)
         {
@@ -32,6 +31,8 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        // Note: whenever `items` is modified, we must invalidate the cached GameModes list by setting `_gameModes` to null.
+        private List<GameMode>? _gameModes;
         public IReadOnlyList<GameMode> GameModes => _gameModes ??= items.Select(gmm => gmm.GameMode).Distinct().ToList();
 
         /// <summary>
