@@ -664,11 +664,15 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
-            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
+            {
+                bool updateTranslation = !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
 
-            IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
+                restartRequired = restartRequired || updateTranslation;
 
-            UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = true;
+                IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
+
+                IniSettings.TranslationGameFilesUpdateRequired.Value |= updateTranslation;
+            }
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
