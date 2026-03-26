@@ -157,12 +157,12 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
-            if (UserINISettings.Instance.TranslationGameFilesUpdateRequired)
+            if (UserINISettings.Instance.TranslationGameFilesVersion.Value != ClientUpdater.Updater.GameVersion)
             {
                 try
                 {
                     Translation.Instance.ApplyTranslationGameFiles();
-                    UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = false;
+                    UserINISettings.Instance.TranslationGameFilesVersion.Value = ClientUpdater.Updater.GameVersion;
                     UserINISettings.Instance.SaveSettings();
                 }
                 catch (Exception ex)

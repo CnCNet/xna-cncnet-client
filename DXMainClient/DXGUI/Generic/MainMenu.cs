@@ -787,19 +787,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void ForceUpdate()
         {
-            try
-            {
-                UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = true;
-                UserINISettings.Instance.SaveSettings();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Failed to save settings before force update: " + ex.ToString());
-                XNAMessageBox.Show(WindowManager, "Saving Settings Failed".L10N("Client:DTAConfig:SaveSettingFailTitle"),
-                    "Saving settings failed! Error message:".L10N("Client:DTAConfig:SaveSettingFailText") + " " + ex.Message);
-                return;
-            }
-
             UpdateInProgress = true;
             optionsWindow.Disable();
             updateWindow.ForceUpdate();
@@ -916,19 +903,6 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void UpdateQueryWindow_UpdateAccepted(object sender, EventArgs e)
         {
-            try
-            {
-                UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = true;
-                UserINISettings.Instance.SaveSettings();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Failed to save settings before update: " + ex.ToString());
-                XNAMessageBox.Show(WindowManager, "Saving Settings Failed".L10N("Client:DTAConfig:SaveSettingFailTitle"),
-                    "Saving settings failed! Error message:".L10N("Client:DTAConfig:SaveSettingFailText") + " " + ex.Message);
-                return;
-            }
-
             updateQueryWindow.Disable();
             updateWindow.SetData(Updater.ServerGameVersion);
             updateWindow.Enable();

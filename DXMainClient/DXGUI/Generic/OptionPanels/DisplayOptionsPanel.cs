@@ -671,7 +671,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                 IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
-                IniSettings.TranslationGameFilesUpdateRequired.Value |= updateTranslation;
+                if (updateTranslation)
+                    IniSettings.TranslationGameFilesVersion.Value = string.Empty;
             }
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
