@@ -668,7 +668,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
 
-            Translation.ApplyTranslationGameFiles(IniSettings.Translation.Value);
+            UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = true;
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;

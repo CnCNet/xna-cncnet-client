@@ -765,6 +765,8 @@ namespace DTAClient.DXGUI.Generic
             UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = false;
+            UserINISettings.Instance.TranslationGameFilesUpdateRequired.Value = true;
+            UserINISettings.Instance.SaveSettings();
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
