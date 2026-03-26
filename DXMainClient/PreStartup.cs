@@ -157,6 +157,9 @@ namespace DTAClient
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
+            if (UserINISettings.Instance.IsFirstRun)
+                Translation.Instance.ApplyTranslationGameFiles();
+
             try
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)

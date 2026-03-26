@@ -185,6 +185,48 @@ public class Translation : ICloneable
     }
 
     /// <summary>
+    /// Applies (hard-links or copies) the translation game files for a given locale to the game directory,
+    /// and removes any destination files whose source no longer exists.
+    /// </summary>
+    public void ApplyTranslationGameFiles() => ApplyTranslationGameFiles(LocaleCode);
+
+    /// <inheritdoc cref="ApplyTranslationGameFiles()"/>
+    /// <param name="localeCode">The locale code identifying the translation whose game files should be applied.</param>
+    public static void ApplyTranslationGameFiles(string localeCode)
+    {
+        ClientConfiguration.Instance.RefreshTranslationGameFiles();
+
+        string translationFolderPath = SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.TranslationsFolderPath, localeCode);
+
+        foreach (var tgf in ClientConfiguration.Instance.TranslationGameFiles)
+        {
+            string sourcePath = SafePath.CombineFilePath(translationFolderPath, tgf.Source);
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
+
+            if (File.Exists(sourcePath))
+            {
+                string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
+                string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
+
+                if (sourceHash != targetHash)
+                {
+                    FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                    new FileInfo(targetPath).IsReadOnly = true;
+                }
+            }
+            else
+            {
+                if (File.Exists(targetPath))
+                {
+                    new FileInfo(targetPath).IsReadOnly = false;
+                    File.Delete(targetPath);
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Lists valid available translations from the <see cref="TranslationsFolderPath"/> along with their UI names.
     /// A localization is valid if it has a corresponding <see cref="TranslationIniName"/> file in the <see cref="TranslationsFolderPath"/>.
     /// </summary>

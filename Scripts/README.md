@@ -5,7 +5,7 @@
 
 ## Build the client
 
-Click the following script file: `Build.bat`.
+Double-click the following script file: `Build.bat`.
 
 ## Update the common assembly list
 
@@ -29,6 +29,6 @@ You should do this if you have introduced any new NuGet dependencies.
         - Specifially, we intend to leave `ClientUpdater.dll` and `ClientUpdater.pdb` files in that list since we *know* this library does not differ among DX/GL/XNA builds, regardless the fact that these two files are different among DX/GL/XNA builds.
 - If there are other libraries just get **added** in this list, check if such a library has already been shown up in **previous** releases of the client.
     - If so, we should **delete** such a line, because a library showing in this list has a lower priority than the library that is not included in this list.
-    - If not, we can keep the changes. This means a commit after the latest release brought another dependency and **forgetting** to update the common assembly list. It's lucky we catch it up before making a new release.
+    - If not, we can keep the changes. This means a commit after the latest release brought another dependency and **forgot** to update the common assembly list. It's lucky we catch it up before making a new release. Note: if this dependency change is unrelated with your current PR, don't mix it up in the current PR, but rather, use a separate PR to update the forgotten dependency in the common assembly list.
 
 6. Delete the `Compiled` folder since it is produced with `-NoMove` parameter. We should absolutely **not** distribute these files.
