@@ -36,6 +36,8 @@ One pull request should _only implement one feature_ or _fix one bug_, unless th
 
 Do not heavily refactor the style of existing code in a pull request, unless the refactored code fits to the scope of the pull request (feature or bug fix). Rather, if you want to refactor existing code just for the sake of refactoring or getting rid of technical debt, create a secondary pull request for that purpose.
 
+If you have introduced a new DLL dependency, check [README for Build Scripts](./Scripts/README.md) to determine whether you need to update the common assembly list and how to do that.
+
 **Make sure your code and commits match this style guide before you create your pull request.**
 
 Pull requests that are not well defined in their scope or pull requests that don't match the style guide can end up rejected and closed by the staff.
