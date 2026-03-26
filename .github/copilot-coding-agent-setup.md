@@ -2,7 +2,7 @@
 
 This section only applies to the GitHub Copilot coding agent, running in a Linux runner from the GitHub Action environment. It does not apply to other environments, such as local development.
 
-The GitHub Actions workflow `.github/workflows/copilot-setup-steps.yml` runs the core setup steps automatically (checkout, fetching `develop`, installing .NET, and `dotnet restore`). The commands below are the manual equivalent and **should only be run if you encounter a build failure** — for example, if GitVersion cannot determine the version, if submodules are missing, or if NuGet restore fails.
+The GitHub Actions workflow `.github/workflows/copilot-setup-steps.yml` runs the setup steps mentioned in this file automatically. The commands below are the manual equivalent and **should only be run if you encounter a build failure** — for example, if GitVersion cannot determine the version, if submodules are missing, or if NuGet restore fails.
 
 ## Step 1 — Initialize git submodules
 
