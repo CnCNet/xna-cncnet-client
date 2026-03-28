@@ -1238,23 +1238,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = 0; i < ddPlayerColors.Length; i++)
             {
                 var dropdown = ddPlayerColors[i] as XNAClientColorDropDown;
-                if (dropdown == null) continue; // safety, should never happen
+                if (dropdown == null || dropdown.Items == null) continue;
 
                 for (int j = 0; j < dropdown.Items.Count; j++)
                 {
-                    // Skip the "Random" item (assumed index 0)
                     if (j == 0) continue;
 
-                    int colorIndex = j - 1; // because index 0 is Random
+                    int colorIndex = j - 1;
+
                     bool isTaken = occupied.Contains(colorIndex);
 
-                    // Do not disable the color if it belongs to the current player
                     if (i < Players.Count && Players[i].ColorId == colorIndex)
                         isTaken = false;
-                    if (i >= Players.Count && AIPlayers[i - Players.Count].ColorId == colorIndex)
+
+                    if (i >= Players.Count && (i - Players.Count) < AIPlayers.Count &&
+                        AIPlayers[i - Players.Count].ColorId == colorIndex)
                         isTaken = false;
 
-                    dropdown.SetItemColorEnabled(j, !isTaken);
+                    if (j >= 0 && j < dropdown.Items.Count)
+                        dropdown.SetItemColorEnabled(j, !isTaken);
                 }
             }
         }
