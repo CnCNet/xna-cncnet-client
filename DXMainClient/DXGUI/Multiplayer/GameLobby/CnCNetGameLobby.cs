@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain;
@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -42,13 +43,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
         public CnCNetGameLobby(
-            WindowManager windowManager, 
-            TopBar topBar, 
+            WindowManager windowManager,
+            TopBar topBar,
             CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, 
-            GameCollection gameCollection, 
-            CnCNetUserData cncnetUserData, 
-            MapLoader mapLoader, 
+            TunnelHandler tunnelHandler,
+            GameCollection gameCollection,
+            CnCNetUserData cncnetUserData,
+            MapLoader mapLoader,
             DiscordHandler discordHandler,
             PrivateMessagingWindow pmWindow,
             Random random
@@ -61,8 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
             this.random = random;
-            
-            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
+
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled ? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -317,6 +318,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             gameFilesHash = fhc.GetCompleteHash();
 
+            ApplyPreferredChatColorIfAvailable();
+
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
@@ -358,6 +361,75 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 pInfo.Ping = tunnelHandler.CurrentTunnel.PingInMs;
                 UpdatePlayerPingIndicator(pInfo);
+            }
+        }
+
+        protected override void CopyPlayerDataFromUI(object sender, EventArgs e)
+        {
+            if (PlayerUpdatingInProgress)
+                return;
+
+            // Find out which slot's color dropdown triggered the event (if any)
+            int slot = -1;
+            for (int i = 0; i < ddPlayerColors.Length; i++)
+            {
+                if (ddPlayerColors[i] == sender)
+                {
+                    slot = i;
+                    break;
+                }
+            }
+
+            if (slot == -1)
+            {
+                // Not a color dropdown – let the base handle it
+                base.CopyPlayerDataFromUI(sender, e);
+                return;
+            }
+
+            int newColorIndex = ddPlayerColors[slot].SelectedIndex;
+            int oldColorIndex;
+
+            // Determine if this slot holds a human or AI player
+            if (slot < Players.Count)
+                oldColorIndex = Players[slot].ColorId;
+            else
+                oldColorIndex = AIPlayers[slot - Players.Count].ColorId;
+
+            if (newColorIndex == oldColorIndex)
+                return; // no actual change
+
+            // If the local player is the host, we can apply the change directly after validation
+            if (IsHost)
+            {
+                // Check if the new color is taken (excluding this slot)
+                var occupied = GetOccupiedColorIndices(slot);
+                if (occupied.Contains(newColorIndex))
+                {
+                    // Revert dropdown and show warning
+                    ddPlayerColors[slot].SelectedIndex = oldColorIndex;
+                    AddWarning("That color is already taken by another player.");
+                    return;
+                }
+
+                // Proceed with base logic (which will update the player's ColorId and broadcast)
+                base.CopyPlayerDataFromUI(sender, e);
+            }
+            else
+            {
+                // Non‑host: we must send the request to the host, but we can still validate locally
+                // to give immediate feedback. However, the host will also validate later.
+                var occupied = GetOccupiedColorIndices(slot);
+                if (occupied.Contains(newColorIndex))
+                {
+                    // Revert dropdown and show warning
+                    ddPlayerColors[slot].SelectedIndex = oldColorIndex;
+                    AddWarning("That color is already taken by another player.");
+                    return;
+                }
+
+                // Send the request to the host (the base method will call RequestPlayerOptions)
+                base.CopyPlayerDataFromUI(sender, e);
             }
         }
 
@@ -736,9 +808,43 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateDiscordPresence();
         }
 
+        /// <summary>
+        /// Attempts to assign the local player's IRC chat color as the game lobby color,
+        /// if that color is available.
+        /// </summary>
+        private void ApplyPreferredChatColorIfAvailable()
+        {
+            if (chatColor == null || Players.Count == 0) return;
+
+            int gameColorIndex = GetGameColorIndexFromIRCColor(chatColor);
+            if (gameColorIndex == -1) return;
+
+            var occupied = GetOccupiedColorIndices(0); // exclude local player slot
+            if (occupied.Contains(gameColorIndex)) return;
+
+            Players[0].ColorId = gameColorIndex;
+            int dropdownIndex = gameColorIndex + 1; // assumes index 0 = Random
+            if (dropdownIndex < ddPlayerColors[0].Items.Count)
+                ddPlayerColors[0].SelectedIndex = dropdownIndex;
+
+            CopyPlayerDataToUI();
+
+            if (IsHost)
+                BroadcastPlayerOptions();
+            else
+                RequestPlayerOptions(Players[0].SideId, gameColorIndex, Players[0].StartingLocation, Players[0].TeamId);
+        }
+
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
+
+            if (IsHost)
+            {
+                // Assign the first free color to the new player
+                pInfo.ColorId = GetFirstFreeColorIndex();
+            }
+
             Players.Add(pInfo);
 
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
@@ -776,6 +882,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice("Player limit reached. The game room has been locked.".L10N("Client:Main:GameRoomNumberLimitReached"));
                 LockGame();
             }
+        }
+
+        protected int GetFirstFreeColorIndex()
+        {
+            var occupied = GetOccupiedColorIndices();
+            for (int i = 0; i < MPColors.Count; i++)
+                if (!occupied.Contains(i))
+                    return i;
+            return 0; // fallback (shouldn't happen)
         }
 
         private void RemovePlayer(string playerName)
@@ -968,6 +1083,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (color < 0 || color > MPColors.Count)
                 return;
+
+            // NEW: Validate color uniqueness
+            int playerIndex = Players.IndexOf(pInfo);
+            if (color != pInfo.ColorId && GetOccupiedColorIndices(playerIndex).Contains(color))
+            {
+                // Color already taken – ignore this request
+                return;
+            }
 
             // Disallowed sides from client, maps, or game modes do not take random selectors into account
             // So, we need to insert "false" for each random at the beginning of this list AFTER getting them
@@ -1476,7 +1599,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ResetGameState();
         }
 
-        protected void ResetGameState() 
+        protected void ResetGameState()
         {
             base.GameProcessExited();
 

@@ -17,6 +17,7 @@ using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using System.Diagnostics;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -1059,6 +1060,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 StatusIndicators[i].SwitchTexture(PlayerSlotState.Empty);
             }
+
+            // NEW: Update color dropdowns to reflect taken colors
+            UpdateColorDropdownsAvailability();
+
+
         }
 
         protected virtual void ClearPingIndicators()
@@ -1190,5 +1196,78 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             return btnLaunchGame.Enabled;
         }
+
+        /// <summary>
+        /// Returns a HashSet of color indices currently taken by any human or AI player.
+        /// </summary>
+        /// <param name="excludeSlot">Slot index (0..MAX_PLAYER_COUNT-1) to exclude from the check.</param>
+        protected HashSet<int> GetOccupiedColorIndices(int excludeSlot = -1)
+        {
+            var occupied = new HashSet<int>();
+
+            // Human players
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (i == excludeSlot) continue;
+                if (Players[i].ColorId >= 0)  // ignore "random" color if stored as -1
+                    occupied.Add(Players[i].ColorId);
+            }
+
+            // AI players
+            for (int i = 0; i < AIPlayers.Count; i++)
+            {
+                int slot = Players.Count + i;
+                if (slot == excludeSlot) continue;
+                if (AIPlayers[i].ColorId >= 0)
+                    occupied.Add(AIPlayers[i].ColorId);
+            }
+
+            return occupied;
+        }
+
+        /// <summary>
+        /// Updates the enabled/disabled state of color items in all player color dropdowns.
+        /// </summary>
+        protected void UpdateColorDropdownsAvailability()
+        {
+            var occupied = GetOccupiedColorIndices();
+
+            for (int i = 0; i < ddPlayerColors.Length; i++)
+            {
+                var dropdown = ddPlayerColors[i] as XNAClientColorDropDown;
+                if (dropdown == null) continue; // safety, should never happen
+
+                for (int j = 0; j < dropdown.Items.Count; j++)
+                {
+                    // Skip the "Random" item (assumed index 0)
+                    if (j == 0) continue;
+
+                    int colorIndex = j - 1; // because index 0 is Random
+                    bool isTaken = occupied.Contains(colorIndex);
+
+                    // Do not disable the color if it belongs to the current player
+                    if (i < Players.Count && Players[i].ColorId == colorIndex)
+                        isTaken = false;
+                    if (i >= Players.Count && AIPlayers[i - Players.Count].ColorId == colorIndex)
+                        isTaken = false;
+
+                    dropdown.SetItemColorEnabled(j, !isTaken);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the index in MPColors of the color that matches the given IRC color by RGB.
+        /// </summary>
+        protected int GetGameColorIndexFromIRCColor(IRCColor ircColor)
+        {
+            for (int i = 0; i < MPColors.Count; i++)
+            {
+                if (MPColors[i].XnaColor == ircColor.XnaColor)
+                    return i;
+            }
+            return -1;
+        }
+
     }
 }
