@@ -690,7 +690,7 @@ namespace ClientCore.Statistics.GameParsers
             byte[] StringBytes = Bin.ReadBytes(3);
             Bin.ReadBytes(1);
             Pos += 4;
-            string RetString = System.Text.Encoding.Default.GetString(StringBytes);
+            string RetString = Encoding.ASCII.GetString(StringBytes);
             return RetString;
         }
 
@@ -1113,22 +1113,26 @@ namespace ClientCore.Statistics.GameParsers
 
         public short ReadInt16()
         {
-            return BitConverter.ToInt16(ReadBigEndianBytes(2), 0);
+            var b = ReadBigEndianBytes(2);
+            return (short)((b[0] << 8) | b[1]);
         }
 
         public ushort ReadUInt16()
         {
-            return BitConverter.ToUInt16(ReadBigEndianBytes(2), 0);
+            var b = ReadBigEndianBytes(2);
+            return (ushort)((b[0] << 8) | b[1]);
         }
 
         public uint ReadUInt32()
         {
-            return BitConverter.ToUInt32(ReadBigEndianBytes(4), 0);
+            var b = ReadBigEndianBytes(4);
+            return ((uint)b[0] << 24) | ((uint)b[1] << 16) | ((uint)b[2] << 8) | b[3];
         }
 
         public int ReadInt32()
         {
-            return BitConverter.ToInt32(ReadBigEndianBytes(4), 0);
+            var b = ReadBigEndianBytes(4);
+            return (int)(((uint)b[0] << 24) | ((uint)b[1] << 16) | ((uint)b[2] << 8) | b[3]);
         }
 
         public byte[] ReadBigEndianBytes(int count)
@@ -1322,7 +1326,7 @@ namespace ClientCore.Statistics.GameParsers
         public int V16s; // 61
         public int V17s; // 62
         public int V18s; // 63
-        public int V19s; // 64
+        public int V19s; // 64string RetString = Encoding.ASCII.GetString(StringBytes);
         public int V20s; // 65
         public int V21s; // 66
         public int V22s; // 67

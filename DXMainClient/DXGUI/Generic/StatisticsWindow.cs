@@ -202,10 +202,10 @@ namespace DTAClient.DXGUI.Generic
             lbGameStatistics.AddColumn(strLblEconomy, 80);
 
             // 
-            var clientType = ClientConfiguration.Instance.ClientGameType;
             lbGameStatistics.AddColumn(
-                (clientType == ClientType.RA ? "ECONOMY" : "SCORE")
-                .L10N(clientType == ClientType.RA ? "Client:Main:StatisticsEconomy" : "Client:Main:StatisticsScore"),
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA
+                    ? "ECONOMY".L10N("Client:Main:StatisticsEconomy")
+                    : "SCORE".L10N("Client:Main:StatisticsScore"),
                 100
             );
 
