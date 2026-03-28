@@ -996,6 +996,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void CopyPlayerDataToUI()
         {
+            if (Players == null || ddPlayerColors == null)
+                return;
+        
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT)
                 return;
 
