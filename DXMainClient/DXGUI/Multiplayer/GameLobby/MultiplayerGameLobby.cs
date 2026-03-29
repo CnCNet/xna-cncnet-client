@@ -998,7 +998,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Players == null || ddPlayerColors == null)
                 return;
-        
+
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT)
                 return;
 
@@ -1065,7 +1065,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             // NEW: Update color dropdowns to reflect taken colors
-            UpdateColorDropdownsAvailability();
+            UpdateColorDropdownsAvailabilityPerSlot();
 
 
         }
@@ -1231,32 +1231,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Updates the enabled/disabled state of color items in all player color dropdowns.
         /// </summary>
-        protected void UpdateColorDropdownsAvailability()
+        protected void UpdateColorDropdownsAvailabilityPerSlot()
         {
-            var occupied = GetOccupiedColorIndices();
+            int playerCount = Players.Count;
+            int aiCount = AIPlayers.Count;
 
             for (int i = 0; i < ddPlayerColors.Length; i++)
             {
-                var dropdown = ddPlayerColors[i] as XNAClientColorDropDown;
-                if (dropdown == null || dropdown.Items == null) continue;
+                if (!(ddPlayerColors[i] is XNAClientColorDropDown dd) || dd.Items == null)
+                    continue;
 
-                for (int j = 0; j < dropdown.Items.Count; j++)
+                var occupied = GetOccupiedColorIndices(i);
+
+                int currentColor = -1;
+
+                if (i < playerCount)
+                    currentColor = Players[i].ColorId;
+                else if (i - playerCount < aiCount)
+                    currentColor = AIPlayers[i - playerCount].ColorId;
+
+                for (int j = 1; j < dd.Items.Count; j++)
                 {
-                    if (j == 0) continue;
-
                     int colorIndex = j - 1;
 
-                    bool isTaken = occupied.Contains(colorIndex);
+                    bool taken = occupied.Contains(colorIndex) && colorIndex != currentColor;
 
-                    if (i < Players.Count && Players[i].ColorId == colorIndex)
-                        isTaken = false;
-
-                    if (i >= Players.Count && (i - Players.Count) < AIPlayers.Count &&
-                        AIPlayers[i - Players.Count].ColorId == colorIndex)
-                        isTaken = false;
-
-                    if (j >= 0 && j < dropdown.Items.Count)
-                        dropdown.SetItemColorEnabled(j, !isTaken);
+                    dd.SetItemColorEnabled(j, !taken);
                 }
             }
         }
