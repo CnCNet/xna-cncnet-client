@@ -1250,9 +1250,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else if (i - playerCount < aiCount)
                     currentColor = AIPlayers[i - playerCount].ColorId;
 
-                for (int j = 1; j < dd.Items.Count; j++)
+                for (int j = 0; j < dd.Items.Count; j++)
                 {
-                    int colorIndex = j - 1;
+                    if (j == 0)
+                    {
+                        dd.SetItemColorEnabled(j, true);
+                        continue;
+                    }
+
+                    int colorIndex = j;
 
                     bool taken = occupied.Contains(colorIndex) && colorIndex != currentColor;
 
