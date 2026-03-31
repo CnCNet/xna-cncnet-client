@@ -1212,7 +1212,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = 0; i < Players.Count; i++)
             {
                 if (i == excludeSlot) continue;
-                if (Players[i].ColorId >= 0)  // ignore "random" color if stored as -1
+                // Ignore "Random" color entries (0) and any negative sentinel values.
+                if (Players[i].ColorId > 0)
                     occupied.Add(Players[i].ColorId);
             }
 
@@ -1221,7 +1222,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 int slot = Players.Count + i;
                 if (slot == excludeSlot) continue;
-                if (AIPlayers[i].ColorId >= 0)
+                // Ignore "Random" and negative sentinel values for AI as well.
+                if (AIPlayers[i].ColorId > 0)
                     occupied.Add(AIPlayers[i].ColorId);
             }
 
