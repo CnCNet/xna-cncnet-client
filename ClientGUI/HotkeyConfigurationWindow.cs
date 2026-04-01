@@ -57,7 +57,7 @@ namespace ClientGUI
 
         private IniFile keyboardINI;
 
-        private Hotkey pendingHotkey;
+        private Hotkey pendingHotkey = Hotkey.None;
         private KeyModifiers lastFrameModifiers;
 
         public override void Initialize()
@@ -519,6 +519,7 @@ namespace ClientGUI
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
                 DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
+                Hotkey = Hotkey.None;
             }
 
             public string UIName { get; private set; }
@@ -545,6 +546,8 @@ namespace ClientGUI
         {
             public Keys Key { get; }
             public KeyModifiers Modifier { get; }
+
+            public static readonly Hotkey None = new(0);
 
             /// <summary>
             /// Creates a new hotkey by decoding a Tiberian Sun / Red Alert 2
@@ -576,7 +579,7 @@ namespace ClientGUI
             /// Allows defining keys that match other keys for in-game purposes
             /// and should be displayed as those keys instead.
             /// </summary>
-            private static IReadOnlyDictionary<int, Hotkey> TSHotkeyOverride { get; } = new Dictionary<int, Hotkey>()
+            private static IReadOnlyDictionary<int, Hotkey> TSHotkeyOverride => field ??= new Dictionary<int, Hotkey>()
             {
                 {12, new Hotkey(Keys.NumPad5, KeyModifiers.None)}
             };
