@@ -221,6 +221,11 @@ namespace ClientGUI
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             EnabledChanged += HotkeyConfigurationWindow_EnabledChanged;
+
+            // Apply the hotkeys, so if the default keyboard ini file is updated during the client update, the changes will be reflected immediately
+            LoadKeyboardINI();
+            RefreshHotkeyList();
+            WriteKeyboardINI();
         }
 
         /// <summary>
