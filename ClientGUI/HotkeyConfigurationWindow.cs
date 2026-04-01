@@ -332,7 +332,14 @@ namespace ClientGUI
                 int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
 
                 if (hotkey.HasValue)
+                {
                     command.Hotkey = new Hotkey(hotkey.Value);
+                }
+                else
+                {
+                    // Clear any previously assigned hotkey when no value exists in the INI
+                    command.Hotkey = null;
+                }
             }
 
             // Assign default hotkeys
