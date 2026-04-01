@@ -286,7 +286,11 @@ namespace ClientGUI
         {
             foreach (var command in gameCommands)
             {
-                command.Hotkey = command.DefaultHotkey;
+                if (command.DefaultHotkey == null || command.DefaultHotkey == Hotkey.None)
+
+                    command.Hotkey = null;
+                else
+                    command.Hotkey = command.DefaultHotkey;
             }
 
             RefreshHotkeyList();
@@ -328,7 +332,7 @@ namespace ClientGUI
             {
                 bool hotkeyAssigned = hotkeySection.KeyExists(command.ININame);
 
-                if (!hotkeyAssigned && command.DefaultHotkey != Hotkey.None)
+                if (!hotkeyAssigned && command.DefaultHotkey != null && command.DefaultHotkey != Hotkey.None)
                 {
                     // Try assigning the default hotkey if it exists and is not occupied by other commands
                     bool occupied = false;
@@ -362,7 +366,7 @@ namespace ClientGUI
                 hotkeyInfoPanel.Width - lblDescription.X).Text;
             lblCurrentHotkeyValue.Text = command.Hotkey?.ToStringWithNone();
 
-            lblDefaultHotkeyValue.Text = command.DefaultHotkey.ToStringWithNone();
+            lblDefaultHotkeyValue.Text = command.DefaultHotkey?.ToStringWithNone();
             btnResetKey.Enabled = command.DefaultHotkey != command.Hotkey;
 
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
@@ -536,7 +540,7 @@ namespace ClientGUI
         /// <summary>
         /// A game command that can be assigned into a key on the keyboard.
         /// </summary>
-        class GameCommand
+        private class GameCommand
         {
             public GameCommand(string uiName, string category, string description, string iniName)
             {
@@ -562,6 +566,10 @@ namespace ClientGUI
 
                 int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
                 DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
+
+                // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents setting a new hot key via DefaultHotkey from a future update
+                if (DefaultHotkey == Hotkey.None)
+                    DefaultHotkey = null;
             }
 
             public string UIName { get; private set; }
