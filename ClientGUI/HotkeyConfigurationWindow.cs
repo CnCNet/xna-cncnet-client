@@ -430,7 +430,7 @@ namespace ClientGUI
             foreach (var gameCommand in gameCommands)
             {
                 if (pendingHotkey == gameCommand.Hotkey)
-                    gameCommand.Hotkey = Hotkey.None;
+                    gameCommand.Hotkey = null;
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
