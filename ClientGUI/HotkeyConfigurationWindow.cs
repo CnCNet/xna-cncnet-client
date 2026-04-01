@@ -591,7 +591,10 @@ namespace ClientGUI
                 }
             }
 
-            // We delay saving the user setting file until the user clicks "Save" in the Option window.
+            // Do not write INI file if using Settings.ini as Keyboard.ini. The hot keys will be saved when Settings.ini is saved.
+            // We choose this policy because, imagine a situation when the user pressed save in the hotkey config window, then decided they don't want changes (not the hotkey changes) they did in the options.
+            // If we don't flush here, everything can be restored by hitting a cancel.
+            // If we flush here -- the player can't cancel anymore at all.
             if (writeEvenIfSettingsIniAsKeyboardIniHolds || !ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
                 keyboardIni.WriteIniFile();
         }
