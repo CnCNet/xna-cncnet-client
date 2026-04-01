@@ -261,13 +261,21 @@ namespace ClientGUI
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
-            command.Hotkey = command.DefaultHotkey;
 
-            // If the hotkey is already assigned to some other command, unbind it
-            foreach (var gameCommand in gameCommands)
+            if (command.DefaultHotkey == null || command.DefaultHotkey == Hotkey.None)
             {
-                if (pendingHotkey.Equals(gameCommand.Hotkey))
-                    gameCommand.Hotkey = Hotkey.None;
+                command.Hotkey = null;
+            }
+            else
+            {
+                command.Hotkey = command.DefaultHotkey;
+
+                // If the hotkey is already assigned to some other command, unbind it
+                foreach (var gameCommand in gameCommands)
+                {
+                    if (pendingHotkey == gameCommand.Hotkey)
+                        gameCommand.Hotkey = null;
+                }
             }
 
             pendingHotkey = Hotkey.None;
@@ -304,7 +312,7 @@ namespace ClientGUI
         private void LoadKeyboardINI()
         {
             keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
-            var hotkeySection = keyboardINI.GetOrAddSection("Hotkey");
+            var hotkeySection = keyboardINI.GetOrAddSection(HOTKEY_INI_SECTION);
 
             // Load the hotkeys from the INI file
             foreach (var command in gameCommands)
@@ -320,13 +328,13 @@ namespace ClientGUI
             {
                 bool hotkeyAssigned = hotkeySection.KeyExists(command.ININame);
 
-                if (!hotkeyAssigned && !command.DefaultHotkey.Equals(Hotkey.None))
+                if (!hotkeyAssigned && command.DefaultHotkey != Hotkey.None)
                 {
                     // Try assigning the default hotkey if it exists and is not occupied by other commands
                     bool occupied = false;
                     foreach (var otherCommand in gameCommands)
                     {
-                        if (otherCommand != command && command.DefaultHotkey.Equals(otherCommand.Hotkey))
+                        if (otherCommand != command && command.DefaultHotkey == otherCommand.Hotkey)
                         {
                             occupied = true;
                             break;
@@ -355,7 +363,7 @@ namespace ClientGUI
             lblCurrentHotkeyValue.Text = command.Hotkey?.ToStringWithNone();
 
             lblDefaultHotkeyValue.Text = command.DefaultHotkey.ToStringWithNone();
-            btnResetKey.Enabled = !command.DefaultHotkey.Equals(command.Hotkey);
+            btnResetKey.Enabled = command.DefaultHotkey != command.Hotkey;
 
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
             pendingHotkey = Hotkey.None;
@@ -391,7 +399,7 @@ namespace ClientGUI
             // If the hotkey is already assigned to other command, unbind it
             foreach (var gameCommand in gameCommands)
             {
-                if (pendingHotkey.Equals(gameCommand.Hotkey))
+                if (pendingHotkey == gameCommand.Hotkey)
                     gameCommand.Hotkey = Hotkey.None;
             }
 
@@ -429,7 +437,7 @@ namespace ClientGUI
 
             foreach (var command in gameCommands)
             {
-                if (pendingHotkey.Equals(command.Hotkey))
+                if (pendingHotkey == command.Hotkey)
                     lblCurrentlyAssignedTo.Text = "Currently assigned to:".L10N("Client:DTAConfig:CurrentAssignTo") + Environment.NewLine + command.UIName;
             }
         }
@@ -510,11 +518,16 @@ namespace ClientGUI
             var keyboardIni = new IniFile();
             foreach (var command in gameCommands)
             {
-                // Do not write if the command doesn't have a hotkey assigned, so the game can use the default hotkey for it if it exists
+                // Note: we now explictly differ null and Hotkey.None
                 if (command.Hotkey == null)
-                    continue;
-
-                keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
+                {
+                    if (keyboardIni.KeyExists(HOTKEY_INI_SECTION, command.ININame))
+                        keyboardIni.RemoveKey(HOTKEY_INI_SECTION, command.ININame);
+                }
+                else
+                {
+                    keyboardIni.SetStringValue(HOTKEY_INI_SECTION, command.ININame, command.Hotkey.GetTSEncoded().ToString());
+                }
             }
 
             keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
@@ -546,7 +559,9 @@ namespace ClientGUI
                 Category = category.L10N($"INI:HotkeyCategories:{category}");
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
-                DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
+
+                int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
+                DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
             }
 
             public string UIName { get; private set; }
