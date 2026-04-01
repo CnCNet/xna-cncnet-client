@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 
 using ClientCore;
 using ClientCore.Extensions;
@@ -225,6 +226,11 @@ namespace ClientGUI
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             EnabledChanged += HotkeyConfigurationWindow_EnabledChanged;
+
+            // Apply the hotkeys, so if the default keyboard ini file is updated during a client update, the changes will be reflected immediately
+            LoadKeyboardINI();
+            RefreshHotkeyList();
+            WriteKeyboardINI();
         }
 
         /// <summary>
@@ -297,20 +303,41 @@ namespace ClientGUI
         private void LoadKeyboardINI()
         {
             keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            var hotkeySection = keyboardINI.GetOrAddSection("Hotkey");
 
-            if (SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
+            // Load the hotkeys from the INI file
+            foreach (var command in gameCommands)
             {
-                foreach (var command in gameCommands)
+                int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
+
+                if (hotkey.HasValue)
                 {
-                    int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
-                    command.Hotkey = new Hotkey(hotkey);
+                    command.Hotkey = new Hotkey(hotkey.Value);
                 }
             }
-            else
+
+            // Assign default hotkeys
+            foreach (var command in gameCommands)
             {
-                foreach (var command in gameCommands)
+                bool hotkeyAssigned = hotkeySection.KeyExists(command.ININame);
+
+                if (!hotkeyAssigned && !command.DefaultHotkey.Equals(Hotkey.None))
                 {
-                    command.Hotkey = command.DefaultHotkey;
+                    // Try assigning the default hotkey if it exists and is not occupied by other commands
+                    bool occupied = false;
+                    foreach (var otherCommand in gameCommands)
+                    {
+                        if (otherCommand != command && otherCommand.Hotkey.Equals(command.DefaultHotkey))
+                        {
+                            occupied = true;
+                            break;
+                        }
+                    }
+
+                    if (!occupied)
+                    {
+                        command.Hotkey = command.DefaultHotkey;
+                    }
                 }
             }
         }
@@ -585,6 +612,8 @@ namespace ClientGUI
             };
 
             private static IReadOnlyDictionary<Hotkey, int> ReverseTSHotkeyOverride => field ??= TSHotkeyOverride.ToDictionary(kv => kv.Value, kv => kv.Key);
+
+            public static readonly Hotkey None = new(0);
 
             public override string ToString()
             {
