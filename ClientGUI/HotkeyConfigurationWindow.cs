@@ -1,7 +1,8 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Globalization;
 
 using ClientCore;
 using ClientCore.Extensions;
@@ -12,7 +13,6 @@ using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System.Diagnostics;
 
 namespace ClientGUI
 {
@@ -44,20 +44,28 @@ namespace ClientGUI
 
         private List<GameCommand> gameCommands = new List<GameCommand>();
 
+        [AllowNull]
         private XNAClientDropDown ddCategory;
+        [AllowNull]
         private XNAMultiColumnListBox lbHotkeys;
 
+        [AllowNull]
         private XNAPanel hotkeyInfoPanel;
+        [AllowNull]
         private XNALabel lblCommandCaption;
+        [AllowNull]
         private XNALabel lblDescription;
+        [AllowNull]
         private XNALabel lblCurrentHotkeyValue;
+        [AllowNull]
         private XNALabel lblNewHotkeyValue;
+        [AllowNull]
         private XNALabel lblCurrentlyAssignedTo;
 
+        [AllowNull]
         private XNALabel lblDefaultHotkeyValue;
+        [AllowNull]
         private XNAClientButton btnResetKey;
-
-        private IniFile keyboardINI;
 
         private Hotkey pendingHotkey = Hotkey.None;
         private KeyModifiers lastFrameModifiers;
@@ -253,7 +261,7 @@ namespace ClientGUI
         /// Resets the hotkey for the currently selected game command to its
         /// default value.
         /// </summary>
-        private void BtnReset_LeftClick(object sender, EventArgs e)
+        private void BtnReset_LeftClick(object? sender, EventArgs e)
         {
             if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
             {
@@ -282,7 +290,7 @@ namespace ClientGUI
             RefreshHotkeyList();
         }
 
-        private void BtnResetToDefaults_LeftClick(object sender, EventArgs e)
+        private void BtnResetToDefaults_LeftClick(object? sender, EventArgs e)
         {
             foreach (var command in gameCommands)
             {
@@ -296,7 +304,7 @@ namespace ClientGUI
             RefreshHotkeyList();
         }
 
-        private void HotkeyConfigurationWindow_EnabledChanged(object sender, EventArgs e)
+        private void HotkeyConfigurationWindow_EnabledChanged(object? sender, EventArgs e)
         {
             if (Enabled)
             {
@@ -315,7 +323,7 @@ namespace ClientGUI
 
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            var keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
             var hotkeySection = keyboardINI.GetOrAddSection(HOTKEY_INI_SECTION);
 
             // Load the hotkeys from the INI file
@@ -351,7 +359,7 @@ namespace ClientGUI
             }
         }
 
-        private void LbHotkeys_SelectedIndexChanged(object sender, EventArgs e)
+        private void LbHotkeys_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
             {
@@ -374,7 +382,7 @@ namespace ClientGUI
             lblCurrentlyAssignedTo.Text = string.Empty;
         }
 
-        private void DdCategory_SelectedIndexChanged(object sender, EventArgs e)
+        private void DdCategory_SelectedIndexChanged(object? sender, EventArgs e)
         {
             lbHotkeys.ClearItems();
             lbHotkeys.TopIndex = 0;
@@ -393,7 +401,7 @@ namespace ClientGUI
             lbHotkeys.SelectedIndex = -1;
         }
 
-        private void BtnAssign_LeftClick(object sender, EventArgs e)
+        private void BtnAssign_LeftClick(object? sender, EventArgs e)
         {
             if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
             {
@@ -425,7 +433,7 @@ namespace ClientGUI
         /// <summary>
         /// Detects when the user has pressed a key to generate a new hotkey.
         /// </summary>
-        private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
+        private void Keyboard_OnKeyPressed(object? sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
             foreach (var blacklistedKey in keyBlacklist)
             {
@@ -446,12 +454,12 @@ namespace ClientGUI
             }
         }
 
-        private void BtnCancel_LeftClick(object sender, EventArgs e)
+        private void BtnCancel_LeftClick(object? sender, EventArgs e)
         {
             Disable();
         }
 
-        private void BtnSave_LeftClick(object sender, EventArgs e)
+        private void BtnSave_LeftClick(object? sender, EventArgs e)
         {
             WriteKeyboardINI();
             Disable();
@@ -576,8 +584,8 @@ namespace ClientGUI
             public string Category { get; private set; }
             public string Description { get; private set; }
             public string ININame { get; private set; }
-            public Hotkey Hotkey { get; set; }
-            public Hotkey DefaultHotkey { get; private set; }
+            public Hotkey? Hotkey { get; set; }
+            public Hotkey? DefaultHotkey { get; private set; }
         }
 
         [Flags]
