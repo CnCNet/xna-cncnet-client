@@ -541,8 +541,11 @@ namespace ClientGUI
         /// <summary>
         /// Represents a keyboard key with modifiers.
         /// </summary>
-        struct Hotkey
+        private sealed record Hotkey
         {
+            public Keys Key { get; }
+            public KeyModifiers Modifier { get; }
+
             /// <summary>
             /// Creates a new hotkey by decoding a Tiberian Sun / Red Alert 2
             /// encoded key value.
@@ -568,9 +571,6 @@ namespace ClientGUI
                 Key = key;
                 Modifier = modifiers;
             }
-
-            public Keys Key { get; private set; }
-            public KeyModifiers Modifier { get; private set; }
 
             /// <summary>
             /// Allows defining keys that match other keys for in-game purposes
@@ -630,20 +630,6 @@ namespace ClientGUI
                     return encodedKey;
 
                 return ((int)Modifier << 8) + (int)Key;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (!(obj is Hotkey))
-                    return false;
-
-                var hotkey = (Hotkey)obj;
-                return hotkey.Key == Key && hotkey.Modifier == Modifier;
-            }
-
-            public override int GetHashCode()
-            {
-                return GetTSEncoded();
             }
 
             /// <summary>
