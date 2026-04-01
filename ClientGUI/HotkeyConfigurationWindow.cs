@@ -549,10 +549,7 @@ namespace ClientGUI
             /// <param name="encodedKeyValue">The encoded key value.</param>
             public Hotkey(int encodedKeyValue)
             {
-                if (encodedKeyValue != (encodedKeyValue & 255))
-                    throw new Exception("Invalid encoded hotkey value: " + encodedKeyValue);
-
-                Key = (Keys)ApplyTSKeyOverride(encodedKeyValue);
+                Key = (Keys)ApplyTSKeyOverride(encodedKeyValue & 255);
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
