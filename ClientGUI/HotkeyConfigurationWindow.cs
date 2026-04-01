@@ -1,12 +1,16 @@
-﻿using ClientCore.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+
 using ClientCore;
+using ClientCore.Extensions;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
 
 namespace ClientGUI
 {
@@ -316,6 +320,34 @@ namespace ClientGUI
                     command.Hotkey = command.DefaultHotkey;
                 }
             }
+
+            foreach (var command in gameCommands)
+            {
+                // Now, let's handle the hotkey "0". It means either one of the following two things:
+                // 1. This hotkey is missing from the keyboard INI file, and the default hot key file does not have a default hot key specified.
+                // 2. The player intended to set the hotkey to "None".
+                // Currently, there's no way to distinguish these two cases.
+                // However, consider a command, that does not have a default hot key at first, and later, the modder adds a default hot key for it in the default keyboard INI file.
+                // If we treat the "0" hotkey value as "None", then the players won't be able to get the new default hot key without manually editing their keyboard INI file, which is not good.
+                // Therefore, for now, we'll prefer the default key over "None".
+                if (command.Hotkey.Equals(Hotkey.None) && !command.DefaultHotkey.Equals(Hotkey.None))
+                {
+                    bool occupied = false;
+                    foreach (var otherCommand in gameCommands)
+                    {
+                        if (otherCommand != command && otherCommand.Hotkey.Equals(command.DefaultHotkey))
+                        {
+                            occupied = true;
+                            break;
+                        }
+                    }
+
+                    if (!occupied)
+                    {
+                        command.Hotkey = command.DefaultHotkey;
+                    }
+                }
+            }
         }
 
         private void LbHotkeys_SelectedIndexChanged(object sender, EventArgs e)
@@ -580,6 +612,8 @@ namespace ClientGUI
 
             public Keys Key { get; private set; }
             public KeyModifiers Modifier { get; private set; }
+
+            public static readonly Hotkey None = new(0);
 
             public override string ToString()
             {
