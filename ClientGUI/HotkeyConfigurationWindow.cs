@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System.Diagnostics;
 
 namespace ClientGUI
 {
@@ -266,10 +267,10 @@ namespace ClientGUI
             foreach (var gameCommand in gameCommands)
             {
                 if (pendingHotkey.Equals(gameCommand.Hotkey))
-                    gameCommand.Hotkey = new Hotkey(Keys.None, KeyModifiers.None);
+                    gameCommand.Hotkey = Hotkey.None;
             }
 
-            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            pendingHotkey = Hotkey.None;
             RefreshHotkeyList();
         }
 
@@ -325,7 +326,7 @@ namespace ClientGUI
                     bool occupied = false;
                     foreach (var otherCommand in gameCommands)
                     {
-                        if (otherCommand != command && otherCommand.Hotkey.Equals(command.DefaultHotkey))
+                        if (otherCommand != command && command.DefaultHotkey.Equals(otherCommand.Hotkey))
                         {
                             occupied = true;
                             break;
@@ -351,13 +352,13 @@ namespace ClientGUI
             lblCommandCaption.Text = command.UIName;
             lblDescription.Text = Renderer.FixText(command.Description, lblDescription.FontIndex,
                 hotkeyInfoPanel.Width - lblDescription.X).Text;
-            lblCurrentHotkeyValue.Text = command.Hotkey.ToStringWithNone();
+            lblCurrentHotkeyValue.Text = command.Hotkey?.ToStringWithNone();
 
             lblDefaultHotkeyValue.Text = command.DefaultHotkey.ToStringWithNone();
-            btnResetKey.Enabled = !command.Hotkey.Equals(command.DefaultHotkey);
+            btnResetKey.Enabled = !command.DefaultHotkey.Equals(command.Hotkey);
 
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
-            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            pendingHotkey = Hotkey.None;
             lblCurrentlyAssignedTo.Text = string.Empty;
         }
 
@@ -372,7 +373,7 @@ namespace ClientGUI
                 {
                     lbHotkeys.AddItem(new XNAListBoxItem[] {
                         new XNAListBoxItem() { Text = command.UIName, Tag = command },
-                        new XNAListBoxItem() { Text = command.Hotkey.ToString() }
+                        new XNAListBoxItem() { Text = command.Hotkey?.ToString() }
                     });
                 }
             }
@@ -391,13 +392,13 @@ namespace ClientGUI
             foreach (var gameCommand in gameCommands)
             {
                 if (pendingHotkey.Equals(gameCommand.Hotkey))
-                    gameCommand.Hotkey = new Hotkey(Keys.None, KeyModifiers.None);
+                    gameCommand.Hotkey = Hotkey.None;
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             command.Hotkey = pendingHotkey;
             RefreshHotkeyList();
-            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            pendingHotkey = Hotkey.None;
         }
 
         private void RefreshHotkeyList()
@@ -509,6 +510,10 @@ namespace ClientGUI
             var keyboardIni = new IniFile();
             foreach (var command in gameCommands)
             {
+                // Do not write if the command doesn't have a hotkey assigned, so the game can use the default hotkey for it if it exists
+                if (command.Hotkey == null)
+                    continue;
+
                 keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
@@ -542,7 +547,6 @@ namespace ClientGUI
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
                 DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
-                Hotkey = Hotkey.None;
             }
 
             public string UIName { get; private set; }
@@ -570,7 +574,7 @@ namespace ClientGUI
             public Keys Key { get; }
             public KeyModifiers Modifier { get; }
 
-            public static readonly Hotkey None = new(0);
+            public static readonly Hotkey None = new(Keys.None, KeyModifiers.None);
 
             /// <summary>
             /// Creates a new hotkey by decoding a Tiberian Sun / Red Alert 2
