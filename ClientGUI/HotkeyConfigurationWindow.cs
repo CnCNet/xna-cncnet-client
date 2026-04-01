@@ -281,7 +281,7 @@ namespace ClientGUI
                 // If the hotkey is already assigned to some other command, unbind it
                 foreach (var gameCommand in gameCommands)
                 {
-                    if (pendingHotkey == gameCommand.Hotkey)
+                    if (gameCommand != command && gameCommand.Hotkey == command.Hotkey)
                         gameCommand.Hotkey = null;
                 }
             }
