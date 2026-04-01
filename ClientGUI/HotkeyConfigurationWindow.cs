@@ -22,7 +22,6 @@ namespace ClientGUI
     public class HotkeyConfigurationWindow : XNAWindow
     {
         private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");
-        private const string HOTKEY_INI_SECTION = "Hotkey";
         private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
@@ -322,8 +321,10 @@ namespace ClientGUI
 
         private void LoadKeyboardINI()
         {
-            var keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
-            var hotkeySection = keyboardINI.GetOrAddSection(HOTKEY_INI_SECTION);
+            var keyboardINI = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            var hotkeySection = keyboardINI.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
 
             // Load the hotkeys from the INI file
             foreach (var command in gameCommands)
@@ -529,22 +530,28 @@ namespace ClientGUI
 
         private void WriteKeyboardINI()
         {
-            var keyboardIni = new IniFile();
+            IniFile keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                    ? UserINISettings.Instance.SettingsIni
+                    : new IniFile() { FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI) };
+
+            var hotkeySection = keyboardIni.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
             foreach (var command in gameCommands)
             {
                 // Note: we now explictly differ null and Hotkey.None
                 if (command.Hotkey == null)
                 {
-                    if (keyboardIni.KeyExists(HOTKEY_INI_SECTION, command.ININame))
-                        keyboardIni.RemoveKey(HOTKEY_INI_SECTION, command.ININame);
+                    if (hotkeySection.KeyExists(command.ININame))
+                        hotkeySection.RemoveKey(command.ININame);
                 }
                 else
                 {
-                    keyboardIni.SetStringValue(HOTKEY_INI_SECTION, command.ININame, command.Hotkey.GetTSEncoded().ToString());
+                    hotkeySection.SetStringValue(command.ININame, command.Hotkey.GetTSEncoded().ToString());
                 }
             }
 
-            keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            // We delay saving the user setting file until the user clicks "Save" in the Option window.
+            if (!ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
+                keyboardIni.WriteIniFile();
         }
 
         /// <summary>
