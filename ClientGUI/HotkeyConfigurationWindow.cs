@@ -311,9 +311,7 @@ namespace ClientGUI
                 int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
 
                 if (hotkey.HasValue)
-                {
                     command.Hotkey = new Hotkey(hotkey.Value);
-                }
             }
 
             // Assign default hotkeys
@@ -335,9 +333,7 @@ namespace ClientGUI
                     }
 
                     if (!occupied)
-                    {
                         command.Hotkey = command.DefaultHotkey;
-                    }
                 }
             }
         }
