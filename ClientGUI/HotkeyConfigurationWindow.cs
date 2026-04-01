@@ -270,7 +270,7 @@ namespace ClientGUI
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
 
-            if (command.DefaultHotkey == null || command.DefaultHotkey == Hotkey.None)
+            if (command.DefaultHotkey == null)
             {
                 command.Hotkey = null;
             }
@@ -294,8 +294,7 @@ namespace ClientGUI
         {
             foreach (var command in gameCommands)
             {
-                if (command.DefaultHotkey == null || command.DefaultHotkey == Hotkey.None)
-
+                if (command.DefaultHotkey == null)
                     command.Hotkey = null;
                 else
                     command.Hotkey = command.DefaultHotkey;
@@ -340,16 +339,19 @@ namespace ClientGUI
             {
                 bool hotkeyAssigned = hotkeySection.KeyExists(command.ININame);
 
-                if (!hotkeyAssigned && command.DefaultHotkey != null && command.DefaultHotkey != Hotkey.None)
+                if (!hotkeyAssigned && command.DefaultHotkey != null)
                 {
                     // Try assigning the default hotkey if it exists and is not occupied by other commands
                     bool occupied = false;
-                    foreach (var otherCommand in gameCommands)
+                    if (command.DefaultHotkey != Hotkey.None)
                     {
-                        if (otherCommand != command && command.DefaultHotkey == otherCommand.Hotkey)
+                        foreach (var otherCommand in gameCommands)
                         {
-                            occupied = true;
-                            break;
+                            if (otherCommand != command && command.DefaultHotkey == otherCommand.Hotkey)
+                            {
+                                occupied = true;
+                                break;
+                            }
                         }
                     }
 
@@ -575,7 +577,7 @@ namespace ClientGUI
                 int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
                 DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
 
-                // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents setting a new hot key via DefaultHotkey from a future update
+                // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
                 if (DefaultHotkey == Hotkey.None)
                     DefaultHotkey = null;
             }
