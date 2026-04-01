@@ -235,10 +235,10 @@ namespace ClientGUI
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
             EnabledChanged += HotkeyConfigurationWindow_EnabledChanged;
 
-            // Apply the hotkeys, so if the default keyboard ini file is updated during a client update, the changes will be reflected immediately
+            // Load and apply the hotkeys so that if the default keyboard INI file is updated during a client update
             LoadKeyboardINI();
             RefreshHotkeyList();
-            WriteKeyboardINI();
+            WriteKeyboardINI(writeEvenIfSettingsIniAsKeyboardIniHolds: true);
         }
 
         /// <summary>
@@ -528,7 +528,7 @@ namespace ClientGUI
             return currentModifiers;
         }
 
-        private void WriteKeyboardINI()
+        private void WriteKeyboardINI(bool writeEvenIfSettingsIniAsKeyboardIniHolds = false)
         {
             IniFile keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
                     ? UserINISettings.Instance.SettingsIni
@@ -550,7 +550,7 @@ namespace ClientGUI
             }
 
             // We delay saving the user setting file until the user clicks "Save" in the Option window.
-            if (!ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
+            if (writeEvenIfSettingsIniAsKeyboardIniHolds || !ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
                 keyboardIni.WriteIniFile();
         }
 
