@@ -302,40 +302,28 @@ namespace ClientGUI
         private void LoadKeyboardINI()
         {
             keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            var hotkeySection = keyboardINI.GetOrAddSection("Hotkey");
 
-            if (SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
+            // Load the hotkeys from the INI file
+            foreach (var command in gameCommands)
             {
-                foreach (var command in gameCommands)
-                {
-                    int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
+                int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
 
-                    Hotkey hotkeyStruct = new Hotkey(hotkey);
+                if (hotkey.HasValue)
+                {
+                    Hotkey hotkeyStruct = new Hotkey(hotkey.Value);
                     command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
                 }
             }
-            else
-            {
-                foreach (var command in gameCommands)
-                {
-                    command.Hotkey = command.DefaultHotkey;
-                }
-            }
 
-            var hotkeySection = keyboardINI.GetSection("Hotkey");
-
+            // Assign default hotkeys
             foreach (var command in gameCommands)
             {
-                // Now, let's handle the hotkey "0". It means either one of the following two things:
-                // 1. This hotkey is missing from the keyboard INI file, and the default hot key file does not have a default hot key specified.
-                // 2. The player intended to set the hotkey to "None".
-                // We can distinguish these cases by checking if the key exists in the [Hotkey] section.
-                // If we treat a missing hotkey value as "None", then the players won't be able to get the new default hot key
-                // without manually editing their keyboard INI file, which is not good.
-                // Therefore, we'll prefer the default key over "None" only when the hotkey entry is missing.
-                bool hasExplicitHotkey = hotkeySection?.KeyExists(command.ININame) == true;
+                bool hotkeyAssigned = hotkeySection.KeyExists(command.ININame);
 
-                if (!hasExplicitHotkey && command.Hotkey.Equals(Hotkey.None) && !command.DefaultHotkey.Equals(Hotkey.None))
+                if (!hotkeyAssigned && !command.DefaultHotkey.Equals(Hotkey.None))
                 {
+                    // Try assigning the default hotkey if it exists and is not occupied by other commands
                     bool occupied = false;
                     foreach (var otherCommand in gameCommands)
                     {
