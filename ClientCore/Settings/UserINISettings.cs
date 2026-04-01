@@ -118,7 +118,7 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            // MultiplayerScoreVolume is handled on save for RA1
+            // RA1 requires MultiplayerScoreVolume. This value is handled when saving
             ScoreVolume = new DoubleSetting(iniFile,
                 ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
                 "ScoreVolume",
