@@ -1217,15 +1217,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     occupied.Add(Players[i].ColorId);
             }
 
-            // AI players
-            for (int i = 0; i < AIPlayers.Count; i++)
-            {
-                int slot = Players.Count + i;
-                if (slot == excludeSlot) continue;
-                // Ignore "Random" and negative sentinel values for AI as well.
-                if (AIPlayers[i].ColorId > 0)
-                    occupied.Add(AIPlayers[i].ColorId);
-            }
+            // Do not consider AI player colors as occupied so AIs may share colors with humans.
+            // AI color conflicts are not enforced by the dropdown availability logic.
 
             return occupied;
         }
@@ -1274,12 +1267,63 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected int GetGameColorIndexFromIRCColor(IRCColor ircColor)
         {
+            if (ircColor == null)
+                return -1;
+
+            // First try exact match (including index 0 if it happens to match)
             for (int i = 0; i < MPColors.Count; i++)
             {
                 if (MPColors[i].XnaColor == ircColor.XnaColor)
                     return i;
             }
-            return -1;
+
+            // Compute closest matching game color by RGB distance, preferring available (not occupied) colors.
+            var occupied = GetOccupiedColorIndices();
+
+            int bestIndex = -1;
+            double bestDist = double.MaxValue;
+
+            // Prefer indices > 0 (index 0 is the "Random" entry and should not be selected)
+            for (int i = 1; i < MPColors.Count; i++)
+            {
+                if (occupied.Contains(i))
+                    continue; // skip colors currently taken by human players
+
+                var c = MPColors[i].XnaColor;
+                double dr = c.R - ircColor.XnaColor.R;
+                double dg = c.G - ircColor.XnaColor.G;
+                double db = c.B - ircColor.XnaColor.B;
+                double dist = dr * dr + dg * dg + db * db;
+
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestIndex = i;
+                }
+            }
+
+            if (bestIndex != -1)
+                return bestIndex;
+
+            // If no available color was found (all closest colors occupied), fall back to closest overall (excluding Random)
+            bestIndex = -1;
+            bestDist = double.MaxValue;
+            for (int i = 1; i < MPColors.Count; i++)
+            {
+                var c = MPColors[i].XnaColor;
+                double dr = c.R - ircColor.XnaColor.R;
+                double dg = c.G - ircColor.XnaColor.G;
+                double db = c.B - ircColor.XnaColor.B;
+                double dist = dr * dr + dg * dg + db * db;
+
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestIndex = i;
+                }
+            }
+
+            return bestIndex;
         }
 
     }
