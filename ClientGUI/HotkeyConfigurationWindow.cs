@@ -537,7 +537,7 @@ namespace ClientGUI
             var hotkeySection = keyboardIni.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
             foreach (var command in gameCommands)
             {
-                // Note: we now explictly differ null and Hotkey.None
+                // Note: we now explicitly differentiate between null and Hotkey.None
                 if (command.Hotkey == null)
                 {
                     if (hotkeySection.KeyExists(command.ININame))
