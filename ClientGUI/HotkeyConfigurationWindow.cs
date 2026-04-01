@@ -332,7 +332,14 @@ namespace ClientGUI
                 int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
 
                 if (hotkey.HasValue)
+                {
                     command.Hotkey = new Hotkey(hotkey.Value);
+                }
+                else
+                {
+                    // Clear any previously assigned hotkey when no value exists in the INI
+                    command.Hotkey = null;
+                }
             }
 
             // Assign default hotkeys
@@ -537,7 +544,7 @@ namespace ClientGUI
             var hotkeySection = keyboardIni.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
             foreach (var command in gameCommands)
             {
-                // Note: we now explictly differ null and Hotkey.None
+                // Note: we now explicitly differentiate between null and Hotkey.None
                 if (command.Hotkey == null)
                 {
                     if (hotkeySection.KeyExists(command.ININame))
