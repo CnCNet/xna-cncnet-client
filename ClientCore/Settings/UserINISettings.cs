@@ -107,6 +107,8 @@ namespace ClientCore
 
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
+            TranslationGameFilesVersion = new StringSetting(iniFile, OPTIONS, nameof(TranslationGameFilesVersion), string.Empty);
+
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
@@ -195,9 +197,11 @@ namespace ClientCore
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
+
         public StringSetting ClientTheme { get; private set; }
         public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
         public StringSetting Translation { get; private set; }
+        public StringSetting TranslationGameFilesVersion { get; private set; }
         public string TranslationFolderPath => SafePath.CombineDirectoryPath(
             ClientConfiguration.Instance.TranslationsFolderPath, Translation);
         public string TranslationThemeFolderPath => SafePath.CombineDirectoryPath(
