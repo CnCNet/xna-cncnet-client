@@ -1,10 +1,13 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using System;
 using System.Collections.Generic;
 
@@ -548,7 +551,7 @@ namespace ClientGUI
             /// <param name="encodedKeyValue">The encoded key value.</param>
             public Hotkey(int encodedKeyValue)
             {
-                Key = (Keys)(encodedKeyValue & 255);
+                Key = (Keys)ApplyTSKeyOverride(encodedKeyValue & 255);
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
@@ -559,7 +562,7 @@ namespace ClientGUI
                 Modifier = modifiers;
             }
 
-            public Keys Key { get => field; private set => field = GetKeyOverride(value); }
+            public Keys Key { get; private set; }
             public KeyModifiers Modifier { get; private set; }
 
             public override string ToString()
@@ -605,7 +608,7 @@ namespace ClientGUI
             /// </summary>
             public int GetTSEncoded()
             {
-                return ((int)Modifier << 8) + (int)Key;
+                return ((int)Modifier << 8) + RevertTSKeyOverride((int)Key);
             }
 
             public override bool Equals(object obj)
@@ -663,12 +666,19 @@ namespace ClientGUI
             /// and should be displayed as those keys instead.
             /// </summary>
             /// <param name="key">The key.</param>
-            private static Keys GetKeyOverride(Keys key)
+            private static int ApplyTSKeyOverride(int key)
             {
                 // 12 is actually NumPad5 for the game
-                if (key == (Keys)12)
-                    return Keys.NumPad5;
+                if (key == 12)
+                    return (int)Keys.NumPad5;
 
+                return key;
+            }
+
+            private static int RevertTSKeyOverride(int key)
+            {
+                if (key == (int)Keys.NumPad5)
+                    return 12;
                 return key;
             }
         }
