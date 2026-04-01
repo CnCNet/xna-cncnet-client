@@ -1258,7 +1258,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     bool taken = occupied.Contains(colorIndex) && colorIndex != currentColor;
 
                     dd.SetItemColorEnabled(j, !taken);
-                    dd.Items[j].TextColor = taken ? Color.Gray : MPColors[j].XnaColor;
+                    dd.Items[j].TextColor = taken ? Color.Gray : (j < MPColors.Count ? MPColors[j].XnaColor : dd.Items[j].TextColor);
                 }
             }
         }
