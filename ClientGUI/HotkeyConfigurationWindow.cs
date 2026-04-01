@@ -301,7 +301,7 @@ namespace ClientGUI
                     int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
 
                     Hotkey hotkeyStruct = new Hotkey(hotkey);
-                    command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
+                    command.Hotkey = new Hotkey(hotkeyStruct.Key, hotkeyStruct.Modifier);
                 }
             }
             else
@@ -397,8 +397,7 @@ namespace ClientGUI
 
             var currentModifiers = GetCurrentModifiers();
 
-            // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
-            pendingHotkey = new Hotkey(GetKeyOverride(e.PressedKey), currentModifiers);
+            pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
 
             lblCurrentlyAssignedTo.Text = string.Empty;
 
@@ -492,20 +491,6 @@ namespace ClientGUI
         }
 
         /// <summary>
-        /// Allows defining keys that match other keys for in-game purposes
-        /// and should be displayed as those keys instead.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        private Keys GetKeyOverride(Keys key)
-        {
-            // 12 is actually NumPad5 for the game
-            if (key == (Keys)12)
-                return Keys.NumPad5;
-
-            return key;
-        }
-
-        /// <summary>
         /// A game command that can be assigned into a key on the keyboard.
         /// </summary>
         class GameCommand
@@ -567,13 +552,14 @@ namespace ClientGUI
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
+            // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             public Hotkey(Keys key, KeyModifiers modifiers)
             {
                 Key = key;
                 Modifier = modifiers;
             }
 
-            public Keys Key { get; private set; }
+            public Keys Key { get => field; private set => field = GetKeyOverride(value); }
             public KeyModifiers Modifier { get; private set; }
 
             public override string ToString()
@@ -670,6 +656,20 @@ namespace ClientGUI
                     default:
                         return key.ToString();
                 }
+            }
+
+            /// <summary>
+            /// Allows defining keys that match other keys for in-game purposes
+            /// and should be displayed as those keys instead.
+            /// </summary>
+            /// <param name="key">The key.</param>
+            private static Keys GetKeyOverride(Keys key)
+            {
+                // 12 is actually NumPad5 for the game
+                if (key == (Keys)12)
+                    return Keys.NumPad5;
+
+                return key;
             }
         }
     }
