@@ -63,9 +63,7 @@ namespace ClientCore
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
-            {   
-                // TODO should we somehow handle hotkey section specially here when settings ini = keyboard ini? 
-                
+            {
                 IniSection userSection = userIni.GetSection(sectionName);
 
                 IniSection combinedUserSection = combinedUserIni.GetSection(sectionName);
@@ -90,23 +88,21 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            bool isRA = ClientConfiguration.Instance.ClientGameType == ClientType.RA;
-            
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
             IngameScreenWidth = new IntSetting(
-                iniFile, 
-                isRA ? OPTIONS : VIDEO, 
-                isRA ? "Width" : "ScreenWidth", 
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Width" : "ScreenWidth",
                 1024);
 
             IngameScreenHeight = new IntSetting(
-                iniFile, 
-                isRA ? OPTIONS : VIDEO, 
-                isRA ? "Height" : "ScreenHeight", 
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Height" : "ScreenHeight",
                 768);
 
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
@@ -122,13 +118,13 @@ namespace ClientCore
 
             // MultiplayerScoreVolume is handled on save for RA1
             ScoreVolume = new DoubleSetting(iniFile,
-                isRA ? OPTIONS : AUDIO, 
-                "ScoreVolume", 
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                "ScoreVolume",
                 0.7);
 
             SoundVolume = new DoubleSetting(iniFile,
-                isRA ? OPTIONS : AUDIO, 
-                isRA ? "Volume" : "SoundVolume", 
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Volume" : "SoundVolume",
                 0.7);
 
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);

@@ -1,10 +1,13 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using System;
 using System.Collections.Generic;
 
@@ -295,7 +298,6 @@ namespace ClientGUI
                 ? UserINISettings.Instance.SettingsIni
                 : new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
 
-            // TODO verify how RA1 behaves when hotkeys are missing from the INI
             if (ClientConfiguration.Instance.SettingsIniAsKeyboardIni
                 ? keyboardINI.SectionExists(ClientConfiguration.Instance.KeyboardHotkeySection)
                 : SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
@@ -489,13 +491,16 @@ namespace ClientGUI
             var keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
                 ? UserINISettings.Instance.SettingsIni
                 : new IniFile();
-            
+
             foreach (var command in gameCommands)
             {
                 keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            // TODO should it be like this and main settings window will handle it, or should we flush even here, saving all settings?
+            // Do not write INI file if using Settings.ini as Keyboard.ini. The hot keys will be saved when Settings.ini is saved.
+            // We choose this policy because, imagine a situation when the user pressed save in the hotkey config window, then decided they don't want changes (not the hotkey changes) they did in the options.
+            // If we don't flush here, everything can be restored by hitting a cancel.
+            // If we flush here -- the player can't cancel anymore at all.
             if (!ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
                 keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
         }
