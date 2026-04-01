@@ -342,6 +342,8 @@ namespace ClientGUI
 
                     if (!isDuplicate)
                         command.Hotkey = hotkey;
+                    else
+                        command.Hotkey = null;
                 }
                 else
                 {
