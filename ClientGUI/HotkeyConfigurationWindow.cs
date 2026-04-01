@@ -429,10 +429,13 @@ namespace ClientGUI
             }
 
             // If the hotkey is already assigned to other command, unbind it
-            foreach (var gameCommand in gameCommands)
+            if (pendingHotkey != Hotkey.None)
             {
-                if (pendingHotkey == gameCommand.Hotkey)
-                    gameCommand.Hotkey = null;
+                foreach (var gameCommand in gameCommands)
+                {
+                    if (pendingHotkey == gameCommand.Hotkey)
+                        gameCommand.Hotkey = null;
+                }
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
