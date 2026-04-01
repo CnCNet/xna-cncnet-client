@@ -1,5 +1,9 @@
-﻿using ClientCore.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using ClientCore;
+using ClientCore.Extensions;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -7,9 +11,6 @@ using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-
-using System;
-using System.Collections.Generic;
 
 namespace ClientGUI
 {
@@ -549,7 +550,15 @@ namespace ClientGUI
             /// <param name="encodedKeyValue">The encoded key value.</param>
             public Hotkey(int encodedKeyValue)
             {
-                Key = (Keys)ApplyTSKeyOverride(encodedKeyValue & 255);
+                if (TSHotkeyOverride.TryGetValue(encodedKeyValue, out var overriddenHotkey))
+                {
+                    Key = overriddenHotkey.Key;
+                    Modifier = overriddenHotkey.Modifier;
+
+                    return;
+                }
+
+                Key = (Keys)(encodedKeyValue & 255);
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
@@ -562,6 +571,17 @@ namespace ClientGUI
 
             public Keys Key { get; private set; }
             public KeyModifiers Modifier { get; private set; }
+
+            /// <summary>
+            /// Allows defining keys that match other keys for in-game purposes
+            /// and should be displayed as those keys instead.
+            /// </summary>
+            private static IReadOnlyDictionary<int, Hotkey> TSHotkeyOverride { get; } = new Dictionary<int, Hotkey>()
+            {
+                {12, new Hotkey(Keys.NumPad5, KeyModifiers.None)}
+            };
+
+            private static IReadOnlyDictionary<Hotkey, int> ReverseTSHotkeyOverride => field ??= TSHotkeyOverride.ToDictionary(kv => kv.Value, kv => kv.Key);
 
             public override string ToString()
             {
@@ -606,7 +626,10 @@ namespace ClientGUI
             /// </summary>
             public int GetTSEncoded()
             {
-                return ((int)Modifier << 8) + RevertTSKeyOverride((int)Key);
+                if (ReverseTSHotkeyOverride.TryGetValue(this, out int encodedKey))
+                    return encodedKey;
+
+                return ((int)Modifier << 8) + (int)Key;
             }
 
             public override bool Equals(object obj)
@@ -657,27 +680,6 @@ namespace ClientGUI
                     default:
                         return key.ToString();
                 }
-            }
-
-            /// <summary>
-            /// Allows defining keys that match other keys for in-game purposes
-            /// and should be displayed as those keys instead.
-            /// </summary>
-            /// <param name="key">The key.</param>
-            private static int ApplyTSKeyOverride(int key)
-            {
-                // 12 is actually NumPad5 for the game
-                if (key == 12)
-                    return (int)Keys.NumPad5;
-
-                return key;
-            }
-
-            private static int RevertTSKeyOverride(int key)
-            {
-                if (key == (int)Keys.NumPad5)
-                    return 12;
-                return key;
             }
         }
     }
