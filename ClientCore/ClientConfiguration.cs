@@ -365,10 +365,7 @@ namespace ClientCore
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
-        public bool SettingsIniAsKeyboardIni => clientDefinitionsIni.GetBooleanValue(
-            SETTINGS,
-            "SettingsIniAsKeyboardIni",
-            ClientGameType == ClientType.RA);
+        public bool SettingsIniAsKeyboardIni => SettingsIniName == KeyboardINI;
 
         public string KeyboardHotkeySection => clientDefinitionsIni.GetStringValue(
             SETTINGS,
