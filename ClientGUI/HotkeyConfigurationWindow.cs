@@ -302,9 +302,7 @@ namespace ClientGUI
                 foreach (var command in gameCommands)
                 {
                     int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
-
-                    Hotkey hotkeyStruct = new Hotkey(hotkey);
-                    command.Hotkey = new Hotkey(hotkeyStruct.Key, hotkeyStruct.Modifier);
+                    command.Hotkey = new Hotkey(hotkey);
                 }
             }
             else
