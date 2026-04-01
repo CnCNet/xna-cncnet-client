@@ -613,8 +613,6 @@ namespace ClientGUI
 
             private static IReadOnlyDictionary<Hotkey, int> ReverseTSHotkeyOverride => field ??= TSHotkeyOverride.ToDictionary(kv => kv.Value, kv => kv.Key);
 
-            public static readonly Hotkey None = new(0);
-
             public override string ToString()
             {
                 if (Key == Keys.None && Modifier == KeyModifiers.None)
