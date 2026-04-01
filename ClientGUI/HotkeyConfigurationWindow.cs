@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -327,13 +328,20 @@ namespace ClientGUI
             var hotkeySection = keyboardINI.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
 
             // Load the hotkeys from the INI file
+            var assignedHotkeys = new HashSet<Hotkey>();
             foreach (var command in gameCommands)
             {
-                int? hotkey = hotkeySection.GetIntValueOrNull(command.ININame);
+                int? tsHotkey = hotkeySection.GetIntValueOrNull(command.ININame);
 
-                if (hotkey.HasValue)
+                if (tsHotkey.HasValue)
                 {
-                    command.Hotkey = new Hotkey(hotkey.Value);
+                    Hotkey hotkey = new(tsHotkey.Value);
+                    bool isDuplicate = false;
+                    if (hotkey != Hotkey.None)
+                        isDuplicate = !assignedHotkeys.Add(hotkey);
+
+                    if (!isDuplicate)
+                        command.Hotkey = hotkey;
                 }
                 else
                 {
@@ -535,8 +543,33 @@ namespace ClientGUI
             return currentModifiers;
         }
 
+        private bool HasDuplicateHotkeys()
+        {
+            var assignedHotkeys = new HashSet<Hotkey>();
+            foreach (var command in gameCommands)
+            {
+                if (command.Hotkey != null && command.Hotkey != Hotkey.None)
+                {
+                    if (assignedHotkeys.Contains(command.Hotkey))
+                    {
+#if DEBUG
+                        Debugger.Break();
+#endif
+
+                        return true;
+                    }
+
+                    assignedHotkeys.Add(command.Hotkey);
+                }
+            }
+
+            return false;
+        }
+
         private void WriteKeyboardINI(bool writeEvenIfSettingsIniAsKeyboardIniHolds = false)
         {
+            Debug.Assert(!HasDuplicateHotkeys(), "There are duplicate hotkeys assigned. How could this happen?");
+
             IniFile keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
                     ? UserINISettings.Instance.SettingsIni
                     : new IniFile() { FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI) };
