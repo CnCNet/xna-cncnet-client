@@ -1,10 +1,13 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +19,6 @@ namespace ClientGUI
     public class HotkeyConfigurationWindow : XNAWindow
     {
         private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");
-        private const string HOTKEY_INI_SECTION = "Hotkey";
         private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
@@ -292,13 +294,17 @@ namespace ClientGUI
 
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            keyboardINI = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
 
-            if (SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
+            if (ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? keyboardINI.SectionExists(ClientConfiguration.Instance.KeyboardHotkeySection)
+                : SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
             {
                 foreach (var command in gameCommands)
                 {
-                    int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
+                    int hotkey = keyboardINI.GetIntValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, 0);
 
                     Hotkey hotkeyStruct = new Hotkey(hotkey);
                     command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
@@ -482,13 +488,21 @@ namespace ClientGUI
 
         private void WriteKeyboardINI()
         {
-            var keyboardIni = new IniFile();
+            var keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile();
+
             foreach (var command in gameCommands)
             {
-                keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
+                keyboardIni.SetStringValue(ClientConfiguration.Instance.KeyboardHotkeySection, command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
+            // Do not write INI file if using Settings.ini as Keyboard.ini. The hot keys will be saved when Settings.ini is saved.
+            // We choose this policy because, imagine a situation when the user pressed save in the hotkey config window, then decided they don't want changes (not the hotkey changes) they did in the options.
+            // If we don't flush here, everything can be restored by hitting a cancel.
+            // If we flush here -- the player can't cancel anymore at all.
+            if (!ClientConfiguration.Instance.SettingsIniAsKeyboardIni)
+                keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
         }
 
         /// <summary>

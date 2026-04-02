@@ -93,8 +93,17 @@ namespace ClientCore
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
-            IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
-            IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
+            IngameScreenWidth = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Width" : "ScreenWidth",
+                1024);
+
+            IngameScreenHeight = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Height" : "ScreenHeight",
+                768);
 
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
@@ -109,8 +118,17 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
-            SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume. This value is handled when saving
+            ScoreVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                "ScoreVolume",
+                0.7);
+
+            SoundVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Volume" : "SoundVolume",
+                0.7);
+
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
@@ -451,6 +469,10 @@ namespace ClientCore
 
             ApplyDefaults();
             // CleanUpLegacySettings();
+
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                SettingsIni.SetDoubleValue(OPTIONS, "MultiplayerScoreVolume", SettingsIni.GetDoubleValue(OPTIONS, "ScoreVolume", 0.7));
 
             SettingsIni.WriteIniFile();
 
