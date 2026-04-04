@@ -1,14 +1,15 @@
-﻿using ClientCore;
-
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+
+using ClientCore;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.Online
 {
@@ -20,30 +21,40 @@ namespace DTAClient.Online
 
         private const int RECENT_LIMIT = 50;
 
+        private Lazy<List<string>> lazyFriendList;
+
         /// <summary>
         /// A list which contains names of friended users. If you manipulate this list
         /// directly you have to also invoke UserFriendToggled event handler for every
         /// user name added or removed.
         /// </summary>
-        public List<string> FriendList => field ??= LoadFriendList();
+        public List<string> FriendList => lazyFriendList.Value;
+
+        private Lazy<List<string>> lazyIgnoreList;
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
         /// directly you have to also invoke UserIgnoreToggled event handler for every
         /// user ident added or removed.
         /// </summary>
-        public List<string> IgnoreList => field ??= LoadIgnoreList();
+        public List<string> IgnoreList => lazyIgnoreList.Value;
+
+        private Lazy<List<RecentPlayer>> lazyRecentList;
 
         /// <summary>
         /// A list which contains names of players from recent games.
         /// </summary>
-        public List<RecentPlayer> RecentList => field ??= LoadRecentPlayerList();
+        public List<RecentPlayer> RecentList => lazyRecentList.Value;
 
         public event EventHandler<UserNameEventArgs> UserFriendToggled;
         public event EventHandler<IdentEventArgs> UserIgnoreToggled;
 
         public CnCNetUserData(WindowManager windowManager)
         {
+            lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
+            lazyIgnoreList = new Lazy<List<string>>(LoadIgnoreList, LazyThreadSafetyMode.ExecutionAndPublication);
+            lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
+
             Task.Run(() =>
             {
                 // Preload lists
