@@ -257,19 +257,15 @@ namespace ClientGUI
                 var gameCommand = new GameCommand(gameCommandsIni.GetSection(sectionName));
                 gameCommands.Add(gameCommand);
 
+                // Check duplicates for default hotkeys
                 if (gameCommand.DefaultHotkey != null && gameCommand.DefaultHotkey != Hotkey.None)
                 {
                     bool isDuplicate = !defaultHotkeys.Add(gameCommand.DefaultHotkey);
 
                     if (isDuplicate)
                         throw new Exception("The default hotkey " + gameCommand.DefaultHotkey.ToString() + " for command " + gameCommand.UIName + " is duplicated with another command's default hotkey. Please make sure all default hotkeys in " + KEYBOARD_COMMANDS_INI + " are unique.");
-
                 }
             }
-
-            // Check duplicates for default hotkeys
-
-
         }
 
         /// <summary>
