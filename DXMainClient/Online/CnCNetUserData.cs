@@ -55,13 +55,10 @@ namespace DTAClient.Online
             lazyIgnoreList = new Lazy<List<string>>(LoadIgnoreList, LazyThreadSafetyMode.ExecutionAndPublication);
             lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
 
-            Task.Run(() =>
-            {
-                // Preload lists
-                _ = FriendList;
-                _ = IgnoreList;
-                _ = RecentList;
-            });
+            // Load lists in background. Fire-and-forget.
+            Task.Run(() => _ = FriendList);
+            Task.Run(() => _ = IgnoreList);
+            Task.Run(() => _ = RecentList);
 
             windowManager.GameClosing += WindowManager_GameClosing;
         }
