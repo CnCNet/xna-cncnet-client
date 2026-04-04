@@ -21,7 +21,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         protected CnCNetGame()
         {
             lazyImage = new Lazy<Image?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
-            lazyTexture = new Lazy<Texture2D?>(() => LoadTexture(), LazyThreadSafetyMode.None);
+            lazyTexture = new Lazy<Texture2D?>(LoadTexture, LazyThreadSafetyMode.None);
         }
 
         /// <summary>
