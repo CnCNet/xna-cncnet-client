@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using Rampastring.XNAUI;
 using System.Linq;
 using System;
-using System.IO;
-using System.Reflection;
+using System.Threading.Tasks;
 using Rampastring.Tools;
-using SixLabors.ImageSharp;
 using ClientCore;
 using ClientCore.Extensions;
 
@@ -27,13 +24,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             GameList = new List<CnCNetGame>();
 
-            var assembly = Assembly.GetAssembly(typeof(GameCollection));
-
-            // Default supported games paired with their embedded icon resource names.
-            // Images are loaded in parallel; textures are created sequentially on the main thread.
-            (CnCNetGame Game, string IconResourceName)[] defaultGameEntries =
+            // Default supported games. Images are loaded lazily in background threads;
+            // textures are created on demand on the main thread when first accessed.
+            var defaultGames = new DefaultCnCNetGame[]
             {
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.dtaicon.png")
                 {
                     ChatChannel = "#cncnet-dta",
                     ClientExecutableName = "DTA.exe",
@@ -41,9 +36,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "dta",
                     RegistryInstallPath = "HKCU\\Software\\TheDawnOfTheTiberiumAge",
                     UIName = "Dawn of the Tiberium Age".L10N("Client:ClientCore:DawnoftheTiberiumAge")
-                }, "DTAClient.Icons.dtaicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.tiicon.png")
                 {
                     ChatChannel = "#cncnet-ti",
                     ClientExecutableName = "TI_Launcher.exe",
@@ -51,9 +46,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "ti",
                     RegistryInstallPath = "HKCU\\Software\\TwistedInsurrection",
                     UIName = "Twisted Insurrection".L10N("Client:ClientCore:TwistedInsurrection")
-                }, "DTAClient.Icons.tiicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.moicon.png")
                 {
                     ChatChannel = "#cncnet-mo",
                     ClientExecutableName = "MentalOmegaClient.exe",
@@ -61,9 +56,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "mo",
                     RegistryInstallPath = "HKCU\\Software\\MentalOmega",
                     UIName = "Mental Omega".L10N("Client:ClientCore:MentalOmega")
-                }, "DTAClient.Icons.moicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.rricon.png")
                 {
                     ChatChannel = "#redres-lobby",
                     ClientExecutableName = "RRLauncher.exe",
@@ -71,9 +66,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "rr",
                     RegistryInstallPath = "HKLM\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection".L10N("Client:ClientCore:YRRedResurrection")
-                }, "DTAClient.Icons.rricon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.reicon.png")
                 {
                     ChatChannel = "#riseoftheeast",
                     ClientExecutableName = "RELauncher.exe",
@@ -81,9 +76,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "re",
                     RegistryInstallPath = "HKLM\\Software\\RiseoftheEast",
                     UIName = "Rise of the East".L10N("Client:ClientCore:RiseoftheEast")
-                }, "DTAClient.Icons.reicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.cncricon.png")
                 {
                     ChatChannel = "#cncreloaded",
                     ClientExecutableName = "CnCReloadedClient.exe",
@@ -91,9 +86,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "cncr",
                     RegistryInstallPath = "HKCU\\Software\\CnCReloaded",
                     UIName = "C&C: Reloaded".L10N("Client:ClientCore:CnCReloaded")
-                }, "DTAClient.Icons.cncricon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.tdicon.png")
                 {
                     ChatChannel = "#cncnet-td",
                     ClientExecutableName = "TiberianDawn.exe",
@@ -102,9 +97,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Dawn",
                     UIName = "Tiberian Dawn".L10N("Client:ClientCore:TiberianDawn"),
                     Supported = false
-                }, "DTAClient.Icons.tdicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.raicon.png")
                 {
                     ChatChannel = "#cncnet-ra",
                     ClientExecutableName = "RedAlert.exe",
@@ -112,9 +107,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "ra",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Red Alert",
                     UIName = "Red Alert".L10N("Client:ClientCore:RedAlert")
-                }, "DTAClient.Icons.raicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.d2kicon.png")
                 {
                     ChatChannel = "#cncnet-d2k",
                     ClientExecutableName = "Dune2000.exe",
@@ -123,9 +118,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
                     UIName = "Dune 2000".L10N("Client:ClientCore:Dune2000"),
                     Supported = false
-                }, "DTAClient.Icons.d2kicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.tsicon.png")
                 {
                     ChatChannel = "#cncnet-ts",
                     ClientExecutableName = "TiberianSun.exe",
@@ -133,9 +128,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "ts",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Sun",
                     UIName = "Tiberian Sun".L10N("Client:ClientCore:TiberianSun")
-                }, "DTAClient.Icons.tsicon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.yricon.png")
                 {
                     ChatChannel = "#cncnet-yr",
                     ClientExecutableName = "CnCNetClientYR.exe",
@@ -143,9 +138,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "yr",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge".L10N("Client:ClientCore:YurisRevenge")
-                }, "DTAClient.Icons.yricon.png"),
+                },
 
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.ssicon.png")
                 {
                     ChatChannel = "#cncnet-ss",
                     ClientExecutableName = "SoleSurvivor.exe",
@@ -154,47 +149,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Sole Survivor",
                     UIName = "Sole Survivor".L10N("Client:ClientCore:SoleSurvivor"),
                     Supported = false
-                }, "DTAClient.Icons.ssicon.png")
+                }
             };
 
             // CnCNet chat.
-            (CnCNetGame Game, string IconResourceName)[] otherGameEntries =
+            var otherGames = new DefaultCnCNetGame[]
             {
-                (new()
+                new DefaultCnCNetGame("DTAClient.Icons.cncneticon.png")
                 {
                     ChatChannel = "#cncnet",
                     InternalName = "cncnet",
                     UIName = "General CnCNet Chat".L10N("Client:ClientCore:GeneralCnCNetChat"),
                     AlwaysEnabled = true
-                }, "DTAClient.Icons.cncneticon.png")
+                }
             };
 
-            // Load all images in parallel using PLINQ (GetManifestResourceStream and Image.Load are thread-safe).
-            // Each game is paired with its decoded image so ordering does not need to be enforced.
-            // Textures must be created sequentially on the main (graphics) thread afterward.
-            var allEntries = defaultGameEntries.Concat(otherGameEntries).ToArray();
-
-            var gamesWithImages = allEntries
-                .AsParallel()
-                .Select(entry =>
-                {
-                    using var stream = assembly.GetManifestResourceStream(entry.IconResourceName);
-
-                    return (entry.Game, Image: Image.Load(stream));
-                })
-                .ToList();
-
-            foreach (var (game, image) in gamesWithImages)
-            {
-                using (image)
-                    game.Texture = AssetLoader.TextureFromImage(image);
-            }
-
-            CnCNetGame[] defaultGames = defaultGameEntries.Select(e => e.Game).ToArray();
-            CnCNetGame[] otherGames = otherGameEntries.Select(e => e.Game).ToArray();
-
             GameList.AddRange(defaultGames);
-            GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
+            GameList.AddRange(GetCustomGames(defaultGames.Concat<CnCNetGame>(otherGames).ToList()));
             GameList.AddRange(otherGames);
 
             if (GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame) == -1)
@@ -202,6 +173,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 throw new ClientConfigurationException("Could not find a game in the game collection matching LocalGame value of " +
                     ClientConfiguration.Instance.LocalGame + ".");
             }
+
+            // Fire-and-forget background preloading of images.
+            // Images can safely be loaded from any thread; textures must be created on the main thread.
+            var gamesToPreload = GameList.ToList();
+            _ = Task.Run(() =>
+            {
+                foreach (var game in gamesToPreload)
+                    _ = game.Image;
+            });
         }
 
         private List<CnCNetGame> GetCustomGames(List<CnCNetGame> existingGames)
@@ -236,9 +216,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     throw new GameCollectionConfigurationException("Game with InternalName " + ID.ToUpperInvariant() + " already exists in the game collection.");
 
                 string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
-                using Stream unknownIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
-                using var unknownIcon = Image.Load(unknownIconStream);
-                customGames.Add(new CnCNetGame
+                customGames.Add(new CustomCnCNetGame(iconFilename)
                 {
                     InternalName = ID,
                     UIName = iniFile.GetStringValue(kvp.Value, "UIName", ID.ToUpperInvariant()),
@@ -246,9 +224,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     GameBroadcastChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "GameBroadcastChannel"),
                     ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
                     RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
-                            + ID.ToUpperInvariant()),
-                    Texture = AssetLoader.AssetExists(iconFilename) ? AssetLoader.LoadTexture(iconFilename) :
-                            AssetLoader.TextureFromImage(unknownIcon)
+                            + ID.ToUpperInvariant())
                 });
                 customGameIDs.Add(ID);
             }
