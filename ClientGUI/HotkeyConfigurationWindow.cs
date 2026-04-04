@@ -43,28 +43,18 @@ namespace ClientGUI
 
         private List<GameCommand> gameCommands = new List<GameCommand>();
 
-        [AllowNull]
-        private XNAClientDropDown ddCategory;
-        [AllowNull]
-        private XNAMultiColumnListBox lbHotkeys;
+        private XNAClientDropDown ddCategory = null!;
+        private XNAMultiColumnListBox lbHotkeys = null!;
 
-        [AllowNull]
-        private XNAPanel hotkeyInfoPanel;
-        [AllowNull]
-        private XNALabel lblCommandCaption;
-        [AllowNull]
-        private XNALabel lblDescription;
-        [AllowNull]
-        private XNALabel lblCurrentHotkeyValue;
-        [AllowNull]
-        private XNALabel lblNewHotkeyValue;
-        [AllowNull]
-        private XNALabel lblCurrentlyAssignedTo;
+        private XNAPanel hotkeyInfoPanel = null!;
+        private XNALabel lblCommandCaption = null!;
+        private XNALabel lblDescription = null!;
+        private XNALabel lblCurrentHotkeyValue = null!;
+        private XNALabel lblNewHotkeyValue = null!;
+        private XNALabel lblCurrentlyAssignedTo = null!;
 
-        [AllowNull]
-        private XNALabel lblDefaultHotkeyValue;
-        [AllowNull]
-        private XNAClientButton btnResetKey;
+        private XNALabel lblDefaultHotkeyValue = null!;
+        private XNAClientButton btnResetKey = null!;
 
         private Hotkey pendingHotkey = Hotkey.None;
         private KeyModifiers lastFrameModifiers;
