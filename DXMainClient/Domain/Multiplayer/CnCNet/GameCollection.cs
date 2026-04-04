@@ -175,7 +175,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
 
             // Fire-and-forget background preloading of images.
-            // Images can safely be loaded from any thread; textures must be created on the main thread.
             var gamesToPreload = GameList.ToList();
             _ = Task.Run(() =>
             {

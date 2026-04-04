@@ -1,6 +1,8 @@
 #nullable enable
 using System.Reflection;
 
+using SixLabors.ImageSharp;
+
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
@@ -17,14 +19,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             this.iconResourceName = iconResourceName;
         }
 
-        protected override SixLabors.ImageSharp.Image? LoadImage()
+        protected override Image? LoadImage()
         {
             using var stream = assembly.GetManifestResourceStream(iconResourceName);
 
             if (stream == null)
                 return null;
 
-            return SixLabors.ImageSharp.Image.Load(stream);
+            return Image.Load(stream);
         }
     }
 }

@@ -1,7 +1,9 @@
 #nullable enable
-using System.Reflection;
 using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.XNAUI;
+
+using SixLabors.ImageSharp;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -11,8 +13,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     internal sealed class CustomCnCNetGame : CnCNetGame
     {
-        private static readonly Assembly assembly = Assembly.GetAssembly(typeof(CustomCnCNetGame))!;
-
         private readonly string iconFilename;
 
         public CustomCnCNetGame(string iconFilename)
@@ -20,15 +20,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             this.iconFilename = iconFilename;
         }
 
-        protected override SixLabors.ImageSharp.Image? LoadImage()
-        {
-            using var stream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
-
-            if (stream == null)
-                return null;
-
-            return SixLabors.ImageSharp.Image.Load(stream);
-        }
+        protected override Image? LoadImage() => null;
 
         protected override Texture2D? LoadTexture()
         {
