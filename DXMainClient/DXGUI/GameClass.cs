@@ -231,7 +231,7 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            buildServiceProviderTask.Wait();
+            buildServiceProviderTask.GetAwaiter().GetResult();
 
             Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
