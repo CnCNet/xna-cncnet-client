@@ -53,7 +53,7 @@ namespace DTAClient.Online
         {
             lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
             lazyIgnoreList = new Lazy<List<string>>(LoadIgnoreList, LazyThreadSafetyMode.ExecutionAndPublication);
-            lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
+            lazyRecentList = new Lazy<List<RecentPlayer>>(LoadRecentPlayerList, LazyThreadSafetyMode.ExecutionAndPublication);
 
             // Load lists in background. Fire-and-forget.
             Task.Run(() => _ = FriendList);
