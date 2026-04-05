@@ -40,7 +40,7 @@ namespace ClientGUI
             Keys.RightShift
         };
 
-        private List<GameCommand> gameCommands = new List<GameCommand>();
+        private readonly List<GameCommand> gameCommands = new List<GameCommand>();
 
         private XNAClientDropDown ddCategory = null!;
         private XNAMultiColumnListBox lbHotkeys = null!;
