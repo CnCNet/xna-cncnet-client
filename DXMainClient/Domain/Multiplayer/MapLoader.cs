@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -489,11 +488,9 @@ namespace DTAClient.Domain.Multiplayer
 
             List<string> localMapPaths;
             {
-                ConcurrentBag<string> localMapPathsConcurrentBag = [];
-
                 int mapFileExtensionWithDotLength = $".{ClientConfiguration.Instance.MapFileExtension}".Length;
 
-                Task[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
+                Task<string>[] tasks = mapFiles.Select(mapFile => Task.Run(() =>
                 {
                     string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - mapFileExtensionWithDotLength);
@@ -502,18 +499,18 @@ namespace DTAClient.Domain.Multiplayer
                         .Replace(Path.DirectorySeparatorChar, '/')
                         .Replace(Path.AltDirectorySeparatorChar, '/');
 
-                    localMapPathsConcurrentBag.Add(normalizedPath);
-
                     if (customMapCache.Items.TryGetValue(normalizedPath, out var cachedItem) && !cachedItem.IsOutdated())
                     {
                         // Use cached map
-                        return;
+                        return normalizedPath;
                     }
 
                     // Not in cache or outdated
                     var map = new Map(normalizedPath, true);
                     if (map.InitializeFromCustomMap())
                         customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
+
+                    return normalizedPath;
                 })).ToArray();
 
                 Task waitCustomMapsTask = Task.WhenAll(tasks);
@@ -526,7 +523,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 await waitCustomMapsTask;
 
-                localMapPaths = localMapPathsConcurrentBag.ToList();
+                localMapPaths = tasks.Select(t => t.Result).ToList();
             }
 
             Logger.Log("MapLoader: Finished processing uncached custom maps.");
