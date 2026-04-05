@@ -410,7 +410,7 @@ namespace DTAClient.Domain.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Error loading map for key {key}: {ex.Message}");
+                    Logger.Log($"Error loading map for key {key}: {ex}");
                     return null;
                 }
             })).ToArray();
