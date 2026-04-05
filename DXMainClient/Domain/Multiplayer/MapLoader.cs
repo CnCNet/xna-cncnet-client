@@ -478,12 +478,19 @@ namespace DTAClient.Domain.Multiplayer
                 return;
             }
 
-            Logger.Log("MapLoader: Loading custom map cache...");
+            Logger.Log("MapLoader: Loading custom maps...");
+
+            // Load custom map cache from file system
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*.{ClientConfiguration.Instance.MapFileExtension}");
             CustomMapCache customMapCache = await LoadCustomMapCacheAsync();
 
-            Logger.Log("MapLoader: Finished loading custom map cache. Processing uncached custom maps...");
+            stopwatch.Stop();
+            Logger.Log($"MapLoader: Finished loading custom map cache from file system. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+
+            // Process uncached custom maps.
+            stopwatch.Restart();
 
             List<string> localMapPaths;
             {
@@ -525,10 +532,11 @@ namespace DTAClient.Domain.Multiplayer
                 localMapPaths = tasks.Select(t => t.Result).ToList();
             }
 
-            Logger.Log("MapLoader: Finished processing uncached custom maps.");
+            stopwatch.Stop();
+            Logger.Log($"MapLoader: Finished processing uncached custom maps. Time taken: {stopwatch.ElapsedMilliseconds} ms");
 
-            // remove cached maps that no longer exist locally
-            Logger.Log("MapLoader: Removing outdated maps from cache...");
+            // Remove cached maps that no longer exist locally
+            stopwatch.Restart();
 
             HashSet<string> missingMapPaths;
             {
@@ -540,12 +548,11 @@ namespace DTAClient.Domain.Multiplayer
             foreach (string missingPath in missingMapPaths)
                 customMapCache.Items.TryRemove(missingPath, out _);
 
-            Logger.Log("MapLoader: Finished removing outdated maps from cache.");
+            stopwatch.Stop();
+            Logger.Log($"MapLoader: Finished removing outdated maps from cache. Time taken: {stopwatch.ElapsedMilliseconds} ms");
 
-            // save cache
-            Logger.Log("MapLoader: Saving new custom map cache with " + customMapCache.Items.Count + " items.");
-            await CacheCustomMapsAsync(customMapCache);
-            Logger.Log("MapLoader: Finished saving custom map cache.");
+            // Save cache. Fire-and-forget.
+            _ = CacheCustomMapsAsync(customMapCache).ContinueWith(t => { if (t.IsFaulted) throw t.Exception; });
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
