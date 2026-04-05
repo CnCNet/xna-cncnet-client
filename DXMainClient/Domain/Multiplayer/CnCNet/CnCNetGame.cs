@@ -62,7 +62,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <summary>
         /// The location where to read the game's installation path from the registry.
         /// </summary>
-        public string? RegistryInstallPath { get; set; }
+        public string? RegistryInstallPath
+        {
+            get => field;
+            set
+            {
+                string? hive = value?.Split('\\')[0].Trim();
+                if (hive is not "HKLM" and not "HKCU")
+                    throw new Exception($"Unexpected registry hive. Expected HKLM or HKCU. Got: {hive}");
+
+                field = value;
+            }
+        }
 
         private bool supported = true;
 

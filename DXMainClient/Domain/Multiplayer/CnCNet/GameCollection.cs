@@ -215,16 +215,27 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     throw new GameCollectionConfigurationException("Game with InternalName " + ID.ToUpperInvariant() + " already exists in the game collection.");
 
                 string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
-                customGames.Add(new CustomCnCNetGame(iconFilename)
+
+                CustomCnCNetGame customCnCNetGame;
+                try
                 {
-                    InternalName = ID,
-                    UIName = iniFile.GetStringValue(kvp.Value, "UIName", ID.ToUpperInvariant()),
-                    ChatChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "ChatChannel"),
-                    GameBroadcastChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "GameBroadcastChannel"),
-                    ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
-                    RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
+                    customCnCNetGame = new CustomCnCNetGame(iconFilename)
+                    {
+                        InternalName = ID,
+                        UIName = iniFile.GetStringValue(kvp.Value, "UIName", ID.ToUpperInvariant()),
+                        ChatChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "ChatChannel"),
+                        GameBroadcastChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "GameBroadcastChannel"),
+                        ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
+                        RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
                             + ID.ToUpperInvariant())
-                });
+                    };
+                }
+                catch (Exception ex)
+                {
+                    throw new GameCollectionConfigurationException("Error while reading GameCollectionConfig.ini for game " + kvp.Value + ": " + ex.Message);
+                }
+
+                customGames.Add(customCnCNetGame);
                 customGameIDs.Add(ID);
             }
 
