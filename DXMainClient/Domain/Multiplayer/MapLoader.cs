@@ -564,7 +564,6 @@ namespace DTAClient.Domain.Multiplayer
                 catch (Exception ex)
                 {
                     Logger.Log($"MapLoader: Error writing custom map cache to disk: {ex.Message}");
-                    throw;
                 }
             });
 
