@@ -484,7 +484,9 @@ namespace DTAClient.Domain.Multiplayer
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*.{ClientConfiguration.Instance.MapFileExtension}");
-            CustomMapCache customMapCache = await LoadCustomMapCacheAsync();
+
+            // Note: using synchronous file I/O here saves a noticeable amount of latency compared to async.
+            CustomMapCache customMapCache = LoadCustomMapCache();
 
             stopwatch.Stop();
             Logger.Log($"MapLoader: Finished loading custom map cache from file system. Time taken: {stopwatch.ElapsedMilliseconds} ms");
@@ -552,11 +554,11 @@ namespace DTAClient.Domain.Multiplayer
             Logger.Log($"MapLoader: Finished removing outdated maps from cache. Time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             // Save custom map cache. Fire-and-forget.
-            _ = Task.Run(async () =>
+            _ = Task.Run(() =>
             {
                 try
                 {
-                    await CacheCustomMapsAsync(customMapCache);
+                    CacheCustomMaps(customMapCache);
                     Logger.Log("MapLoader: Finished writing custom map cache to disk.");
                 }
                 catch (Exception ex)
@@ -578,18 +580,18 @@ namespace DTAClient.Domain.Multiplayer
         /// Save cache of custom maps.
         /// </summary>
         /// <param name="customMapCache">Custom maps to cache</param>
-        private async Task CacheCustomMapsAsync(CustomMapCache customMapCache)
+        private void CacheCustomMaps(CustomMapCache customMapCache)
         {
             var jsonData = JsonSerializer.Serialize(customMapCache, jsonSerializerOptions);
 
-            await File.WriteAllTextAsync(CUSTOM_MAPS_CACHE, jsonData);
+            File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
         }
 
         /// <summary>
         /// Load previously cached custom maps
         /// </summary>
         /// <returns></returns>
-        private async Task<CustomMapCache> LoadCustomMapCacheAsync()
+        private CustomMapCache LoadCustomMapCache()
         {
             // Delete any legacy cache files
             foreach (string legacyCacheFile in LEGACY_CUSTOM_MAP_CACHE_FILES.Where(File.Exists))
@@ -607,7 +609,7 @@ namespace DTAClient.Domain.Multiplayer
             // Load current cache
             try
             {
-                var jsonData = await File.ReadAllTextAsync(CUSTOM_MAPS_CACHE);
+                var jsonData = File.ReadAllText(CUSTOM_MAPS_CACHE);
 
                 var customMapCache = JsonSerializer.Deserialize<CustomMapCache>(jsonData, jsonSerializerOptions);
 
