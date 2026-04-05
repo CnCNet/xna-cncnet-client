@@ -106,14 +106,9 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Loads multiplayer map info asynchronously.
+        /// Asynchronously Loads maps based on INI info as well as those in the custom maps directory.
         /// </summary>
-        public Task LoadMapsAsync() => Task.Run(LoadMaps);
-
-        /// <summary>
-        /// Load maps based on INI info as well as those in the custom maps directory.
-        /// </summary>
-        public void LoadMaps() => LoadMapsInternalAsync().GetAwaiter().GetResult();
+        public Task LoadMapsAsync() => Task.Run(async () => await LoadMapsInternalAsync());
 
         private async Task LoadMapsInternalAsync()
         {
