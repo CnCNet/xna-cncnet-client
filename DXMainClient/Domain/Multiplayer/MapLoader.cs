@@ -124,8 +124,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadGameModes(mpMapsIni);
             LoadGameModeAliases(mpMapsIni);
 
-            Task.WaitAll(LoadMultiMapsAsync(mpMapsIni), LoadCustomMapsAsync());
-            
+            await Task.WhenAll(LoadMultiMapsAsync(mpMapsIni), LoadCustomMapsAsync());
             Logger.Log($"MapLoader: Post-processing game mode map collections.");
             _gameModes.RemoveAll(g => g.Maps.Count < 1);
             _gameModeMaps = new GameModeMapCollection(_gameModes);
