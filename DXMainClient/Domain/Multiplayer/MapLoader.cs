@@ -108,7 +108,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Asynchronously Loads maps based on INI info as well as those in the custom maps directory.
         /// </summary>
-        public Task LoadMapsAsync() => Task.Run(async () => await LoadMapsInternalAsync());
+        public Task LoadMapsAsync() => Task.Run(LoadMapsInternalAsync);
 
         private async Task LoadMapsInternalAsync()
         {
