@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Reflection;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -15,7 +16,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     internal sealed class CustomCnCNetGame : CnCNetGame
     {
-        private static readonly Assembly assembly = Assembly.GetAssembly(typeof(CustomCnCNetGame))!;
+        private static readonly Lazy<Image> lazyFallbackImage = new(() =>
+            Image.Load(
+                Assembly.GetAssembly(typeof(CustomCnCNetGame))!
+                .GetManifestResourceStream("DTAClient.Icons.unknownicon.png")));
+        private static Image FallbackImage => lazyFallbackImage.Value;
+
         private readonly string iconFilename;
 
         public CustomCnCNetGame(string iconFilename)
@@ -23,15 +29,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             this.iconFilename = iconFilename;
         }
 
-        protected override Image? LoadImage()
-        {
-            using var stream = assembly.GetManifestResourceStream("DTAClient.Icons.unknownicon.png");
-
-            if (stream == null)
-                return null;
-
-            return Image.Load(stream);
-        }
+        protected override Image? LoadImage() => FallbackImage;
 
         protected override Texture2D? LoadTexture()
         {
