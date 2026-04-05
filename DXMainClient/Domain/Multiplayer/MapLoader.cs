@@ -135,7 +135,7 @@ namespace DTAClient.Domain.Multiplayer
 
             stopwatch.Stop();
 
-            Logger.Log($"MapLoader: Map loading complete. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Map loading complete. Total time taken: {stopwatch.ElapsedMilliseconds} ms");
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
