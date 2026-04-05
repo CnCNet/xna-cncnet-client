@@ -135,7 +135,7 @@ namespace DTAClient.Domain.Multiplayer
 
             stopwatch.Stop();
 
-            Logger.Log($"MapLoader: Map loading complete. Total time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Map loading complete. Total time: {stopwatch.ElapsedMilliseconds} ms");
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
@@ -484,7 +484,7 @@ namespace DTAClient.Domain.Multiplayer
             CustomMapCache customMapCache = LoadCustomMapCache();
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Loaded custom map cache from file system in {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log(FormattableString.Invariant($"MapLoader: Loaded custom map cache from file system in {stopwatch.ElapsedMilliseconds} ms"));
 
             // Process uncached custom maps.
             stopwatch.Restart();
@@ -530,7 +530,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Processed uncached custom maps in {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log(FormattableString.Invariant($"MapLoader: Processed uncached custom maps in {stopwatch.ElapsedMilliseconds} ms"));
 
             // Remove cached maps that no longer exist locally
             stopwatch.Restart();
@@ -546,13 +546,13 @@ namespace DTAClient.Domain.Multiplayer
                 customMapCache.Items.TryRemove(missingPath, out _);
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Removed outdated maps from cache in {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log(FormattableString.Invariant($"MapLoader: Removed outdated maps from cache in {stopwatch.ElapsedMilliseconds} ms"));
 
             // Save custom map cache
             stopwatch.Restart();
             CacheCustomMaps(customMapCache);
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Saved custom map cache to disk in {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log(FormattableString.Invariant($"MapLoader: Saved custom map cache to disk in {stopwatch.ElapsedMilliseconds} ms"));
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
