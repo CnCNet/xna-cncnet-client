@@ -761,6 +761,12 @@ namespace ClientGUI
                         return "9";
                     case (Keys)12:
                         return "NumPad5" + " " + "(NumLock off)".L10N("Client:DTAConfig:NumLockOffSuffix");
+                    case (Keys)0x10:
+                        return "Shift";
+                    case (Keys)0x11:
+                        return "Ctrl";
+                    case (Keys)0x12:
+                        return "Alt";
                     default:
                         return key.ToString();
                 }
