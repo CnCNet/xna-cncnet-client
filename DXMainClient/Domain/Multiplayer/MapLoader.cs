@@ -551,8 +551,20 @@ namespace DTAClient.Domain.Multiplayer
             stopwatch.Stop();
             Logger.Log($"MapLoader: Finished removing outdated maps from cache. Time taken: {stopwatch.ElapsedMilliseconds} ms");
 
-            // Save cache. Fire-and-forget.
-            _ = Task.Run(async () => await CacheCustomMapsAsync(customMapCache)).ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            // Save custom map cache. Fire-and-forget.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await CacheCustomMapsAsync(customMapCache);
+                    Logger.Log("MapLoader: Finished writing custom map cache to disk.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"MapLoader: Error writing custom map cache to disk: {ex.Message}");
+                    throw;
+                }
+            });
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
