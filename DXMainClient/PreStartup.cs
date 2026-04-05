@@ -43,8 +43,9 @@ namespace DTAClient
 
     static class PreStartup
     {
-        public static readonly Stopwatch StartupStopwatch = Stopwatch.StartNew();
+        private static readonly Stopwatch startupStopwatch = Stopwatch.StartNew();
 
+        public static TimeSpan StartupElapsed => startupStopwatch.Elapsed;
         /// <summary>
         /// Initializes various basic systems like the client's logger, 
         /// constants, and the general exception handler.
