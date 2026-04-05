@@ -484,7 +484,7 @@ namespace DTAClient.Domain.Multiplayer
             CustomMapCache customMapCache = LoadCustomMapCache();
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Finished loading custom map cache from file system. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Finished loading custom map cache from file system. Subroutine time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             // Process uncached custom maps.
             stopwatch.Restart();
@@ -530,7 +530,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Finished processing uncached custom maps. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Finished processing uncached custom maps. Subroutine time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             // Remove cached maps that no longer exist locally
             stopwatch.Restart();
@@ -546,13 +546,13 @@ namespace DTAClient.Domain.Multiplayer
                 customMapCache.Items.TryRemove(missingPath, out _);
 
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Finished removing outdated maps from cache. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Finished removing outdated maps from cache. Subroutine time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             // Save custom map cache
             stopwatch.Restart();
             CacheCustomMaps(customMapCache);
             stopwatch.Stop();
-            Logger.Log($"MapLoader: Finished saving custom map cache to disk. Time taken: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.Log($"MapLoader: Finished saving custom map cache to disk. Subroutine time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
