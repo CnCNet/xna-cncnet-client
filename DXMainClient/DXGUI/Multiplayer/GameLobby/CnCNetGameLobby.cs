@@ -275,6 +275,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.isCustomPassword = isCustomPassword;
             this.skillLevel = skillLevel;
             this.gameRoomName = channel.UIName;
+            
+            hostUploadedMaps.Clear();
+            chatCommandDownloadedMaps.Clear();
 
             if (isHost)
             {
