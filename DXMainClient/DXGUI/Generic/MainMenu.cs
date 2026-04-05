@@ -683,7 +683,8 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
             CheckAndApplyTranslationGameFiles();
 
-            Logger.Log(FormattableString.Invariant($"Main menu initialization complete. Startup took {PreStartup.StartupStopwatch.Elapsed.TotalSeconds:F3} seconds."));
+            Logger.Log($"Main menu initialization complete.");
+            Logger.Log(FormattableString.Invariant($"Startup completed in {PreStartup.StartupStopwatch.Elapsed.TotalSeconds:F3} seconds."));
 
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {
