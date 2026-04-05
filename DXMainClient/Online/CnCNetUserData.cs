@@ -21,7 +21,7 @@ namespace DTAClient.Online
 
         private const int RECENT_LIMIT = 50;
 
-        private Lazy<List<string>> lazyFriendList;
+        private readonly Lazy<List<string>> lazyFriendList;
 
         /// <summary>
         /// A list which contains names of friended users. If you manipulate this list
@@ -30,7 +30,7 @@ namespace DTAClient.Online
         /// </summary>
         public List<string> FriendList => lazyFriendList.Value;
 
-        private Lazy<List<string>> lazyIgnoreList;
+        private readonly Lazy<List<string>> lazyIgnoreList;
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
@@ -39,7 +39,7 @@ namespace DTAClient.Online
         /// </summary>
         public List<string> IgnoreList => lazyIgnoreList.Value;
 
-        private Lazy<List<RecentPlayer>> lazyRecentList;
+        private readonly Lazy<List<RecentPlayer>> lazyRecentList;
 
         /// <summary>
         /// A list which contains names of players from recent games.
