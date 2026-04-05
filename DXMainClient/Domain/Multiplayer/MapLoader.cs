@@ -552,7 +552,7 @@ namespace DTAClient.Domain.Multiplayer
             Logger.Log($"MapLoader: Finished removing outdated maps from cache. Time taken: {stopwatch.ElapsedMilliseconds} ms");
 
             // Save cache. Fire-and-forget.
-            _ = CacheCustomMapsAsync(customMapCache).ContinueWith(t => { if (t.IsFaulted) throw t.Exception; });
+            _ = CacheCustomMapsAsync(customMapCache).ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
