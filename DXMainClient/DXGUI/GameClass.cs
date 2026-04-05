@@ -25,6 +25,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
+using System.Threading.Tasks;
+
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -143,6 +145,10 @@ namespace DTAClient.DXGUI
 
             WindowManager wm = new(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+
+            IServiceProvider serviceProvider = null;
+            Task buildServiceProviderTask = Task.Run(() => { serviceProvider = BuildServiceProvider(wm); });
+
             IMEHandler imeHandler = IMEHandler.Create(this);
             wm.IMEHandler = imeHandler;
 
@@ -225,7 +231,7 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            IServiceProvider serviceProvider = BuildServiceProvider(wm);
+            buildServiceProviderTask.GetAwaiter().GetResult();
 
             Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
