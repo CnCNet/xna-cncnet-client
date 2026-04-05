@@ -123,9 +123,10 @@ namespace DTAClient.Domain.Multiplayer
 
             LoadGameModes(mpMapsIni);
             LoadGameModeAliases(mpMapsIni);
-
+            // LoadMultiMapsAsync and LoadCustomMapsAsync both modify the game mode map collection. We intend to keep the collection thread-safe for performance, so the two methods must not be called simultaneously.
             await LoadMultiMapsAsync(mpMapsIni);
             await LoadCustomMapsAsync();
+
             Logger.Log("MapLoader: Post-processing game mode map collections.");
             _gameModes.RemoveAll(g => g.Maps.Count < 1);
             _gameModeMaps = new GameModeMapCollection(_gameModes);
