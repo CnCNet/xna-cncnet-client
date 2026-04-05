@@ -114,11 +114,13 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Load maps based on INI info as well as those in the custom maps directory.
         /// </summary>
+        [Obsolete("Use LoadMapsAsync instead.")]
         public void LoadMaps() => LoadMapsInternalAsync().GetAwaiter().GetResult();
 
         private async Task LoadMapsInternalAsync()
         {
             Logger.Log("MapLoader: Map loading task started.");
+            var stopwatch = Stopwatch.StartNew();
 
             string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
 
@@ -138,7 +140,9 @@ namespace DTAClient.Domain.Multiplayer
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
 
-            Logger.Log("MapLoader: Map loading complete.");
+            stopwatch.Stop();
+
+            Logger.Log($"MapLoader: Map loading complete. Time taken: {stopwatch.ElapsedMilliseconds} ms");
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
