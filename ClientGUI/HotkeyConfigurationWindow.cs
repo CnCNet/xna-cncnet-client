@@ -466,6 +466,7 @@ namespace ClientGUI
 
             var currentModifiers = GetCurrentModifiers();
 
+            // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
 
             lblCurrentlyAssignedTo.Text = string.Empty;
@@ -675,7 +676,6 @@ namespace ClientGUI
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
-            // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             public Hotkey(Keys key, KeyModifiers modifiers)
             {
                 Key = key;
