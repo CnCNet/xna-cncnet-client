@@ -1654,8 +1654,8 @@ public static class Updater
     {
         if (ContainsAnyMask(fileInfoFilename))
             return null;
-
-        string identifier; identifier = GetUniqueIdForFile(localFilename);
+        
+        string identifier;  identifier = GetUniqueIdForFile(localFilename);
         return fileInfoIdentifier == identifier ? null : identifier;
     }
 
