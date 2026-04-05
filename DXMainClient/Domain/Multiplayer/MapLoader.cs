@@ -388,27 +388,42 @@ namespace DTAClient.Domain.Multiplayer
                 return;
             }
 
-            List<Map> maps = new List<Map>();
-
-            foreach (string key in keys)
+            Task<Map>[] tasks = keys.Select(key => Task.Run(() =>
             {
-                string mapFilePathValue = mpMapsIni.GetStringValue(MultiMapsSection, key, string.Empty);
-                string mapFilePath = SafePath.CombineFilePath(mapFilePathValue);
-                FileInfo mapFile = SafePath.GetFile(ProgramConstants.GamePath, FormattableString.Invariant($"{mapFilePath}.{ClientConfiguration.Instance.MapFileExtension}"));
-
-                if (!mapFile.Exists)
+                try
                 {
-                    Logger.Log("Map " + mapFile.FullName + " doesn't exist!");
-                    continue;
+                    string mapFilePathValue = mpMapsIni.GetStringValue(MultiMapsSection, key, string.Empty);
+                    string mapFilePath = SafePath.CombineFilePath(mapFilePathValue);
+                    FileInfo mapFile = SafePath.GetFile(ProgramConstants.GamePath, FormattableString.Invariant($"{mapFilePath}.{ClientConfiguration.Instance.MapFileExtension}"));
+
+                    if (!mapFile.Exists)
+                    {
+                        Logger.Log("Map " + mapFile.FullName + " doesn't exist!");
+                        return null;
+                    }
+
+                    var map = new Map(mapFilePathValue, false);
+                    if (!map.InitializeFromMpMapsINI(mpMapsIni))
+                        return null;
+
+                    return map;
                 }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Error loading map for key {key}: {ex.Message}");
+                    return null;
+                }
+            })).ToArray();
 
-                var map = new Map(mapFilePathValue, false);
-
-                if (!map.InitializeFromMpMapsINI(mpMapsIni))
-                    continue;
-
-                maps.Add(map);
+            while (!Task.WaitAll(tasks, millisecondsTimeout: 1000))
+            {
+                string message = "MapLoader: Waiting for the multiplayer map loading task to complete. Remaining files: " + tasks.Count(t => !t.IsCompleted) + ". Total: " + tasks.Length;
+                Debug.WriteLine(message);
+                Logger.Log(message);
             }
+
+            // collect non-null results
+            var maps = tasks.Select(t => t.Result).Where(m => m != null).ToList();
 
             foreach (Map map in maps)
             {
