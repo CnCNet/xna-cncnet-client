@@ -25,10 +25,14 @@ Run all three commands unconditionally:
 - `set-branches` resets the remote's fetch refspec to the standard glob `+refs/heads/*:refs/remotes/origin/*`, removing any single-branch refspec that a shallow clone may have injected. Without this, LibGit2Sharp (used by GitVersion 5.12.0) crashes with `ref 'refs/remotes/origin/develop' doesn't match the destination` because it iterates refspecs in order and fails on the first non-matching one instead of falling through to the glob.
 - The final fetch brings `refs/remotes/origin/develop` into the local ref store through that glob refspec so GitVersion can find it.
 
+The same fix must be applied to every submodule recursively: `Rampastring.XNAUI` and its nested `Rampastring.Tools` submodule also carry `GitVersion.MsBuild` and are subject to the same crash when checked out with a narrow single-branch refspec.
+
 ```shell
 git fetch --unshallow origin || true
 git remote set-branches origin '*'
 git fetch origin develop
+git submodule foreach --recursive \
+  'git fetch --unshallow origin || true; git remote set-branches origin "*"; git fetch origin'
 ```
 
 ## Step 3 — Restore NuGet packages

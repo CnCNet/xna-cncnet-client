@@ -32,6 +32,11 @@ jobs:
           git fetch --unshallow origin || true
           git remote set-branches origin '*'
           git fetch origin develop
+          # Apply the same fix to every submodule (including nested ones), because GitVersion.MsBuild
+          # runs against each submodule directory that carries it, and the same LibGit2Sharp refspec
+          # crash occurs there when the submodule was checked out with a narrow single-branch refspec.
+          git submodule foreach --recursive \
+            'git fetch --unshallow origin || true; git remote set-branches origin "*"; git fetch origin'
 
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
@@ -40,3 +45,6 @@ jobs:
 
       - name: Restore NuGet packages
         run: dotnet restore -p:Configuration=UniversalGLRelease
+
+      - name: Build
+        run: dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore

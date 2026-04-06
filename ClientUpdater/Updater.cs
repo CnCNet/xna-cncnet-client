@@ -32,6 +32,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ClientUpdater.Compression;
+
 using ClientCore.Extensions;
 
 using Rampastring.Tools;
@@ -151,28 +152,36 @@ public static class Updater
     private static readonly List<UpdaterFileInfo> LocalFileInfos = new();
 
 #if NETFRAMEWORK
-    private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
-    {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-        SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-            System.Security.Authentication.SslProtocols.Tls11 |
-            System.Security.Authentication.SslProtocols.Tls12 |
-            System.Security.Authentication.SslProtocols.Tls13,
-    });
+    private static readonly Lazy<ProgressMessageHandler> lazySharedProgressMessageHandler = new Lazy<ProgressMessageHandler>(() =>
+        new(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+                System.Security.Authentication.SslProtocols.Tls11 |
+                System.Security.Authentication.SslProtocols.Tls12 |
+                System.Security.Authentication.SslProtocols.Tls13,
+        }), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
+    private static readonly Lazy<HttpClient> lazySharedHttpClient = new Lazy<HttpClient>(() =>
+        new(SharedProgressMessageHandler, true), LazyThreadSafetyMode.ExecutionAndPublication);
 #else
-    private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-        AutomaticDecompression = DecompressionMethods.All
-    });
+    private static readonly Lazy<ProgressMessageHandler> lazySharedProgressMessageHandler = new Lazy<ProgressMessageHandler>(() =>
+        new(new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            AutomaticDecompression = DecompressionMethods.All
+        }), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true)
-    {
-        DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-    };
+    private static readonly Lazy<HttpClient> lazySharedHttpClient = new Lazy<HttpClient>(() =>
+      new HttpClient(SharedProgressMessageHandler, true)
+      {
+          DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+      }, LazyThreadSafetyMode.ExecutionAndPublication);
 #endif
+
+    private static readonly ProgressMessageHandler SharedProgressMessageHandler = lazySharedProgressMessageHandler.Value;
+
+    private static readonly HttpClient SharedHttpClient = lazySharedHttpClient.Value;
 
     // Current update / download related.
     private static bool terminateUpdate;
