@@ -760,7 +760,7 @@ namespace ClientGUI
                     case Keys.D9:
                         return "9";
                     case (Keys)12:
-                        return "NumPad5" + " " + "(NumLock off)".L10N("Client:DTAConfig:NumLockOffSuffix");
+                        return "NumPad5 (NumLock off)";
                     case (Keys)0x10:
                         return "Shift";
                     case (Keys)0x11:
