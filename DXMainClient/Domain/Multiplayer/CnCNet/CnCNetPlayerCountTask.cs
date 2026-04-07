@@ -1,9 +1,7 @@
 #nullable enable
 using ClientCore;
 using System;
-using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -20,17 +18,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string? cncnetLiveStatusIdentifier;
 
-        private static readonly HttpClient httpClient = new HttpClient()
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
 
             // This call is synchronous. Therefore, we use a short timeout to avoid blocking the main thread for too long.
-            PlayerCount = GetCnCNetPlayerCountAsync(timeoutMilliseconds: 1000).GetAwaiter().GetResult();
+            PlayerCount = GetCnCNetPlayerCount(timeoutMilliseconds: 1000);
 
             CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(PlayerCount));
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
@@ -49,12 +42,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else
                 {
-                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCountAsync(timeoutMilliseconds: 5000).GetAwaiter().GetResult()));
+                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount(timeoutMilliseconds: 5000)));
                 }
             }
         }
 
-        private static async Task<int> GetCnCNetPlayerCountAsync(int timeoutMilliseconds = 5000)
+        private static int GetCnCNetPlayerCount(int timeoutMilliseconds = 5000)
         {
             try
             {
@@ -64,13 +57,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetPlayerCountURL))
                     return -1;
 
-                using var cts = new CancellationTokenSource(timeoutMilliseconds);
-                var response = await httpClient.GetAsync(ClientConfiguration.Instance.CnCNetPlayerCountURL, cts.Token).ConfigureAwait(false);
-#if NETFRAMEWORK
-                string info = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-#else
-                string info = await response.Content.ReadAsStringAsync(cts.Token).ConfigureAwait(false);
-#endif
+                string info = new TimedHttpClient(timeoutMilliseconds)
+                    .GetString(ClientConfiguration.Instance.CnCNetPlayerCountURL);
 
                 info = info.Replace("{", string.Empty);
                 info = info.Replace("}", string.Empty);

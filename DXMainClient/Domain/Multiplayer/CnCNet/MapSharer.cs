@@ -403,37 +403,24 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Logger.Log($"MapSharer: Failed to delete existing map file: {ex.Message}");
                 }
 
-                using (WebClient webClient = new ExtendedWebClient(DOWNLOAD_TIMEOUT))
+                if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
                 {
-                    if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetMapDBDownloadURL))
-                    {
-                        success = false;
-                        Logger.Log("MapSharer: Download URL is not configured.");
-                        return null;
-                    }
+                    success = false;
+                    Logger.Log("MapSharer: Download URL is not configured.");
+                    return null;
+                }
 
-                    string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
+                string url = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}.zip", ClientConfiguration.Instance.CnCNetMapDBDownloadURL, myGame, sha1);
 
-                    try
-                    {
-                        Logger.Log($"MapSharer: Downloading URL: {url}");
-                        webClient.DownloadFile(url, destinationFile.FullName);
-                    }
-                    catch (Exception ex)
-                    {
-                        /*                    if (ex.Message.Contains("404"))
-                                            {
-                                                string messageToSend = "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + "READY 1" + CTCPChar2;
-                                                CnCNetData.ConnectionBridge.SendMessage(messageToSend);
-                                            }
-                                            else
-                                            {
-                                                //GlobalVars.WriteLogfile(ex.StackTrace.ToString(), DateTime.Now.ToString("hh:mm:ss") + " DownloadMap: " + ex.Message + _DestFile);
-                                                MessageBox.Show("Download failed:" + _DestFile);
-                                            }*/
-                        success = false;
-                        return ex.Message;
-                    }
+                try
+                {
+                    Logger.Log($"MapSharer: Downloading URL: {url}");
+                    new TimedHttpClient(DOWNLOAD_TIMEOUT).DownloadFile(url, destinationFile.FullName);
+                }
+                catch (Exception ex)
+                {
+                    success = false;
+                    return ex.Message;
                 }
 
                 destinationFile.Refresh();

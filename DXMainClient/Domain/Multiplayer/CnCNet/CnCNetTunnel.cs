@@ -119,9 +119,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
-                using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
-                {
-                    string data = client.DownloadString(addressString);
+                string data = new TimedHttpClient(REQUEST_TIMEOUT).GetString(addressString);
 
                     data = data.Replace("[", String.Empty);
                     data = data.Replace("]", String.Empty);
@@ -136,7 +134,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     }
 
                     return playerPorts;
-                }
             }
             catch (Exception ex)
             {
