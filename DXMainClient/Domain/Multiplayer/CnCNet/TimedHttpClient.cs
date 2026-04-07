@@ -79,7 +79,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             using var cts = new CancellationTokenSource(timeoutMilliseconds);
 
             // Use ResponseHeadersRead for streaming to avoid buffering the entire file in memory.
-            var response = await sharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token).ConfigureAwait(false);
+            using var response = await sharedHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -95,5 +95,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         public void DownloadFile(string url, string filePath)
             => DownloadFileAsync(url, filePath).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Posts the specified content to the URL and returns the response body as a byte array.
+        /// Guaranteed to return or throw within the configured timeout.
+        /// </summary>
+        public async Task<byte[]> PostAsync(string url, HttpContent content)
+        {
+            using var cts = new CancellationTokenSource(timeoutMilliseconds);
+
+            using var response = await sharedHttpClient.PostAsync(url, content, cts.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Synchronous wrapper for <see cref="PostAsync"/>.
+        /// </summary>
+        public byte[] Post(string url, HttpContent content)
+            => PostAsync(url, content).GetAwaiter().GetResult();
     }
 }

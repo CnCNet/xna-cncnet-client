@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using System.Net;
-using System.Collections.Specialized;
 using System.Globalization;
+using System.Net.Http;
 using System.Threading;
 using Rampastring.Tools;
 using ClientCore;
@@ -128,8 +127,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string MapUpload(string _URL, Map map, string gameName, out bool success)
         {
-            ServicePointManager.Expect100Continue = false;
-
             FileInfo zipFile = SafePath.GetFile(ProgramConstants.GamePath, "Maps", "Custom", FormattableString.Invariant($"{map.SHA1}.zip"));
 
             if (zipFile.Exists) zipFile.Delete();
@@ -174,12 +171,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     files.Add(file);
 
-                    NameValueCollection values = new NameValueCollection
-                {
-                    { "game", gameName.ToLower() },
-                };
-
-                    byte[] responseArray = UploadFiles(_URL, files, values);
+                    byte[] responseArray = UploadFiles(_URL, files, gameName.ToLower());
                     string response = Encoding.UTF8.GetString(responseArray);
 
                     if (!response.Contains("Upload succeeded!"))
@@ -202,75 +194,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static void CopyStream(Stream input, Stream output)
+        private static byte[] UploadFiles(string address, List<FileToUpload> files, string gameName)
         {
-            byte[] buffer = new byte[32768];
-            int read;
-            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(gameName), "game");
+
+            foreach (FileToUpload file in files)
             {
-                output.Write(buffer, 0, read);
-            }
-        }
-
-        private static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
-        {
-            WebRequest request = WebRequest.Create(address);
-            request.Timeout = UPLOAD_TIMEOUT;
-            request.Method = "POST";
-            string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
-            request.ContentType = "multipart/form-data; boundary=" + boundary;
-            boundary = "--" + boundary;
-
-            using (Stream requestStream = request.GetRequestStream())
-            {
-                // Write the values
-                foreach (string name in values.Keys)
-                {
-                    byte[] buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
-                    requestStream.Write(buffer, 0, buffer.Length);
-
-                    buffer = Encoding.ASCII.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"{1}{1}", name, Environment.NewLine));
-                    requestStream.Write(buffer, 0, buffer.Length);
-
-                    buffer = Encoding.UTF8.GetBytes(values[name] + Environment.NewLine);
-                    requestStream.Write(buffer, 0, buffer.Length);
-                }
-
-                // Write the files
-                foreach (FileToUpload file in files)
-                {
-                    var buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
-                    requestStream.Write(buffer, 0, buffer.Length);
-
-                    buffer = Encoding.UTF8.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"{2}", file.Name, file.Filename, Environment.NewLine));
-                    requestStream.Write(buffer, 0, buffer.Length);
-
-                    buffer = Encoding.ASCII.GetBytes(string.Format("Content-Type: {0}{1}{1}", file.ContentType, Environment.NewLine));
-                    requestStream.Write(buffer, 0, buffer.Length);
-
-                    CopyStream(file.Stream, requestStream);
-
-                    buffer = Encoding.ASCII.GetBytes(Environment.NewLine);
-                    requestStream.Write(buffer, 0, buffer.Length);
-                }
-
-                byte[] boundaryBuffer = Encoding.ASCII.GetBytes(boundary + "--");
-                requestStream.Write(boundaryBuffer, 0, boundaryBuffer.Length);
+                var streamContent = new StreamContent(file.Stream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                content.Add(streamContent, file.Name, file.Filename);
             }
 
-            using (WebResponse response = request.GetResponse())
-            {
-                using (Stream responseStream = response.GetResponseStream())
-                {
-                    using (MemoryStream stream = new MemoryStream())
-                    {
-
-                        CopyStream(responseStream, stream);
-
-                        return stream.ToArray();
-                    }
-                }
-            }
+            return new TimedHttpClient(UPLOAD_TIMEOUT).Post(address, content);
         }
 
         private static void CreateZipFile(string file, string zipName)
