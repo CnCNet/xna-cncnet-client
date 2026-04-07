@@ -203,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             foreach (FileToUpload file in files)
             {
                 var streamContent = new StreamContent(file.Stream);
-                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                streamContent.Headers.TryAddWithoutValidation("Content-Type", file.ContentType);
                 content.Add(streamContent, file.Name, file.Filename);
             }
 
