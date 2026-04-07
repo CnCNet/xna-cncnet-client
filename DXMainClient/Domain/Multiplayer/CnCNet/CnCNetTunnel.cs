@@ -121,19 +121,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 string data = new TimedHttpClient(REQUEST_TIMEOUT).GetString(addressString);
 
-                    data = data.Replace("[", String.Empty);
-                    data = data.Replace("]", String.Empty);
+                data = data.Replace("[", String.Empty);
+                data = data.Replace("]", String.Empty);
 
-                    string[] portIDs = data.Split(',');
-                    List<int> playerPorts = new List<int>();
+                string[] portIDs = data.Split(',');
+                List<int> playerPorts = new List<int>();
 
-                    foreach (string _port in portIDs)
-                    {
-                        playerPorts.Add(Convert.ToInt32(_port));
-                        Logger.Log($"Added port {_port}");
-                    }
+                foreach (string _port in portIDs)
+                {
+                    playerPorts.Add(Convert.ToInt32(_port));
+                    Logger.Log($"Added port {_port}");
+                }
 
-                    return playerPorts;
+                return playerPorts;
             }
             catch (Exception ex)
             {
