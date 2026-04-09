@@ -9,12 +9,12 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 
 namespace ClientCore.Statistics.GameParsers
 {
-    class StatsDumpParser
+    public class StatsDumpParser
     {
         // Stream reading stuff
         public BigEndianReader Bin;
@@ -93,7 +93,7 @@ namespace ClientCore.Statistics.GameParsers
         public DateTime? GameEXELastWriteTimeUTC = null; // null is value if not parsed
 
 
-        public StatsDumpParser(string FileName)
+        public StatsDumpParser(string fileName)
         {
             // Init
             PlayerMoneyHarvested = new int[] { -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -134,397 +134,365 @@ namespace ClientCore.Statistics.GameParsers
             // Buildings captured
             PlayerBuildingsCaptured = new BuildingsStruct[8];
 
-            // Parse the file
-            this.Parse_Stats_Dump_File(FileName);
+            ParseStatsDumpFile(fileName);
         }
 
-        public void Parse_Stats_Dump_File(string FileName)
+        public void ParseStatsDumpFile(string fileName)
         {
-            using (BinaryReader b = new BinaryReader(File.Open(FileName, FileMode.Open)))
+            using (BinaryReader b = new BinaryReader(File.Open(fileName, FileMode.Open)))
             {
                 Bin = new BigEndianReader(b);
-                // 2.
-                // Position and length variables.
-                this.Pos = 0; // USE the class field, not a new local variable
-                this.DumpSize = (int)Bin.BaseStream.Length;
+                Pos = 0;
+                DumpSize = (int)Bin.BaseStream.Length;
 
-                // Size needs to be at least 4 bytes for the size header in the dump file
-                if (this.DumpSize < 4)
+                if (DumpSize < 4)
                 {
                     throw new StatsDumpLengthException();
                 }
-                this.ReportedSize = Bin.ReadInt16();
-                Bin.ReadInt16(); // advance position by 2 bytes
-                this.Pos += 2;
 
-                int length = (int)Bin.BaseStream.Length;
-                while (this.Pos < this.DumpSize)
+                ReportedSize = Bin.ReadInt16();
+                Bin.ReadInt16();
+                Pos += 2;
+
+                while (Pos < DumpSize)
                 {
-                    Byte[] Bytes = Bin.ReadBytes(4); this.Pos += 4;
-                    string ID = System.Text.Encoding.Default.GetString(Bytes);
+                    byte[] bytes = Bin.ReadBytes(4);
+                    Pos += 4;
+                    string id = Encoding.ASCII.GetString(bytes);
 
-                    if (ID.Contains("RSG"))
+                    if (id.Contains("RSG"))
                     {
-                        Parse_Resigned_Info(ID);
+                        ParseResignedInfo(id);
                     }
-
-                    if (ID.Contains("CON"))
+                    else if (id.Contains("CON"))
                     {
-                        Parse_Connection_Lost_Info(ID);
+                        ParseConnectionLostInfo(id);
                     }
-
-                    if (ID.Contains("SPA"))
+                    else if (id.Contains("SPA"))
                     {
-                        Parse_Spawn_Location_Info(ID);
+                        ParseSpawnLocationInfo(id);
                     }
-
-                    if (ID.Contains("NAM"))
+                    else if (id.Contains("NAM"))
                     {
-                        Parse_Name_Info(ID);
+                        ParseNameInfo(id);
                     }
-
-                    else if (ID.Contains("COL"))
+                    else if (id.Contains("COL"))
                     {
-                        Parse_Color_Info(ID);
+                        ParseColorInfo(id);
                     }
-
-                    else if (ID.Contains("ALY"))
+                    else if (id.Contains("ALY"))
                     {
-                        Parse_Alliances_Info(ID);
+                        ParseAlliancesInfo(id);
                     }
-
-                    else if (ID.Contains("SPC"))
+                    else if (id.Contains("SPC"))
                     {
-                        Parse_Spectator_State_Info(ID);
+                        ParseSpectatorStateInfo(id);
                     }
-
-                    else if (ID.Contains("DED"))
+                    else if (id.Contains("DED"))
                     {
-                        Parse_Dead_State_Info(ID);
+                        ParseDeadStateInfo(id);
                     }
-
-                    else if (ID.Contains("UNL"))
+                    else if (id.Contains("UNL"))
                     {
-                        Parse_Vehicles_Stuff(ID, ref this.PlayerVehiclesLeft);
+                        ParseVehiclesStuff(id, ref PlayerVehiclesLeft);
                     }
-
-                    else if (ID.Contains("UNB"))
+                    else if (id.Contains("UNB"))
                     {
-                        Parse_Vehicles_Stuff(ID, ref this.PlayerVehiclesBought);
+                        ParseVehiclesStuff(id, ref PlayerVehiclesBought);
                     }
-
-                    else if (ID.Contains("UNK"))
+                    else if (id.Contains("UNK"))
                     {
-                        Parse_Vehicles_Stuff(ID, ref this.PlayerVehiclesKilled);
+                        ParseVehiclesStuff(id, ref PlayerVehiclesKilled);
                     }
-
-                    else if (ID.Contains("INL"))
+                    else if (id.Contains("INL"))
                     {
-                        Parse_Infantry_Stuff(ID, ref this.PlayerInfantryLeft);
+                        ParseInfantryStuff(id, ref PlayerInfantryLeft);
                     }
-
-                    else if (ID.Contains("INB"))
+                    else if (id.Contains("INB"))
                     {
-                        Parse_Infantry_Stuff(ID, ref this.PlayerInfantryBought);
+                        ParseInfantryStuff(id, ref PlayerInfantryBought);
                     }
-
-                    else if (ID.Contains("INK"))
+                    else if (id.Contains("INK"))
                     {
-                        Parse_Infantry_Stuff(ID, ref this.PlayerInfantryKilled);
+                        ParseInfantryStuff(id, ref PlayerInfantryKilled);
                     }
-
-                    else if (ID.Contains("PLL"))
+                    else if (id.Contains("PLL"))
                     {
-                        Parse_Planes_Stuff(ID, ref this.PlayerPlanesLeft);
+                        ParsePlanesStuff(id, ref PlayerPlanesLeft);
                     }
-
-                    else if (ID.Contains("PLB"))
+                    else if (id.Contains("PLB"))
                     {
-                        Parse_Planes_Stuff(ID, ref this.PlayerPlanesBought);
+                        ParsePlanesStuff(id, ref PlayerPlanesBought);
                     }
-
-                    else if (ID.Contains("PLK"))
+                    else if (id.Contains("PLK"))
                     {
-                        Parse_Planes_Stuff(ID, ref this.PlayerPlanesKilled);
+                        ParsePlanesStuff(id, ref PlayerPlanesKilled);
                     }
-
-                    else if (ID.Contains("VSL"))
+                    else if (id.Contains("VSL"))
                     {
-                        Parse_Vessels_Stuff(ID, ref this.PlayerVesselsLeft);
+                        ParseVesselsStuff(id, ref PlayerVesselsLeft);
                     }
-
-                    else if (ID.Contains("VSB"))
+                    else if (id.Contains("VSB"))
                     {
-                        Parse_Vessels_Stuff(ID, ref this.PlayerVesselsBought);
+                        ParseVesselsStuff(id, ref PlayerVesselsBought);
                     }
-
-                    else if (ID.Contains("VSK"))
+                    else if (id.Contains("VSK"))
                     {
-                        Parse_Vessels_Stuff(ID, ref this.PlayerVesselsKilled);
+                        ParseVesselsStuff(id, ref PlayerVesselsKilled);
                     }
-
-                    else if (ID.Contains("BLL"))
+                    else if (id.Contains("BLL"))
                     {
-                        Parse_Buildings_Stuff(ID, ref this.PlayerBuildingsLeft);
+                        ParseBuildingsStuff(id, ref PlayerBuildingsLeft);
                     }
-
-                    else if (ID.Contains("BLB"))
+                    else if (id.Contains("BLB"))
                     {
-                        Parse_Buildings_Stuff(ID, ref this.PlayerBuildingsBought);
+                        ParseBuildingsStuff(id, ref PlayerBuildingsBought);
                     }
-
-                    else if (ID.Contains("BLK"))
+                    else if (id.Contains("BLK"))
                     {
-                        Parse_Buildings_Stuff(ID, ref this.PlayerBuildingsKilled);
+                        ParseBuildingsStuff(id, ref PlayerBuildingsKilled);
                     }
-
-                    else if (ID.Contains("BLC"))
+                    else if (id.Contains("BLC"))
                     {
-                        Parse_Buildings_Stuff(ID, ref this.PlayerBuildingsCaptured);
+                        ParseBuildingsStuff(id, ref PlayerBuildingsCaptured);
                     }
-
-                    else if (ID.Contains("SID"))
+                    else if (id.Contains("SID"))
                     {
-                        Parse_Side_Info(ID);
+                        ParseSideInfo(id);
                     }
-
-                    else if (ID.Contains("HRV"))
+                    else if (id.Contains("HRV"))
                     {
                         Bin.ReadBytes(4);
-                        int Money = Bin.ReadInt32();
-                        this.Pos += 8;
-                        this.Parse_Money_Harvested_Info(ID, Money);
+                        int money = Bin.ReadInt32();
+                        Pos += 8;
+                        ParseMoneyHarvestedInfo(id, money);
                     }
-
-                    else if (ID.Contains("CRA") && ID != "CRAT")
+                    else if (id.Contains("CRA") && id != "CRAT")
                     {
-                        this.Parse_Crates_Collected_Info(ID);
+                        ParseCratesCollectedInfo(id);
                     }
-
-                    else if (ID.Contains("CRD"))
+                    else if (id.Contains("CRD"))
                     {
-                        this.Parse_Credits_Info(ID);
+                        ParseCreditsInfo(id);
                     }
-
-                    else if (ID == "SDFX")
+                    else if (id == "SDFX")
                     {
-                        Read_Garbage();
-                        this.SDFX = this.Read_Byte();
+                        ReadGarbage();
+                        SDFX = ReadByte();
                     }
-
-                    else if (ID == "IDNO")
+                    else if (id == "IDNO")
                     {
-                        Read_Garbage();
-                        this.GameNumber = this.Read_32Bits();
+                        ReadGarbage();
+                        GameNumber = Read32Bits();
                     }
-
-                    else if (ID == "NUMP")
+                    else if (id == "NUMP")
                     {
-                        Read_Garbage();
-                        this.NumberOfPlayers = this.Read_32Bits();
+                        ReadGarbage();
+                        NumberOfPlayers = Read32Bits();
                     }
-                    else if (ID == "REMN")
+                    else if (id == "REMN")
                     {
-                        Read_Garbage();
-                        this.NumberOfRemainingPlayers = this.Read_32Bits();
+                        ReadGarbage();
+                        NumberOfRemainingPlayers = Read32Bits();
                     }
-                    else if (ID == "TRNY")
+                    else if (id == "TRNY")
                     {
-                        Read_Garbage();
-                        this.IsTournamentGame = this.Read_32Bits();
+                        ReadGarbage();
+                        IsTournamentGame = Read32Bits();
                     }
-                    else if (ID == "CRED")
+                    else if (id == "CRED")
                     {
-                        Read_Garbage();
-                        this.StartingCredits = this.Read_32Bits();
+                        ReadGarbage();
+                        StartingCredits = Read32Bits();
                     }
-                    else if (ID == "BASE")
+                    else if (id == "BASE")
                     {
-                        this.BasesEnabled = this.Read_ON_Or_OFF();
+                        BasesEnabled = ReadOnOrOff();
                     }
-                    else if (ID == "TIBR")
+                    else if (id == "TIBR")
                     {
-                        this.OreRegenerates = this.Read_ON_Or_OFF();
+                        OreRegenerates = ReadOnOrOff();
                     }
-                    else if (ID == "CRAT")
+                    else if (id == "CRAT")
                     {
-                        this.CratesEnabled = this.Read_ON_Or_OFF();
+                        CratesEnabled = ReadOnOrOff();
                     }
-                    else if (ID == "AIPL")
+                    else if (id == "AIPL")
                     {
-                        Read_Garbage();
-                        this.NumberOfAIPlayers = this.Read_32Bits();
+                        ReadGarbage();
+                        NumberOfAIPlayers = Read32Bits();
                     }
-                    else if (ID == "SHAD")
+                    else if (id == "SHAD")
                     {
-                        this.ShroudRegrows = this.Read_ON_Or_OFF();
+                        ShroudRegrows = ReadOnOrOff();
                     }
-                    else if (ID == "FLAG")
+                    else if (id == "FLAG")
                     {
-                        this.CTFEnabled = this.Read_ON_Or_OFF();
+                        CTFEnabled = ReadOnOrOff();
                     }
-                    else if (ID == "UNIT")
+                    else if (id == "UNIT")
                     {
-                        Read_Garbage();
-                        this.StartingUnits = this.Read_32Bits();
+                        ReadGarbage();
+                        StartingUnits = Read32Bits();
                     }
-                    else if (ID == "TECH")
+                    else if (id == "TECH")
                     {
-                        Read_Garbage();
-                        this.TechLevel = this.Read_32Bits();
+                        ReadGarbage();
+                        TechLevel = Read32Bits();
                     }
-                    else if (ID == "SCEN")
+                    else if (id == "SCEN")
                     {
-                        this.MapName = this.Parse_String();
+                        MapName = ParseString();
                     }
-                    else if (ID == "ADR1")
+                    else if (id == "ADR1")
                     {
-                        this.IPAddress1 = this.Parse_String();
+                        IPAddress1 = ParseString();
                     }
-                    else if (ID == "ADR2")
+                    else if (id == "ADR2")
                     {
-                        this.IPAddress2 = this.Parse_String();
+                        IPAddress2 = ParseString();
                     }
-                    else if (ID == "PING")
+                    else if (id == "PING")
                     {
-                        this.Ping = this.Parse_String();
+                        Ping = ParseString();
                     }
-                    else if (ID == "CMPL")
+                    else if (id == "CMPL")
                     {
-                        Read_Garbage();
-                        this.CompletionType = this.Read_Byte();
+                        ReadGarbage();
+                        CompletionType = ReadByte();
                     }
-                    else if (ID == "TIME")
+                    else if (id == "TIME")
                     {
-                        Read_Garbage();
-                        this.StartTime = this.Read_32Bits();
+                        ReadGarbage();
+                        StartTime = Read32Bits();
                     }
-                    else if (ID == "DURA")
+                    else if (id == "DURA")
                     {
-                        Read_Garbage();
-                        this.GameDuration = this.Read_32Bits();
+                        ReadGarbage();
+                        GameDuration = Read32Bits();
                     }
-                    else if (ID == "AFPS")
+                    else if (id == "AFPS")
                     {
-                        Read_Garbage();
-                        this.AverageFPS = this.Read_32Bits();
+                        ReadGarbage();
+                        AverageFPS = Read32Bits();
                     }
-                    else if (ID == "PROC")
+                    else if (id == "PROC")
                     {
-                        Read_Garbage();
-                        this.ProcessorType = this.Read_Byte();
+                        ReadGarbage();
+                        ProcessorType = ReadByte();
                     }
-                    else if (ID == "MEMO")
+                    else if (id == "MEMO")
                     {
-                        Read_Garbage();
-                        this.SystemMemory = this.Read_Unsigned_32Bits();
+                        ReadGarbage();
+                        SystemMemory = ReadUnsigned32Bits();
                     }
-                    else if (ID == "VIDM")
+                    else if (id == "VIDM")
                     {
-                        Read_Garbage();
-                        this.VideoMemory = this.Read_Unsigned_32Bits();
+                        ReadGarbage();
+                        VideoMemory = ReadUnsigned32Bits();
                     }
-                    else if (ID == "SPED")
+                    else if (id == "SPED")
                     {
-                        Read_Garbage();
-                        this.GameSpeed = this.Read_Byte();
+                        ReadGarbage();
+                        GameSpeed = ReadByte();
                     }
-                    else if (ID == "VERS")
+                    else if (id == "VERS")
                     {
-                        this.Version = this.Parse_Short_String();
+                        Version = ParseShortString();
                     }
-                    else if (ID == "QUIT")
+                    else if (id == "QUIT")
                     {
-                        this.Parse_Quit_State();
+                        ParseQuitState();
                     }
-                    else if (ID == "DATE")
+                    else if (id == "DATE")
                     {
-                        this.Parse_Date_Info();
+                        ParseDateInfo();
                     }
                 }
             }
         }
 
-        public void Print_Parsed_Data()
+        public void PrintParsedData()
         {
             Console.WriteLine("Dead state for player 2 = {0}", PlayerDeadStates[1]);
             Console.WriteLine("Spectator state for player 2 = {0}", PlayerSpectatorStates[1]);
-            Console.WriteLine("Alliances bitfield for player 3 = {0}, hex = {1:X}", Get_Alliances_String(PlayerAlliancesBitFields[2]), PlayerAlliancesBitFields[2]);
+            Console.WriteLine("Alliances bitfield for player 3 = {0}, hex = {1:X}", GetAlliancesString(PlayerAlliancesBitFields[2]), PlayerAlliancesBitFields[2]);
             Console.WriteLine("\tPlayer allied with house Neutral: {0}", (PlayerAlliancesBitFields[2] & (1 << 10)) != 0 ? "True" : "False");
-            Console.WriteLine("DumpSize = {0}", this.DumpSize);
-            Console.WriteLine("ReportedSize = {0}", this.ReportedSize);
-            Console.WriteLine("SDFX = {0}", this.SDFX);
-            Console.WriteLine("GameNumber = {0}", this.GameNumber);
-            Console.WriteLine("NumberOfPlayers = {0}", this.NumberOfPlayers);
-            Console.WriteLine("NumberOfRemainingPlayers = {0}", this.NumberOfRemainingPlayers);
-            Console.WriteLine("IsTournamentGame = {0}", this.IsTournamentGame);
-            Console.WriteLine("StartingCredits = {0}", this.StartingCredits);
-            Console.WriteLine("BasesEnabled = {0}", this.BasesEnabled);
-            Console.WriteLine("OreRegenerates = {0}", this.OreRegenerates);
-            Console.WriteLine("CratesEnabled = {0}", this.CratesEnabled);
-            Console.WriteLine("NumberOfAIPlayers = {0}", this.NumberOfAIPlayers);
-            Console.WriteLine("ShroudRegrows = {0}", this.ShroudRegrows);
-            Console.WriteLine("CTFEnabled = {0}", this.CTFEnabled);
-            Console.WriteLine("StartingUnits = {0}", this.StartingUnits);
-            Console.WriteLine("TechLevel = {0}", this.TechLevel);
-            Console.WriteLine("MapName = {0}", this.MapName);
-            Console.WriteLine("IPAddress1 = {0}", this.IPAddress1);
-            Console.WriteLine("IPAddress2 = {0}", this.IPAddress2);
-            Console.WriteLine("Ping = {0}", this.Ping);
-            Console.WriteLine("CompletionType = {0}", this.CompletionType);
-            Console.WriteLine("GameDuration = {0}", this.GameDuration);
-            Console.WriteLine("StartTime = {0}", this.StartTime);
-            Console.WriteLine("AverageFPS = {0}", this.AverageFPS);
-            Console.WriteLine("ProcessorType = {0}", this.ProcessorType);
-            Console.WriteLine("SystemMemory = {0}", this.SystemMemory);
-            Console.WriteLine("VideoMemory = {0}", this.VideoMemory);
-            Console.WriteLine("GameSpeed = {0}", this.GameSpeed);
-            Console.WriteLine("Version = {0}", this.Version);
-            Console.WriteLine("GameEXELastWriteTimeUTC = {0}", this.GameEXELastWriteTimeUTC.ToString());
+            Console.WriteLine("DumpSize = {0}", DumpSize);
+            Console.WriteLine("ReportedSize = {0}", ReportedSize);
+            Console.WriteLine("SDFX = {0}", SDFX);
+            Console.WriteLine("GameNumber = {0}", GameNumber);
+            Console.WriteLine("NumberOfPlayers = {0}", NumberOfPlayers);
+            Console.WriteLine("NumberOfRemainingPlayers = {0}", NumberOfRemainingPlayers);
+            Console.WriteLine("IsTournamentGame = {0}", IsTournamentGame);
+            Console.WriteLine("StartingCredits = {0}", StartingCredits);
+            Console.WriteLine("BasesEnabled = {0}", BasesEnabled);
+            Console.WriteLine("OreRegenerates = {0}", OreRegenerates);
+            Console.WriteLine("CratesEnabled = {0}", CratesEnabled);
+            Console.WriteLine("NumberOfAIPlayers = {0}", NumberOfAIPlayers);
+            Console.WriteLine("ShroudRegrows = {0}", ShroudRegrows);
+            Console.WriteLine("CTFEnabled = {0}", CTFEnabled);
+            Console.WriteLine("StartingUnits = {0}", StartingUnits);
+            Console.WriteLine("TechLevel = {0}", TechLevel);
+            Console.WriteLine("MapName = {0}", MapName);
+            Console.WriteLine("IPAddress1 = {0}", IPAddress1);
+            Console.WriteLine("IPAddress2 = {0}", IPAddress2);
+            Console.WriteLine("Ping = {0}", Ping);
+            Console.WriteLine("CompletionType = {0}", CompletionType);
+            Console.WriteLine("GameDuration = {0}", GameDuration);
+            Console.WriteLine("StartTime = {0}", StartTime);
+            Console.WriteLine("AverageFPS = {0}", AverageFPS);
+            Console.WriteLine("ProcessorType = {0}", ProcessorType);
+            Console.WriteLine("SystemMemory = {0}", SystemMemory);
+            Console.WriteLine("VideoMemory = {0}", VideoMemory);
+            Console.WriteLine("GameSpeed = {0}", GameSpeed);
+            Console.WriteLine("Version = {0}", Version);
+            Console.WriteLine("GameEXELastWriteTimeUTC = {0}", GameEXELastWriteTimeUTC.ToString());
 
-            this.Print_Player_Array(this.PlayerMoneyHarvested, "Money harvested for player {0} = {1}");
-            this.Print_Player_Array(this.PlayerCredits, "Credits for player {0} = {1}");
-            this.Print_Player_Array(this.PlayerQuitStates, "Quit state for player {0} = {1}");
-            this.Print_Player_Array(this.PlayerColors, "Color for player {0} = {1}");
-            this.Print_Player_Array(this.PlayersResigned, "Resigned for player {0} = {1}");
-            this.Print_Player_Array(this.PlayersSpawnLocation, "SpawnLocation for player {0} = {1}");
-            this.Print_Player_Array(this.PlayersConnectionLost, "ConnectionLost for player {0} = {1}");
-            this.Print_Player_String_Array(this.PlayerSides, "Side for player {0} = {1}");
-            this.Print_Player_String_Array(this.PlayerNames, "Name for player {0} = {1}");
+            PrintPlayerArray(PlayerMoneyHarvested, "Money harvested for player {0} = {1}");
+            PrintPlayerArray(PlayerCredits, "Credits for player {0} = {1}");
+            PrintPlayerArray(PlayerQuitStates, "Quit state for player {0} = {1}");
+            PrintPlayerArray(PlayerColors, "Color for player {0} = {1}");
+            PrintPlayerArray(PlayersResigned, "Resigned for player {0} = {1}");
+            PrintPlayerArray(PlayersSpawnLocation, "SpawnLocation for player {0} = {1}");
+            PrintPlayerArray(PlayersConnectionLost, "ConnectionLost for player {0} = {1}");
+            PrintPlayerStringArray(PlayerSides, "Side for player {0} = {1}");
+            PrintPlayerStringArray(PlayerNames, "Name for player {0} = {1}");
 
-            // Print unit/building structs for each player (only non-zero fields are shown)
             for (int i = 0; i < 8; i++)
             {
                 int playerNumber = i + 1;
-                Print_Struct_For_Player(this.PlayerVehiclesLeft[i], "Vehicles left", playerNumber);
-                Print_Struct_For_Player(this.PlayerVehiclesBought[i], "Vehicles bought", playerNumber);
-                Print_Struct_For_Player(this.PlayerVehiclesKilled[i], "Vehicles killed", playerNumber);
+                PrintStructForPlayer(PlayerVehiclesLeft[i], "Vehicles left", playerNumber);
+                PrintStructForPlayer(PlayerVehiclesBought[i], "Vehicles bought", playerNumber);
+                PrintStructForPlayer(PlayerVehiclesKilled[i], "Vehicles killed", playerNumber);
 
-                Print_Struct_For_Player(this.PlayerInfantryLeft[i], "Infantry left", playerNumber);
-                Print_Struct_For_Player(this.PlayerInfantryBought[i], "Infantry bought", playerNumber);
-                Print_Struct_For_Player(this.PlayerInfantryKilled[i], "Infantry killed", playerNumber);
+                PrintStructForPlayer(PlayerInfantryLeft[i], "Infantry left", playerNumber);
+                PrintStructForPlayer(PlayerInfantryBought[i], "Infantry bought", playerNumber);
+                PrintStructForPlayer(PlayerInfantryKilled[i], "Infantry killed", playerNumber);
 
-                Print_Struct_For_Player(this.PlayerPlanesLeft[i], "Planes left", playerNumber);
-                Print_Struct_For_Player(this.PlayerPlanesBought[i], "Planes bought", playerNumber);
-                Print_Struct_For_Player(this.PlayerPlanesKilled[i], "Planes killed", playerNumber);
+                PrintStructForPlayer(PlayerPlanesLeft[i], "Planes left", playerNumber);
+                PrintStructForPlayer(PlayerPlanesBought[i], "Planes bought", playerNumber);
+                PrintStructForPlayer(PlayerPlanesKilled[i], "Planes killed", playerNumber);
 
-                Print_Struct_For_Player(this.PlayerVesselsLeft[i], "Vessels left", playerNumber);
-                Print_Struct_For_Player(this.PlayerVesselsBought[i], "Vessels bought", playerNumber);
-                Print_Struct_For_Player(this.PlayerVesselsKilled[i], "Vessels killed", playerNumber);
+                PrintStructForPlayer(PlayerVesselsLeft[i], "Vessels left", playerNumber);
+                PrintStructForPlayer(PlayerVesselsBought[i], "Vessels bought", playerNumber);
+                PrintStructForPlayer(PlayerVesselsKilled[i], "Vessels killed", playerNumber);
 
-                Print_Struct_For_Player(this.PlayerBuildingsLeft[i], "Buildings left", playerNumber);
-                Print_Struct_For_Player(this.PlayerBuildingsBought[i], "Buildings bought", playerNumber);
-                Print_Struct_For_Player(this.PlayerBuildingsKilled[i], "Buildings killed", playerNumber);
-                Print_Struct_For_Player(this.PlayerBuildingsCaptured[i], "Buildings captured", playerNumber);
+                PrintStructForPlayer(PlayerBuildingsLeft[i], "Buildings left", playerNumber);
+                PrintStructForPlayer(PlayerBuildingsBought[i], "Buildings bought", playerNumber);
+                PrintStructForPlayer(PlayerBuildingsKilled[i], "Buildings killed", playerNumber);
+                PrintStructForPlayer(PlayerBuildingsCaptured[i], "Buildings captured", playerNumber);
             }
         }
 
-        // Generic helper that prints only non-zero fields of any struct used (Vehicles/Infantry/Buildings/etc.)
-        private void Print_Struct_For_Player<T>(T struc, string label, int playerNumber)
+        private void PrintStructForPlayer<T>(T struc, string label, int playerNumber)
         {
-            if (struc == null) return; // just in case (structs can't be null, but arrays might be)
+            if (struc == null)
+                return;
+
             System.Reflection.FieldInfo[] fields = typeof(T).GetFields();
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
             foreach (var f in fields)
             {
                 object valObj = f.GetValue(struc);
@@ -537,471 +505,470 @@ namespace ClientCore.Statistics.GameParsers
                     }
                 }
             }
+
             if (sb.Length > 0)
             {
-                sb.Length -= 2; // trim trailing ", "
+                sb.Length -= 2;
                 Console.WriteLine("{0} for player {1} = {2}", label, playerNumber, sb.ToString());
             }
         }
 
-        public void Parse_Quit_State()
+        public void ParseQuitState()
         {
-            Read_Garbage();
-            int PlayerNum = this.QuitPlayerNumHelper;
+            ReadGarbage();
+            int playerNum = QuitPlayerNumHelper;
 
-            this.PlayerQuitStates[PlayerNum - 1] = this.Read_Byte();
+            PlayerQuitStates[playerNum - 1] = ReadByte();
         }
 
-        public void Parse_Date_Info()
+        public void ParseDateInfo()
         {
-            Read_Garbage();
-            FileTime FTime = new FileTime();
+            ReadGarbage();
+            FileTime fTime = new FileTime();
 
-            FTime.dwLowDateTime = this.Read_Unsigned_32Bits();
-            FTime.dwHighDateTime = this.Read_Unsigned_32Bits();
+            fTime.DwLowDateTime = ReadUnsigned32Bits();
+            fTime.DwHighDateTime = ReadUnsigned32Bits();
 
-            long TimeLong = FileTime.FileTime_To_Long(FTime);
-            this.GameEXELastWriteTimeUTC = DateTime.FromFileTimeUtc(TimeLong);
-
+            long timeLong = FileTime.FileTimeToLong(fTime);
+            GameEXELastWriteTimeUTC = DateTime.FromFileTimeUtc(timeLong);
         }
 
-        public void Parse_Alliances_Info(string ID)
+        public void ParseAlliancesInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayerAlliancesBitFields[PlayerNum - 1] = this.Read_32Bits();
+            PlayerAlliancesBitFields[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Dead_State_Info(string ID)
+        public void ParseDeadStateInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayerDeadStates[PlayerNum - 1] = this.Read_32Bits();
+            PlayerDeadStates[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Spectator_State_Info(string ID)
+        public void ParseSpectatorStateInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayerSpectatorStates[PlayerNum - 1] = this.Read_32Bits();
+            PlayerSpectatorStates[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Color_Info(string ID)
+        public void ParseColorInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayerColors[PlayerNum - 1] = this.Read_Byte();
+            PlayerColors[playerNum - 1] = ReadByte();
         }
 
-        public void Parse_Credits_Info(string ID)
+        public void ParseCreditsInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayerCredits[PlayerNum - 1] = this.Read_32Bits();
+            PlayerCredits[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Crates_Collected_Info(string ID)
+        public void ParseCratesCollectedInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            CratesCollectedStruct Crates = Parse_Crates_Collected_For_Player();
+            CratesCollectedStruct crates = ParseCratesCollectedForPlayer();
 
-            this.PlayerCratesCollected[PlayerNum - 1] = Crates;
+            PlayerCratesCollected[playerNum - 1] = crates;
         }
 
-        public void Parse_Vehicles_Stuff(string ID, ref VehiclesStruct[] VehArray)
+        public void ParseVehiclesStuff(string id, ref VehiclesStruct[] vehArray)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            VehiclesStruct Vehicles = Parse_Vehicles();
+            VehiclesStruct vehicles = ParseVehicles();
 
-            VehArray[PlayerNum - 1] = Vehicles;
+            vehArray[playerNum - 1] = vehicles;
         }
 
-        public void Parse_Vessels_Stuff(string ID, ref VesselsStruct[] VesArray)
+        public void ParseVesselsStuff(string id, ref VesselsStruct[] vesArray)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            VesselsStruct Vessels = Parse_Vessels();
+            VesselsStruct vessels = ParseVessels();
 
-            VesArray[PlayerNum - 1] = Vessels;
+            vesArray[playerNum - 1] = vessels;
         }
 
-        public void Parse_Infantry_Stuff(string ID, ref InfantryStruct[] InfArray)
+        public void ParseInfantryStuff(string id, ref InfantryStruct[] infArray)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            InfantryStruct Infantry = Parse_Infantry();
+            InfantryStruct infantry = ParseInfantry();
 
-            InfArray[PlayerNum - 1] = Infantry;
+            infArray[playerNum - 1] = infantry;
         }
 
-        public void Parse_Buildings_Stuff(string ID, ref BuildingsStruct[] BuildingsArray)
+        public void ParseBuildingsStuff(string id, ref BuildingsStruct[] buildingsArray)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            BuildingsStruct Buildings = Parse_Buildings();
+            BuildingsStruct buildings = ParseBuildings();
 
-            BuildingsArray[PlayerNum - 1] = Buildings;
+            buildingsArray[playerNum - 1] = buildings;
         }
 
-        public void Parse_Planes_Stuff(string ID, ref PlanesStruct[] PlanesArray)
+        public void ParsePlanesStuff(string id, ref PlanesStruct[] planesArray)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_32Bits(); // Read garbage
+            int playerNum = GetPlayerNumberFromId(id);
+            Read32Bits();
 
-            PlanesStruct Planes = Parse_Planes();
+            PlanesStruct planes = ParsePlanes();
 
-            PlanesArray[PlayerNum - 1] = Planes;
+            planesArray[playerNum - 1] = planes;
         }
 
-        public string Parse_String()
+        public string ParseString()
         {
-            byte[] Bytes = Bin.ReadBytes(4);
-            int Length = ((int)Bytes[3]) - 1;
+            byte[] bytes = Bin.ReadBytes(4);
+            int length = ((int)bytes[3]) - 1;
 
-            byte[] StringBytes = Bin.ReadBytes(Length);
-            string RetString = System.Text.Encoding.Default.GetString(StringBytes);
+            byte[] stringBytes = Bin.ReadBytes(length);
+            string retString = Encoding.ASCII.GetString(stringBytes);
 
-            int AlignRead = 4 - (Length % 4);
-            if (AlignRead == 4) { AlignRead = 0; }
-            Bin.ReadBytes(AlignRead); // Read for 4 byte alignment
+            int alignRead = 4 - (length % 4);
+            if (alignRead == 4)
+                alignRead = 0;
 
-            //            Console.WriteLine("Length = {0}, AlignRead = {1}", Length, AlignRead);
-            Pos += AlignRead + 4 + Length;
-            return RetString;
+            Bin.ReadBytes(alignRead);
+
+            Pos += alignRead + 4 + length;
+            return retString;
         }
 
-        public string Parse_Short_String()
+        public string ParseShortString()
         {
-            Read_Garbage();
+            ReadGarbage();
 
-
-            byte[] StringBytes = Bin.ReadBytes(3);
+            byte[] stringBytes = Bin.ReadBytes(3);
             Bin.ReadBytes(1);
             Pos += 4;
-            string RetString = Encoding.ASCII.GetString(StringBytes);
-            return RetString;
+            string retString = Encoding.ASCII.GetString(stringBytes);
+            return retString;
         }
 
-        public int Read_32Bits()
+        public int Read32Bits()
         {
             Pos += 4;
             return Bin.ReadInt32();
         }
 
-        public uint Read_Unsigned_32Bits()
+        public uint ReadUnsigned32Bits()
         {
             Pos += 4;
             return Bin.ReadUInt32();
         }
 
-        public int Read_Byte()
+        public int ReadByte()
         {
             Pos += 4;
-            int ByteRead = (int)Bin.ReadBigEndianBytes(1)[0];
-            Bin.ReadBigEndianBytes(3); // throw away
-            return ByteRead;
+            int byteRead = (int)Bin.ReadBigEndianBytes(1)[0];
+            Bin.ReadBigEndianBytes(3);
+            return byteRead;
         }
 
-        public void Read_Garbage()
+        public void ReadGarbage()
         {
-            this.Read_32Bits();
+            Read32Bits();
         }
 
-        // Return 1 if ASCII string "ON" is read or 0 if "OFF" is read,
-        // return -2 if something else was read
-        public int Read_ON_Or_OFF()
+        public int ReadOnOrOff()
         {
-            Read_Garbage();
+            ReadGarbage();
 
-            int Ret = -2;
-            int Bytes = this.Read_32Bits();
+            int ret = -2;
+            int bytes = Read32Bits();
 
-            if (Bytes == (int)0x4F4E0000) { Ret = 1; }
-            if (Bytes == (int)0x4F464600) { Ret = 0; }
+            if (bytes == (int)0x4F4E0000)
+                ret = 1;
+            if (bytes == (int)0x4F464600)
+                ret = 0;
 
-            return Ret;
+            return ret;
         }
 
-        public void Parse_Side_Info(String ID)
+        public void ParseSideInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
+            int playerNum = GetPlayerNumberFromId(id);
 
-            this.PlayerSides[PlayerNum - 1] = Parse_Short_String();
+            PlayerSides[playerNum - 1] = ParseShortString();
 
-            this.QuitPlayerNumHelper = PlayerNum; // To help parsing QUIT per player
+            QuitPlayerNumHelper = playerNum;
         }
 
-        public void Parse_Name_Info(String ID)
+        public void ParseNameInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
+            int playerNum = GetPlayerNumberFromId(id);
 
-            this.PlayerNames[PlayerNum - 1] = Parse_String();
+            PlayerNames[playerNum - 1] = ParseString();
         }
 
-        public void Parse_Spawn_Location_Info(String ID)
+        public void ParseSpawnLocationInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayersSpawnLocation[PlayerNum - 1] = this.Read_32Bits();
+            PlayersSpawnLocation[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Resigned_Info(String ID)
+        public void ParseResignedInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayersResigned[PlayerNum - 1] = this.Read_32Bits();
+            PlayersResigned[playerNum - 1] = Read32Bits();
         }
 
-        public void Parse_Connection_Lost_Info(String ID)
+        public void ParseConnectionLostInfo(string id)
         {
-            int PlayerNum = Get_Player_Number_From_ID(ID);
-            this.Read_Garbage();
+            int playerNum = GetPlayerNumberFromId(id);
+            ReadGarbage();
 
-            this.PlayersConnectionLost[PlayerNum - 1] = this.Read_32Bits();
+            PlayersConnectionLost[playerNum - 1] = Read32Bits();
         }
 
-        public CratesCollectedStruct Parse_Crates_Collected_For_Player()
+        public CratesCollectedStruct ParseCratesCollectedForPlayer()
         {
-            CratesCollectedStruct Crates = new CratesCollectedStruct();
+            CratesCollectedStruct crates = new CratesCollectedStruct();
 
-            Crates.MoneyCrates = this.Read_32Bits();
-            Crates.UnitCrates = this.Read_32Bits();
-            Crates.ParabombCrates = this.Read_32Bits();
-            Crates.HealCrates = this.Read_32Bits();
-            Crates.StealthCrates = this.Read_32Bits();
-            Crates.ExplosionCrates = this.Read_32Bits();
-            Crates.NapalmDeathCrates = this.Read_32Bits();
-            Crates.SquadCrates = this.Read_32Bits();
-            Crates.MapReshroud = this.Read_32Bits();
-            Crates.MapRevealCrates = this.Read_32Bits();
-            Crates.SonarPulseCrates = this.Read_32Bits();
-            Crates.ArmorUpgradeCrates = this.Read_32Bits();
-            Crates.SpeedUpgradeCrates = this.Read_32Bits();
-            Crates.FirepowerUpgradeCrates = this.Read_32Bits();
-            Crates.OneShotNukeCrates = this.Read_32Bits();
-            Crates.TimeQuakeCrates = this.Read_32Bits();
-            Crates.IronCurtainCrates = this.Read_32Bits();
-            Crates.ChronoVortexCrates = this.Read_32Bits();
+            crates.MoneyCrates = Read32Bits();
+            crates.UnitCrates = Read32Bits();
+            crates.ParabombCrates = Read32Bits();
+            crates.HealCrates = Read32Bits();
+            crates.StealthCrates = Read32Bits();
+            crates.ExplosionCrates = Read32Bits();
+            crates.NapalmDeathCrates = Read32Bits();
+            crates.SquadCrates = Read32Bits();
+            crates.MapReshroud = Read32Bits();
+            crates.MapRevealCrates = Read32Bits();
+            crates.SonarPulseCrates = Read32Bits();
+            crates.ArmorUpgradeCrates = Read32Bits();
+            crates.SpeedUpgradeCrates = Read32Bits();
+            crates.FirepowerUpgradeCrates = Read32Bits();
+            crates.OneShotNukeCrates = Read32Bits();
+            crates.TimeQuakeCrates = Read32Bits();
+            crates.IronCurtainCrates = Read32Bits();
+            crates.ChronoVortexCrates = Read32Bits();
 
-            return Crates;
+            return crates;
         }
 
-        public VesselsStruct Parse_Vessels()
+        public VesselsStruct ParseVessels()
         {
-            VesselsStruct Vessels = new VesselsStruct();
+            VesselsStruct vessels = new VesselsStruct();
 
-            Vessels.Submarines = this.Read_32Bits();
-            Vessels.Destroyers = this.Read_32Bits();
-            Vessels.Cruisers = this.Read_32Bits();
-            Vessels.Gunboats = this.Read_32Bits();
-            Vessels.MissileSubs = this.Read_32Bits();
-            Vessels.HeliCarriers = this.Read_32Bits(); // Aftermath hidden unit
+            vessels.Submarines = Read32Bits();
+            vessels.Destroyers = Read32Bits();
+            vessels.Cruisers = Read32Bits();
+            vessels.Gunboats = Read32Bits();
+            vessels.MissileSubs = Read32Bits();
+            vessels.HeliCarriers = Read32Bits();
 
-            return Vessels;
+            return vessels;
         }
 
-        public PlanesStruct Parse_Planes()
+        public PlanesStruct ParsePlanes()
         {
-            PlanesStruct Planes = new PlanesStruct();
+            PlanesStruct planes = new PlanesStruct();
 
-            Planes.Chinooks = Read_32Bits();
-            Planes.BadgeBombers = Read_32Bits();
-            Planes.SpyPlanes = Read_32Bits();
-            Planes.MIGs = Read_32Bits();
-            Planes.YAKs = Read_32Bits();
-            Planes.LongBows = Read_32Bits();
-            Planes.Hinds = Read_32Bits();
+            planes.Chinooks = Read32Bits();
+            planes.BadgeBombers = Read32Bits();
+            planes.SpyPlanes = Read32Bits();
+            planes.MIGs = Read32Bits();
+            planes.YAKs = Read32Bits();
+            planes.LongBows = Read32Bits();
+            planes.Hinds = Read32Bits();
 
-            return Planes;
+            return planes;
         }
 
-        public BuildingsStruct Parse_Buildings()
+        public BuildingsStruct ParseBuildings()
         {
-            BuildingsStruct Buildings = new BuildingsStruct();
+            BuildingsStruct buildings = new BuildingsStruct();
 
-            Buildings.AlliedTechCenters = Read_32Bits();
-            Buildings.IronCurtains = Read_32Bits();
-            Buildings.WarFactories = Read_32Bits();
-            Buildings.Chronospheres = Read_32Bits();
-            Buildings.Pillboxes = Read_32Bits();
-            Buildings.CameoPillboxes = Read_32Bits();
-            Buildings.RadarDomes = Read_32Bits();
-            Buildings.GapGenerators = Read_32Bits();
-            Buildings.Turrets = Read_32Bits();
-            Buildings.AAGuns = Read_32Bits();
-            Buildings.FlameTowers = Read_32Bits();
-            Buildings.ConstructionYards = Read_32Bits();
-            Buildings.Refineries = Read_32Bits();
-            Buildings.OreSilos = Read_32Bits();
-            Buildings.Helipads = Read_32Bits();
-            Buildings.SamSites = Read_32Bits();
-            Buildings.Airfields = Read_32Bits();
-            Buildings.PowerPlants = Read_32Bits();
-            Buildings.AdvancedPowerPlants = Read_32Bits();
-            Buildings.SovietTechCenters = Read_32Bits();
-            Buildings.Hospitals = Read_32Bits();
-            Buildings.SovietBarracks = Read_32Bits();
-            Buildings.AlliesBarracks = Read_32Bits();
-            Buildings.Kennels = Read_32Bits();
-            Buildings.ServiceDepots = Read_32Bits();
-            Buildings.BIOResearchFacilities = Read_32Bits();
-            Buildings.TechnologyCenters = Read_32Bits();
-            Buildings.Shipyards = Read_32Bits();
-            Buildings.Subpens = Read_32Bits();
-            Buildings.MissileSilos = Read_32Bits();
-            Buildings.ForwardCommandPosts = Read_32Bits();
-            Buildings.TeslaCoils = Read_32Bits();
-            Buildings.FakeWarFactories = Read_32Bits();
-            Buildings.FakeConstructionYards = Read_32Bits();
-            Buildings.FakeShipyards = Read_32Bits();
-            Buildings.FakeSubpens = Read_32Bits();
-            Buildings.FakeRadarDomes = Read_32Bits();
-            Buildings.Sandbags = Read_32Bits();
-            Buildings.ChainLinkFences = Read_32Bits();
-            Buildings.ConcreteWalls = Read_32Bits();
-            Buildings.BarbwireFences = Read_32Bits();
-            Buildings.WoodenFences = Read_32Bits();
-            Buildings.WireFences = Read_32Bits();
-            Buildings.AntiTankMines = Read_32Bits();
-            Buildings.AntiPersonnelMines = Read_32Bits();
-            Buildings.V1s = Read_32Bits();
-            Buildings.V2s = Read_32Bits();
-            Buildings.V3s = Read_32Bits();
-            Buildings.V4s = Read_32Bits();
-            Buildings.V5s = Read_32Bits();
-            Buildings.V6s = Read_32Bits();
-            Buildings.V7s = Read_32Bits();
-            Buildings.V8s = Read_32Bits();
-            Buildings.V9s = Read_32Bits();
-            Buildings.V10s = Read_32Bits();
-            Buildings.V11s = Read_32Bits();
-            Buildings.V12s = Read_32Bits();
-            Buildings.V13s = Read_32Bits();
-            Buildings.V14s = Read_32Bits();
-            Buildings.V15s = Read_32Bits();
-            Buildings.V16s = Read_32Bits();
-            Buildings.V17s = Read_32Bits();
-            Buildings.V18s = Read_32Bits();
-            Buildings.V19s = Read_32Bits();
-            Buildings.V20s = Read_32Bits();
-            Buildings.V21s = Read_32Bits();
-            Buildings.V22s = Read_32Bits();
-            Buildings.V23s = Read_32Bits();
-            Buildings.V24s = Read_32Bits();
-            Buildings.V25s = Read_32Bits();
-            Buildings.V26s = Read_32Bits();
-            Buildings.V27s = Read_32Bits();
-            Buildings.V28s = Read_32Bits();
-            Buildings.V29s = Read_32Bits();
-            Buildings.V30s = Read_32Bits();
-            Buildings.V31s = Read_32Bits();
-            Buildings.V32s = Read_32Bits();
-            Buildings.V33s = Read_32Bits();
-            Buildings.V34s = Read_32Bits();
-            Buildings.V35s = Read_32Bits();
-            Buildings.V36s = Read_32Bits();
-            Buildings.V37s = Read_32Bits();
-            Buildings.Barrels = Read_32Bits();
-            Buildings.BarrelsGroups = Read_32Bits();
-            Buildings.AntQueens = Read_32Bits();
-            Buildings.Larva1s = Read_32Bits();
-            Buildings.Larva2s = Read_32Bits();
+            buildings.AlliedTechCenters = Read32Bits();
+            buildings.IronCurtains = Read32Bits();
+            buildings.WarFactories = Read32Bits();
+            buildings.Chronospheres = Read32Bits();
+            buildings.Pillboxes = Read32Bits();
+            buildings.CameoPillboxes = Read32Bits();
+            buildings.RadarDomes = Read32Bits();
+            buildings.GapGenerators = Read32Bits();
+            buildings.Turrets = Read32Bits();
+            buildings.AAGuns = Read32Bits();
+            buildings.FlameTowers = Read32Bits();
+            buildings.ConstructionYards = Read32Bits();
+            buildings.Refineries = Read32Bits();
+            buildings.OreSilos = Read32Bits();
+            buildings.Helipads = Read32Bits();
+            buildings.SamSites = Read32Bits();
+            buildings.Airfields = Read32Bits();
+            buildings.PowerPlants = Read32Bits();
+            buildings.AdvancedPowerPlants = Read32Bits();
+            buildings.SovietTechCenters = Read32Bits();
+            buildings.Hospitals = Read32Bits();
+            buildings.SovietBarracks = Read32Bits();
+            buildings.AlliesBarracks = Read32Bits();
+            buildings.Kennels = Read32Bits();
+            buildings.ServiceDepots = Read32Bits();
+            buildings.BIOResearchFacilities = Read32Bits();
+            buildings.TechnologyCenters = Read32Bits();
+            buildings.Shipyards = Read32Bits();
+            buildings.Subpens = Read32Bits();
+            buildings.MissileSilos = Read32Bits();
+            buildings.ForwardCommandPosts = Read32Bits();
+            buildings.TeslaCoils = Read32Bits();
+            buildings.FakeWarFactories = Read32Bits();
+            buildings.FakeConstructionYards = Read32Bits();
+            buildings.FakeShipyards = Read32Bits();
+            buildings.FakeSubpens = Read32Bits();
+            buildings.FakeRadarDomes = Read32Bits();
+            buildings.Sandbags = Read32Bits();
+            buildings.ChainLinkFences = Read32Bits();
+            buildings.ConcreteWalls = Read32Bits();
+            buildings.BarbwireFences = Read32Bits();
+            buildings.WoodenFences = Read32Bits();
+            buildings.WireFences = Read32Bits();
+            buildings.AntiTankMines = Read32Bits();
+            buildings.AntiPersonnelMines = Read32Bits();
+            buildings.V1s = Read32Bits();
+            buildings.V2s = Read32Bits();
+            buildings.V3s = Read32Bits();
+            buildings.V4s = Read32Bits();
+            buildings.V5s = Read32Bits();
+            buildings.V6s = Read32Bits();
+            buildings.V7s = Read32Bits();
+            buildings.V8s = Read32Bits();
+            buildings.V9s = Read32Bits();
+            buildings.V10s = Read32Bits();
+            buildings.V11s = Read32Bits();
+            buildings.V12s = Read32Bits();
+            buildings.V13s = Read32Bits();
+            buildings.V14s = Read32Bits();
+            buildings.V15s = Read32Bits();
+            buildings.V16s = Read32Bits();
+            buildings.V17s = Read32Bits();
+            buildings.V18s = Read32Bits();
+            buildings.V19s = Read32Bits();
+            buildings.V20s = Read32Bits();
+            buildings.V21s = Read32Bits();
+            buildings.V22s = Read32Bits();
+            buildings.V23s = Read32Bits();
+            buildings.V24s = Read32Bits();
+            buildings.V25s = Read32Bits();
+            buildings.V26s = Read32Bits();
+            buildings.V27s = Read32Bits();
+            buildings.V28s = Read32Bits();
+            buildings.V29s = Read32Bits();
+            buildings.V30s = Read32Bits();
+            buildings.V31s = Read32Bits();
+            buildings.V32s = Read32Bits();
+            buildings.V33s = Read32Bits();
+            buildings.V34s = Read32Bits();
+            buildings.V35s = Read32Bits();
+            buildings.V36s = Read32Bits();
+            buildings.V37s = Read32Bits();
+            buildings.Barrels = Read32Bits();
+            buildings.BarrelsGroups = Read32Bits();
+            buildings.AntQueens = Read32Bits();
+            buildings.Larva1s = Read32Bits();
+            buildings.Larva2s = Read32Bits();
 
-            return Buildings;
+            return buildings;
         }
 
-        public VehiclesStruct Parse_Vehicles()
+        public VehiclesStruct ParseVehicles()
         {
-            VehiclesStruct Vehicles = new VehiclesStruct();
+            VehiclesStruct vehicles = new VehiclesStruct();
 
-            Vehicles.MammothTanks = Read_32Bits();
-            Vehicles.HeavyTanks = Read_32Bits();
-            Vehicles.MediumTanks = Read_32Bits();
-            Vehicles.LightTanks = Read_32Bits();
-            Vehicles.APCs = Read_32Bits();
-            Vehicles.MineLayers = Read_32Bits(); // Both Anti-Tank AND Anti-Personnel MineLayers
-            Vehicles.Rangers = Read_32Bits();
-            Vehicles.OreTrucks = Read_32Bits();
-            Vehicles.Artilleries = Read_32Bits();
-            Vehicles.MobileRadarJammers = Read_32Bits();
-            Vehicles.MobileGapGenerators = Read_32Bits();
-            Vehicles.MCVs = Read_32Bits();
-            Vehicles.V2RocketLaunchers = Read_32Bits();
-            Vehicles.SupplyTrucks = Read_32Bits();
-            Vehicles.ANT1s = Read_32Bits();
-            Vehicles.ANT2s = Read_32Bits();
-            Vehicles.ANT3s = Read_32Bits();
-            Vehicles.ChronoTanks = Read_32Bits();
-            Vehicles.TeslaTanks = Read_32Bits();
-            Vehicles.MADTanks = Read_32Bits();
-            Vehicles.DemoTrucks = Read_32Bits();
-            Vehicles.PhaseTransports = Read_32Bits();
+            vehicles.MammothTanks = Read32Bits();
+            vehicles.HeavyTanks = Read32Bits();
+            vehicles.MediumTanks = Read32Bits();
+            vehicles.LightTanks = Read32Bits();
+            vehicles.APCs = Read32Bits();
+            vehicles.MineLayers = Read32Bits();
+            vehicles.Rangers = Read32Bits();
+            vehicles.OreTrucks = Read32Bits();
+            vehicles.Artilleries = Read32Bits();
+            vehicles.MobileRadarJammers = Read32Bits();
+            vehicles.MobileGapGenerators = Read32Bits();
+            vehicles.MCVs = Read32Bits();
+            vehicles.V2RocketLaunchers = Read32Bits();
+            vehicles.SupplyTrucks = Read32Bits();
+            vehicles.ANT1s = Read32Bits();
+            vehicles.ANT2s = Read32Bits();
+            vehicles.ANT3s = Read32Bits();
+            vehicles.ChronoTanks = Read32Bits();
+            vehicles.TeslaTanks = Read32Bits();
+            vehicles.MADTanks = Read32Bits();
+            vehicles.DemoTrucks = Read32Bits();
+            vehicles.PhaseTransports = Read32Bits();
 
-            return Vehicles;
+            return vehicles;
         }
 
-        public InfantryStruct Parse_Infantry()
+        public InfantryStruct ParseInfantry()
         {
-            InfantryStruct Infantry = new InfantryStruct();
+            InfantryStruct infantry = new InfantryStruct();
 
-            Infantry.RifleInfantries = Read_32Bits();
-            Infantry.Grenadiers = Read_32Bits();
-            Infantry.RocketSoldiers = Read_32Bits();
-            Infantry.Flamethrowers = Read_32Bits();
-            Infantry.Engineers = Read_32Bits();
-            Infantry.Tanyas = Read_32Bits();
-            Infantry.Spies = Read_32Bits();
-            Infantry.Thieves = Read_32Bits();
-            Infantry.Medics = Read_32Bits();
-            Infantry.GNRLs = Read_32Bits();
-            Infantry.Dogs = Read_32Bits();
-            Infantry.C1s = Read_32Bits();
-            Infantry.C2s = Read_32Bits();
-            Infantry.C3s = Read_32Bits();
-            Infantry.C4s = Read_32Bits();
-            Infantry.C5s = Read_32Bits();
-            Infantry.C6s = Read_32Bits();
-            Infantry.C7s = Read_32Bits();
-            Infantry.C8s = Read_32Bits();
-            Infantry.C9s = Read_32Bits();
-            Infantry.C10s = Read_32Bits();
-            Infantry.Einsteins = Read_32Bits();
-            Infantry.Delphis = Read_32Bits();
-            Infantry.Chans = Read_32Bits();
-            Infantry.ShockTroopers = Read_32Bits();
-            Infantry.Mechanics = Read_32Bits();
+            infantry.RifleInfantries = Read32Bits();
+            infantry.Grenadiers = Read32Bits();
+            infantry.RocketSoldiers = Read32Bits();
+            infantry.Flamethrowers = Read32Bits();
+            infantry.Engineers = Read32Bits();
+            infantry.Tanyas = Read32Bits();
+            infantry.Spies = Read32Bits();
+            infantry.Thieves = Read32Bits();
+            infantry.Medics = Read32Bits();
+            infantry.GNRLs = Read32Bits();
+            infantry.Dogs = Read32Bits();
+            infantry.C1s = Read32Bits();
+            infantry.C2s = Read32Bits();
+            infantry.C3s = Read32Bits();
+            infantry.C4s = Read32Bits();
+            infantry.C5s = Read32Bits();
+            infantry.C6s = Read32Bits();
+            infantry.C7s = Read32Bits();
+            infantry.C8s = Read32Bits();
+            infantry.C9s = Read32Bits();
+            infantry.C10s = Read32Bits();
+            infantry.Einsteins = Read32Bits();
+            infantry.Delphis = Read32Bits();
+            infantry.Chans = Read32Bits();
+            infantry.ShockTroopers = Read32Bits();
+            infantry.Mechanics = Read32Bits();
 
-            return Infantry;
+            return infantry;
         }
 
-
-        public void Parse_Money_Harvested_Info(string ID, int Money)
+        public void ParseMoneyHarvestedInfo(string id, int money)
         {
-            int PlayerNumber = Get_Player_Number_From_ID(ID);
+            int playerNumber = GetPlayerNumberFromId(id);
 
-            this.PlayerMoneyHarvested[PlayerNumber - 1] = Money;
+            PlayerMoneyHarvested[playerNumber - 1] = money;
         }
 
-        public int Get_Player_Number_From_ID(string ID)
+        public int GetPlayerNumberFromId(string id)
         {
-            if (string.IsNullOrEmpty(ID) || ID.Length < 4)
+            if (string.IsNullOrEmpty(id) || id.Length < 4)
                 throw new StatsDumpException("Invalid player ID string");
 
-            string tmp = ID.Substring(3, 1);
+            string tmp = id.Substring(3, 1);
 
             if (!int.TryParse(tmp, out int playerNumber))
             {
@@ -1016,42 +983,44 @@ namespace ClientCore.Statistics.GameParsers
             return playerNumber;
         }
 
-        public void Print_Player_Array(int[] Array, string Format)
+        public void PrintPlayerArray(int[] array, string format)
         {
-            int PlayerNumber = 1;
-            foreach (int Element in Array)
+            int playerNumber = 1;
+            foreach (int element in array)
             {
-                if (Element != -1)
+                if (element != -1)
                 {
-                    Console.WriteLine(Format, PlayerNumber, Element);
+                    Console.WriteLine(format, playerNumber, element);
                 }
-                PlayerNumber++;
-            }
-        }
-        public void Print_Player_String_Array(string[] Array, string Format)
-        {
-            int PlayerNumber = 1;
-            foreach (string Element in Array)
-            {
-                if (Element != null)
-                {
-                    Console.WriteLine(Format, PlayerNumber, Element);
-                }
-                PlayerNumber++;
+                playerNumber++;
             }
         }
 
-        static string Get_Alliances_String(int BitField)
+        public void PrintPlayerStringArray(string[] array, string format)
         {
-            if (BitField == -1) { return ""; }
+            int playerNumber = 1;
+            foreach (string element in array)
+            {
+                if (element != null)
+                {
+                    Console.WriteLine(format, playerNumber, element);
+                }
+                playerNumber++;
+            }
+        }
+
+        private static string GetAlliancesString(int bitField)
+        {
+            if (bitField == -1)
+                return "";
 
             string str = "";
 
             for (int i = 12; i < 20; i++)
             {
-                if ((BitField & (1 << i)) != 0)
+                if ((bitField & (1 << i)) != 0)
                 {
-                    str += String.Format("{0}|", i - 11);
+                    str += string.Format("{0}|", i - 11);
                 }
             }
 
@@ -1066,13 +1035,13 @@ namespace ClientCore.Statistics.GameParsers
 
     public struct FileTime
     {
-        public uint dwLowDateTime;
-        public uint dwHighDateTime;
+        public uint DwLowDateTime;
+        public uint DwHighDateTime;
 
-        public static long FileTime_To_Long(FileTime ft)
+        public static long FileTimeToLong(FileTime ft)
         {
-            long hFT2 = (((long)ft.dwHighDateTime) << 32) + ft.dwLowDateTime;
-            return hFT2;
+            long hFt2 = (((long)ft.DwHighDateTime) << 32) + ft.DwLowDateTime;
+            return hFt2;
         }
     }
 
@@ -1083,11 +1052,10 @@ namespace ClientCore.Statistics.GameParsers
         public StatsDumpLengthException(string message) : base(message) { }
         public StatsDumpLengthException(string message, System.Exception inner) : base(message, inner) { }
 
-        // A constructor is needed for serialization when an 
-        // exception propagates from a remoting server to the client.  
         protected StatsDumpLengthException(System.Runtime.Serialization.SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
-        { }
+        {
+        }
     }
 
     [Serializable()]
@@ -1097,41 +1065,40 @@ namespace ClientCore.Statistics.GameParsers
         public StatsDumpException(string message) : base(message) { }
         public StatsDumpException(string message, System.Exception inner) : base(message, inner) { }
 
-        // A constructor is needed for serialization when an 
-        // exception propagates from a remoting server to the client.  
         protected StatsDumpException(System.Runtime.Serialization.SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
-        { }
+        {
+        }
     }
 
     public class BigEndianReader
     {
         public BigEndianReader(BinaryReader baseReader)
         {
-            mBaseReader = baseReader;
+            BaseReader = baseReader;
         }
 
         public short ReadInt16()
         {
-            var b = ReadBigEndianBytes(2);
+            byte[] b = ReadBigEndianBytes(2);
             return (short)((b[0] << 8) | b[1]);
         }
 
         public ushort ReadUInt16()
         {
-            var b = ReadBigEndianBytes(2);
+            byte[] b = ReadBigEndianBytes(2);
             return (ushort)((b[0] << 8) | b[1]);
         }
 
         public uint ReadUInt32()
         {
-            var b = ReadBigEndianBytes(4);
+            byte[] b = ReadBigEndianBytes(4);
             return ((uint)b[0] << 24) | ((uint)b[1] << 16) | ((uint)b[2] << 8) | b[3];
         }
 
         public int ReadInt32()
         {
-            var b = ReadBigEndianBytes(4);
+            byte[] b = ReadBigEndianBytes(4);
             return (int)(((uint)b[0] << 24) | ((uint)b[1] << 16) | ((uint)b[2] << 8) | b[3]);
         }
 
@@ -1139,27 +1106,27 @@ namespace ClientCore.Statistics.GameParsers
         {
             byte[] bytes = new byte[count];
             for (int i = count - 1; i >= 0; i--)
-                bytes[i] = mBaseReader.ReadByte();
+                bytes[i] = BaseReader.ReadByte();
 
             return bytes;
         }
 
         public byte[] ReadBytes(int count)
         {
-            return mBaseReader.ReadBytes(count);
+            return BaseReader.ReadBytes(count);
         }
 
         public void Close()
         {
-            mBaseReader.Close();
+            BaseReader.Close();
         }
 
         public Stream BaseStream
         {
-            get { return mBaseReader.BaseStream; }
+            get { return BaseReader.BaseStream; }
         }
 
-        private BinaryReader mBaseReader;
+        private BinaryReader BaseReader;
     }
 
     public struct CratesCollectedStruct
@@ -1182,7 +1149,7 @@ namespace ClientCore.Statistics.GameParsers
         public int TimeQuakeCrates;
         public int IronCurtainCrates;
         public int ChronoVortexCrates;
-    };
+    }
 
     public struct PlanesStruct
     {
@@ -1193,7 +1160,7 @@ namespace ClientCore.Statistics.GameParsers
         public int YAKs;
         public int LongBows;
         public int Hinds;
-    };
+    }
 
     public struct VesselsStruct
     {
@@ -1202,8 +1169,8 @@ namespace ClientCore.Statistics.GameParsers
         public int Cruisers;
         public int Gunboats;
         public int MissileSubs;
-        public int HeliCarriers; // Aftermath hidden unit
-    };
+        public int HeliCarriers;
+    }
 
     public struct VehiclesStruct
     {
@@ -1212,7 +1179,7 @@ namespace ClientCore.Statistics.GameParsers
         public int MediumTanks;
         public int LightTanks;
         public int APCs;
-        public int MineLayers; // Both Anti-Tank AND Anti-Personnel MineLayers
+        public int MineLayers;
         public int Rangers;
         public int OreTrucks;
         public int Artilleries;
@@ -1229,7 +1196,7 @@ namespace ClientCore.Statistics.GameParsers
         public int MADTanks;
         public int DemoTrucks;
         public int PhaseTransports;
-    };
+    }
 
     public struct InfantryStruct
     {
@@ -1259,96 +1226,96 @@ namespace ClientCore.Statistics.GameParsers
         public int Chans;
         public int ShockTroopers;
         public int Mechanics;
-    };
+    }
 
     public struct BuildingsStruct
     {
-        public int AlliedTechCenters; //1
-        public int IronCurtains; //2
-        public int WarFactories; //3
-        public int Chronospheres; //4
-        public int Pillboxes; //5
-        public int CameoPillboxes; //6
-        public int RadarDomes; //7
-        public int GapGenerators; //8
-        public int Turrets; //9
-        public int AAGuns; //10
-        public int FlameTowers; //11
-        public int ConstructionYards; //12
-        public int Refineries; //13
-        public int OreSilos; //14
-        public int Helipads; //15
-        public int SamSites; //16
-        public int Airfields; //17
-        public int PowerPlants; //18
-        public int AdvancedPowerPlants; //19
-        public int SovietTechCenters; // 20
-        public int Hospitals; //21
-        public int SovietBarracks; //22
-        public int AlliesBarracks; //23
-        public int Kennels; //24
-        public int ServiceDepots; //25
-        public int BIOResearchFacilities; // 26
-        public int TechnologyCenters; // 27
-        public int Shipyards; // Allies
-        public int Subpens; // Soviets
-        public int MissileSilos; // 30
-        public int ForwardCommandPosts; // 31
-        public int TeslaCoils; // 32
-        public int FakeWarFactories; // 33
-        public int FakeConstructionYards; // 34
-        public int FakeShipyards; // 35
-        public int FakeSubpens; // Hidden Red alert unit
-        public int FakeRadarDomes; // 37
-        public int Sandbags; // 38
-        public int ChainLinkFences; // 39
-        public int ConcreteWalls; // 40
-        public int BarbwireFences; // 41
-        public int WoodenFences; // 42
-        public int WireFences; // 43
-        public int AntiTankMines; // 44
-        public int AntiPersonnelMines; // 45
-        public int V1s; // 46
-        public int V2s; // 47
-        public int V3s; // 48
-        public int V4s; // 49
-        public int V5s; // 50
-        public int V6s; // 51
-        public int V7s; // 52
-        public int V8s; // 53
-        public int V9s; // 54
-        public int V10s; // 55
-        public int V11s; // 56
-        public int V12s; // 57
-        public int V13s; // 58
-        public int V14s; // 59
-        public int V15s; // 60
-        public int V16s; // 61
-        public int V17s; // 62
-        public int V18s; // 63
-        public int V19s; // 64string RetString = Encoding.ASCII.GetString(StringBytes);
-        public int V20s; // 65
-        public int V21s; // 66
-        public int V22s; // 67
-        public int V23s; // 68
-        public int V24s; // 69
-        public int V25s; // 70
-        public int V26s; // 71
-        public int V27s; // 72
-        public int V28s; // 73
-        public int V29s; // 74
-        public int V30s; // 75
-        public int V31s; // 76
-        public int V32s; // 77
-        public int V33s; // 78
-        public int V34s; // 79
-        public int V35s; // 80
-        public int V36s; // 81
-        public int V37s; // 82
-        public int Barrels; // 83
-        public int BarrelsGroups; // 84
-        public int AntQueens; // 85
-        public int Larva1s; // 86
-        public int Larva2s; // 87
+        public int AlliedTechCenters;
+        public int IronCurtains;
+        public int WarFactories;
+        public int Chronospheres;
+        public int Pillboxes;
+        public int CameoPillboxes;
+        public int RadarDomes;
+        public int GapGenerators;
+        public int Turrets;
+        public int AAGuns;
+        public int FlameTowers;
+        public int ConstructionYards;
+        public int Refineries;
+        public int OreSilos;
+        public int Helipads;
+        public int SamSites;
+        public int Airfields;
+        public int PowerPlants;
+        public int AdvancedPowerPlants;
+        public int SovietTechCenters;
+        public int Hospitals;
+        public int SovietBarracks;
+        public int AlliesBarracks;
+        public int Kennels;
+        public int ServiceDepots;
+        public int BIOResearchFacilities;
+        public int TechnologyCenters;
+        public int Shipyards;
+        public int Subpens;
+        public int MissileSilos;
+        public int ForwardCommandPosts;
+        public int TeslaCoils;
+        public int FakeWarFactories;
+        public int FakeConstructionYards;
+        public int FakeShipyards;
+        public int FakeSubpens;
+        public int FakeRadarDomes;
+        public int Sandbags;
+        public int ChainLinkFences;
+        public int ConcreteWalls;
+        public int BarbwireFences;
+        public int WoodenFences;
+        public int WireFences;
+        public int AntiTankMines;
+        public int AntiPersonnelMines;
+        public int V1s;
+        public int V2s;
+        public int V3s;
+        public int V4s;
+        public int V5s;
+        public int V6s;
+        public int V7s;
+        public int V8s;
+        public int V9s;
+        public int V10s;
+        public int V11s;
+        public int V12s;
+        public int V13s;
+        public int V14s;
+        public int V15s;
+        public int V16s;
+        public int V17s;
+        public int V18s;
+        public int V19s;
+        public int V20s;
+        public int V21s;
+        public int V22s;
+        public int V23s;
+        public int V24s;
+        public int V25s;
+        public int V26s;
+        public int V27s;
+        public int V28s;
+        public int V29s;
+        public int V30s;
+        public int V31s;
+        public int V32s;
+        public int V33s;
+        public int V34s;
+        public int V35s;
+        public int V36s;
+        public int V37s;
+        public int Barrels;
+        public int BarrelsGroups;
+        public int AntQueens;
+        public int Larva1s;
+        public int Larva2s;
     }
 }

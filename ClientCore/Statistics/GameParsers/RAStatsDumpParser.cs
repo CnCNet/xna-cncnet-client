@@ -1,5 +1,6 @@
-﻿using System.IO;
-using System;
+﻿using System;
+using System.IO;
+
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
@@ -45,12 +46,7 @@ namespace ClientCore.Statistics.GameParsers
 
                 ps.Name = name;
 
-                /* ================= ECONOMY ================= */
-
                 ps.Score = Math.Max(0, dump.PlayerMoneyHarvested[i]);
-                //ps.Economy = 0; // RA score is meaningless
-
-                /* ================= BUILT ================= */
 
                 int built =
                     SumStructFields(dump.PlayerVehiclesBought[i]) +
@@ -61,8 +57,6 @@ namespace ClientCore.Statistics.GameParsers
 
                 ps.Economy = built;
 
-                /* ================= LEFT ================= */
-
                 int left =
                     SumStructFields(dump.PlayerVehiclesLeft[i]) +
                     SumStructFields(dump.PlayerInfantryLeft[i]) +
@@ -70,11 +64,7 @@ namespace ClientCore.Statistics.GameParsers
                     SumStructFields(dump.PlayerVesselsLeft[i]) +
                     SumStructFields(dump.PlayerBuildingsLeft[i]);
 
-                /* ================= LOSSES ================= */
-
                 ps.Losses = Math.Max(0, built - left);
-
-                /* ================= KILLS ================= */
 
                 ps.Kills =
                     SumStructFields(dump.PlayerVehiclesKilled[i]) +
@@ -82,8 +72,6 @@ namespace ClientCore.Statistics.GameParsers
                     SumStructFields(dump.PlayerPlanesKilled[i]) +
                     SumStructFields(dump.PlayerVesselsKilled[i]) +
                     SumStructFields(dump.PlayerBuildingsKilled[i]);
-
-                /* ================= WIN STATE ================= */
 
                 ps.Won =
                     dump.PlayerDeadStates[i] == 0 &&
