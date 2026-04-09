@@ -468,7 +468,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count ||
-                (!GameModeMap?.IsCoop ?? false) && GameModeMap.ForceNoTeams)
+                (!(GameModeMap?.IsCoop ?? false)) && (GameModeMap?.ForceNoTeams ?? false))
             {
                 pInfo.TeamId = 0;
             }

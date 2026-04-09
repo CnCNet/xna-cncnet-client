@@ -24,13 +24,10 @@
   Do not make folder structure.
 .EXAMPLE
   build.ps1
-  Build for all games.
+  Build.
 .EXAMPLE
-  build.ps1 Ares
-  Build for ares game.
-.EXAMPLE
-  build.ps1 Ares -IsDebug
-  Build for ares game on debug mode.
+  build.ps1 -IsDebug
+  Build on debug mode.
 #>
 param(
   [Parameter()]

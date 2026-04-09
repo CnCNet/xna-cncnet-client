@@ -12,16 +12,13 @@
 [CmdletBinding()]
 param (
   [Parameter()]
-  [string]
-  $Game = 'Ares',
-  [Parameter()]
   [switch]
   $Net8
 )
 
 [string]$Script:RepoRoot = Split-Path $PSScriptRoot
 [string]$Script:CompiledRoot = Join-Path $RepoRoot 'Compiled'
-[string]$Script:GamePath = Join-Path $CompiledRoot $Game
+[string]$Script:GamePath = $CompiledRoot
 [string]$Script:Resources = Join-Path $GamePath 'Resources'
 [string]$Script:Binaries = Join-Path $Resources 'Binaries'
 if ($Net8) {

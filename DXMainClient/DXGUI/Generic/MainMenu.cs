@@ -1,5 +1,6 @@
 using ClientCore;
 using ClientCore.Enums;
+using ClientCore.I18N;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -517,6 +518,29 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.PostInit();
         }
 
+        private void CheckAndApplyTranslationGameFiles(bool skipVersionCheck = false)
+        {
+            // In ModMode there is no updater, so always apply translation game files.
+            // Otherwise, skip if already applied for the current game version.
+            if (!skipVersionCheck && !ClientConfiguration.Instance.ModMode &&
+                UserINISettings.Instance.TranslationGameFilesVersion.Value == Updater.GameVersion)
+                return;
+
+            try
+            {
+                Translation.Instance.ApplyTranslationGameFiles();
+                UserINISettings.Instance.TranslationGameFilesVersion.Value = Updater.GameVersion;
+                UserINISettings.Instance.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to apply translation game files. " + ex.ToString());
+                XNAMessageBox.Show(WindowManager,
+                    "Applying Translation Files Failed".L10N("Client:Main:ApplyTranslationFilesFailTitle"),
+                    "Applying translation files failed! Error message:".L10N("Client:Main:ApplyTranslationFilesFailText") + " " + ex.Message);
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -657,8 +681,10 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+            CheckAndApplyTranslationGameFiles();
 
             Logger.Log("Main menu initialization complete.");
+            Logger.Log(FormattableString.Invariant($"Startup complete. Client is ready. Total startup time: {PreStartup.StartupElapsed.TotalSeconds:F3} s."));
 
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {
@@ -765,6 +791,12 @@ namespace DTAClient.DXGUI.Generic
             UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = false;
+
+            // The update completed without requiring a client restart, so apply
+            // translation game files immediately for the new game version.
+            // (If a restart were required, Updater.Restart fires and the client
+            // exits; the next startup naturally detects the version change.)
+            CheckAndApplyTranslationGameFiles(skipVersionCheck: true);
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
