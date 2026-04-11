@@ -4,6 +4,7 @@ using System.Windows.Forms;
 #endif
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
@@ -193,24 +194,26 @@ namespace DTAClient
             CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             // Delete obsolete files from old target project versions
-
-            gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
-            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
-
-            try
+            Task.Run(() =>
             {
-                gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
-            }
-            catch (Exception ex)
-            {
-                LogException(ex);
+                gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
+                gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
 
-                string error = ("Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again." + "\n\n" +
-                    "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+                try
+                {
+                    gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex);
 
-                MainClientConstants.DisplayErrorAction(null, error, true);
-            }
+                    string error = ("Deleting wsock32.dll failed! Please close any " +
+                        "applications that could be using the file, and then start the client again." + "\n\n" +
+                        "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+
+                    MainClientConstants.DisplayErrorAction(null, error, true);
+                }
+            });
 
             Startup startup = new();
 #if DEBUG

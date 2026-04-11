@@ -96,8 +96,8 @@ namespace DTAClient.DXGUI
 
             try
             {
-                Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
-                Color[] colorArray = new Color[100 * 100];
+                Texture2D texture = new Texture2D(GraphicsDevice, 10, 10, false, SurfaceFormat.Color);
+                Color[] colorArray = new Color[10 * 10];
                 texture.SetData(colorArray);
 
                 _ = AssetLoader.LoadTextureUncached("checkBoxClear.png");
