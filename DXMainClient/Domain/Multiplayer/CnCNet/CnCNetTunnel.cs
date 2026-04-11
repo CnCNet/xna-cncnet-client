@@ -119,24 +119,21 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
-                using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
+                string data = new TimedHttpClient(REQUEST_TIMEOUT).GetString(addressString);
+
+                data = data.Replace("[", String.Empty);
+                data = data.Replace("]", String.Empty);
+
+                string[] portIDs = data.Split(',');
+                List<int> playerPorts = new List<int>();
+
+                foreach (string _port in portIDs)
                 {
-                    string data = client.DownloadString(addressString);
-
-                    data = data.Replace("[", String.Empty);
-                    data = data.Replace("]", String.Empty);
-
-                    string[] portIDs = data.Split(',');
-                    List<int> playerPorts = new List<int>();
-
-                    foreach (string _port in portIDs)
-                    {
-                        playerPorts.Add(Convert.ToInt32(_port));
-                        Logger.Log($"Added port {_port}");
-                    }
-
-                    return playerPorts;
+                    playerPorts.Add(Convert.ToInt32(_port));
+                    Logger.Log($"Added port {_port}");
                 }
+
+                return playerPorts;
             }
             catch (Exception ex)
             {

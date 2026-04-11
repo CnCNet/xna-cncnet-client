@@ -154,7 +154,15 @@ namespace DTAClient
             }
 #endif
 
-#if ISWINDOWS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Task.Run(InitSteamworks);
+
+            gameClass.Run();
+        }
+
+        [SupportedOSPlatform("windows")]
+        private void InitSteamworks()
+        {
             if (UserINISettings.Instance.SteamIntegration)
             {
                 try
@@ -181,8 +189,6 @@ namespace DTAClient
                     // Couldn't init for some reason (steam is closed etc)
                 }
             }
-#endif
-            gameClass.Run();
         }
 
         /// <summary>

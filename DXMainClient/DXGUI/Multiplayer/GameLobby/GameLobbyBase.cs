@@ -1119,7 +1119,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerStart.ClientRectangle = new Rectangle(
                     ddPlayerTeam.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, startWidth, DROP_DOWN_HEIGHT);
-                for (int j = 1; j < 9; j++)
+                for (int j = 1; j <= MAX_PLAYER_COUNT; j++)
                     ddPlayerStart.AddItem(j.ToString());
                 ddPlayerStart.AllowDropDown = false;
                 ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
@@ -2176,6 +2176,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId;
 
+            if (Players.Count > MAX_PLAYER_COUNT)
+                throw new Exception($"Player count exceeds maximum of {MAX_PLAYER_COUNT}. How could this happen?");
+
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 PlayerInfo pInfo = Players[pId];
@@ -2280,6 +2283,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             bool allowOptionsChange = AllowPlayerOptionsChange();
             var playerExtraOptions = GetPlayerExtraOptions();
+
+            if (Players.Count > MAX_PLAYER_COUNT)
+                throw new Exception($"Player count exceeds maximum of {MAX_PLAYER_COUNT}. How could this happen?");
 
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)

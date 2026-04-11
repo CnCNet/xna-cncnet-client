@@ -43,6 +43,9 @@ namespace DTAClient
 
     static class PreStartup
     {
+        private static readonly Stopwatch startupStopwatch = Stopwatch.StartNew();
+        public static TimeSpan StartupElapsed => startupStopwatch.Elapsed;
+
         /// <summary>
         /// Initializes various basic systems like the client's logger, 
         /// constants, and the general exception handler.
@@ -156,9 +159,6 @@ namespace DTAClient
             }
 
             CultureInfo.CurrentUICulture = Translation.Instance.Culture;
-
-            if (UserINISettings.Instance.IsFirstRun)
-                Translation.Instance.ApplyTranslationGameFiles();
 
             try
             {
