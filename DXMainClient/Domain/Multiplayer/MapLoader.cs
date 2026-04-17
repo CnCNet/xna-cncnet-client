@@ -90,10 +90,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public MapLoader() { }
 
+        public void Initialize()
+        {
+            MapLoadingComplete += (sender, args) => StartMapFileWatcher();
+        }
+
         /// <summary>
         /// Sets up file watching for maps.
         /// </summary>
-        public void Initialize()
+        public void StartMapFileWatcher()
         {
             if (mapFileWatcher != null)
                 return;
