@@ -26,7 +26,7 @@ namespace ClientGUI
 
         // ---------- Fields ----------
         private int _scrollOffset;
-        private int _maxVisibleItems = 5;
+        private int _maxVisibleItems;
         private Rectangle _scrollBarArea;
         private bool _isDraggingScrollBar;
         private bool _skipNextItemSelection;
@@ -34,18 +34,23 @@ namespace ClientGUI
         private int _scrollBarWidth = DefaultScrollBarWidth;
         private MouseState _previousMouseState;
         private int _correctHoveredIndex = -1;
-        private bool _isScrollable => Items.Count > _maxVisibleItems;
+																	 
+
+        /// <summary>Indicates whether the drop-down is scrollable (i.e., has more items than MaxVisibleItems and MaxVisibleItems > 0).</summary>
+        private bool _isScrollable => _maxVisibleItems > 0 && Items.Count > _maxVisibleItems;
 
         // ---------- Properties ----------
-        public ToolTip? ToolTip { get; private set; }
+        // Non-nullable ToolTip to satisfy IToolTipContainer, initialized in Initialize()
+        public ToolTip ToolTip { get; private set; } = null!;
 
-        private string? _initialToolTipText;
+        private string _initialToolTipText = string.Empty;
+
         /// <summary>
         /// Gets or sets the tooltip text displayed when the mouse hovers over the control.
         /// </summary>
-        public string? ToolTipText
+        public string ToolTipText
         {
-            get => Initialized ? ToolTip?.Text : _initialToolTipText;
+            get => Initialized ? ToolTip.Text : _initialToolTipText;
             set
             {
                 if (Initialized && ToolTip != null)
@@ -55,19 +60,20 @@ namespace ClientGUI
             }
         }
 
+
         /// <summary>
         /// Gets or sets the maximum number of items visible when the dropdown is open.
-        /// Must be at least 1.
+        /// Use 0 to show all items without scrolling. Negative values are coerced to 0.
         /// </summary>
         public int MaxVisibleItems
         {
             get => _maxVisibleItems;
-            set
-            {
-                if (value < 1)
-                    throw new ArgumentOutOfRangeException(nameof(MaxVisibleItems), "Must be at least 1.");
-                _maxVisibleItems = value;
-            }
+			   
+			 
+							  
+																										  
+            set => _maxVisibleItems = Math.Max(0, value);
+			 
         }
 
         // ---------- Constructor ----------
@@ -79,12 +85,10 @@ namespace ClientGUI
         public override void Initialize()
         {
             ClickSoundEffect = new EnhancedSoundEffect("dropdown.wav");
-
             base.Initialize();
 
             ToolTip = new ToolTip(WindowManager, this) { Text = _initialToolTipText };
             _previousMouseState = Mouse.GetState();
-
             SelectedIndexChanged += XNAClientDropDown_SelectedIndexChanged;
         }
 
@@ -216,7 +220,7 @@ namespace ClientGUI
             {
                 _correctHoveredIndex = -1;
                 _previousMouseState = Mouse.GetState();
-                return;
+						 
             }
 
             Point cursorPoint = GetCursorPoint();
@@ -230,9 +234,9 @@ namespace ClientGUI
 
             // ---------- Scroll wheel with overflow protection ----------
             int scrollDelta = _previousMouseState.ScrollWheelValue - mouseState.ScrollWheelValue;
-
-            // Ignore huge jumps caused by int overflow
-            if (Math.Abs(scrollDelta) <= ScrollWheelOverflowThreshold && scrollDelta != 0)
+			
+			// Use long to avoid Math.Abs(int.MinValue) overflow
+            if (Math.Abs((long)scrollDelta) <= ScrollWheelOverflowThreshold && scrollDelta != 0)
             {
                 bool scrollDown = scrollDelta > 0;
 
@@ -249,7 +253,6 @@ namespace ClientGUI
                 }
                 else // Dropdown closed – change selected item only if mouse is over the control
                 {
-
                     if (new Rectangle(0, 0, Width, Height).Contains(cursorPoint))
                     {
                         if (scrollDown && SelectedIndex < Items.Count - 1)
@@ -261,30 +264,27 @@ namespace ClientGUI
             }
 
             // ---------- Scrollbar dragging & track click ----------
-            if (_isScrollable && _scrollBarArea.Contains(cursorPoint))
+            if (_isScrollable)
             {
-                if (mouseState.LeftButton == ButtonState.Pressed)
+                // Start dragging when pressing left button inside the scroll bar area
+                if (mouseState.LeftButton == ButtonState.Pressed && _scrollBarArea.Contains(cursorPoint))
                 {
                     if (!_isDraggingScrollBar)
                         _isDraggingScrollBar = true;
+                }
 
-                    if (_isDraggingScrollBar)
-                    {
-                        float relativeY = (cursorPoint.Y - _scrollBarArea.Y) / (float)_scrollBarArea.Height;
-                        int maxScrollOffset = Math.Max(0, Items.Count - _maxVisibleItems);
-                        _scrollOffset = (int)(relativeY * (maxScrollOffset + ScrollRoundingFactor));
-                        _scrollOffset = Math.Max(0, Math.Min(_scrollOffset, maxScrollOffset));
-                    }
-                }
-                else
-                {
-                    _isDraggingScrollBar = false;
-                }
-            }
-            else if (mouseState.LeftButton == ButtonState.Released)
-            {
-                // If we just finished dragging the scroll bar, block the next item click
+                // Continue updating position while dragging, even if cursor leaves the narrow bar
                 if (_isDraggingScrollBar)
+                {
+                    float relativeY = (cursorPoint.Y - _scrollBarArea.Y) / (float)_scrollBarArea.Height;
+                    relativeY = Math.Clamp(relativeY, 0f, 1f);
+                    int maxScrollOffset = Math.Max(0, Items.Count - _maxVisibleItems);
+                    _scrollOffset = (int)(relativeY * (maxScrollOffset + ScrollRoundingFactor));
+                    _scrollOffset = Math.Clamp(_scrollOffset, 0, maxScrollOffset);
+                }
+
+                // End dragging when left button is released
+                if (mouseState.LeftButton == ButtonState.Released && _isDraggingScrollBar)
                 {
                     _skipNextItemSelection = true;
                     _isDraggingScrollBar = false;
@@ -304,15 +304,33 @@ namespace ClientGUI
             if (DropDownState == DropDownState.CLOSED)
                 return -1;
 
-            Rectangle itemsArea = DropDownState == DropDownState.OPENED_DOWN
-                ? new Rectangle(0, DropDownTexture.Height + 1, Width - (_isScrollable ? _scrollBarWidth : 0), Height - DropDownTexture.Height - 2)
-                : new Rectangle(0, 1, Width - (_isScrollable ? _scrollBarWidth : 0), Height - DropDownTexture.Height - 2);
+            // If no scrolling is active, simply compute index without offset
+            if (!_isScrollable)
+            {
+                Rectangle itemsArea = DropDownState == DropDownState.OPENED_DOWN
+                    ? new Rectangle(0, DropDownTexture.Height + 1, Width, Height - DropDownTexture.Height - 2)
+                    : new Rectangle(0, 1, Width, Height - DropDownTexture.Height - 2);
 
-            if (!itemsArea.Contains(cursorPoint))
+                if (!itemsArea.Contains(cursorPoint))
+                    return -1;
+
+                int relativeY = cursorPoint.Y - itemsArea.Y;
+                int index = relativeY / ItemHeight;
+                if (index >= 0 && index < Items.Count && Items[index].Selectable)
+                    return index;
+                return -1;
+            }
+
+            // Scrolled case: account for scroll offset and reserved scrollbar width
+            Rectangle itemsAreaScrolled = DropDownState == DropDownState.OPENED_DOWN
+                ? new Rectangle(0, DropDownTexture.Height + 1, Width - _scrollBarWidth, Height - DropDownTexture.Height - 2)
+                : new Rectangle(0, 1, Width - _scrollBarWidth, Height - DropDownTexture.Height - 2);
+
+            if (!itemsAreaScrolled.Contains(cursorPoint))
                 return -1;
 
-            int relativeY = cursorPoint.Y - itemsArea.Y;
-            int visibleIndex = relativeY / ItemHeight;
+            int relativeYScrolled = cursorPoint.Y - itemsAreaScrolled.Y;
+            int visibleIndex = relativeYScrolled / ItemHeight;
 
             if (visibleIndex < 0 || visibleIndex >= _maxVisibleItems)
                 return -1;
@@ -412,7 +430,11 @@ namespace ClientGUI
         private void AdjustDropDownHeight()
         {
             int originalHeight = Height;
-            int newHeight = DropDownTexture.Height + 2 + ItemHeight * Math.Min(_maxVisibleItems, Items.Count);
+            int visibleItemCount = _maxVisibleItems > 0
+                ? Math.Min(_maxVisibleItems, Items.Count)
+                : Items.Count;
+
+            int newHeight = DropDownTexture.Height + 2 + ItemHeight * visibleItemCount;
 
             if (DropDownState == DropDownState.OPENED_UP)
                 Y -= (newHeight - originalHeight);
