@@ -34,7 +34,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         XNAClientCheckBox chkSteamIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
-
         XNAClientCheckBox chkDisableMainMenuHotkeys;
 
         XNAClientDropDown ddAllowPrivateMessagesFrom;
@@ -98,7 +97,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkNotifyOnUserListChange.Bottom + 12, 0, 0);
-            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup");
+            chkDisablePrivateMessagePopup.Text = "Disable popups from private messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
 
@@ -107,7 +106,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisableMainMenuHotkeys.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkDisablePrivateMessagePopup.Bottom + 12, 0, 0);
-            chkDisableMainMenuHotkeys.Text = "Disable Main Menu Hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
+            chkDisableMainMenuHotkeys.Text = "Disable main menu hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
 
             AddChild(chkDisableMainMenuHotkeys);
 
