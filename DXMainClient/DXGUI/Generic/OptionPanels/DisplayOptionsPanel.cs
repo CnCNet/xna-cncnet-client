@@ -91,6 +91,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
                     maximumIngameResolution.Width, maximumIngameResolution.Height);
 
+                // Add custom ingame resolutions
+                var customIngameResolutions = ScreenResolution.GetCustomIngameResolutions();
+                foreach (var customRes in customIngameResolutions)
+                {
+                    resolutions.Add(customRes);
+                }
+
                 foreach (var res in resolutions)
                     ddIngameResolution.AddItem(res.ToString());
             }

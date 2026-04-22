@@ -382,6 +382,8 @@ namespace ClientCore
 
         public int MaximumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue);
 
+        public string[] CustomIngameResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "CustomIngameResolutions", string.Empty);
+
         public bool CopyMissionsToSpawnmapINI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true);
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
