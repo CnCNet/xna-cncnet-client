@@ -228,6 +228,8 @@ namespace ClientCore
         public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
             $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
 
+        public string[] CustomResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "CustomResolutions", string.Empty);
+
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
             .L10N("INI:ClientDefinitions:WindowTitle");
 

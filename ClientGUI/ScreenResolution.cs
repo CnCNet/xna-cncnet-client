@@ -192,6 +192,17 @@ namespace ClientGUI
             return scaledRecommendedResolutions;
         }
 
+        public static SortedSet<ScreenResolution> GetCustomResolutions()
+        {
+            List<ScreenResolution> customResolutions = ClientConfiguration.Instance.CustomResolutions
+                .Where(resolution => !string.IsNullOrWhiteSpace(resolution))
+                .Select(resolution => (ScreenResolution)resolution)
+                .ToList();
+            
+            SortedSet<ScreenResolution> scaledCustomResolutions = [.. customResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            return scaledCustomResolutions;
+        }
+
         public static ScreenResolution GetBestRecommendedResolution() =>
             GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
 
