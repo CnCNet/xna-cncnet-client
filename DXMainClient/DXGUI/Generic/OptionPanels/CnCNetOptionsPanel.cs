@@ -35,6 +35,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
 
+        XNAClientCheckBox chkDisableMainMenuHotkeys;
+
         XNAClientDropDown ddAllowPrivateMessagesFrom;
 
         GameCollection gameCollection;
@@ -94,11 +96,20 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
-                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
+                chkPingUnofficialTunnels.X,
+                chkNotifyOnUserListChange.Bottom + 12, 0, 0);
             chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
+
+            chkDisableMainMenuHotkeys = new XNAClientCheckBox(WindowManager);
+            chkDisableMainMenuHotkeys.Name = nameof(chkDisableMainMenuHotkeys);
+            chkDisableMainMenuHotkeys.ClientRectangle = new Rectangle(
+                chkPingUnofficialTunnels.X,
+                chkDisablePrivateMessagePopup.Bottom + 12, 0, 0);
+            chkDisableMainMenuHotkeys.Text = "Disable Main Menu Hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
+
+            AddChild(chkDisableMainMenuHotkeys);
 
             InitAllowPrivateMessagesFromDropdown();
 
@@ -179,8 +190,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
             lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:".L10N("Client:DTAConfig:AllowPMFrom");
             lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
-                chkDisablePrivateMessagePopup.X,
-                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
+                chkDisableMainMenuHotkeys.X,
+                chkDisableMainMenuHotkeys.Bottom + 8, 165, 0);
 
             AddChild(lblAllPrivateMessagesFrom);
 
@@ -329,6 +340,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
             chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
+            chkDisableMainMenuHotkeys.Checked = IniSettings.DisableMainMenuHotkeys;
             SetAllowPrivateMessagesFromState(IniSettings.AllowPrivateMessagesFromState);
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
@@ -365,6 +377,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
             IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
+            IniSettings.DisableMainMenuHotkeys.Value = chkDisableMainMenuHotkeys.Checked;
             IniSettings.AllowPrivateMessagesFromState.Value = GetAllowPrivateMessagesFromState();
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
