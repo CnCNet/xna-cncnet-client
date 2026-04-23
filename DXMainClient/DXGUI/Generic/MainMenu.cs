@@ -955,12 +955,20 @@ namespace DTAClient.DXGUI.Generic
         {
             if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
             {
-                GameProcessLogic.StartGameProcess(WindowManager);
+                OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+                using var gameProcess = new Process();
+
+                if (osVersion != OSVersion.UNIX)
+                    gameProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GetGameExecutableName());
+                else
+                    gameProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixGameExecutableName);
+
+                gameProcess.StartInfo.UseShellExecute = false;
+                gameProcess.Start();
+                return;
             }
-            else
-            {
-                campaignTagSelector.Open();
-            }
+
+            campaignTagSelector.Open();
         }
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
