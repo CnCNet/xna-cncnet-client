@@ -952,7 +952,16 @@ namespace DTAClient.DXGUI.Generic
             => optionsWindow.Open();
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
-            => campaignTagSelector.Open();
+        {
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+            {
+                GameProcessLogic.StartGameProcess(WindowManager);
+            }
+            else
+            {
+                campaignTagSelector.Open();
+            }
+        }
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
             => gameLoadingWindow.Enable();
