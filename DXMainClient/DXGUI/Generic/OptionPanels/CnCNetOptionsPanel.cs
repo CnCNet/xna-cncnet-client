@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkNotifyOnUserListChange.Bottom + 12, 0, 0);
+                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
             chkDisablePrivateMessagePopup.Text = "Disable popups from private messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
