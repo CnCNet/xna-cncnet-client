@@ -64,7 +64,7 @@ public class Translation : ICloneable
     // public bool IsRightToLeft { get; set; } // TODO
 
     /// <summary>Contains all keys within <see cref="Values"/> with missing translations.</summary>
-    private readonly ConcurrentDictionary<string, string> MissingKeys = new();
+    private readonly ConcurrentDictionary<string, byte> MissingKeys = new();
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
@@ -324,7 +324,7 @@ public class Translation : ICloneable
 
     private bool HandleMissing(string key, string defaultValue)
     {
-        if (MissingKeys.TryAdd(key, defaultValue))
+        if (MissingKeys.TryAdd(key, 0))
         {
             Values.TryAdd(key, defaultValue);
             return true;
