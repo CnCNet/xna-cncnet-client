@@ -78,6 +78,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkPingUnofficialTunnels.X,
                 chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
             chkDisableMainMenuHotkeys.Text = "Disable main menu hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
+            chkDisableMainMenuHotkeys.ToolTipText = "With this setting active, main menu buttons can only be clicked and will not respond to keyboard shortcuts to prevent accidental presses.".L10N("Client:DTAConfig:DisableMainMenuHotkeysTooltip");
 
             AddChild(chkDisableMainMenuHotkeys);
 
