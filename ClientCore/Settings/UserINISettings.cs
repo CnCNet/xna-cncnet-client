@@ -158,6 +158,7 @@ namespace ClientCore
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
+            DisableMainMenuHotkeys = new BoolSetting(iniFile, MULTIPLAYER, "DisableMainMenuHotkeys", true);
             AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
@@ -267,6 +268,8 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
+
+        public BoolSetting DisableMainMenuHotkeys { get; private set; }
 
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 

@@ -147,6 +147,14 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
+            bool updaterFaulted = updaterInitTask != null && updaterInitTask.IsFaulted;
+            if (updaterFaulted)
+                throw new Exception("Updater initialization task failed.", updaterInitTask.Exception);
+
+            bool mapLoadFaulted = mapLoadTask.IsFaulted;
+            if (mapLoadFaulted)
+                throw new Exception("Map loading task failed.", mapLoadTask.Exception);
+
             var timeSinceLastLog = gameTime.TotalGameTime.Subtract(Update_LastLogTime);
             if (timeSinceLastLog > TimeSpan.FromSeconds(5))
             {

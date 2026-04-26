@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         XNAClientCheckBox chkPingUnofficialTunnels;
         XNAClientCheckBox chkWriteInstallPathToRegistry;
-        XNAClientCheckBox chkPlaySoundOnGameHosted;
+        XNAClientCheckBox chkDisableMainMenuHotkeys;
 
         XNAClientCheckBox chkNotifyOnUserListChange;
 
@@ -72,20 +72,21 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             AddChild(chkWriteInstallPathToRegistry);
 
-            chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
-            chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
-            chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
+            chkDisableMainMenuHotkeys  = new XNAClientCheckBox(WindowManager);
+            chkDisableMainMenuHotkeys .Name = nameof(chkDisableMainMenuHotkeys);
+            chkDisableMainMenuHotkeys .ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
-            chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted");
+            chkDisableMainMenuHotkeys.Text = "Disable main menu hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
+            chkDisableMainMenuHotkeys.ToolTipText = "With this setting active, main menu buttons can only be clicked and will not respond to keyboard shortcuts to prevent accidental presses.".L10N("Client:DTAConfig:DisableMainMenuHotkeysTooltip");
 
-            AddChild(chkPlaySoundOnGameHosted);
+            AddChild(chkDisableMainMenuHotkeys);
 
             chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager);
             chkNotifyOnUserListChange.Name = nameof(chkNotifyOnUserListChange);
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
+                chkDisableMainMenuHotkeys.Bottom + 12, 0, 0);
             chkNotifyOnUserListChange.Text = ("Show player join / quit messages\n" +
                 "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit");
 
@@ -94,9 +95,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
+                chkPingUnofficialTunnels.X,
                 chkNotifyOnUserListChange.Bottom + 8, 0, 0);
-            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup");
+            chkDisablePrivateMessagePopup.Text = "Disable popups from private messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
 
@@ -326,9 +327,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             chkPingUnofficialTunnels.Checked = IniSettings.PingUnofficialCnCNetTunnels;
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
-            chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
             chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
+            chkDisableMainMenuHotkeys.Checked = IniSettings.DisableMainMenuHotkeys;
             SetAllowPrivateMessagesFromState(IniSettings.AllowPrivateMessagesFromState);
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
@@ -362,9 +363,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.PingUnofficialCnCNetTunnels.Value = chkPingUnofficialTunnels.Checked;
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
-            IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
             IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
+            IniSettings.DisableMainMenuHotkeys.Value = chkDisableMainMenuHotkeys.Checked;
             IniSettings.AllowPrivateMessagesFromState.Value = GetAllowPrivateMessagesFromState();
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
