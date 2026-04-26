@@ -186,7 +186,7 @@ public class Translation : ICloneable
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;
 
-        return result;
+        return result!;
     }
 
     /// <summary>
