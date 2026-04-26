@@ -180,7 +180,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:".L10N("Client:DTAConfig:AllowPMFrom");
             lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 chkDisablePrivateMessagePopup.X,
-                chkDisablePrivateMessagePopup.Bottom + 8, 165, 0);
+                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
 
             AddChild(lblAllPrivateMessagesFrom);
 
