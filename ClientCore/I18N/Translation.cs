@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,9 +21,9 @@ public class Translation : ICloneable
     /// <summary>The translation metadata section name.</summary>
     public const string METADATA_SECTION = "General";
 
-    private static CultureInfo _initialUICulture;
+    private static CultureInfo? _initialUICulture;
     /// <summary>The UI culture that the application was started with. Must be initialized as early as possible.</summary>
-    public static CultureInfo InitialUICulture
+    public static CultureInfo? InitialUICulture
     {
         get => _initialUICulture;
         set => _initialUICulture = _initialUICulture is null ? value
@@ -43,11 +44,11 @@ public class Translation : ICloneable
 
     /// <summary>The explicitly set UI culture for the translation.</summary>
     /// <remarks>Not accounted when selecting the translation automatically.</remarks>
-    private CultureInfo _culture;
+    private CultureInfo? _culture;
     /// <summary>The UI culture for the translation.</summary>
     public CultureInfo Culture
     {
-        get => _culture is null ? new CultureInfo(LocaleCode) : _culture;
+        get => _culture ?? new CultureInfo(LocaleCode);
         private set => _culture = value;
     }
 
@@ -55,7 +56,7 @@ public class Translation : ICloneable
     public string Author { get; private set; } = string.Empty;
 
     /// <summary>Override the default encoding used for reading/writing map files. Null ("Auto") means detecting the encoding from each file (sometimes unreliable). </summary>
-    public Encoding MapEncoding = EncodingExt.UTF8NoBOM;
+    public Encoding? MapEncoding = EncodingExt.UTF8NoBOM;
 
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
     private ConcurrentDictionary<string, string> Values { get; } = new();
@@ -89,13 +90,13 @@ public class Translation : ICloneable
         if (ini is null)
             throw new ArgumentNullException(nameof(ini));
 
-        IniSection metadataSection = ini.GetSection(METADATA_SECTION);
-        Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
-        Author = metadataSection?.GetStringValue(nameof(Author), string.Empty);
+        IniSection? metadataSection = ini.GetSection(METADATA_SECTION);
+        Name = metadataSection?.GetStringValue(nameof(Name), string.Empty) ?? string.Empty;
+        Author = metadataSection?.GetStringValue(nameof(Author), string.Empty) ?? string.Empty;
 
         MapEncoding = EncodingExt.GetEncodingWithAuto(metadataSection?.GetStringValue(nameof(MapEncoding), null));
 
-        string cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
+        string? cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
         if (cultureName is not null)
             Culture = new(cultureName);
 
@@ -144,7 +145,10 @@ public class Translation : ICloneable
     /// <param name="ini">An INI file to read from.</param>
     public void AppendValuesFromIniFile(IniFile ini)
     {
-        IniSection valuesSection = ini.GetSection(nameof(Values));
+        IniSection? valuesSection = ini.GetSection(nameof(Values));
+        if (valuesSection is null)
+            return;
+
         foreach (var (key, value) in valuesSection.Keys)
             Values[key] = value.FromIniString();
     }
@@ -153,7 +157,7 @@ public class Translation : ICloneable
     /// <returns>The language name for the given locale code.</returns>
     public static string GetLanguageName(string localeCode)
     {
-        string result = null;
+        string? result = null;
 
         string iniPath = SafePath.CombineFilePath(
             ClientConfiguration.Instance.TranslationsFolderPath, localeCode, ClientConfiguration.Instance.TranslationIniName);
@@ -172,7 +176,7 @@ public class Translation : ICloneable
             ini.Parse();
 
             // Overridden name first
-            IniSection metadataSection = ini.GetSection(METADATA_SECTION);
+            IniSection? metadataSection = ini.GetSection(METADATA_SECTION);
             result = metadataSection?.GetStringValue(nameof(Name), null);
         }
 
@@ -261,7 +265,11 @@ public class Translation : ICloneable
         // we don't need names here pretty much
         Dictionary<string, string> translations = GetTranslations();
 
-        for (var culture = InitialUICulture;
+        CultureInfo? initialUICulture = InitialUICulture;
+        if (initialUICulture is null)
+            return ProgramConstants.HARDCODED_LOCALE_CODE;
+
+        for (var culture = initialUICulture;
             culture != CultureInfo.InvariantCulture;
             culture = culture.Parent)
         {
@@ -284,7 +292,7 @@ public class Translation : ICloneable
         IniFile ini = new IniFile();
 
         ini.AddSection(METADATA_SECTION);
-        IniSection general = ini.GetSection(METADATA_SECTION);
+        IniSection general = ini.GetSection(METADATA_SECTION)!;
 
         if (!string.IsNullOrWhiteSpace(_name))
             general.AddKey(nameof(Name), _name);
@@ -297,7 +305,7 @@ public class Translation : ICloneable
         general.AddKey(nameof(MapEncoding), EncodingExt.EncodingWithAutoToString(MapEncoding));
 
         ini.AddSection(nameof(Values));
-        IniSection translation = ini.GetSection(nameof(Values));
+        IniSection translation = ini.GetSection(nameof(Values))!;
 
         foreach (var (key, value) in Values.OrderBy(kvp => kvp.Key))
         {
@@ -334,7 +342,7 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string defaultValue, bool notify = true)
     {
-        if (Values.TryGetValue(key, out string value))
+        if (Values.TryGetValue(key, out string? value))
             return value;
 
         if (notify)
@@ -353,10 +361,10 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
-        if (Values.TryGetValue(key, out string value))
+        if (Values.TryGetValue(key, out string? value))
             return value;
 
-        if (key != fallbackKey && Values.TryGetValue(fallbackKey, out string fallbackValue))
+        if (key != fallbackKey && Values.TryGetValue(fallbackKey, out string? fallbackValue))
             return fallbackValue;
 
         if (notify)
