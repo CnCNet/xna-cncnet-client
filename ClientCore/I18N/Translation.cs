@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -57,12 +58,12 @@ public class Translation : ICloneable
     public Encoding MapEncoding = EncodingExt.UTF8NoBOM;
 
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
-    private Dictionary<string, string> Values { get; } = new();
+    private ConcurrentDictionary<string, string> Values { get; } = new();
 
     // public bool IsRightToLeft { get; set; } // TODO
 
     /// <summary>Contains all keys within <see cref="Values"/> with missing translations.</summary>
-    private readonly HashSet<string> MissingKeys = new();
+    private readonly ConcurrentDictionary<string, byte> MissingKeys = new();
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
@@ -124,7 +125,7 @@ public class Translation : ICloneable
         MapEncoding = other.MapEncoding;
 
         foreach (var (key, value) in other.Values)
-            Values.Add(key, value);
+            Values.TryAdd(key, value);
     }
 
     public Translation Clone() => new Translation(this);
@@ -300,7 +301,7 @@ public class Translation : ICloneable
 
         foreach (var (key, value) in Values.OrderBy(kvp => kvp.Key))
         {
-            bool valueMissing = MissingKeys.Contains(key);
+            bool valueMissing = MissingKeys.ContainsKey(key);
             if (!saveOnlyMissingValues || valueMissing)
             {
                 translation.AddKey(valueMissing
@@ -315,9 +316,9 @@ public class Translation : ICloneable
 
     private bool HandleMissing(string key, string defaultValue)
     {
-        if (MissingKeys.Add(key))
+        if (MissingKeys.TryAdd(key, 0))
         {
-            Values[key] = defaultValue;
+            Values.TryAdd(key, defaultValue);
             return true;
         }
 
@@ -333,8 +334,8 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string defaultValue, bool notify = true)
     {
-        if (Values.ContainsKey(key))
-            return Values[key];
+        if (Values.TryGetValue(key, out string value))
+            return value;
 
         if (notify)
             _ = HandleMissing(key, defaultValue);
@@ -352,23 +353,15 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
-        string result;
-        if (Values.ContainsKey(key))
-        {
-            result = Values[key];
-        }
-        else if (key != fallbackKey && Values.ContainsKey(fallbackKey))
-        {
-            result = Values[fallbackKey];
-        }
-        else
-        {
-            result = defaultValue;
+        if (Values.TryGetValue(key, out string value))
+            return value;
 
-            if (notify)
-                _ = HandleMissing(key, defaultValue);
-        }
+        if (key != fallbackKey && Values.TryGetValue(fallbackKey, out string fallbackValue))
+            return fallbackValue;
 
-        return result;
+        if (notify)
+            _ = HandleMissing(key, defaultValue);
+
+        return defaultValue;
     }
 }
