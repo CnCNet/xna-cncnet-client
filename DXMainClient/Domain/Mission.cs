@@ -47,7 +47,7 @@ namespace DTAClient.Domain
             Enabled = missionSection.GetBooleanValue(nameof(Enabled), true);
             BuildOffAlly = missionSection.GetBooleanValue(nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = missionSection.GetBooleanValue(nameof(PlayerAlwaysOnNormalDifficulty), false);
-            Tags = missionSection.GetStringValue(nameof(Tags), string.Empty).Split(',');
+            Tags = missionSection.GetStringValue(nameof(Tags), string.Empty).Split(',').Select(t => t.Trim()).ToArray();
 
             CodeName = missionCodeName;
             CustomMissionID = ComputeCustomMissionID(missionCodeName);
