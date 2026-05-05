@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -47,7 +46,7 @@ namespace DTAClient.Domain
             Enabled = missionSection.GetBooleanValue(nameof(Enabled), true);
             BuildOffAlly = missionSection.GetBooleanValue(nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = missionSection.GetBooleanValue(nameof(PlayerAlwaysOnNormalDifficulty), false);
-            Tags = missionSection.GetStringValue(nameof(Tags), string.Empty).Split(',').Select(t => t.Trim()).ToArray();
+            Tags = missionSection.GetStringValue(nameof(Tags), string.Empty).SplitWithCleanup();
 
             CodeName = missionCodeName;
             CustomMissionID = ComputeCustomMissionID(missionCodeName);
