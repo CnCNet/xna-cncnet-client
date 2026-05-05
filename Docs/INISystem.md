@@ -639,7 +639,9 @@ CD=0                                 ; integer, CD number.
 Side=0                               ; integer, side index for the mission.
 Scenario=                            ; string,  relative path to the map file.
 Description=Undefined mission        ; string,  mission display name. Supports localization.
-SideName=                            ; string,  icon path for the mission.
+SideName=                            ; string,  mission icon asset prefix, not a full path.
+                                     ;          The client appends `icon.png` when loading it
+                                     ;          (for example, `SideName=GDI` loads `GDIicon.png`).
 LongDescription=                     ; string,  mission description text. Supports localization
                                      ;          and line breaks via `@`.
 FinalMovie=none                      ; string,  movie to play after mission completion.
@@ -658,17 +660,15 @@ PreviewImage=                        ; string,  path relative to `Resources/Miss
 
 Custom mission `.map` files placed in the `CustomMissionPath` directory (see [ClientDefinition](#ClientDefinition)) are scanned for two INI sections:
 
-- **`[ClientMissionConfig]`** — **required** for the map to be recognized as a custom mission. Supports all keys listed in [Mission Properties](#mission-properties).
+- **`[ClientMissionConfig]`** — **required** for the map to be recognized as a custom mission. Supports the client-facing keys from [Mission Properties](#mission-properties), except that for custom missions `Scenario` is derived from the `.map` filename/path and `Tags` is always set to `CUSTOM`.
 - **`[GameMissionConfig]`** — **optional**. Key-value pairs are written to `spawn.ini` at launch time. Used for loading screen configuration and other engine-level settings.
 
 ```ini
 ; In a custom mission .map file
 
 [ClientMissionConfig]
-Scenario=Maps/CustomMissions/mymission.map
 Description=My Custom Mission
 Side=0
-Tags=MyCampaign
 Enabled=true
 
 [GameMissionConfig]
@@ -678,7 +678,7 @@ Enabled=true
 
 If `[GameMissionConfig]` is not present or does not specify loading screen keys, the client automatically looks for `.shp` and `.pal` supplement files as fallback loading screen assets. 
 
-Note, these supplement file extensions must be defined via `CustomMissionPath`, `CustomMissionSupplementFileNCopyAs` and `CustomMissionSupplementFileNExtension` keys in `ClientDefinitions.ini`, where `N` refers to a sequential number.
+Note, supplemental mission files must be configured in `ClientDefinitions.ini` using `CustomMissionPath` together with `CustomMissionSupplementFileNExtension` and `CustomMissionSupplementFileNCopyAs` as sequential `(extension, copy-as filename)` pairs, where `N` refers to a sequential number.
 
 ### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
