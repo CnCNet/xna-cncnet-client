@@ -6,6 +6,8 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 ## 2.13.0
 
+- The client now supports using TTF/OTF font files. See [Fonts.md](Fonts.md) for details.
+
 - Custom mission support allows fan-made campaign maps to appear alongside official missions. Features include supplemental file management (string tables, palettes, loading screens), mission preview images, and save game integration. See `Custom Mission Map Files` sections in [INISystem.md](INISystem.md).
 
 - An optional campaign tag selector is provided, allowing players to select a category of campaign missions before the mission selector. This can also be used to separate official missions from custom missions. See `Campaign Tag Selector` section in [INISystem.md](INISystem.md).
@@ -19,6 +21,8 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 - The following controls are now available to support broadcasting customized game options to the CnCNet lobby and displaying them in the game list and filters. `GameSessionCheckBox`, `GameLobbyCheckBox`, `GameSessionDropDown`, `GameLobbyDropDown`. See [INISystem.md](INISystem.md).
 
 - The game icon in the game lobby list can be turned off. See `ShowGameIconInGameList` in [INISystem.md](INISystem.md).
+
+- The client will now applies modders' suggested default hot keys as long as they are missing from the user's keyboard ini. This allows modders to provide a more customized experience for their mods by editing `KeyboardCommands.ini` file.
 
 ## 2.12.18
 
