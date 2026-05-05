@@ -676,7 +676,9 @@ Enabled=true
 ; If loading screen keys are present, ReadMissionSection=Yes is set in spawn.ini.
 ```
 
-If `[GameMissionConfig]` is not present or does not specify loading screen keys, the client automatically looks for `.shp` and `.pal` supplement files as fallback loading screen assets.
+If `[GameMissionConfig]` is not present or does not specify loading screen keys, the client automatically looks for `.shp` and `.pal` supplement files as fallback loading screen assets. 
+
+Note, these supplement file extensions must be defined via `CustomMissionPath`, `CustomMissionSupplementFileNCopyAs` and `CustomMissionSupplementFileNExtension` keys in `ClientDefinitions.ini`, where `N` refers to a sequential number.
 
 ### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
