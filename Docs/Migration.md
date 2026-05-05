@@ -1,5 +1,4 @@
-Migrating from older versions
------------------------------
+# Migrating from older versions
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
