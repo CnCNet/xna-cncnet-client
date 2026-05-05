@@ -22,7 +22,7 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - The game icon in the game lobby list can be turned off. See `ShowGameIconInGameList` in [INISystem.md](INISystem.md).
 
-- The client will now applies modders' suggested default hot keys as long as they are missing from the user's keyboard ini. This allows modders to provide a more customized experience for their mods by editing `KeyboardCommands.ini` file.
+- The client will now apply modders' suggested default hotkeys as long as they are missing from the user's keyboard ini. This allows modders to provide a more customized experience for their mods by editing the `KeyboardCommands.ini` file.
 
 ## 2.12.18
 
