@@ -263,7 +263,7 @@ namespace DTAClient.Domain
             if (string.IsNullOrEmpty(value) || value.Length <= MaxDiscordPresenceTextLength)
                 return value;
 
-            return value.SubstringSurrogateAware(MaxDiscordPresenceTextLength - 3) + "...";
+            return value.SubstringSurrogateAware(0, MaxDiscordPresenceTextLength - 3) + "...";
         }
 
         #endregion
