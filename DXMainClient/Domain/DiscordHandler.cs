@@ -1,5 +1,6 @@
 ﻿using System;
 using ClientCore;
+using ClientCore.Extensions;
 using DiscordRPC;
 using DiscordRPC.Message;
 using Microsoft.Xna.Framework;
@@ -261,7 +262,7 @@ namespace DTAClient.Domain
             if (string.IsNullOrEmpty(value) || value.Length <= MaxDiscordPresenceTextLength)
                 return value;
 
-            return value.Substring(0, MaxDiscordPresenceTextLength - 3) + "..."; // TODO: surrogate
+            return value.TruncateAtCharBoundary(MaxDiscordPresenceTextLength - 3) + "...";
         }
 
         #endregion
