@@ -5,8 +5,8 @@ using DiscordRPC;
 using DiscordRPC.Message;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
-using Rampastring.XNAUI;
 using System.Text.RegularExpressions;
+using Rampastring.XNAUI.Extensions;
 
 namespace DTAClient.Domain
 {
@@ -262,7 +262,7 @@ namespace DTAClient.Domain
             if (string.IsNullOrEmpty(value) || value.Length <= MaxDiscordPresenceTextLength)
                 return value;
 
-            return value.TruncateAtCharBoundary(MaxDiscordPresenceTextLength - 3) + "...";
+            return value.SubstringSurrogateAware(MaxDiscordPresenceTextLength - 3) + "...";
         }
 
         #endregion
