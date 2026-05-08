@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+
 using ClientCore;
 using ClientCore.Extensions;
+
 using DiscordRPC;
 using DiscordRPC.Message;
-using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
-using System.Text.RegularExpressions;
 using Rampastring.XNAUI.Extensions;
 
 namespace DTAClient.Domain
