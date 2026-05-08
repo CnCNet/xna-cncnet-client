@@ -490,6 +490,8 @@ namespace ClientCore
 
         public string CnCNetMapDBUploadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetMapDBUploadURL", "https://mapdb.cncnet.org/upload");
 
+        public string CnCNetSyncLogUploadURL => networkDefinitionsIni.GetStringValue(SETTINGS, "CnCNetSyncLogUploadURL", "https://mapdb.cncnet.org/sync-logs/");
+
         public bool DisableDiscordIntegration => networkDefinitionsIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
 
         public List<string> IRCServers => GetIRCServers();

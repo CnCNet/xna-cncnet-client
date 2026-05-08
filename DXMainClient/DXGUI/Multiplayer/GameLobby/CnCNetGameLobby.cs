@@ -1596,6 +1596,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             StopInactiveCheck();
             channel.SendCTCPMessage("STRTD", QueuedMessageType.SYSTEM_MESSAGE, 20);
 
+            SyncLogSharer.SetGameInfo(
+                mapSha1: Map?.SHA1 ?? lastMapSHA1,
+                mapName: Map?.Name ?? lastMapName,
+                gameMode: GameMode?.UntranslatedUIName ?? lastGameMode,
+                gameSlug: localGame,
+                playerName: ProgramConstants.PLAYERNAME,
+                randomSeed: RandomSeed);
+
             base.StartGame();
         }
 
