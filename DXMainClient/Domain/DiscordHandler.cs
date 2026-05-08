@@ -8,14 +8,13 @@ using DiscordRPC;
 using DiscordRPC.Message;
 
 using Rampastring.Tools;
-using Rampastring.XNAUI.Extensions;
 
 namespace DTAClient.Domain
 {
     /// <summary>
     /// A class for handling Discord integration.
     /// </summary>
-    public class DiscordHandler: IDisposable
+    public class DiscordHandler : IDisposable
     {
         private const int MaxDiscordPresenceTextLength = 128;
         private DiscordRpcClient client;
