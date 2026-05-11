@@ -334,7 +334,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else if (CurrentTunnel != null)
                 {
-                    PingCurrentTunnelAsync(true);
+                    _ = PingCurrentTunnelAsync(true);
                 }
 
                 lastTunnelRefreshTimestamp = currentTimestamp;
