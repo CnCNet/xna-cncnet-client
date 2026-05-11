@@ -30,6 +30,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
         private const int SUPPORTED_TUNNEL_VERSION = 2;
+        private static readonly TimeSpan tunnelRefreshInterval = TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL);
 
         private readonly object _refreshLock = new object();
         private bool _refreshInProgress = false;
@@ -58,7 +59,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private WindowManager wm;
         private CnCNetManager connectionManager;
 
-        private readonly Stopwatch tunnelRefreshStopwatch = Stopwatch.StartNew();
+        private readonly Stopwatch refreshTimer = Stopwatch.StartNew();
         private TimeSpan? lastTunnelRefreshTimestamp;
         private uint skipCount = 0;
 
@@ -319,12 +320,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public override void Update(GameTime gameTime)
         {
-            TimeSpan currentTimestamp = tunnelRefreshStopwatch.Elapsed;
+            TimeSpan currentTimestamp = refreshTimer.Elapsed;
             TimeSpan elapsedSinceLastRefresh = lastTunnelRefreshTimestamp.HasValue
                 ? currentTimestamp - lastTunnelRefreshTimestamp.Value
                 : TimeSpan.MaxValue;
 
-            if (elapsedSinceLastRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL))
+            if (elapsedSinceLastRefresh > tunnelRefreshInterval)
             {
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
