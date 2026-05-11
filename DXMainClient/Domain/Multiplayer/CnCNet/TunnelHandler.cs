@@ -5,6 +5,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,7 +58,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private WindowManager wm;
         private CnCNetManager connectionManager;
 
-        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
+        private readonly Stopwatch tunnelRefreshStopwatch = Stopwatch.StartNew();
+        private TimeSpan? lastTunnelRefreshTimestamp;
         private uint skipCount = 0;
 
         private void DoTunnelPinged(int index)
@@ -317,7 +319,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public override void Update(GameTime gameTime)
         {
-            if (timeSinceTunnelRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL))
+            TimeSpan currentTimestamp = tunnelRefreshStopwatch.Elapsed;
+            TimeSpan elapsedSinceLastRefresh = lastTunnelRefreshTimestamp.HasValue
+                ? currentTimestamp - lastTunnelRefreshTimestamp.Value
+                : TimeSpan.MaxValue;
+
+            if (elapsedSinceLastRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL))
             {
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
@@ -329,11 +336,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     PingCurrentTunnelAsync(true);
                 }
 
-                timeSinceTunnelRefresh = TimeSpan.Zero;
+                lastTunnelRefreshTimestamp = currentTimestamp;
                 skipCount++;
             }
-            else
-                timeSinceTunnelRefresh += gameTime.ElapsedGameTime;
 
             base.Update(gameTime);
         }
