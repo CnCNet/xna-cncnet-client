@@ -1,15 +1,19 @@
-﻿using ClientCore;
-using DTAClient.Online;
-using Microsoft.Xna.Framework;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
+
+using ClientCore;
+
+using DTAClient.Online;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
