@@ -852,8 +852,6 @@ ForcedSpawnIniOptions=                 ; string,  name of an INI section whose k
                                        ;          Defaults to `{Name}ForcedSpawnIniOptions`.
 MapCodeIniName=                        ; string,  name of the map code INI file in `INI/Map Code/`.
                                        ;          Defaults to `{Name}.ini`.
-CustomIniPath=                         ; string,  full custom path for the map code INI.
-                                       ;          Overrides MapCodeIniName.
 RandomizedMapCodeIniNames=             ; comma-separated strings,
                                        ;          additional randomized map code INI names.
 RandomizedMapCodesCount=1              ; integer, how many of the randomized map codes to pick.
