@@ -36,15 +36,25 @@ namespace DTAClient.Domain
                 FileInfo savedGameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SAVED_GAME_PATH, FileName);
 
                 using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
+                using (RootStorage root = RootStorage.Open(file, StorageModeFlags.LeaveOpen))
                 {
-                    var cf = new CompoundFile(file);
-
-                    GUIName = System.Text.Encoding.Unicode.GetString(cf.RootStorage.GetStream("Scenario Description").GetData()).TrimEnd(['\0']);
-                    try
+                    using (CfbStream scenarioDescStream = root.OpenStream("Scenario Description"))
                     {
-                        CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(cf.RootStorage.GetStream("CustomMissionID").GetData());
+                        byte[] scenarioDescData = new byte[scenarioDescStream.Length];
+                        scenarioDescStream.ReadExactly(scenarioDescData);
+                        GUIName = System.Text.Encoding.Unicode.GetString(scenarioDescData).TrimEnd(['\0']);
                     }
-                    catch (CFItemNotFound)
+
+                    if (root.TryOpenStream("CustomMissionID", out CfbStream? customMissionIdStream))
+                    {
+                        using (customMissionIdStream)
+                        {
+                            byte[] customMissionIdData = new byte[customMissionIdStream.Length];
+                            customMissionIdStream.ReadExactly(customMissionIdData);
+                            CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(customMissionIdData);
+                        }
+                    }
+                    else
                     {
                         CustomMissionID = 0;
                     }
