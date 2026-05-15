@@ -2,7 +2,7 @@
 using System;
 
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 public interface ICacheManager<TInput, TOutput> : IDisposable
 {

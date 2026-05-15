@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using System;
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 /// <summary>
 /// Extends <see cref="CacheManagerBase{TInput, TOutput}"/> for outputs that implement

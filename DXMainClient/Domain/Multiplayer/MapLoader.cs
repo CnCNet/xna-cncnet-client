@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ClientCore;
+using ClientCore.Caching;
 using ClientCore.Extensions;
 
 using Rampastring.Tools;
@@ -784,7 +785,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {
-                mapPreviewCacheManager.Request(map, out CacheLease<Image> lease, addToQueue: true);
+                mapPreviewCacheManager.Request(map, out CacheLease<Image>? lease, addToQueue: true);
                 lease?.Dispose();
             }
         }
@@ -794,7 +795,7 @@ namespace DTAClient.Domain.Multiplayer
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
             {
                 Image image = map.GetImmediatePreviewImage();
-                return new CacheLease<Image>(image, image.Dispose);
+                return CacheLease<Image>.CreateOwned(image, image.Dispose);
             }
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {

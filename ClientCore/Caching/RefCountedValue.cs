@@ -2,7 +2,7 @@
 using System;
 using System.Threading;
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 /// <summary>
 /// Thread-safe ref-counted wrapper around a value.

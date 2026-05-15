@@ -1,4 +1,6 @@
 #nullable enable
+using ClientCore.Caching;
+
 using SixLabors.ImageSharp;
 
 namespace DTAClient.Domain.Multiplayer;

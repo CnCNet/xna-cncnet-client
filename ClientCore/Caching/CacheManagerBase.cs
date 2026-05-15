@@ -5,7 +5,7 @@ using System.Threading;
 
 using Rampastring.Tools;
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 /// <summary>
 /// Thread-safe manager for caching outputs with LRU eviction policy.
@@ -325,4 +325,3 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
         Clear();
     }
 }
-

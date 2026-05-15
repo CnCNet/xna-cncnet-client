@@ -2,7 +2,7 @@
 using System;
 using System.Threading;
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 /// <summary>
 /// A disposable lease on a cached value. The caller must dispose this lease when done
@@ -14,6 +14,14 @@ public sealed class CacheLease<T> : IDisposable
     private readonly T value;
     private readonly Action? onRelease;
     private int disposeFlag = 0;
+
+    /// <summary>
+    /// Creates a lease that directly owns the value.
+    /// Disposing this lease invokes <paramref name="onRelease"/> if provided.
+    /// </summary>
+    /// <param name="value">The directly owned value.</param>
+    /// <param name="onRelease">Action to invoke when the lease is disposed, or <c>null</c>.</param>
+    public static CacheLease<T> CreateOwned(T value, Action? onRelease) => new CacheLease<T>(value, onRelease);
 
     /// <summary>
     /// Creates a lease that directly owns the value.
