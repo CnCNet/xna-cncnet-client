@@ -794,7 +794,7 @@ namespace DTAClient.Domain.Multiplayer
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
             {
                 Image image = map.GetImmediatePreviewImage();
-                return new CacheLease<Image>(image);
+                return new CacheLease<Image>(image, image.Dispose);
             }
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {

@@ -5,18 +5,24 @@ using System.Threading;
 namespace DTAClient.Domain.Multiplayer;
 
 /// <summary>
-/// Thread-safe ref-counted wrapper around a disposable value.
+/// Thread-safe ref-counted wrapper around a value.
 /// The initial ref count is 1, representing the cache's own reference.
-/// The wrapped value is disposed once the ref count reaches zero.
+/// When the ref count reaches zero, the optional <see cref="disposeAction"/> is invoked.
 /// </summary>
-internal sealed class RefCountedValue<T> where T : IDisposable
+internal sealed class RefCountedValue<T>
 {
     private int refCount = 1;
     private readonly T value;
+    private readonly Action? disposeAction;
 
-    internal RefCountedValue(T value)
+    /// <param name="value">The value to wrap.</param>
+    /// <param name="disposeAction">
+    /// Called when the ref count reaches zero. Pass <c>null</c> for non-disposable values.
+    /// </param>
+    internal RefCountedValue(T value, Action? disposeAction)
     {
         this.value = value;
+        this.disposeAction = disposeAction;
     }
 
     internal T Value => value;
@@ -32,12 +38,12 @@ internal sealed class RefCountedValue<T> where T : IDisposable
     }
 
     /// <summary>
-    /// Decrements the ref count and disposes the value when the count reaches zero.
+    /// Decrements the ref count and invokes the dispose action when the count reaches zero.
     /// Safe to call from any thread without holding the cache lock.
     /// </summary>
     internal void Release()
     {
         if (Interlocked.Decrement(ref refCount) == 0)
-            value.Dispose();
+            disposeAction?.Invoke();
     }
 }

@@ -6,23 +6,23 @@ namespace DTAClient.Domain.Multiplayer;
 
 /// <summary>
 /// A disposable lease on a cached value. The caller must dispose this lease when done
-/// with the value to release the reference. The underlying value is disposed only when
-/// all leases and the cache itself have released their references.
+/// with the value to release the reference. If the underlying value is <see cref="IDisposable"/>,
+/// it is disposed only when all leases and the cache itself have released their references.
 /// </summary>
-public sealed class CacheLease<T> : IDisposable where T : IDisposable
+public sealed class CacheLease<T> : IDisposable
 {
     private readonly T value;
-    private readonly Action onDispose;
+    private readonly Action? onRelease;
     private int disposeFlag = 0;
 
     /// <summary>
     /// Creates a lease that directly owns the value.
-    /// Disposing this lease disposes the value immediately.
+    /// Disposing this lease invokes <paramref name="onRelease"/> if provided.
     /// </summary>
-    internal CacheLease(T value)
+    internal CacheLease(T value, Action? onRelease)
     {
         this.value = value;
-        onDispose = value.Dispose;
+        this.onRelease = onRelease;
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed class CacheLease<T> : IDisposable where T : IDisposable
     internal CacheLease(RefCountedValue<T> refCounted)
     {
         value = refCounted.Value;
-        onDispose = refCounted.Release;
+        onRelease = refCounted.Release;
     }
 
     /// <summary>
@@ -49,6 +49,6 @@ public sealed class CacheLease<T> : IDisposable where T : IDisposable
     public void Dispose()
     {
         if (Interlocked.Exchange(ref disposeFlag, 1) == 0)
-            onDispose();
+            onRelease?.Invoke();
     }
 }

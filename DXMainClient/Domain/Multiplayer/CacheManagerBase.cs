@@ -10,12 +10,13 @@ namespace DTAClient.Domain.Multiplayer;
 /// <summary>
 /// Thread-safe manager for caching outputs with LRU eviction policy.
 /// Processes computation requests sequentially to limit CPU usage to a single thread.
-/// Cached outputs are ref-counted: they are disposed when all callers have released their
-/// leases and the cache itself has evicted the entry.
+/// Cached outputs are ref-counted: <see cref="GetDisposeAction"/> is invoked when all
+/// callers have released their leases and the cache itself has evicted the entry.
+/// Override <see cref="GetDisposeAction"/> in a subclass to add disposal behaviour
+/// (see <see cref="DisposableCacheManagerBase{TInput, TOutput}"/>).
 /// </summary>
 public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, TOutput>
     where TInput : notnull
-    where TOutput : IDisposable
 {
     public abstract string Name { get; }
 
@@ -156,9 +157,9 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
             if (cache.TryGetValue(input, out CacheEntry? existingEntry))
             {
                 // Already cached: discard the duplicate output and return a lease for the existing entry.
-                // Disposal happens inside the lock to prevent a race where another thread could
+                // Invoked inside the lock to prevent a race where another thread could
                 // access the output after it has already been disposed.
-                output?.Dispose();
+                GetDisposeAction(output)?.Invoke();
                 lruList.Remove(existingEntry.LruNode);
                 existingEntry.LruNode = lruList.AddFirst(input);
                 return existingEntry.RefCounted?.AcquireLease();
@@ -169,7 +170,9 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
                 EvictLeastRecentlyUsed();
 
             // Add new entry; RefCounted is null when output itself is null
-            RefCountedValue<TOutput>? refCounted = output != null ? new RefCountedValue<TOutput>(output) : null;
+            RefCountedValue<TOutput>? refCounted = output != null
+                ? new RefCountedValue<TOutput>(output, GetDisposeAction(output))
+                : null;
             LinkedListNode<TInput> node = lruList.AddFirst(input);
             cache[input] = new CacheEntry(refCounted, node);
 
@@ -199,6 +202,16 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     /// <param name="input">The input.</param>
     /// <returns>The output.</returns>
     protected abstract TOutput? ComputeOutputForInput(TInput input);
+
+    /// <summary>
+    /// Returns an <see cref="Action"/> that should be invoked when the ref count of a cached
+    /// <paramref name="value"/> entry reaches zero (i.e. the entry has been evicted from the
+    /// cache and all caller leases have been released).
+    /// Returns <c>null</c> by default; override in a subclass to perform cleanup such as
+    /// calling <see cref="IDisposable.Dispose"/> on the value.
+    /// </summary>
+    /// <param name="value">The value whose lifetime is ending.</param>
+    protected virtual Action? GetDisposeAction(TOutput? value) => null;
 
     /// <summary>
     /// Worker thread that processes computation requests sequentially.

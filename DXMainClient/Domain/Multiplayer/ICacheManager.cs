@@ -4,7 +4,7 @@ using System;
 
 namespace DTAClient.Domain.Multiplayer;
 
-public interface ICacheManager<TInput, TOutput> : IDisposable where TOutput : IDisposable
+public interface ICacheManager<TInput, TOutput> : IDisposable
 {
     /// <summary>
     /// Gets the number of elements contained in the collection.
