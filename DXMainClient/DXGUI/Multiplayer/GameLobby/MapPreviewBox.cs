@@ -435,7 +435,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
-            Image previewTextureImage = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true);
+            using var previewLease = mapLoader.GetCachedPreviewImageFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true);
+            Image previewTextureImage = previewLease?.Value;
 
             mapPreviewTexture = previewTextureImage != null
                 ? AssetLoader.TextureFromImage(previewTextureImage)

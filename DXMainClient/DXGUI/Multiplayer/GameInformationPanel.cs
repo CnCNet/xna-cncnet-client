@@ -256,7 +256,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
 
-                Image mapPreviewImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss: false) : null;
+                using var previewLease = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss: false) : null;
+                Image mapPreviewImage = previewLease?.Value;
 
                 if (mapPreviewImage != null)
                 {
