@@ -36,7 +36,7 @@ namespace DTAClient.Domain
                 FileInfo savedGameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SAVED_GAME_PATH, FileName);
 
                 using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
-                using (RootStorage root = RootStorage.Open(file, StorageModeFlags.LeaveOpen))
+                using (RootStorage root = RootStorage.Open(file))
                 {
                     using (CfbStream scenarioDescStream = root.OpenStream("Scenario Description"))
                     {
