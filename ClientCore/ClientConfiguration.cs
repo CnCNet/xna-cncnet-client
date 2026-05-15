@@ -208,6 +208,8 @@ namespace ClientCore
 
         #region Client definitions
 
+        public IniFile ClientDefinitionsIni => clientDefinitionsIni;
+
         private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
         private ClientType? _ClientGameType = null;
         public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
