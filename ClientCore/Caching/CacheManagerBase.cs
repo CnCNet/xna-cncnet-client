@@ -29,7 +29,7 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     private readonly HashSet<TInput> requestQueue = new();
     private readonly object queueLock = new();
     private readonly Thread? workerThread;
-    private bool isDisposed = false;
+    private volatile bool isDisposed = false;
 
     public int Count
     {
