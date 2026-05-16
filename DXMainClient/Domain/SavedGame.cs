@@ -14,6 +14,7 @@ namespace DTAClient.Domain
     public class SavedGame
     {
         const string SAVED_GAME_PATH = "Saved Games/";
+        const int MAX_SCENARIO_DESCRIPTION_BYTES = 1024 * 1024;
 
         public SavedGame(string fileName)
         {
@@ -40,8 +41,21 @@ namespace DTAClient.Domain
                 {
                     using (CfbStream scenarioDescStream = root.OpenStream("Scenario Description"))
                     {
-                        byte[] scenarioDescData = new byte[scenarioDescStream.Length];
-                        scenarioDescStream.ReadExactly(scenarioDescData);
+                        if (scenarioDescStream.Length > MAX_SCENARIO_DESCRIPTION_BYTES)
+                            throw new InvalidDataException($"Scenario Description stream was unexpectedly large: {scenarioDescStream.Length} bytes.");
+
+                        int scenarioDescLength = checked((int)scenarioDescStream.Length);
+                        byte[] scenarioDescData = new byte[scenarioDescLength];
+                        int bytesRead = 0;
+                        while (bytesRead < scenarioDescLength)
+                        {
+                            int readCount = scenarioDescStream.Read(scenarioDescData, bytesRead, scenarioDescLength - bytesRead);
+                            if (readCount == 0)
+                                throw new EndOfStreamException("Unexpected end of stream while reading Scenario Description.");
+
+                            bytesRead += readCount;
+                        }
+
                         GUIName = System.Text.Encoding.Unicode.GetString(scenarioDescData).TrimEnd(['\0']);
                     }
 
@@ -49,9 +63,11 @@ namespace DTAClient.Domain
                     {
                         using (customMissionIdStream)
                         {
-                            byte[] customMissionIdData = new byte[customMissionIdStream.Length];
-                            customMissionIdStream.ReadExactly(customMissionIdData);
-                            CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(customMissionIdData);
+                            byte[] customMissionIdData = new byte[sizeof(int)];
+                            int bytesRead = customMissionIdStream.Read(customMissionIdData, 0, customMissionIdData.Length);
+                            CustomMissionID = bytesRead < customMissionIdData.Length
+                                ? 0
+                                : BinaryPrimitives.ReadInt32LittleEndian(customMissionIdData);
                         }
                     }
                     else
