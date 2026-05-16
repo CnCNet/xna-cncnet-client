@@ -42,7 +42,7 @@ namespace DTAClient.Domain
                     using (CfbStream scenarioDescStream = root.OpenStream("Scenario Description"))
                     {
                         if (scenarioDescStream.Length > MAX_SCENARIO_DESCRIPTION_BYTES)
-                            throw new InvalidDataException($"Scenario Description stream was unexpectedly large: {scenarioDescStream.Length} bytes. File: {FileName}");
+                            throw new InvalidDataException($"Scenario Description stream was unexpectedly large: {scenarioDescStream.Length} bytes.");
 
                         int scenarioDescLength = checked((int)scenarioDescStream.Length);
                         byte[] scenarioDescData = new byte[scenarioDescLength];
