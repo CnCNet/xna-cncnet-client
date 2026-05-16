@@ -31,7 +31,16 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     private readonly Thread? workerThread;
     private volatile bool isDisposed = false;
 
-    public int Count => cache.Count;
+    public int Count
+    {
+        get
+        {
+            lock (cacheLock)
+            {
+                return cache.Count;
+            }
+        }
+    }
 
     /// <summary>
     /// Represents a cached entry with its ref-counted output and position in the LRU list.
