@@ -518,17 +518,25 @@ namespace DTAClient.DXGUI.Campaign
 
             if (copyMapsToSpawnmapINI)
             {
-                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
 
-                IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
+                if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+                {
+                    Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
+                }
+                else
+                {
+                    var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
 
-                foreach (CampaignCheckBox chkBox in CheckBoxes)
-                    chkBox.ApplyMapCode(mapIni, gameMode: null);
+                    IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
 
-                foreach (CampaignDropDown dd in DropDowns)
-                    dd.ApplyMapCode(mapIni, gameMode: null);
+                    foreach (CampaignCheckBox chkBox in CheckBoxes)
+                        chkBox.ApplyMapCode(mapIni, gameMode: null);
 
-                mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
+                    foreach (CampaignDropDown dd in DropDowns)
+                        dd.ApplyMapCode(mapIni, gameMode: null);
+
+                    mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
+                }
             }
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
@@ -548,6 +556,13 @@ namespace DTAClient.DXGUI.Campaign
         public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
         {
             bool hasGameMissionData = false;
+
+            if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+            {
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without mission section data.");
+                return;
+            }
+
             string scenarioPath = SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario);
 
             if (!mission.IsCustomMission && File.Exists(scenarioPath))
