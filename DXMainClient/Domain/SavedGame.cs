@@ -66,7 +66,7 @@ namespace DTAClient.Domain
                             byte[] customMissionIdData = new byte[sizeof(int)];
                             int bytesRead = customMissionIdStream.Read(customMissionIdData, 0, customMissionIdData.Length);
                             CustomMissionID = bytesRead < customMissionIdData.Length
-                                ? 0
+                                ? throw new EndOfStreamException("Unexpected end of stream while reading CustomMissionID.")
                                 : BinaryPrimitives.ReadInt32LittleEndian(customMissionIdData);
                         }
                     }
