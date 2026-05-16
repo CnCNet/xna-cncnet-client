@@ -442,7 +442,7 @@ namespace DTAClient.DXGUI.Campaign
 
             bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
 
-            if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+            if (mission.Scenario.ToWin32FileName() != mission.Scenario)
             {
                 Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
                 copyMapsToSpawnmapINI = false;
@@ -555,7 +555,7 @@ namespace DTAClient.DXGUI.Campaign
         {
             bool hasGameMissionData = false;
 
-            if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+            if (mission.Scenario.ToWin32FileName() != mission.Scenario)
             {
                 Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without mission section data.");
                 return;
