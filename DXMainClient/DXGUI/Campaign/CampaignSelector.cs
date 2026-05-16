@@ -442,6 +442,12 @@ namespace DTAClient.DXGUI.Campaign
 
             bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
 
+            if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+            {
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
+                copyMapsToSpawnmapINI = false;
+            }
+
             Logger.Log("About to write spawn.ini.");
             IniFile spawnIni = new(spawnerSettingsFile.FullName)
             {
@@ -518,25 +524,18 @@ namespace DTAClient.DXGUI.Campaign
 
             if (copyMapsToSpawnmapINI)
             {
+                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
 
-                if (mission.Scenario.IndexOfAny(Path.GetInvalidPathChars()) != -1)
-                {
-                    Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
-                }
-                else
-                {
-                    var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
+                IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
 
-                    IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
+                foreach (CampaignCheckBox chkBox in CheckBoxes)
+                    chkBox.ApplyMapCode(mapIni, gameMode: null);
 
-                    foreach (CampaignCheckBox chkBox in CheckBoxes)
-                        chkBox.ApplyMapCode(mapIni, gameMode: null);
+                foreach (CampaignDropDown dd in DropDowns)
+                    dd.ApplyMapCode(mapIni, gameMode: null);
 
-                    foreach (CampaignDropDown dd in DropDowns)
-                        dd.ApplyMapCode(mapIni, gameMode: null);
+                mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
 
-                    mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
-                }
             }
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
