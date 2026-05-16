@@ -795,7 +795,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public Texture2D GetPreviewImageTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
         {
-            if (map.IsImmediatePreviewImageAvailable())
+            if (map?.IsImmediatePreviewImageAvailable() ?? false)
                 return AssetLoader.LoadTextureUncached(map.PreviewPath);
 
             using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
