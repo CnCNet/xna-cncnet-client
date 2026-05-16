@@ -254,34 +254,25 @@ namespace DTAClient.DXGUI.Multiplayer
                 Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
-                if (map == null)
+                mapPreviewTexture = mapLoader.GetPreviewImageTextureFromMap(map, syncLoadOnCacheMiss: false);
+                if (mapPreviewTexture != null)
                 {
-                    mapPreviewTexture = null;
-                    mapPreviewTextureNeedsDispose = false;
+                    mapPreviewTextureNeedsDispose = true;
                 }
                 else
                 {
-                    mapPreviewTexture = mapLoader.GetPreviewImageTextureFromMap(map, syncLoadOnCacheMiss: false);
-                    if (mapPreviewTexture != null)
+                    // Try load noMapPreviewTexture
+                    if (noMapPreviewTexture != null)
                     {
-                        mapPreviewTextureNeedsDispose = true;
+                        Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
+                        mapPreviewTexture = noMapPreviewTexture;
+                        mapPreviewTextureNeedsDispose = false;
                     }
                     else
                     {
-                        // Try load noMapPreviewTexture
-                        if (noMapPreviewTexture != null)
-                        {
-                            Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
-                            mapPreviewTexture = noMapPreviewTexture;
-                            mapPreviewTextureNeedsDispose = false;
-                        }
-                        else
-                        {
-                            mapPreviewTexture = null;
-                            mapPreviewTextureNeedsDispose = false;
-                        }
+                        mapPreviewTexture = null;
+                        mapPreviewTextureNeedsDispose = false;
                     }
-
                 }
             }
             else
