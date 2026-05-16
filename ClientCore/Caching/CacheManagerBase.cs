@@ -154,6 +154,14 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
 
         lock (cacheLock)
         {
+            // If disposal happened while output was being computed outside the lock,
+            // don't reintroduce a new cache-owned reference.
+            if (isDisposed)
+            {
+                GetDisposeAction(output)?.Invoke();
+                return null;
+            }
+
             if (cache.TryGetValue(input, out CacheEntry? existingEntry))
             {
                 // Already cached: discard the duplicate output and return a lease for the existing entry.
