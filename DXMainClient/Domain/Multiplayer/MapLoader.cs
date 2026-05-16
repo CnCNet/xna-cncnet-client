@@ -785,7 +785,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {
-                mapPreviewCacheManager.Request(map, out CacheLease<Image>? lease, addToQueue: true);
+                _ = mapPreviewCacheManager.Request(map, out CacheLease<Image>? lease, addToQueue: true);
                 lease?.Dispose();
             }
         }
