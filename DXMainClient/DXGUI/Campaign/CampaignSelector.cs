@@ -535,7 +535,6 @@ namespace DTAClient.DXGUI.Campaign
                     dd.ApplyMapCode(mapIni, gameMode: null);
 
                 mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
-
             }
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
