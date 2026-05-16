@@ -261,7 +261,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 else
                 {
-                    // Try load noMapPreviewTexture
+                    // Try loading noMapPreviewTexture
                     if (noMapPreviewTexture != null)
                     {
                         Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
