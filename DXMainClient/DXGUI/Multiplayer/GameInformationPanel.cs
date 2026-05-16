@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ClientCore;
@@ -15,7 +15,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -252,32 +251,43 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
-
-                using var previewLease = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss: false) : null;
-                Image mapPreviewImage = previewLease?.Value;
-
-                if (mapPreviewImage != null)
-                {
-                    mapPreviewTexture = AssetLoader.TextureFromImage(mapPreviewImage);
-                    mapPreviewTextureNeedsDispose = true;
-                }
-                else if (noMapPreviewTexture != null)
-                {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
-                    mapPreviewTexture = noMapPreviewTexture;
-                    mapPreviewTextureNeedsDispose = false;
-                }
-                else
+                if (map == null)
                 {
                     mapPreviewTexture = null;
                     mapPreviewTextureNeedsDispose = false;
                 }
+                else
+                {
+                    mapPreviewTexture = mapLoader.GetPreviewImageTextureFromMap(map, syncLoadOnCacheMiss: false);
+                    if (mapPreviewTexture != null)
+                    {
+                        mapPreviewTextureNeedsDispose = true;
+                    }
+                    else
+                    {
+                        // Try load noMapPreviewTexture
+                        if (noMapPreviewTexture != null)
+                        {
+                            Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
+                            mapPreviewTexture = noMapPreviewTexture;
+                            mapPreviewTextureNeedsDispose = false;
+                        }
+                        else
+                        {
+                            mapPreviewTexture = null;
+                            mapPreviewTextureNeedsDispose = false;
+                        }
+                    }
+
+                }
             }
             else
             {
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before. ClearInfo() should have done that. What's wrong here?");
+
                 if (mapPreviewTextureNeedsDispose &&
                     mapPreviewTexture != null &&
                     !mapPreviewTexture.IsDisposed)

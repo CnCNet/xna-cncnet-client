@@ -10,7 +10,10 @@ using ClientCore;
 using ClientCore.Caching;
 using ClientCore.Extensions;
 
+using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 using SixLabors.ImageSharp;
 
@@ -788,6 +791,19 @@ namespace DTAClient.Domain.Multiplayer
                 _ = mapPreviewCacheManager.Request(map, out CacheLease<Image>? lease, addToQueue: true);
                 lease?.Dispose();
             }
+        }
+
+        public Texture2D GetPreviewImageTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
+        {
+            if (map.IsImmediatePreviewImageAvailable())
+                return AssetLoader.LoadTextureUncached(map.PreviewPath);
+
+            using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
+
+            if (cacheLease != null)
+                return AssetLoader.TextureFromImage(cacheLease.Value);
+            else
+                return null;
         }
 
         public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
