@@ -163,12 +163,14 @@ public static class StringExtensions
             throw new ArgumentNullException(nameof(str));
         if (maxUtf8ByteLength < 0)
             throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
+
+        ReadOnlySpan<char> span = str.AsSpan();
         int byteCount = 0;
         int index = 0;
 
         while (index < str.Length)
         {
-            OperationStatus status = Rune.DecodeFromUtf16(str.AsSpan(index), out Rune rune, out int charsConsumed);
+            OperationStatus status = Rune.DecodeFromUtf16(span.Slice(index), out Rune rune, out int charsConsumed);
             int utf8Bytes;
             int step;
 
