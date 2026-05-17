@@ -37,13 +37,15 @@ git submodule foreach --recursive \
 
 ## Step 3 — Restore NuGet packages
 
-Run restore from the **repo root** so that the solution file (`DXClient.slnx`) is used. This ensures all projects — including `SecondStageUpdater`, which the build pulls in transitively — are restored. Always pass the `Configuration` property; omitting it picks the wrong target frameworks.
+Run restore from the **solution file** so that ALL projects — including `SecondStageUpdater` — are restored. `SecondStageUpdater` is not a `<ProjectReference>` of `DXMainClient`, but it is always built via the custom `BuildUpdater` MSBuild target. If it is not restored before the build, NETSDK1127 or NETSDK1004 errors occur. Always pass the `Configuration` property; omitting it picks the wrong target frameworks.
 
 ```shell
-dotnet restore -p:Configuration=UniversalGLRelease
+dotnet restore DXClient.slnx -p:Configuration=UniversalGLRelease
 ```
 
 ## Step 4 — Build
+
+`--no-restore` is **required**. When `dotnet build` runs without it, the implicit restore only traverses DXMainClient's `<ProjectReference>` graph, which excludes `SecondStageUpdater`. This leaves SecondStageUpdater's restore assets stale after any code change, causing build failures. Always run Step 3 first, then build with `--no-restore`.
 
 ```shell
 dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
