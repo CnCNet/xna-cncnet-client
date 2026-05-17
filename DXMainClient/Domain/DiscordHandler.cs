@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using ClientCore;
@@ -261,9 +262,14 @@ namespace DTAClient.Domain
 
         private static string TrimDiscordPresenceText(string value)
         {
-            return string.IsNullOrEmpty(value)
-                ? value
-                : value.TrimToUtf8ByteLength(MaxDiscordPresenceTextUtf8ByteLength, DiscordPresenceTrimSuffix);
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            if (Encoding.UTF8.GetByteCount(value) <= MaxDiscordPresenceTextUtf8ByteLength)
+                return value;
+
+            int maxTrimmedTextByteLength = MaxDiscordPresenceTextUtf8ByteLength - Encoding.UTF8.GetByteCount(DiscordPresenceTrimSuffix);
+            return value.TrimToUtf8ByteLength(maxTrimmedTextByteLength) + DiscordPresenceTrimSuffix;
         }
 
         #endregion

@@ -152,32 +152,17 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Trims this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8,
-    /// appending <paramref name="suffix"/> when trimming occurs.
+    /// Trims this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8.
     /// </summary>
     /// <param name="str">The input string.</param>
     /// <param name="maxUtf8ByteLength">Maximum UTF-8 byte length allowed for the returned string.</param>
-    /// <param name="suffix">Suffix to append when trimming occurs.</param>
-    /// <returns>The original string if no trimming is needed; otherwise a UTF-8 byte-limited string with suffix.</returns>
-    public static string TrimToUtf8ByteLength(this string str, int maxUtf8ByteLength, string suffix = "")
+    /// <returns>The original string if no trimming is needed; otherwise a UTF-8 byte-limited string.</returns>
+    public static string TrimToUtf8ByteLength(this string str, int maxUtf8ByteLength)
     {
         if (str == null)
             throw new ArgumentNullException(nameof(str));
         if (maxUtf8ByteLength < 0)
             throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
-
-        suffix ??= string.Empty;
-
-        string effectiveSuffix = suffix;
-        int suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
-
-        if (suffixByteCount > maxUtf8ByteLength)
-        {
-            effectiveSuffix = effectiveSuffix.TrimToUtf8ByteLength(maxUtf8ByteLength, string.Empty);
-            suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
-        }
-
-        int allowedBytes = maxUtf8ByteLength - suffixByteCount;
         int byteCount = 0;
         int index = 0;
 
@@ -198,7 +183,7 @@ public static class StringExtensions
                 step = 1;
             }
 
-            if (byteCount + utf8Bytes > allowedBytes)
+            if (byteCount + utf8Bytes > maxUtf8ByteLength)
                 break;
 
             byteCount += utf8Bytes;
@@ -207,6 +192,6 @@ public static class StringExtensions
 
         return index >= str.Length
             ? str
-            : str.Substring(0, index) + effectiveSuffix;
+            : str.Substring(0, index);
     }
 }
