@@ -168,15 +168,12 @@ public static class StringExtensions
 
         suffix ??= string.Empty;
 
-        if (Encoding.UTF8.GetByteCount(str) <= maxUtf8ByteLength)
-            return str;
-
         string effectiveSuffix = suffix;
         int suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
 
         if (suffixByteCount > maxUtf8ByteLength)
         {
-            effectiveSuffix = effectiveSuffix.TrimToUtf8ByteLength(maxUtf8ByteLength);
+            effectiveSuffix = effectiveSuffix.TrimToUtf8ByteLength(maxUtf8ByteLength, string.Empty);
             suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
         }
 
@@ -197,7 +194,7 @@ public static class StringExtensions
             }
             else
             {
-                utf8Bytes = Encoding.UTF8.GetByteCount(str.AsSpan(index, 1));
+                utf8Bytes = Rune.ReplacementChar.Utf8SequenceLength;
                 step = 1;
             }
 
@@ -208,6 +205,8 @@ public static class StringExtensions
             index += step;
         }
 
-        return str.Substring(0, index) + effectiveSuffix;
+        return index >= str.Length
+            ? str
+            : str.Substring(0, index) + effectiveSuffix;
     }
 }
