@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -164,24 +163,38 @@ public static class StringExtensions
         if (maxUtf8ByteLength < 0)
             throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
 
-        ReadOnlySpan<char> span = str.AsSpan();
         int byteCount = 0;
         int index = 0;
 
         while (index < str.Length)
         {
-            OperationStatus status = Rune.DecodeFromUtf16(span.Slice(index), out Rune rune, out int charsConsumed);
             int utf8Bytes;
             int step;
 
-            if (status == OperationStatus.Done)
+            char c = str[index];
+            if (char.IsHighSurrogate(c) && index + 1 < str.Length && char.IsLowSurrogate(str[index + 1]))
             {
-                utf8Bytes = rune.Utf8SequenceLength;
-                step = charsConsumed;
+                utf8Bytes = 4;
+                step = 2;
+            }
+            else if (char.IsSurrogate(c))
+            {
+                utf8Bytes = 3; // Replacement character
+                step = 1;
+            }
+            else if (c <= 0x7F)
+            {
+                utf8Bytes = 1;
+                step = 1;
+            }
+            else if (c <= 0x7FF)
+            {
+                utf8Bytes = 2;
+                step = 1;
             }
             else
             {
-                utf8Bytes = Rune.ReplacementChar.Utf8SequenceLength;
+                utf8Bytes = 3;
                 step = 1;
             }
 
