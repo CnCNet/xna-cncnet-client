@@ -179,7 +179,7 @@ public static class StringExtensions
             }
             else if (char.IsSurrogate(c))
             {
-                utf8Bytes = 3; // Replacement character
+                utf8Bytes = 3; // UTF-8 byte length of U+FFFD replacement for invalid surrogate code units
                 step = 1;
             }
             else if (c <= 0x7F)
