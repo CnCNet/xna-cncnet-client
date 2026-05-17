@@ -59,6 +59,9 @@ namespace ClientCore.INIProcessing
 
             foreach (FileInfo iniFile in iniFiles)
             {
+                if (iniFile.Name.Equals("desktop.ini", System.StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+
                 if (!infoStore.IsIniUpToDate(iniFile.Name))
                 {
                     Logger.Log("INI file " + iniFile.Name + " is not processed or outdated, re-processing it.");
