@@ -143,7 +143,7 @@ namespace DTAClient.Online
                 {
                     foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.FullName.Substring(path.FullName.Length)))
                     {
-                        if (Path.GetFileName(filename).Equals("desktop.ini", StringComparison.InvariantCultureIgnoreCase))
+                        if (Path.GetFileName(filename).Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
                             continue;
 
                         string fileRelativePath = SafePath.CombineFilePath(path.Name, filename);

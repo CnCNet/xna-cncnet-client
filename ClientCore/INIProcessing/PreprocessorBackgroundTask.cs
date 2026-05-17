@@ -59,7 +59,7 @@ namespace ClientCore.INIProcessing
 
             foreach (FileInfo iniFile in iniFiles)
             {
-                if (iniFile.Name.Equals("desktop.ini", System.StringComparison.InvariantCultureIgnoreCase))
+                if (iniFile.Name.Equals("desktop.ini", System.StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 if (!infoStore.IsIniUpToDate(iniFile.Name))
