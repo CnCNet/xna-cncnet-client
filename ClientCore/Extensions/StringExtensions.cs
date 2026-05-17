@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.Buffers;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,5 +149,65 @@ public static class StringExtensions
             length--;
 
         return str.Substring(start, length);
+    }
+
+    /// <summary>
+    /// Trims this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8,
+    /// appending <paramref name="suffix"/> when trimming occurs.
+    /// </summary>
+    /// <param name="str">The input string.</param>
+    /// <param name="maxUtf8ByteLength">Maximum UTF-8 byte length allowed for the returned string.</param>
+    /// <param name="suffix">Suffix to append when trimming occurs.</param>
+    /// <returns>The original string if no trimming is needed; otherwise a UTF-8 byte-limited string with suffix.</returns>
+    public static string TrimToUtf8ByteLength(this string str, int maxUtf8ByteLength, string suffix = "")
+    {
+        if (str == null)
+            throw new ArgumentNullException(nameof(str));
+        if (maxUtf8ByteLength < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
+
+        suffix ??= string.Empty;
+
+        if (Encoding.UTF8.GetByteCount(str) <= maxUtf8ByteLength)
+            return str;
+
+        string effectiveSuffix = suffix;
+        int suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
+
+        if (suffixByteCount > maxUtf8ByteLength)
+        {
+            effectiveSuffix = effectiveSuffix.TrimToUtf8ByteLength(maxUtf8ByteLength);
+            suffixByteCount = Encoding.UTF8.GetByteCount(effectiveSuffix);
+        }
+
+        int allowedBytes = maxUtf8ByteLength - suffixByteCount;
+        int byteCount = 0;
+        int index = 0;
+
+        while (index < str.Length)
+        {
+            OperationStatus status = Rune.DecodeFromUtf16(str.AsSpan(index), out Rune rune, out int charsConsumed);
+            int utf8Bytes;
+            int step;
+
+            if (status == OperationStatus.Done)
+            {
+                utf8Bytes = rune.Utf8SequenceLength;
+                step = charsConsumed;
+            }
+            else
+            {
+                utf8Bytes = Encoding.UTF8.GetByteCount(str.AsSpan(index, 1));
+                step = 1;
+            }
+
+            if (byteCount + utf8Bytes > allowedBytes)
+                break;
+
+            byteCount += utf8Bytes;
+            index += step;
+        }
+
+        return str.Substring(0, index) + effectiveSuffix;
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Text.RegularExpressions;
 
 using ClientCore;
@@ -19,7 +18,6 @@ namespace DTAClient.Domain
     {
         private const int MaxDiscordPresenceTextUtf8ByteLength = 128;
         private const string DiscordPresenceTrimSuffix = "...";
-        private static readonly int DiscordPresenceTrimSuffixUtf8ByteLength = Encoding.UTF8.GetByteCount(DiscordPresenceTrimSuffix);
         private DiscordRpcClient client;
 
         private RichPresence _currentPresence;
@@ -263,35 +261,9 @@ namespace DTAClient.Domain
 
         private static string TrimDiscordPresenceText(string value)
         {
-            if (string.IsNullOrEmpty(value))
-                return value;
-
-            if (Encoding.UTF8.GetByteCount(value) <= MaxDiscordPresenceTextUtf8ByteLength)
-                return value;
-
-            int allowedBytes = MaxDiscordPresenceTextUtf8ByteLength - DiscordPresenceTrimSuffixUtf8ByteLength;
-            int byteCount = 0;
-            int endIndex = 0;
-
-            while (endIndex < value.Length)
-            {
-                int codeUnitCount = 1;
-                if (char.IsHighSurrogate(value[endIndex]) &&
-                    endIndex + 1 < value.Length &&
-                    char.IsLowSurrogate(value[endIndex + 1]))
-                {
-                    codeUnitCount = 2;
-                }
-
-                int utf8Bytes = Encoding.UTF8.GetByteCount(value.AsSpan(endIndex, codeUnitCount));
-                if (byteCount + utf8Bytes > allowedBytes)
-                    break;
-
-                byteCount += utf8Bytes;
-                endIndex += codeUnitCount;
-            }
-
-            return value.Substring(0, endIndex) + DiscordPresenceTrimSuffix;
+            return string.IsNullOrEmpty(value)
+                ? value
+                : value.TrimToUtf8ByteLength(MaxDiscordPresenceTextUtf8ByteLength, DiscordPresenceTrimSuffix);
         }
 
         #endregion
