@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using ClientCore;
@@ -16,9 +17,9 @@ namespace DTAClient.Domain
     /// </summary>
     public class DiscordHandler : IDisposable
     {
-        // The discord text length limit is 128 bytes in UTF-8, instead of 128 characters. For now, we assume the worst case.
-        // TODO: Implement a trimming method that counts UTF-8 bytes instead of characters.
-        private const int MaxDiscordPresenceTextLength = 128 / 4;
+        private const int MaxDiscordPresenceTextUtf8ByteLength = 128;
+        private const string DiscordPresenceTrimSuffix = "...";
+        private static readonly int DiscordPresenceTrimSuffixUtf8ByteLength = Encoding.UTF8.GetByteCount(DiscordPresenceTrimSuffix);
         private DiscordRpcClient client;
 
         private RichPresence _currentPresence;
@@ -262,10 +263,35 @@ namespace DTAClient.Domain
 
         private static string TrimDiscordPresenceText(string value)
         {
-            if (string.IsNullOrEmpty(value) || value.Length <= MaxDiscordPresenceTextLength)
+            if (string.IsNullOrEmpty(value))
                 return value;
 
-            return value.SubstringSurrogateAware(0, MaxDiscordPresenceTextLength - 3) + "...";
+            if (Encoding.UTF8.GetByteCount(value) <= MaxDiscordPresenceTextUtf8ByteLength)
+                return value;
+
+            int allowedBytes = MaxDiscordPresenceTextUtf8ByteLength - DiscordPresenceTrimSuffixUtf8ByteLength;
+            int byteCount = 0;
+            int endIndex = 0;
+
+            while (endIndex < value.Length)
+            {
+                int codeUnitCount = 1;
+                if (char.IsHighSurrogate(value[endIndex]) &&
+                    endIndex + 1 < value.Length &&
+                    char.IsLowSurrogate(value[endIndex + 1]))
+                {
+                    codeUnitCount = 2;
+                }
+
+                int utf8Bytes = Encoding.UTF8.GetByteCount(value.AsSpan(endIndex, codeUnitCount));
+                if (byteCount + utf8Bytes > allowedBytes)
+                    break;
+
+                byteCount += utf8Bytes;
+                endIndex += codeUnitCount;
+            }
+
+            return value.Substring(0, endIndex) + DiscordPresenceTrimSuffix;
         }
 
         #endregion
