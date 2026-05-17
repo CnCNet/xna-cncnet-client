@@ -35,22 +35,22 @@ git submodule foreach --recursive \
   'git fetch --unshallow origin || true; git remote set-branches origin "*"; git fetch origin'
 ```
 
-## Step 3 — Install required .NET SDKs
+## Step 3 — Confirm .NET SDK selection
 
-Install the SDK pinned by `global.json` and also install a .NET 8 SDK to ensure the `Microsoft.NETCore.App` net8.0 targeting pack is present for `SecondStageUpdater`:
+The project requires the SDK pinned by `global.json` (currently .NET 10 feature band):
 
 ```shell
 dotnet --list-sdks
 ```
 
-If no `8.0.*` SDK is listed, install one before restoring/building.
+If `10.0.*` is missing, install it before restoring/building.
 
 ## Step 4 — Restore NuGet packages
 
 Run restore from the **repo root** so that the solution file (`DXClient.slnx`) is used. This ensures all projects — including `SecondStageUpdater`, which the build pulls in transitively — are restored. Always pass the `Configuration` property; omitting it picks the wrong target frameworks.
 
 ```shell
-dotnet restore -p:Configuration=UniversalGLRelease
+dotnet restore -p:Configuration=UniversalGLRelease -p:RestoreForce=true -p:EnableTargetingPackDownload=true -p:EnableRuntimePackDownload=true
 ```
 
 ## Step 5 — Build

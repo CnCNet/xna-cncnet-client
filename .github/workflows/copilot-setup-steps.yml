@@ -42,11 +42,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: ./global.json
-          dotnet-version: |
-            8.0.x
 
       - name: Restore NuGet packages
-        run: dotnet restore -p:Configuration=UniversalGLRelease
+        run: dotnet restore -p:Configuration=UniversalGLRelease -p:RestoreForce=true -p:EnableTargetingPackDownload=true -p:EnableRuntimePackDownload=true
 
       - name: Build
         run: dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
