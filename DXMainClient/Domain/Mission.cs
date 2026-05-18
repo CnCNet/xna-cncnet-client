@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -84,7 +85,7 @@ namespace DTAClient.Domain
         public int Side { get; private set; }
 
         /// <summary>
-        /// Refers to the map file. Must be a relative path to the game folder.
+        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like ">", the client will treat it as a special scenario that does not have a map file, passing the string directly to the spawner.
         /// </summary>
         public string Scenario { get; private set; }
         public string GUIName { get; private set; }
@@ -109,5 +110,21 @@ namespace DTAClient.Domain
         public IniSection? GameMissionConfigSection { get; set; }
 
         public string PreviewImage { get; private set; }
+
+        public bool TryGetScenarioFilePath(out string scenarioFilePath)
+        {
+            scenarioFilePath = null;
+            if (string.IsNullOrEmpty(Scenario))
+                return false;
+
+            foreach (string segment in Scenario.Split('/', '\\'))
+            {
+                if (string.IsNullOrEmpty(segment) || segment != segment.ToWin32FileName())
+                    return false;
+            }
+
+            scenarioFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, Scenario);
+            return true;
+        }
     }
 }
