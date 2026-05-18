@@ -151,12 +151,12 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Trims this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8.
+    /// Truncates this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8.
     /// </summary>
     /// <param name="str">The input string.</param>
     /// <param name="maxUtf8ByteLength">Maximum UTF-8 byte length allowed for the returned string.</param>
-    /// <returns>The original string if no trimming is needed; otherwise a UTF-8 byte-limited string.</returns>
-    public static string TrimToUtf8ByteLength(this string str, int maxUtf8ByteLength)
+    /// <returns>The original string if no truncation is needed; otherwise a UTF-8 byte-limited string.</returns>
+    public static string TruncateToUtf8ByteLength(this string str, int maxUtf8ByteLength)
     {
         if (str == null)
             throw new ArgumentNullException(nameof(str));
