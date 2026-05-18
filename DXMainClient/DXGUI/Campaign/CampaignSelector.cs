@@ -445,7 +445,7 @@ namespace DTAClient.DXGUI.Campaign
 
             if (!scenarioPathFound)
             {
-                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}. Error: {ex.Message}");
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
                 copyMapsToSpawnmapINI = false;
             }
 
@@ -559,7 +559,7 @@ namespace DTAClient.DXGUI.Campaign
             bool scenarioPathFound = mission.TryGetScenarioFilePath(out string scenarioPath);
             if (!scenarioPathFound)
             {
-                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without mission section data. Error: {ex.Message}");
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without mission section data.");
                 return;
             }
 
