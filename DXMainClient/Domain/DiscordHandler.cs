@@ -18,7 +18,7 @@ namespace DTAClient.Domain
     public class DiscordHandler : IDisposable
     {
         private const int MaxDiscordPresenceTextUtf8ByteLength = 128;
-        private const string DiscordPresenceTrimSuffix = "...";
+        private const string DiscordPresenceTruncateSuffix = "...";
         private DiscordRpcClient client;
 
         private RichPresence _currentPresence;
