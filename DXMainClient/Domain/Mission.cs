@@ -85,7 +85,7 @@ namespace DTAClient.Domain
         public int Side { get; private set; }
 
         /// <summary>
-        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client will treat it as a special scenario that does not have a map file, passing the string directly to the spawner.
+        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client treats it as a special scenario that does not have a map file, passing the string directly to the spawner.
         /// </summary>
         public string Scenario { get; private set; }
         public string GUIName { get; private set; }
