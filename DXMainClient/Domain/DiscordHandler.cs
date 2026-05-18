@@ -268,8 +268,8 @@ namespace DTAClient.Domain
             if (Encoding.UTF8.GetByteCount(value) <= MaxDiscordPresenceTextUtf8ByteLength)
                 return value;
 
-            int maxTrimmedTextByteLength = MaxDiscordPresenceTextUtf8ByteLength - Encoding.UTF8.GetByteCount(DiscordPresenceTrimSuffix);
-            return value.TruncateToUtf8ByteLength(maxTrimmedTextByteLength) + DiscordPresenceTrimSuffix;
+            int maxTruncatedTextByteLength = MaxDiscordPresenceTextUtf8ByteLength - Encoding.UTF8.GetByteCount(DiscordPresenceTruncateSuffix);
+            return value.TruncateToUtf8ByteLength(maxTruncatedTextByteLength) + DiscordPresenceTruncateSuffix;
         }
 
         #endregion
