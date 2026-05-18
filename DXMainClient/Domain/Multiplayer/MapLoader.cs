@@ -793,7 +793,7 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public Texture2D GetPreviewImageTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
+        public Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
         {
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
                 return AssetLoader.LoadTextureUncached(map.PreviewPath);

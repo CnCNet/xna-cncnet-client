@@ -254,7 +254,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
-                mapPreviewTexture = mapLoader.GetPreviewImageTextureFromMap(map, syncLoadOnCacheMiss: false);
+                mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(map, syncLoadOnCacheMiss: false);
                 if (mapPreviewTexture != null)
                 {
                     mapPreviewTextureNeedsDispose = true;

@@ -435,7 +435,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
-            mapPreviewTexture = (mapLoader.GetPreviewImageTextureFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true)
+            mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true)
                 // This null case indicates a "hidden preview", where the map itself intends not to show a preview, so we just show a black box instead of no texture at all.
                 // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
                 ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2))
