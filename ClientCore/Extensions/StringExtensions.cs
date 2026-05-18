@@ -162,51 +162,20 @@ public static class StringExtensions
             throw new ArgumentNullException(nameof(str));
         if (maxUtf8ByteLength < 0)
             throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
+        if (str.Length == 0 || maxUtf8ByteLength == 0)
+            return string.Empty;
 
-        int byteCount = 0;
-        int index = 0;
+        if (Encoding.UTF8.GetByteCount(str) <= maxUtf8ByteLength)
+            return str;
 
-        while (index < str.Length)
-        {
-            int utf8Bytes;
-            int step;
+        // Encoder.Convert fits as many source chars as possible into the byte budget
+        // without splitting a multi-byte UTF-8 sequence or a surrogate pair.
+        Encoder encoder = Encoding.UTF8.GetEncoder();
+        char[] chars = str.ToCharArray();
+        byte[] buffer = new byte[maxUtf8ByteLength];
+        encoder.Convert(chars, 0, chars.Length, buffer, 0, buffer.Length,
+            flush: true, out int charsUsed, out _, out _);
 
-            char c = str[index];
-            if (char.IsHighSurrogate(c) && index + 1 < str.Length && char.IsLowSurrogate(str[index + 1]))
-            {
-                utf8Bytes = 4;
-                step = 2;
-            }
-            else if (char.IsSurrogate(c))
-            {
-                utf8Bytes = 3; // UTF-8 byte length of U+FFFD replacement for invalid surrogate code units
-                step = 1;
-            }
-            else if (c <= 0x7F)
-            {
-                utf8Bytes = 1;
-                step = 1;
-            }
-            else if (c <= 0x7FF)
-            {
-                utf8Bytes = 2;
-                step = 1;
-            }
-            else
-            {
-                utf8Bytes = 3;
-                step = 1;
-            }
-
-            if (byteCount + utf8Bytes > maxUtf8ByteLength)
-                break;
-
-            byteCount += utf8Bytes;
-            index += step;
-        }
-
-        return index >= str.Length
-            ? str
-            : str.Substring(0, index);
+        return str.Substring(0, charsUsed);
     }
 }
