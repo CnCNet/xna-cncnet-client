@@ -23,3 +23,4 @@ endlocal & set "ps_path=%ps_path%"
 
 REM Run the same-name .ps1 script in this directory and forward all arguments.
 "%ps_path%" -ExecutionPolicy Bypass -Command "& '%~dp0%~n0.ps1' %*"
+pause
