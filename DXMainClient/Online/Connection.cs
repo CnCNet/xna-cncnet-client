@@ -337,9 +337,10 @@ namespace DTAClient.Online
             if (string.IsNullOrWhiteSpace(details))
                 details = ex.GetType().Name;
 
-            details = details.Replace('\r', ' ').Replace('\n', ' ');
+            details = details.Replace('\r', ' ').Replace('\n', ' ').Trim();
 
-            return string.Format("{0} (Details: {1})".L10N("Client:Main:ConnectionLostReasonWithDetails"), reason, details);
+            string format = "{0} (Details: {1})".L10N("Client:Main:ConnectionLostReasonWithDetails");
+            return string.Format(format, reason, details);
         }
 
         /// <summary>
