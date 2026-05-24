@@ -468,6 +468,10 @@ namespace DTAClient.Online
             UserList.Clear();
 
             MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost.".L10N("Client:Main:ConnectToCncNetHasLost")));
+
+            if (!string.IsNullOrWhiteSpace(reason))
+                MainChannel.AddMessage(new ChatMessage(Color.Red, reason));
+
             connected = false;
         }
 
