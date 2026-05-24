@@ -256,8 +256,7 @@ namespace DTAClient.Online
                         const string errorMessage = "Disconnected from CnCNet after not receiving a packet for too long.";
                         Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
                         failedServerIPs.Add(currentConnectedServerIP);
-                        string localizedErrorMessage = errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries");
-                        connectionManager.OnConnectionLost(GetConnectionLostReasonWithDetails(localizedErrorMessage, ex));
+                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
                         break;
                     }
 
@@ -268,8 +267,7 @@ namespace DTAClient.Online
                     const string errorMessage = "Disconnected from CnCNet due to an internal error.";
                     Logger.Log(errorMessage + Environment.NewLine + "Message: " + ex.ToString());
                     failedServerIPs.Add(currentConnectedServerIP);
-                    string localizedErrorMessage = errorMessage.L10N("Client:Main:ClientDisconnectedAfterException");
-                    connectionManager.OnConnectionLost(GetConnectionLostReasonWithDetails(localizedErrorMessage, ex));
+                    connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterException"));
                     break;
                 }
 
@@ -328,19 +326,6 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
-        }
-
-        private static string GetConnectionLostReasonWithDetails(string reason, Exception ex)
-        {
-            string details = ex.Message;
-
-            if (string.IsNullOrWhiteSpace(details))
-                details = ex.GetType().Name;
-
-            details = details.Replace('\r', ' ').Replace('\n', ' ').Trim();
-
-            string format = "{0} (Details: {1})".L10N("Client:Main:ConnectionLostReasonWithDetails");
-            return string.Format(format, reason, details);
         }
 
         /// <summary>
