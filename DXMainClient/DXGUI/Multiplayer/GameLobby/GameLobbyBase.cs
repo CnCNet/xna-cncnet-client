@@ -2283,6 +2283,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Players.Count > MAX_PLAYER_COUNT)
                 throw new Exception($"Player count exceeds maximum of {MAX_PLAYER_COUNT}. How could this happen?");
 
+            Debug.Assert(PlayerSlots.Count >= Players.Count + AIPlayers.Count, "PlayerSlots count should not be less than total player count. How could this happen?");
+
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)
             {
