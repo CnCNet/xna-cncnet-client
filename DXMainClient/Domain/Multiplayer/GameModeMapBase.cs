@@ -96,10 +96,7 @@ namespace DTAClient.Domain.Multiplayer
             MinPlayers = section.GetIntValueOrNull("ClientMinPlayer") ?? section.GetIntValueOrNull(isCustomMap ? "MinPlayer" : "MinPlayers");
 
             // MaxPlayers
-            if (isCustomMap)
-                MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer") ?? section.GetIntValueOrNull("MaxPlayer");
-            else
-                MaxPlayers = section.GetIntValueOrNull("MaxPlayers");
+            MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer") ?? section.GetIntValueOrNull(isCustomMap ? "MaxPlayer" : "MaxPlayers");
 
             // EnforceMaxPlayers
             EnforceMaxPlayers = section.GetBooleanValueOrNull("EnforceMaxPlayers");
