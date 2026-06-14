@@ -73,12 +73,12 @@ Size=18
 ; Optional section. Advanced FontStashSharp rasterization settings.
 ; All properties are optional; the defaults shown here are used when the section is absent.
 ; Horizontal blur kernel applied to each rasterized glyph. Default: 0 (no blur)
-KernelWidth=0
+KernelWidth=4
 ; Vertical blur kernel applied to each rasterized glyph. Default: 0 (no blur)
-KernelHeight=0
+KernelHeight=4
 ; Multiplier for the glyph rasterization size. Values > 1 produce sharper output when the
 ; render target is upscaled at the cost of a larger texture atlas. Default: 1
-FontResolutionFactor=1
+FontResolutionFactor=5
 ; Width of each FontStashSharp atlas page in pixels. Default: 1024
 TextureWidth=1024
 ; Height of each FontStashSharp atlas page in pixels. Default: 1024
@@ -115,9 +115,9 @@ Font paths are relative to the directory containing `Fonts.ini`. Both `/` and `\
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `KernelWidth` | `0` | Horizontal blur kernel size applied by FontStashSharp when rasterizing glyphs. Must be non-negative. |
-| `KernelHeight` | `0` | Vertical blur kernel size. Must be non-negative. |
-| `FontResolutionFactor` | `1` | Multiplier for the internal glyph rasterization size. Values above `1` produce sharper output at the cost of a larger atlas. Must be non-negative. |
+| `KernelWidth` | `4` | Horizontal blur kernel size applied by FontStashSharp when rasterizing glyphs. Must be non-negative. |
+| `KernelHeight` | `4` | Vertical blur kernel size. Must be non-negative. |
+| `FontResolutionFactor` | `5` | Multiplier for the internal glyph rasterization size. Values above `1` produce sharper output at the cost of a larger atlas. Must be non-negative. |
 | `TextureWidth` | `1024` | Width of each FontStashSharp atlas page in pixels. |
 | `TextureHeight` | `1024` | Height of each FontStashSharp atlas page in pixels. |
 | `GlyphRenderResult` | `Premultiplied` | How glyph alpha is encoded: `Premultiplied` (matches a premultiplied-alpha `SpriteBatch`), `NonPremultiplied` (matches `AlphaBlend`), or `NoAntialiasing` (hard 1-bit edges for pixel-art fonts). |
