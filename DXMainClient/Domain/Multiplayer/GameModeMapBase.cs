@@ -37,6 +37,14 @@ namespace DTAClient.Domain.Multiplayer
         public bool? EnforceMaxPlayers { get; private set; }
 
         /// <summary>
+        /// Whether to enforce the minimum player count of the map or a game mode.
+        /// If false (which is the default), MinPlayers is ignored and the game
+        /// can be launched with fewer players.
+        /// </summary>
+        [JsonInclude]
+        public bool? EnforceMinPlayers { get; private set; }
+
+        /// <summary>
         /// The allowed starting locations for this map or game mode.
         /// </summary>
         [JsonInclude]
@@ -95,6 +103,9 @@ namespace DTAClient.Domain.Multiplayer
 
             // EnforceMaxPlayers
             EnforceMaxPlayers = section.GetBooleanValueOrNull("EnforceMaxPlayers");
+
+            // EnforceMinPlayers
+            EnforceMinPlayers = section.GetBooleanValueOrNull("EnforceMinPlayers");
 
             // AllowedStartingLocations
             List<int>? rawAllowedStartingLocations = section.GetListValueOrNull<int>("AllowedStartingLocations", ',', int.Parse);

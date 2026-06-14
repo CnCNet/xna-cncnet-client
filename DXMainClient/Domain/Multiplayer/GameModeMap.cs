@@ -61,6 +61,9 @@ namespace DTAClient.Domain.Multiplayer
         public bool EnforceMaxPlayers =>
             Map.EnforceMaxPlayers ?? GameMode.EnforceMaxPlayers ?? false;
 
+        public bool EnforceMinPlayers =>
+            Map.EnforceMinPlayers ?? GameMode.EnforceMinPlayers ?? false;
+
         public bool ForceNoTeams =>
             Map.ForceNoTeams ?? GameMode.ForceNoTeams ?? false;
 

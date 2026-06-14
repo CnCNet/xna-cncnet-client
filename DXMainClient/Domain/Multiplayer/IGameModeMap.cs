@@ -9,6 +9,7 @@ namespace DTAClient.Domain.Multiplayer
         public int CoopDifficultyLevel { get; }
         public CoopMapInfo? CoopInfo { get; }
         public bool EnforceMaxPlayers { get; }
+        public bool EnforceMinPlayers { get; }
         public bool ForceNoTeams { get; }
         public bool ForceRandomStartLocations { get; }
         public bool HumanPlayersOnly { get; }

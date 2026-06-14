@@ -833,22 +833,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         return;
                     }
                 }
+            }
 
-                int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
-                    + AIPlayers.Count;
+            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
+                + AIPlayers.Count;
 
+            if (GameModeMap.EnforceMinPlayers)
+            {
                 int minPlayers = GameModeMap.MinPlayers;
                 if (totalPlayerCount < minPlayers)
                 {
                     InsufficientPlayersNotification();
                     return;
                 }
+            }
 
-                if (GameModeMap.EnforceMaxPlayers && totalPlayerCount > GameModeMap.MaxPlayers)
-                {
-                    TooManyPlayersNotification();
-                    return;
-                }
+            if (GameModeMap.EnforceMaxPlayers && totalPlayerCount > GameModeMap.MaxPlayers)
+            {
+                TooManyPlayersNotification();
+                return;
             }
 
             int iId = 0;
