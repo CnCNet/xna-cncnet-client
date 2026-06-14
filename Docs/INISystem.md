@@ -864,9 +864,11 @@ The following properties are shared between maps (in `MPMaps.ini` map sections) 
 ```ini
 ; Map section keys:
 [MAP_NAME]
-MinPlayer=                            ; integer,  minimum player count.
+ClientMinPlayer=                      ; integer,  minimum player count (client-side).
+MinPlayer=                            ; integer,  minimum player count (game-side).
 ClientMaxPlayer=                      ; integer,  maximum player count (client-side).
 MaxPlayer=                            ; integer,  maximum player count (game-side).
+EnforceMinPlayers=                    ; boolean,  whether MinPlayer is enforced.
 EnforceMaxPlayers=                    ; boolean,  whether MaxPlayer is enforced.
 AllowedStartingLocations=             ; comma-separated integers,
                                       ;           restricts which starting locations can be used.
@@ -881,6 +883,7 @@ CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 [GAME_MODE]
 MinPlayers=                           ; integer,  minimum player count.
 MaxPlayers=                           ; integer,  maximum player count.
+EnforceMinPlayers=                    ; boolean,  whether MinPlayers is enforced.
 EnforceMaxPlayers=                    ; boolean,  whether MaxPlayers is enforced.
 AllowedStartingLocations=             ; comma-separated integers.
 IsCoopMission=                        ; boolean,  marks the mode as co-op.
@@ -892,8 +895,8 @@ CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 ```
 
 Priority resolution for player counts:
-- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
-- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.MinPlayer` > `GameMode.MinPlayers`
+- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.ClientMaxPlayer` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
+- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.ClientMinPlayer` > `Map.MinPlayer` > `GameMode.MinPlayers`
 
 ### Map Extra INI
 
