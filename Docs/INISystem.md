@@ -895,8 +895,8 @@ CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 ```
 
 Priority resolution for player counts:
-- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.ClientMaxPlayer` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
-- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.ClientMinPlayer` > `Map.MinPlayer` > `GameMode.MinPlayers`
+- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
+- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.MinPlayer` > `GameMode.MinPlayers`
 
 ### Map Extra INI
 
