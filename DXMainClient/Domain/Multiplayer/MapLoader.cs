@@ -7,9 +7,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ClientCore;
+using ClientCore.Caching;
 using ClientCore.Extensions;
 
+using Microsoft.Xna.Framework.Graphics;
+
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 using SixLabors.ImageSharp;
 
@@ -43,15 +47,33 @@ namespace DTAClient.Domain.Multiplayer
         private readonly object mapModificationLock = new object();
         private const int _mapChangeRetryCount = 3;
 
-        private readonly List<GameMode> _gameModes = [];
+        // Mutable buffer used only during the initial map-loading pass. After
+        // LoadMapsInternalAsync publishes the first snapshot, it is set to null
+        // and every subsequent update goes through ReplaceGameModeSnapshot under
+        // mapModificationLock.
+        // TODO: Consider refactoring this MapLoader class into two classes, one for initial loading and one for runtime updates, to avoid having this mutable state that is only used during initialization.
+        private List<GameMode> _initialGameModes = [];
+
+        private sealed class Snapshot
+        {
+            public IReadOnlyList<GameMode> GameModes { get; }
+            public IReadOnlyGameModeMapCollection GameModeMaps { get; }
+
+            public Snapshot(IReadOnlyList<GameMode> gameModes, IReadOnlyGameModeMapCollection gameModeMaps)
+            {
+                GameModes = gameModes;
+                GameModeMaps = gameModeMaps;
+            }
+        }
+
+        private volatile Snapshot _snapshot = new Snapshot(Array.Empty<GameMode>(), new GameModeMapCollection(Array.Empty<GameMode>()));
 
         /// <summary>
         /// List of game modes.
         /// </summary>
-        public IReadOnlyList<GameMode> GameModes => _gameModes;
+        public IReadOnlyList<GameMode> GameModes => _snapshot.GameModes;
 
-        private GameModeMapCollection _gameModeMaps;
-        public IReadOnlyGameModeMapCollection GameModeMaps => _gameModeMaps;
+        public IReadOnlyGameModeMapCollection GameModeMaps => _snapshot.GameModeMaps;
 
         /// <summary>
         /// An event that is fired when the maps have been loaded.
@@ -90,10 +112,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public MapLoader() { }
 
+        public void Initialize()
+        {
+            MapLoadingComplete += (sender, args) => StartMapFileWatcher();
+        }
+
         /// <summary>
         /// Sets up file watching for maps.
         /// </summary>
-        public void Initialize()
+        public void StartMapFileWatcher()
         {
             if (mapFileWatcher != null)
                 return;
@@ -128,8 +155,8 @@ namespace DTAClient.Domain.Multiplayer
             await LoadCustomMapsAsync();
 
             Logger.Log("MapLoader: Post-processing game mode map collections.");
-            _gameModes.RemoveAll(g => g.Maps.Count < 1);
-            _gameModeMaps = new GameModeMapCollection(_gameModes);
+            PublishSnapshot(_initialGameModes);
+            _initialGameModes = null;
 
             // Clean up any name-based favorite entries after migration (legacy: changed from name to sha1)
             CleanupMigratedFavorites();
@@ -196,11 +223,13 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     lock (mapModificationLock)
                     {
-                        if (IsMapAlreadyLoaded(map.SHA1))
+                        List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
+
+                        if (IsMapAlreadyLoaded(map.SHA1, gameModeSnapshot))
                             return;
 
-                        AddMapToGameModes(map, true);
-                        UpdateGameModeMaps();
+                        AddMapToGameModes(map, gameModeSnapshot, true);
+                        ReplaceGameModeSnapshot(gameModeSnapshot);
 
                         Logger.Log($"MapLoader: Added new map {map.Name} from {filePath}");
                         MapChanged?.Invoke(this, new MapChangedEventArgs(map, MapChangeType.Added));
@@ -254,16 +283,17 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     lock (mapModificationLock)
                     {
-                        string oldSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+                        List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
+                        string oldSHA1 = FindMapSHA1ByFilePath(baseFilePath, gameModeSnapshot);
 
                         if (!string.IsNullOrEmpty(oldSHA1))
                         {
                             if (oldSHA1 != newMap.SHA1)
                             {
                                 // SHA1 changed, remove old and add new
-                                RemoveMapBySHA1(oldSHA1);
-                                AddMapToGameModes(newMap, true);
-                                UpdateGameModeMaps();
+                                RemoveMapBySHA1(oldSHA1, gameModeSnapshot);
+                                AddMapToGameModes(newMap, gameModeSnapshot, true);
+                                ReplaceGameModeSnapshot(gameModeSnapshot);
 
                                 Logger.Log($"MapLoader: Updated map {newMap.Name} from {filePath} (SHA1 changed: {oldSHA1} -> {newMap.SHA1})");
                                 MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Updated, oldSHA1));
@@ -277,8 +307,8 @@ namespace DTAClient.Domain.Multiplayer
                         {
                             // Map not found, treat as new
                             Logger.Log($"MapLoader: Changed event for unknown map {filePath}, treating as new");
-                            AddMapToGameModes(newMap, true);
-                            UpdateGameModeMaps();
+                            AddMapToGameModes(newMap, gameModeSnapshot, true);
+                            ReplaceGameModeSnapshot(gameModeSnapshot);
                             MapChanged?.Invoke(this, new MapChangedEventArgs(newMap, MapChangeType.Added));
                         }
                     }
@@ -304,13 +334,14 @@ namespace DTAClient.Domain.Multiplayer
 
                 lock (mapModificationLock)
                 {
-                    string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath);
+                    List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
+                    string mapSHA1 = FindMapSHA1ByFilePath(baseFilePath, gameModeSnapshot);
 
                     if (!string.IsNullOrEmpty(mapSHA1))
                     {
-                        var removedMap = FindMapBySHA1(mapSHA1);
-                        RemoveMapBySHA1(mapSHA1);
-                        UpdateGameModeMaps();
+                        var removedMap = FindMapBySHA1(mapSHA1, gameModeSnapshot);
+                        RemoveMapBySHA1(mapSHA1, gameModeSnapshot);
+                        ReplaceGameModeSnapshot(gameModeSnapshot);
 
                         Logger.Log($"MapLoader: Removed map from {filePath}");
                         if (removedMap != null)
@@ -356,28 +387,33 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        private bool IsMapAlreadyLoaded(string sha1)
-            => GameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
+        private static bool IsMapAlreadyLoaded(string sha1, IEnumerable<GameMode> gameModes)
+            => gameModes.SelectMany(gm => gm.Maps).Any(map => map.SHA1 == sha1);
 
-        private Map FindMapBySHA1(string sha1)
-            => GameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
+        private static Map FindMapBySHA1(string sha1, IEnumerable<GameMode> gameModes)
+            => gameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => map.SHA1 == sha1);
 
-        private string FindMapSHA1ByFilePath(string baseFilePath)
-            => GameModes.SelectMany(gm => gm.Maps)
-                .Where(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault()?.SHA1;
+        private static string FindMapSHA1ByFilePath(string baseFilePath, IEnumerable<GameMode> gameModes)
+            => gameModes.SelectMany(gm => gm.Maps).FirstOrDefault(map => !map.Official && map.BaseFilePath.Equals(baseFilePath, StringComparison.OrdinalIgnoreCase))?.SHA1;
 
-        private void RemoveMapBySHA1(string sha1)
+        private static void RemoveMapBySHA1(string sha1, IEnumerable<GameMode> gameModes)
         {
-            foreach (var gameMode in GameModes)
+            foreach (var gameMode in gameModes)
                 gameMode.Maps.RemoveAll(map => map.SHA1 == sha1);
         }
 
-        private void UpdateGameModeMaps()
+        private void ReplaceGameModeSnapshot(List<GameMode> gameModes, bool removeEmptyGameModes = true) =>
+            PublishSnapshot(gameModes, removeEmptyGameModes);
+
+        private void PublishSnapshot(List<GameMode> gameModes, bool removeEmptyGameModes = true)
         {
-            _gameModes.RemoveAll(g => g.Maps.Count < 1);
-            _gameModeMaps = new GameModeMapCollection(_gameModes);
+            if (removeEmptyGameModes)
+                gameModes.RemoveAll(g => g.Maps.Count < 1);
+
+            _snapshot = new Snapshot(gameModes, new GameModeMapCollection(gameModes));
         }
+
+        private List<GameMode> CloneGameModeSnapshot() => GameModes.Select(gameMode => gameMode.Clone()).ToList();
 
         private async Task LoadMultiMapsAsync(IniFile mpMapsIni)
         {
@@ -428,7 +464,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (Map map in tasks.Select(t => t.Result).Where(m => m != null))
             {
-                AddMapToGameModes(map, false);
+                AddMapToGameModes(map, _initialGameModes, false);
                 _translatedMapNames[map.UntranslatedName] = map.Name;
             }
         }
@@ -444,7 +480,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (!string.IsNullOrEmpty(gameModeName))
                     {
                         GameMode gm = new GameMode(gameModeName);
-                        _gameModes.Add(gm);
+                        _initialGameModes.Add(gm);
                     }
                 }
             }
@@ -557,7 +593,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (Map map in customMapCache.Items.Values.Select(item => item.Map))
             {
-                AddMapToGameModes(map, false);
+                AddMapToGameModes(map, _initialGameModes, false);
             }
 
             Logger.Log("MapLoader: Custom maps loaded.");
@@ -660,22 +696,23 @@ namespace DTAClient.Domain.Multiplayer
 
             if (map.InitializeFromCustomMap())
             {
-                foreach (GameMode gm in GameModes)
+                lock (mapModificationLock)
                 {
-                    if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
+                    List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
+
+                    if (IsMapAlreadyLoaded(map.SHA1, gameModeSnapshot))
                     {
                         Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
                         resultMessage = string.Format("Map {0} is already loaded.".L10N("Client:MapLoader:MapAlreadyLoaded"), map.Name);
 
                         return null;
                     }
+
+                    AddMapToGameModes(map, gameModeSnapshot, true);
+                    ReplaceGameModeSnapshot(gameModeSnapshot);
                 }
 
                 Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added successfully.");
-
-                AddMapToGameModes(map, true);
-                var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
-                _gameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
                 resultMessage = string.Format("Map {0} loaded successfully.".L10N("Client:MapLoader:MapLoadedSuccessfully"), map.Name);
 
@@ -692,20 +729,22 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
-            foreach (GameMode gameMode in GameModeMaps.GameModes)
-            {
-                gameMode.Maps.Remove(gameModeMap.Map);
-            }
 
-            _gameModeMaps.Remove(gameModeMap);
+            lock (mapModificationLock)
+            {
+                List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
+                RemoveMapBySHA1(gameModeMap.Map.SHA1, gameModeSnapshot);
+                ReplaceGameModeSnapshot(gameModeSnapshot);
+            }
         }
 
         /// <summary>
         /// Adds map to all eligible game modes.
         /// </summary>
         /// <param name="map">Map to add.</param>
+        /// <param name="gameModes">Game modes collection.</param>
         /// <param name="enableLogging">If set to true, a message for each game mode the map is added to is output to the log file.</param>
-        private void AddMapToGameModes(Map map, bool enableLogging)
+        private void AddMapToGameModes(Map map, List<GameMode> gameModes, bool enableLogging)
         {
             foreach (string gameMode in map.GameModes)
             {
@@ -717,11 +756,11 @@ namespace DTAClient.Domain.Multiplayer
                     if (!map.Official && !(AllowedGameModes.Contains(gameMode) || AllowedGameModes.Contains(gameModeAlias)))
                         continue;
 
-                    GameMode gm = GameModes.FirstOrDefault(g => g.Name == gameModeAlias);
+                    GameMode gm = gameModes.FirstOrDefault(g => g.Name == gameModeAlias);
                     if (gm == null)
                     {
                         gm = new GameMode(gameModeAlias);
-                        _gameModes.Add(gm);
+                        gameModes.Add(gm);
                     }
 
                     gm.Maps.Add(map);
@@ -778,19 +817,36 @@ namespace DTAClient.Domain.Multiplayer
         public void PrefetchCachedPreviewImageFromMap(Map map)
         {
             if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
-                _ = mapPreviewCacheManager.Request(map, out Image _, addToQueue: true);
+            {
+                _ = mapPreviewCacheManager.Request(map, out CacheLease<Image>? lease, addToQueue: true);
+                lease?.Dispose();
+            }
         }
 
-        public Image GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
+        public Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
+        {
+            if (map?.IsImmediatePreviewImageAvailable() ?? false)
+                return AssetLoader.LoadTextureUncached(map.PreviewPath);
+
+            using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
+
+            if (cacheLease != null)
+                return AssetLoader.TextureFromImage(cacheLease.Value);
+            else
+                return null;
+        }
+
+        public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
         {
             if (map?.IsImmediatePreviewImageAvailable() ?? false)
             {
-                return map.GetImmediatePreviewImage();
+                Image image = map.GetImmediatePreviewImage();
+                return CacheLease<Image>.CreateOwned(image, image.Dispose);
             }
             else if (map?.IsNonImmediatePreviewImageAvailable() ?? false)
             {
-                if (mapPreviewCacheManager.Request(map, out Image image, syncComputeOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
-                    return image;
+                if (mapPreviewCacheManager.Request(map, out CacheLease<Image> lease, syncComputeOnCacheMiss: syncLoadOnCacheMiss, addToQueue: true))
+                    return lease;
                 else
                     return null;
             }

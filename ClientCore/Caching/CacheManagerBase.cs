@@ -5,14 +5,18 @@ using System.Threading;
 
 using Rampastring.Tools;
 
-namespace DTAClient.Domain.Multiplayer;
+namespace ClientCore.Caching;
 
 /// <summary>
 /// Thread-safe manager for caching outputs with LRU eviction policy.
 /// Processes computation requests sequentially to limit CPU usage to a single thread.
-/// Note: this manager assumes the `TOutput` objects are managed, so it never disposes them directly.
+/// Cached outputs are ref-counted: <see cref="GetDisposeAction"/> is invoked when all
+/// callers have released their leases and the cache itself has evicted the entry.
+/// Override <see cref="GetDisposeAction"/> in a subclass to add disposal behaviour
+/// (see <see cref="DisposableCacheManagerBase{TInput, TOutput}"/>).
 /// </summary>
-public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, TOutput> where TInput : notnull
+public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, TOutput>
+    where TInput : notnull
 {
     public abstract string Name { get; }
 
@@ -27,25 +31,36 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     private readonly Thread? workerThread;
     private volatile bool isDisposed = false;
 
-    public int Count => cache.Count;
+    public int Count
+    {
+        get
+        {
+            lock (cacheLock)
+            {
+                return cache.Count;
+            }
+        }
+    }
 
     /// <summary>
-    /// Represents a cached TOutput entry with its position in the LRU list.
+    /// Represents a cached entry with its ref-counted output and position in the LRU list.
+    /// <see cref="RefCounted"/> is null when the output was computed but its value was null
+    /// (e.g. a map with a hidden preview). The null result is still cached to avoid recomputation.
     /// </summary>
-    private class CacheEntry
+    private sealed class CacheEntry
     {
-        public TOutput? Output { get; }
+        public RefCountedValue<TOutput>? RefCounted { get; }
         public LinkedListNode<TInput> LruNode { get; set; }
 
-        public CacheEntry(TOutput? output, LinkedListNode<TInput> lruNode)
+        public CacheEntry(RefCountedValue<TOutput>? refCounted, LinkedListNode<TInput> lruNode)
         {
-            Output = output;
+            RefCounted = refCounted;
             LruNode = lruNode;
         }
     }
 
     /// <summary>
-    /// Initializes a new instance of the InputPreviewCacheManager and start the worker thread immediately.
+    /// Initializes a new instance of the CacheManagerBase and starts the worker thread immediately.
     /// </summary>
     /// <param name="capacity">Maximum number of outputs to keep in cache. Must be positive.</param>
     public CacheManagerBase(int capacity)
@@ -64,13 +79,11 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     }
 
     /// <summary>
-    /// Attempts to get a cached output for the specified input.
-    /// Updates LRU order if found.
+    /// Attempts to acquire a lease for the cached output of the specified input.
+    /// Updates LRU order if found. The lease is acquired inside <see cref="cacheLock"/>
+    /// so the ref count is incremented before any concurrent eviction can decrement it.
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <param name="output">The cached output if found.</param>
-    /// <returns>True if the output was found in cache; otherwise false.</returns>
-    private bool TryGet(TInput input, out TOutput? output)
+    private bool TryGetLease(TInput input, out CacheLease<TOutput>? lease)
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
@@ -82,16 +95,20 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
                 // Move to front of LRU list (most recently used)
                 lruList.Remove(entry.LruNode);
                 entry.LruNode = lruList.AddFirst(input);
-                output = entry.Output;
+
+                // Acquire inside the lock: ref count is incremented while the cache still
+                // holds its own reference, guaranteeing the value cannot be disposed yet.
+                lease = entry.RefCounted?.AcquireLease();
+
                 return true;
             }
 
-            output = default;
+            lease = null;
             return false;
         }
     }
 
-    public bool Request(TInput input, out TOutput? output, bool syncLoadOnCacheMiss = false, bool addToQueue = true)
+    public bool Request(TInput input, out CacheLease<TOutput>? lease, bool syncLoadOnCacheMiss = false, bool addToQueue = true)
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
@@ -100,21 +117,19 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
             throw new ObjectDisposedException(nameof(CacheManagerBase<TInput, TOutput>));
 
         // Check if already cached
-        if (TryGet(input, out TOutput? cachedOutput))
+        if (TryGetLease(input, out CacheLease<TOutput>? cachedLease))
         {
-            output = cachedOutput;
-
+            lease = cachedLease;
             return true;
         }
 
         // If not cached and sync load is allowed, attempt to load immediately (may be CPU-intensive)
         if (syncLoadOnCacheMiss)
         {
-            output = ComputeOutputForInput(input);
+            TOutput? output = ComputeOutputForInput(input);
 
             // Add to cache even if the output is null
-            AddToCache(input, output);
-
+            lease = AddToCache(input, output);
             return true;
         }
 
@@ -131,42 +146,55 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
             }
         }
 
-        output = default;
-
+        lease = null;
         return false;
     }
 
     /// <summary>
-    /// Manually adds an output to the cache.
-    /// Useful for pre-loading or when output is obtained from other sources.
-    /// Note: If the input is already cached, this method updates LRU order but does NOT replace the cached output.
+    /// Adds an output to the cache and returns a lease for it.
+    /// If the input is already cached, disposes the duplicate output, updates LRU order,
+    /// and returns a new lease for the existing entry.
+    /// Note: If the input is already cached, the provided <paramref name="output"/> is disposed.
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <param name="output">The output.</param>
-    /// <returns>True if the output was added to cache; false if output was already cached.</returns>
-    private bool AddToCache(TInput input, TOutput? output)
+    private CacheLease<TOutput>? AddToCache(TInput input, TOutput? output)
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
 
         lock (cacheLock)
         {
-            // If already cached, update LRU order but don't replace
+            // If disposal happened while output was being computed outside the lock,
+            // don't reintroduce a new cache-owned reference.
+            if (isDisposed)
+            {
+                GetDisposeAction(output)?.Invoke();
+                return null;
+            }
+
             if (cache.TryGetValue(input, out CacheEntry? existingEntry))
             {
+                // Already cached: discard the duplicate output and return a lease for the existing entry.
+                // Invoked inside the lock to prevent a race where another thread could
+                // access the output after it has already been disposed.
+                GetDisposeAction(output)?.Invoke();
                 lruList.Remove(existingEntry.LruNode);
                 existingEntry.LruNode = lruList.AddFirst(input);
-                return false;
+                return existingEntry.RefCounted?.AcquireLease();
             }
 
             // Evict if at capacity
             if (cache.Count >= capacity)
                 EvictLeastRecentlyUsed();
 
-            // Add new entry
+            // Add new entry; RefCounted is null when output itself is null
+            RefCountedValue<TOutput>? refCounted = output != null
+                ? new RefCountedValue<TOutput>(output, GetDisposeAction(output))
+                : null;
             LinkedListNode<TInput> node = lruList.AddFirst(input);
-            cache[input] = new CacheEntry(output, node);
-            return true;
+            cache[input] = new CacheEntry(refCounted, node);
+
+            // Acquire lease inside the lock so the caller's ref is counted before any eviction
+            return refCounted?.AcquireLease();
         }
     }
 
@@ -174,17 +202,33 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     {
         lock (cacheLock)
         {
+            // Release the cache's own reference to every entry.
+            // Entries still held by caller leases are disposed when those leases are released.
+            foreach (CacheEntry entry in cache.Values)
+                entry.RefCounted?.Release();
+
             cache.Clear();
             lruList.Clear();
         }
     }
 
     /// <summary>
-    /// Computes the output for a given input. This method may or might not be called by the worker thread and may be CPU-intensive.
+    /// Computes the output for a given input. May be called on the worker thread or the calling
+    /// thread and may be CPU-intensive.
     /// </summary>
     /// <param name="input">The input.</param>
     /// <returns>The output.</returns>
     protected abstract TOutput? ComputeOutputForInput(TInput input);
+
+    /// <summary>
+    /// Returns an <see cref="Action"/> that should be invoked when the ref count of a cached
+    /// <paramref name="value"/> entry reaches zero (i.e. the entry has been evicted from the
+    /// cache and all caller leases have been released).
+    /// Returns <c>null</c> by default; override in a subclass to perform cleanup such as
+    /// calling <see cref="IDisposable.Dispose"/> on the value.
+    /// </summary>
+    /// <param name="value">The value whose lifetime is ending.</param>
+    protected virtual Action? GetDisposeAction(TOutput? value) => null;
 
     /// <summary>
     /// Worker thread that processes computation requests sequentially.
@@ -225,14 +269,18 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
             try
             {
                 // Check if already cached (might have been computed by another request)
-                if (TryGet(input!, out _))
+                if (TryGetLease(input!, out CacheLease<TOutput>? existingLease))
+                {
+                    // Release immediately; this thread does not use the value
+                    existingLease?.Dispose();
                     continue;
+                }
 
                 // Get the output for the input. This is the CPU-intensive operation.
                 TOutput? output = ComputeOutputForInput(input!);
 
-                // Add to cache even if the output is null
-                AddToCache(input!, output);
+                // Add to cache even if the output is null; release the worker's lease right away
+                using CacheLease<TOutput>? workerLease = AddToCache(input!, output);
             }
             catch (Exception ex)
             {
@@ -242,8 +290,8 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
     }
 
     /// <summary>
-    /// Evicts the least recently used output from the cache.
-    /// Must be called within cacheLock.
+    /// Evicts the least recently used entry from the cache and releases the cache's reference.
+    /// Must be called while holding <see cref="cacheLock"/>.
     /// </summary>
     private void EvictLeastRecentlyUsed()
     {
@@ -254,11 +302,18 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
         lruList.RemoveLast();
 
         if (cache.TryGetValue(lruInput, out CacheEntry? entry))
+        {
             cache.Remove(lruInput);
+
+            // Release the cache's reference. If no caller leases exist, the value is disposed now.
+            // If a caller still holds a lease, the value is disposed when that lease is released.
+            entry.RefCounted?.Release();
+        }
     }
 
     /// <summary>
-    /// Disposes the cache manager. Does not dispose cached outputs directly; left to garbage collector.
+    /// Disposes the cache manager. Releases the cache's reference to all entries.
+    /// Values still leased by callers are disposed when those leases are released.
     /// </summary>
     public void Dispose()
     {
@@ -283,8 +338,7 @@ public abstract class CacheManagerBase<TInput, TOutput> : ICacheManager<TInput, 
             }
         }
 
-        // Clear cache
+        // Release cache's references to all entries
         Clear();
     }
-
 }

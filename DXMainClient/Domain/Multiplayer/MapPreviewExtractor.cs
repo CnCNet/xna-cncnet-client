@@ -5,10 +5,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+
 using ClientCore;
 using ClientCore.Extensions;
-using Rampastring.Tools;
+
 using lzo.net;
+
+using Rampastring.Tools;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Memory;
@@ -19,18 +23,24 @@ namespace DTAClient.Domain.Multiplayer
     /// <summary>
     /// A helper class for extracting preview images from maps.
     /// </summary>
-    public static class MapPreviewExtractor
+    public class MapPreviewExtractor : IMapPreviewExtractor
     {
+        public static readonly MapPreviewExtractor Instance = new MapPreviewExtractor();
+
+        public MapPreviewExtractor() { }
+
         /// <summary>
         /// Extracts map preview image as a bitmap.
         /// </summary>
-        /// <param name="mapIni">Map file.</param>
+        /// <param name="mapFilePath">Path to the map file.</param>
+        /// <remarks>This method is not optimized for speed. It should have exact behavior as FastMapPreviewExtractor.ExtractMapPreview(). Any changes to this method must be carefully ported to FastMapPreviewExtractor.ExtractMapPreview() to ensure the two methods remain in sync, and vice versa.</remarks>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static Image ExtractMapPreview(IniFile mapIni)
+        public virtual Image ExtractMapPreview(string mapFilePath)
         {
-            List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
-
+            IniFile mapIni = new IniFile(mapFilePath);
             string baseFilename = mapIni.FileName.Replace(ProgramConstants.GamePath, "");
+
+            List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
             if (sectionKeys == null || sectionKeys.Count == 0)
             {
@@ -100,7 +110,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="decompressedDataSize">Size of decompressed preview image data.</param>
         /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Array of decompressed preview image data if successfully decompressed, otherwise null.</returns>
-        private static byte[] DecompressPreviewData(byte[] dataSource, int decompressedDataSize, out string errorMessage)
+        protected byte[] DecompressPreviewData(byte[] dataSource, int decompressedDataSize, out string errorMessage)
         {
             try
             {
@@ -151,7 +161,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
         /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
-        private static Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
+        protected Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
         {
             const int pixelFormatBitCount = 24;
             const int pixelFormatByteCount = pixelFormatBitCount / 8;

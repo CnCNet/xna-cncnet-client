@@ -21,8 +21,11 @@
 
 ### Build the project
 
+Always run restore before building. `SecondStageUpdater` is built via a custom MSBuild target (`BuildUpdater`) that fires for every DXMainClient build, but it is not in DXMainClient's project reference graph. This means the implicit restore triggered by `dotnet build` (without `--no-restore`) will not restore it, causing a build failure after any code change that invalidates the NuGet cache.
+
 ```shell
-dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0
+dotnet restore DXClient.slnx -p:Configuration=UniversalGLRelease
+dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
 ```
 
 A successful build ends with `0 Error(s)`.

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ClientCore;
@@ -15,7 +15,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -178,7 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, gameInfoLabelTopPadding,
                 lblGameInformation.Width, lblGameInformation.Height);
 
-            skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+            skillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
             base.Initialize();
         }
@@ -242,8 +241,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[i].Visible = false;
             }
 
-            string skillLevel = skillLevelOptions[game.SkillLevel];
-            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
+            int skillLevelIndex = game.SkillLevel;
+            string skillLevel = skillLevelOptions[skillLevelIndex];
+            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{skillLevelIndex}");
             lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
             lblSkillLevel.Visible = true;
 
@@ -251,31 +251,34 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
-
-                Image mapPreviewImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss: false) : null;
-
-                if (mapPreviewImage != null)
+                mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(map, syncLoadOnCacheMiss: false);
+                if (mapPreviewTexture != null)
                 {
-                    mapPreviewTexture = AssetLoader.TextureFromImage(mapPreviewImage);
                     mapPreviewTextureNeedsDispose = true;
-                }
-                else if (noMapPreviewTexture != null)
-                {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
-                    mapPreviewTexture = noMapPreviewTexture;
-                    mapPreviewTextureNeedsDispose = false;
                 }
                 else
                 {
-                    mapPreviewTexture = null;
-                    mapPreviewTextureNeedsDispose = false;
+                    // Try loading noMapPreviewTexture
+                    if (noMapPreviewTexture != null)
+                    {
+                        Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
+                        mapPreviewTexture = noMapPreviewTexture;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
+                    else
+                    {
+                        mapPreviewTexture = null;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
                 }
             }
             else
             {
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before. ClearInfo() should have done that. What's wrong here?");
+
                 if (mapPreviewTextureNeedsDispose &&
                     mapPreviewTexture != null &&
                     !mapPreviewTexture.IsDisposed)

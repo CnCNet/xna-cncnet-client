@@ -1600,7 +1600,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
-                int skillLevel = int.Parse(splitMessage[11]);
+                int skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(
+                    Conversions.IntFromString(splitMessage[11], ClientConfiguration.Instance.DefaultSkillLevelIndex));
                 string mapHash = splitMessage[12];
 
                 int[] gameOptionValues = null;

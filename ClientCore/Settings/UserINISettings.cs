@@ -139,6 +139,7 @@ namespace ClientCore
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+            CustomDragDistance = new IntSetting(iniFile, OPTIONS, "CustomDragDistance", 0);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
 
@@ -157,6 +158,7 @@ namespace ClientCore
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
+            DisableMainMenuHotkeys = new BoolSetting(iniFile, MULTIPLAYER, "DisableMainMenuHotkeys", true);
             AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
@@ -239,6 +241,8 @@ namespace ClientCore
 
         public IntSetting ScrollRate { get; private set; }
         public IntSetting DragDistance { get; private set; }
+        // When > 0, overrides the auto-scaled DragDistance. Allows players to set a fixed pixel threshold regardless of resolution.
+        public IntSetting CustomDragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
 
@@ -264,6 +268,8 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
+
+        public BoolSetting DisableMainMenuHotkeys { get; private set; }
 
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 

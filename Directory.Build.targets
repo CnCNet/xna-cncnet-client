@@ -86,8 +86,17 @@
     <ReadLinesFromFile File="$(_CommonAssembliesFilePath)">
       <Output TaskParameter="Lines" ItemName="_CommonFiles" />
     </ReadLinesFromFile>
-    <Move SourceFiles="$(PublishDir)%(_CommonFiles.Identity)" DestinationFolder="$(PublishDir)..\" Condition="!Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
-    <Delete Files="$(PublishDir)%(_CommonFiles.Identity)" Condition="Exists('$(PublishDir)..\%(_CommonFiles.Identity)')" />
+
+    <ItemGroup>
+      <_CommonFilesToMove Include="@(_CommonFiles)" Condition="!Exists('$(PublishDir)..\%(Identity)')" />
+      <_CommonFilesToDelete Include="@(_CommonFiles)" Condition="Exists('$(PublishDir)..\%(Identity)')" />
+    </ItemGroup>
+
+    <Move
+      SourceFiles="@(_CommonFilesToMove -> '$(PublishDir)%(Identity)')"
+      DestinationFiles="@(_CommonFilesToMove -> '$(PublishDir)..\%(Identity)')"
+      Condition="'@(_CommonFilesToMove)' != ''" />
+    <Delete Files="@(_CommonFilesToDelete -> '$(PublishDir)%(Identity)')" Condition="'@(_CommonFilesToDelete)' != ''" />
   </Target>
 
   <!-- Note: the folder structure should be consistent with scripts\build.ps1 file -->

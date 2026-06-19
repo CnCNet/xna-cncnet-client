@@ -515,7 +515,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (dieCount > MAX_DICE || dieCount < 1)
             {
-                AddNotice("You can only between 1 to 10 dies at once.".L10N("Client:Main:ChatboxCommandRollInvalid2"));
+                AddNotice("You can only have between 1 to 10 dice at once.".L10N("Client:Main:ChatboxCommandRollInvalid2"));
                 return;
             }
 

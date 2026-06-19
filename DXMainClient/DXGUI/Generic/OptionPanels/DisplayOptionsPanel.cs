@@ -25,6 +25,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class DisplayOptionsPanel : XNAOptionsPanel
     {
+        // Mouse must move at least this many pixels from click point before drag selection activates.
         private const int DRAG_DISTANCE_DEFAULT = 4;
         private const int ORIGINAL_RESOLUTION_WIDTH = 640;
 
@@ -81,14 +82,24 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
-#if XNA
-                if (!ScreenResolution.HiDefLimitResolution.Fits(maximumIngameResolution))
-                    maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
-#endif
-
                 SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
                     ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
                     maximumIngameResolution.Width, maximumIngameResolution.Height);
+
+                // Add custom in-game resolutions
+                var minimumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight);
+                var customIngameResolutions = ScreenResolution.GetCustomIngameResolutions();
+                foreach (var customRes in customIngameResolutions)
+                {
+                    // Throw on too small or too large in-game resolutions
+                    if (!customRes.Fits(minimumIngameResolution))
+                        throw new ClientConfigurationException($"Custom in-game resolution {customRes} is too small. Please check 'MinimumIngameWidth' and 'MinimumIngameHeight' in 'ClientDefinitions.ini' file.");
+
+                    if (!maximumIngameResolution.Fits(customRes))
+                        throw new ClientConfigurationException($"Custom in-game resolution {customRes} is too large. Please check 'MaximumIngameWidth' and 'MaximumIngameHeight' in 'ClientDefinitions.ini' file.");
+
+                    resolutions.Add(customRes);
+                }
 
                 foreach (var res in resolutions)
                     ddIngameResolution.AddItem(res.ToString());
@@ -628,7 +639,10 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             (IniSettings.IngameScreenWidth.Value, IniSettings.IngameScreenHeight.Value) = ingameRes;
 
             // Calculate drag selection distance, scale it with resolution width
-            int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
+            // CustomDragDistance > 0 overrides auto-scaling for players who need a specific value
+            int dragDistance = IniSettings.CustomDragDistance.Value > 0
+                ? IniSettings.CustomDragDistance.Value
+                : ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
             var newSelectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;

@@ -26,7 +26,7 @@ You should do this if you have introduced any new NuGet dependencies.
 - If there are other libraries get **removed** from this list, don't just commit the changes. Does this library exist in the `Compiled` folder?
     - If so, we can **resume** this line instead of removing it. 
     - If not, think carefully if we should keep this item, depending on whether these libraries should differ among DX/GL/XNA builds.
-        - Specifially, we intend to leave `ClientUpdater.dll` and `ClientUpdater.pdb` files in that list since we *know* this library does not differ among DX/GL/XNA builds, regardless the fact that these two files are different among DX/GL/XNA builds.
+        - Specifically, we intend to leave `ClientUpdater.dll` and `ClientUpdater.pdb` files in that list since we *know* this library does not differ among DX/GL/XNA builds, regardless the fact that these two files are different among DX/GL/XNA builds.
 - If there are other libraries just get **added** in this list, check if such a library has already been shown up in **previous** releases of the client.
     - If so, we should **delete** such a line, because a library showing in this list has a lower priority than the library that is not included in this list.
     - If not, we can keep the changes. This means a commit after the latest release brought another dependency and **forgot** to update the common assembly list. It's lucky we catch it up before making a new release. Note: if this dependency change is unrelated with your current PR, don't mix it up in the current PR, but rather, use a separate PR to update the forgotten dependency in the common assembly list.

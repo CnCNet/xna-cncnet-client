@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
             lbTunnelList.Name = nameof(lbTunnelList);
 
-            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+            SkillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
             Name = "GameCreationWindow";
             Width = lbTunnelList.Width + UIDesignConstants.EMPTY_SPACE_SIDES * 2 +

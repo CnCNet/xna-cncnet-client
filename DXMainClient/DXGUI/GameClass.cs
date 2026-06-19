@@ -42,7 +42,15 @@ namespace DTAClient.DXGUI
         public GameClass()
         {
             graphics = new GraphicsDeviceManager(this);
+#if GL
+            // VSync drives frame pacing via SwapBuffers, eliminating micro-stutter caused
+            // by unsynchronised frame delivery. IsFixedTimeStep=false lets VSync be the
+            // sole frame timer so the client renders at the display's refresh rate.
+            graphics.SynchronizeWithVerticalRetrace = true;
+            IsFixedTimeStep = false;
+#else
             graphics.SynchronizeWithVerticalRetrace = false;
+#endif
 #if !XNA
             graphics.HardwareModeSwitch = false;
 

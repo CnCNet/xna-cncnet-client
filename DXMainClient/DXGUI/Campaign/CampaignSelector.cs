@@ -434,13 +434,20 @@ namespace DTAClient.DXGUI.Campaign
         {
             CustomMissionHelper.CopySupplementalMissionFiles(mission);
 
-            string scenario = mission.Scenario;
-
             FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
             spawnerSettingsFile.Delete();
 
             bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
+
+            string scenario = mission.Scenario;
+            bool scenarioPathFound = mission.TryGetScenarioFilePath(out string scenarioPath);
+
+            if (!scenarioPathFound)
+            {
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without applying {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)}.");
+                copyMapsToSpawnmapINI = false;
+            }
 
             Logger.Log("About to write spawn.ini.");
             IniFile spawnIni = new(spawnerSettingsFile.FullName)
@@ -518,7 +525,7 @@ namespace DTAClient.DXGUI.Campaign
 
             if (copyMapsToSpawnmapINI)
             {
-                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
+                var mapIni = new IniFile(scenarioPath);
 
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
 
@@ -548,7 +555,13 @@ namespace DTAClient.DXGUI.Campaign
         public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
         {
             bool hasGameMissionData = false;
-            string scenarioPath = SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario);
+
+            bool scenarioPathFound = mission.TryGetScenarioFilePath(out string scenarioPath);
+            if (!scenarioPathFound)
+            {
+                Logger.Log($"CampaignSelector: mission scenario contains invalid path characters. Mission code name: {mission.CodeName}. Scenario: {mission.Scenario}. This mission will be launched without mission section data.");
+                return;
+            }
 
             if (!mission.IsCustomMission && File.Exists(scenarioPath))
             {

@@ -1,5 +1,4 @@
-Migrating from older versions
------------------------------
+# Migrating from older versions
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
@@ -9,6 +8,8 @@ This document lists all the breaking changes and how to address them. Each secti
 ## 2.13.0
 
 - `PlayerExtraOptionsPanel` control in `GameLobbyBase` has been changed from `XNAWindow` to `XNAPanel`. INI file `PlayerExtraOptionsPanel.ini` is no longer parsed for control attributes, and therefore all contents in this file should be appended to `GameLobbyBase.ini`. In addition, the control `chkBoxForceRandomTeams` has been renamed to `chkBoxForceNoTeams`, so please rename the `[chkBoxForceRandomTeams]` section to `[chkBoxForceNoTeams]`.
+- The `Ude.NetStandard.dll` file has been moved to a new path. Please follow the "delete `Binaries` and `BinariesNET8`" note above.
+- The `steam_api64.dll` file has been moved to a new path. Please follow the "delete `Binaries` and `BinariesNET8`" note above.
 
 ## 2.12.12
 

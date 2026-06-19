@@ -577,8 +577,10 @@ namespace ClientGUI
             Debug.Assert(!HasDuplicateHotkeys(), "There are duplicate hotkeys assigned. How could this happen?");
 
             IniFile keyboardIni = ClientConfiguration.Instance.SettingsIniAsKeyboardIni
-                    ? UserINISettings.Instance.SettingsIni
-                    : new IniFile() { FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI) };
+                ? UserINISettings.Instance.SettingsIni
+                : new IniFile(SafePath.CombineFilePath(
+                    ProgramConstants.GamePath,
+                    ClientConfiguration.Instance.KeyboardINI));
 
             var hotkeySection = keyboardIni.GetOrAddSection(ClientConfiguration.Instance.KeyboardHotkeySection);
             foreach (var command in gameCommands)

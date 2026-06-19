@@ -43,6 +43,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkMainMenuMusic;
         private XNAClientCheckBox chkStopMusicOnMenu;
         private XNAClientCheckBox chkStopGameLobbyMessageAudio;
+        private XNAClientCheckBox chkPlaySoundOnGameHosted;
 
         public override void Initialize()
         {
@@ -184,6 +185,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 lblScoreVolume.X, chkStopMusicOnMenu.Bottom + CHECKBOX_SPACING, 0, 0);
             AddChild(chkStopGameLobbyMessageAudio);
 
+            chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
+            chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
+            chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
+                lblScoreVolume.X, chkStopGameLobbyMessageAudio.Bottom + CHECKBOX_SPACING, 0, 0);
+            chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted");
+
+            AddChild(chkPlaySoundOnGameHosted);
+
             AddChild(lblScoreVolume);
             AddChild(lblScoreVolumeValue);
             AddChild(trbScoreVolume);
@@ -242,6 +251,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkMainMenuMusic.Checked = IniSettings.PlayMainMenuMusic;
             chkStopMusicOnMenu.Checked = IniSettings.StopMusicOnMenu;
             chkStopGameLobbyMessageAudio.Checked = IniSettings.StopGameLobbyMessageAudio;
+            chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
         }
 
         public override bool Save()
@@ -259,6 +269,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             IniSettings.PlayMainMenuMusic.Value = chkMainMenuMusic.Checked;
             IniSettings.StopMusicOnMenu.Value = chkStopMusicOnMenu.Checked;
             IniSettings.StopGameLobbyMessageAudio.Value = chkStopGameLobbyMessageAudio.Checked;
+            IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
 
             return restartRequired;
         }

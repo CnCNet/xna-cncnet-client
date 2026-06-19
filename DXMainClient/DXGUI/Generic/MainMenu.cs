@@ -332,7 +332,7 @@ namespace DTAClient.DXGUI.Generic
 
             Updater.Restart += Updater_Restart;
 
-            SetButtonHotkeys(true);
+            SetButtonHotkeys(!UserINISettings.Instance.DisableMainMenuHotkeys);
         }
 
         private void SetButtonHotkeys(bool enableHotkeys)
@@ -427,6 +427,8 @@ namespace DTAClient.DXGUI.Generic
                 discordHandler.Connect();
             else
                 discordHandler.Disconnect();
+
+            SetButtonHotkeys(!UserINISettings.Instance.DisableMainMenuHotkeys);
         }
 
         /// <summary>
@@ -684,7 +686,6 @@ namespace DTAClient.DXGUI.Generic
             CheckAndApplyTranslationGameFiles();
 
             Logger.Log("Main menu initialization complete.");
-            Logger.Log(FormattableString.Invariant($"Startup complete. Client is ready. Total startup time: {PreStartup.StartupElapsed.TotalSeconds:F3} s."));
 
             MainClientConstants.DisplayErrorAction = (title, error, exit) =>
             {

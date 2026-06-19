@@ -1,19 +1,24 @@
-﻿using System;
+using System;
+using System.Text;
+using System.Text.RegularExpressions;
+
 using ClientCore;
+using ClientCore.Extensions;
+
 using DiscordRPC;
 using DiscordRPC.Message;
-using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System.Text.RegularExpressions;
 
 namespace DTAClient.Domain
 {
     /// <summary>
     /// A class for handling Discord integration.
     /// </summary>
-    public class DiscordHandler: IDisposable
+    public class DiscordHandler : IDisposable
     {
+        private const int MaxDiscordPresenceTextUtf8ByteLength = 128;
+        private const string DiscordPresenceTruncateSuffix = "...";
         private DiscordRpcClient client;
 
         private RichPresence _currentPresence;
@@ -158,13 +163,13 @@ namespace DTAClient.Domain
                 stateString += "🔒";
             CurrentPresence = new RichPresence()
             {
-                State = stateString,
-                Details = $"{type} • {map} • {mode}",
+                State = TruncateDiscordPresenceText(stateString),
+                Details = TruncateDiscordPresenceText($"{type} • {map} • {mode}"),
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
                     SmallImageKey = sideKey,
-                    SmallImageText = side
+                    SmallImageText = TruncateDiscordPresenceText(side)
                 },
                 Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
@@ -184,8 +189,8 @@ namespace DTAClient.Domain
                 stateString += "👑";
             CurrentPresence = new RichPresence()
             {
-                State = stateString,
-                Details = $"{type} • {map} • {mode}",
+                State = TruncateDiscordPresenceText(stateString),
+                Details = TruncateDiscordPresenceText($"{type} • {map} • {mode}"),
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo"
@@ -203,13 +208,13 @@ namespace DTAClient.Domain
             string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
             CurrentPresence = new RichPresence()
             {
-                State = $"{state}",
-                Details = $"Skirmish • {map} • {mode}",
+                State = TruncateDiscordPresenceText(state),
+                Details = TruncateDiscordPresenceText($"Skirmish • {map} • {mode}"),
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
                     SmallImageKey = sideKey,
-                    SmallImageText = side
+                    SmallImageText = TruncateDiscordPresenceText(side)
                 },
                 Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
@@ -225,12 +230,12 @@ namespace DTAClient.Domain
             CurrentPresence = new RichPresence()
             {
                 State = "Playing Mission",
-                Details = $"{mission} • {difficulty}",
+                Details = TruncateDiscordPresenceText($"{mission} • {difficulty}"),
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
                     SmallImageKey = sideKey,
-                    SmallImageText = side
+                    SmallImageText = TruncateDiscordPresenceText(side)
                 },
                 Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
@@ -245,7 +250,7 @@ namespace DTAClient.Domain
             CurrentPresence = new RichPresence()
             {
                 State = "Playing Saved Game",
-                Details = $"{save}",
+                Details = TruncateDiscordPresenceText(save),
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo"
@@ -253,6 +258,18 @@ namespace DTAClient.Domain
                 Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
+        }
+
+        private static string TruncateDiscordPresenceText(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            if (Encoding.UTF8.GetByteCount(value) <= MaxDiscordPresenceTextUtf8ByteLength)
+                return value;
+
+            int maxTruncatedTextByteLength = MaxDiscordPresenceTextUtf8ByteLength - Encoding.UTF8.GetByteCount(DiscordPresenceTruncateSuffix);
+            return value.TruncateToUtf8ByteLength(maxTruncatedTextByteLength) + DiscordPresenceTruncateSuffix;
         }
 
         #endregion

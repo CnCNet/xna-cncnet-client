@@ -72,7 +72,7 @@ namespace DTAClient.Online
                 new IRCColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), true, Color.LightSkyBlue, 11),
                 new IRCColor("Blue".L10N("Client:Main:ColorBlue"), true, Color.RoyalBlue, 12),
                 new IRCColor("Pink".L10N("Client:Main:ColorPink"), true, Color.DeepPink, 13),
-                new IRCColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), true, Color.LightGray, 14),
+                new IRCColor("Metallic".L10N("Client:Main:ColorLightGrayMetallic"), true, Color.LightGray, 14),
                 new IRCColor("Gray".L10N("Client:Main:ColorGray"), false, Color.Gray, 15)
             };
         }

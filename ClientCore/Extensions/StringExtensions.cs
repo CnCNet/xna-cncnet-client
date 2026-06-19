@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ public static class StringExtensions
         string[] links = new string[matches.Count];
         for (int i = 0; i < links.Length; i++)
             links[i] = matches[i].Value.Trim();
-            
+
         return links;
     }
 
@@ -113,8 +114,8 @@ public static class StringExtensions
 
         return filename;
     }
-  
-    public static T ToEnum<T>(this string value) where T : Enum 
+
+    public static T ToEnum<T>(this string value) where T : Enum
         => (T)Enum.Parse(typeof(T), value, true);
 
     public static string[] SplitWithCleanup(this string value, char[] separators = null)
@@ -123,4 +124,58 @@ public static class StringExtensions
             .Select(s => s.Trim())
             .Where(s => !string.IsNullOrEmpty(s))
             .ToArray();
+
+    /// <summary>
+    /// Returns a substring of this string starting at <paramref name="start"/> and containing at most
+    /// <paramref name="maxLength"/> UTF-16 code units, ensuring the result does not end with an orphaned high surrogate.
+    /// </summary>
+    /// <param name="str">The string to slice.</param>
+    /// <param name="start">The zero-based start index of the substring.</param>
+    /// <param name="maxLength">Maximum number of UTF-16 code units to include in the result. Must be non-negative.</param>
+    /// <returns>The safe substring.</returns>
+    public static string SubstringSurrogateAware(this string str, int start, int maxLength)
+    {
+        if (str == null)
+            throw new ArgumentNullException(nameof(str));
+        if (start < 0 || start > str.Length)
+            throw new ArgumentOutOfRangeException(nameof(start), $"{nameof(start)} must be within the bounds of the string.");
+        if (maxLength < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxLength), $"{nameof(maxLength)} must be non-negative.");
+
+        int available = str.Length - start;
+        int length = maxLength < available ? maxLength : available;
+        if (length > 0 && char.IsHighSurrogate(str[start + length - 1]))
+            length--;
+
+        return str.Substring(start, length);
+    }
+
+    /// <summary>
+    /// Truncates this string to at most <paramref name="maxUtf8ByteLength"/> bytes in UTF-8.
+    /// </summary>
+    /// <param name="str">The input string.</param>
+    /// <param name="maxUtf8ByteLength">Maximum UTF-8 byte length allowed for the returned string.</param>
+    /// <returns>The original string if no truncation is needed; otherwise a UTF-8 byte-limited string.</returns>
+    public static string TruncateToUtf8ByteLength(this string str, int maxUtf8ByteLength)
+    {
+        if (str == null)
+            throw new ArgumentNullException(nameof(str));
+        if (maxUtf8ByteLength < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxUtf8ByteLength), $"{nameof(maxUtf8ByteLength)} must be non-negative.");
+        if (str.Length == 0 || maxUtf8ByteLength == 0)
+            return string.Empty;
+
+        if (Encoding.UTF8.GetByteCount(str) <= maxUtf8ByteLength)
+            return str;
+
+        // Encoder.Convert fits as many source chars as possible into the byte budget
+        // without splitting a multi-byte UTF-8 sequence or a surrogate pair.
+        Encoder encoder = Encoding.UTF8.GetEncoder();
+        char[] chars = str.ToCharArray();
+        byte[] buffer = new byte[maxUtf8ByteLength];
+        encoder.Convert(chars, 0, chars.Length, buffer, 0, buffer.Length,
+            flush: true, out int charsUsed, out _, out _);
+
+        return str.Substring(0, charsUsed);
+    }
 }

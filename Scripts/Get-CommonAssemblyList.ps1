@@ -35,14 +35,21 @@ $Script:Engines | ForEach-Object {
   [string]$Private:Engine = $PSItem
   [string]$Private:PlatformFolder = Join-Path $Binaries $Private:Engine
 
-  Get-ChildItem $Private:PlatformFolder | Where-Object {
+  Get-ChildItem $Private:PlatformFolder -Recurse | Where-Object {
     $PSItem -is [System.IO.FileInfo]
   } | ForEach-Object {
-    if (!$Script:FileHashTable.ContainsKey($PSItem.Name)) {
-      $Script:FileHashTable[$PSItem.Name] = [hashtable]@{}
+    [string]$Private:RelativePath = [System.IO.Path]::GetRelativePath($Private:PlatformFolder, $PSItem.FullName)
+
+    # Skip native DLL files in the 'runtimes' top-level folder
+    if ($Private:RelativePath.Split([System.IO.Path]::DirectorySeparatorChar)[0] -ieq 'runtimes') {
+        return
     }
 
-    $Script:FileHashTable[$PSItem.Name][$Engine] = Get-FileHash $PSItem
+    if (!$Script:FileHashTable.ContainsKey($Private:RelativePath)) {
+      $Script:FileHashTable[$Private:RelativePath] = [hashtable]@{}
+    }
+
+    $Script:FileHashTable[$Private:RelativePath][$Engine] = Get-FileHash $PSItem
   }
 }
 

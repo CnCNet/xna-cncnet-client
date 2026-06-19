@@ -45,6 +45,6 @@ SixLabors.ImageSharp.dll
 System.CodeDom.dll
 StbImageSharp.dll
 StbTrueTypeSharp.dll
-steam_api64.dll
 System.Net.Http.Formatting.dll
 TextCopy.dll
+Ude.NetStandard.dll

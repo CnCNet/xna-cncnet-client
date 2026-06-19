@@ -143,6 +143,9 @@ namespace DTAClient.Online
                 {
                     foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.FullName.Substring(path.FullName.Length)))
                     {
+                        if (Path.GetFileName(filename).Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         string fileRelativePath = SafePath.CombineFilePath(path.Name, filename);
                         string fileFullPath = SafePath.CombineFilePath(path.FullName, filename);
                         Debug.Assert(File.Exists(fileFullPath), $"File {fileFullPath} is supposed to but does not exist.");

@@ -195,7 +195,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chatColors = new LANColor[]
             {
                 new LANColor("Gray".L10N("Client:Main:ColorGray"), Color.Gray),
-                new LANColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), Color.LightGray),
+                new LANColor("Metallic".L10N("Client:Main:ColorLightGrayMetallic"), Color.LightGray),
                 new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.ForestGreen),
                 new LANColor("Lime Green".L10N("Client:Main:ColorLimeGreen"), Color.LimeGreen),
                 new LANColor("Green Yellow".L10N("Client:Main:ColorGreenYellow"), Color.GreenYellow),

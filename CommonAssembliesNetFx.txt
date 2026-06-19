@@ -1,5 +1,6 @@
 ClientUpdater.dll
 ClientUpdater.pdb
+arm64\libHarfBuzzSharp.dll
 Cyotek.Drawing.BitmapFont.dll
 DiscordRPC.dll
 Facepunch.Steamworks.Win64.dll
@@ -10,6 +11,7 @@ HarfBuzzSharp.dll
 libHarfBuzzSharp.dylib
 lzo.net.dll
 Microsoft.Bcl.AsyncInterfaces.dll
+Microsoft.Bcl.HashCode.dll
 Microsoft.Extensions.Configuration.Abstractions.dll
 Microsoft.Extensions.Configuration.Binder.dll
 Microsoft.Extensions.Configuration.CommandLine.dll
@@ -46,7 +48,6 @@ Rampastring.Tools.xml
 SixLabors.ImageSharp.dll
 StbImageSharp.dll
 StbTrueTypeSharp.dll
-steam_api64.dll
 System.Buffers.dll
 System.CodeDom.dll
 System.Diagnostics.DiagnosticSource.dll
@@ -63,3 +64,7 @@ System.Text.Json.dll
 System.Threading.Tasks.Extensions.dll
 System.ValueTuple.dll
 TextCopy.dll
+Ude.NetStandard.dll
+x64\libHarfBuzzSharp.dll
+x64\steam_api64.dll
+x86\libHarfBuzzSharp.dll

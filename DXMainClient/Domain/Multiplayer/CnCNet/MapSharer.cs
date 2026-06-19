@@ -40,6 +40,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private const int UPLOAD_TIMEOUT = 100000; // In milliseconds
 
         /// <summary>
+        /// Returns true if the map with the given SHA1 has already been successfully uploaded.
+        /// </summary>
+        /// <param name="sha1">The SHA1 of the map.</param>
+        public static bool IsMapUploaded(string sha1)
+        {
+            lock (locker)
+            {
+                return UploadedMaps.Contains(sha1);
+            }
+        }
+
+        /// <summary>
         /// Adds a map into the CnCNet map upload queue.
         /// </summary>
         /// <param name="map">The map.</param>
@@ -90,12 +102,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (success)
             {
-                MapUploadComplete?.Invoke(null, new MapEventArgs(map));
-
                 lock (locker)
                 {
                     UploadedMaps.Add(map.SHA1);
                 }
+
+                MapUploadComplete?.Invoke(null, new MapEventArgs(map));
 
                 Logger.Log("MapSharer: Uploading map " + map.BaseFilePath + " completed succesfully.");
             }

@@ -38,7 +38,7 @@ When using the included build scripts, [PowerShell 7](https://learn.microsoft.co
 * If you want to run the client in debug mode, open the solution file `DXClient.slnx` using Visual Studio, and select Debug -> Start Debugging (F5).
 
 > [!IMPORTANT]
-> If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 runtimes, **it is highly recommended to restart Visual Studio after switching configurations to prevent unexpected error messages**. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, **it is also highly recommended to close Visual Studio when using the scripts in `Scripts` folder**.
+> If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 runtimes, **it is highly recommended to restart Visual Studio after switching configurations to prevent unexpected error messages**. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project by running `ClearObjDirs.bat` in `Scripts` folder. Due to the same reason, **it is also highly recommended to close Visual Studio when using any scripts in `Scripts` folder**.
 
 ### Advanced notes on building and debugging
 

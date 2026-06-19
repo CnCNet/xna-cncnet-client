@@ -74,8 +74,6 @@ namespace DTAClient.Domain.Multiplayer
             Map.IsCoop ?? GameMode.IsCoop ?? false;
 
         public int MaxPlayers =>
-            // Note: GameLobbyBase.GetMapList() assumes the priority.
-            // If you have modified the expression here, you should also update GameLobbyBase.GetMapList().
             GameMode.MaxPlayersOverride ?? Map.MaxPlayers ?? GameMode.MaxPlayers ?? 0;
 
         public int MinPlayers =>

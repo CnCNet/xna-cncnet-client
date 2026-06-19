@@ -1,4 +1,5 @@
-﻿namespace ClientCore.I18N;
+﻿#nullable enable
+namespace ClientCore.I18N;
 
 /// <summary>
 /// Describes a file to try and copy into the game folder with a translation.

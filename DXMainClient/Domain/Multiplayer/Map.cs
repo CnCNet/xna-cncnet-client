@@ -354,7 +354,7 @@ namespace DTAClient.Domain.Multiplayer
                         ParseSpawnIniOptions(iniFile, fsioSection);
                 }
 
-                ExtraININame = section.GetStringValueOrNull("ExtraININame");
+                ExtraININame = section.GetStringValueOrNull("ExtraIniName") ?? section.GetStringValueOrNull("ExtraININame");
 
                 return true;
             }
@@ -539,7 +539,7 @@ namespace DTAClient.Domain.Multiplayer
                 ParseForcedOptions(iniFile, "ForcedOptions");
                 ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");
 
-                ExtraININame = basicSection.GetStringValueOrNull("ExtraININame");
+                ExtraININame = basicSection.GetStringValueOrNull("ExtraIniName") ?? basicSection.GetStringValueOrNull("ExtraININame");
 
                 return true;
             }
@@ -613,7 +613,7 @@ namespace DTAClient.Domain.Multiplayer
 
             // Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
 
-            return MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile(loadPreviewTextureSection: true));
+            return FastMapPreviewExtractor.Instance.ExtractMapPreview(customMapFilePath);
         }
 
         public IniFile GetMapIni()

@@ -629,6 +629,57 @@ RandomBackgroundTextures=  ; comma-separated list of strings,
 
 ## [CampaignSelector](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
+### Mission Properties
+
+The following keys are supported in mission sections in `Battle.ini` and in `[ClientMissionConfig]` sections of custom mission map files:
+
+```ini
+[MISSION_SECTION]                    ; Mission
+CD=0                                 ; integer, CD number.
+Side=0                               ; integer, side index for the mission.
+Scenario=                            ; string,  relative path to the map file.
+Description=Undefined mission        ; string,  mission display name. Supports localization.
+SideName=                            ; string,  mission icon asset prefix, not a full path.
+                                     ;          The client appends `icon.png` when loading it
+                                     ;          (for example, `SideName=GDI` loads `GDIicon.png`).
+LongDescription=                     ; string,  mission description text. Supports localization
+                                     ;          and line breaks via `@`.
+FinalMovie=none                      ; string,  movie to play after mission completion.
+RequiredAddon=false                  ; boolean, whether the mission requires the expansion.
+Enabled=true                         ; boolean, whether the mission is selectable.
+BuildOffAlly=false                   ; boolean, whether the player can build off ally structures.
+PlayerAlwaysOnNormalDifficulty=false ; boolean, forces the human player to Normal difficulty
+                                     ;          regardless of the difficulty slider.
+Tags=                                ; comma-separated strings, tags for filtering in the campaign
+                                     ;          tag selector. Custom missions always get the "CUSTOM" tag.
+PreviewImage=                        ; string,  path relative to `Resources/Mission Previews/`
+                                     ;          for the mission preview image.
+```
+
+### Custom Mission Map Files
+
+Custom mission `.map` files placed in the `CustomMissionPath` directory (see [ClientDefinition](#ClientDefinition)) are scanned for two INI sections:
+
+- **`[ClientMissionConfig]`** — **required** for the map to be recognized as a custom mission. Supports the client-facing keys from [Mission Properties](#mission-properties), except that for custom missions `Scenario` is derived from the `.map` filename/path and `Tags` is always set to `CUSTOM`.
+- **`[GameMissionConfig]`** — **optional**. Key-value pairs are written to `spawn.ini` at launch time. Used for loading screen configuration and other engine-level settings.
+
+```ini
+; In a custom mission .map file
+
+[ClientMissionConfig]
+Description=My Custom Mission
+Side=0
+Enabled=true
+
+[GameMissionConfig]
+; Optional. Written to spawn.ini at launch.
+; If loading screen keys are present, ReadMissionSection=Yes is set in spawn.ini.
+```
+
+If `[GameMissionConfig]` is not present or does not specify loading screen keys, the client automatically looks for `.shp` and `.pal` supplement files as fallback loading screen assets. 
+
+Note, supplemental mission files must be configured in `ClientDefinitions.ini` using `CustomMissionPath` together with `CustomMissionSupplementFileNExtension` and `CustomMissionSupplementFileNCopyAs` as sequential `(extension, copy-as filename)` pairs, where `N` refers to a sequential number.
+
 ### [pnlMissionPreview](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignSelector.cs)
 
 _(inherits [XNAPanel](#XNAPanel))_
@@ -644,7 +695,7 @@ To adjust panel size and position, modify `pnlMissionPreview` in `CampaignSelect
 ...
 ```
 
-To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` and set its value to the path of the image file relative to the `Resources/Mission Previews` folder.
+To configure which preview image in `Resources/Mission Previews` folder to use for each mission, add the `PreviewImage` property in the mission's section in `Battle.ini` (or `[ClientMissionConfig]` for custom missions) and set its value to the path of the image file relative to the `Resources/Mission Previews` folder.
 
 In `Battle.ini`:
 ```ini
@@ -666,6 +717,37 @@ To adjust the text block size and position, modify `tbMissionDescription` in `Ca
 [tbMissionDescription]       ; XNATextBlock
 ...
 ```
+
+### Campaign Tag Selector
+
+When `CampaignTagSelectorEnabled=true` in `ClientDefinitions.ini`, a tag selector window appears before the campaign selector. It allows players to filter missions by their `Tags` property.
+
+Define tag buttons in `CampaignTagSelector.ini` using the naming pattern `ButtonTag_{TagName}`:
+
+```ini
+[CampaignTagSelector]
+$CC00=ButtonTag_Story:XNAClientButton
+$CC01=ButtonTag_Challenge:XNAClientButton
+$CC02=btnShowAllMission:XNAClientButton
+$CC03=btnCancel:XNAClientButton
+
+[ButtonTag_Story]
+; Button properties...
+
+[ButtonTag_Challenge]
+; Button properties...
+
+[btnShowAllMission]
+; "Show All Missions" button - shows all missions regardless of tags.
+```
+
+The tag name in `ButtonTag_{TagName}` is matched against mission `Tags` values. Custom missions automatically receive the `CUSTOM` tag.
+
+### Campaign Game Options and Forced Spawn Options
+
+`CampaignCheckBox` and `CampaignDropDown` controls can be added to `CampaignSelector.ini` to provide player-selectable options for campaign missions. See [GameSessionCheckBox](#GameSessionCheckBox) and [GameSessionDropDown](#GameSessionDropDown).
+
+A `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` defines keys that are always written to `spawn.ini` for campaign missions, regardless of UI options. This is separate from the multiplayer `[ForcedSpawnIniOptions]` section. See [GameOptions](#GameOptions).
 
 # Global Config Files
 
@@ -721,4 +803,151 @@ CompatibilityCheckExecutables=CnCNetYRLauncher.exe,gamemd.exe,gamemd-spawn.exe ;
 ```ini
 [Settings]
 ShowGameIconInGameList=true ; boolean, whether to show the game icon in the game listing. Defaults to true.
+```
+
+```ini
+[Settings]
+AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
+                                           ; game modes that custom (unofficial) maps are allowed to appear in.
+                                           ; Official maps are not affected by this filter.
+```
+
+## Game Modes
+
+Game modes are defined in the `[GameModes]` section of `MPMaps.ini`. Each game mode can have its own configuration section with the same name.
+
+In `MPMaps.ini`:
+```ini
+[GameModes]
+0=Standard
+1=No Bases
+2=Infantry Only
+
+[Standard]
+UIName=Standard
+; Game mode properties...
+
+[No Bases]
+UIName=No Bases
+; Game mode properties...
+```
+
+### Game Mode Properties
+
+```ini
+[GAME_MODE_NAME]                       ; GameMode
+UIName=                                ; string,  display name for the game mode. Defaults to the section name.
+MinPlayersOverride=                    ; integer, override for minimum player count.
+MaxPlayersOverride=                    ; integer, override for maximum player count.
+DisallowedPlayerSides=                 ; comma-separated integers,
+                                       ;          side indices that ALL players cannot select.
+DisallowedHumanPlayerSides=            ; comma-separated integers,
+                                       ;          side indices that HUMAN players cannot select.
+DisallowedComputerPlayerSides=         ; comma-separated integers,
+                                       ;          side indices that AI players cannot select.
+ForcedOptions=                         ; string,  name of an INI section whose keys become forced
+                                       ;          checkbox/dropdown values.
+ForcedSpawnIniOptions=                 ; string,  name of an INI section whose key-value pairs are
+                                       ;          written to spawn.ini [Settings].
+                                       ;          Defaults to `{Name}ForcedSpawnIniOptions`.
+MapCodeIniName=                        ; string,  name of the map code INI file in `INI/Map Code/`.
+                                       ;          Defaults to `{Name}.ini`.
+RandomizedMapCodeIniNames=             ; comma-separated strings,
+                                       ;          additional randomized map code INI names.
+RandomizedMapCodesCount=1              ; integer, how many of the randomized map codes to pick.
+```
+
+### GameModeMapBase Properties
+
+The following properties are shared between maps (in `MPMaps.ini` map sections) and game modes. When both a map and its game mode define the same property, the map value takes priority unless noted otherwise.
+
+```ini
+; Map section keys:
+[MAP_NAME]
+MinPlayer=                            ; integer,  minimum player count.
+ClientMaxPlayer=                      ; integer,  maximum player count (client-side).
+MaxPlayer=                            ; integer,  maximum player count (game-side).
+EnforceMaxPlayers=                    ; boolean,  whether MaxPlayer is enforced.
+AllowedStartingLocations=             ; comma-separated integers,
+                                      ;           restricts which starting locations can be used.
+IsCoopMission=                        ; boolean,  marks the map as a co-op mission.
+ClientMultiplayerOnly=                ; boolean,  whether the map cannot be played in Skirmish.
+HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
+ForceRandomStartLocations=            ; boolean,  force random starting positions.
+ForceNoTeams=                         ; boolean,  force no team assignments.
+CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
+
+; Game mode section keys (same properties, slightly different names):
+[GAME_MODE]
+MinPlayers=                           ; integer,  minimum player count.
+MaxPlayers=                           ; integer,  maximum player count.
+EnforceMaxPlayers=                    ; boolean,  whether MaxPlayers is enforced.
+AllowedStartingLocations=             ; comma-separated integers.
+IsCoopMission=                        ; boolean,  marks the mode as co-op.
+MultiplayerOnly=                      ; boolean,  whether maps in this mode cannot be played in Skirmish.
+HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
+ForceRandomStartLocations=            ; boolean,  force random starting positions.
+ForceNoTeams=                         ; boolean,  force no team assignments.
+CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
+```
+
+Priority resolution for player counts:
+- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
+- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.MinPlayer` > `GameMode.MinPlayers`
+
+### Map Extra INI
+
+Maps can specify an extra INI file to consolidate into the map's INI at game launch:
+
+```ini
+; In a map section of MPMaps.ini
+ExtraIniName=MyExtraCode.ini  ; filename in `INI/Map Code/` to consolidate into the map INI
+```
+
+## GameOptions
+
+The `GameOptions.ini` file defines sides, random selectors, multiplayer colors, and forced spawn options.
+
+### ForcedSpawnIniOptions
+
+Forced spawn options define keys that are always written to `spawn.ini` regardless of UI settings. They can be defined at multiple levels:
+
+1. **Global** — `[ForcedSpawnIniOptions]` in `GameOptions.ini`: applied to all multiplayer games.
+2. **Campaign** — `[CampaignForcedSpawnIniOptions]` in `GameOptions.ini`: applied to campaign missions only.
+3. **Per game mode** — each game mode section in `MPMaps.ini` can specify `ForcedSpawnIniOptions=SectionName` pointing to a section whose keys are written to `spawn.ini`.
+4. **Per map** — maps can specify `ForcedSpawnIniOptions=SectionName` (comma-separated for multiple sections) in `MPMaps.ini`.
+
+Spawn.ini writing order for multiplayer:
+1. Game lobby checkboxes/dropdowns
+2. Global `[ForcedSpawnIniOptions]` from `GameOptions.ini`
+3. Game mode specific forced options
+4. Map specific forced options
+
+In `GameOptions.ini`:
+```ini
+[ForcedSpawnIniOptions]
+FogOfWar=no
+MultiEngineer=yes
+; Keys written here override lobby UI values for all multiplayer games.
+
+[CampaignForcedSpawnIniOptions]
+; Keys written here override all other options for campaign missions.
+AutoSaveInterval=0
+```
+
+In `MPMaps.ini`:
+```ini
+[MyGameMode]
+ForcedSpawnIniOptions=MyModeForcedOptions
+
+[MyModeForcedOptions]
+; Keys here are written to spawn.ini when this game mode is active.
+SomeOption=value
+
+[MyMap]
+ForcedSpawnIniOptions=MyMapForcedOptions
+
+[MyMapForcedOptions]
+; Keys here are written to spawn.ini when this specific map is played.
+AnotherOption=value
 ```

@@ -130,8 +130,9 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.RemoveControl(this);
 
             Cursor.Visible = visibleSpriteCursor;
-        }
 
+            Logger.Log(FormattableString.Invariant($"Startup complete. Client is ready. Total startup time: {PreStartup.StartupElapsed.TotalSeconds:F3} s."));
+        }
 
         private TimeSpan Update_LastLogTime = TimeSpan.Zero;
         public override void Update(GameTime gameTime)
@@ -146,6 +147,14 @@ namespace DTAClient.DXGUI.Generic
                 Finish();
                 return;
             }
+
+            bool updaterFaulted = updaterInitTask != null && updaterInitTask.IsFaulted;
+            if (updaterFaulted)
+                throw new Exception("Updater initialization task failed.", updaterInitTask.Exception);
+
+            bool mapLoadFaulted = mapLoadTask.IsFaulted;
+            if (mapLoadFaulted)
+                throw new Exception("Map loading task failed.", mapLoadTask.Exception);
 
             var timeSinceLastLog = gameTime.TotalGameTime.Subtract(Update_LastLogTime);
             if (timeSinceLastLog > TimeSpan.FromSeconds(5))

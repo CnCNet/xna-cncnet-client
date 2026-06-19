@@ -1,4 +1,6 @@
 #nullable enable
+using ClientCore.Caching;
+
 using SixLabors.ImageSharp;
 
 namespace DTAClient.Domain.Multiplayer;
@@ -6,9 +8,9 @@ namespace DTAClient.Domain.Multiplayer;
 /// <summary>
 /// Thread-safe manager for caching map preview images with LRU eviction policy.
 /// Processes image extraction requests sequentially to limit CPU usage to a single thread.
-/// Note: this manager assumes the `Image` objects are managed, so it never disposes them directly.
+/// Images are disposed via ref-counting once evicted and all caller leases are released.
 /// </summary>
-public class MapPreviewCacheManager : CacheManagerBase<Map, Image>, IMapPreviewCacheManager
+public class MapPreviewCacheManager : DisposableCacheManagerBase<Map, Image>, IMapPreviewCacheManager
 {
     public MapPreviewCacheManager(int capacity) : base(capacity) { }
 

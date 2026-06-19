@@ -192,6 +192,17 @@ namespace ClientGUI
             return scaledRecommendedResolutions;
         }
 
+        public static SortedSet<ScreenResolution> GetCustomIngameResolutions()
+        {
+            var customIngameResolutions = ClientConfiguration.Instance.CustomIngameResolutions
+                .Where(resolution => !string.IsNullOrWhiteSpace(resolution))
+                .Select(resolution => (ScreenResolution)resolution)
+                .ToList();
+            
+            var sortedCustomIngameResolutions = new SortedSet<ScreenResolution>(customIngameResolutions);
+            return sortedCustomIngameResolutions;
+        }
+
         public static ScreenResolution GetBestRecommendedResolution() =>
             GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
 

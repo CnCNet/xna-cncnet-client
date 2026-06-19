@@ -14,6 +14,7 @@ namespace DTAClient.Domain
     public class SavedGame
     {
         const string SAVED_GAME_PATH = "Saved Games/";
+        const int MAX_SCENARIO_DESCRIPTION_BYTES = 1024 * 1024;
 
         public SavedGame(string fileName)
         {
@@ -36,15 +37,40 @@ namespace DTAClient.Domain
                 FileInfo savedGameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SAVED_GAME_PATH, FileName);
 
                 using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
+                using (RootStorage root = RootStorage.Open(file))
                 {
-                    var cf = new CompoundFile(file);
-
-                    GUIName = System.Text.Encoding.Unicode.GetString(cf.RootStorage.GetStream("Scenario Description").GetData()).TrimEnd(['\0']);
-                    try
+                    using (CfbStream scenarioDescStream = root.OpenStream("Scenario Description"))
                     {
-                        CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(cf.RootStorage.GetStream("CustomMissionID").GetData());
+                        if (scenarioDescStream.Length > MAX_SCENARIO_DESCRIPTION_BYTES)
+                            throw new InvalidDataException($"Scenario Description stream was unexpectedly large: {scenarioDescStream.Length} bytes.");
+
+                        int scenarioDescLength = checked((int)scenarioDescStream.Length);
+                        byte[] scenarioDescData = new byte[scenarioDescLength];
+                        int bytesRead = 0;
+                        while (bytesRead < scenarioDescLength)
+                        {
+                            int readCount = scenarioDescStream.Read(scenarioDescData, bytesRead, scenarioDescLength - bytesRead);
+                            if (readCount == 0)
+                                throw new EndOfStreamException("Unexpected end of stream while reading Scenario Description.");
+
+                            bytesRead += readCount;
+                        }
+
+                        GUIName = System.Text.Encoding.Unicode.GetString(scenarioDescData).TrimEnd(['\0']);
                     }
-                    catch (CFItemNotFound)
+
+                    if (root.TryOpenStream("CustomMissionID", out CfbStream? customMissionIdStream))
+                    {
+                        using (customMissionIdStream)
+                        {
+                            byte[] customMissionIdData = new byte[sizeof(int)];
+                            int bytesRead = customMissionIdStream.Read(customMissionIdData, 0, customMissionIdData.Length);
+                            CustomMissionID = bytesRead < customMissionIdData.Length
+                                ? throw new EndOfStreamException("Unexpected end of stream while reading CustomMissionID.")
+                                : BinaryPrimitives.ReadInt32LittleEndian(customMissionIdData);
+                        }
+                    }
+                    else
                     {
                         CustomMissionID = 0;
                     }
