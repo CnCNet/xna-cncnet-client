@@ -93,10 +93,10 @@ namespace DTAClient.Domain.Multiplayer
         protected void InitializeBaseSettingsFromIniSection(IniSection section, bool isCustomMap)
         {
             // MinPlayers
-            MinPlayers = section.GetIntValueOrNull("ClientMinPlayer") ?? section.GetIntValueOrNull(isCustomMap ? "MinPlayer" : "MinPlayers");
+            MinPlayers = section.GetIntValueOrNull("ClientMinPlayer") ?? section.GetIntValueOrNull("MinPlayers") ?? section.GetIntValueOrNull("MinPlayer");
 
             // MaxPlayers
-            MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer") ?? section.GetIntValueOrNull(isCustomMap ? "MaxPlayer" : "MaxPlayers");
+            MaxPlayers = section.GetIntValueOrNull("ClientMaxPlayer") ?? section.GetIntValueOrNull("MaxPlayers") ?? section.GetIntValueOrNull("MaxPlayer");
 
             // EnforceMaxPlayers
             EnforceMaxPlayers = section.GetBooleanValueOrNull("EnforceMaxPlayers");
