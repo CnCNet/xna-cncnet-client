@@ -30,7 +30,7 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// Whether to use MaxPlayers for limiting the player count of the map or a game mode.
-        /// If false (which is the default), MaxPlayers is only used for randomizing
+        /// If false, MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
         [JsonInclude]
@@ -38,7 +38,7 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// Whether to enforce the minimum player count of the map or a game mode.
-        /// If false (which is the default), MinPlayers is ignored and the game
+        /// If false, MinPlayers is ignored and the game
         /// can be launched with fewer players.
         /// </summary>
         [JsonInclude]
