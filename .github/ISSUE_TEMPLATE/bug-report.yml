@@ -68,7 +68,9 @@ body:
     attributes:
       label: Last Working Version
       description: |
-        If this bug did not exist in a prior release version, what is the last version that does **not** have this bug? Leave blank if unknown or if the bug has always existed.
+        If this bug did not exist in a prior release version, what is the last version that does **not** have this bug? Type "unknown" if you are not sure, or "always existed" if the bug has always been present.
+    validations:
+      required: true
 
   - type: textarea
     id: context
