@@ -72,12 +72,12 @@ Size=18
 [FontRendering]
 ; Optional section. Advanced FontStashSharp rasterization settings.
 ; All properties are optional; the defaults shown here are used when the section is absent.
-; Horizontal blur kernel applied to each rasterized glyph. Default: 0 (no blur)
+; Horizontal blur kernel applied to each rasterized glyph. Default: 4. Set to 0 for no blur.
 KernelWidth=4
-; Vertical blur kernel applied to each rasterized glyph. Default: 0 (no blur)
+; Vertical blur kernel applied to each rasterized glyph. Default: 4. Set to 0 for no blur.
 KernelHeight=4
 ; Multiplier for the glyph rasterization size. Values > 1 produce sharper output when the
-; render target is upscaled at the cost of a larger texture atlas. Default: 1
+; render target is upscaled at the cost of a larger texture atlas. Default: 5. Set to 1 for no upscaling.
 FontResolutionFactor=5
 ; Width of each FontStashSharp atlas page in pixels. Default: 1024
 TextureWidth=1024

@@ -717,8 +717,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(0); // LoadedGameId
             sb.Append(";");
             sb.Append(ClientConfiguration.Instance.DefaultSkillLevelIndex); // we don't know the original skill level
-            sb.Append(";"); // Map SHA1
-            sb.Append(";"); // Game option values
+            sb.Append(";");
+            sb.Append(savedMapSHA1);
+            sb.Append(";");
+            sb.Append(savedBroadcastOptionValues);
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

@@ -173,6 +173,8 @@ namespace DTAClient.DXGUI.Multiplayer
             );
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+            AddChild(scrollPanel);
+
             scrollPanel.GetContentPanel().AddChild(lblTitle);
             scrollPanel.GetContentPanel().AddChild(chkBoxFriendsOnly);
             scrollPanel.GetContentPanel().AddChild(chkBoxHideLockedGames);
@@ -185,7 +187,6 @@ namespace DTAClient.DXGUI.Multiplayer
             bottomPanel.AddChild(btnSave);
             bottomPanel.AddChild(btnCancel);
 
-            AddChild(scrollPanel);
             AddChild(bottomPanel);
         }
 
