@@ -22,7 +22,6 @@ using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using ClientGUI.Settings;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 using System.Threading.Tasks;
@@ -259,9 +258,12 @@ namespace DTAClient.DXGUI
 
         private IServiceProvider BuildServiceProvider(WindowManager windowManager)
         {
-            // Create host - this allows for things like DependencyInjection
-            IHost host = Host.CreateDefaultBuilder()
-                .ConfigureServices((_, services) =>
+            // Dependency-injection container. This previously built a full .NET Generic Host
+            // (Host.CreateDefaultBuilder().Build()), but the client only ever used it as a DI
+            // container, and that Build() hangs on macOS: the host's configuration provider sets
+            // up a FileSystemWatcher (reloadOnChange), whose FSEvents-backed setup stalls there.
+            // A plain ServiceCollection provides the same DI with none of that machinery.
+            var services = new ServiceCollection();
                     {
                         // services (or service-like)
                         services
@@ -336,10 +338,8 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<FileSettingCheckBox>()
                             .AddTransientXnaControl<FileSettingDropDown>();
                     }
-                )
-                .Build();
 
-            return host.Services.GetService<IServiceProvider>();
+            return services.BuildServiceProvider();
         }
 
         private void InitializeUISettings()

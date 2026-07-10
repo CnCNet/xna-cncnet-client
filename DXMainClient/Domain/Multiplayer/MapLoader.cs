@@ -114,7 +114,12 @@ namespace DTAClient.Domain.Multiplayer
 
         public void Initialize()
         {
-            MapLoadingComplete += (sender, args) => StartMapFileWatcher();
+            // .NET's FileSystemWatcher (FSEvents-backed) stalls during setup on macOS.
+            // Since MapLoadingComplete is invoked synchronously, that would block the map
+            // loading task from ever completing and hang the client on the loading screen.
+            // Skip the live map-file watcher on macOS; maps still load, just no hot-reload.
+            if (!OperatingSystem.IsMacOS())
+                MapLoadingComplete += (sender, args) => StartMapFileWatcher();
         }
 
         /// <summary>
