@@ -3,7 +3,7 @@
 > [!WARNING]
 > A linked feature issue is required. Pull requests that do not link an existing feature issue—or link an issue that has not been approved by the maintainers—may be closed.
 
-### Related Issue (required)
+### Related Issue
 
 Implements #<issue-number>
 

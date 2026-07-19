@@ -3,7 +3,7 @@
 > [!WARNING]
 > A linked bug issue is required. Pull requests that do not link an existing bug issue may be closed.
 
-### Related Issue (required)
+### Related Issue
 
 Fixes #<issue-number>
 
