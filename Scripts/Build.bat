@@ -1,13 +1,13 @@
 @echo off
 REM Author: frg2089
 
-setlocal enabledelayedexpansion
+setlocal
 
 REM Check for pwsh.
 for %%e in (pwsh) do (
   for /f "delims=" %%i in ('where %%e 2^>nul') do (
     set "ps_path=%%i"
-    goto :found
+    goto found
   )
 )
 
@@ -22,5 +22,5 @@ REM Pass the value outside of setlocal scope.
 endlocal & set "ps_path=%ps_path%"
 
 REM Run the same-name .ps1 script in this directory and forward all arguments.
-"%ps_path%" -ExecutionPolicy Bypass -Command "& '%~dp0%~n0.ps1' %*"
+"%ps_path%" -ExecutionPolicy Bypass -File "%~dp0%~n0.ps1" %*
 pause
