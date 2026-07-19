@@ -1,7 +1,7 @@
 ## Feature Pull Request
 
 > [!WARNING]
-> A linked feature issue is required. Pull requests that do not link an existing feature issue may be closed.
+> A linked feature issue is required. Pull requests that do not link an existing feature issue—or link an issue that has not been approved by the maintainers—may be closed.
 
 ### Related Issue (required)
 
@@ -10,10 +10,6 @@ Implements #<issue-number>
 ### What Changed
 
 <!-- Describe the feature and scope. -->
-
-### Why This Change
-
-<!-- Explain the motivation and user impact. -->
 
 ### Breaking Changes
 
@@ -35,5 +31,5 @@ If documentation was updated, list the updated files/pages:
 ### Checklist
 
 - [ ] I linked the corresponding feature issue above
-- [ ] This pull request is scoped to one feature
-- [ ] I verified the implementation and its impact
+- [ ] This pull request is scoped to one feature only
+- [ ] I verified the implementation by running the client
