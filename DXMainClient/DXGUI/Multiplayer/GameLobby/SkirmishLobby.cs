@@ -121,7 +121,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     GameModeMap.ToString());
             }
 
-            if (totalPlayerCount < GameModeMap.MinPlayers)
+            if (GameModeMap.EnforceMinPlayers && totalPlayerCount < GameModeMap.MinPlayers)
             {
                 return string.Format("{0} cannot be played with less than {1} players.".L10N("Client:Main:GameModeInsufficientPlayers"),
                     GameModeMap.ToString(), GameModeMap.MinPlayers);

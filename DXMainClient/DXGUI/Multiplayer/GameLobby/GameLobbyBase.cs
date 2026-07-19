@@ -11,6 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Buffers.Binary;
 using System.Linq;
 using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
@@ -101,6 +102,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             result.AddRange(DropDowns.Where(dd => dd.BroadcastToLobby));
 
             return result;
+        }
+
+        protected string GetPackedGameOptionValuesString()
+        {
+            var values = new List<int>();
+
+            var broadcastCheckBoxes = CheckBoxes.Where(cb => cb.BroadcastToLobby).ToList();
+            if (broadcastCheckBoxes.Count > 0)
+            {
+                bool[] checkboxValues = broadcastCheckBoxes.Select(cb => cb.Checked).ToArray();
+
+                List<byte> byteList = Conversions.BoolArrayIntoBytes(checkboxValues).ToList();
+                while (byteList.Count % 4 != 0)
+                    byteList.Add(0);
+                byte[] byteArray = byteList.ToArray();
+
+                for (int i = 0; i < byteArray.Length / 4; i++)
+                    values.Add(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
+            }
+
+            var broadcastDropDowns = DropDowns.Where(dd => dd.BroadcastToLobby).ToList();
+            if (broadcastDropDowns.Count > 0)
+                values.AddRange(broadcastDropDowns.Select(dd => dd.SelectedIndex));
+
+            return values.Count > 0 ? string.Join(",", values) : string.Empty;
         }
 
         protected DiscordHandler discordHandler;
@@ -1777,6 +1803,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         startingWaypoint);
                 }
             }
+
+            spawnIni.SetStringValue("Settings", "MapSHA1", Map.SHA1);
+            string packedGameOptionValues = GetPackedGameOptionValuesString();
+            spawnIni.SetStringValue("Settings", "BroadcastedGameOptionValues", packedGameOptionValues);
 
             spawnIni.WriteIniFile();
 

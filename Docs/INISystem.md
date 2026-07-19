@@ -864,12 +864,11 @@ The following properties are shared between maps (in `MPMaps.ini` map sections) 
 ```ini
 ; Map section keys:
 [MAP_NAME]
-MinPlayer=                            ; integer,  minimum player count.
-ClientMaxPlayer=                      ; integer,  maximum player count (client-side).
-MaxPlayer=                            ; integer,  maximum player count (game-side).
-EnforceMaxPlayers=                    ; boolean,  whether MaxPlayer is enforced.
-AllowedStartingLocations=             ; comma-separated integers,
-                                      ;           restricts which starting locations can be used.
+ClientMinPlayer=                      ; integer,  minimum player count (client-side). The following alternative key names are also supported: `MinPlayers`, `MinPlayer`.
+ClientMaxPlayer=                      ; integer,  maximum player count (client-side). The following alternative key names are also supported: `MaxPlayers`, `MaxPlayer`.
+EnforceMinPlayers=                    ; boolean,  whether minimum player count is enforced.
+EnforceMaxPlayers=                    ; boolean,  whether maximum player count is enforced.
+AllowedStartingLocations=             ; comma-separated integers, restricts which starting locations can be used. Starts from 0. If not set, all starting locations are allowed.
 IsCoopMission=                        ; boolean,  marks the map as a co-op mission.
 ClientMultiplayerOnly=                ; boolean,  whether the map cannot be played in Skirmish.
 HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
@@ -877,12 +876,13 @@ ForceRandomStartLocations=            ; boolean,  force random starting position
 ForceNoTeams=                         ; boolean,  force no team assignments.
 CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 
-; Game mode section keys (same properties, slightly different names):
+; Game mode section keys:
 [GAME_MODE]
-MinPlayers=                           ; integer,  minimum player count.
-MaxPlayers=                           ; integer,  maximum player count.
-EnforceMaxPlayers=                    ; boolean,  whether MaxPlayers is enforced.
-AllowedStartingLocations=             ; comma-separated integers.
+MinPlayersOverride=                   ; integer,  minimum player count. Has higher priority than Map.ClientMinPlayer.
+MaxPlayersOverride=                   ; integer,  maximum player count. Has higher priority than Map.ClientMaxPlayer.
+EnforceMinPlayers=                    ; boolean,  whether minimum player count is enforced.
+EnforceMaxPlayers=                    ; boolean,  whether maximum player count is enforced.
+AllowedStartingLocations=             ; comma-separated integers, restricts which starting locations can be used. Starts from 0. If not set, all starting locations are allowed.
 IsCoopMission=                        ; boolean,  marks the mode as co-op.
 MultiplayerOnly=                      ; boolean,  whether maps in this mode cannot be played in Skirmish.
 HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
@@ -892,8 +892,8 @@ CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 ```
 
 Priority resolution for player counts:
-- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
-- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.MinPlayer` > `GameMode.MinPlayers`
+- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.ClientMaxPlayer` > `Map.MaxPlayer`
+- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.ClientMinPlayer` > `Map.MinPlayer`
 
 ### Map Extra INI
 
