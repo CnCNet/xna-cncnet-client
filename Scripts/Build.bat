@@ -21,6 +21,8 @@ echo Found PowerShell at: %ps_path%
 REM Pass the value outside of setlocal scope.
 endlocal & set "ps_path=%ps_path%"
 
-REM Run the same-name .ps1 script in this directory and forward all arguments.
-"%ps_path%" -ExecutionPolicy Bypass -File "%~dp0%~n0.ps1" %*
+REM Run build.ps1 in this directory and forward all arguments.
+"%ps_path%" -ExecutionPolicy Bypass -File "%~dp0build.ps1" %*
+set "exit_code=%errorlevel%"
 pause
+exit /b %exit_code%
