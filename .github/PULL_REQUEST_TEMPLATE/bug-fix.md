@@ -11,13 +11,18 @@ Fixes #<issue-number>
 
 <!-- Describe the bug fix and scope. -->
 
-### How It Was Tested
+### Test Result without Your PR Applied
 
-<!-- Describe testing performed to verify the fix. -->
+<!-- Describe the result that demonstrates the bug. -->
+
+### Test Result with Your PR Applied
+
+<!-- Describe the result that eliminates the bug. -->
 
 ### Breaking Changes
 
 - [ ] This pull request introduces a breaking change
+- [ ] This pull request does not introduce a breaking change
 
 If checked, describe the breaking change and migration impact:
 
@@ -28,12 +33,8 @@ If checked, describe the breaking change and migration impact:
 - [ ] Documentation update is required and has been included
 - [ ] Documentation update is not required
 
-If documentation was updated, list the updated files/pages:
-
-<!-- Documentation updates -->
-
 ### Checklist
 
 - [ ] I linked the corresponding bug issue above
-- [ ] This pull request is scoped to one bug fix
-- [ ] I verified the fix and checked for regressions
+- [ ] This pull request is scoped to one bug fix only
+- [ ] I verified the fix by running the client with and without applying my PR

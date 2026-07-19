@@ -14,6 +14,7 @@ Implements #<issue-number>
 ### Breaking Changes
 
 - [ ] This pull request introduces a breaking change
+- [ ] This pull request does not introduce a breaking change
 
 If checked, describe the breaking change and migration impact:
 
@@ -23,10 +24,6 @@ If checked, describe the breaking change and migration impact:
 
 - [ ] Documentation update is required and has been included
 - [ ] Documentation update is not required
-
-If documentation was updated, list the updated files/pages:
-
-<!-- Documentation updates -->
 
 ### Checklist
 
