@@ -16,7 +16,7 @@ echo Error: Unable to find command pwsh. Please make sure PowerShell 7 is instal
 exit /b 1
 
 :found
-echo Found PowerShell at: %ps_path%
+echo Found PowerShell at: "%ps_path%"
 
 REM Pass the value outside of setlocal scope.
 endlocal & set "ps_path=%ps_path%"
