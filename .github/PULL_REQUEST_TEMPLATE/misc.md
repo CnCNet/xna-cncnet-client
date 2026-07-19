@@ -18,8 +18,8 @@ If checked, describe the breaking change and migration impact:
 
 ### Documentation
 
-- [ ] Documentation update is required and has been included
-- [ ] Documentation update is not required
+- [ ] Documentation update is needed and has been included
+- [ ] Documentation update is not needed
 
 ### Checklist
 
