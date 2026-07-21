@@ -333,12 +333,15 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
+            if (string.IsNullOrEmpty(message))
+                return;
+
             Color foreColor;
 
             // Handle ACTION
-            if (message.Contains("ACTION"))
+            if (message.StartsWith("ACTION"))
             {
-                message = message.Remove(0, 7);
+                message = message.Length >= 7 ? message.Remove(0, 7) : string.Empty;
                 message = "====> " + senderName + " " + message;
                 senderName = String.Empty;
 
