@@ -396,7 +396,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                Logger.Log("Warning: failed to process chat message from " + senderName + ": " + ex.ToString());
+                Logger.Log("Warning: failed to process message from " + senderName + ": " + ex.ToString());
 
 #if DEBUG
                 Debugger.Break();
