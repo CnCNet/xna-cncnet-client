@@ -342,10 +342,10 @@ namespace DTAClient.Online
                 Color foreColor;
 
                 // Handle ACTION
-                if (message.StartsWith("ACTION"))
+                const string actionPrefix = "ACTION ";
+                if (message.StartsWith(actionPrefix))
                 {
-                    const int actionPrefixLength = 7; // "ACTION " (verb + space)
-                    message = message.Length >= actionPrefixLength ? message.Substring(actionPrefixLength) : string.Empty;
+                    message = message.Substring(actionPrefix.Length);
                     message = "====> " + senderName + " " + message;
                     senderName = String.Empty;
 
