@@ -7,6 +7,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -333,29 +334,15 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            Color foreColor;
+            if (string.IsNullOrEmpty(message))
+                return;
 
-            // Handle ACTION
-            if (message.Contains("ACTION"))
+            try
             {
-                message = message.Remove(0, 7);
-                message = "====> " + senderName + " " + message;
-                senderName = String.Empty;
+                Color foreColor;
 
-                // Replace Funky's game identifiers with real game names
-                for (int i = 0; i < gameCollection.GameList.Count; i++)
-                {
-                    // No localization needed. This message is always in English.
-                    // Only the short game identifier is replaced with the full game name;
-                    // the surrounding "new ... game" text is left unmodified.
-                    message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
-                        "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
-                }
+                // Previously there was an "ACTION" handling, to be compatible with the Funny's client, but we don't officially support Funky's client anymore.
 
-                foreColor = Color.White;
-            }
-            else
-            {
                 // Color parsing
                 if (message.Contains(Convert.ToString((char)03)))
                 {
@@ -377,15 +364,23 @@ namespace DTAClient.Online
                 }
                 else
                     foreColor = cDefaultChatColor;
+
+                if (message.Length > 1 && message[message.Length - 1] == '\u001f')
+                    message = message.Remove(message.Length - 1);
+
+                ChannelUser user = channel.Users.Find(senderName);
+                bool senderIsAdmin = user != null && user.IsAdmin;
+
+                channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
             }
+            catch (Exception ex)
+            {
+                Logger.Log("Warning: failed to process IRC message (receiver=" + receiver + ", sender=" + senderName + ", ident=" + ident + "): " + ex);
 
-            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
-                message = message.Remove(message.Length - 1);
-
-            ChannelUser user = channel.Users.Find(senderName);
-            bool senderIsAdmin = user != null && user.IsAdmin;
-
-            channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+#if DEBUG
+                Debugger.Break();
+#endif
+            }
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)

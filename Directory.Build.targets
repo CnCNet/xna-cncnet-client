@@ -99,7 +99,7 @@
     <Delete Files="@(_CommonFilesToDelete -> '$(PublishDir)%(Identity)')" Condition="'@(_CommonFilesToDelete)' != ''" />
   </Target>
 
-  <!-- Note: the folder structure should be consistent with scripts\build.ps1 file -->
+  <!-- Note: the folder structure should be consistent with Scripts\Build.ps1 file -->
   <Target Name="MoveClientExes" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving client executables" />
     <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')" />

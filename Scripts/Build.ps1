@@ -23,10 +23,10 @@
 .PARAMETER NoMove
   Do not make folder structure.
 .EXAMPLE
-  build.ps1
+  Build.ps1
   Build.
 .EXAMPLE
-  build.ps1 -IsDebug
+  Build.ps1 -IsDebug
   Build on debug mode.
 #>
 param(
