@@ -7,6 +7,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -333,59 +334,75 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            Color foreColor;
+            if (string.IsNullOrEmpty(message))
+                return;
 
-            // Handle ACTION
-            if (message.Contains("ACTION"))
+            try
             {
-                message = message.Remove(0, 7);
-                message = "====> " + senderName + " " + message;
-                senderName = String.Empty;
+                Color foreColor;
 
-                // Replace Funky's game identifiers with real game names
-                for (int i = 0; i < gameCollection.GameList.Count; i++)
+                // Handle ACTION
+                // TODO: the initial source code is `message.Contains("ACTION")`. Don't know if the keyword ACTION can only appear at the beginning of the message or not. Assume prefix only for now.
+                const string actionPrefix = "ACTION ";
+                if (message.StartsWith(actionPrefix))
                 {
-                    // No localization needed. This message is always in English.
-                    // Only the short game identifier is replaced with the full game name;
-                    // the surrounding "new ... game" text is left unmodified.
-                    message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
-                        "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
-                }
+                    message = message.Substring(actionPrefix.Length);
+                    message = "====> " + senderName + " " + message;
+                    senderName = String.Empty;
 
-                foreColor = Color.White;
-            }
-            else
-            {
-                // Color parsing
-                if (message.Contains(Convert.ToString((char)03)))
-                {
-                    if (message.Length < 3)
+                    // Replace Funky's game identifiers with real game names
+                    for (int i = 0; i < gameCollection.GameList.Count; i++)
                     {
-                        foreColor = cDefaultChatColor;
+                        // No localization needed. This message is always in English.
+                        // Only the short game identifier is replaced with the full game name;
+                        // the surrounding "new ... game" text is left unmodified.
+                        message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
+                            "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
                     }
-                    else
-                    {
-                        string colorString = message.Substring(1, 2);
-                        message = message.Remove(0, 3);
-                        int colorIndex = Conversions.IntFromString(colorString, -1);
-                        // Try to parse message color info; if fails, use default color
-                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
-                            foreColor = ircChatColors[colorIndex].XnaColor;
-                        else
-                            foreColor = cDefaultChatColor;
-                    }
+
+                    foreColor = Color.White;
                 }
                 else
-                    foreColor = cDefaultChatColor;
+                {
+                    // Color parsing
+                    if (message.Contains(Convert.ToString((char)03)))
+                    {
+                        if (message.Length < 3)
+                        {
+                            foreColor = cDefaultChatColor;
+                        }
+                        else
+                        {
+                            string colorString = message.Substring(1, 2);
+                            message = message.Remove(0, 3);
+                            int colorIndex = Conversions.IntFromString(colorString, -1);
+                            // Try to parse message color info; if fails, use default color
+                            if (colorIndex < ircChatColors.Length && colorIndex > -1)
+                                foreColor = ircChatColors[colorIndex].XnaColor;
+                            else
+                                foreColor = cDefaultChatColor;
+                        }
+                    }
+                    else
+                        foreColor = cDefaultChatColor;
+                }
+
+                if (message.Length > 1 && message[message.Length - 1] == '\u001f')
+                    message = message.Remove(message.Length - 1);
+
+                ChannelUser user = channel.Users.Find(senderName);
+                bool senderIsAdmin = user != null && user.IsAdmin;
+
+                channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
             }
+            catch (Exception ex)
+            {
+                Logger.Log("Warning: failed to process IRC message (receiver=" + receiver + ", sender=" + senderName + ", ident=" + ident + "): " + ex);
 
-            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
-                message = message.Remove(message.Length - 1);
-
-            ChannelUser user = channel.Users.Find(senderName);
-            bool senderIsAdmin = user != null && user.IsAdmin;
-
-            channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+#if DEBUG
+                Debugger.Break();
+#endif
+            }
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)
