@@ -342,6 +342,7 @@ namespace DTAClient.Online
                 Color foreColor;
 
                 // Handle ACTION
+                // TODO: the initial source code is `message.Contains("ACTION")`. Don't know if the keyword ACTION can only appear at the beginning of the message or not. Assume prefix only for now.
                 const string actionPrefix = "ACTION ";
                 if (message.StartsWith(actionPrefix))
                 {
