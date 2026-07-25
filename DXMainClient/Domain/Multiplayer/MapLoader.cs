@@ -28,7 +28,7 @@ namespace DTAClient.Domain.Multiplayer
 
     public class MapLoader : IDisposable
     {
-        private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
+        internal const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
         private const int CurrentCustomMapCacheVersion = 5;
 

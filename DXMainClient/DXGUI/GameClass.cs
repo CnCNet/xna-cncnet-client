@@ -275,6 +275,7 @@ namespace DTAClient.DXGUI
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
+                            .AddSingleton<DroppedMapHandler>()
                             .AddSingleton<Random>(GetRandom())
                             .AddSingleton<DirectDrawWrapperManager>();
 

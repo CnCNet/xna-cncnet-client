@@ -111,6 +111,9 @@ namespace DTAClient.DXGUI.Generic
             ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
+            // Enable drag-and-drop import of map files now that the map cache is fully loaded.
+            serviceProvider.GetService<DroppedMapHandler>().Initialize();
+
             MainMenu mainMenu = serviceProvider.GetService<MainMenu>();
 
             WindowManager.AddAndInitializeControl(mainMenu);
