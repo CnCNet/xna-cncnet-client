@@ -753,7 +753,7 @@ A `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` defines keys th
 
 The `KeyboardCommands.ini` file defines in-game hotkey commands that the client writes to the game's `Keyboard.ini` (or equivalent). Each section represents a game command with its default key binding.
 
-The file is located in the `Resources` directory (e.g., `DXMainClient/Resources/DTA/KeyboardCommands.ini`) and is read by the Hotkey Configuration window.
+The file is located in the `Resources` directory and is read by the Hotkey Configuration window.
 
 In `KeyboardCommands.ini`:
 ```ini
@@ -773,7 +773,7 @@ DisableModifierKeys=false ; boolean, whether to prevent modifier keys (Ctrl, Shi
 - **`Category`** — category used to group commands in the hotkey configuration dropdown. Supports localization via `INI:HotkeyCategories:{Category}`.
 - **`Description`** — description text shown when the command is selected. Supports localization via `INI:Hotkeys:{CommandName}:Description`.
 - **`DefaultKey`** — the default key binding in TS-encoded integer format (`(modifier << 8) + key`). Modifier flags: 0 = None, 1 = Shift, 2 = Ctrl, 4 = Alt. Set to `0` if the command has no default hotkey.
-- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for RA2/YR where certain commands do not support modifier-combined hotkeys (e.g., Waypoint Mode with Ctrl+V can conflict with the force-attack cursor).
+- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for certain commands do not support modifier-combined hotkeys.
 
 ### Example
 
