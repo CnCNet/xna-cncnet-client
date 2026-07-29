@@ -466,6 +466,13 @@ namespace ClientGUI
 
             var currentModifiers = GetCurrentModifiers();
 
+            if (lbHotkeys.SelectedIndex >= 0 && lbHotkeys.SelectedIndex < lbHotkeys.ItemCount)
+            {
+                var selectedCommand = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+                if (selectedCommand.DisableModifierKeys)
+                    currentModifiers = KeyModifiers.None;
+            }
+
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
 
@@ -499,17 +506,29 @@ namespace ClientGUI
         {
             base.Update(gameTime);
 
-            var oldModifiers = pendingHotkey.Modifier;
-            var currentModifiers = GetCurrentModifiers();
-
-            if ((pendingHotkey.Key == Keys.None && currentModifiers != oldModifiers)
-                ||
-                (pendingHotkey.Key != Keys.None &&
-                lastFrameModifiers == KeyModifiers.None &&
-                currentModifiers != lastFrameModifiers))
+            bool disableModifiers = false;
+            if (lbHotkeys.SelectedIndex >= 0 && lbHotkeys.SelectedIndex < lbHotkeys.ItemCount)
             {
-                pendingHotkey = new Hotkey(Keys.None, currentModifiers);
-                lblCurrentlyAssignedTo.Text = string.Empty;
+                var selectedCommand = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+                disableModifiers = selectedCommand.DisableModifierKeys;
+            }
+
+            if (!disableModifiers)
+            {
+                var oldModifiers = pendingHotkey.Modifier;
+                var currentModifiers = GetCurrentModifiers();
+
+                if ((pendingHotkey.Key == Keys.None && currentModifiers != oldModifiers)
+                    ||
+                    (pendingHotkey.Key != Keys.None &&
+                    lastFrameModifiers == KeyModifiers.None &&
+                    currentModifiers != lastFrameModifiers))
+                {
+                    pendingHotkey = new Hotkey(Keys.None, currentModifiers);
+                    lblCurrentlyAssignedTo.Text = string.Empty;
+                }
+
+                lastFrameModifiers = currentModifiers;
             }
 
             string displayString = pendingHotkey.ToString();
@@ -517,8 +536,6 @@ namespace ClientGUI
                 lblNewHotkeyValue.Text = pendingHotkey.ToString();
             else
                 lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
-
-            lastFrameModifiers = currentModifiers;
         }
 
         /// <summary>
@@ -635,6 +652,8 @@ namespace ClientGUI
                 int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
                 DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
 
+                DisableModifierKeys = iniSection.GetBooleanValue("DisableModifierKeys", false);
+
                 // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
                 if (DefaultHotkey == Hotkey.None)
                     DefaultHotkey = null;
@@ -646,6 +665,7 @@ namespace ClientGUI
             public string ININame { get; private set; }
             public Hotkey? Hotkey { get; set; }
             public Hotkey? DefaultHotkey { get; private set; }
+            public bool DisableModifierKeys { get; private set; }
         }
 
         [Flags]
