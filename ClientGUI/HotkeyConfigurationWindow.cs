@@ -431,6 +431,10 @@ namespace ClientGUI
                 return;
             }
 
+            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            if (command.DisableModifierKeys && pendingHotkey.Modifier != KeyModifiers.None)
+                pendingHotkey = new Hotkey(pendingHotkey.Key, KeyModifiers.None);
+
             // If the hotkey is already assigned to other command, unbind it
             if (pendingHotkey != Hotkey.None)
             {
@@ -441,9 +445,6 @@ namespace ClientGUI
                 }
             }
 
-            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
-            if (command.DisableModifierKeys && pendingHotkey.Modifier != KeyModifiers.None)
-                pendingHotkey = new Hotkey(pendingHotkey.Key, KeyModifiers.None);
             command.Hotkey = pendingHotkey;
             RefreshHotkeyList();
             pendingHotkey = Hotkey.None;
