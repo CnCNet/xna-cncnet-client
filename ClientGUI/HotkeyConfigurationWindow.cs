@@ -504,29 +504,17 @@ namespace ClientGUI
         {
             base.Update(gameTime);
 
-            bool disableModifiers = false;
-            if (lbHotkeys.SelectedIndex >= 0 && lbHotkeys.SelectedIndex < lbHotkeys.ItemCount)
+            var oldModifiers = pendingHotkey.Modifier;
+            var currentModifiers = GetCurrentModifiers();
+
+            if ((pendingHotkey.Key == Keys.None && currentModifiers != oldModifiers)
+                ||
+                (pendingHotkey.Key != Keys.None &&
+                lastFrameModifiers == KeyModifiers.None &&
+                currentModifiers != lastFrameModifiers))
             {
-                var selectedCommand = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
-                disableModifiers = selectedCommand.DisableModifierKeys;
-            }
-
-            if (!disableModifiers)
-            {
-                var oldModifiers = pendingHotkey.Modifier;
-                var currentModifiers = GetCurrentModifiers();
-
-                if ((pendingHotkey.Key == Keys.None && currentModifiers != oldModifiers)
-                    ||
-                    (pendingHotkey.Key != Keys.None &&
-                    lastFrameModifiers == KeyModifiers.None &&
-                    currentModifiers != lastFrameModifiers))
-                {
-                    pendingHotkey = new Hotkey(Keys.None, currentModifiers);
-                    lblCurrentlyAssignedTo.Text = string.Empty;
-                }
-
-                lastFrameModifiers = currentModifiers;
+                pendingHotkey = new Hotkey(Keys.None, currentModifiers);
+                lblCurrentlyAssignedTo.Text = string.Empty;
             }
 
             string displayString = pendingHotkey.ToString();
@@ -534,6 +522,8 @@ namespace ClientGUI
                 lblNewHotkeyValue.Text = pendingHotkey.ToString();
             else
                 lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
+
+            lastFrameModifiers = currentModifiers;
         }
 
         /// <summary>
