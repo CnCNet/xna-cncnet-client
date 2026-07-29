@@ -336,6 +336,9 @@ namespace ClientGUI
                 if (tsHotkey.HasValue)
                 {
                     Hotkey hotkey = new(tsHotkey.Value);
+                    if (command.DisableModifierKeys && hotkey.Modifier != KeyModifiers.None)
+                        hotkey = new Hotkey(hotkey.Key, KeyModifiers.None);
+
                     bool isDuplicate = false;
                     if (hotkey != Hotkey.None)
                         isDuplicate = !assignedHotkeys.Add(hotkey);
@@ -439,6 +442,8 @@ namespace ClientGUI
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            if (command.DisableModifierKeys && pendingHotkey.Modifier != KeyModifiers.None)
+                pendingHotkey = new Hotkey(pendingHotkey.Key, KeyModifiers.None);
             command.Hotkey = pendingHotkey;
             RefreshHotkeyList();
             pendingHotkey = Hotkey.None;
@@ -465,13 +470,6 @@ namespace ClientGUI
             }
 
             var currentModifiers = GetCurrentModifiers();
-
-            if (lbHotkeys.SelectedIndex >= 0 && lbHotkeys.SelectedIndex < lbHotkeys.ItemCount)
-            {
-                var selectedCommand = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
-                if (selectedCommand.DisableModifierKeys)
-                    currentModifiers = KeyModifiers.None;
-            }
 
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
@@ -649,10 +647,13 @@ namespace ClientGUI
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
 
+                DisableModifierKeys = iniSection.GetBooleanValue("DisableModifierKeys", false);
+
                 int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
                 DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
 
-                DisableModifierKeys = iniSection.GetBooleanValue("DisableModifierKeys", false);
+                if (DefaultHotkey != null && DisableModifierKeys && DefaultHotkey.Modifier != KeyModifiers.None)
+                    DefaultHotkey = new Hotkey(DefaultHotkey.Key, KeyModifiers.None);
 
                 // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
                 if (DefaultHotkey == Hotkey.None)
