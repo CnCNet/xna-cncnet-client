@@ -1,15 +1,19 @@
-﻿using ClientCore;
-using DTAClient.Online;
-using Microsoft.Xna.Framework;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
+
+using ClientCore;
+
+using DTAClient.Online;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -30,6 +34,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
         private const int SUPPORTED_TUNNEL_VERSION = 2;
+        private static readonly TimeSpan tunnelRefreshInterval = TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL);
 
         private readonly object _refreshLock = new object();
         private bool _refreshInProgress = false;
@@ -58,7 +63,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private WindowManager wm;
         private CnCNetManager connectionManager;
 
-        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
+        private readonly Stopwatch refreshTimer = Stopwatch.StartNew();
+        private TimeSpan? lastTunnelRefreshTimestamp;
         private uint skipCount = 0;
 
         private void DoTunnelPinged(int index)
@@ -193,8 +199,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private byte[] GetRawTunnelDataOnline()
         {
-            WebClient client = new ExtendedWebClient();
-            return client.DownloadData(ClientConfiguration.Instance.CnCNetTunnelListURL);
+            return new TimedHttpClient(10000).GetBytes(ClientConfiguration.Instance.CnCNetTunnelListURL);
         }
 
         private byte[] GetRawTunnelDataOffline()
@@ -319,7 +324,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public override void Update(GameTime gameTime)
         {
-            if (timeSinceTunnelRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL))
+            TimeSpan currentTimestamp = refreshTimer.Elapsed;
+            TimeSpan elapsedSinceLastRefresh = lastTunnelRefreshTimestamp.HasValue
+                ? currentTimestamp - lastTunnelRefreshTimestamp.Value
+                : TimeSpan.MaxValue;
+
+            if (elapsedSinceLastRefresh > tunnelRefreshInterval)
             {
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
@@ -328,14 +338,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else if (CurrentTunnel != null)
                 {
-                    PingCurrentTunnelAsync(true);
+                    _ = PingCurrentTunnelAsync(true);
                 }
 
-                timeSinceTunnelRefresh = TimeSpan.Zero;
+                lastTunnelRefreshTimestamp = currentTimestamp;
                 skipCount++;
             }
-            else
-                timeSinceTunnelRefresh += gameTime.ElapsedGameTime;
 
             base.Update(gameTime);
         }

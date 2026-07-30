@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
 
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,14 +25,16 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public GameInformationPanel(WindowManager windowManager, MapLoader mapLoader)
+        public GameInformationPanel(WindowManager windowManager, MapLoader mapLoader, GameLobbyBase gameLobby = null)
             : base(windowManager)
         {
             this.mapLoader = mapLoader;
+            this.gameLobby = gameLobby;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
         private MapLoader mapLoader;
+        private GameLobbyBase gameLobby;
 
         private XNALabel lblGameInformation;
         private XNALabel lblGameMode;
@@ -40,12 +46,22 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNALabel lblSkillLevel;
 
         private XNALabel[] lblPlayerNames;
+        private XNAPanel pnlIconLegend;
+        private XNAPanel pnlGameOptions;
 
         private GenericHostedGame game = null;
 
-        private bool disposeTextures = false;
-        private Texture2D mapTexture = null;
+        /// <summary>
+        /// Indicates whether `mapPreviewTexture` needs to be disposed before loading the next texture. This is true if the current `mapPreviewTexture` was created from a map preview image and not assigned from the shared `noMapPreviewTexture`.
+        /// </summary>
+        private bool mapPreviewTextureNeedsDispose = false;
+        private Texture2D mapPreviewTexture = null;
+
         private Texture2D noMapPreviewTexture = null;
+
+        private Texture2D txLockedGame;
+        private Texture2D txIncompatibleGame;
+        private Texture2D txPasswordedGame;
 
         private const int leftColumnPositionX = 10;
         private int rightColumnPositionX = 0;
@@ -57,6 +73,19 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int columnWidth = 235;
         private const int maxPreviewHeight = 150;
         private const int mapPreviewMargin = 15;
+
+        private const int playerNameRowHeight = 20;
+        private const int playerColumn2OffsetX = 115;
+
+        private const int legendTopSpacing = 15;
+        private const int legendIconHeight = 18;
+        private const int legendPadding = 5;
+        private const int legendIconPadding = 2;
+
+        private const int gameInfoLabelTopPadding = 6;
+
+        private const int mapPreviewHorizontalMargin = 10;
+        private const int mapPreviewVerticalMargin = 20;
 
         private string[] skillLevelOptions;
 
@@ -72,6 +101,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (AssetLoader.AssetExists("noMapPreview.png"))
                 noMapPreviewTexture = AssetLoader.LoadTexture("noMapPreview.png");
+
+            txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
+            txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
+            txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
 
             rightColumnPositionX = Width / 2 - columnMargin;
             mapPreviewPositionY = topStartingPositionY + (rowHeight * 2 + mapPreviewMargin); // 2 Labels down, incase map name spills to next line
@@ -106,11 +139,11 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
             {
                 XNALabel lblPlayerName1 = new XNALabel(WindowManager);
-                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + rowHeight + i * 20, 0, 0);
+                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + rowHeight + i * playerNameRowHeight, 0, 0);
                 lblPlayerName1.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 XNALabel lblPlayerName2 = new XNALabel(WindowManager);
-                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + 115, lblPlayerName1.Y, 0, 0);
+                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + playerColumn2OffsetX, lblPlayerName1.Y, 0, 0);
                 lblPlayerName2.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 AddChild(lblPlayerName1);
@@ -120,6 +153,15 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[(lblPlayerNames.Length / 2) + i] = lblPlayerName2;
             }
 
+            pnlIconLegend = new XNAPanel(WindowManager);
+            int legendY = lblPlayers.Y + rowHeight + (MAX_PLAYERS / 2 * playerNameRowHeight) + legendTopSpacing;
+            pnlIconLegend.ClientRectangle = new Rectangle(0, legendY, columnWidth, 0);
+            pnlIconLegend.DrawBorders = false;
+
+            pnlGameOptions = new XNAPanel(WindowManager);
+            pnlGameOptions.ClientRectangle = new Rectangle(0, legendY, columnWidth * 2, 0);
+            pnlGameOptions.DrawBorders = false;
+
             AddChild(lblGameMode);
             AddChild(lblMap);
             AddChild(lblGameVersion);
@@ -128,12 +170,14 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
             AddChild(lblSkillLevel);
+            AddChild(pnlGameOptions);
+            AddChild(pnlIconLegend);
 
             lblGameInformation.CenterOnParent();
-            lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, 6,
+            lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, gameInfoLabelTopPadding,
                 lblGameInformation.Width, lblGameInformation.Height);
 
-            skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+            skillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
             base.Initialize();
         }
@@ -148,11 +192,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!string.IsNullOrEmpty(game.MapHash) && mapLoader != null)
             {
-                var mapEntry = mapLoader.GameModeMaps
-                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase));
+                Map map = mapLoader.FindMapByHash(game.MapHash);
 
-                if (mapEntry != null)
-                    translatedMapName = mapEntry.Map.Name ?? mapEntry.Map.UntranslatedName;
+                if (map != null)
+                    translatedMapName = map.Name ?? map.UntranslatedName;
                 else if (!string.IsNullOrEmpty(game.Map))
                     translatedMapName = game.Map; // fallback to broadcasted name
             }
@@ -198,29 +241,255 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[i].Visible = false;
             }
 
-            string skillLevel = skillLevelOptions[game.SkillLevel];
-            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
+            int skillLevelIndex = game.SkillLevel;
+            string skillLevel = skillLevelOptions[skillLevelIndex];
+            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{skillLevelIndex}");
             lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
+            lblSkillLevel.Visible = true;
 
             lblGameInformation.Visible = true;
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                mapTexture = mapLoader.GameModeMaps
-                    .Find(m => m.Map.SHA1.Equals(game.MapHash, StringComparison.OrdinalIgnoreCase) &&
-                               m.Map.IsPreviewTextureCached())?.Map?.LoadPreviewTexture();
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
-                if (mapTexture == null && noMapPreviewTexture != null)
+                Map map = mapLoader.FindMapByHash(game.MapHash);
+                mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(map, syncLoadOnCacheMiss: false);
+                if (mapPreviewTexture != null)
                 {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should not be disposed.");
-                    mapTexture = noMapPreviewTexture;
-                    disposeTextures = false;
+                    mapPreviewTextureNeedsDispose = true;
                 }
                 else
                 {
-                    disposeTextures = true;
+                    // Try loading noMapPreviewTexture
+                    if (noMapPreviewTexture != null)
+                    {
+                        Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
+                        mapPreviewTexture = noMapPreviewTexture;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
+                    else
+                    {
+                        mapPreviewTexture = null;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
                 }
             }
+            else
+            {
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before. ClearInfo() should have done that. What's wrong here?");
+
+                if (mapPreviewTextureNeedsDispose &&
+                    mapPreviewTexture != null &&
+                    !mapPreviewTexture.IsDisposed)
+                {
+                    mapPreviewTexture.Dispose();
+                }
+
+                mapPreviewTexture = null;
+                mapPreviewTextureNeedsDispose = false;
+            }
+            SetGameOptionsInfo(game);
+            SetLegendInfo(game);
+        }
+
+        private void SetGameOptionsInfo(GenericHostedGame game)
+        {
+            foreach (XNAControl xnaControl in pnlGameOptions.Children.ToList())
+                pnlGameOptions.RemoveChild(xnaControl);
+
+            if (gameLobby == null || !(game is HostedCnCNetGame cncnetGame) ||
+                cncnetGame.BroadcastedGameOptionValues == null)
+            {
+                pnlGameOptions.Visible = false;
+                return;
+            }
+
+            var broadcastableSettings = gameLobby.GetBroadcastableSettings();
+            var optionIconsWithText = new List<(Texture2D icon, string text, int sortOrder)>();
+            var optionIconsOnly = new List<(Texture2D icon, int sortOrder)>();
+
+            for (int i = 0; i < broadcastableSettings.Count && i < cncnetGame.BroadcastedGameOptionValues.Length; i++)
+            {
+                var setting = broadcastableSettings[i];
+                int value = cncnetGame.BroadcastedGameOptionValues[i];
+
+                if (setting is GameLobbyCheckBox checkbox && checkbox.ShowInGameInformationPanel)
+                {
+                    bool isChecked = value != 0;
+                    string iconName = isChecked ? checkbox.EnabledIcon : checkbox.DisabledIcon;
+                    if (!string.IsNullOrEmpty(iconName))
+                    {
+                        Texture2D icon = AssetLoader.LoadTexture(iconName);
+                        if (icon != null)
+                        {
+                            if (checkbox.ShowInGameInformationPanelAsIconOnly)
+                            {
+                                // Show icon only
+                                optionIconsOnly.Add((icon, checkbox.SortOrder));
+                            }
+                            else
+                            {
+                                // Show with text
+                                string text = $"{checkbox.Text}: {(isChecked ? "On".L10N("Client:Main:On") : "Off".L10N("Client:Main:Off"))}";
+                                optionIconsWithText.Add((icon, text, checkbox.SortOrder));
+                            }
+                        }
+                    }
+                }
+                else if (setting is GameLobbyDropDown dropdown && dropdown.ShowInGameInformationPanel)
+                {
+                    if (value >= 0 && value < dropdown.Items.Count)
+                    {
+                        Texture2D icon = dropdown.Items[value].Texture;
+                        if (icon != null)
+                        {
+                            if (dropdown.ShowInGameInformationPanelAsIconOnly)
+                            {
+                                // Show icon only
+                                optionIconsOnly.Add((icon, dropdown.SortOrder));
+                            }
+                            else
+                            {
+                                // Show with text
+                                string text = $"{dropdown.OptionName}: {dropdown.Items[value].Text}";
+                                optionIconsWithText.Add((icon, text, dropdown.SortOrder));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (optionIconsWithText.Count == 0 && optionIconsOnly.Count == 0)
+            {
+                pnlGameOptions.Visible = false;
+                return;
+            }
+
+            int gameOptionsY = lblPlayers.Y + rowHeight + (MAX_PLAYERS / 2 * playerNameRowHeight) + legendTopSpacing;
+            pnlGameOptions.ClientRectangle = new Rectangle(0, gameOptionsY, columnWidth * 2, 0);
+
+            var divider = CreateDivider(0);
+            pnlGameOptions.AddChild(divider);
+
+            int currentY = divider.Bottom + legendPadding;
+
+            // First show icons in a row
+            if (optionIconsOnly.Count > 0)
+            {
+                var sortedIconsOnly = optionIconsOnly.OrderBy(x => x.sortOrder).ToList();
+                int iconX = leftColumnPositionX;
+                const int iconSpacing = 4;
+                int maxIconHeight = sortedIconsOnly.Max(x => x.icon.Height);
+
+                foreach (var (icon, _) in sortedIconsOnly)
+                {
+                    var iconPanel = new GameInformationIconOnlyPanel(WindowManager, icon);
+                    iconPanel.ClientRectangle = new Rectangle(iconX, currentY, icon.Width, icon.Height);
+                    pnlGameOptions.AddChild(iconPanel);
+                    iconX += icon.Width + iconSpacing;
+                }
+
+                currentY += maxIconHeight + legendPadding;
+            }
+
+            // Then show icons with text (two columns)
+            if (optionIconsWithText.Count > 0)
+            {
+                var sortedIconsWithText = optionIconsWithText.OrderBy(x => x.sortOrder).ToList();
+                int maxIconWidth = sortedIconsWithText.Max(option => option.icon.Width);
+
+                int itemIndex = 0;
+                int leftY = currentY;
+                int rightY = currentY;
+
+                foreach (var (icon, label, _) in sortedIconsWithText)
+                {
+                    bool isLeftColumn = (itemIndex % 2 == 0);
+                    int xPosition = isLeftColumn ? leftColumnPositionX : rightColumnPositionX;
+                    int yPosition = isLeftColumn ? leftY : rightY;
+
+                    var iconPanel = new GameInformationIconPanel(WindowManager, icon, label, maxIconWidth);
+                    iconPanel.ClientRectangle = new Rectangle(xPosition, yPosition, columnWidth, legendIconHeight);
+                    pnlGameOptions.AddChild(iconPanel);
+
+                    if (isLeftColumn)
+                        leftY += legendIconHeight + legendIconPadding;
+                    else
+                        rightY += legendIconHeight + legendIconPadding;
+
+                    itemIndex++;
+                }
+
+                currentY = Math.Max(leftY, rightY);
+            }
+
+            pnlGameOptions.Height = currentY + legendPadding;
+            pnlGameOptions.Visible = true;
+
+            pnlIconLegend.ClientRectangle = new Rectangle(pnlIconLegend.X, pnlGameOptions.Bottom, pnlIconLegend.Width, pnlIconLegend.Height);
+        }
+
+        private void SetLegendInfo(GenericHostedGame game)
+        {
+            ClearLegendIconPanel();
+
+            var icons = new List<(Texture2D, string)>();
+            if (game.Locked) icons.Add((txLockedGame, "Game is locked".L10N("Client:Main:LockedGame")));
+            if (game.Passworded) icons.Add((txPasswordedGame, "Game is passworded".L10N("Client:Main:PasswordedGame")));
+            if (game.Incompatible) icons.Add((txIncompatibleGame, "Incompatible client version".L10N("Client:Main:IncompatibleGame")));
+
+            if (icons.Count == 0)
+            {
+                pnlIconLegend.Visible = false;
+                UpdatePanelHeight();
+                return;
+            }
+
+            var divider = CreateDivider(0);
+            pnlIconLegend.AddChild(divider);
+
+            int currentY = divider.Bottom + legendPadding;
+
+            foreach (var (icon, label) in icons)
+            {
+                var iconPanel = new GameInformationIconPanel(WindowManager, icon, label);
+                iconPanel.ClientRectangle = new Rectangle(leftColumnPositionX, currentY, pnlIconLegend.Width, legendIconHeight);
+                pnlIconLegend.AddChild(iconPanel);
+                currentY += legendIconHeight;
+            }
+
+            pnlIconLegend.Height = currentY + legendPadding;
+            pnlIconLegend.Visible = true;
+
+            UpdatePanelHeight();
+        }
+
+        private void UpdatePanelHeight()
+        {
+            int bottomMostY = initialPanelHeight;
+
+            if (pnlGameOptions.Visible && pnlGameOptions.Bottom > bottomMostY)
+                bottomMostY = pnlGameOptions.Bottom;
+
+            if (pnlIconLegend.Visible && pnlIconLegend.Bottom > bottomMostY)
+                bottomMostY = pnlIconLegend.Bottom;
+
+            ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, bottomMostY);
+        }
+
+        private XNAPanel CreateDivider(int y, int height = 1)
+        {
+            var dividerPanel = new XNAPanel(WindowManager);
+            dividerPanel.DrawBorders = true;
+            dividerPanel.ClientRectangle = new Rectangle(0, y, ClientRectangle.Width, height);
+            return dividerPanel;
+        }
+
+        private void ClearLegendIconPanel()
+        {
+            foreach (XNAControl xnaControl in pnlIconLegend.Children.ToList())
+                pnlIconLegend.RemoveChild(xnaControl);
         }
 
         public void ClearInfo()
@@ -232,15 +501,17 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPing.Visible = false;
             lblPlayers.Visible = false;
             lblGameInformation.Visible = false;
+            lblSkillLevel.Visible = false;
 
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
 
-            if (mapTexture != null && disposeTextures)
+            if (mapPreviewTexture != null && mapPreviewTextureNeedsDispose)
             {
-                Debug.Assert(!mapTexture.IsDisposed, "mapTexture should not be disposed.");
-                mapTexture.Dispose();
-                mapTexture = null;
+                Debug.Assert(!mapPreviewTexture.IsDisposed, "mapPreviewTexture should not be disposed before this call");
+                mapPreviewTexture.Dispose();
+                mapPreviewTexture = null;
+                mapPreviewTextureNeedsDispose = false;
             }
         }
 
@@ -250,7 +521,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 base.Draw(gameTime);
 
-                if (game != null && mapTexture != null)
+                if (game != null && mapPreviewTexture != null)
                     RenderMapPreview();
             }
         }
@@ -258,26 +529,26 @@ namespace DTAClient.DXGUI.Multiplayer
         private void RenderMapPreview()
         {
             // Calculate map preview area based on right half of ClientRectangle
-            double xRatio = (ClientRectangle.Width / 2 - 10) / (double)mapTexture.Width;
-            double yRatio = (ClientRectangle.Height - 20) / (double)mapTexture.Height;
+            double xRatio = (ClientRectangle.Width / 2 - mapPreviewHorizontalMargin) / (double)mapPreviewTexture.Width;
+            double yRatio = (ClientRectangle.Height - mapPreviewVerticalMargin) / (double)mapPreviewTexture.Height;
 
             double ratio = Math.Min(xRatio, yRatio); // Choose the smaller ratio for scaling
-            int textureWidth = (int)(mapTexture.Width * ratio);
-            int textureHeight = (int)(mapTexture.Height * ratio);
+            int textureWidth = (int)(mapPreviewTexture.Width * ratio);
+            int textureHeight = (int)(mapPreviewTexture.Height * ratio);
 
             // Apply max height constraint
             if (textureHeight > maxPreviewHeight)
             {
-                ratio = maxPreviewHeight / (double)mapTexture.Height;
+                ratio = maxPreviewHeight / (double)mapPreviewTexture.Height;
                 textureHeight = maxPreviewHeight;
-                textureWidth = (int)(mapTexture.Width * ratio); // Recalculate width to maintain aspect ratio
+                textureWidth = (int)(mapPreviewTexture.Width * ratio); // Recalculate width to maintain aspect ratio
             }
 
             int texturePositionX = rightColumnPositionX + (ClientRectangle.Width / 2 - textureWidth) / 2; // Center in the right column
             int texturePositionY = mapPreviewPositionY;
 
             DrawTexture(
-                mapTexture,
+                mapPreviewTexture,
                 new Rectangle(texturePositionX, texturePositionY, textureWidth, textureHeight),
                 Color.White
             );

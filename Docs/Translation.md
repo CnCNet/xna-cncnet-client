@@ -173,7 +173,7 @@ This will make the `translation.mix` file from current translation folder (say, 
 
 Happy translating!
 
-## Miscellanous
+## Miscellaneous
 
 - Discord presence, game broadcasting, stats etc. use untranslated names so that other players can see the more universal English names, and to not be locked onto a translation in case it changes.
 - When translated, original map names still display in a tooltip and can be copied via context menu.

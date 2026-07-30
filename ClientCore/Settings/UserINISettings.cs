@@ -21,6 +21,7 @@ namespace ClientCore
         public const string AUDIO = "Audio";
         public const string COMPATIBILITY = "Compatibility";
         public const string GAME_FILTERS = "GameFilters";
+        public const string GAME_OPTION_FILTERS = "GameOptionFilters";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -92,10 +93,22 @@ namespace ClientCore
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
-            IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
-            IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
+            IngameScreenWidth = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Width" : "ScreenWidth",
+                1024);
+
+            IngameScreenHeight = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Height" : "ScreenHeight",
+                768);
+
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
+            TranslationGameFilesVersion = new StringSetting(iniFile, OPTIONS, nameof(TranslationGameFilesVersion), string.Empty);
+
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
@@ -105,8 +118,17 @@ namespace ClientCore
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
-            ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
-            SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume. This value is handled when saving
+            ScoreVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                "ScoreVolume",
+                0.7);
+
+            SoundVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Volume" : "SoundVolume",
+                0.7);
+
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
@@ -117,6 +139,7 @@ namespace ClientCore
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+            CustomDragDistance = new IntSetting(iniFile, OPTIONS, "CustomDragDistance", 0);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
 
@@ -135,6 +158,7 @@ namespace ClientCore
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
+            DisableMainMenuHotkeys = new BoolSetting(iniFile, MULTIPLAYER, "DisableMainMenuHotkeys", true);
             AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
@@ -149,7 +173,6 @@ namespace ClientCore
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
             ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
             GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
-            PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
@@ -176,9 +199,11 @@ namespace ClientCore
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
+
         public StringSetting ClientTheme { get; private set; }
         public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
         public StringSetting Translation { get; private set; }
+        public StringSetting TranslationGameFilesVersion { get; private set; }
         public string TranslationFolderPath => SafePath.CombineDirectoryPath(
             ClientConfiguration.Instance.TranslationsFolderPath, Translation);
         public string TranslationThemeFolderPath => SafePath.CombineDirectoryPath(
@@ -216,6 +241,8 @@ namespace ClientCore
 
         public IntSetting ScrollRate { get; private set; }
         public IntSetting DragDistance { get; private set; }
+        // When > 0, overrides the auto-scaled DragDistance. Allows players to set a fixed pixel threshold regardless of resolution.
+        public IntSetting CustomDragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
 
@@ -241,6 +268,8 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
+
+        public BoolSetting DisableMainMenuHotkeys { get; private set; }
 
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 
@@ -268,6 +297,40 @@ namespace ClientCore
 
         public IntRangeSetting MaxPlayerCount { get; private set; }
 
+        /************************/
+        /* GAME OPTION FILTERS */
+        /************************/
+
+        /// <summary>
+        /// Gets the filter value for a game option (checkbox or dropdown).
+        /// Returns null for "All" (no filter), or the selected index.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public int? GetGameOptionFilterValue(string optionName)
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section == null || !section.KeyExists(optionName))
+                return null;
+
+            return section.GetIntValue(optionName, 0);
+        }
+
+        /// <summary>
+        /// Sets the filter value for a game option.
+        /// null = "All" (no filter), or the selected index.
+        /// When null, removes the key from INI. Otherwise stores the index value.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public void SetGameOptionFilterValue(string optionName, int? value)
+        {
+            if (value == null)
+                SettingsIni.GetSection(GAME_OPTION_FILTERS)?.RemoveKey(optionName);
+            else
+                SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value);
+        }
+
         /********/
         /* MISC */
         /********/
@@ -283,8 +346,6 @@ namespace ClientCore
         public IntSetting GameSpeed { get; private set; }
 
         public IntSetting ScrollDelay { get; private set; }
-
-        public BoolSetting PreloadMapPreviews { get; private set; }
 
         public BoolSetting ForceLowestDetailLevel { get; private set; }
 
@@ -415,6 +476,10 @@ namespace ClientCore
             ApplyDefaults();
             // CleanUpLegacySettings();
 
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                SettingsIni.SetDoubleValue(OPTIONS, "MultiplayerScoreVolume", SettingsIni.GetDoubleValue(OPTIONS, "ScoreVolume", 0.7));
+
             SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
@@ -425,7 +490,8 @@ namespace ClientCore
                || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
                || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES
                || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
-               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT
+               || HasGameOptionFilters();
 
         public void ResetGameFilters()
         {
@@ -434,6 +500,25 @@ namespace ClientCore
             HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
             HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
             MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
+            ResetGameOptionFilters();
+        }
+
+        /// <summary>
+        /// Checks if any game option filters are set.
+        /// </summary>
+        private bool HasGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            return section != null && section.Keys.Count > 0;
+        }
+
+        /// <summary>
+        /// Clears all game option filters.
+        /// </summary>
+        private void ResetGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            section?.RemoveAllKeys();
         }
 
         /// <summary>

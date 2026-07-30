@@ -196,7 +196,7 @@ public static class DirectDrawCompatibilityChecker
                     Logger.Log("Administrator privileges required. Restart with elevated privileges.");
 
                     if (AdminRestarter.RestartAsAdmin())
-                        Environment.Exit(0);
+                        windowManager.CloseGame();
                 }
                 else
                 {

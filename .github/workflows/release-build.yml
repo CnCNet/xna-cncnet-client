@@ -41,7 +41,7 @@ jobs:
         }
 
     - name: Build
-      run: ./Scripts/build.ps1
+      run: ./Scripts/Build.ps1
       shell: pwsh
 
     - name: Zip Artifact

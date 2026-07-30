@@ -32,6 +32,24 @@ namespace ClientGUI
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             base.Initialize();
+
+            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
+        }
+
+        private void GameProcessExited_Callback()
+        {
+            foreach (IUserSetting setting in userSettings)
+            {
+                if (!setting.ResetToDefaultOnGameExit)
+                    continue;
+
+                if (setting is SettingCheckBoxBase cb)
+                    cb.Checked = cb.DefaultValue;
+                else if (setting is SettingDropDownBase dd)
+                    dd.SelectedIndex = dd.DefaultValue;
+
+                setting.Save();
+            }
         }
 
         /// <summary>

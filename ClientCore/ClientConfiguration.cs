@@ -33,6 +33,8 @@ namespace ClientCore
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
         private IniFile networkDefinitionsIni;
+        private readonly string[] skillLevelOptions;
+        private readonly int maxSkillLevelIndex;
 
         protected ClientConfiguration()
         {
@@ -65,6 +67,11 @@ namespace ClientCore
             }
 
             RefreshTranslationGameFiles();
+
+            skillLevelOptions = SkillLevelOptions.SplitWithCleanup();
+            maxSkillLevelIndex = Math.Max(0, skillLevelOptions.Length - 1);
+            if (maxSkillLevelIndex == 0)
+                throw new ClientConfigurationException("No skill level options defined in ClientDefinitions.ini.");
         }
 
         /// <summary>
@@ -277,7 +284,9 @@ namespace ClientCore
 
         public string[] TrustedDomains => clientDefinitionsIni.GetStringListValue(SETTINGS, "TrustedDomains", string.Empty);
 
-        public string[] AlwaysTrustedDomains = {"cncnet.org", "gamesurge.net", "dronebl.org", "discord.com", "discord.gg", "youtube.com", "youtu.be"};
+        public string[] AlwaysTrustedDomains = { "cncnet.org", "gamesurge.net", "dronebl.org" };
+
+        public bool ShowGameIconInGameList => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ShowGameIconInGameList", true);
 
         public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
@@ -363,6 +372,13 @@ namespace ClientCore
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
+        public bool SettingsIniAsKeyboardIni => SettingsIniName == KeyboardINI;
+
+        public string KeyboardHotkeySection => clientDefinitionsIni.GetStringValue(
+            SETTINGS,
+            "KeyboardHotkeySection",
+            ClientGameType == ClientType.RA ? "WinHotKeys" : "Hotkey");
+
         public int MinimumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640);
 
         public int MinimumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameHeight", 480);
@@ -370,6 +386,8 @@ namespace ClientCore
         public int MaximumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", int.MaxValue);
 
         public int MaximumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue);
+
+        public string[] CustomIngameResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "CustomIngameResolutions", string.Empty);
 
         public bool CopyMissionsToSpawnmapINI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true);
 
@@ -382,9 +400,17 @@ namespace ClientCore
         public bool InactiveHostKickEnabled => InactiveHostWarningMessageSeconds > 0 && InactiveHostKickSeconds > 0;
 
         public string SkillLevelOptions => clientDefinitionsIni.GetStringValue(SETTINGS, "SkillLevelOptions", "Any,Beginner,Intermediate,Pro");
-        
-        public int DefaultSkillLevelIndex => clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0);
-        
+
+        public string[] GetSkillLevelOptions() => skillLevelOptions;
+
+        public int NormalizeSkillLevel(int skillLevel) => Math.Clamp(skillLevel, 0, maxSkillLevelIndex);
+
+        public int DefaultSkillLevelIndex => NormalizeSkillLevel(clientDefinitionsIni.GetIntValue(SETTINGS, "DefaultSkillLevelIndex", 0));
+
+        public bool CampaignTagSelectorEnabled => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CampaignTagSelectorEnabled", false);
+
+        public bool ReturnToMainMenuOnMissionLaunch => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ReturnToMainMenuOnMissionLaunch", true);
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringListValue(SETTINGS, "GameExecutableNames", "Game.exe");
@@ -402,7 +428,7 @@ namespace ClientCore
         }
 
         public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
-        
+
         public bool SaveCampaignGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveCampaignGameOptions", false);
 
         public bool CreateSavedGamesDirectory => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false);
@@ -440,7 +466,7 @@ namespace ClientCore
         /// The main map file extension that is read by the client.
         /// </summary>
         public string MapFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "MapFileExtension", "map");
-        
+
         /// <summary>
         /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
         /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"
@@ -524,6 +550,43 @@ namespace ClientCore
         }
 
         public bool DiscordIntegrationGloballyDisabled => string.IsNullOrWhiteSpace(DiscordAppId) || DisableDiscordIntegration;
+
+        public string CustomMissionPath => clientDefinitionsIni.GetStringValue(SETTINGS, "CustomMissionPath", "Maps/CustomMissions");
+
+        public List<(string extension, string copyAs)> GetCustomMissionSupplementFiles()
+        {
+            List<(string extension, string copyAs)> files = new();
+            Dictionary<string, int> extensionToIndex = new(StringComparer.OrdinalIgnoreCase);
+
+            int index = 0;
+            while (true)
+            {
+                string extensionKey = $"CustomMissionSupplementFile{index}Extension";
+                string copyAsKey = $"CustomMissionSupplementFile{index}CopyAs";
+
+                string extension = clientDefinitionsIni.GetStringValue(SETTINGS, extensionKey, null)?.Trim();
+
+                // Stop iteration if the extension key is missing
+                if (string.IsNullOrWhiteSpace(extension))
+                    break;
+
+                string copyAs = clientDefinitionsIni.GetStringValue(SETTINGS, copyAsKey, null);
+
+                // Validate that copyAs is not empty
+                if (string.IsNullOrWhiteSpace(copyAs))
+                    throw new ClientConfigurationException($"Configuration key '{copyAsKey}' is required when '{extensionKey}' is present for supplement file {index}.");
+
+                // Validate that extension is unique
+                if (extensionToIndex.TryGetValue(extension, out int firstIndex))
+                    throw new ClientConfigurationException($"Duplicate extension '{extension}' found in supplement files. Extension is used in both file {firstIndex} and file {index}.");
+
+                extensionToIndex.Add(extension, index);
+                files.Add((extension, copyAs));
+                index++;
+            }
+
+            return files;
+        }
 
         public OSVersion GetOperatingSystemVersion()
         {

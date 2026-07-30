@@ -20,6 +20,9 @@ namespace DTAClient.DXGUI.Generic;
 // TODO split the logic between descendants better and clean up
 public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
 {
+
+    private const int DEFAULT_SORT_ORDER = 0;
+
     public GameSessionDropDown(WindowManager windowManager) : base(windowManager) { }
 
     public string OptionName { get; private set; }
@@ -33,6 +36,49 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
 
     private int defaultIndex;
 
+    /// <summary>
+    /// Whether this dropdown should be included in the GAME broadcast.
+    /// </summary>
+    public bool BroadcastToLobby { get; private set; }
+
+    /// <summary>
+    /// Whether the icon/text should be shown in the game list.
+    /// </summary>
+    public bool ShowInGameList { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown on the right side of the game list.
+    /// Only applies if ShowInGameList is true.
+    /// </summary>
+    public bool ShowInGameListOnRight { get; private set; }
+
+    /// <summary>
+    /// Whether the icon/text should be shown in the game information panel.
+    /// </summary>
+    public bool ShowInGameInformationPanel { get; private set; }
+
+    /// <summary>
+    /// Whether to show only the icon (without text) in the game information panel.
+    /// Only applies if ShowInGameInformationPanel is true.
+    /// </summary>
+    public bool ShowInGameInformationPanelAsIconOnly { get; private set; }
+
+    /// <summary>
+    /// Whether the icon should be shown in the game lobby control itself.
+    /// </summary>
+    public bool ShowIconInGameLobby { get; private set; }
+
+    /// <summary>
+    /// Whether this setting should be filterable and shown in the filters panel.
+    /// </summary>
+    public bool ShowInFilters { get; private set; }
+
+    /// <summary>
+    /// Sort order for displaying icons in the GameInformationPanel and GameListBox.
+    /// Lower values appear first.
+    /// </summary>
+    public int SortOrder { get; private set; } = DEFAULT_SORT_ORDER;
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         // shorthand for localization function
@@ -44,14 +90,17 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
             case "Items":
                 string[] items = value.SplitWithCleanup();
                 string[] itemLabels = iniFile.GetStringListValue(Name, "ItemLabels", "");
+                string[] iconNames = iniFile.GetStringListValue(Name, "Icons", "");
                 for (int i = 0; i < items.Length; i++)
                 {
                     bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
+                    string iconName = iconNames.Length > i ? iconNames[i] : null;
                     XNADropDownItem item = new()
                     {
                         Text = Localize(this, $"Item{i}",
                             hasLabel ? itemLabels[i] : items[i]),
                         Tag = items[i],
+                        Texture = !string.IsNullOrEmpty(iconName) ? AssetLoader.LoadTexture(iconName) : null,
                     };
                     AddItem(item);
                 }
@@ -76,9 +125,39 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
             case "OptionName":
                 OptionName = Localize(this, "OptionName", value);
                 return;
+            case "BroadcastToLobby":
+                BroadcastToLobby = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowInGameList":
+                ShowInGameList = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowInGameListOnRight":
+                ShowInGameListOnRight = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowInGameInformationPanel":
+                ShowInGameInformationPanel = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowInGameInformationPanelAsIconOnly":
+                ShowInGameInformationPanelAsIconOnly = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowIconInGameLobby":
+                ShowIconInGameLobby = Conversions.BooleanFromString(value, false);
+                return;
+            case "ShowInFilters":
+                ShowInFilters = Conversions.BooleanFromString(value, false);
+                return;
+            case "SortOrder":
+                SortOrder = int.Parse(value);
+                return;
         }
 
         base.ParseControlINIAttribute(iniFile, key, value);
+    }
+
+    public int Value
+    {
+        get => SelectedIndex;
+        set => SelectedIndex = value;
     }
 
     public void ApplySpawnIniCode(IniFile spawnIni)

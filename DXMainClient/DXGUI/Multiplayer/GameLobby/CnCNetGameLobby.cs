@@ -12,6 +12,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -151,6 +152,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string gameFilesHash;
 
+        /// <summary>
+        /// On non-host clients: tracks map SHA1s for which the host has already communicated
+        /// their final result (either MAPOK or MAPFAIL). Used to prevent the client from
+        /// sending repeated MAPREQ messages when the host has already tried.
+        /// </summary>
         private List<string> hostUploadedMaps = new List<string>();
         private List<string> chatCommandDownloadedMaps = new List<string>();
 
@@ -267,8 +273,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.hostName = hostName;
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
-            this.skillLevel = skillLevel;
+            this.skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(skillLevel);
             this.gameRoomName = channel.UIName;
+            
+            hostUploadedMaps.Clear();
+            chatCommandDownloadedMaps.Clear();
 
             if (isHost)
             {
@@ -422,7 +431,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             bool gameNameChanged = gameRoomName != newGameRoomName;
             bool maxPlayersChanged = playerLimit != newMaxPlayers;
-            bool skillLevelChanged = skillLevel != newSkillLevel;
+            int normalizedSkillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(newSkillLevel);
+            bool skillLevelChanged = skillLevel != normalizedSkillLevel;
 
             string currentUserPassword = isCustomPassword ? channel.Password : string.Empty;
             bool passwordChanged = currentUserPassword != newPassword;
@@ -438,8 +448,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string oldGameRoomName = gameRoomName;
             bool oldIsCustomPassword = isCustomPassword;
             gameRoomName = newGameRoomName;
+            channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
-            skillLevel = newSkillLevel;
+            skillLevel = normalizedSkillLevel;
 
             if (passwordChanged)
             {
@@ -475,9 +486,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (skillLevelChanged)
             {
-                string[] skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
-                string skillLevelName = skillLevelOptions[newSkillLevel];
-                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{newSkillLevel}");
+                string[] skillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
+                string skillLevelName = skillLevelOptions[skillLevel];
+                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{skillLevel}");
                 AddNotice(string.Format("Skill level changed to {0}."
                     .L10N("Client:Main:SkillLevelChanged"), localizedSkillLevel));
             }
@@ -524,7 +535,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string newGameRoomName = parts[0];
             int newMaxPlayers = Conversions.IntFromString(parts[1], playerLimit);
-            int newSkillLevel = Conversions.IntFromString(parts[2], skillLevel);
+            int newSkillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(
+                Conversions.IntFromString(parts[2], skillLevel));
             bool newIsCustomPassword = Convert.ToBoolean(Conversions.IntFromString(parts[3], 0));
 
             bool gameNameChanged = gameRoomName != newGameRoomName;
@@ -532,6 +544,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool skillLevelChanged = skillLevel != newSkillLevel;
 
             gameRoomName = newGameRoomName;
+            channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
             skillLevel = newSkillLevel;
             isCustomPassword = newIsCustomPassword;
@@ -551,9 +564,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (skillLevelChanged)
             {
-                string[] skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
-                string skillLevelName = skillLevelOptions[newSkillLevel];
-                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{newSkillLevel}");
+                string[] skillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
+                string skillLevelName = skillLevelOptions[skillLevel];
+                string localizedSkillLevel = skillLevelName.L10N($"INI:ClientDefinitions:SkillLevel:{skillLevel}");
                 AddNotice(string.Format("{0} changed skill level to {1}."
                     .L10N("Client:Main:HostChangedSkillLevel"), sender, localizedSkillLevel));
             }
@@ -900,7 +913,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 (byte)team
             };
 
-            int intValue = BitConverter.ToInt32(value, 0);
+            int intValue = BinaryPrimitives.ReadInt32LittleEndian(value);
 
             channel.SendCTCPMessage(
                 string.Format("OR {0}", intValue),
@@ -952,7 +965,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo == null)
                 return;
 
-            byte[] bytes = BitConverter.GetBytes(options);
+            byte[] bytes = new byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32LittleEndian(bytes, options);
 
             int side = bytes[0];
             int color = bytes[1];
@@ -977,16 +991,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (0 < side && side < SideCount && disallowedSides[side])
                 return;
 
-            if (Map?.CoopInfo != null)
+            if (GameModeMap?.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
+                if (GameModeMap.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
-                if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
+                if (GameModeMap.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
                     return;
             }
 
-            if (start < 0 || start > Map?.MaxPlayers)
+            if (!(start == 0 || (GameModeMap?.AllowedStartingLocations?.Contains(start) ?? true)))
                 return;
 
             if (team < 0 || team > 4)
@@ -1054,7 +1068,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     (byte)pInfo.SideId,
                 };
 
-                int value = BitConverter.ToInt32(byteArray, 0);
+                int value = BinaryPrimitives.ReadInt32LittleEndian(byteArray);
                 sb.Append(value);
                 sb.Append(";");
                 if (!pInfo.IsAI)
@@ -1133,7 +1147,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerOptions == -1)
                     return;
 
-                byte[] byteArray = BitConverter.GetBytes(playerOptions);
+                byte[] byteArray = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(byteArray, playerOptions);
 
                 int team = byteArray[0];
                 int start = byteArray[1];
@@ -1214,7 +1229,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
 
             for (int i = 0; i < integerCount; i++)
-                sb.Append(BitConverter.ToInt32(byteArray, i * 4));
+                sb.Append(BinaryPrimitives.ReadInt32LittleEndian(byteArray.AsSpan(i * 4)));
 
             // We don't gain much in most cases by packing the drop-down values
             // (because they're bytes to begin with, and usually non-zero),
@@ -1292,7 +1307,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
             if (GameModeMap == null)
             {
                 ChangeMap(null);
@@ -1333,7 +1348,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                byte[] byteArray = BitConverter.GetBytes(checkBoxStatusInt);
+                byte[] byteArray = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(byteArray, checkBoxStatusInt);
                 bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray);
 
                 for (int optionIndex = 0; optionIndex < boolArray.Length; optionIndex++)
@@ -1898,7 +1914,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadFailed(SHA1EventArgs e)
         {
-            // If the host has already uploaded the map, we shouldn't request them to re-upload it
+            // If the host has already communicated their upload result (MAPOK or MAPFAIL),
+            // we should not request them to re-upload the map — it won't help.
+            // Notify the channel that this player cannot get the map.
             if (hostUploadedMaps.Contains(e.SHA1))
             {
                 AddNotice("Download of the custom map failed. The host needs to change the map or you will be unable to participate in this match.".L10N("Client:Main:DownloadCustomMapFailed"));
@@ -1945,7 +1963,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice($"Map {e.Map.Name} loaded successfully.");
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == e.Map.SHA1);
+            GameModeMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == e.Map.SHA1);
             ChangeMap(GameModeMap);
 
             if (isFromChatCommand)
@@ -2007,8 +2025,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Map map = e.Map;
 
-            hostUploadedMaps.Add(map.SHA1);
-
             AddNotice(string.Format("Uploading map {0} to the CnCNet map database failed.".L10N("Client:Main:UpdateMapToDBFailed"), map.Name));
             if (map == Map)
             {
@@ -2022,8 +2038,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapUploadComplete(MapEventArgs e)
         {
-            hostUploadedMaps.Add(e.Map.SHA1);
-
             AddNotice(string.Format("Uploading map {0} to the CnCNet map database complete.".L10N("Client:Main:UpdateMapToDBSuccess"), e.Map.Name));
             if (e.Map == Map)
             {
@@ -2038,9 +2052,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapSHA1">The SHA1 of the requested map.</param>
         private void HandleMapUploadRequest(string sender, string mapSHA1)
         {
-            if (hostUploadedMaps.Contains(mapSHA1))
+            // If the map was already successfully uploaded, send a download notification
+            // immediately instead of re-uploading it.
+            if (MapSharer.IsMapUploaded(mapSHA1))
             {
-                Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded!");
+                Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded, sending download notification.");
+
+                if (Map != null && Map.SHA1 == mapSHA1)
+                    channel.SendCTCPMessage(MAP_SHARING_DOWNLOAD_REQUEST + " " + mapSHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+
                 return;
             }
 
@@ -2181,7 +2201,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sha1 = sha1.Replace("?", "");
 
             // See if the user already has this map, with any filename, before attempting to download it.
-            GameModeMap loadedMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+            GameModeMap loadedMap = GameModeMaps.FirstOrDefault(gmm => gmm.Map.SHA1 == sha1);
 
             if (loadedMap != null)
             {
@@ -2269,6 +2289,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(skillLevel); // SkillLevel
             sb.Append(";");
             sb.Append(Map?.SHA1);
+
+            string gameOptionValues = GetPackedGameOptionValuesString();
+            sb.Append(";");
+            sb.Append(gameOptionValues);
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }

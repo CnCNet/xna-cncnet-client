@@ -9,12 +9,12 @@ using ClientCore.Extensions;
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -34,18 +34,15 @@ namespace DTAClient.DXGUI.Generic
             this.random = random;
         }
 
-        private static readonly object locker = new object();
-
         private MapLoader mapLoader;
 
         private Random random;
-
-        private PrivateMessagingPanel privateMessagingPanel;
 
         private bool visibleSpriteCursor;
 
         private Task updaterInitTask;
         private Task mapLoadTask;
+
         private readonly CnCNetManager cncnetManager;
         private readonly IServiceProvider serviceProvider;
 
@@ -93,8 +90,12 @@ namespace DTAClient.DXGUI.Generic
 
         private void InitUpdater()
         {
+            Logger.Log("Updater: Updater initialization task started.");
+
             Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
             Updater.CheckLocalFileVersions();
+
+            Logger.Log("Updater: Updater initialization task completed.");
         }
 
         private void LogGameClientVersion()
@@ -105,7 +106,9 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
+            Logger.Log("LoadingScreen: Finish waiting for updater and map loading tasks. Proceeding to main menu.");
+
+            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
             MainMenu mainMenu = serviceProvider.GetService<MainMenu>();
@@ -127,16 +130,49 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.RemoveControl(this);
 
             Cursor.Visible = visibleSpriteCursor;
+
+            Logger.Log(FormattableString.Invariant($"Startup complete. Client is ready. Total startup time: {PreStartup.StartupElapsed.TotalSeconds:F3} s."));
         }
 
+        private TimeSpan Update_LastLogTime = TimeSpan.Zero;
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
 
-            if (updaterInitTask == null || updaterInitTask.Status == TaskStatus.RanToCompletion)
+            bool updaterDone = updaterInitTask == null || updaterInitTask.Status == TaskStatus.RanToCompletion;
+            bool mapLoadDone = mapLoadTask.Status == TaskStatus.RanToCompletion;
+
+            if (updaterDone && mapLoadDone)
             {
-                if (mapLoadTask.Status == TaskStatus.RanToCompletion)
-                    Finish();
+                Finish();
+                return;
+            }
+
+            bool updaterFaulted = updaterInitTask != null && updaterInitTask.IsFaulted;
+            if (updaterFaulted)
+                throw new Exception("Updater initialization task failed.", updaterInitTask.Exception);
+
+            bool mapLoadFaulted = mapLoadTask.IsFaulted;
+            if (mapLoadFaulted)
+                throw new Exception("Map loading task failed.", mapLoadTask.Exception);
+
+            var timeSinceLastLog = gameTime.TotalGameTime.Subtract(Update_LastLogTime);
+            if (timeSinceLastLog > TimeSpan.FromSeconds(5))
+            {
+                Update_LastLogTime = gameTime.TotalGameTime;
+
+                string logMessage;
+                if (!updaterDone && !mapLoadDone)
+                    logMessage = "LoadingScreen: Waiting for updater initialization and loading maps...";
+                else if (!updaterDone)
+                    logMessage = "LoadingScreen: Waiting for updater initialization...";
+                else if (!mapLoadDone)
+                    logMessage = "LoadingScreen: Waiting for loading maps...";
+                else
+                    throw new Exception("Assert failed. No pending tasks. This should not happen.");
+
+                Debug.WriteLine(logMessage);
+                Logger.Log(logMessage);
             }
         }
     }

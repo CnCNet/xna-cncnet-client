@@ -1,7 +1,12 @@
 ClientUpdater.dll
 ClientUpdater.pdb
+Cyotek.Drawing.BitmapFont.dll
 DiscordRPC.dll
 Facepunch.Steamworks.Win64.dll
+FontStashSharp.Base.dll
+FontStashSharp.Rasterizers.StbTrueTypeSharp.dll
+FontStashSharp.TextShapers.HarfBuzz.dll
+HarfBuzzSharp.dll
 lzo.net.dll
 Microsoft.Extensions.Configuration.Abstractions.dll
 Microsoft.Extensions.Configuration.Binder.dll
@@ -38,6 +43,8 @@ Rampastring.Tools.pdb
 Rampastring.Tools.xml
 SixLabors.ImageSharp.dll
 System.CodeDom.dll
-steam_api64.dll
+StbImageSharp.dll
+StbTrueTypeSharp.dll
 System.Net.Http.Formatting.dll
 TextCopy.dll
+Ude.NetStandard.dll

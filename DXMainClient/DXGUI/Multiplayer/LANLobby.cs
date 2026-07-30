@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         GameCollection gameCollection;
 
-        private List<GameMode> gameModes => mapLoader.GameModes;
+        private IReadOnlyList<GameMode> gameModes => mapLoader.GameModes;
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
 
@@ -195,7 +195,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chatColors = new LANColor[]
             {
                 new LANColor("Gray".L10N("Client:Main:ColorGray"), Color.Gray),
-                new LANColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), Color.LightGray),
+                new LANColor("Metallic".L10N("Client:Main:ColorLightGrayMetallic"), Color.LightGray),
                 new LANColor("Green".L10N("Client:Main:ColorGreen"), Color.ForestGreen),
                 new LANColor("Lime Green".L10N("Client:Main:ColorLimeGreen"), Color.LimeGreen),
                 new LANColor("Green Yellow".L10N("Client:Main:ColorGreenYellow"), Color.GreenYellow),
@@ -473,6 +473,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     break;
 
+                case "GAMECLOSED":
+                    int closedGameIndex = lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
+                    if (closedGameIndex > -1)
+                    {
+                        lbGameList.HostedGames.RemoveAt(closedGameIndex);
+                        lbGameList.Refresh();
+                    }
+
+                    break;
+
                 case "GAME":
                     if (user == null)
                         return;
@@ -541,7 +551,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.Locked)
             {
-                AddChatMessage("The selected game is locked!".L10N("Client:Main:GameLocked"));
+                AddChatMessage(string.Format("The game {0} is locked!".L10N("Client:Main:GameLockedWithName"), hg.RoomName));
                 return;
             }
 
@@ -564,7 +574,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             {
-                // TODO Show warning
+                AddChatMessage(new ChatMessage(Color.Yellow, "The game host is on a different game version than you. Version incompatibilities may cause issues.".L10N("Client:Main:JoinGameVersionMismatch")));
             }
 
             AddChatMessage(string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName));
