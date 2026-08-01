@@ -252,7 +252,18 @@ namespace ClientGUI
                     bool isDuplicate = !defaultHotkeys.Add(gameCommand.DefaultHotkey);
 
                     if (isDuplicate)
-                        throw new Exception("The default hotkey " + gameCommand.DefaultHotkey.ToString() + " for command " + gameCommand.UIName + " is duplicated with another command's default hotkey. Please make sure all default hotkeys in " + KEYBOARD_COMMANDS_INI + " are unique.");
+                        throw new Exception(
+                            string.Format
+                            (
+                                (
+                                    "The default hotkey {0} for command {1} is duplicated with another command's default hotkey." +
+                                    "Please make sure all default hotkeys in {2} are unique."
+                                ).L10N("Client:Config:ExceptionDuplicatHotkeys"),
+                                gameCommand.DefaultHotkey.ToString(),
+                                gameCommand.UIName,
+                                KEYBOARD_COMMANDS_INI
+                            )
+                        );
                 }
             }
         }
@@ -647,8 +658,17 @@ namespace ClientGUI
                     && DisableModifierKeys && DefaultHotkey.Modifier != KeyModifiers.None)
                 {
                     throw new Exception(
-                        $"The default hotkey {DefaultHotkey} for command '{ININame}' has modifier keys but DisableModifierKeys is set to true. " +
-                        $"Please remove the modifier from the default hotkey or set DisableModifierKeys=false in {KEYBOARD_COMMANDS_INI}.");
+                        string.Format
+                        (
+                            (
+                                "The default hotkey {0} for command '{1}' has modifier keys but DisableModifierKeys is set to true. " +
+                                "Please remove the modifier from the default hotkey or set DisableModifierKeys=false in {2}."
+                            ).L10N("Client:Config:ExceptionModifierKeysDetected"),
+                            DefaultHotkey,
+                            ININame,
+                            KEYBOARD_COMMANDS_INI
+                        )
+                    );
                 }
 
                 // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
