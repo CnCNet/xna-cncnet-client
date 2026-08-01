@@ -751,7 +751,7 @@ A `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` defines keys th
 
 ## KeyboardCommands
 
-The `KeyboardCommands.ini` file defines in-game hotkey commands that the client writes to the game's `Keyboard.ini` (or equivalent). Each section represents a game command with its default key binding.
+The `KeyboardCommands.ini` file defines in-game hotkey commands that the client writes to the game's keyboard INI file. Each section represents a game command with its default key binding.
 
 The file is located in the `Resources` directory and is read by the Hotkey Configuration window.
 
