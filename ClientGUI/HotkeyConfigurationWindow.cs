@@ -350,7 +350,10 @@ namespace ClientGUI
                 {
                     Hotkey hotkey = new(tsHotkey.Value);
                     if (command.DisableModifierKeys && hotkey.Modifier != KeyModifiers.None)
-                        hotkey = new Hotkey(hotkey.Key, KeyModifiers.None);
+                    {
+                        command.Hotkey = null;
+                        continue;
+                    }
 
                     bool isDuplicate = false;
                     if (hotkey != Hotkey.None)
@@ -446,7 +449,7 @@ namespace ClientGUI
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             if (command.DisableModifierKeys && pendingHotkey.Modifier != KeyModifiers.None)
-                pendingHotkey = new Hotkey(pendingHotkey.Key, KeyModifiers.None);
+                return;
 
             // If the hotkey is already assigned to other command, unbind it
             if (pendingHotkey != Hotkey.None)
