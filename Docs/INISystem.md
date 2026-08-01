@@ -773,7 +773,7 @@ DisableModifierKeys=false ; boolean, whether to prevent modifier keys (Ctrl, Shi
 - **`Category`** — category used to group commands in the hotkey configuration dropdown. Supports localization via `INI:HotkeyCategories:{Category}`.
 - **`Description`** — description text shown when the command is selected. Supports localization via `INI:Hotkeys:{CommandName}:Description`.
 - **`DefaultKey`** — the default key binding in TS-encoded integer format (`(modifier << 8) + key`). Modifier flags: 0 = None, 1 = Shift, 2 = Ctrl, 4 = Alt. Set to `0` if the command has no default hotkey.
-- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for certain commands do not support modifier-combined hotkeys.
+- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for certain commands that do not support modifier-combined hotkeys.
 
 ### Example
 

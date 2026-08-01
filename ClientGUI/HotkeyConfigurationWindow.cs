@@ -646,10 +646,9 @@ namespace ClientGUI
                 if (DefaultHotkey != null && DefaultHotkey != Hotkey.None
                     && DisableModifierKeys && DefaultHotkey.Modifier != KeyModifiers.None)
                 {
-                    throw new Exception("The default hotkey " + DefaultHotkey.ToString()
-                        + " for command " + UIName + " has modifier keys but DisableModifierKeys is set to true."
-                        + " Please remove the modifier from the default hotkey or disable DisableModifierKeys in "
-                        + KEYBOARD_COMMANDS_INI + ".");
+                    throw new Exception(
+                        $"The default hotkey {DefaultHotkey} for command '{ININame}' ({UIName}) has modifier keys but DisableModifierKeys is set to true. " +
+                        $"Please remove the modifier from the default hotkey or set DisableModifierKeys=false in {KEYBOARD_COMMANDS_INI}.");
                 }
 
                 // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
