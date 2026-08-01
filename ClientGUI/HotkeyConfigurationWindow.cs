@@ -259,7 +259,7 @@ namespace ClientGUI
                                 (
                                     "The default hotkey {0} for command {1} is duplicated with another command's default hotkey." + " " +
                                     "Please make sure all default hotkeys in file {2} are unique."
-                                ).L10N("Client:DTAConfig:ExceptionDuplicatHotkeys"),
+                                ).L10N("Client:DTAConfig:ExceptionDuplicateHotkeys"),
                                 gameCommand.DefaultHotkey.ToString(),
                                 gameCommand.ININame,
                                 KEYBOARD_COMMANDS_INI
