@@ -260,7 +260,7 @@ namespace ClientGUI
                                     "Please make sure all default hotkeys in {2} are unique."
                                 ).L10N("Client:Config:ExceptionDuplicatHotkeys"),
                                 gameCommand.DefaultHotkey.ToString(),
-                                gameCommand.UIName,
+                                gameCommand.ININame,
                                 KEYBOARD_COMMANDS_INI
                             )
                         );
