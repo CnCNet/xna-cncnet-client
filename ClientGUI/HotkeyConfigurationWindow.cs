@@ -647,7 +647,7 @@ namespace ClientGUI
                     && DisableModifierKeys && DefaultHotkey.Modifier != KeyModifiers.None)
                 {
                     throw new Exception(
-                        $"The default hotkey {DefaultHotkey} for command '{ININame}' ({UIName}) has modifier keys but DisableModifierKeys is set to true. " +
+                        $"The default hotkey {DefaultHotkey} for command '{ININame}' has modifier keys but DisableModifierKeys is set to true. " +
                         $"Please remove the modifier from the default hotkey or set DisableModifierKeys=false in {KEYBOARD_COMMANDS_INI}.");
                 }
 
