@@ -37,7 +37,7 @@ namespace DTAClient.Domain.LAN
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {
-            if (parameters.Length != 10)
+            if (parameters.Length != 11)
             {
                 Logger.Log("Ignoring LAN GAME message because of an incorrect number of parameters.");
                 return false;
@@ -68,6 +68,7 @@ namespace DTAClient.Domain.LAN
             // RoomName = HostName + "'s Game";
 
             MapHash = parameters[9];
+            Difficulty = Conversions.IntFromString(parameters[10], 0);
 
             return true;
         }

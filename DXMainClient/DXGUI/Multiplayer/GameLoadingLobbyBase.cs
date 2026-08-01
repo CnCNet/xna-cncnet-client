@@ -63,6 +63,8 @@ namespace DTAClient.DXGUI.Multiplayer
         protected XNAClientButton btnLoadGame;
         protected XNAClientButton btnLeaveGame;
 
+        protected int CoopDifficulty;
+
         private List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
         private string loadedGameID;
@@ -78,6 +80,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Initialize()
         {
+            CoopDifficulty = -1;
+
             Name = "GameLoadingLobby";
             ClientRectangle = new Rectangle(0, 0, 590, 510);
             BackgroundTexture = AssetLoader.LoadTexture("loadmpsavebg.png");
@@ -414,6 +418,10 @@ namespace DTAClient.DXGUI.Multiplayer
             uniqueGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 
             int playerCount = spawnSGIni.GetIntValue("Settings", "PlayerCount", 0);
+            CoopDifficulty = spawnSGIni.GetIntValue("Settings", "CoopDifficulty", -1);
+
+            if (CoopDifficulty >= 0 && CoopDifficulty < ProgramConstants.DIFFICULTY_NAMES.Count)
+                lblMapNameValue.Text += $" ({ProgramConstants.DIFFICULTY_NAMES[CoopDifficulty]})";
 
             SavedGamePlayer localPlayer = new SavedGamePlayer();
             localPlayer.Name = ProgramConstants.PLAYERNAME;
