@@ -259,7 +259,7 @@ namespace ClientGUI
                                 (
                                     "The default hotkey {0} for command {1} is duplicated with another command's default hotkey." + " " +
                                     "Please make sure all default hotkeys in file {2} are unique."
-                                ).L10N("Client:Config:ExceptionDuplicatHotkeys"),
+                                ).L10N("Client:DTAConfig:ExceptionDuplicatHotkeys"),
                                 gameCommand.DefaultHotkey.ToString(),
                                 gameCommand.ININame,
                                 KEYBOARD_COMMANDS_INI
@@ -665,7 +665,7 @@ namespace ClientGUI
                             (
                                 "The default hotkey {0} for command '{1}' has modifier keys but DisableModifierKeys is set to true." + " " +
                                 "Please remove the modifier from the default hotkey or set DisableModifierKeys=false in file {2}."
-                            ).L10N("Client:Config:ExceptionModifierKeysDetected"),
+                            ).L10N("Client:DTAConfig:ExceptionModifierKeysDetected"),
                             DefaultHotkey,
                             ININame,
                             KEYBOARD_COMMANDS_INI
