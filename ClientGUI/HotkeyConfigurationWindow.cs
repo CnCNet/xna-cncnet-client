@@ -352,6 +352,7 @@ namespace ClientGUI
                     if (command.DisableModifierKeys && hotkey.Modifier != KeyModifiers.None)
                     {
                         command.Hotkey = null;
+                        hotkeySection.RemoveKey(command.ININame);
                         continue;
                     }
 
