@@ -285,6 +285,12 @@ namespace DTAClient.Online
                 "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2, replace);
         }
 
+        public void FlushGameSettingsMessages()
+            => connection.FlushMessagesOfTypes(
+                QueuedMessageType.GAME_SETTINGS_MESSAGE,
+                QueuedMessageType.GAME_PLAYERS_MESSAGE,
+                QueuedMessageType.GAME_PLAYERS_EXTRA_MESSAGE);
+
         /// <summary>
         /// Sends a "kick user" message to the channel.
         /// </summary>

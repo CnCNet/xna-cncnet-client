@@ -953,6 +953,21 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
+        public void FlushMessagesOfTypes(params QueuedMessageType[] types)
+        {
+            List<string> toSend;
+            lock (messageQueueLocker)
+            {
+                toSend = MessageQueue
+                    .Where(m => types.Contains(m.MessageType))
+                    .Select(m => m.Command)
+                    .ToList();
+                MessageQueue.RemoveAll(m => types.Contains(m.MessageType));
+            }
+            foreach (string message in toSend)
+                SendMessage(message);
+        }
+
         public void QueueMessage(QueuedMessageType type, int priority, string message, bool replace = false)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, replace);

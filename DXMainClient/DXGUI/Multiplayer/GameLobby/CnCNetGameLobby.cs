@@ -880,6 +880,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
+                channel.FlushGameSettingsMessages();
+
                 StringBuilder sb = new StringBuilder("START ");
                 sb.Append(UniqueGameID);
                 for (int pId = 0; pId < Players.Count; pId++)
@@ -891,7 +893,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     sb.Append(tunnelHandler.CurrentTunnel.Address + ":");
                     sb.Append(playerPorts[pId]);
                 }
-                channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 10);
+                channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.INSTANT_MESSAGE, 10);
             }
             else
             {
