@@ -252,6 +252,7 @@ namespace ClientGUI
                     bool isDuplicate = !defaultHotkeys.Add(gameCommand.DefaultHotkey);
 
                     if (isDuplicate)
+                    {
                         throw new Exception(
                             string.Format
                             (
@@ -264,6 +265,7 @@ namespace ClientGUI
                                 KEYBOARD_COMMANDS_INI
                             )
                         );
+                    }
                 }
             }
         }
