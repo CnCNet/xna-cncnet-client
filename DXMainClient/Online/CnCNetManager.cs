@@ -341,7 +341,7 @@ namespace DTAClient.Online
             {
                 Color foreColor;
 
-                // Previously there was an "ACTION" handling, to be compatible with the Funny's client, but we don't officially support Funky's client anymore.
+                // Previously there was an "ACTION" handling, to be compatible with Funky's client, but we don't officially support Funky's client anymore.
 
                 // Color parsing
                 if (message.Contains(Convert.ToString((char)03)))

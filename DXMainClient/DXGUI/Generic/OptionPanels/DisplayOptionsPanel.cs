@@ -359,23 +359,23 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
-            if (regKey == null)
-                return;
-
-            object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
-            string tsCompatFixString = (string)tsCompatFixValue;
-
-            if (tsCompatFixString == "Yes")
+            if (regKey != null)
             {
-                GameCompatFixInstalled = true;
-            }
+                object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
+                string tsCompatFixString = (string)tsCompatFixValue;
 
-            object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
-            string fsCompatFixString = (string)fsCompatFixValue;
+                if (tsCompatFixString == "Yes")
+                {
+                    GameCompatFixInstalled = true;
+                }
 
-            if (fsCompatFixString == "Yes")
-            {
-                FinalSunCompatFixInstalled = true;
+                object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
+                string fsCompatFixString = (string)fsCompatFixValue;
+
+                if (fsCompatFixString == "Yes")
+                {
+                    FinalSunCompatFixInstalled = true;
+                }
             }
 
             // These compatibility fixes from 2015 are no longer necessary on modern systems.
