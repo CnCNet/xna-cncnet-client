@@ -46,7 +46,7 @@ namespace ClientGUI.Settings
             set
             {
                 _parentCheckBoxName = value;
-                UpdateParentCheckBox(UIHelpers.FindMatchingChild<XNAClientCheckBox>(Parent, _parentCheckBoxName, false));
+                UpdateParentCheckBox(Parent.FindMatchingChild<XNAClientCheckBox>(_parentCheckBoxName));
             }
         }
 

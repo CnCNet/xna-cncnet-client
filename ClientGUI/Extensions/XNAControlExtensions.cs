@@ -4,9 +4,9 @@ using Rampastring.XNAUI.XNAControls;
 namespace ClientGUI;
 
 /// <summary>
-/// Contains helper methods for UI / UI control-related functionality
+/// Contains extension methods for <see cref="XNAControl"/>.
 /// </summary>
-public static class UIHelpers
+public static class XNAControlExtensions
 {
     /// <summary>
     /// Finds a child control matching a name and optionally a type.
@@ -16,7 +16,7 @@ public static class UIHelpers
     /// <param name="controlName">Name of the child control.</param>
     /// <param name="recursive">Whether or not to look for children recursively.</param>
     /// <returns>Child control matching the given name if found, otherwise type default value.</returns>
-    public static T FindMatchingChild<T>(XNAControl parent, string controlName, bool recursive = false)
+    public static T FindMatchingChild<T>(this XNAControl parent, string controlName, bool recursive = false)
     {
         if (parent == null || string.IsNullOrEmpty(controlName))
             return default;
@@ -29,7 +29,7 @@ public static class UIHelpers
             }
             else if (recursive)
             {
-                var match = FindMatchingChild<T>(child, controlName, recursive);
+                var match = child.FindMatchingChild<T>(controlName, recursive);
 
                 if (match != null && child is T)
                     return match;
@@ -44,7 +44,7 @@ public static class UIHelpers
     /// </summary>
     /// <param name="control">Control to find the parent window for.</param>
     /// <returns>Control's parent window if found, otherwise null</returns>
-    public static XNAControl FindParentWindow(XNAControl control)
+    public static XNAControl FindParentWindow(this XNAControl control)
     {
         if (control == null || control.Parent == null)
             return null;
@@ -52,6 +52,6 @@ public static class UIHelpers
         if (control.Parent is INItializableWindow or XNAWindow)
             return control.Parent;
 
-        return FindParentWindow(control.Parent);
+        return control.Parent.FindParentWindow();
     }
 }
