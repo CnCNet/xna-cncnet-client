@@ -14,6 +14,8 @@ public class CampaignCheckBox : GameSessionCheckBox
 {
     public CampaignCheckBox(WindowManager windowManager) : base (windowManager) { }
     
+    public bool ResetToDefaultOnGameExit { get; private set; }
+
     public override void Initialize()
     {
         // Find the campaign selector that this control belongs to and register ourselves as a game option.
@@ -41,6 +43,10 @@ public class CampaignCheckBox : GameSessionCheckBox
     {
         switch (key)
         {
+            case "ResetToDefaultOnGameExit":
+                ResetToDefaultOnGameExit = Conversions.BooleanFromString(value, false);
+                return;
+
             case "CustomIniPath" when !ClientConfiguration.Instance.CopyMissionsToSpawnmapINI:
                 throw new Exception($"Campaign settings can't affect map code if {nameof(ClientConfiguration.Instance.CopyMissionsToSpawnmapINI)} is disabled!\n\n"
                     + $"Offending setting control: {Name}");

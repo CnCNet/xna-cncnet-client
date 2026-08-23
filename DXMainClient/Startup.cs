@@ -71,6 +71,9 @@ namespace DTAClient
 
             Task.Run(MigrateOldLogFiles);
 
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
+
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
 
             if (updaterFolder.Exists)
@@ -118,17 +121,14 @@ namespace DTAClient
                 }
             }
 
-            FinalSunSettings.WriteFinalSunIni();
+            FinalSunSettings.WriteFinalSunIniAsync();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 WriteInstallPathToRegistry();
 
             ClientConfiguration.Instance.RefreshSettings();
 
-            // Start INI file preprocessor
-            PreprocessorBackgroundTask.Instance.Run();
-
-            GameClass gameClass = new GameClass();
+            using GameClass gameClass = new GameClass();
 
             if (!UserINISettings.Instance.BorderlessWindowedClient)
             {
@@ -154,7 +154,15 @@ namespace DTAClient
             }
 #endif
 
-#if ISWINDOWS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Task.Run(InitSteamworks);
+
+            gameClass.Run();
+        }
+
+        [SupportedOSPlatform("windows")]
+        private void InitSteamworks()
+        {
             if (UserINISettings.Instance.SteamIntegration)
             {
                 try
@@ -181,8 +189,6 @@ namespace DTAClient
                     // Couldn't init for some reason (steam is closed etc)
                 }
             }
-#endif
-            gameClass.Run();
         }
 
         /// <summary>
@@ -447,5 +453,6 @@ namespace DTAClient
                 Logger.Log("Failed to write installation path to the Windows registry");
             }
         }
+
     }
 }

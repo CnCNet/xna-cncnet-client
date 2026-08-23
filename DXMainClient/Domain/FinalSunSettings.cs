@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 using ClientCore;
 using ClientCore.PlatformShim;
@@ -10,7 +11,12 @@ namespace DTAClient.Domain
         /// <summary>
         /// Checks for the existence of the FinalSun settings file and writes it if it doesn't exist.
         /// </summary>
-        public static void WriteFinalSunIni()
+        public static void WriteFinalSunIniAsync()
+        {
+            Task.Run(DoWriteFinalSunIni);
+        }
+
+        private static void DoWriteFinalSunIni()
         {
             // The encoding of the FinalSun/FinalAlert ini file should be legacy ANSI, not Windows-1252 and also not any specific encoding.
             // Otherwise, the map editor will not work in a non-ASCII path. ANSI doesn't mean a specific codepage,

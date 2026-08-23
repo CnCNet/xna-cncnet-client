@@ -1,4 +1,4 @@
-// Copyright 2022-2024 CnCNet
+// Copyright 2022-2025 CnCNet
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ClientUpdater.Compression;
+
 using ClientCore.Extensions;
 
 using Rampastring.Tools;
@@ -151,28 +152,36 @@ public static class Updater
     private static readonly List<UpdaterFileInfo> LocalFileInfos = new();
 
 #if NETFRAMEWORK
-    private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new HttpClientHandler
-    {
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-        SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-            System.Security.Authentication.SslProtocols.Tls11 |
-            System.Security.Authentication.SslProtocols.Tls12 |
-            System.Security.Authentication.SslProtocols.Tls13,
-    });
+    private static readonly Lazy<ProgressMessageHandler> lazySharedProgressMessageHandler = new Lazy<ProgressMessageHandler>(() =>
+        new(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls |
+                System.Security.Authentication.SslProtocols.Tls11 |
+                System.Security.Authentication.SslProtocols.Tls12 |
+                System.Security.Authentication.SslProtocols.Tls13,
+        }), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true);
+    private static readonly Lazy<HttpClient> lazySharedHttpClient = new Lazy<HttpClient>(() =>
+        new(SharedProgressMessageHandler, true), LazyThreadSafetyMode.ExecutionAndPublication);
 #else
-    private static readonly ProgressMessageHandler SharedProgressMessageHandler = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-        AutomaticDecompression = DecompressionMethods.All
-    });
+    private static readonly Lazy<ProgressMessageHandler> lazySharedProgressMessageHandler = new Lazy<ProgressMessageHandler>(() =>
+        new(new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            AutomaticDecompression = DecompressionMethods.All
+        }), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static readonly HttpClient SharedHttpClient = new(SharedProgressMessageHandler, true)
-    {
-        DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-    };
+    private static readonly Lazy<HttpClient> lazySharedHttpClient = new Lazy<HttpClient>(() =>
+      new HttpClient(SharedProgressMessageHandler, true)
+      {
+          DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+      }, LazyThreadSafetyMode.ExecutionAndPublication);
 #endif
+
+    private static readonly ProgressMessageHandler SharedProgressMessageHandler = lazySharedProgressMessageHandler.Value;
+
+    private static readonly HttpClient SharedHttpClient = lazySharedHttpClient.Value;
 
     // Current update / download related.
     private static bool terminateUpdate;
@@ -508,8 +517,10 @@ public static class Updater
 
                     if (values.Length < 2)
                         continue;
-                    if (mirrors.FindIndex(i => i.URL == values[0].Trim()) < 0)
-                        mirrors.Add(new(values[0].Trim(), values[1].Trim(), values.Length > 2 ? values[2].Trim() : string.Empty));
+                    string url = values[0].Trim().TrimEnd('/') + "/";
+
+                    if (mirrors.FindIndex(i => i.URL == url) < 0)
+                        mirrors.Add(new(url, values[1].Trim(), values.Length > 2 ? values[2].Trim() : string.Empty));
                 }
             }
 
@@ -591,7 +602,7 @@ public static class Updater
             if (array.Length < 3)
                 continue;
 
-            string url = array[0].Trim();
+            string url = array[0].Trim().TrimEnd('/') + "/";
             string name = array[1].Trim();
             string location = array[2].Trim();
             updateMirrors.Add(new(url, name, location));

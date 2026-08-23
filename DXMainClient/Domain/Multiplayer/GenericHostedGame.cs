@@ -1,6 +1,8 @@
 ﻿using DTAClient.Domain.Multiplayer.CnCNet;
 using System;
 
+using ClientCore;
+
 namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
@@ -9,7 +11,7 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public abstract class GenericHostedGame: IEquatable<GenericHostedGame>
     {
-        public string RoomName { get; set; }
+        public virtual string RoomName { get; set; }
         public bool Incompatible { get; set; }
         public bool Locked { get; set; }
         public bool IsLoadedGame { get; set; }
@@ -28,7 +30,11 @@ namespace DTAClient.Domain.Multiplayer
 
         public DateTime LastRefreshTime { get; set; }
 
-        public int SkillLevel { get; set; }
+        public int SkillLevel
+        {
+            get => field;
+            set => field = ClientConfiguration.Instance.NormalizeSkillLevel(value);
+        }
 
         public virtual bool Equals(GenericHostedGame other)
             => string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);

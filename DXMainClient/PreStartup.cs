@@ -4,6 +4,7 @@ using System.Windows.Forms;
 #endif
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
@@ -19,6 +20,7 @@ using ClientCore.I18N;
 using System.Globalization;
 using System.Security;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -42,6 +44,9 @@ namespace DTAClient
 
     static class PreStartup
     {
+        private static readonly Stopwatch startupStopwatch = Stopwatch.StartNew();
+        public static TimeSpan StartupElapsed => startupStopwatch.Elapsed;
+
         /// <summary>
         /// Initializes various basic systems like the client's logger, 
         /// constants, and the general exception handler.
@@ -54,6 +59,8 @@ namespace DTAClient
         {
             Translation.InitialUICulture = CultureInfo.CurrentUICulture;
             CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
+
+            IniFile.DisallowDesktopIni = true;
 
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
@@ -184,25 +191,31 @@ namespace DTAClient
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+
             // Delete obsolete files from old target project versions
-
-            gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
-            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
-
-            try
+            Task.Run(() =>
             {
-                gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
-            }
-            catch (Exception ex)
-            {
-                LogException(ex);
+                gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
+                gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
 
-                string error = ("Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again." + "\n\n" +
-                    "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+                try
+                {
+                    gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex);
 
-                MainClientConstants.DisplayErrorAction(null, error, true);
-            }
+                    string error = ("Deleting wsock32.dll failed! Please close any " +
+                        "applications that could be using the file, and then start the client again." + "\n\n" +
+                        "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+
+                    MainClientConstants.DisplayErrorAction(null, error, true);
+                }
+            });
 
             Startup startup = new();
 #if DEBUG
@@ -279,7 +292,7 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
@@ -291,12 +304,7 @@ namespace DTAClient
             DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
             {
-                using var _ = Process.Start(new ProcessStartInfo
-                {
-                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                    Verb = "runas",
-                    UseShellExecute = true,
-                });
+                AdminRestarter.RestartAsAdmin();
             }
 #else
             MainClientConstants.DisplayErrorAction(title, error, true);
