@@ -280,9 +280,9 @@ namespace ClientGUI
 
                     if (!string.IsNullOrWhiteSpace(toggles))
                     {
-                        var controlnames = toggles.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                        var controlNames = toggles.SplitWithCleanup();
 
-                        foreach (var controlName in controlnames)
+                        foreach (var controlName in controlNames)
                         {
                             var toggleControl = FindChild<XNAControl>(controlName, true);
 
