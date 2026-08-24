@@ -252,7 +252,20 @@ namespace ClientGUI
                     bool isDuplicate = !defaultHotkeys.Add(gameCommand.DefaultHotkey);
 
                     if (isDuplicate)
-                        throw new Exception("The default hotkey " + gameCommand.DefaultHotkey.ToString() + " for command " + gameCommand.UIName + " is duplicated with another command's default hotkey. Please make sure all default hotkeys in " + KEYBOARD_COMMANDS_INI + " are unique.");
+                    {
+                        throw new Exception(
+                            string.Format
+                            (
+                                (
+                                    "The default hotkey {0} for command {1} is duplicated with another command's default hotkey." + " " +
+                                    "Please make sure all default hotkeys in file {2} are unique."
+                                ).L10N("Client:DTAConfig:ExceptionDuplicateHotkeys"),
+                                gameCommand.DefaultHotkey.ToString(),
+                                gameCommand.ININame,
+                                KEYBOARD_COMMANDS_INI
+                            )
+                        );
+                    }
                 }
             }
         }
@@ -336,6 +349,13 @@ namespace ClientGUI
                 if (tsHotkey.HasValue)
                 {
                     Hotkey hotkey = new(tsHotkey.Value);
+                    if (command.DisableModifierKeys && hotkey.Modifier != KeyModifiers.None)
+                    {
+                        command.Hotkey = null;
+                        hotkeySection.RemoveKey(command.ININame);
+                        continue;
+                    }
+
                     bool isDuplicate = false;
                     if (hotkey != Hotkey.None)
                         isDuplicate = !assignedHotkeys.Add(hotkey);
@@ -428,6 +448,10 @@ namespace ClientGUI
                 return;
             }
 
+            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            if (command.DisableModifierKeys && pendingHotkey.Modifier != KeyModifiers.None)
+                return;
+
             // If the hotkey is already assigned to other command, unbind it
             if (pendingHotkey != Hotkey.None)
             {
@@ -438,7 +462,6 @@ namespace ClientGUI
                 }
             }
 
-            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             command.Hotkey = pendingHotkey;
             RefreshHotkeyList();
             pendingHotkey = Hotkey.None;
@@ -632,8 +655,27 @@ namespace ClientGUI
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
 
+                DisableModifierKeys = iniSection.GetBooleanValue("DisableModifierKeys", false);
+
                 int? defaultTSKey = iniSection.GetIntValueOrNull("DefaultKey");
                 DefaultHotkey = defaultTSKey.HasValue ? new Hotkey(defaultTSKey.Value) : null;
+
+                if (DefaultHotkey != null && DefaultHotkey != Hotkey.None
+                    && DisableModifierKeys && DefaultHotkey.Modifier != KeyModifiers.None)
+                {
+                    throw new Exception(
+                        string.Format
+                        (
+                            (
+                                "The default hotkey {0} for command '{1}' has modifier keys but DisableModifierKeys is set to true." + " " +
+                                "Please remove the modifier from the default hotkey or set DisableModifierKeys=false in file {2}."
+                            ).L10N("Client:DTAConfig:ExceptionModifierKeysDetected"),
+                            DefaultHotkey,
+                            ININame,
+                            KEYBOARD_COMMANDS_INI
+                        )
+                    );
+                }
 
                 // Note: currently, we treat Hotkey.None as null for default hotkeys, since it doesn't make much sense to have a default hotkey that is explicitly "no hotkey" -- Hotkey.None prevents automatically setting a new hot key via DefaultHotkey from a future update
                 if (DefaultHotkey == Hotkey.None)
@@ -646,6 +688,7 @@ namespace ClientGUI
             public string ININame { get; private set; }
             public Hotkey? Hotkey { get; set; }
             public Hotkey? DefaultHotkey { get; private set; }
+            public bool DisableModifierKeys { get; private set; }
         }
 
         [Flags]

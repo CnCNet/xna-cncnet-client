@@ -749,6 +749,43 @@ The tag name in `ButtonTag_{TagName}` is matched against mission `Tags` values. 
 
 A `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` defines keys that are always written to `spawn.ini` for campaign missions, regardless of UI options. This is separate from the multiplayer `[ForcedSpawnIniOptions]` section. See [GameOptions](#GameOptions).
 
+## KeyboardCommands
+
+The `KeyboardCommands.ini` file defines in-game hotkey commands that the client writes to the game's keyboard INI file, the filename of which is defined as `KeyboardINI` in `[Settings]` section of `ClientDefinitions.ini` file. Each section represents a game command with its default key binding.
+
+The file is located in the `Resources` directory and is read by the Hotkey Configuration window.
+
+In `KeyboardCommands.ini`:
+```ini
+[CommandName]
+UIName=Display name       ; string,  display name for the command in the hotkey configuration UI.
+Category=CategoryName     ; string,  grouping category used in the hotkey configuration UI dropdown.
+Description=Description   ; string,  description text shown in the hotkey configuration UI.
+DefaultKey=0              ; integer, the default TS-encoded key value (low byte = key code, high byte = modifier flags).
+                          ;          Use 0 for commands with no default hotkey.
+DisableModifierKeys=false ; boolean, whether to prevent modifier keys (Ctrl, Shift, Alt) from being combined with this command.
+                          ;          When true, only single keys can be assigned. Defaults to false.
+```
+
+### Command Properties
+
+- **`UIName`** — display name for the command. Supports localization via `INI:Hotkeys:{CommandName}:UIName`.
+- **`Category`** — category used to group commands in the hotkey configuration dropdown. Supports localization via `INI:HotkeyCategories:{Category}`.
+- **`Description`** — description text shown when the command is selected. Supports localization via `INI:Hotkeys:{CommandName}:Description`.
+- **`DefaultKey`** — the default key binding in TS-encoded integer format (`(modifier << 8) + key`). Modifier flags: 0 = None, 1 = Shift, 2 = Ctrl, 4 = Alt. Set to `0` if the command has no default hotkey.
+- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for certain commands that do not support modifier-combined hotkeys.
+
+### Example
+
+```ini
+[PlanningMode]
+UIName=Waypoint Mode
+Category=Interface
+Description=Enable waypoint mode.
+DefaultKey=90
+DisableModifierKeys=true
+```
+
 # Global Config Files
 
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)

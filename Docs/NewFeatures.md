@@ -4,6 +4,10 @@ This document describes optional, non-breaking changes. While not mandatory, ado
 
 Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
+## 2.13.4
+
+- The `KeyboardCommands.ini` file now supports `DisableModifierKeys`. It is recommended to set this key for RA2/YR's `PlanningMode` (Waypoint Mode) command. See [INISystem.md](INISystem.md).
+
 ## 2.13.0
 
 - The client now supports using TTF/OTF font files. See [Fonts.md](Fonts.md) for details.
