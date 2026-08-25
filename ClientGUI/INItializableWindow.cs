@@ -229,7 +229,7 @@ namespace ClientGUI
                 // Handle buttons & checkboxes being able to toggle other controls.
                 if (child is XNAButton || child is XNACheckBox)
                 {
-                    string toggles = childSection.GetStringValue("$Toggles", null);
+                    string toggles = childSection.GetStringValue("$VisibilityToggles", null);
 
                     if (!string.IsNullOrWhiteSpace(toggles))
                     {

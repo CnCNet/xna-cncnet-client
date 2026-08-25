@@ -592,16 +592,16 @@ Dynamic Control Properties CAN use constants.
 These can ONLY be used in parent controls that inherit the `INItializableWindow` class.
 
 ```ini
-$X=10            ; integer, the X location of the control  
-$Y=20            ; integer, the Y location of the control  
-$Width=50        ; integer, the Width of the control  
-$Height=10       ; integer, the Height of the control  
-$TextAnchor=LEFT ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | BOTTOM | VERTICAL_CENTER),
-                 ;          this will set a text anchor in label draw box.
-$Toggles=        ; comma-separated strings, 
-                 ;          list of names of controls to toggle visibility of when 
-				 ;          button is pressed or checkbox is enabled,  only works
-				 ;          for XNAButton/XNACheckBox or derivative types.
+$X=10               ; integer, the X location of the control  
+$Y=20               ; integer, the Y location of the control  
+$Width=50           ; integer, the Width of the control  
+$Height=10          ; integer, the Height of the control  
+$TextAnchor=LEFT    ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | BOTTOM | VERTICAL_CENTER),
+                    ;          this will set a text anchor in label draw box.
+$VisibilityToggles= ; comma-separated strings, 
+                    ;          list of names of controls to toggle visibility of when 
+				    ;          button is pressed or checkbox is enabled,  only works
+				    ;          for XNAButton/XNACheckBox or derivative types.
 ```
 
 ### Dynamic Control Property Examples
