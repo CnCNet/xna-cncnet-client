@@ -239,24 +239,24 @@ namespace ClientGUI
                         {
                             var toggleControl = FindChild<XNAControl>(controlName, optional: true);
 
-                            if (toggleControl is not null)
+                            if (toggleControl is null)
+                                continue;
+
+                            if (child is XNACheckBox checkBox)
                             {
-                                if (child is XNACheckBox checkBox)
+                                checkBox.CheckedChanged += (sender, args) =>
                                 {
-                                    checkBox.CheckedChanged += (sender, args) =>
-                                    {
-                                        toggleControl.Enabled = !toggleControl.Enabled;
-                                        toggleControl.Visible = !toggleControl.Visible;
-                                    };
-                                }
-                                else
+                                    toggleControl.Enabled = !toggleControl.Enabled;
+                                    toggleControl.Visible = !toggleControl.Visible;
+                                };
+                            }
+                            else
+                            {
+                                child.LeftClick += (sender, args) =>
                                 {
-                                    child.LeftClick += (sender, args) =>
-                                    {
-                                        toggleControl.Enabled = !toggleControl.Enabled;
-                                        toggleControl.Visible = !toggleControl.Visible;
-                                    };
-                                }
+                                    toggleControl.Enabled = !toggleControl.Enabled;
+                                    toggleControl.Visible = !toggleControl.Visible;
+                                };
                             }
                         }
                     }
