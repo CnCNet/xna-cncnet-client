@@ -47,7 +47,7 @@ public static class XNAControlExtensions
         /// <typeparam name="T">Type of the child control to find.</typeparam>
         /// <param name="childName">Name of the child control to find.</param>
         /// <param name="comparisonType">The string comparison type to use when matching the prefix.</param>
-        /// <param name="optional">Indicates whether the child control is optional.</param>
+        /// <param name="optional">Indicates whether the child control is optional. On true, the method will return null if the child is not found. On false, the method will throw if the child is not found.</param>
         /// <param name="recursive">Indicates whether to check child controls recursively.</param>
         /// <returns>Child control if found, otherwise type default value.</returns>
         public T? FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
