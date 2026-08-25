@@ -16,6 +16,7 @@ using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -92,6 +93,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected EnhancedSoundEffect sndReturnSound;
 
         protected Texture2D[] PingTextures;
+        protected Texture2D[] NegotiationTextures;
 
         protected TopBar TopBar;
 
@@ -140,6 +142,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AssetLoader.LoadTexture("ping2.png"),
                 AssetLoader.LoadTexture("ping3.png"),
                 AssetLoader.LoadTexture("ping4.png")
+            };
+
+            NegotiationTextures = new Texture2D[2]
+            {
+                AssetLoader.LoadTexture("negotiating.png"),
+                AssetLoader.LoadTexture("negotiation-failed.png")
             };
 
             InitPlayerOptionDropdowns();
@@ -1073,32 +1081,65 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        /// <summary>
+        /// Updates the ping indicator for a player.
+        /// </summary>
+        /// <param name="pInfo">The player to update</param>
         protected virtual void UpdatePlayerPingIndicator(PlayerInfo pInfo)
         {
-            XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
-            ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
-            if (pInfo.Ping < 0)
-                ddPlayerName.ToolTip.Text = "Ping:".L10N("Client:Main:PlayerInfoPing") + " ? " + "ms".L10N("Client:Main:MillisecondsShort");
-            else
-                ddPlayerName.ToolTip.Text = "Ping:".L10N("Client:Main:PlayerInfoPing") + $" {pInfo.Ping} " + "ms".L10N("Client:Main:MillisecondsShort");
+            UpdatePlayerPingIndicator(pInfo, null, null);
         }
 
-        private Texture2D GetTextureForPing(int ping)
+        /// <summary>
+        /// Updates the ping indicator and tooltip for a player, optionally showing negotiation status.
+        /// </summary>
+        /// <param name="pInfo">The player to update</param>
+        /// <param name="negotiationStatus">Optional negotiation status to override ping display</param>
+        /// <param name="tooltipText">Optional custom tooltip text</param>
+        protected virtual void UpdatePlayerPingIndicator(PlayerInfo pInfo,
+            NegotiationStatus? negotiationStatus = null,
+            string? tooltipText = null)
         {
-            switch (ping)
+            XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+
+            Texture2D texture;
+            if (negotiationStatus.HasValue)
             {
-                case int p when (p > 350):
-                    return PingTextures[4];
-                case int p when (p > 250):
-                    return PingTextures[3];
-                case int p when (p > 100):
-                    return PingTextures[2];
-                case int p when (p >= 0):
-                    return PingTextures[1];
-                default:
-                    return PingTextures[0];
+                texture = negotiationStatus.Value switch
+                {
+                    NegotiationStatus.InProgress => NegotiationTextures[0], // negotiating.png
+                    NegotiationStatus.Failed => NegotiationTextures[1],     // negotiation-failed.png
+                    NegotiationStatus.Succeeded => GetTextureForPing(pInfo.Ping), // Show ping icon on success
+                    _ => GetTextureForPing(pInfo.Ping) // NotStarted or unknown
+                };
             }
+            else
+            {
+                texture = GetTextureForPing(pInfo.Ping);
+            }
+
+            ddPlayerName.Items[0].Texture = texture;
+            ddPlayerName.ToolTip.Text = tooltipText ?? ("Ping:".L10N("Client:Main:PlayerInfoPing") + " " + pInfo.Ping.ToString());
         }
+
+        private Texture2D blankPingTexture;
+
+        /// <summary>
+        /// Replaces a player's ping icon with a transparent placeholder of the same size,
+        /// keeping the player's name aligned with rows that do show a ping icon.
+        /// Used for the local player in V3 dynamic mode, where there is no connection
+        /// to yourself to show a ping for.
+        /// </summary>
+        protected void HidePlayerPingIndicator(PlayerInfo pInfo)
+        {
+            blankPingTexture ??= AssetLoader.CreateTexture(Color.Transparent, PingTextures[0].Width, PingTextures[0].Height);
+
+            XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+            ddPlayerName.Items[0].Texture = blankPingTexture;
+            ddPlayerName.ToolTip.Text = string.Empty;
+        }
+
+        private Texture2D GetTextureForPing(PingValue ping) => PingQualityVisuals.GetTexture(PingTextures, ping);
 
         protected abstract void BroadcastPlayerOptions();
 
