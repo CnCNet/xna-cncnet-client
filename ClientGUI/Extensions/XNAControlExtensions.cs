@@ -1,7 +1,11 @@
+#nullable enable
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
 using Rampastring.XNAUI.XNAControls;
 
-namespace ClientGUI;
+namespace ClientGUI.Extensions;
 
 /// <summary>
 /// Contains extension methods for <see cref="XNAControl"/>.
@@ -9,34 +13,85 @@ namespace ClientGUI;
 public static class XNAControlExtensions
 {
     /// <summary>
-    /// Finds a child control matching a name and optionally a type.
+    /// Checks if any child control in the given list matches the specified condition.
     /// </summary>
-    /// <typeparam name="T">Type of the child control to find.</typeparam>
-    /// <param name="parent">Parent control.</param>
-    /// <param name="controlName">Name of the child control.</param>
-    /// <param name="recursive">Whether or not to look for children recursively.</param>
-    /// <returns>Child control matching the given name if found, otherwise type default value.</returns>
-    public static T FindMatchingChild<T>(this XNAControl parent, string controlName, bool recursive = false)
+    /// <param name="list">The list of child controls to check.</param>
+    /// <param name="isTargetControl">The condition to check against each child control.</param>
+    /// <param name="recursive">Indicates whether to check child controls recursively.</param>
+    /// <returns></returns>
+    private static bool AnyChildMatches(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl, bool recursive)
     {
-        if (parent == null || string.IsNullOrEmpty(controlName))
-            return default;
-
-        foreach (var child in parent.Children)
+        foreach (XNAControl child in list)
         {
-            if (controlName.Equals(child.Name, StringComparison.Ordinal) && child is T returnValue)
-            {
-                return returnValue;
-            }
-            else if (recursive)
-            {
-                var match = child.FindMatchingChild<T>(controlName, recursive);
+            bool matched = isTargetControl(child);
 
-                if (match != null && child is T)
-                    return match;
+            if (matched)
+                return true;
+
+            if (recursive)
+            {
+                matched = AnyChildMatches(child.Children, isTargetControl, recursive);
+                if (matched)
+                    return true;
             }
         }
 
-        return default;
+        return false;
+    }
+
+    extension(XNAControl thisControl)
+    {
+        /// <summary>
+        /// Finds a child control by its name.
+        /// </summary>
+        /// <typeparam name="T">Type of the child control to find.</typeparam>
+        /// <param name="childName">Name of the child control to find.</param>
+        /// <param name="comparisonType">The string comparison type to use when matching the prefix.</param>
+        /// <param name="optional">Indicates whether the child control is optional.</param>
+        /// <param name="recursive">Indicates whether to check child controls recursively.</param>
+        /// <returns>Child control if found, otherwise type default value.</returns>
+        public T? FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
+        {
+            XNAControl? result = null;
+
+            AnyChildMatches(new List<XNAControl>() { thisControl }, control =>
+            {
+                if (!childName.Equals(control.Name, comparisonType))
+                    return false;
+
+                result = control;
+                return true;
+            }, recursive: recursive);
+
+            if (result == null && !optional)
+                throw new KeyNotFoundException("Could not find required child control: " + childName);
+
+            return (T?)result;
+        }
+
+        /// <summary>
+        /// Finds all child controls whose names start with the specified prefix.
+        /// </summary>
+        /// <typeparam name="T">The type of the child controls to find.</typeparam>
+        /// <param name="prefix">The prefix to match.</param>
+        /// <param name="comparisonType">The string comparison type to use when matching the prefix.</param>
+        /// <param name="recursive">Indicates whether to check child controls recursively.</param>
+        /// <returns>A list of child controls whose names start with the specified prefix.</returns>
+        public List<T> FindChildrenStartWith<T>(string prefix, StringComparison comparisonType = StringComparison.Ordinal, bool recursive = true) where T : XNAControl
+        {
+            List<T> result = new List<T>();
+
+            AnyChildMatches(new List<XNAControl>() { thisControl }, control =>
+            {
+                if (string.IsNullOrEmpty(prefix) ||
+                    !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix, comparisonType))
+                    result.Add((T)control);
+
+                return false;
+            }, recursive: recursive);
+
+            return result;
+        }
     }
 
     /// <summary>
@@ -44,7 +99,7 @@ public static class XNAControlExtensions
     /// </summary>
     /// <param name="control">Control to find the parent window for.</param>
     /// <returns>Control's parent window if found, otherwise null</returns>
-    public static XNAControl FindParentWindow(this XNAControl control)
+    public static XNAControl? FindParentWindow(this XNAControl control)
     {
         if (control == null || control.Parent == null)
             return null;

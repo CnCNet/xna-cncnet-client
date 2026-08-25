@@ -1,4 +1,7 @@
 ﻿using System;
+
+using ClientGUI.Extensions;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
@@ -46,7 +49,7 @@ namespace ClientGUI.Settings
             set
             {
                 _parentCheckBoxName = value;
-                UpdateParentCheckBox(Parent.FindMatchingChild<XNAClientCheckBox>(_parentCheckBoxName));
+                UpdateParentCheckBox(Parent.FindChild<XNAClientCheckBox>(_parentCheckBoxName, optional: true, recursive: true));
             }
         }
 

@@ -50,40 +50,11 @@ namespace ClientGUI
             return false;
         }
 
-        public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
-        {
-            XNAControl result = null;
+        public T FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChild<T>(this, childName, comparisonType, optional, recursive);
 
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (control.Name != childName)
-                    return false;
-
-                result = control;
-                return true;
-            });
-
-            if (result == null && !optional)
-                throw new KeyNotFoundException("Could not find required child control: " + childName);
-
-            return (T)result;
-        }
-
-        public List<T> FindChildrenStartWith<T>(string prefix) where T : XNAControl
-        {
-            List<T> result = new List<T>();
-
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (string.IsNullOrEmpty(prefix) ||
-                    !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
-                    result.Add((T)control);
-
-                return false;
-            });
-
-            return result;
-        }
+        public List<T> FindChildrenStartWith<T>(string prefix, StringComparison comparisonType = StringComparison.Ordinal, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChildrenStartWith<T>(this, prefix, comparisonType, recursive);
 
         /// <summary>
         /// Attempts to locate the ini config file for the current control.
@@ -284,7 +255,7 @@ namespace ClientGUI
 
                         foreach (var controlName in controlNames)
                         {
-                            var toggleControl = FindChild<XNAControl>(controlName, true);
+                            var toggleControl = FindChild<XNAControl>(controlName, optional: true);
 
                             if (toggleControl is not null)
                             {
