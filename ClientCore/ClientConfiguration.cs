@@ -20,6 +20,8 @@ namespace ClientCore
         private const string LINKS = "Links";
         private const string TRANSLATIONS = "Translations";
         private const string USER_DEFAULTS = "UserDefaults";
+        private const string V3_TUNNEL_NEGOTIATION = "V3TunnelNegotiation";
+        private const string V3_MATCHMAKING = "V3Matchmaking";
 
         public const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         public const string GAME_OPTIONS = "GameOptions.ini";
@@ -503,7 +505,282 @@ namespace ClientCore
 
         public bool DisableDiscordIntegration => networkDefinitionsIni.GetBooleanValue(SETTINGS, "DisableDiscordIntegration", false);
 
+        /// <summary>
+        /// Semicolon-delimited list of additional STUN server hosts to query for P2P endpoint discovery.
+        /// Falls back to official/recommended tunnel addresses if not set.
+        /// </summary>
+        public string P2PStunServers => networkDefinitionsIni.GetStringValue(SETTINGS, "P2PStunServers", string.Empty);
+
         public List<string> IRCServers => GetIRCServers();
+
+        #endregion
+
+        #region V3 tunnel negotiation
+
+        /// <summary>
+        /// How long (ms) the non-decider in a pairwise negotiation keeps sending Connected
+        /// packets to candidate tunnels overall before giving up.
+        /// </summary>
+        public int V3NonDeciderTotalTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "NonDeciderTotalTimeoutMs", 20000);
+
+        /// <summary>
+        /// How long (ms) to wait for a candidate tunnel to answer the Connected handshake before
+        /// treating it as unreachable, when the pair could not agree a shortlist through
+        /// matchmaking. Long, because the two peers begin negotiating off different IRC events and
+        /// can be many seconds apart.
+        /// </summary>
+        public int V3ConnectedPhaseTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "ConnectedPhaseTimeoutMs", 15000);
+
+        /// <summary>
+        /// How long (ms) to wait for the Connected handshake when matchmaking agreed the shortlist.
+        /// Short, because that exchange leaves both peers entering the relay negotiation within
+        /// about a second of each other. This is what an unreachable candidate costs.
+        /// </summary>
+        public int V3ConnectedPhaseTimeoutSyncedMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "ConnectedPhaseTimeoutSyncedMs", 5000);
+
+        /// <summary>
+        /// How long (ms) the decider waits for a candidate tunnel's ping cycle to finish once
+        /// connected. If this elapses first, the tunnel is judged on whatever pings did arrive.
+        /// Must exceed <see cref="V3PingsPerTunnel"/> × <see cref="V3PingTimeoutMs"/>, or a tunnel
+        /// losing packets gets judged on a truncated sample.
+        /// </summary>
+        public int V3DeciderPingPhaseTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "DeciderPingPhaseTimeoutMs", 12000);
+
+        /// <summary>
+        /// Number of pings sent to each candidate relay tunnel during negotiation.
+        /// </summary>
+        public int V3PingsPerTunnel => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "PingsPerTunnel", 10);
+
+        /// <summary>
+        /// Timeout (ms) for a single ping to a candidate relay tunnel before it's considered dropped.
+        /// </summary>
+        public int V3PingTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "PingTimeoutMs", 1000);
+
+        /// <summary>
+        /// Number of pings sent to each candidate direct P2P path during the upgrade round.
+        /// </summary>
+        /// <remarks>
+        /// Fewer than <see cref="V3PingsPerTunnel"/>, since a direct path answers in single-digit
+        /// milliseconds and dead candidates are the common case. Not many fewer, though: the
+        /// packet-loss penalty is a percentage, so the sample count sets how coarsely a direct path
+        /// is judged against the relay it must beat — one lost probe out of four reads as 25% loss
+        /// and outweighs the whole latency advantage of a LAN path, whatever its real quality.
+        /// </remarks>
+        public int V3P2PPingsPerTunnel => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PPingsPerTunnel", 6);
+
+        /// <summary>
+        /// Timeout (ms) for a single ping to a candidate direct P2P path before it's considered dropped.
+        /// </summary>
+        public int V3P2PPingTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PPingTimeoutMs", 1000);
+
+        /// <summary>
+        /// Delay (ms) between the non-decider's repeated Connected packets to a single candidate tunnel.
+        /// </summary>
+        public int V3NonDeciderConnectedIntervalMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "NonDeciderConnectedIntervalMs", 500);
+
+        /// <summary>
+        /// How long (ms) the P2P upgrade round waits for the peer's candidate addresses.
+        /// </summary>
+        public int V3P2PCandidateExchangeTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PCandidateExchangeTimeoutMs", 3000);
+
+        /// <summary>
+        /// How many copies of the local P2P candidate list are sent over the relay during the
+        /// upgrade round.
+        /// </summary>
+        /// <remarks>
+        /// The exchange is unacknowledged and the two directions are independent, so losing every
+        /// copy costs the pair its direct connection for the whole round — the peer gives up
+        /// without punching, and this side then has no direct path that answers. Cheap insurance:
+        /// the payload is six bytes per address.
+        /// </remarks>
+        public int V3P2PCandidateSendCount => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PCandidateSendCount", 3);
+
+        /// <summary>
+        /// Delay (ms) between copies of the local P2P candidate list, so they are not all lost to
+        /// the same burst of congestion.
+        /// </summary>
+        public int V3P2PCandidateSendIntervalMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PCandidateSendIntervalMs", 150);
+
+        /// <summary>
+        /// How long (ms) the non-decider waits for the P2P upgrade tunnel choice before falling back to the relay.
+        /// </summary>
+        public int V3P2PUpgradeNonDeciderTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PUpgradeNonDeciderTimeoutMs", 10000);
+
+        /// <summary>
+        /// How long (ms) the decider waits for the peer to start punching a direct P2P path before falling back to the relay.
+        /// </summary>
+        public int V3P2PUpgradeConnectedTimeoutMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "P2PUpgradeConnectedTimeoutMs", 3000);
+
+        /// <summary>
+        /// Delay (ms) between retries of the decider's TunnelChoice message while waiting for the non-decider's ack.
+        /// </summary>
+        public int V3TunnelChoiceRetryIntervalMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelChoiceRetryIntervalMs", 1000);
+
+        /// <summary>
+        /// How many of the decider's TunnelChoice retries the non-decider stays available to answer
+        /// after its round is already won, expressed as a count of
+        /// <see cref="V3TunnelChoiceRetryIntervalMs"/>. 0 tears down as soon as the ack is sent.
+        /// </summary>
+        /// <remarks>
+        /// The ack is a single unacknowledged datagram, so without this a client that loses it
+        /// takes the decider's whole retry budget with it: the pair is reported as having failed to
+        /// establish the path it actually agreed, and the two sides end up on different tunnels
+        /// without either being able to detect it. Costs nothing but a slightly later teardown —
+        /// the pair already reads as succeeded by then.
+        /// </remarks>
+        public int V3NonDeciderAckLingerRetries => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "NonDeciderAckLingerRetries", 3);
+
+        /// <summary>
+        /// Maximum number of retries for the decider's TunnelChoice message before giving up on the negotiation.
+        /// </summary>
+        public int V3TunnelChoiceMaxRetries => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelChoiceMaxRetries", 10);
+
+        /// <summary>
+        /// Fraction (0-1) of candidate tunnels that must finish their ping cycle before the decider
+        /// picks a winner, rather than waiting for every candidate. 1.0 waits for all of them.
+        /// </summary>
+        /// <remarks>
+        /// Raised now that matchmaking cuts the candidates to a handful; discarding several on
+        /// timing alone throws away the measurement the shortlist exists to inform. Kept below 1.0
+        /// so a single dead candidate cannot hold the round to the ping-phase timeout — at the
+        /// default candidate count this waits for all but one.
+        /// </remarks>
+        public double V3EarlySelectionThreshold => networkDefinitionsIni.GetDoubleValue(V3_TUNNEL_NEGOTIATION, "EarlySelectionThreshold", 0.8);
+
+        /// <summary>
+        /// Ping penalty (ms) applied per percentage point of packet loss when ranking negotiated tunnels/paths.
+        /// </summary>
+        public int V3PacketLossWeight => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "PacketLossWeight", 10);
+
+        /// <summary>
+        /// How often (seconds) the currently-selected tunnel server is pinged in V2/V3 static mode.
+        /// </summary>
+        public double V3CurrentTunnelPingIntervalSeconds => networkDefinitionsIni.GetDoubleValue(V3_TUNNEL_NEGOTIATION, "CurrentTunnelPingIntervalSeconds", 20.0);
+
+        /// <summary>
+        /// Number of ping cycles between automatic refreshes of the full tunnel server list.
+        /// </summary>
+        public uint V3CyclesPerTunnelListRefresh => (uint)networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "CyclesPerTunnelListRefresh", 3);
+
+        /// <summary>
+        /// Ping (ms) above which a tunnel server is considered to be responding badly.
+        /// </summary>
+        public int V3TunnelFailedPingAmountMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelFailedPingAmountMs", 2000);
+
+        /// <summary>
+        /// Number of consecutive bad pings before a tunnel server is reported as failed.
+        /// </summary>
+        public int V3TunnelFailedConsecutivePings => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelFailedConsecutivePings", 2);
+
+        /// <summary>
+        /// How many unanswered ICMP probes in a row a tunnel's last good ping is kept for before
+        /// it reads as unknown. 0 discards the measurement on the first miss.
+        /// </summary>
+        /// <remarks>
+        /// Only one probe is sent per tunnel list refresh, so on a lossy connection a single lost
+        /// datagram would otherwise leave a healthy tunnel unmeasured for a whole refresh
+        /// interval — long enough for matchmaking to drop it from the shortlist and never try it.
+        /// Kept small: a tunnel that has actually gone away should stop advertising a stale
+        /// latency quickly, and tunnel-failure detection reads the raw probe result regardless.
+        /// </remarks>
+        public int V3RetainedPingFailures => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "RetainedPingFailures", 2);
+
+        /// <summary>
+        /// Interval (seconds) between P2P keepalive ping rounds sent to negotiated peers.
+        /// </summary>
+        public double V3KeepAliveIntervalSeconds => networkDefinitionsIni.GetDoubleValue(V3_TUNNEL_NEGOTIATION, "KeepAliveIntervalSeconds", 15.0);
+
+        /// <summary>
+        /// How often (seconds) the keepalive monitor's timer ticks to check for due pings/misses.
+        /// </summary>
+        public double V3KeepAliveTickSeconds => networkDefinitionsIni.GetDoubleValue(V3_TUNNEL_NEGOTIATION, "KeepAliveTickSeconds", 5.0);
+
+        /// <summary>
+        /// Number of consecutive missed keepalive pings before a P2P path is treated as dead.
+        /// </summary>
+        public int V3KeepAliveMaxMisses => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "KeepAliveMaxMisses", 3);
+
+        /// <summary>
+        /// How long (seconds) a P2P probe reply is cached for before it's queried again.
+        /// </summary>
+        public double V3ProbeReplyCacheSeconds => networkDefinitionsIni.GetDoubleValue(V3_TUNNEL_NEGOTIATION, "ProbeReplyCacheSeconds", 5.0);
+
+        #endregion
+
+        #region V3 matchmaking tunnels
+
+        /// <summary>
+        /// Whether the matchmaking phase runs before dynamic-tunnel negotiation. When disabled, or
+        /// when no matchmaking tunnel is reachable, each pair negotiates over its own
+        /// locally-ranked shortlist instead, which works but picks a worse tunnel.
+        /// </summary>
+        public bool V3MatchmakingEnabled => networkDefinitionsIni.GetBooleanValue(V3_MATCHMAKING, "Enabled", true);
+
+        /// <summary>
+        /// Number of relay tunnels the matchmaking phase shortlists for a pair to negotiate over.
+        /// </summary>
+        public int V3MatchmakingCandidateCount => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "CandidateCount", 6);
+
+        /// <summary>
+        /// How many of the shortlist's slots are reserved for tunnels outside the top pick's
+        /// country, rather than being filled by score.
+        /// </summary>
+        /// <remarks>
+        /// Ranking on combined latency alone returns tunnels in the same region, often on the same
+        /// transit, so one bad link can take out every candidate at once. The reserved slot will
+        /// usually lose on latency and never be chosen, so it costs little.
+        /// </remarks>
+        public int V3MatchmakingDiversitySlots => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "DiversitySlots", 1);
+
+        /// <summary>
+        /// Fraction (0-1) of a tunnel's advertised capacity at which it stops being shortlisted,
+        /// so negotiation never steers players onto a server that is about to reject them.
+        /// </summary>
+        public double V3MatchmakingCapacityThreshold => networkDefinitionsIni.GetDoubleValue(V3_MATCHMAKING, "CapacityThreshold", 0.85);
+
+        /// <summary>
+        /// How long (ms) to wait for the peer's tunnel list, and for the decider's shortlist,
+        /// before falling back to a locally-ranked shortlist. Sized to absorb the gap between the
+        /// two peers starting their negotiations, not the round trip itself. The wait ends as soon
+        /// as the exchange completes, so it only costs time when a peer is missing.
+        /// </summary>
+        public int V3MatchmakingExchangeTimeoutMs => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "ExchangeTimeoutMs", 10000);
+
+        /// <summary>
+        /// Delay (ms) between repeats of the tunnel list while waiting for the shortlist. The list
+        /// is sent over every matchmaking server, so a repeat covers the loss of a whole server
+        /// rather than just a datagram.
+        /// </summary>
+        public int V3MatchmakingRetryIntervalMs => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "RetryIntervalMs", 400);
+
+        /// <summary>
+        /// Size of the shortlist each side falls back to when the matchmaking exchange fails.
+        /// Larger than <see cref="V3MatchmakingCandidateCount"/> on purpose: after the
+        /// deterministic slots, the remainder is ranked locally by each side, and the extra
+        /// entries raise the chance those locally ranked halves overlap too.
+        /// </summary>
+        public int V3MatchmakingFallbackCandidateCount => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "FallbackCandidateCount", 8);
+
+        /// <summary>
+        /// How many of the fallback shortlist's slots are filled deterministically from the
+        /// pair's player IDs rather than by local ranking. Both peers compute the same slots
+        /// without communicating, so a pair whose locally ranked lists share nothing (e.g. South
+        /// America vs South Africa) still holds candidates in common. 0 restores a purely local
+        /// ranking, which can leave such a pair with no mutual tunnel at all.
+        /// </summary>
+        public int V3MatchmakingFallbackDeterministicSlots => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "FallbackDeterministicSlots", 4);
+
+        /// <summary>
+        /// How many negotiations in a row may test a tunnel without a single packet arriving
+        /// through it before it is ranked below tunnels that have not failed. 0 ranks on latency
+        /// alone.
+        /// </summary>
+        /// <remarks>
+        /// A tunnel that answers ICMP but drops UDP looks ideal to a latency ranking, then wastes a
+        /// candidate slot and the entire connect budget. Demoted rather than excluded: it is still
+        /// shortlisted when too few others exist, and one success clears the count.
+        /// </remarks>
+        public int V3MatchmakingHandshakeFailureThreshold => networkDefinitionsIni.GetIntValue(V3_MATCHMAKING, "HandshakeFailureThreshold", 2);
 
         #endregion
 

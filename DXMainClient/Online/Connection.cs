@@ -1041,6 +1041,7 @@ namespace DTAClient.Online
                     case QueuedMessageType.GAME_HOSTING_MESSAGE:
                     case QueuedMessageType.WHOIS_MESSAGE:
                     case QueuedMessageType.GAME_CHEATER_MESSAGE:
+                    case QueuedMessageType.GAME_NEGOTIATION_MESSAGE:
                         AddSpecialQueuedMessage(qm);
                         break;
                     case QueuedMessageType.INSTANT_MESSAGE:

@@ -165,6 +165,9 @@ namespace ClientCore
             MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
             SearchAllGameModes = new BoolSetting(iniFile, MULTIPLAYER, "SearchAllGameModes", false);
 
+            TunnelMode = new IntSetting(iniFile, MULTIPLAYER, "TunnelMode", 1);
+            EnableP2P = new BoolSetting(iniFile, MULTIPLAYER, "EnableP2P", false);
+
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
             PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
@@ -264,6 +267,9 @@ namespace ClientCore
         public BoolSetting DiscordIntegration { get; private set; }
         public BoolSetting SteamIntegration { get; private set; }
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
+
+        public IntSetting TunnelMode { get; private set; }
+        public BoolSetting EnableP2P { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
 

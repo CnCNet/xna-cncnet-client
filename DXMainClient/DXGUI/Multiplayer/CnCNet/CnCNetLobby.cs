@@ -787,6 +787,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
         {
+            isJoiningGame = false;
             topBar.SwitchToSecondary();
             isInGameRoom = false;
             SetLogOutButtonText();
@@ -797,6 +798,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
         {
+            isJoiningGame = false;
             topBar.SwitchToSecondary();
             isInGameRoom = false;
             SetLogOutButtonText();
@@ -1262,6 +1264,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCheckCancellation = new CancellationTokenSource();
             CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
+
+            if (UserINISettings.Instance.EnableP2P)
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Orange, Renderer.GetSafeString(
+                    ("Direct P2P connections are enabled. Your IP address may be shared with other " +
+                     "players when a P2P connection is used in a match. You can change this in Options.")
+                        .L10N("Client:Main:P2PEnabledOnlineNotice"),
+                    lbChatMessages.FontIndex)));
+            }
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1595,9 +1606,49 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                bool isDynamicTunnels = splitMessage[9] == "[DYN]";
+                CnCNetTunnel tunnel = null;
+                if (!isDynamicTunnels)
+                {
+                    if (tunnelHandler.Tunnels.Count == 0)
+                    {
+                        Logger.Log("Ignoring CTCP game message because there are no tunnels at all. Available tunnel count: 0. Is the connection to CnCNet HTTP service broken?");
+
+                        if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelMessageShown)
+                        {
+                            ctcpNoTunnelMessageShown = true;
+                            string message = ("There are no games listed. The client did receive a valid game message but can't add it to the list because there are no available tunnels. " +
+                                "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.").L10N("Client:Main:NoTunnels");
+
+                            lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
+                        }
+
+                        return;
+                    }
+
+                    string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                    string tunnelAddress = tunnelAddressAndPort[0];
+                    int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                    tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+
+                    if (tunnel == null)
+                    {
+                        Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {0}:{1} is not available. Available tunnel count: {2}",
+                            tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
+
+                        if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelForGamesMessageShown)
+                        {
+                            ctcpNoTunnelForGamesMessageShown = true;
+
+                            string message = string.Format(("There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
+                                "You can ignore this prompt if there are games listed later. Otherwise, please contact support at {0}.").L10N("Client:Main:NoTunnelForGames"), ClientConfiguration.Instance.LongSupportURL);
+
+                            lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
+                        }
+
+                        return;
+                    }
+                }
 
                 string loadedGameId = splitMessage[10];
                 int skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(
@@ -1653,48 +1704,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (cncnetGame == null)
                     return;
 
-                // Find the tunnel server specified in the game message
-
-                if (tunnelHandler.Tunnels.Count == 0)
-                {
-                    Logger.Log("Ignoring CTCP game message because there are no tunnels at all. Available tunnel count: 0. Is the connection to CnCNet HTTP service broken?");
-
-                    // Remind users that the game is ignored because of no tunnel
-                    if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelMessageShown)
-                    {
-                        ctcpNoTunnelMessageShown = true;
-                        string message = ("There are no games listed. The client did receive a valid game message but can't add it to the list because there are no available tunnels. " +
-                            "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.").L10N("Client:Main:NoTunnels");
-
-                        lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
-                    }
-
-                    return;
-                }
-
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                {
-                    Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {0}:{1} is not available. Available tunnel count: {2}",
-                        tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
-
-                    // Remind users that the game is ignored because of no specified tunnel
-                    if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelForGamesMessageShown)
-                    {
-                        ctcpNoTunnelForGamesMessageShown = true;
-
-                        string message = string.Format(("There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
-                            "You can ignore this prompt if there are games listed later. Otherwise, please contact support at {0}.").L10N("Client:Main:NoTunnelForGames"), ClientConfiguration.Instance.LongSupportURL);
-
-                        lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
-                    }
-
-                    return;
-                }
-
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
+                    gameRoomDisplayName, isCustomPassword, !isDynamicTunnels, players,
                     e.UserName, mapName, gameMode, mapHash);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
