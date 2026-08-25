@@ -49,7 +49,7 @@ namespace ClientGUI.Settings
             set
             {
                 _parentCheckBoxName = value;
-                UpdateParentCheckBox(Parent.FindChild<XNAClientCheckBox>(_parentCheckBoxName, optional: true, recursive: true));
+                UpdateParentCheckBox(Parent.FindChild<XNAClientCheckBox>(_parentCheckBoxName, optional: true, recursive: false));
             }
         }
 
