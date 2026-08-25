@@ -32,24 +32,6 @@ namespace ClientGUI
         /// </summary>
         protected string IniNameOverride { get; set; }
 
-        private static bool AnyChildMatches(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
-        {
-            foreach (XNAControl child in list)
-            {
-                bool matched = isTargetControl(child);
-
-                if (matched)
-                    return true;
-
-                matched = AnyChildMatches(child.Children, isTargetControl);
-
-                if (matched)
-                    return true;
-            }
-
-            return false;
-        }
-
         public T FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
             => ClientGUI.Extensions.XNAControlExtensions.FindChild<T>(this, childName, comparisonType, optional, recursive);
 
