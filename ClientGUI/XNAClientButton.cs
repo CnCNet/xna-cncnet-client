@@ -1,6 +1,8 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
+using System;
+using ClientCore;
 using ClientCore.Extensions;
 
 namespace ClientGUI
