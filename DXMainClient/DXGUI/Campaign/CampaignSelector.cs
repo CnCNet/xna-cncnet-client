@@ -506,17 +506,7 @@ namespace DTAClient.DXGUI.Campaign
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini
-
-            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
-
-            if (forcedKeys != null)
-            {
-                foreach (string key in forcedKeys)
-                {
-                    spawnIni.SetStringValue("Settings", key,
-                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
-                }
-            }
+            ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
 
             spawnIni.WriteIniFile();
 
@@ -550,6 +540,20 @@ namespace DTAClient.DXGUI.Campaign
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
+        }
+
+        public static void ApplyCampaignForcedSpawnIniOptions(IniFile spawnIni, IniFile gameOptionsIni)
+        {
+            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
+
+            if (forcedKeys != null)
+            {
+                foreach (string key in forcedKeys)
+                {
+                    spawnIni.SetStringValue("Settings", key,
+                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, string.Empty));
+                }
+            }
         }
 
         public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
