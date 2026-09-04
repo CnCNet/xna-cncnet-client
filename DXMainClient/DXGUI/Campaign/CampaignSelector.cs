@@ -686,7 +686,8 @@ namespace DTAClient.DXGUI.Campaign
 
         private void ReadMissionList()
         {
-            ParseBattleIni("INI/Battle.ini");
+            if (!ClientConfiguration.Instance.IgnoreBattleIni)
+                ParseBattleIni("INI/Battle.ini");
 
             if (AllMissions.Count == 0)
                 ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);

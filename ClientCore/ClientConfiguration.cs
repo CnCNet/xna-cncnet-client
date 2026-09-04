@@ -246,6 +246,8 @@ namespace ClientCore
 
         public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
+        public bool IgnoreBattleIni => clientDefinitionsIni.GetBooleanValue(SETTINGS, "IgnoreBattleIni", false);
+
         public string MapEditorExePath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", SafePath.CombineFilePath("FinalSun", "FinalSun.exe")));
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
