@@ -107,6 +107,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private TcpListener listener;
         private TcpClient client;
+        private readonly ManualResetEventSlim listenerReady = new(false);
         private volatile bool leaving;
         private int sessionId;
 
@@ -149,8 +150,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (isHost)
             {
                 RandomSeed = random.Next();
+                listenerReady.Reset();
+
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
+
+                if (!listenerReady.Wait(TimeSpan.FromSeconds(5)))
+                    throw new TimeoutException("LAN listener did not start within 5 seconds.");
 
                 this.client = new TcpClient();
                 this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
@@ -194,6 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
             listener.Start();
+            listenerReady.Set();
 
             while (true)
             {
