@@ -686,7 +686,9 @@ namespace DTAClient.DXGUI.Campaign
 
         private void ReadMissionList()
         {
-            if (!ClientConfiguration.Instance.IgnoreBattleIni)
+            Debug.Assert(AllMissions.Count == 0 && UniqueIDToMissions.Count == 0, "AllMissions and UniqueIDToMissions should be empty when ReadMissionList() is called. We didn't handle reloading missions yet.");
+
+            if (!ClientConfiguration.Instance.IgnoreBattleIni && AllMissions.Count == 0)
                 ParseBattleIni("INI/Battle.ini");
 
             if (AllMissions.Count == 0)
