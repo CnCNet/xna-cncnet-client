@@ -1700,6 +1700,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
             settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
             settings.SetStringValue("UIMapName", Map.UntranslatedName);
+            settings.SetStringValue("GameClientVersion", ReplayManager.GameClientVersion);
 
             // needed for translation in game loading lobbies
             if (Map.Official)
@@ -1839,6 +1840,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.SetStringValue("Settings", "MapSHA1", Map.SHA1);
             string packedGameOptionValues = GetPackedGameOptionValuesString();
             spawnIni.SetStringValue("Settings", "BroadcastedGameOptionValues", packedGameOptionValues);
+
+            ReplayManager.PrepareRecording(spawnIni, Map.UntranslatedName);
 
             spawnIni.WriteIniFile();
 
@@ -2217,6 +2220,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             UpdateDiscordPresence(true);
+
+            ReplayManager.Prune();
         }
 
         /// <summary>
