@@ -90,6 +90,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public List<GameLobbyCheckBox> CheckBoxes { get; } = new();
         public List<GameLobbyDropDown> DropDowns { get; } = new();
 
+        /// <summary>Lobby options that are not broadcast to other players.</summary>
+        public List<LocalGameLobbyCheckBox> LocalCheckBoxes { get; } = new();
+
+        /// <summary>Lobby options that are not broadcast to other players.</summary>
+        public List<LocalGameLobbyDropDown> LocalDropDowns { get; } = new();
+
         public List<IGameSessionSetting> GetBroadcastableSettings()
         {
             var result = new List<IGameSessionSetting>();
@@ -1717,7 +1723,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
                 chkBox.ApplySpawnIniCode(spawnIni);
 
+            foreach (LocalGameLobbyCheckBox chkBox in LocalCheckBoxes)
+                chkBox.ApplySpawnIniCode(spawnIni);
+
             foreach (GameLobbyDropDown dd in DropDowns)
+                dd.ApplySpawnIniCode(spawnIni);
+
+            foreach (LocalGameLobbyDropDown dd in LocalDropDowns)
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini

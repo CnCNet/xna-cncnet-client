@@ -1,5 +1,6 @@
 ﻿using System;
 
+using ClientCore;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 
@@ -79,6 +80,45 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
     /// </summary>
     public int SortOrder { get; private set; } = DEFAULT_SORT_ORDER;
 
+    /// <summary>Optional key used to persist this option in [LocalGameOptions].</summary>
+    public string UserSettingKey { get; private set; } = string.Empty;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        LoadPersistedValue();
+        SelectedIndexChanged += (_, _) => PersistValue();
+    }
+
+    /// <summary>Set while a stored value is being restored, which must not save it back.</summary>
+    private bool restoringValue;
+
+    private void PersistValue()
+    {
+        if (restoringValue || string.IsNullOrWhiteSpace(UserSettingKey))
+            return;
+
+        UserINISettings.Instance.SetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, SelectedIndex);
+        UserINISettings.Instance.SaveSettings();
+    }
+
+    private void LoadPersistedValue()
+    {
+        if (string.IsNullOrWhiteSpace(UserSettingKey))
+            return;
+
+        try
+        {
+            restoringValue = true;
+            SelectedIndex = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, SelectedIndex);
+        }
+        finally
+        {
+            restoringValue = false;
+        }
+    }
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         // shorthand for localization function
@@ -148,6 +188,9 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
                 return;
             case "SortOrder":
                 SortOrder = int.Parse(value);
+                return;
+            case "UserSettingKey":
+                UserSettingKey = value;
                 return;
         }
 
