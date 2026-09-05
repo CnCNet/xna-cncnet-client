@@ -1,5 +1,7 @@
 ﻿using System;
 
+using ClientCore;
+
 using ClientGUI;
 
 using DTAClient.Domain.Multiplayer;
@@ -113,10 +115,44 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     /// </summary>
     public int SortOrder { get; private set; } = DEFAULT_SORT_ORDER;
 
+    /// <summary>Optional key used to persist this option in [LocalGameOptions].</summary>
+    public string UserSettingKey { get; private set; } = string.Empty;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        LoadPersistedValue();
+        CheckedChanged += (_, _) => PersistValue();
+    }
+
+    /// <summary>Set while a stored value is being restored, which must not save it back.</summary>
+    private bool restoringValue;
+
+    private void PersistValue()
+    {
+        if (restoringValue || string.IsNullOrWhiteSpace(UserSettingKey))
+            return;
+
+        UserINISettings.Instance.SetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, Checked);
+        UserINISettings.Instance.SaveSettings();
+    }
+
+    private void LoadPersistedValue()
+    {
+        if (string.IsNullOrWhiteSpace(UserSettingKey))
+            return;
+
+        Checked = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, Checked);
+    }
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         switch (key)
         {
+            case "UserSettingKey":
+                UserSettingKey = value;
+                return;
             case "SpawnIniOption":
                 spawnIniOption = value;
                 return;
@@ -134,7 +170,20 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
                 return;
             case "Checked":
                 bool checkedValue = Conversions.BooleanFromString(value, false);
-                DefaultChecked = Checked = checkedValue;
+                DefaultChecked = checkedValue;
+
+                try
+                {
+                    restoringValue = true;
+                    Checked = string.IsNullOrWhiteSpace(UserSettingKey)
+                        ? checkedValue
+                        : UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, checkedValue);
+                }
+                finally
+                {
+                    restoringValue = false;
+                }
+
                 return;
             case "MapScoringMode":
                 mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
