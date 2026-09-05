@@ -871,6 +871,8 @@ AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
                                            ; Official maps are not affected by this filter.
 ```
 
+The options window always has a `Storage` tab, where the player caps how many old client log files are kept and how large they may grow in total (see Issue [#1021](https://github.com/CnCNet/xna-cncnet-client/issues/1021)).
+
 ## Game Modes
 
 Game modes are defined in the `[GameModes]` section of `MPMaps.ini`. Each game mode can have its own configuration section with the same name.

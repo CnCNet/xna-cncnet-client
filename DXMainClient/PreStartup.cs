@@ -80,13 +80,7 @@ namespace DTAClient
             ProgramConstants.LogFileName = clientLogFile.FullName;
 
             if (clientLogFile.Exists)
-            {
-                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
-                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
-                if (clientPrevLogFile.Exists)
-                    File.Delete(clientPrevLogFile.FullName);
-                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
-            }
+                RotateLogFiles(clientUserFilesDirectory, clientLogFile);
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -283,6 +277,91 @@ namespace DTAClient
                 MainClientConstants.SUPPORT_URL_SHORT);
 
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
+        }
+
+        private const int DEFAULT_MAX_KEPT_LOG_FILES = 5;
+        private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;
+        private const string LOG_BACKUP_SEARCH_PATTERN = "client_*.log";
+
+        /// <summary>
+        /// Renames the previous client.log to a timestamped backup and prunes old backups
+        /// down to the configured count/size limits. Settings are read directly from the
+        /// settings INI since UserINISettings is not initialized yet.
+        /// </summary>
+        private static void RotateLogFiles(DirectoryInfo clientUserFilesDirectory, FileInfo clientLogFile)
+        {
+            (int maxKeptLogFiles, long maxFolderSizeBytes) = ReadLogRetentionSettings();
+
+            FileInfo backupFile = SafePath.GetFile(clientUserFilesDirectory.FullName,
+                $"client_{DateTime.Now:yyyyMMdd_HHmmss_fff}.log");
+
+            try
+            {
+                if (backupFile.Exists)
+                    backupFile.Delete();
+
+                File.Move(clientLogFile.FullName, backupFile.FullName);
+            }
+            catch
+            {
+                return;
+            }
+
+            List<FileInfo> backups = clientUserFilesDirectory
+                .EnumerateFiles(LOG_BACKUP_SEARCH_PATTERN)
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .ToList();
+
+            if (maxKeptLogFiles > 0)
+            {
+                foreach (FileInfo old in backups.Skip(maxKeptLogFiles))
+                    TryDeleteFile(old);
+
+                backups = backups.Take(maxKeptLogFiles).ToList();
+            }
+
+            if (maxFolderSizeBytes > 0)
+            {
+                long totalSize = backups.Sum(f => f.Length);
+                for (int i = backups.Count - 1; i >= 0 && totalSize > maxFolderSizeBytes; i--)
+                {
+                    totalSize -= backups[i].Length;
+                    TryDeleteFile(backups[i]);
+                }
+            }
+        }
+
+        private static void TryDeleteFile(FileInfo file)
+        {
+            try
+            {
+                file.Delete();
+            }
+            catch
+            {
+                // Ignored - the file will simply be considered again on the next startup.
+            }
+        }
+
+        private static (int maxKeptLogFiles, long maxFolderSizeBytes) ReadLogRetentionSettings()
+        {
+            try
+            {
+                FileInfo settingsFile = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.SettingsIniName);
+                if (settingsFile.Exists)
+                {
+                    var settingsIni = new IniFile(settingsFile.FullName);
+                    int maxKeptLogFiles = settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES);
+                    int maxFolderSizeMB = settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB);
+                    return (maxKeptLogFiles, maxFolderSizeMB * 1024L * 1024L);
+                }
+            }
+            catch
+            {
+                // Fall through to defaults.
+            }
+
+            return (DEFAULT_MAX_KEPT_LOG_FILES, DEFAULT_MAX_LOG_FOLDER_SIZE_MB * 1024L * 1024L);
         }
 
         [SupportedOSPlatform("windows")]
