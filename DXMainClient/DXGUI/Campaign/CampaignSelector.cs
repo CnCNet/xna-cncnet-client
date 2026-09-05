@@ -476,12 +476,14 @@ namespace DTAClient.DXGUI.Campaign
                 case ClientType.TS:
                     spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
                     break;
-                // TODO figure out the RA one
+                    // TODO figure out the RA one
             }
 
             spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
 
             spawnIniSettings.AddKey("IsSinglePlayer", "Yes");
+            // Campaign maps may not contain a display name.
+            spawnIniSettings.AddKey("UIMapName", mission.UntranslatedGUIName);
             spawnIniSettings.AddKey("SidebarHack", ClientConfiguration.Instance.SidebarHack.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("Side", mission.Side.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("BuildOffAlly", mission.BuildOffAlly.ToString(CultureInfo.InvariantCulture));
@@ -507,6 +509,8 @@ namespace DTAClient.DXGUI.Campaign
 
             // Apply forced options from GameOptions.ini
             ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
+
+            ReplayManager.PrepareRecording(spawnIni, mission.UntranslatedGUIName);
 
             spawnIni.WriteIniFile();
 
@@ -651,6 +655,8 @@ namespace DTAClient.DXGUI.Campaign
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
             CustomMissionHelper.DeleteSupplementalMissionFiles();
+
+            ReplayManager.Prune();
 
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
             discordHandler.UpdatePresence();

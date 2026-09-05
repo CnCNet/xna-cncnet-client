@@ -450,6 +450,15 @@ namespace ClientCore
 
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
+        /// <summary>Enables replay recording and playback for compatible game packages.</summary>
+        public bool ReplaySupport => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ReplaySupport", false);
+
+        /// <summary>Replay directory relative to the game directory.</summary>
+        public string ReplaysDirectory => clientDefinitionsIni.GetStringValue(SETTINGS, "ReplaysDirectory", "Replays");
+
+        /// <summary>Replay file extension without a leading dot.</summary>
+        public string ReplayFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "ReplayFileExtension", "yrrp");
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
