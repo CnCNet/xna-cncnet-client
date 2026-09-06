@@ -1056,7 +1056,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 base.CopyPlayerDataFromUI(sender, e);
                 BroadcastPlayerOptions();
-                CheckAutoStartGame();
                 return;
             }
 
