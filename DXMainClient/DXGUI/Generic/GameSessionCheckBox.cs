@@ -38,7 +38,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
 {
     private const int DEFAULT_SORT_ORDER = 0;
 
-    public GameSessionCheckBox(WindowManager windowManager) : base (windowManager) { }
+    public GameSessionCheckBox(WindowManager windowManager) : base(windowManager) { }
 
     public bool AllowChanges { get; set; } = true;
 
@@ -126,7 +126,23 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
         CheckedChanged += (_, _) => PersistValue();
     }
 
-    /// <summary>Set while a stored value is being restored, which must not save it back.</summary>
+    public override void GetAttributes(IniFile iniFile)
+    {
+        // Campaign windows load attributes after Initialize; lobbies load them before it.
+        // Restore only after the whole section is read, so UserSettingKey can appear anywhere.
+        try
+        {
+            restoringValue = true;
+            base.GetAttributes(iniFile);
+            LoadPersistedValue();
+        }
+        finally
+        {
+            restoringValue = false;
+        }
+    }
+
+    /// <summary>Suppresses persistence while INI defaults or stored preferences are being loaded.</summary>
     private bool restoringValue;
 
     private void PersistValue()
@@ -169,21 +185,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
                 reversed = Conversions.BooleanFromString(value, false);
                 return;
             case "Checked":
-                bool checkedValue = Conversions.BooleanFromString(value, false);
-                DefaultChecked = checkedValue;
-
-                try
-                {
-                    restoringValue = true;
-                    Checked = string.IsNullOrWhiteSpace(UserSettingKey)
-                        ? checkedValue
-                        : UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, checkedValue);
-                }
-                finally
-                {
-                    restoringValue = false;
-                }
-
+                DefaultChecked = Checked = Conversions.BooleanFromString(value, false);
                 return;
             case "MapScoringMode":
                 mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -242,7 +244,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
 
         spawnIni.SetStringValue("Settings", spawnIniOption, value);
     }
-        
+
     public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
     {
         if (!AffectsMapCode || Checked == reversed)
@@ -256,7 +258,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
         // FIXME there's a discrepancy with how base XNAUI handles this
         // it doesn't set handled if changing the setting is not allowed
         inputEventArgs.Handled = true;
-            
+
         if (!AllowChanges)
             return;
 

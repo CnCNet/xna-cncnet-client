@@ -91,7 +91,23 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         SelectedIndexChanged += (_, _) => PersistValue();
     }
 
-    /// <summary>Set while a stored value is being restored, which must not save it back.</summary>
+    public override void GetAttributes(IniFile iniFile)
+    {
+        // Campaign windows load attributes after Initialize; lobbies load them before it.
+        // Restore only after the whole section is read, so UserSettingKey can appear anywhere.
+        try
+        {
+            restoringValue = true;
+            base.GetAttributes(iniFile);
+            LoadPersistedValue();
+        }
+        finally
+        {
+            restoringValue = false;
+        }
+    }
+
+    /// <summary>Suppresses persistence while INI defaults or stored preferences are being loaded.</summary>
     private bool restoringValue;
 
     private void PersistValue()
@@ -108,15 +124,11 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         if (string.IsNullOrWhiteSpace(UserSettingKey))
             return;
 
-        try
-        {
-            restoringValue = true;
-            SelectedIndex = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, SelectedIndex);
-        }
-        finally
-        {
-            restoringValue = false;
-        }
+        int storedIndex = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, SelectedIndex);
+
+        // A package update may have removed the remembered item. Keep the INI default in that case.
+        if (storedIndex >= 0 && storedIndex < Items.Count)
+            SelectedIndex = storedIndex;
     }
 
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
@@ -244,7 +256,7 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         // FIXME there's a discrepancy with how base XNAUI handles this
         // it doesn't set handled if changing the setting is not allowed
         inputEventArgs.Handled = true;
-            
+
         if (!AllowDropDown)
             return;
 
