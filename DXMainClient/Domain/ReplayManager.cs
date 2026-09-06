@@ -278,7 +278,7 @@ public static class ReplayManager
 
         foreach (char character in name)
         {
-            if (!invalidFileNameChars.Contains(character))
+            if (character <= '~' && !invalidFileNameChars.Contains(character))
                 builder.Append(character);
         }
 
