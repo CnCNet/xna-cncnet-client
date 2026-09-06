@@ -288,6 +288,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UserINISettings.Instance.StopGameLobbyMessageAudio)
                 sndMessageSound.Enabled = false;
 
+            if (chkAutoLaunch != null)
+                chkAutoLaunch.Checked = false;
+
             base.StartGame();
         }
 
@@ -429,7 +432,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         /// <summary>
         /// Automatically starts the game if the host has enabled auto-launch,
-        /// the room is full and all players are ready.
+        /// the room is locked and full, and all players are ready.
         /// Auto-launch is one-shot: it disarms itself before attempting the launch,
         /// so a failed launch attempt or a finished match requires the host
         /// to enable it again for another attempt.
@@ -445,11 +448,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Players.Count + AIPlayers.Count < MaxPlayerCount)
                 return;
 
-            if (Players.Exists(p => !p.Ready))
+            if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
                 return;
 
             if (!Locked)
-                LockGame();
+                return;
 
             chkAutoLaunch.Checked = false;
 
@@ -461,9 +464,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (chkAutoLaunch == null)
                 return;
 
-            chkAutoLaunch.CheckedChanged -= ChkAutoLaunch_CheckedChanged;
             chkAutoLaunch.Checked = false;
-            chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
 
             if (IsHost && SupportsAutoLaunch)
                 chkAutoLaunch.Enable();

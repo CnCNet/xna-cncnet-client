@@ -366,6 +366,29 @@ Some controls are only available under specific circumstances.
 FontIndex=0
 ```
 
+#### MultiplayerGameLobby Controls
+
+Following controls are only available as children of `MultiplayerGameLobby` and derived controls.
+
+##### chkAutoLaunch
+
+_(type [XNAClientCheckBox](#XNAClientCheckBox), optional)_
+
+Host-only "Auto Launch" checkbox for the CnCNet game lobby. When the host enables it, the game launches automatically once the room is locked and full (humans and AI players combined have reached the game's maximum player count) and all players are ready, going through the same validation as a manual "Launch Game" click. The checkbox disarms itself on each launch attempt and whenever a game starts, so the host must enable it again for another automatic launch. The control is optional: themes that do not declare it simply do not expose the feature. It is hidden in LAN lobbies, which have no configurable player limit.
+
+To enable the feature, declare the control in the `[MultiplayerGameLobby]` section of `MultiplayerGameLobby.ini` (the number may vary depending on your configuration) and add a section for it. `chkAutoLaunch` is only shown to the host while `chkAutoReady` is only shown to other players, so the two controls may share a position:
+
+```ini
+[MultiplayerGameLobby]
+$CCMP08=chkAutoLaunch:XNAClientCheckBox
+
+[chkAutoLaunch]
+Text=Auto Launch
+ToolTip=Automatically launch the game when the room is full and all players are ready.
+$X=getX(chkAutoReady)
+$Y=getY(chkAutoReady)
+```
+
 #### GameLobbyBase Controls
 
 Following controls are only available as children of `GameLobbyBase` and derived controls.
