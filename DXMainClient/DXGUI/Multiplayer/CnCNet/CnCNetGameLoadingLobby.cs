@@ -765,6 +765,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 started = true;
                 LoadGame();
             }
+            else if (!_negotiator.TryReserveGamePort())
+            {
+                AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), Color.Red);
+            }
             else if (_tunnelMode == TunnelMode.V3Dynamic && Players.Count > 1)
             {
                 // Double-check everyone is still reachable before STARTV3 goes out over IRC —
@@ -970,7 +974,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void StartV3Game()
         {
             if (!_negotiator.StartGameBridge())
+            {
+                AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), Color.Red);
                 return;
+            }
 
             LoadGame();
         }

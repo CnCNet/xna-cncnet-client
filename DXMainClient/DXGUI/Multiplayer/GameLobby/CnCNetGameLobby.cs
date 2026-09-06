@@ -1182,6 +1182,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     SendStartV2ToPlayers(playerPorts);
                 }
+                else if (!_negotiator.TryReserveGamePort())
+                {
+                    AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), ERROR_MESSAGE_COLOR);
+                    return;
+                }
                 else if (_tunnelMode == TunnelMode.V3Dynamic)
                 {
                     // Double-check everyone is still reachable before STARTV3 goes out over
@@ -2373,7 +2378,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 if (!_negotiator.StartGameBridge())
+                {
+                    AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), ERROR_MESSAGE_COLOR);
                     return;
+                }
             }
 
             channel.SendCTCPMessage("STRTD", QueuedMessageType.SYSTEM_MESSAGE, 20);

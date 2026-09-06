@@ -903,8 +903,25 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
+    /// Reserves this client's local game-relay UDP socket.
+    /// </summary>
+    public bool TryReserveGamePort()
+    {
+        try
+        {
+            tunnelHandler.ReserveLocalGamePort();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"V3TunnelNegotiationManager: Failed to reserve a local game port: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Starts the in-game tunnel bridge for the local player. Returns false if the local
-    /// player's V3 info could not be found.
+    /// player's V3 info could not be found or the local game port could not be reserved.
     /// </summary>
     public bool StartGameBridge()
     {
@@ -915,15 +932,8 @@ public class V3TunnelNegotiationManager
             return false;
         }
 
-        try
-        {
-            tunnelHandler.ReserveLocalGamePort();
-        }
-        catch (Exception ex)
-        {
-            Logger.Log($"V3TunnelNegotiationManager: Failed to reserve a local game port: {ex.Message}");
+        if (!TryReserveGamePort())
             return false;
-        }
 
         tunnelHandler.StartGameBridge(localV3Player.Id, _v3PlayerInfos);
         return true;
