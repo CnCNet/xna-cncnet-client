@@ -432,7 +432,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         /// <summary>
         /// Automatically starts the game if the host has enabled auto-launch,
-        /// the room is locked and full, and all players are ready.
+        /// the room is full and all players are ready. Locks the room first
+        /// if it is not locked already.
         /// Auto-launch is one-shot: it disarms itself before attempting the launch,
         /// so a failed launch attempt or a finished match requires the host
         /// to enable it again for another attempt.
@@ -452,7 +453,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             if (!Locked)
-                return;
+            {
+                AddNotice("The game room has been locked.".L10N("Client:Main:AutoLaunchGameRoomLocked"));
+                LockGame();
+            }
 
             chkAutoLaunch.Checked = false;
 
