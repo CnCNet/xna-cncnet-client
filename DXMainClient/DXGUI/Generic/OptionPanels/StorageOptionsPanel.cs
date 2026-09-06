@@ -14,7 +14,7 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels;
 
-/// <summary>Configures how much disk space client logs and (if supported) replays are allowed to use.</summary>
+/// <summary>Configures how much disk space is used for various client features.</summary>
 class StorageOptionsPanel : XNAOptionsPanel
 {
     private const int TEXT_BOX_WIDTH = 70;
