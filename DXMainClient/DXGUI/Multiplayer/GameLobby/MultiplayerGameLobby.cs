@@ -63,6 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
         protected XNAClientCheckBox chkAutoReady;
+        protected XNAClientCheckBox chkAutoLaunch;
 
         private Random random;
 
@@ -184,6 +185,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chkAutoReady = FindChild<XNAClientCheckBox>(nameof(chkAutoReady));
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();
+
+            chkAutoLaunch = FindChild<XNAClientCheckBox>(nameof(chkAutoLaunch), optional: true);
+
+            if (chkAutoLaunch != null)
+            {
+                chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
+                chkAutoLaunch.Disable();
+            }
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -405,6 +414,61 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             UpdateLaunchGameButtonStatus();
             RequestReadyStatus();
+        }
+
+        private void ChkAutoLaunch_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckAutoStartGame();
+        }
+
+        /// <summary>
+        /// Whether this lobby supports automatically starting the game
+        /// when the room is full and all players are ready.
+        /// </summary>
+        protected virtual bool SupportsAutoLaunch => false;
+
+        /// <summary>
+        /// Automatically starts the game if the host has enabled auto-launch,
+        /// the room is full and all players are ready.
+        /// Auto-launch is one-shot: it disarms itself before attempting the launch,
+        /// so a failed launch attempt or a finished match requires the host
+        /// to enable it again for another attempt.
+        /// </summary>
+        protected void CheckAutoStartGame()
+        {
+            if (!SupportsAutoLaunch || !IsHost || chkAutoLaunch == null || !chkAutoLaunch.Checked)
+                return;
+
+            if (ProgramConstants.IsInGame || !btnLaunchGame.Enabled)
+                return;
+
+            if (Players.Count + AIPlayers.Count < MaxPlayerCount)
+                return;
+
+            if (Players.Exists(p => !p.Ready))
+                return;
+
+            if (!Locked)
+                LockGame();
+
+            chkAutoLaunch.Checked = false;
+
+            BtnLaunchGame_LeftClick(this, EventArgs.Empty);
+        }
+
+        protected void ResetAutoLaunchCheckbox()
+        {
+            if (chkAutoLaunch == null)
+                return;
+
+            chkAutoLaunch.CheckedChanged -= ChkAutoLaunch_CheckedChanged;
+            chkAutoLaunch.Checked = false;
+            chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
+
+            if (IsHost && SupportsAutoLaunch)
+                chkAutoLaunch.Enable();
+            else
+                chkAutoLaunch.Disable();
         }
 
         protected void ResetAutoReadyCheckbox()
@@ -643,6 +707,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Visible = true;
                 chkAutoReady.Disable();
 
+                ResetAutoLaunchCheckbox();
+
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
                     dd.InputEnabled = true;
@@ -665,6 +731,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
                 ReadINIForControl(chkAutoReady);
+
+                ResetAutoLaunchCheckbox();
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
@@ -988,6 +1056,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 base.CopyPlayerDataFromUI(sender, e);
                 BroadcastPlayerOptions();
+                CheckAutoStartGame();
                 return;
             }
 
