@@ -12,6 +12,23 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - The client now supports the Tiberian Dawn game type. Specify `[Settings]->ClientGameType=TD` in `ClientDefinitions.ini` to use this game type.
 
+- An optional, host-only "Auto Launch" checkbox is available for the CnCNet game lobby. When the host enables it, the game launches automatically once the number of players (humans and AI players combined) reaches the game's maximum player count and all players are ready. The launch goes through the same validation as a manual "Launch Game" click, and the checkbox disarms itself on each launch attempt, so the host must enable it again for another one. To enable this feature, add the control to the existing `[MultiplayerGameLobby]` section in `MultiplayerGameLobby.ini` (the number may vary depending on your configuration):
+
+```ini
+[MultiplayerGameLobby]
+$CCMP08=chkAutoLaunch:XNAClientCheckBox
+```
+
+Then, add the following `[chkAutoLaunch]` section. Adjust the position to fit your layout; note that `chkAutoLaunch` is only shown to the host while `chkAutoReady` is only shown to other players, so the two controls may share a position:
+
+```ini
+[chkAutoLaunch]
+Text=Auto Launch
+ToolTip=Automatically launch the game when the room is full and all players are ready.
+$X=getX(chkAutoReady)
+$Y=getY(chkAutoReady)
+```
+
 ## 2.13.4
 
 - The `KeyboardCommands.ini` file now supports `DisableModifierKeys`. It is recommended to set this key for RA2/YR's `PlanningMode` (Waypoint Mode) command. See [INISystem.md](INISystem.md).
