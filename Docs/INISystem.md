@@ -925,12 +925,6 @@ MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 =
 MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
 ```
 
-With `ReplaySupport=true` that tab additionally gains controls for how many replays are kept and how large the replay directory may grow. Use a [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox) for lobby recording and a [CampaignCheckBox](#CampaignCheckBox) for campaign recording.
-
-> [!NOTE]
-> - The Load Game window grows when `ReplaySupport=true` to fit the replay list. If your package sets `$Width`/`$Height` for `[GameLoadingWindow]` in its theme INI, give the added controls explicit positions too, since they won't be repositioned to match.
-> - The options window no longer resizes based on `ReplaySupport`, since the `Storage` tab is always present.
-
 ## Game Modes
 
 Game modes are defined in the `[GameModes]` section of `MPMaps.ini`. Each game mode can have its own configuration section with the same name.
