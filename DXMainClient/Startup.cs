@@ -21,7 +21,6 @@ using System.Runtime.Versioning;
 using ClientCore.Settings;
 using ClientGUI;
 using Steamworks;
-using ClientCore.Extensions;
 
 namespace DTAClient
 {
