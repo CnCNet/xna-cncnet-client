@@ -21,6 +21,7 @@ using System.Runtime.Versioning;
 using ClientCore.Settings;
 using ClientGUI;
 using Steamworks;
+using ClientCore.Extensions;
 
 namespace DTAClient
 {
@@ -168,7 +169,7 @@ namespace DTAClient
                 try
                 {
                     Logger.Log("Steam init called");
-                    SteamClient.Init(ClientTypeHelper.ToSteamAppId(ClientConfiguration.Instance.ClientGameType));
+                    SteamClient.Init(ClientConfiguration.Instance.ClientGameType.ToSteamAppId());
                 }
                 catch (System.Exception e)
                 {

@@ -1,9 +1,9 @@
 ﻿using System;
-using ClientCore.Extensions;
+using ClientCore.Enums;
 
-namespace ClientCore.Enums
+namespace ClientCore.Extensions
 {
-    public static class ClientTypeHelper
+    public static class ClientTypeExtensions
     {
         private static readonly string errorMsg = string.Format((
                 "It seems the client configuration was not migrated to accommodate for the v2.12 changes. " +
@@ -23,7 +23,7 @@ namespace ClientCore.Enums
             _ => throw new Exception(errorMsg),
         };
 
-        public static uint ToSteamAppId(ClientType gametype) => gametype switch
+        public static uint ToSteamAppId(this ClientType ct) => ct switch
         {
             ClientType.TD => 2229830,
             ClientType.RA => 2229840,
