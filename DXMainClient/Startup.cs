@@ -166,10 +166,14 @@ namespace DTAClient
         {
             if (UserINISettings.Instance.SteamIntegration)
             {
+                uint? steamAppId = ClientConfiguration.Instance.ClientGameType.ToSteamAppId();
+                if (!steamAppId.HasValue)
+                    return;
+
                 try
                 {
                     Logger.Log("Steam init called");
-                    SteamClient.Init(ClientConfiguration.Instance.ClientGameType.ToSteamAppId());
+                    SteamClient.Init(steamAppId.Value);
                 }
                 catch (System.Exception e)
                 {

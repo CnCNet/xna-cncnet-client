@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+using System;
+
 using ClientCore.Enums;
 
 namespace ClientCore.Extensions
@@ -23,13 +25,13 @@ namespace ClientCore.Extensions
             _ => throw new Exception(errorMsg),
         };
 
-        public static uint ToSteamAppId(this ClientType ct) => ct switch
+        public static uint? ToSteamAppId(this ClientType ct) => ct switch
         {
             ClientType.TD => 2229830,
             ClientType.RA => 2229840,
             ClientType.TS => 2229880,
-            ClientType.YR 
-            or ClientType.Ares => 2229850,
+            ClientType.YR or ClientType.Ares => 2229850,
+            // You may return null if the ClientType does not have a corresponding Steam App ID
             _ => throw new Exception(errorMsg),
         };
     }
