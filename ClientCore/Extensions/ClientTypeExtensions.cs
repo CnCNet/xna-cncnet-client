@@ -15,24 +15,31 @@ namespace ClientCore.Extensions
                 EnumExtensions.GetNames<ClientType>(),
                 "https://github.com/CnCNet/xna-cncnet-client/");
 
-        public static ClientType FromString(string value) => value switch
+        extension(ClientType)
         {
-            "TD" => ClientType.TD,
-            "RA" => ClientType.RA,
-            "TS" => ClientType.TS,
-            "YR" => ClientType.YR,
-            "Ares" => ClientType.Ares,
-            _ => throw new Exception(unknownClientTypeErrorMsg),
-        };
+            public static ClientType FromString(string value) => value switch
+            {
+                "TD" => ClientType.TD,
+                "RA" => ClientType.RA,
+                "TS" => ClientType.TS,
+                "YR" => ClientType.YR,
+                "Ares" => ClientType.Ares,
+                _ => throw new Exception(unknownClientTypeErrorMsg),
+            };
+        }
 
-        public static uint? ToSteamAppId(this ClientType ct) => ct switch
+        extension(ClientType clientType)
         {
-            ClientType.TD => 2229830,
-            ClientType.RA => 2229840,
-            ClientType.TS => 2229880,
-            ClientType.YR or ClientType.Ares => 2229850,
-            // You may return null if the ClientType does not have a corresponding Steam App ID
-            _ => throw new Exception(unknownClientTypeErrorMsg),
-        };
+            public uint? ToSteamAppId() => clientType switch
+            {
+                ClientType.TD => 2229830,
+                ClientType.RA => 2229840,
+                ClientType.TS => 2229880,
+                ClientType.YR or ClientType.Ares => 2229850,
+                // You may return null if the ClientType does not have a corresponding Steam App ID
+                _ => throw new Exception(unknownClientTypeErrorMsg),
+            };
+        }
     }
 }
+
