@@ -404,7 +404,7 @@ UserSettingKey=                            ; string,  key in the `[LocalGameOpti
                                            ;          persisted, and `Checked` applies on every client start.
 ```
 
-`UserSettingKey` is independent of `SaveSkirmishGameOptions` and `SaveCampaignGameOptions`, which persist whole lobbies' worth of options under the control's own name. Do not set both for the same checkbox: those settings are loaded after the checkbox is initialized and would override the remembered value. It is intended for checkboxes that must be remembered regardless of those settings, such as a [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox), which is not covered by them at all.
+`UserSettingKey` is independent of `SaveSkirmishGameOptions` and `SaveCampaignGameOptions`, and shouldn't be set alongside them for the same checkbox since those load after and would override it. Mainly for controls not covered by them, such as a [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox).
 
 ##### [CampaignCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignCheckBox.cs)
 
@@ -427,7 +427,7 @@ Use this control type for game lobby checkboxes in `GameLobbyBase.ini`. Inherits
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
 
-Use this control type for game lobby checkboxes in `GameLobbyBase.ini` that only affect the local player, such as replay recording. Unlike a `GameLobbyCheckBox` it is never sent in game option messages, so each player in a multiplayer game sets it for themselves and non-hosts can still change it. Because of that it cannot be broadcast: `BroadcastToLobby` and the game list properties do not apply. It is still written to `spawn.ini` through `SpawnIniOption`, and is normally paired with `UserSettingKey` so that the player's choice is remembered.
+Use this control type for game lobby checkboxes in `GameLobbyBase.ini` that only affect the local player, such as replay recording. Unlike `GameLobbyCheckBox` it isn't sent in game option messages, so each player (including non-hosts) sets it for themselves and `BroadcastToLobby`/the game list properties don't apply. Still written to `spawn.ini` via `SpawnIniOption`, usually paired with `UserSettingKey` to remember the player's choice.
 
 ##### [GameSessionDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionDropDown.cs)
 
@@ -465,7 +465,7 @@ UserSettingKey=                            ; string,  key in the `[LocalGameOpti
                                            ;          persisted, and `DefaultIndex` applies on every client start.
 ```
 
-`UserSettingKey` is independent of `SaveSkirmishGameOptions` and `SaveCampaignGameOptions`, which persist whole lobbies' worth of options under the control's own name. Do not set both for the same dropdown: those settings are loaded after the dropdown is initialized and would override the remembered value. It is intended for dropdowns that must be remembered regardless of those settings, such as a [LocalGameLobbyDropDown](#LocalGameLobbyDropDown), which is not covered by them at all.
+Same rule as `UserSettingKey` on [GameSessionCheckBox](#GameSessionCheckBox) applies here.
 
 ##### [CampaignDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignDropDown.cs)
 
@@ -483,7 +483,7 @@ Use this control type for game lobby dropdowns in `GameLobbyBase.ini`. Inherits 
 
 _(inherits [GameSessionDropDown](#GameSessionDropDown))_
 
-Use this control type for game lobby dropdowns in `GameLobbyBase.ini` that only affect the local player, mirroring [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox). Unlike a `GameLobbyDropDown` it is never sent in game option messages, so each player in a multiplayer game sets it for themselves and non-hosts can still change it. Because of that it cannot be broadcast: `BroadcastToLobby` and the game list properties do not apply. It is still written to `spawn.ini` through `SpawnIniOption`, and is normally paired with `UserSettingKey` so that the player's choice is remembered.
+Dropdown counterpart of [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox); the same rules apply.
 
 #### XNAOptionsPanel Controls
 
