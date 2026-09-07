@@ -36,7 +36,8 @@ namespace ClientCore.Extensions
                 ClientType.RA => 2229840,
                 ClientType.TS => 2229880,
                 ClientType.YR or ClientType.Ares => 2229850,
-                // You may return null if the ClientType does not have a corresponding Steam App ID
+                // You may return null if a new ClientType does not have a corresponding Steam App ID
+                // Throw on unexpected ClientType
                 _ => throw new Exception(unknownClientTypeErrorMsg),
             };
         }
