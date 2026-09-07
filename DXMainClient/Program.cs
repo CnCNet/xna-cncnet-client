@@ -58,12 +58,11 @@ namespace DTAClient
 #endif
 
 #if NETFRAMEWORK
-            // Native libs (e.g. libHarfBuzzSharp.dll from HarfBuzzSharp.NativeAssets.Win32)
-            // ship under either SPECIFIC_LIBRARY_PATH/{x64|x86|arm64}/
-            // or COMMON_LIBRARY_PATH/{x64|x86|arm64}/. The .NET Framework runtime
-            // does not search those subfolders by default, and HarfBuzzSharp's resolver looks
-            // beside the EXE rather than beside its managed wrapper - so without help, P/Invoke
-            // calls fail with "Unable to load library 'libHarfBuzzSharp'".
+            // Native libs (e.g. SDL2.dll, soft_oal.dll) ship under SPECIFIC_LIBRARY_PATH/{x64|x86|arm64}/
+            // or COMMON_LIBRARY_PATH/{x64|x86|arm64}/. The .NET Framework runtime does not search those
+            // subfolders by default, so register them with the OS DLL search path. When the secure
+            // DLL-directory APIs are missing (older Windows 7 SP1 without KB2533623), fall back to
+            // pre-loading the natives so the client still starts instead of throwing here.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 static bool areSecureDllLoadingAPIsAvailable()
@@ -82,11 +81,6 @@ namespace DTAClient
                     return true;
                 }
 
-                if (!areSecureDllLoadingAPIsAvailable())
-                    throw new PlatformNotSupportedException("This application requires at least Windows 7 SP1 with KB4457144 (alternatively, KB2533623 or KB3063858) installed.");
-
-                SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-
                 string archSubfolder = RuntimeInformation.ProcessArchitecture switch
                 {
                     Architecture.X64 => "x64",
@@ -95,16 +89,41 @@ namespace DTAClient
                     _ => null
                 };
 
-                if (archSubfolder is not null)
+                if (areSecureDllLoadingAPIsAvailable())
                 {
-                    static void addDllDirectoryIfExists(string path)
+                    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
+                    if (archSubfolder is not null)
                     {
-                        if (Directory.Exists(path))
-                            AddDllDirectory(path);
+                        static void addDllDirectoryIfExists(string path)
+                        {
+                            if (Directory.Exists(path))
+                                AddDllDirectory(path);
+                        }
+
+                        addDllDirectoryIfExists(Path.Combine(SPECIFIC_LIBRARY_PATH, archSubfolder));
+                        addDllDirectoryIfExists(Path.Combine(COMMON_LIBRARY_PATH, archSubfolder));
+                    }
+                }
+                else if (archSubfolder is not null)
+                {
+                    // Windows 7 SP1 without KB2533623 (and the related KB4457144/KB3063858) does not
+                    // provide SetDefaultDllDirectories/AddDllDirectory. Rather than refuse to launch
+                    // - fall back to APIs that exist on every supported Windows: SetDllDirectory and LoadLibraryW
+                    static void preloadNativesFrom(string directory)
+                    {
+                        if (!Directory.Exists(directory))
+                            return;
+
+                        SetDllDirectory(directory);
+                        foreach (string nativeLibrary in Directory.GetFiles(directory, "*.dll"))
+                            LoadLibraryW(nativeLibrary);
                     }
 
-                    addDllDirectoryIfExists(Path.Combine(SPECIFIC_LIBRARY_PATH, archSubfolder));
-                    addDllDirectoryIfExists(Path.Combine(COMMON_LIBRARY_PATH, archSubfolder));
+                    preloadNativesFrom(Path.Combine(currentDir.FullName, archSubfolder));
+                    preloadNativesFrom(Path.Combine(SPECIFIC_LIBRARY_PATH, archSubfolder));
+                    preloadNativesFrom(Path.Combine(COMMON_LIBRARY_PATH, archSubfolder));
+                    SetDllDirectory(null); // restore default
                 }
             }
 #endif
@@ -117,7 +136,6 @@ namespace DTAClient
 
         private const int LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
         private const int LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
-        private const int LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
         private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -127,6 +145,14 @@ namespace DTAClient
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr AddDllDirectory(string lpPathName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "LoadLibraryW", ExactSpelling = true, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr LoadLibraryW([In][MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetShortPathNameW", ExactSpelling = true, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern int GetShortPathNameW([In][MarshalAs(UnmanagedType.LPWStr)] string lpszLongPath, [Out] StringBuilder lpszShortPath, int cchBuffer);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetModuleHandleW", ExactSpelling = true, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -139,6 +165,114 @@ namespace DTAClient
 
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;
+
+#if NETFRAMEWORK
+        /// <summary>
+        /// Works around HarfBuzzSharp's .NET Framework native loader, which resolves
+        /// libHarfBuzzSharp via an ANSI <c>LoadLibrary</c> call against the full path it builds from
+        /// its own assembly location. If the application directory contains characters outside the
+        /// system ANSI code page (e.g. Vietnamese under code page 1252), that path is mangled and the
+        /// load fails with "Unable to load library 'libHarfBuzzSharp'".
+        /// <para>
+        /// Because every path the process uses derives from where the executable was launched,
+        /// relaunching from the directory's all-ASCII 8.3 short path makes the native load succeed
+        /// with no change to how the libraries are deployed. This only ever triggers for the rare user
+        /// whose install path is not ANSI-representable; normal installs return immediately. If an
+        /// ANSI-safe short path is unavailable (8.3 short names disabled on the volume), we simply do
+        /// not relaunch: Rampastring.XNAUI's FontManager detects that the native shaper cannot load
+        /// and falls back to unshaped rendering on its own, so the client still starts.
+        /// </para>
+        /// </summary>
+        [SupportedOSPlatform("windows")]
+        private static void RelaunchFromAnsiSafePathIfNeeded(string[] args)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
+            string exePath = Assembly.GetEntryAssembly().Location;
+            string exeDirectory = Path.GetDirectoryName(exePath);
+
+            // Nothing to do when the path is already representable in the system ANSI code page.
+            if (IsAnsiRepresentable(exeDirectory))
+                return;
+
+            string shortExePath = GetShortPath(exePath);
+
+            // GetShortPathName returns the original path when 8.3 short names are disabled on the
+            // volume. If we cannot obtain an ANSI-safe path, we cannot relaunch into one - just return.
+            // FontManager's own native-shaper probe then falls back to unshaped rendering instead of
+            // crashing during font initialization.
+            if (string.IsNullOrEmpty(shortExePath)
+                || string.Equals(shortExePath, exePath, StringComparison.OrdinalIgnoreCase)
+                || !IsAnsiRepresentable(shortExePath))
+            {
+                return;
+            }
+
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = shortExePath,
+                    Arguments = BuildArguments(args),
+                    WorkingDirectory = Path.GetDirectoryName(shortExePath),
+                    UseShellExecute = false
+                };
+
+                System.Diagnostics.Process.Start(startInfo);
+            }
+            catch
+            {
+                // If relaunching fails for any reason, don't take the client down with us - the font
+                // system's own fallback keeps it running (without text shaping).
+                return;
+            }
+
+            // The relaunched process (running from the ANSI-safe path) takes over.
+            Environment.Exit(0);
+        }
+
+        private static bool IsAnsiRepresentable(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return true;
+
+            // Encoding.Default is the system ANSI code page (CP_ACP) on .NET Framework - the same
+            // code page HarfBuzzSharp's ANSI LoadLibrary marshals through. If the round-trip is lossy,
+            // the path cannot be represented and the native load would fail.
+            Encoding ansi = Encoding.Default;
+            return ansi.GetString(ansi.GetBytes(text)) == text;
+        }
+
+        private static string GetShortPath(string longPath)
+        {
+            var buffer = new StringBuilder(longPath.Length + 16);
+            int length = GetShortPathNameW(longPath, buffer, buffer.Capacity);
+
+            if (length == 0)
+                return null;
+
+            // Buffer too small: GetShortPathName reports the required size (including the null).
+            if (length > buffer.Capacity)
+            {
+                buffer = new StringBuilder(length);
+                length = GetShortPathNameW(longPath, buffer, buffer.Capacity);
+                if (length == 0)
+                    return null;
+            }
+
+            return buffer.ToString();
+        }
+
+        private static string BuildArguments(string[] args)
+        {
+            if (args == null || args.Length == 0)
+                return string.Empty;
+
+            // The client only passes simple flag-style arguments; quote any that contain spaces.
+            return string.Join(" ", args.Select(a => a.IndexOf(' ') >= 0 ? "\"" + a + "\"" : a));
+        }
+#endif
 
         static void InitializeApplicationConfiguration()
         {
@@ -181,6 +315,12 @@ namespace DTAClient
 #endif
         static void Main(string[] args)
         {
+#if NETFRAMEWORK
+            // Must run before anything triggers native text shaping (HarfBuzzSharp). May relaunch
+            // the process from an ANSI-safe path and terminate the current one.
+            RelaunchFromAnsiSafePathIfNeeded(args);
+#endif
+
             // https://stackoverflow.com/questions/3967716/how-to-find-encoding-for-1251-codepage
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
