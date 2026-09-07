@@ -351,8 +351,8 @@ namespace DTAClient
                 if (settingsFile.Exists)
                 {
                     var settingsIni = new IniFile(settingsFile.FullName);
-                    int maxKeptLogFiles = settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES);
-                    int maxFolderSizeMB = settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB);
+                    int maxKeptLogFiles = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES));
+                    int maxFolderSizeMB = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB));
                     return (maxKeptLogFiles, maxFolderSizeMB * 1024L * 1024L);
                 }
             }
