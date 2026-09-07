@@ -963,6 +963,38 @@ Maps can specify an extra INI file to consolidate into the map's INI at game lau
 ExtraIniName=MyExtraCode.ini  ; filename in `INI/Map Code/` to consolidate into the map INI
 ```
 
+### Map Preview Overlays
+
+Map previews support both manually placed overlay icons and automatically detected building overlays.
+
+Manual overlays are defined per map in `MPMaps.ini`:
+
+```ini
+[MAP_NAME]
+ExtraTexture0=oilderrick.png,200,150
+ExtraTexture1=techairport.png,260,180,2,true
+```
+
+`ExtraTextureN` format:
+- `ImageFile,X,Y[,Level][,Toggleable]`
+- `Level` is optional and defaults to `0`. For isometric maps, set this when the icon belongs on raised terrain so the preview position remains correct.
+- `Toggleable` is optional and defaults to `false`. Toggleable icons respect the user's `DisplayToggleableExtraTextures` setting.
+
+Automatic building overlays are configured globally in `ClientDefinitions.ini`:
+
+```ini
+[AutoMapOverlays]
+0=CAOILD,oilderrick.png,Neutral,0,0,true
+1=TECH*,techbuilding.png,,0,0
+```
+
+`[AutoMapOverlays]` entry format:
+- `BuildingID,ImageFile,OwnerFilter,CellOffsetX,CellOffsetY[,Toggleable]`
+- `BuildingID` may end with `*` to match any building ID with that prefix.
+- `OwnerFilter` can be left empty to match any owner.
+- `CellOffsetX` and `CellOffsetY` shift the detected building cell before placing the preview icon, which is useful for better centering of overlays.
+- `Toggleable` is optional and defaults to `false`.
+
 ## GameOptions
 
 The `GameOptions.ini` file defines sides, random selectors, multiplayer colors, and forced spawn options.
