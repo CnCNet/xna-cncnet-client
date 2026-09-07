@@ -9,9 +9,9 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using ClientUpdater;
 using DTAClient.Domain;
-using System.Collections.Generic;
 
 namespace DTAClient.DXGUI.Generic
 {
