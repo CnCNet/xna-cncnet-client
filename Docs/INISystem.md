@@ -927,7 +927,9 @@ MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved gam
 
 With `ReplaySupport=true` that tab additionally gains controls for how many replays are kept and how large the replay directory may grow. Use a [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox) for lobby recording and a [CampaignCheckBox](#CampaignCheckBox) for campaign recording.
 
-> The Load Game window grows when `ReplaySupport=true` to fit the replay list, and its default control positions are derived from that larger size. If your package sets `$Width` or `$Height` for `[GameLoadingWindow]` in its theme INI, those values win and the added controls are not repositioned to match — give them explicit positions there. The options window no longer changes size based on `ReplaySupport`, since the `Storage` tab is always present.
+> [!NOTE]
+> - The Load Game window grows when `ReplaySupport=true` to fit the replay list. If your package sets `$Width`/`$Height` for `[GameLoadingWindow]` in its theme INI, give the added controls explicit positions too, since they won't be repositioned to match.
+> - The options window no longer resizes based on `ReplaySupport`, since the `Storage` tab is always present.
 
 ## Game Modes
 
