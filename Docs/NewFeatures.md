@@ -10,6 +10,8 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - A new "Enable direct P2P connections" checkbox is added to the CnCNet tab in the Options window. When enabled, the client will attempt to establish direct P2P connections with other players. This can improve latency and reduce server load, but may not work in all network environments.
 
+- The client now supports the Tiberian Dawn game type. Specify `[Settings]->ClientGameType=TD` in `ClientDefinitions.ini` to use this game type.
+
 ## 2.13.4
 
 - The `KeyboardCommands.ini` file now supports `DisableModifierKeys`. It is recommended to set this key for RA2/YR's `PlanningMode` (Waypoint Mode) command. See [INISystem.md](INISystem.md).

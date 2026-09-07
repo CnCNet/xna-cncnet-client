@@ -212,7 +212,7 @@ namespace ClientCore
 
         private string _ClientGameTypeString => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientGameType", string.Empty);
         private ClientType? _ClientGameType = null;
-        public ClientType ClientGameType => _ClientGameType ??= ClientTypeHelper.FromString(_ClientGameTypeString);
+        public ClientType ClientGameType => _ClientGameType ??= ClientType.FromString(_ClientGameTypeString);
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
