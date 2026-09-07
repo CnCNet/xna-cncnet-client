@@ -871,8 +871,6 @@ AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
                                            ; Official maps are not affected by this filter.
 ```
 
-The options window has a `Storage` tab, where the player caps how many old client log files are kept and how large they may grow in total. These values are stored in the client's user settings file, whose name is configured by `SettingsFile` in `ClientDefinitions.ini` (the default is `Settings.ini` in the game directory):
-
 ```ini
 [ClientLogs]
 MaxKeptLogFiles=5       ; maximum number of timestamped old log files; 0 = unlimited
