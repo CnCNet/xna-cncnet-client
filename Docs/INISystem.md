@@ -404,8 +404,6 @@ UserSettingKey=                            ; string,  key in the `[LocalGameOpti
                                            ;          persisted, and `Checked` applies on every client start.
 ```
 
-`UserSettingKey` is independent of `SaveSkirmishGameOptions` and `SaveCampaignGameOptions`, and shouldn't be set alongside them for the same checkbox since those load after and would override it. Mainly for controls not covered by them, such as a [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox).
-
 ##### [CampaignCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignCheckBox.cs)
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
@@ -464,8 +462,6 @@ UserSettingKey=                            ; string,  key in the `[LocalGameOpti
                                            ;          that remembers this dropdown. Without it the value is not
                                            ;          persisted, and `DefaultIndex` applies on every client start.
 ```
-
-Same rule as `UserSettingKey` on [GameSessionCheckBox](#GameSessionCheckBox) applies here.
 
 ##### [CampaignDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignDropDown.cs)
 
