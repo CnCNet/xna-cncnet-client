@@ -1,9 +1,9 @@
 ﻿#nullable enable
 using System;
 
-using ClientCore.Enums;
+using ClientCore.Extensions;
 
-namespace ClientCore.Extensions;
+namespace ClientCore.Enums;
 
 public static class ClientTypeExtensions
 {
