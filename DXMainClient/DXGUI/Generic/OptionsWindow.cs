@@ -86,10 +86,9 @@ namespace DTAClient.DXGUI.Generic
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection, tunnelHandler),
                 updaterOptionsPanel,
-                componentsPanel
+                componentsPanel,
+                new StorageOptionsPanel(WindowManager, UserINISettings.Instance)
             };
-
-            panels.Add(new StorageOptionsPanel(WindowManager, UserINISettings.Instance));
 
             optionsPanels = panels.ToArray();
 
