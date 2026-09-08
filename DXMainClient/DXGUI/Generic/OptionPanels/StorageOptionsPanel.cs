@@ -97,14 +97,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddChild(tbMaxLogFolderSize);
         AddChild(lblLogFolderSizeSuffix);
 
-        InitializeSavedGameSection(lblLogFolderSize.Y + ROW_SPACING * 2);
-        int nextSectionY = lblLogFolderSize.Y + ROW_SPACING;
+        int nextSectionY = InitializeSavedGameSection(lblLogFolderSize.Y + ROW_SPACING);
 
         if (ReplayManager.IsSupported)
-            nextSectionY = InitializeReplaySections(nextSectionY);
+            InitializeReplaySections(nextSectionY);
     }
 
-    private void InitializeSavedGameSection(int y)
+    private int InitializeSavedGameSection(int y)
     {
         var lblSavedGamesHeader = new XNALabel(WindowManager);
         lblSavedGamesHeader.Name = nameof(lblSavedGamesHeader);
@@ -148,9 +147,9 @@ class StorageOptionsPanel : XNAOptionsPanel
 
         var lblSavedGameRetentionHint = new XNALabel(WindowManager);
         lblSavedGameRetentionHint.Name = nameof(lblSavedGameRetentionHint);
+        lblSavedGameRetentionHint.ClientRectangle = new Rectangle(12, lblSavedGameFolderSize.Y + ROW_SPACING, 0, 0);
         lblSavedGameRetentionHint.Text = ("Limits permanently delete oldest saves at client startup and after games.\n" +
             "The newest save is always kept, even if it exceeds the size limit.").L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
-        lblSavedGameRetentionHint.ClientRectangle = new Rectangle(12, lblSavedGameFolderSize.Y + ROW_SPACING, 0, 0);
 
         AddChild(lblSavedGamesHeader);
         AddChild(lblKeptSavedGames);
@@ -160,15 +159,17 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddChild(tbMaxSavedGameFolderSize);
         AddChild(lblSavedGameFolderSizeSuffix);
         AddChild(lblSavedGameRetentionHint);
+
+        return lblSavedGameRetentionHint.Bottom + 12;
     }
 
-    private int InitializeReplaySections(int y)
+    private void InitializeReplaySections(int y)
     {
         var lblReplaysHeader = new XNALabel(WindowManager);
         lblReplaysHeader.Name = nameof(lblReplaysHeader);
         lblReplaysHeader.FontIndex = 1;
         lblReplaysHeader.Text = "Replays".L10N("Client:DTAConfig:StorageReplaysHeader");
-        lblReplaysHeader.ClientRectangle = new Rectangle(12, y + ROW_SPACING, 0, 0);
+        lblReplaysHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
 
         var lblKeptReplays = new XNALabel(WindowManager);
         lblKeptReplays.Name = nameof(lblKeptReplays);
@@ -247,8 +248,6 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddChild(lblKeyframeSize);
         AddChild(tbReplayKeyframeStorageLimit);
         AddChild(lblKeyframeSizeSuffix);
-
-        return lblKeyframeSize.Y + ROW_SPACING;
     }
 
     public override void Load()
@@ -259,7 +258,6 @@ class StorageOptionsPanel : XNAOptionsPanel
         tbMaxLogFolderSize.Text = IniSettings.MaxClientLogFolderSizeMB.Value.ToString();
         tbMaxKeptSavedGames.Text = IniSettings.MaxKeptSavedGames.Value.ToString();
         tbMaxSavedGameFolderSize.Text = IniSettings.MaxSavedGameFolderSizeMB.Value.ToString();
-
 
         if (ReplayManager.IsSupported)
         {
