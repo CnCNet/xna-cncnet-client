@@ -279,7 +279,7 @@ namespace DTAClient
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
-        private const int DEFAULT_MAX_KEPT_LOG_FILES = 5;
+        private const int DEFAULT_MAX_KEPT_LOG_FILES = 20;
         private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;
         private const string LOG_BACKUP_SEARCH_PATTERN = "client_*.log";
 
@@ -304,7 +304,7 @@ namespace DTAClient
             }
             catch
             {
-                return;
+                // Ignored - the previous log will be overwritten.
             }
 
             List<FileInfo> backups = clientUserFilesDirectory
