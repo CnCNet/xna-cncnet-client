@@ -873,11 +873,17 @@ AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
 
 ```ini
 [ClientLogs]
-MaxKeptLogFiles=5       ; maximum number of timestamped old log files; 0 = unlimited
+MaxKeptLogFiles=20      ; maximum number of timestamped old log files; 0 = unlimited
 MaxLogFolderSizeMB=50   ; maximum combined size of old log files in MB; 0 = unlimited
 ```
 
 Packages can provide initial values in `Resources/UserDefaults.ini`; existing user settings take precedence.
+
+```ini
+[SavedGames]
+MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 = unlimited (default)
+MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
+```
 
 ## Game Modes
 

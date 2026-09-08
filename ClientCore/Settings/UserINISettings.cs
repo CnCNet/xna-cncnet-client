@@ -23,6 +23,7 @@ namespace ClientCore
         public const string GAME_FILTERS = "GameFilters";
         public const string GAME_OPTION_FILTERS = "GameOptionFilters";
         public const string CLIENT_LOGS = "ClientLogs";
+        public const string SAVED_GAMES = "SavedGames";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -183,8 +184,11 @@ namespace ClientCore
             GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
             GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
 
-            MaxKeptClientLogFiles = new IntSetting(iniFile, CLIENT_LOGS, "MaxKeptLogFiles", 5);
+            MaxKeptClientLogFiles = new IntSetting(iniFile, CLIENT_LOGS, "MaxKeptLogFiles", 20);
             MaxClientLogFolderSizeMB = new IntSetting(iniFile, CLIENT_LOGS, "MaxLogFolderSizeMB", 50);
+
+            MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
+            MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
 
             SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
@@ -374,6 +378,12 @@ namespace ClientCore
 
         /// <summary>Maximum total size of old client log files in megabytes. 0 means unlimited.</summary>
         public IntSetting MaxClientLogFolderSizeMB { get; private set; }
+
+        /// <summary>Maximum number of single-player saved games to keep. 0 means unlimited.</summary>
+        public IntSetting MaxKeptSavedGames { get; private set; }
+
+        /// <summary>Maximum total size of single-player saved games in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxSavedGameFolderSizeMB { get; private set; }
 
         public void SetValue(string section, string key, string value)
                => SettingsIni.SetStringValue(section, key, value);

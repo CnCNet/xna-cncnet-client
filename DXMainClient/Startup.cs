@@ -105,6 +105,8 @@ namespace DTAClient
                 }
             }
 
+            SinglePlayerSavedGameManager.PruneSavedGames();
+
             if (Updater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");

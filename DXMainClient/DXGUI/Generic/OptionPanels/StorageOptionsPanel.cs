@@ -31,6 +31,8 @@ class StorageOptionsPanel : XNAOptionsPanel
 
     private XNATextBox tbMaxKeptLogFiles = null!;
     private XNATextBox tbMaxLogFolderSize = null!;
+    private XNATextBox tbMaxKeptSavedGames = null!;
+    private XNATextBox tbMaxSavedGameFolderSize = null!;
 
     public override void Initialize()
     {
@@ -85,6 +87,66 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddChild(lblLogFolderSize);
         AddChild(tbMaxLogFolderSize);
         AddChild(lblLogFolderSizeSuffix);
+
+        InitializeSavedGameSection(lblLogFolderSize.Y + ROW_SPACING * 2);
+    }
+
+    private void InitializeSavedGameSection(int y)
+    {
+        var lblSavedGamesHeader = new XNALabel(WindowManager);
+        lblSavedGamesHeader.Name = nameof(lblSavedGamesHeader);
+        lblSavedGamesHeader.FontIndex = 1;
+        lblSavedGamesHeader.Text = "Single-player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
+        lblSavedGamesHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+
+        var lblKeptSavedGames = new XNALabel(WindowManager);
+        lblKeptSavedGames.Name = nameof(lblKeptSavedGames);
+        lblKeptSavedGames.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
+        lblKeptSavedGames.ClientRectangle = new Rectangle(12, lblSavedGamesHeader.Bottom + ROW_SPACING - 12, 0, 0);
+
+        tbMaxKeptSavedGames = new XNATextBox(WindowManager);
+        tbMaxKeptSavedGames.Name = nameof(tbMaxKeptSavedGames);
+        tbMaxKeptSavedGames.MaximumTextLength = 6;
+        tbMaxKeptSavedGames.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblKeptSavedGames.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+
+        var lblKeptSavedGamesSuffix = new XNALabel(WindowManager);
+        lblKeptSavedGamesSuffix.Name = nameof(lblKeptSavedGamesSuffix);
+        lblKeptSavedGamesSuffix.Text = "saved games  (0 = no limit)".L10N("Client:DTAConfig:StorageKeepSavedGamesAtMostSuffix");
+        lblKeptSavedGamesSuffix.ClientRectangle = new Rectangle(
+            tbMaxKeptSavedGames.Right + 8, lblKeptSavedGames.Y, 0, 0);
+
+        var lblSavedGameFolderSize = new XNALabel(WindowManager);
+        lblSavedGameFolderSize.Name = nameof(lblSavedGameFolderSize);
+        lblSavedGameFolderSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageMaxSize");
+        lblSavedGameFolderSize.ClientRectangle = new Rectangle(12, lblKeptSavedGames.Y + ROW_SPACING, 0, 0);
+
+        tbMaxSavedGameFolderSize = new XNATextBox(WindowManager);
+        tbMaxSavedGameFolderSize.Name = nameof(tbMaxSavedGameFolderSize);
+        tbMaxSavedGameFolderSize.MaximumTextLength = 7;
+        tbMaxSavedGameFolderSize.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblSavedGameFolderSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+
+        var lblSavedGameFolderSizeSuffix = new XNALabel(WindowManager);
+        lblSavedGameFolderSizeSuffix.Name = nameof(lblSavedGameFolderSizeSuffix);
+        lblSavedGameFolderSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageMaxSizeSuffix");
+        lblSavedGameFolderSizeSuffix.ClientRectangle = new Rectangle(
+            tbMaxSavedGameFolderSize.Right + 8, lblSavedGameFolderSize.Y, 0, 0);
+
+        var lblSavedGameRetentionHint = new XNALabel(WindowManager);
+        lblSavedGameRetentionHint.Name = nameof(lblSavedGameRetentionHint);
+        lblSavedGameRetentionHint.Text = ("Limits permanently delete oldest saves at client startup and after games.\n" +
+            "The newest save is always kept, even if it exceeds the size limit.").L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
+        lblSavedGameRetentionHint.ClientRectangle = new Rectangle(12, lblSavedGameFolderSize.Y + ROW_SPACING, 0, 0);
+
+        AddChild(lblSavedGamesHeader);
+        AddChild(lblKeptSavedGames);
+        AddChild(tbMaxKeptSavedGames);
+        AddChild(lblKeptSavedGamesSuffix);
+        AddChild(lblSavedGameFolderSize);
+        AddChild(tbMaxSavedGameFolderSize);
+        AddChild(lblSavedGameFolderSizeSuffix);
+        AddChild(lblSavedGameRetentionHint);
     }
 
     public override void Load()
@@ -93,6 +155,8 @@ class StorageOptionsPanel : XNAOptionsPanel
 
         tbMaxKeptLogFiles.Text = IniSettings.MaxKeptClientLogFiles.Value.ToString();
         tbMaxLogFolderSize.Text = IniSettings.MaxClientLogFolderSizeMB.Value.ToString();
+        tbMaxKeptSavedGames.Text = IniSettings.MaxKeptSavedGames.Value.ToString();
+        tbMaxSavedGameFolderSize.Text = IniSettings.MaxSavedGameFolderSizeMB.Value.ToString();
     }
 
     public override bool Save()
@@ -103,6 +167,10 @@ class StorageOptionsPanel : XNAOptionsPanel
             ParseLimit(tbMaxKeptLogFiles.Text, IniSettings.MaxKeptClientLogFiles.Value, MAX_KEPT_FILES_LIMIT);
         IniSettings.MaxClientLogFolderSizeMB.Value =
             ParseLimit(tbMaxLogFolderSize.Text, IniSettings.MaxClientLogFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+        IniSettings.MaxKeptSavedGames.Value =
+            ParseLimit(tbMaxKeptSavedGames.Text, IniSettings.MaxKeptSavedGames.Value, MAX_KEPT_FILES_LIMIT);
+        IniSettings.MaxSavedGameFolderSizeMB.Value =
+            ParseLimit(tbMaxSavedGameFolderSize.Text, IniSettings.MaxSavedGameFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
 
         return restartRequired;
     }
