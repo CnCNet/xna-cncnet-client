@@ -149,6 +149,11 @@ namespace DTAClient.DXGUI.Generic
                 CampaignSelector.WriteMissionSectionToSpawnIni(spawnIni, mission);
             }
 
+            // Apply forced options from GameOptions.ini
+            IniFile gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
+                ClientConfiguration.GAME_OPTIONS));
+            CampaignSelector.ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
+
             spawnIni.WriteIniFile(spawnerSettingsFile.FullName);
 
             FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, "spawnmap.ini");

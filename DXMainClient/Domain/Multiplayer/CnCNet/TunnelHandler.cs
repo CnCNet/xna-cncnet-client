@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,6 +77,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public V3GameTunnelBridge GameTunnelBridge;
 
         private readonly P2PEndpointDiscovery _p2pEndpointDiscovery;
+
+        // Reserved local game-relay UDP port for the current lobby session.
+        private UdpClient _localGameSocket;
 
         public event EventHandler TunnelsRefreshed;
 
@@ -512,11 +516,52 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             base.Update(gameTime);
         }
 
-        public V3GameTunnelBridge StartGameBridge(uint localId, int localPort, List<V3PlayerInfo> allPlayers)
+        /// <summary>
+        /// The local game-relay UDP port reserved for this lobby session, or null if
+        /// <see cref="ReserveLocalGamePort"/> hasn't been called (or the reservation was
+        /// released) yet.
+        /// </summary>
+        public int? ReservedGamePort => (_localGameSocket?.Client.LocalEndPoint as IPEndPoint)?.Port;
+
+        /// <summary>
+        /// Reserves (or returns the already-reserved) local UDP port used to relay traffic
+        /// between the local game process and its V3 tunnels.
+        /// </summary>
+        public int ReserveLocalGamePort()
+        {
+            if (_localGameSocket != null)
+                return ReservedGamePort.Value;
+
+            _localGameSocket = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
+            _localGameSocket.Client.ReceiveTimeout = 500;
+            V3TunnelCommunicator.DisableIcmpPortUnreachableExceptions(_localGameSocket.Client);
+
+            Logger.Log($"TunnelHandler: Reserved local game port {ReservedGamePort}.");
+            return ReservedGamePort.Value;
+        }
+
+        /// <summary>
+        /// Releases the reserved local game port. Only call this when actually leaving the
+        /// lobby — the reservation is meant to survive every game launched within one lobby
+        /// session, not just one.
+        /// </summary>
+        public void ReleaseLocalGamePort()
+        {
+            if (_localGameSocket == null)
+                return;
+
+            _localGameSocket.Close();
+            _localGameSocket = null;
+        }
+
+        public V3GameTunnelBridge StartGameBridge(uint localId, List<V3PlayerInfo> allPlayers)
         {
             StopGameBridge();
 
-            GameTunnelBridge = new V3GameTunnelBridge(localId, localPort, allPlayers, this);
+            if (_localGameSocket == null)
+                throw new InvalidOperationException("StartGameBridge: no local game port has been reserved.");
+
+            GameTunnelBridge = new V3GameTunnelBridge(localId, _localGameSocket, allPlayers, this);
             GameTunnelBridge.Start();
 
             return GameTunnelBridge;

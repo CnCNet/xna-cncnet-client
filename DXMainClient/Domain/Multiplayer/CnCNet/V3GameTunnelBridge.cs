@@ -30,11 +30,10 @@ public class V3GameTunnelBridge
     private readonly byte[] _sendBuffer = new byte[MAX_DATAGRAM_SIZE];
 
     private readonly uint _localId;
-    private readonly int _localPort;
     private readonly List<V3PlayerInfo> _otherPlayers;
     private readonly TunnelHandler _tunnelHandler;
     private readonly Thread _bridgeThread;
-    private readonly UdpClient _localGameClient; // game will connect to this
+    private readonly UdpClient _localGameClient;
     private volatile IPEndPoint? _gameEndpoint;
     private volatile bool _isRunning = false;
     private bool _loggedTransientReceiveError;
@@ -42,19 +41,17 @@ public class V3GameTunnelBridge
 
     public V3GameTunnelBridge(
         uint localId,
-        int localPort,
+        UdpClient localGameClient,
         List<V3PlayerInfo> allPlayers,
         TunnelHandler tunnelHandler)
     {
         _localId = localId;
-        _localPort = localPort;
         _tunnelHandler = tunnelHandler;
-        _localGameClient = new UdpClient(new IPEndPoint(IPAddress.Loopback, _localPort));
-        _localGameClient.Client.ReceiveTimeout = 500;
-        V3TunnelCommunicator.DisableIcmpPortUnreachableExceptions(_localGameClient.Client);
+        _localGameClient = localGameClient;
         _otherPlayers = allPlayers.Where(p => p.Id != _localId).ToList();
 
-        Logger.Log($"V3GameTunnelBridge: Local ID={_localId}, Local Port={_localPort}");
+        int localPort = ((IPEndPoint)_localGameClient.Client.LocalEndPoint!).Port;
+        Logger.Log($"V3GameTunnelBridge: Local ID={_localId}, Local Port={localPort}");
         Logger.Log($"V3GameTunnelBridge: Will forward to {_otherPlayers.Count} other players");
 
         _bridgeThread = new Thread(BridgeWorker)
@@ -94,8 +91,9 @@ public class V3GameTunnelBridge
     }
 
     /// <summary>
-    /// Stops the game tunnel bridge, unregisters packet handlers,
-    /// and closes the local/game UDP socket.
+    /// Stops the game tunnel bridge and unregisters packet handlers. The local/game UDP
+    /// socket is left open — it's owned by TunnelHandler and reused for the next game
+    /// launched in this lobby, not closed here.
     /// </summary>
     public void Stop()
     {
@@ -104,15 +102,13 @@ public class V3GameTunnelBridge
 
         _isRunning = false;
 
-        // Unregister before the socket goes away: the handler forwards straight into it.
+        // Unregister before returning: the handler forwards straight into the socket.
         _tunnelHandler.UnregisterV3PacketHandler(_localId, 0);
 
-        // Let the worker leave its receive loop before closing, so it cannot be part way through a
-        // call on a socket being disposed underneath it. Poll's 500ms timeout bounds the wait.
+        // Let the worker leave its receive loop before returning. Poll's 500ms timeout bounds the wait.
         if (Thread.CurrentThread != _bridgeThread)
             _bridgeThread.Join(1000);
 
-        _localGameClient?.Close();
         CleanupP2PRoutes();
 
         Logger.Log("V3GameTunnelBridge: Stopped");
@@ -252,7 +248,6 @@ public class V3GameTunnelBridge
                 }
                 catch (ObjectDisposedException)
                 {
-                    // Stop() closed the socket after this iteration snapshotted it.
                     Logger.Log("V3GameTunnelBridge: Local server socket disposed, exiting");
                     break;
                 }

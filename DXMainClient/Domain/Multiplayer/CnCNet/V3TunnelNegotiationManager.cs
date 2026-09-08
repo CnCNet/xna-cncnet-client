@@ -794,7 +794,9 @@ public class V3TunnelNegotiationManager
     /// </summary>
     public void ClearAll()
     {
-        StopAllNegotiations(keepGameRoutes: IsLocalGameRouteActive());
+        bool gameRouteActive = IsLocalGameRouteActive();
+
+        StopAllNegotiations(keepGameRoutes: gameRouteActive);
         _negotiationData.ClearAll();
         _v3PlayerInfos.Clear();
 
@@ -803,11 +805,14 @@ public class V3TunnelNegotiationManager
         // Re-query STUN in the next lobby: without keepalives running, the NAT mapping
         // behind the cached external endpoint may expire and get remapped.
         tunnelHandler.ClearP2PEndpointCache();
+
+        if (!gameRouteActive)
+            tunnelHandler.ReleaseLocalGamePort();
     }
 
     /// <summary>
     /// Parses one STARTV3 player entry (3 semicolon-delimited fields: id;name;ip:port) from
-    /// <paramref name="parts"/> starting at <paramref name="offset"/>, derives the game port
+    /// <paramref name="parts"/> starting at <paramref name="offset"/>, derives the game id
     /// from <paramref name="playerPosition"/>, and updates both the <see cref="PlayerInfo"/>
     /// and <see cref="V3PlayerInfo"/> for that player.
     /// </summary>
@@ -851,20 +856,20 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
-    /// Assigns final game IDs/ports/tunnels to every player and builds the
-    /// "id;name;address;..." payload used in the STARTV3 message. Sets each player's Port.
+    /// Assigns final game ids/tunnels to every player and builds the "id;name;address;..."
+    /// payload used in the STARTV3 message. The player order here defines each player's
+    /// in-game id; all clients must iterate in this same order (the handler keys the id off
+    /// message position via <see cref="ApplyV3StartEntry"/>).
     /// </summary>
     public string GenerateV3StartPayload()
     {
         var sb = new StringBuilder();
 
-        // The player order here defines each player's in-game id (port). All clients must
-        // iterate in this same order; the STARTV3 handler keys the id off message position.
         for (int i = 0; i < host.Players.Count; i++)
         {
             var player = host.Players[i];
             uint id = GeneratePlayerID(player.Name);
-            int port = 48000 - i; // with V3 this is more like an ID for the game (first bytes of packet data)
+            int port = 48000 - i;
             player.Port = port;
 
             string address = IPAddress.Any + ":0";
@@ -898,8 +903,25 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
+    /// Reserves this client's local game-relay UDP socket.
+    /// </summary>
+    public bool TryReserveGamePort()
+    {
+        try
+        {
+            tunnelHandler.ReserveLocalGamePort();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"V3TunnelNegotiationManager: Failed to reserve a local game port: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Starts the in-game tunnel bridge for the local player. Returns false if the local
-    /// player's V3 info could not be found.
+    /// player's V3 info could not be found or the local game port could not be reserved.
     /// </summary>
     public bool StartGameBridge()
     {
@@ -910,7 +932,10 @@ public class V3TunnelNegotiationManager
             return false;
         }
 
-        tunnelHandler.StartGameBridge(localV3Player.Id, localV3Player.PlayerGameId, _v3PlayerInfos);
+        if (!TryReserveGamePort())
+            return false;
+
+        tunnelHandler.StartGameBridge(localV3Player.Id, _v3PlayerInfos);
         return true;
     }
 

@@ -506,17 +506,7 @@ namespace DTAClient.DXGUI.Campaign
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini
-
-            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
-
-            if (forcedKeys != null)
-            {
-                foreach (string key in forcedKeys)
-                {
-                    spawnIni.SetStringValue("Settings", key,
-                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
-                }
-            }
+            ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
 
             spawnIni.WriteIniFile();
 
@@ -550,6 +540,20 @@ namespace DTAClient.DXGUI.Campaign
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
+        }
+
+        public static void ApplyCampaignForcedSpawnIniOptions(IniFile spawnIni, IniFile gameOptionsIni)
+        {
+            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
+
+            if (forcedKeys != null)
+            {
+                foreach (string key in forcedKeys)
+                {
+                    spawnIni.SetStringValue("Settings", key,
+                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, string.Empty));
+                }
+            }
         }
 
         public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
@@ -682,7 +686,10 @@ namespace DTAClient.DXGUI.Campaign
 
         private void ReadMissionList()
         {
-            ParseBattleIni("INI/Battle.ini");
+            Debug.Assert(AllMissions.Count == 0 && UniqueIDToMissions.Count == 0, "AllMissions and UniqueIDToMissions should be empty when ReadMissionList() is called. We didn't handle reloading missions yet.");
+
+            if (!ClientConfiguration.Instance.IgnoreBattleIni && AllMissions.Count == 0)
+                ParseBattleIni("INI/Battle.ini");
 
             if (AllMissions.Count == 0)
                 ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);

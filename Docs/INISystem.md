@@ -788,6 +788,28 @@ DisableModifierKeys=true
 
 # Global Config Files
 
+## [UserDefaults](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/Settings/UserINISettings.cs)
+> [!NOTE]
+> _TODO work in progress_
+
+The client's user settings file is configured by `SettingsFile` in `ClientDefinitions.ini`. Mod packages can provide initial values for settings that a user has not changed by adding them to `Resources/UserDefaults.ini`.
+
+### Tunnel Settings
+
+The `[MultiPlayer]` section supports these tunnel settings:
+
+```ini
+[MultiPlayer]
+TunnelMode=1   ; 0 = Static (V3), 1 = Dynamic (V3, default), 2 = Legacy (V2)
+EnableP2P=false ; whether dynamic V3 tunnels may be upgraded to direct player-to-player connections
+```
+
+- **Dynamic (V3)** automatically negotiates the best tunnel for each pair of players and does not require the host to select a tunnel manually.
+- **Static (V3)** uses one V3 tunnel that the host selects manually.
+- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions up to, but not including, 2.14.0.
+
+Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode when hosting:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
+
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
 > [!NOTE]
 > _TODO work in progress_

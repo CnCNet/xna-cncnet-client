@@ -30,58 +30,11 @@ namespace ClientGUI
         /// </summary>
         protected string IniNameOverride { get; set; }
 
-        private static bool AnyChildMatches(IEnumerable<XNAControl> list, Func<XNAControl, bool> isTargetControl)
-        {
-            foreach (XNAControl child in list)
-            {
-                bool matched = isTargetControl(child);
+        public T FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChild<T>(this, childName, comparisonType, optional, recursive);
 
-                if (matched)
-                    return true;
-
-                matched = AnyChildMatches(child.Children, isTargetControl);
-
-                if (matched)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
-        {
-            XNAControl result = null;
-
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (control.Name != childName)
-                    return false;
-
-                result = control;
-                return true;
-            });
-
-            if (result == null && !optional)
-                throw new KeyNotFoundException("Could not find required child control: " + childName);
-
-            return (T)result;
-        }
-
-        public List<T> FindChildrenStartWith<T>(string prefix) where T : XNAControl
-        {
-            List<T> result = new List<T>();
-
-            AnyChildMatches(new List<XNAControl>() { this }, control =>
-            {
-                if (string.IsNullOrEmpty(prefix) ||
-                    !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix))
-                    result.Add((T)control);
-
-                return false;
-            });
-
-            return result;
-        }
+        public List<T> FindChildrenStartWith<T>(string prefix, StringComparison comparisonType = StringComparison.Ordinal, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChildrenStartWith<T>(this, prefix, comparisonType, recursive);
 
         /// <summary>
         /// Attempts to locate the ini config file for the current control.

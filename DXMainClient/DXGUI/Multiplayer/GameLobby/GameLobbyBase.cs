@@ -17,12 +17,8 @@ using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
-
-using DTAClient.DXGUI.Generic;
-
 using TextCopy;
 using System.Diagnostics;
-
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -415,7 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void InitializeGameOptionPresetUI()
         {
-            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), true);
+            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), optional: true);
 
             if (btnSaveLoadGameOptions != null)
             {
@@ -1207,7 +1203,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblStart);
             ReadINIForControl(lblTeam);
 
-            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), true);
+            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), optional: true);
 
             if (btnPlayerExtraOptionsOpen != null)
             {
@@ -2706,7 +2702,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (checkBox.AllowScoring)
                     return Rank.None;
             }
-            
+
             foreach (GameLobbyDropDown dropDown in DropDowns)
             {
                 if (dropDown.AllowScoring)

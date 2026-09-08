@@ -14,6 +14,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -616,6 +617,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (sender != hostName)
                 return;
 
+            if (ProgramConstants.IsInGame)
+            {
+                Logger.Log("HandleStartGameV3Command: Ignoring game start while still in a running game.");
+                NotifyStartFailed();
+                return;
+            }
+
             string[] parts = data.Split(';');
 
             if (parts.Length != Players.Count * 3)
@@ -757,6 +765,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 started = true;
                 LoadGame();
             }
+            else if (!_negotiator.TryReserveGamePort())
+            {
+                AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), Color.Red);
+            }
             else if (_tunnelMode == TunnelMode.V3Dynamic && Players.Count > 1)
             {
                 // Double-check everyone is still reachable before STARTV3 goes out over IRC —
@@ -804,8 +816,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
                 if (localPlayer != null)
                 {
+                    // This is the client's own real, OS-assigned relay socket (see
+                    // TunnelHandler.ReserveLocalGamePort) — distinct from localPlayer.Port,
+                    // which is this player's deterministic in-game id, not a real endpoint.
                     spawnIni.SetStringValue("Tunnel", "Ip", IPAddress.Loopback.ToString());
-                    spawnIni.SetIntValue("Tunnel", "Port", localPlayer.Port);
+                    spawnIni.SetIntValue("Tunnel", "Port", tunnelHandler.ReservedGamePort ?? localPlayer.Port);
                 }
             }
 
@@ -959,7 +974,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void StartV3Game()
         {
             if (!_negotiator.StartGameBridge())
+            {
+                AddNotice("Could not reserve a local port for the game tunnel bridge. Try again or restart the client.".L10N("Client:Main:GamePortReserveFailed"), Color.Red);
                 return;
+            }
 
             LoadGame();
         }
