@@ -446,7 +446,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ProgramConstants.IsInGame || !btnLaunchGame.Enabled)
                 return;
 
-            if (Players.Count + AIPlayers.Count < MaxPlayerCount)
+            if (!IsRoomFull())
                 return;
 
             if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
@@ -461,6 +461,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chkAutoLaunch.Checked = false;
 
             BtnLaunchGame_LeftClick(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Determines whether the game room can not take in any more players,
+        /// either because the player limit of the room or the maximum player
+        /// count of the selected map has been reached.
+        /// </summary>
+        private bool IsRoomFull()
+        {
+            if (Players.Count + AIPlayers.Count >= MaxPlayerCount)
+                return true;
+
+            if (GameModeMap == null || GameModeMap.MaxPlayers < 1)
+                return false;
+
+            int playerCount = Players.Count(p => !IsPlayerSpectator(p)) + AIPlayers.Count;
+
+            return playerCount >= GameModeMap.MaxPlayers;
         }
 
         protected void ResetAutoLaunchCheckbox()
