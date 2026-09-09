@@ -115,8 +115,8 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     /// </summary>
     public int SortOrder { get; private set; } = DEFAULT_SORT_ORDER;
 
-    /// <summary>Optional key used to persist this option in [LocalGameOptions].</summary>
-    public string UserSettingKey { get; private set; } = string.Empty;
+    /// <summary>Whether this checkbox's value is remembered per user in [LocalGameOptions], keyed by its INI section name (<see cref="XNAControl.Name"/>).</summary>
+    public bool Persistent { get; private set; }
 
     public override void Initialize()
     {
@@ -129,7 +129,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     public override void GetAttributes(IniFile iniFile)
     {
         // Campaign windows load attributes after Initialize; lobbies load them before it.
-        // Restore only after the whole section is read, so UserSettingKey can appear anywhere.
+        // Restore only after the whole section is read, so Persistent can appear anywhere.
         try
         {
             restoringValue = true;
@@ -147,27 +147,27 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
 
     private void PersistValue()
     {
-        if (restoringValue || string.IsNullOrWhiteSpace(UserSettingKey))
+        if (restoringValue || !Persistent)
             return;
 
-        UserINISettings.Instance.SetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, Checked);
+        UserINISettings.Instance.SetValue(UserINISettings.LOCAL_GAME_OPTIONS, Name, Checked);
         UserINISettings.Instance.SaveSettings();
     }
 
     private void LoadPersistedValue()
     {
-        if (string.IsNullOrWhiteSpace(UserSettingKey))
+        if (!Persistent)
             return;
 
-        Checked = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, UserSettingKey, Checked);
+        Checked = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, Name, Checked);
     }
 
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         switch (key)
         {
-            case "UserSettingKey":
-                UserSettingKey = value;
+            case "Persistent":
+                Persistent = Conversions.BooleanFromString(value, false);
                 return;
             case "SpawnIniOption":
                 spawnIniOption = value;
