@@ -290,7 +290,7 @@ namespace DTAClient
         /// </summary>
         private static void RotateLogFiles(DirectoryInfo clientUserFilesDirectory, FileInfo clientLogFile)
         {
-            (int maxKeptLogFiles, long maxFolderSizeBytes) = ReadLogRetentionSettings();
+            (int maxKeptLogFiles, int maxFolderSizeMB) = ReadLogRetentionSettings();
 
             FileInfo backupFile = SafePath.GetFile(clientUserFilesDirectory.FullName,
                 $"client_{DateTime.Now:yyyyMMdd_HHmmss_fff}.log");
@@ -320,8 +320,9 @@ namespace DTAClient
                 backups = backups.Take(maxKeptLogFiles).ToList();
             }
 
-            if (maxFolderSizeBytes > 0)
+            if (maxFolderSizeMB > 0)
             {
+                long maxFolderSizeBytes = maxFolderSizeMB * 1024L * 1024L;
                 long totalSize = backups.Sum(f => f.Length);
                 for (int i = backups.Count - 1; i >= 0 && totalSize > maxFolderSizeBytes; i--)
                 {
@@ -343,7 +344,7 @@ namespace DTAClient
             }
         }
 
-        private static (int maxKeptLogFiles, long maxFolderSizeBytes) ReadLogRetentionSettings()
+        private static (int maxKeptLogFiles, int maxFolderSizeMB) ReadLogRetentionSettings()
         {
             try
             {
@@ -353,7 +354,7 @@ namespace DTAClient
                     var settingsIni = new IniFile(settingsFile.FullName);
                     int maxKeptLogFiles = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES));
                     int maxFolderSizeMB = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB));
-                    return (maxKeptLogFiles, maxFolderSizeMB * 1024L * 1024L);
+                    return (maxKeptLogFiles, maxFolderSizeMB);
                 }
             }
             catch
@@ -361,7 +362,7 @@ namespace DTAClient
                 // Fall through to defaults.
             }
 
-            return (DEFAULT_MAX_KEPT_LOG_FILES, DEFAULT_MAX_LOG_FOLDER_SIZE_MB * 1024L * 1024L);
+            return (DEFAULT_MAX_KEPT_LOG_FILES, DEFAULT_MAX_LOG_FOLDER_SIZE_MB);
         }
 
         [SupportedOSPlatform("windows")]
