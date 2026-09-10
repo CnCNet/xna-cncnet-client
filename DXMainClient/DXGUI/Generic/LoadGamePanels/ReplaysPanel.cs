@@ -590,7 +590,7 @@ public class ReplaysPanel : XNAPanel
                 "You have: {1}\n\n" +
                 "{2}\n\n" +
                 "Play it anyway?").L10N("Client:Main:ReplayFileMismatchText"),
-                SafeForDialog(GetDisplayVersion(replay)), SafeForDialog(ReplayManager.GameClientVersion),
+                SafeForDialog(GetDisplayVersion(replay)), SafeForDialog(ReplayManager.GamePackageVersion),
                 SafeForDialog(details)),
             XNAMessageBoxButtons.YesNo);
 
@@ -747,9 +747,9 @@ public class ReplaysPanel : XNAPanel
     }
 
     private static string GetDisplayVersion(ReplayGame replay)
-        => string.IsNullOrWhiteSpace(replay.GameClientVersion)
+        => string.IsNullOrWhiteSpace(replay.GamePackageVersion)
             ? "Unknown".L10N("Client:Main:ReplayUnknownVersion")
-            : replay.GameClientVersion;
+            : replay.GamePackageVersion;
 
     private static string FormatDuration(ReplayGame replay)
     {

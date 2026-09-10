@@ -24,7 +24,8 @@ public enum ReplayStatus
 }
 
 /// <summary>
-/// A replay file. Listing only reads the header and the embedded spawn.ini; the spawn files
+/// Reads the replay format used by the CnCNet YR spawner.
+/// Listing only reads the header and the embedded spawn.ini; the spawn files
 /// themselves are re-read on demand.
 /// </summary>
 public class ReplayGame
@@ -34,9 +35,8 @@ public class ReplayGame
     // 'YRRP' in file order.
     private const uint REPLAY_MAGIC = 0x50525259;
 
-    // Keep both bounds so future formats can retain support for older replays.
-    private const uint MIN_SUPPORTED_REPLAY_FORMAT_VERSION = 1;
-    private const uint MAX_SUPPORTED_REPLAY_FORMAT_VERSION = 1;
+    // Only read formats whose header layout this parser understands.
+    private const uint SUPPORTED_REPLAY_FORMAT_VERSION = 1;
 
     // Prevent corrupt headers from causing excessive allocations.
     private const uint MAX_EMBEDDED_FILE_SIZE = 32 * 1024 * 1024;
@@ -77,8 +77,8 @@ public class ReplayGame
 
     public uint FormatVersion { get; private set; }
 
-    /// <summary>Game package version recorded in the replay.</summary>
-    public string GameClientVersion { get; private set; } = string.Empty;
+    /// <summary>Game package name and version recorded in the replay.</summary>
+    public string GamePackageVersion { get; private set; } = string.Empty;
 
     /// <summary>The lobby's game mode name, e.g. "Battle".</summary>
     public string UIGameMode { get; private set; } = string.Empty;
@@ -141,11 +141,10 @@ public class ReplayGame
             FormatVersion = ReadUInt32(prefix, OFFSET_FORMAT_VERSION);
             headerSize = ReadUInt32(prefix, OFFSET_HEADER_SIZE);
 
-            if (FormatVersion < MIN_SUPPORTED_REPLAY_FORMAT_VERSION
-                || FormatVersion > MAX_SUPPORTED_REPLAY_FORMAT_VERSION)
+            if (FormatVersion != SUPPORTED_REPLAY_FORMAT_VERSION)
             {
                 Logger.Log($"Replay {FileName} is format version {FormatVersion}; this build reads " +
-                    $"{MIN_SUPPORTED_REPLAY_FORMAT_VERSION} to {MAX_SUPPORTED_REPLAY_FORMAT_VERSION}.");
+                    $"version {SUPPORTED_REPLAY_FORMAT_VERSION}.");
 
                 // Keep unsupported replays visible without parsing versioned fields.
                 Status = ReplayStatus.UnsupportedVersion;
@@ -278,7 +277,7 @@ public class ReplayGame
         using MemoryStream spawnIniStream = new MemoryStream(EncodingExt.UTF8NoBOM.GetBytes(spawnIniContent));
         IniFile spawnIni = new IniFile(spawnIniStream, EncodingExt.UTF8NoBOM, applyBaseIni: false);
 
-        GameClientVersion = spawnIni.GetStringValue("Settings", "GameClientVersion", string.Empty);
+        GamePackageVersion = spawnIni.GetStringValue("Settings", "GamePackageVersion", string.Empty);
 
         UIGameMode = spawnIni.GetStringValue("Settings", "UIGameMode", string.Empty);
 
