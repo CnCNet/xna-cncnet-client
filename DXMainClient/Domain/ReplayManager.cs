@@ -20,8 +20,8 @@ namespace DTAClient.Domain;
 /// </summary>
 public static class ReplayManager
 {
-    /// <summary>Maximum timestamp and map name length.</summary>
-    private const int MaxRecordingBaseFileNameLength = 180;
+    /// <summary>Maximum UTF-8 length of the timestamp and map name, as the spawner reads ReplayFileOut into a MAX_PATH byte buffer.</summary>
+    private const int MaxRecordingBaseFileNameBytes = 180;
 
     public static bool IsSupported => ClientConfiguration.Instance.ReplaySupport;
 
@@ -69,14 +69,13 @@ public static class ReplayManager
     public static string BuildRecordingPath(string mapName)
     {
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss", CultureInfo.InvariantCulture);
-        string safeMapName = SanitizeForFileName(mapName);
+        string safeMapName = mapName.ToWin32FileName();
 
         string baseName = string.IsNullOrWhiteSpace(safeMapName)
             ? timestamp
             : timestamp + " " + safeMapName;
 
-        if (baseName.Length > MaxRecordingBaseFileNameLength)
-            baseName = baseName.SubstringSurrogateAware(0, MaxRecordingBaseFileNameLength).TrimEnd();
+        baseName = baseName.TruncateToUtf8ByteLength(MaxRecordingBaseFileNameBytes).TrimEnd();
 
         string fileName = baseName + "." + FileExtension;
 
@@ -251,21 +250,5 @@ public static class ReplayManager
         {
             Logger.Log("ReplayManager: could not open the replay directory: " + ex.Message);
         }
-    }
-
-    /// <summary>
-    /// Makes a map name safe to use in a replay file name. Beyond <see cref="StringExtensions.ToWin32FileName"/>,
-    /// only printable ASCII is kept because the spawner opens ReplayFileOut with the ANSI Win32 file APIs.
-    /// </summary>
-    private static string SanitizeForFileName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return string.Empty;
-
-        string asciiName = new string(name.ToWin32FileName()
-            .Where(character => character >= ' ' && character <= '~' && character != '"')
-            .ToArray());
-
-        return asciiName.Trim().TrimEnd('.');
     }
 }
