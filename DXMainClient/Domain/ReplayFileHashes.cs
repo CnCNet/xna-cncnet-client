@@ -25,7 +25,7 @@ public static class ReplayFileHashes
 
         var section = new IniSection(SECTION);
 
-        // Paths are values because INI keys cannot safely contain '='.
+        // Use numeric keys because paths can contain '='.
         int index = 0;
         foreach (KeyValuePair<string, string> entry in hashes)
         {
@@ -86,15 +86,23 @@ public static class ReplayFileHashes
         return mismatches;
     }
 
+    /// <summary>Characters excluded from tracked paths because they conflict with the "path|hash" storage format.</summary>
+    private static readonly char[] disallowedPathChars = ['|', '<', '>'];
+
     private static SortedDictionary<string, string> Collect()
     {
         var hashes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (FileHashCalculator.TrackedFile tracked in new FileHashCalculator().EnumerateTrackedFiles())
         {
+            string relativePath = FileHashCalculator.NormalizePath(tracked.RelativePath);
+
+            if (relativePath.IndexOfAny(disallowedPathChars) >= 0)
+                continue;
+
             string hash = FileHashCalculator.GetTrackedFileHash(tracked.FullPath);
             if (!string.IsNullOrEmpty(hash))
-                hashes[FileHashCalculator.NormalizePath(tracked.RelativePath)] = hash;
+                hashes[relativePath] = hash;
         }
 
         return hashes;

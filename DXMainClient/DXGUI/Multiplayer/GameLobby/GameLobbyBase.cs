@@ -1700,7 +1700,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
             settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
             settings.SetStringValue("UIMapName", Map.UntranslatedName);
-            settings.SetStringValue("GameClientVersion", ReplayManager.GameClientVersion);
+            settings.SetStringValue("GamePackageVersion", ReplayManager.GamePackageVersion);
 
             // needed for translation in game loading lobbies
             if (Map.Official)

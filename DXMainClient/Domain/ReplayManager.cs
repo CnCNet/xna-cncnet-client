@@ -33,7 +33,7 @@ public static class ReplayManager
     public static string SearchPattern => "*." + FileExtension;
 
     /// <summary>Installed game package and version written to replay metadata.</summary>
-    public static string GameClientVersion
+    public static string GamePackageVersion
     {
         get
         {
@@ -43,13 +43,13 @@ public static class ReplayManager
         }
     }
 
-    public static DirectoryInfo GetDirectory()
+    internal static DirectoryInfo GetDirectory()
         => SafePath.GetDirectory(ProgramConstants.GamePath, DirectoryName);
 
-    public static FileInfo GetFile(string fileName)
+    internal static FileInfo GetFile(string fileName)
         => SafePath.GetFile(ProgramConstants.GamePath, DirectoryName, fileName);
 
-    public static string GetRelativePath(string fileName)
+    internal static string GetRelativePath(string fileName)
         => SafePath.CombineFilePath(DirectoryName, fileName);
 
     /// <summary>Adds replay metadata when recording is enabled in spawn.ini.</summary>
@@ -61,7 +61,7 @@ public static class ReplayManager
         if (!spawnIni.GetBooleanValue("Settings", "EnableReplayRecording", false))
             return;
 
-        spawnIni.SetStringValue("Settings", "GameClientVersion", GameClientVersion);
+        spawnIni.SetStringValue("Settings", "GamePackageVersion", GamePackageVersion);
         spawnIni.SetStringValue("Settings", "ReplayFileOut", BuildRecordingPath(mapName));
 
         ReplayFileHashes.Write(spawnIni);
@@ -273,6 +273,8 @@ public static class ReplayManager
     {
         if (string.IsNullOrWhiteSpace(name))
             return string.Empty;
+
+        name = name.ToWin32FileName();
 
         var builder = new StringBuilder(name.Length);
 
