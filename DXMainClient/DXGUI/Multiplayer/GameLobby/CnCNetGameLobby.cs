@@ -8,6 +8,7 @@ using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -534,6 +535,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.UpdatePlayerPingIndicator(pInfo, negotiationStatus, tooltipText);
         }
+
+        protected override Texture2D GetTextureForPing(PingValue ping)
+            => _tunnelMode == TunnelMode.V3Dynamic
+                ? PingTextures[PingQualityVisuals.GetTextureIndex(PingQualityRules.GetV3Tier(ping))]
+                : base.GetTextureForPing(ping);
 
         /// <summary>
         /// Builds a tooltip for V3 dynamic tunnel ping indicator
