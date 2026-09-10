@@ -313,7 +313,7 @@ class StorageOptionsPanel : XNAOptionsPanel
 
         try
         {
-            DirectoryInfo directory = ReplayManager.GetDirectory();
+            DirectoryInfo directory = ReplayManager.GetReplayDirectory();
             if (directory.Exists)
             {
                 foreach (FileInfo file in directory.EnumerateFiles(ReplayManager.SearchPattern))

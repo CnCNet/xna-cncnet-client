@@ -43,13 +43,13 @@ public static class ReplayManager
         }
     }
 
-    internal static DirectoryInfo GetDirectory()
+    public static DirectoryInfo GetReplayDirectory()
         => SafePath.GetDirectory(ProgramConstants.GamePath, DirectoryName);
 
-    internal static FileInfo GetFile(string fileName)
+    public static FileInfo GetReplayFile(string fileName)
         => SafePath.GetFile(ProgramConstants.GamePath, DirectoryName, fileName);
 
-    internal static string GetRelativePath(string fileName)
+    public static string GetReplayFileRelativePath(string fileName)
         => SafePath.CombineFilePath(DirectoryName, fileName);
 
     /// <summary>Adds replay metadata when recording is enabled in spawn.ini.</summary>
@@ -82,19 +82,19 @@ public static class ReplayManager
         string fileName = baseName + "." + FileExtension;
 
         int counter = 1;
-        while (GetFile(fileName).Exists)
+        while (GetReplayFile(fileName).Exists)
         {
             fileName = $"{baseName} ({counter})." + FileExtension;
             counter++;
         }
 
-        return GetRelativePath(fileName);
+        return GetReplayFileRelativePath(fileName);
     }
 
     /// <summary>Cached result for a replay file at a specific size and timestamp.</summary>
     private readonly struct CachedReplay
     {
-        public CachedReplay(FileInfo file, ReplayGame? replay)
+        public CachedReplay(FileInfo file, YRReplayGame? replay)
         {
             length = file.Length;
             lastWriteTicks = file.LastWriteTimeUtc.Ticks;
@@ -105,7 +105,7 @@ public static class ReplayManager
         private readonly long lastWriteTicks;
 
         /// <summary>Null when the file could not be parsed.</summary>
-        public ReplayGame? Replay { get; }
+        public YRReplayGame? Replay { get; }
 
         public bool Matches(FileInfo file)
             => length == file.Length && lastWriteTicks == file.LastWriteTimeUtc.Ticks;
@@ -115,11 +115,11 @@ public static class ReplayManager
         = new Dictionary<string, CachedReplay>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Lists parseable replays newest first.</summary>
-    public static List<ReplayGame> List()
+    public static List<YRReplayGame> List()
     {
-        var replays = new List<ReplayGame>();
+        var replays = new List<YRReplayGame>();
 
-        DirectoryInfo directory = GetDirectory();
+        DirectoryInfo directory = GetReplayDirectory();
         if (!directory.Exists)
         {
             parsedReplays.Clear();
@@ -134,7 +134,7 @@ public static class ReplayManager
 
             if (!parsedReplays.TryGetValue(file.Name, out CachedReplay cached) || !cached.Matches(file))
             {
-                var parsed = new ReplayGame(file.Name);
+                var parsed = new YRReplayGame(file.Name);
                 cached = new CachedReplay(file, parsed.ParseInfo() ? parsed : null);
                 parsedReplays[file.Name] = cached;
             }
@@ -156,7 +156,7 @@ public static class ReplayManager
             parsedReplays.Remove(name);
     }
 
-    public static bool Delete(ReplayGame replay)
+    public static bool Delete(YRReplayGame replay)
     {
         Logger.Log("Deleting replay " + replay.FileName);
 
@@ -186,7 +186,7 @@ public static class ReplayManager
 
         try
         {
-            DirectoryInfo directory = GetDirectory();
+            DirectoryInfo directory = GetReplayDirectory();
             if (!directory.Exists)
                 return;
 
@@ -242,7 +242,7 @@ public static class ReplayManager
     {
         try
         {
-            DirectoryInfo directory = GetDirectory();
+            DirectoryInfo directory = GetReplayDirectory();
             if (!directory.Exists)
                 directory.Create();
 

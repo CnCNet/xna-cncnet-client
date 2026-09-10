@@ -71,7 +71,7 @@ public class ReplaysPanel : XNAPanel
     private XNAClientDropDown ddSeekCheckpoints = null!;
     private XNAClientDropDown ddWatchAs = null!;
 
-    private List<ReplayGame> replays = new List<ReplayGame>();
+    private List<YRReplayGame> replays = new List<YRReplayGame>();
 
     /// <summary>Players available in ddWatchAs, one-for-one with its items after the leading Spectator entry.</summary>
     private IReadOnlyList<ReplayPlayer> watchAsPlayers = Array.Empty<ReplayPlayer>();
@@ -86,7 +86,7 @@ public class ReplaysPanel : XNAPanel
 
     public bool CanDelete => lbReplayList.SelectedIndex > -1;
 
-    private ReplayGame? SelectedReplay
+    private YRReplayGame? SelectedReplay
         => lbReplayList.SelectedIndex > -1 && lbReplayList.SelectedIndex < replays.Count
             ? replays[lbReplayList.SelectedIndex]
             : null;
@@ -248,7 +248,7 @@ public class ReplaysPanel : XNAPanel
     {
         ddGameSpeed.AddItem("As recorded".L10N("Client:Main:ReplayPlaybackSpeedAsRecorded"));
 
-        foreach (int fps in ReplayGame.PlaybackSpeedLadder)
+        foreach (int fps in YRReplayGame.PlaybackSpeedLadder)
         {
             ddGameSpeed.AddItem(string.Format(
                 "{0} FPS".L10N("Client:Main:ReplayPlaybackSpeedItem"), fps));
@@ -256,7 +256,7 @@ public class ReplaysPanel : XNAPanel
 
         // Store FPS instead of an index so ladder changes preserve the selection.
         int storedFPS = UserINISettings.Instance.ReplayPlaybackGameSpeed;
-        int ladderIndex = Array.IndexOf(ReplayGame.PlaybackSpeedLadder, storedFPS);
+        int ladderIndex = Array.IndexOf(YRReplayGame.PlaybackSpeedLadder, storedFPS);
         ddGameSpeed.SelectedIndex = ladderIndex >= 0 ? ladderIndex + 1 : 0;
         ddGameSpeed.SelectedIndexChanged += PlaybackSetting_Changed;
     }
@@ -293,8 +293,8 @@ public class ReplaysPanel : XNAPanel
         get
         {
             int index = ddGameSpeed.SelectedIndex - 1;
-            return index >= 0 && index < ReplayGame.PlaybackSpeedLadder.Length
-                ? ReplayGame.PlaybackSpeedLadder[index]
+            return index >= 0 && index < YRReplayGame.PlaybackSpeedLadder.Length
+                ? YRReplayGame.PlaybackSpeedLadder[index]
                 : 0;
         }
     }
@@ -415,7 +415,7 @@ public class ReplaysPanel : XNAPanel
 
         replays = ReplayManager.List();
 
-        foreach (ReplayGame replay in replays)
+        foreach (YRReplayGame replay in replays)
         {
             string[] columns =
             {
@@ -451,7 +451,7 @@ public class ReplaysPanel : XNAPanel
 
     private void UpdateDetails()
     {
-        ReplayGame? replay = SelectedReplay;
+        YRReplayGame? replay = SelectedReplay;
 
         if (replay == null)
         {
@@ -508,7 +508,7 @@ public class ReplaysPanel : XNAPanel
 
     public void Launch()
     {
-        ReplayGame? replay = SelectedReplay;
+        YRReplayGame? replay = SelectedReplay;
 
         // Double-click can call Launch even when the button is disabled.
         if (replay == null || !replay.IsPlayable)
@@ -568,7 +568,7 @@ public class ReplaysPanel : XNAPanel
             CustomMissionHelper.CopySupplementalMissionFiles(mission);
     }
 
-    private void ShowMismatchPrompt(ReplayGame replay, IniFile spawnIni, byte[] spawnMapContent,
+    private void ShowMismatchPrompt(YRReplayGame replay, IniFile spawnIni, byte[] spawnMapContent,
         ReplayPlayer? perspective, List<string> fileMismatches)
     {
         foreach (string mismatch in fileMismatches)
@@ -598,10 +598,10 @@ public class ReplaysPanel : XNAPanel
         msgBox.Show();
     }
 
-    private void StartPlayback(ReplayGame replay, IniFile spawnIni, byte[] spawnMapContent,
+    private void StartPlayback(YRReplayGame replay, IniFile spawnIni, byte[] spawnMapContent,
         ReplayPlayer? perspective)
     {
-        spawnIni.SetStringValue("Settings", "ReplayFile", ReplayManager.GetRelativePath(replay.FileName));
+        spawnIni.SetStringValue("Settings", "ReplayFile", ReplayManager.GetReplayFileRelativePath(replay.FileName));
 
         // ReplayViewPlayer is a spawn.ini player slot.
         spawnIni.SetIntValue("Settings", "ReplayViewPlayer", perspective?.SpawnIniIndex ?? 0);
@@ -694,7 +694,7 @@ public class ReplaysPanel : XNAPanel
 
     public void Delete()
     {
-        ReplayGame? replay = SelectedReplay;
+        YRReplayGame? replay = SelectedReplay;
         if (replay == null)
             return;
 
@@ -730,7 +730,7 @@ public class ReplaysPanel : XNAPanel
     /// <summary>Makes replay metadata renderable in message boxes.</summary>
     private static string SafeForDialog(string text) => Renderer.GetSafeString(text, 0);
 
-    private string DescribeUnplayable(ReplayGame replay)
+    private string DescribeUnplayable(YRReplayGame replay)
     {
         var details = new StringBuilder();
 
@@ -746,12 +746,12 @@ public class ReplaysPanel : XNAPanel
         return details.ToString();
     }
 
-    private static string GetDisplayVersion(ReplayGame replay)
+    private static string GetDisplayVersion(YRReplayGame replay)
         => string.IsNullOrWhiteSpace(replay.GamePackageVersion)
             ? "Unknown".L10N("Client:Main:ReplayUnknownVersion")
             : replay.GamePackageVersion;
 
-    private static string FormatDuration(ReplayGame replay)
+    private static string FormatDuration(YRReplayGame replay)
     {
         if (!replay.IsPlayable || !replay.IsComplete)
             return "?";

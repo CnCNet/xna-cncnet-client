@@ -28,9 +28,10 @@ public enum ReplayStatus
 /// Listing only reads the header and the embedded spawn.ini; the spawn files
 /// themselves are re-read on demand.
 /// </summary>
-// Written for a CnCNet YR-compatible spawner only. Redo with an interface for the
-// game-specific bits (header layout, speed/FPS tables) when other games are added.
-public class ReplayGame
+// Written for a CnCNet YR-compatible spawner only. When other games are added, extract an
+// IReplayGame interface for the game-specific bits (header layout, speed/FPS tables) and
+// implement it per game.
+public class YRReplayGame
 {
     public const int MAX_GAME_SPEED_INDEX = 6;
 
@@ -63,7 +64,7 @@ public class ReplayGame
 
     private const uint HEADER_FLAG_CLEAN_SHUTDOWN = 1;
 
-    public ReplayGame(string fileName)
+    public YRReplayGame(string fileName)
     {
         FileName = fileName;
     }
@@ -115,7 +116,7 @@ public class ReplayGame
     {
         try
         {
-            FileInfo replayFileInfo = ReplayManager.GetFile(FileName);
+            FileInfo replayFileInfo = ReplayManager.GetReplayFile(FileName);
 
             if (!replayFileInfo.Exists)
             {
@@ -230,7 +231,7 @@ public class ReplayGame
 
         try
         {
-            using FileStream stream = ReplayManager.GetFile(FileName).Open(FileMode.Open, FileAccess.Read);
+            using FileStream stream = ReplayManager.GetReplayFile(FileName).Open(FileMode.Open, FileAccess.Read);
             stream.Seek(headerSize, SeekOrigin.Begin);
 
             string? readSpawnIni = ReadText(stream, spawnIniSize);
