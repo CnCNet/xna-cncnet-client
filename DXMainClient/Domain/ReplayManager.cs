@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using ClientCore;
 using ClientCore.Extensions;
@@ -254,36 +253,19 @@ public static class ReplayManager
         }
     }
 
-    private static readonly HashSet<char> invalidFileNameChars = BuildInvalidFileNameChars();
-
-    private static HashSet<char> BuildInvalidFileNameChars()
-    {
-        var invalid = new HashSet<char>(Path.GetInvalidFileNameChars());
-
-        // Use Windows restrictions on every platform because replay files are shared.
-        foreach (char character in "<>:\"/\\|?*")
-            invalid.Add(character);
-        for (char character = '\0'; character < ' '; character++)
-            invalid.Add(character);
-
-        return invalid;
-    }
-
+    /// <summary>
+    /// Makes a map name safe to use in a replay file name. Beyond <see cref="StringExtensions.ToWin32FileName"/>,
+    /// only printable ASCII is kept because the spawner opens ReplayFileOut with the ANSI Win32 file APIs.
+    /// </summary>
     private static string SanitizeForFileName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             return string.Empty;
 
-        name = name.ToWin32FileName();
+        string asciiName = new string(name.ToWin32FileName()
+            .Where(character => character >= ' ' && character <= '~' && character != '"')
+            .ToArray());
 
-        var builder = new StringBuilder(name.Length);
-
-        foreach (char character in name)
-        {
-            if (character <= '~' && !invalidFileNameChars.Contains(character))
-                builder.Append(character);
-        }
-
-        return builder.ToString().Trim().TrimEnd('.');
+        return asciiName.Trim().TrimEnd('.');
     }
 }
