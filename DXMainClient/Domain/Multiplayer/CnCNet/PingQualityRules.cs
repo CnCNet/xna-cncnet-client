@@ -25,7 +25,7 @@ public static class PingQualityRules
     public const int V3PoorMaxMs = 500;
 
     public const int HighPingWarningMs = V3PoorMaxMs;
-    public const int KickSuggestionMinWorstMs = 300;
+    public const int KickSuggestionMinWorstMs = 400;
     public const int KickSuggestionMinImprovementMs = 150;
     public const int MaterialChangeMinDeltaMs = 25;
 
