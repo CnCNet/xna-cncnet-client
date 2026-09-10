@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ClientCore.Extensions;
 
@@ -54,7 +55,6 @@ public static class ReplayFileHashes
         {
             string value = replaySpawnIni.GetStringValue(SECTION, key, string.Empty);
 
-            // Use the last separator so paths can contain '|'.
             int separator = value.LastIndexOf('|');
             if (separator <= 0)
                 continue;
@@ -86,8 +86,11 @@ public static class ReplayFileHashes
         return mismatches;
     }
 
-    /// <summary>Characters excluded from tracked paths because they conflict with the "path|hash" storage format.</summary>
-    private static readonly char[] disallowedPathChars = ['|', '<', '>'];
+    /// <summary>
+    /// Whether every segment of a tracked path is a valid Win32 file name.
+    /// </summary>
+    private static bool IsStorablePath(string relativePath)
+        => relativePath.Split('/').All(segment => segment == segment.ToWin32FileName());
 
     private static SortedDictionary<string, string> Collect()
     {
@@ -97,7 +100,7 @@ public static class ReplayFileHashes
         {
             string relativePath = FileHashCalculator.NormalizePath(tracked.RelativePath);
 
-            if (relativePath.IndexOfAny(disallowedPathChars) >= 0)
+            if (!IsStorablePath(relativePath))
                 continue;
 
             string hash = FileHashCalculator.GetTrackedFileHash(tracked.FullPath);
