@@ -28,6 +28,8 @@ public enum ReplayStatus
 /// Listing only reads the header and the embedded spawn.ini; the spawn files
 /// themselves are re-read on demand.
 /// </summary>
+// Written for a CnCNet YR-compatible spawner only. Redo with an interface for the
+// game-specific bits (header layout, speed/FPS tables) when other games are added.
 public class ReplayGame
 {
     public const int MAX_GAME_SPEED_INDEX = 6;
