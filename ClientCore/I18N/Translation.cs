@@ -367,12 +367,11 @@ public class Translation : ICloneable
     /// <param name="fallbackKey">The fallback translation key (identifier).</param>
     /// <param name="defaultValue">The value to fall back to in case there's no translated value.</param>
     /// <param name="notify">Whether to add this key and value to the list of missing key-values. Doesn't include the fallback key.</param>
-    /// <param name="fallbackDefaultValue">The default value of the fallback key. If not specified, <paramref name="defaultValue"/> is used.</param>
     /// <returns>The translated value or a default value.</returns>
-    public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true, string? fallbackDefaultValue = null)
+    public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
         key = GetKeyWithDefaultValueChecksum(key, defaultValue);
-        fallbackKey = GetKeyWithDefaultValueChecksum(fallbackKey, fallbackDefaultValue ?? defaultValue);
+        fallbackKey = GetKeyWithDefaultValueChecksum(fallbackKey, defaultValue);
 
         if (Values.TryGetValue(key, out string? value))
             return value;
