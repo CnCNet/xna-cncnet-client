@@ -12,19 +12,6 @@ namespace ClientCore.Extensions
     {
         extension(IniFile iniFile)
         {
-            // IniFile.Clone() method has not been officially supported yet
-            public IniFile Clone()
-            {
-                var newIni = new IniFile();
-                foreach (string sectionName in iniFile.GetSections())
-                {
-                    IniSection oldSection = iniFile.GetSection(sectionName);
-                    newIni.AddSection(oldSection.Clone(sectionName));
-                }
-
-                return newIni;
-            }
-
             public IniSection GetOrAddSection(string sectionName)
             {
                 var section = iniFile.GetSection(sectionName);
@@ -50,7 +37,7 @@ namespace ClientCore.Extensions
                 foreach (KeyValuePair<string, string> iniSectionKey in keys)
                     iniSection.RemoveKey(iniSectionKey.Key);
             }
-            
+
             public string? GetStringValueOrNull(string key) =>
                 iniSection.KeyExists(key) ? iniSection.GetStringValue(key, string.Empty) : null;
 
