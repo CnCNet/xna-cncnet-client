@@ -99,11 +99,14 @@ namespace ClientGUI
             }
         }
 
+        private static ScreenResolution? _safeFullScreenResolution = null;
+
         /// <summary>
         /// The maximum resolution supported by the graphic profile, or the largest full screen resolution supported by the primary monitor, whichever is smaller.
         /// </summary>
         public static ScreenResolution SafeFullScreenResolution =>
-            GetFullScreenResolutions(ClientConfiguration.Instance.MinimalClientWidth, ClientConfiguration.Instance.MinimalClientHeight).Max
+            _safeFullScreenResolution
+            ??= GetFullScreenResolutions(ClientConfiguration.Instance.MinimalClientWidth, ClientConfiguration.Instance.MinimalClientHeight).Max
             ?? SafeMaximumResolution;
 
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
@@ -207,7 +210,7 @@ namespace ClientGUI
                 .Where(resolution => !string.IsNullOrWhiteSpace(resolution))
                 .Select(resolution => (ScreenResolution)resolution)
                 .ToList();
-            
+
             var sortedCustomIngameResolutions = new SortedSet<ScreenResolution>(customIngameResolutions);
             return sortedCustomIngameResolutions;
         }
