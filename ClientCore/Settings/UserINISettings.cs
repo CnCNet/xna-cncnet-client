@@ -59,7 +59,7 @@ namespace ClientCore
             var userDefaultIni = new IniFile(userDefaultIniFilePath);
 
             var combinedUserIni = userDefaultIni.Clone();
-            combinedUserIni.FileName = null;
+            combinedUserIni.FilePath = null;
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
@@ -79,7 +79,7 @@ namespace ClientCore
                 }
             }
 
-            combinedUserIni.FileName = userIni.FileName;
+            combinedUserIni.FilePath = userIni.FilePath;
 
             _instance = new UserINISettings(combinedUserIni);
         }

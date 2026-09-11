@@ -170,7 +170,7 @@ public class Translation : ICloneable
             // FIXME AllowNewSections is ignored with inheritance
             IniFile ini = new();
             ini.AddSection(METADATA_SECTION);
-            ini.FileName = iniPath;
+            ini.FilePath = iniPath;
             ini.AllowNewSections = false;
 
             ini.Parse();
