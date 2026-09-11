@@ -836,10 +836,10 @@ MinimumRenderWidth=1024   ; integer, the minimum internal render width for the c
                           ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
 MinimumRenderHeight=600   ; integer, the minimum internal render height for the client UI.
                           ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
-MaximumRenderWidth=1280   ; integer, the normal maximum internal render width for the client UI.
-                          ;          If the selected client resolution is larger, the client is typically rendered at or below this width and then upscaled to fit.
-MaximumRenderHeight=720   ; integer, the normal maximum internal render height for the client UI.
-                          ;          If the selected client resolution is larger, the client is typically rendered at or below this height and then upscaled to fit.
+MaximumRenderWidth=1280   ; integer, the maximum internal render width for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MaximumRenderHeight=720   ; integer, the maximum internal render height for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
 MinimalClientWidth=800    ; integer, the minimum client resolution width offered in the client resolution selection.
 MinimalClientHeight=600   ; integer, the minimum client resolution height offered in the client resolution selection.
 ```
