@@ -92,9 +92,9 @@ public static class StringExtensions
     /// source code to match.
     /// </remarks>
     public static string L10N(this string defaultValue, string key, bool notify = true)
-        => notify
-            ? L10N(defaultValue, key, TranslationNotificationLevel.Default)
-            : defaultValue;
+        => string.IsNullOrEmpty(defaultValue)
+            ? defaultValue
+            : Translation.Instance.LookUp(key, defaultValue, notify);
 
     /// <summary>
     /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
