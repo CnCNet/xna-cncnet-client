@@ -58,8 +58,13 @@ namespace ClientCore
 
             var userDefaultIni = new IniFile(userDefaultIniFilePath);
 
-            var combinedUserIni = userDefaultIni.Clone();
-            combinedUserIni.FileName = null;
+            // Create combinedUserIni with all sections cloned from userDefaultIni
+            var combinedUserIni = new IniFile() { FilePath = null };
+            foreach (string sectionName in userDefaultIni.GetSections())
+            {
+                IniSection oldSection = userDefaultIni.GetSection(sectionName);
+                combinedUserIni.AddSection(oldSection.Clone(sectionName));
+            }
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
@@ -79,7 +84,7 @@ namespace ClientCore
                 }
             }
 
-            combinedUserIni.FileName = userIni.FileName;
+            combinedUserIni.FilePath = userIni.FilePath;
 
             _instance = new UserINISettings(combinedUserIni);
         }
