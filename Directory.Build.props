@@ -108,4 +108,13 @@
       <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <!-- Microsoft.CodeAnalysis.BannedApiAnalyzers -->
+  <PropertyGroup>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030</WarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
 </Project>
