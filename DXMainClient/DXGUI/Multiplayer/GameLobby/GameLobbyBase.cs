@@ -1964,7 +1964,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Theoretically it can be useful for some singleplayer campaign tracking
                 // But it isn't currently used by any CnCNet game or mod
                 // The code below only applies to the single player case
-                string mapIniFileName = Path.GetFileName(mapIni.FileName);
+                string mapIniFileName = Path.GetFileName(mapIni.FilePath);
                 mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
             }
 
@@ -1993,7 +1993,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapIni"></param>
         private void CopySupplementalMapFiles(IniFile mapIni)
         {
-            var mapFileInfo = new FileInfo(mapIni.FileName);
+            var mapFileInfo = new FileInfo(mapIni.FilePath);
             string mapFileBaseName = Path.GetFileNameWithoutExtension(mapFileInfo.Name);
 
             IEnumerable<string> supplementalMapFiles = GetSupplementalMapFiles(mapFileInfo.DirectoryName, mapFileBaseName).ToList();

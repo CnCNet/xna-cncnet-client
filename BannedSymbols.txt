@@ -1,0 +1,1 @@
+T:System.BitConverter; Do not use System.BitConverter. Use System.Buffers.Binary.BinaryPrimitives instead.

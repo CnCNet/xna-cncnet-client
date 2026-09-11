@@ -18,7 +18,7 @@ body:
     attributes:
       label: Description
       description: |
-        Write a detailed description telling us what the issue is, and if/when the bug occurs.
+        Write a detailed description telling us what the issue is, and at what circumstances the bug occurs.
     validations:
       required: true
 
@@ -36,7 +36,7 @@ body:
     attributes:
       label: Steps To Reproduce
       description: |
-        Tell us how to reproduce this issue so the developer(s) can reproduce the bug.
+        Tell us how to reproduce this issue so the developer(s) can reproduce the bug. The steps should be as detailed as possible, allowing anyone to follow them and reproduce the bug without thinking too much.
       value: |
         1.
         2.
@@ -68,7 +68,16 @@ body:
     attributes:
       label: Last Working Version
       description: |
-        If this bug did not exist in a prior release version, what is the last version that does **not** have this bug? Type "unknown" if you are not sure, or "always existed" if the bug has always been present.
+        If this bug did not exist in a prior release version, what is the last version that does **not** have this bug? Type "unknown" if you are not sure, or "always existed" if the bug has always been present. Do not type "N/A" as that is not a valid answer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please attach your client.log file, even if it seems unrelated to the issue. Steps: 1. Run the client and reproduce the bug. 2. Close the client (or allow it to crash if you're submitting a crash report). 3. Attach the resulting client.log file here.
     validations:
       required: true
 
@@ -79,8 +88,7 @@ body:
       description: |
         Attach additional files or links to content related to the bug report here, like:
         - images/gifs/videos to illustrate the bug;
-        - files or ini configs that are needed to reproduce the bug;
-        - a client log (mandatory if you're submitting a crash report).
+        - files or ini configs that are needed to reproduce the bug.
 
   - type: checkboxes
     id: checks
@@ -90,7 +98,7 @@ body:
       options:
         - label: The issue happens on the **latest official** version of XNA Client and wasn't fixed yet.
           required: true
-        - label: I agree to elaborate the details if requested and provide thorough testing if the bugfix is implemented.
+        - label: I agree to elaborate the details if requested and provide thorough testing if the bug fix is implemented.
           required: true
         - label: I added a very descriptive title to this issue.
           required: true
