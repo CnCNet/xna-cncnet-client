@@ -70,6 +70,18 @@ public static class StringExtensions
     /// </summary>
     /// <param name="defaultValue">The default string value as a fallback.</param>
     /// <param name="key">The unique key name.</param>
+    /// <param name="notificationLevel">The notification level of this key-value pair.</param>
+    /// <returns>The translated string value.</returns>
+    public static string L10N(this string defaultValue, string key, TranslationNotificationLevel notificationLevel)
+        => string.IsNullOrEmpty(defaultValue)
+            ? defaultValue
+            : Translation.Instance.LookUp(key, defaultValue, notificationLevel);
+
+    /// <summary>
+    /// Looks up a translated string for the specified key.
+    /// </summary>
+    /// <param name="defaultValue">The default string value as a fallback.</param>
+    /// <param name="key">The unique key name.</param>
     /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
     /// <returns>The translated string value.</returns>
     /// <remarks>
@@ -80,9 +92,9 @@ public static class StringExtensions
     /// source code to match.
     /// </remarks>
     public static string L10N(this string defaultValue, string key, bool notify = true)
-        => string.IsNullOrEmpty(defaultValue)
-            ? defaultValue
-            : Translation.Instance.LookUp(key, defaultValue, notify);
+        => notify
+            ? L10N(defaultValue, key, TranslationNotificationLevel.Default)
+            : defaultValue;
 
     /// <summary>
     /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.

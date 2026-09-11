@@ -19,8 +19,8 @@ public class TranslationINIParser : IControlINIAttributeParser
     public static TranslationINIParser Instance => _instance ??= new TranslationINIParser();
 
     // shorthand for localization function
-    private string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-        => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+    private string Localize(XNAControl control, string attributeName, string defaultValue, TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
+        => Translation.Instance.LookUp(control, attributeName, defaultValue, notificationLevel);
 
     public bool ParseINIAttribute(XNAControl control, IniFile iniFile, string key, string value)
     {
@@ -30,32 +30,32 @@ public class TranslationINIParser : IControlINIAttributeParser
                 control.Text = Localize(control, key, value.FromIniString());
                 return true;
             case "Size":
-                string[] size = Localize(control, key, value, notify: false).Split(',');
+                string[] size = Localize(control, key, value, TranslationNotificationLevel.Verbose).Split(',');
                 control.ClientRectangle = new Rectangle(control.X, control.Y,
                     int.Parse(size[0], CultureInfo.InvariantCulture),
                     int.Parse(size[1], CultureInfo.InvariantCulture));
                 return true;
             case "Width":
-                control.Width = int.Parse(Localize(control, key, value, notify: false),
+                control.Width = int.Parse(Localize(control, key, value, TranslationNotificationLevel.Verbose),
                     CultureInfo.InvariantCulture);
                 return true;
             case "Height":
-                control.Height = int.Parse(Localize(control, key, value, notify: false),
+                control.Height = int.Parse(Localize(control, key, value, TranslationNotificationLevel.Verbose),
                     CultureInfo.InvariantCulture);
                 return true;
             case "Location":
-                string[] location = Localize(control, key, value, notify: false).Split(',');
+                string[] location = Localize(control, key, value, TranslationNotificationLevel.Verbose).Split(',');
                 control.ClientRectangle = new Rectangle(
                     int.Parse(location[0], CultureInfo.InvariantCulture),
                     int.Parse(location[1], CultureInfo.InvariantCulture),
                     control.Width, control.Height);
                 return true;
             case "X":
-                control.X = int.Parse(Localize(control, key, value, notify: false),
+                control.X = int.Parse(Localize(control, key, value, TranslationNotificationLevel.Verbose),
                     CultureInfo.InvariantCulture);
                 return true;
             case "Y":
-                control.Y = int.Parse(Localize(control, key, value, notify: false),
+                control.Y = int.Parse(Localize(control, key, value, TranslationNotificationLevel.Verbose),
                     CultureInfo.InvariantCulture);
                 return true;
             case "DistanceFromRightBorder":
@@ -64,7 +64,7 @@ public class TranslationINIParser : IControlINIAttributeParser
                     control.ClientRectangle = new Rectangle(
                         control.Parent.Width
                             - control.Width
-                            - Conversions.IntFromString(Localize(control, key, value, notify: false), 0),
+                            - Conversions.IntFromString(Localize(control, key, value, TranslationNotificationLevel.Verbose), 0),
                         control.Y,
                         control.Width, control.Height);
                 }
@@ -76,7 +76,7 @@ public class TranslationINIParser : IControlINIAttributeParser
                         control.X,
                         control.Parent.Height
                             - control.Height
-                            - Conversions.IntFromString(Localize(control, key, value, notify: false), 0),
+                            - Conversions.IntFromString(Localize(control, key, value, TranslationNotificationLevel.Verbose), 0),
                         control.Width, control.Height);
                 }
                 return true;
@@ -87,10 +87,10 @@ public class TranslationINIParser : IControlINIAttributeParser
                 suggestionTextBox.Suggestion = Localize(control, key, value.FromIniString());
                 return true;
             case "URL" when control is XNALinkButton button:  // need to link localized docs
-                button.URL = Localize(control, key, value.FromIniString(), notify: false);
+                button.URL = Localize(control, key, value.FromIniString(), TranslationNotificationLevel.Verbose);
                 return true;
             case "UnixURL" when control is XNALinkButton button:
-                button.UnixURL = Localize(control, key, value.FromIniString(), notify: false);
+                button.UnixURL = Localize(control, key, value.FromIniString(), TranslationNotificationLevel.Verbose);
                 return true;
         }
 
