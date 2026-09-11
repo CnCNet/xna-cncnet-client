@@ -95,8 +95,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     GameBroadcastChannel = "#cncnet-td-games",
                     InternalName = "td",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Dawn",
-                    UIName = "Tiberian Dawn".L10N("Client:ClientCore:TiberianDawn"),
-                    Supported = false
+                    UIName = "Tiberian Dawn".L10N("Client:ClientCore:TiberianDawn")
                 },
 
                 new DefaultCnCNetGame("DTAClient.Icons.raicon.png")

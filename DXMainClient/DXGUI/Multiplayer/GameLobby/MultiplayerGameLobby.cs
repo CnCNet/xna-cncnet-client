@@ -1139,7 +1139,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerName.ToolTip.Text = string.Empty;
         }
 
-        private Texture2D GetTextureForPing(PingValue ping) => PingQualityVisuals.GetTexture(PingTextures, ping);
+        protected virtual Texture2D GetTextureForPing(PingValue ping) => PingQualityVisuals.GetTexture(PingTextures, ping);
 
         protected abstract void BroadcastPlayerOptions();
 
