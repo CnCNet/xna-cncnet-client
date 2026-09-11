@@ -215,7 +215,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
             showInFolderItem = new XNAContextMenuItem()
             {
-                Text = "Show in folder".L10N("Client:Main:ShowInFolder"),
+                Text = "Show in Folder".L10N("Client:Main:ShowInFolder"),
                 SelectAction = ShowInFolder,
                 SelectableChecker = () => GameModeMap != null
             };
