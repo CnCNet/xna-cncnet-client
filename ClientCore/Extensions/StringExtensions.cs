@@ -72,29 +72,11 @@ public static class StringExtensions
     /// <param name="key">The unique key name.</param>
     /// <param name="notificationLevel">The notification level of this key-value pair.</param>
     /// <returns>The translated string value.</returns>
-    public static string L10N(this string defaultValue, string key, TranslationNotificationLevel notificationLevel)
+    public static string L10N(this string defaultValue, string key,
+        TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
         => string.IsNullOrEmpty(defaultValue)
             ? defaultValue
             : Translation.Instance.LookUp(key, defaultValue, notificationLevel);
-
-    /// <summary>
-    /// Looks up a translated string for the specified key.
-    /// </summary>
-    /// <param name="defaultValue">The default string value as a fallback.</param>
-    /// <param name="key">The unique key name.</param>
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
-    /// <returns>The translated string value.</returns>
-    /// <remarks>
-    /// This method is referenced by <c>TranslationNotifierGenerator</c> in order to check if the const
-    /// values that are not initialized on client start automatically are missing (via notification
-    /// mechanism implemented down the call chain). Do not change the signature or move the method out
-    /// of the namespace it's currently defined in. If you do - you have to also edit the generator
-    /// source code to match.
-    /// </remarks>
-    public static string L10N(this string defaultValue, string key, bool notify = true)
-        => string.IsNullOrEmpty(defaultValue)
-            ? defaultValue
-            : Translation.Instance.LookUp(key, defaultValue, notify);
 
     /// <summary>
     /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.

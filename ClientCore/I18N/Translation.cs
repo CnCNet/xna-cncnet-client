@@ -348,25 +348,13 @@ public class Translation : ICloneable
     /// <param name="defaultValue">The value to fall back to in case there's no translated value.</param>
     /// <param name="notificationLevel">The notification level of this key-value pair.</param>
     /// <returns>The translated value or a default value.</returns>
-    public string LookUp(string key, string defaultValue, TranslationNotificationLevel notificationLevel)
+    public string LookUp(string key, string defaultValue,
+        TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
     {
         if (Values.TryGetValue(key, out string? value))
             return value;
 
         if (ShouldNotify(notificationLevel))
-            _ = HandleMissing(key, defaultValue);
-
-        return defaultValue;
-    }
-
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
-    /// <returns>The translated value or a default value.</returns>
-    public string LookUp(string key, string defaultValue, bool notify = true)
-    {
-        if (Values.TryGetValue(key, out string? value))
-            return value;
-
-        if (notify && ShouldNotify(TranslationNotificationLevel.Default))
             _ = HandleMissing(key, defaultValue);
 
         return defaultValue;
@@ -380,7 +368,8 @@ public class Translation : ICloneable
     /// <param name="defaultValue">The value to fall back to in case there's no translated value.</param>
     /// <param name="notificationLevel">The notification level of this key-value pair. Doesn't include the fallback key.</param>
     /// <returns>The translated value or a default value.</returns>
-    public string LookUp(string key, string fallbackKey, string defaultValue, TranslationNotificationLevel notificationLevel)
+    public string LookUp(string key, string fallbackKey, string defaultValue,
+        TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
     {
         if (Values.TryGetValue(key, out string? value))
             return value;
@@ -389,22 +378,6 @@ public class Translation : ICloneable
             return fallbackValue;
 
         if (ShouldNotify(notificationLevel))
-            _ = HandleMissing(key, defaultValue);
-
-        return defaultValue;
-    }
-
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values. Doesn't include the fallback key.</param>
-    /// <returns>The translated value or a default value.</returns>
-    public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
-    {
-        if (Values.TryGetValue(key, out string? value))
-            return value;
-
-        if (key != fallbackKey && Values.TryGetValue(fallbackKey, out string? fallbackValue))
-            return fallbackValue;
-
-        if (notify && ShouldNotify(TranslationNotificationLevel.Default))
             _ = HandleMissing(key, defaultValue);
 
         return defaultValue;
