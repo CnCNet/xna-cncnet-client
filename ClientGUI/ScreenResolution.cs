@@ -104,7 +104,9 @@ namespace ClientGUI
         /// <summary>
         /// The maximum resolution supported by the graphic profile, or the largest full screen resolution supported by the primary monitor, whichever is smaller.
         /// </summary>
-        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max ?? SafeMaximumResolution;
+        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??=
+            GetFullScreenResolutions(ClientConfiguration.Instance.MinimalClientWidth, ClientConfiguration.Instance.MinimalClientHeight).Max
+            ?? SafeMaximumResolution;
 
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
             GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
@@ -187,8 +189,17 @@ namespace ClientGUI
 
         public static SortedSet<ScreenResolution> GetRecommendedResolutions()
         {
-            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            var clientConfiguration = ClientConfiguration.Instance;
+            int minimalClientWidth = clientConfiguration.MinimalClientWidth;
+            int minimalClientHeight = clientConfiguration.MinimalClientHeight;
+            List<ScreenResolution> recommendedResolutions = clientConfiguration.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
+            SortedSet<ScreenResolution> scaledRecommendedResolutions =
+            [
+                .. recommendedResolutions
+                    .SelectMany(resolution => resolution.GetIntegerScaledResolutions())
+                    .Where(resolution => resolution.Width >= minimalClientWidth
+                        && resolution.Height >= minimalClientHeight)
+            ];
             return scaledRecommendedResolutions;
         }
 

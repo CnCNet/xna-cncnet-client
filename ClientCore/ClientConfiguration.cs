@@ -234,6 +234,10 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
+        public int MinimalClientWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimalClientWidth", 800);
+
+        public int MinimalClientHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimalClientHeight", 600);
+
         public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
             $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
 
