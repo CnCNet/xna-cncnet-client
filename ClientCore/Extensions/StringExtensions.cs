@@ -72,6 +72,10 @@ public static class StringExtensions
     /// <param name="key">The unique key name.</param>
     /// <param name="notificationLevel">The notification level of this key-value pair.</param>
     /// <returns>The translated string value.</returns>
+    /// <remarks>
+    /// This method is referenced by <c>TranslationNotifierGenerator</c> to find compile-time localizable strings.
+    /// Do not change the method name or move it out of this namespace without updating the generator implementation.
+    /// </remarks>
     public static string L10N(this string defaultValue, string key,
         TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
         => string.IsNullOrEmpty(defaultValue)
