@@ -167,11 +167,7 @@ namespace DTAClient
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)
                 {
-                    int notificationLevel = Math.Clamp(
-                        UserINISettings.Instance.TranslationStubNotificationLevel.Value,
-                        (int)TranslationNotificationLevel.Default,
-                        (int)TranslationNotificationLevel.Verbose);
-                    Translation.Instance.MissingKeyNotificationLevel = (TranslationNotificationLevel)notificationLevel;
+                    Translation.Instance.MissingKeyNotificationLevel = TranslationNotificationLevel.FromInt(UserINISettings.Instance.TranslationStubNotificationLevel.Value);
 
                     string stubPath = SafePath.CombineFilePath(
                         ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.TranslationIniName);
