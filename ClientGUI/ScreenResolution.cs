@@ -99,12 +99,10 @@ namespace ClientGUI
             }
         }
 
-        private static ScreenResolution? _safeFullScreenResolution = null;
-
         /// <summary>
         /// The maximum resolution supported by the graphic profile, or the largest full screen resolution supported by the primary monitor, whichever is smaller.
         /// </summary>
-        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??=
+        public static ScreenResolution SafeFullScreenResolution =>
             GetFullScreenResolutions(ClientConfiguration.Instance.MinimalClientWidth, ClientConfiguration.Instance.MinimalClientHeight).Max
             ?? SafeMaximumResolution;
 
