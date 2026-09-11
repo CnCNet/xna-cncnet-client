@@ -832,16 +832,16 @@ SaveCampaignGameOptions=false  ; boolean, whether or not previously used game op
 
 ```ini
 [Settings]
-MinimumRenderWidth=1024   ; integer, the minimum width that the client window is rendered at.
-                          ;          Smaller client resolutions are downscaled to at least this width.
-MinimumRenderHeight=600   ; integer, the minimum height that the client window is rendered at.
-                          ;          Smaller client resolutions are downscaled to at least this height.
-MaximumRenderWidth=1280   ; integer, the maximum width that the client window is rendered at.
-                          ;          Larger client resolutions are rendered using at most this width.
-MaximumRenderHeight=720   ; integer, the maximum height that the client window is rendered at.
-                          ;          Larger client resolutions are rendered using at most this height.
-MinimalClientWidth=800    ; integer, the minimum client window width offered for client resolutions.
-MinimalClientHeight=600   ; integer, the minimum client window height offered for client resolutions.
+MinimumRenderWidth=1024   ; integer, the minimum internal render width for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MinimumRenderHeight=600   ; integer, the minimum internal render height for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MaximumRenderWidth=1280   ; integer, the maximum internal render width for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MaximumRenderHeight=720   ; integer, the maximum internal render height for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MinimalClientWidth=800    ; integer, the minimum client resolution width offered in the client resolution selection.
+MinimalClientHeight=600   ; integer, the minimum client resolution height offered in the client resolution selection.
 ```
 
 ```ini
