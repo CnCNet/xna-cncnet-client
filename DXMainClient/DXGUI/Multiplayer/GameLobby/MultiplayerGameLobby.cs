@@ -42,11 +42,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => HideMapList()),
                 new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
                     s => ShowMapList()),
-                new ChatBoxCommand("FRAMESENDRATE", string.Format("Change order lag / FrameSendRate (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelpV2"), ClientConfiguration.Instance.DefaultFrameSendRate), true,
+                new ChatBoxCommand("FRAMESENDRATE", string.Format("Change order lag / FrameSendRate (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), ClientConfiguration.Instance.DefaultFrameSendRate), true,
                     s => SetFrameSendRate(s)),
-                new ChatBoxCommand("MAXAHEAD", string.Format("Change MaxAhead (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelpV2"), ClientConfiguration.Instance.DefaultMaxAhead), true,
+                new ChatBoxCommand("MAXAHEAD", string.Format("Change MaxAhead (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), ClientConfiguration.Instance.DefaultMaxAhead), true,
                     s => SetMaxAhead(s)),
-                new ChatBoxCommand("PROTOCOLVERSION", string.Format("Change ProtocolVersion (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelpV2"), ClientConfiguration.Instance.DefaultProtocolVersion), true,
+                new ChatBoxCommand("PROTOCOLVERSION", string.Format("Change ProtocolVersion (default {0}) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelp"), ClientConfiguration.Instance.DefaultProtocolVersion), true,
                     s => SetProtocolVersion(s)),
                 new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("Client:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
@@ -914,7 +914,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected virtual void LockGameNotification() =>
-            AddNotice("The host needs to lock the game room before launching the game.".L10N("Client:Main:LockGameNotificationV2"));
+            AddNotice("The host needs to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
 
         protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
@@ -950,14 +950,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void InsufficientPlayersNotification()
         {
             Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
-            AddNotice(string.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotificationV2"),
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification"),
                 GameModeMap.ToString(), GameModeMap.MinPlayers));
         }
 
         protected virtual void TooManyPlayersNotification()
         {
             Debug.Assert(GameModeMap != null, "GameModeMap should not be null");
-            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotificationV2"),
+            AddNotice(string.Format("Unable to launch game: {0} cannot be played with more than {1} players.".L10N("Client:Main:TooManyPlayersNotification"),
                 GameModeMap.ToString(), GameModeMap.MaxPlayers));
         }
 
