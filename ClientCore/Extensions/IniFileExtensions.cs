@@ -12,14 +12,14 @@ namespace ClientCore.Extensions
     {
         extension(IniFile iniFile)
         {
-            // Clone() method is not officially available now. https://github.com/Rampastring/Rampastring.Tools/issues/12
+            // IniFile.Clone() method has not been officially supported yet
             public IniFile Clone()
             {
                 var newIni = new IniFile();
                 foreach (string sectionName in iniFile.GetSections())
                 {
                     IniSection oldSection = iniFile.GetSection(sectionName);
-                    newIni.AddSection(oldSection.Clone());
+                    newIni.AddSection(oldSection.Clone(sectionName));
                 }
 
                 return newIni;
@@ -44,18 +44,6 @@ namespace ClientCore.Extensions
 
         extension(IniSection iniSection)
         {
-            public IniSection Clone()
-            {
-                IniSection newSection = new(iniSection.SectionName);
-
-                foreach ((var key, var value) in iniSection.Keys)
-                {
-                    newSection.AddKey(key, value);
-                }
-
-                return newSection;
-            }
-
             public void RemoveAllKeys()
             {
                 var keys = new List<KeyValuePair<string, string>>(iniSection.Keys);
