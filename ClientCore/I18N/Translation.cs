@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 using ClientCore.Extensions;
@@ -333,6 +334,12 @@ public class Translation : ICloneable
         return false;
     }
 
+    private static string GetKeyWithDefaultValueChecksum(string key, string defaultValue)
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(defaultValue));
+        return key + ":" + Convert.ToHexString(hash, 0, 3).ToLowerInvariant();
+    }
+
     /// <summary>
     /// Looks up the translated value that corresponds to the given key.
     /// </summary>
@@ -342,6 +349,8 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string defaultValue, bool notify = true)
     {
+        key = GetKeyWithDefaultValueChecksum(key, defaultValue);
+
         if (Values.TryGetValue(key, out string? value))
             return value;
 
@@ -361,6 +370,9 @@ public class Translation : ICloneable
     /// <returns>The translated value or a default value.</returns>
     public string LookUp(string key, string fallbackKey, string defaultValue, bool notify = true)
     {
+        key = GetKeyWithDefaultValueChecksum(key, defaultValue);
+        fallbackKey = GetKeyWithDefaultValueChecksum(fallbackKey, defaultValue);
+
         if (Values.TryGetValue(key, out string? value))
             return value;
 

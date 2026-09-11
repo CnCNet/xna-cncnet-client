@@ -606,7 +606,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 #endif
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(
-                    string.Format("*** CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessageV2"), clientVersion),
+                    string.Format("*** CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), clientVersion),
                     lbChatMessages.FontIndex)));
 
             {
