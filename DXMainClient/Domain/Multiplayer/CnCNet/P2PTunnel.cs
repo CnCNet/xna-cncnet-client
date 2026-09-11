@@ -1,8 +1,9 @@
 #nullable enable
-using System;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
@@ -34,6 +35,6 @@ public class P2PTunnel : CnCNetTunnel
         using (var sha1 = SHA1.Create())
             hash = sha1.ComputeHash(Encoding.UTF8.GetBytes($"{PeerEndpointHashSalt}|{peerEndpoint}"));
 
-        return BitConverter.ToString(hash, 0, 3).Replace("-", "");
+        return Utilities.BytesToHexString(hash, 0, 3);
     }
 }
