@@ -7,6 +7,7 @@ This document lists all the breaking changes and how to address them. Each secti
 
 ## 2.14.0
 
+- Translation keys in `Translation.ini` `[Values]` now append a checksum suffix derived from the original UTF-8 default value. Existing translation entries that still use the old unhashed keys will become outdated and stop matching when upgrading to 2.14.0. Regenerate the translation stub or rename existing translation keys to the new suffixed format before release.
 - The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
 - Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
 
