@@ -9,13 +9,16 @@ public static class TranslationNotificationLevelExtensions
 {
     extension(TranslationNotificationLevel)
     {
-        public static TranslationNotificationLevel FromInt(int value) => value switch
+        public static TranslationNotificationLevel FromInt(int value)
         {
-            1 => TranslationNotificationLevel.Default,
-            2 => TranslationNotificationLevel.Verbose,
-            _ => throw new ArgumentOutOfRangeException(nameof(value), string.Format(
-                "Invalid value for TranslationNotificationLevel: {0}".L10N("Client:ClientCore:InvalidTranslationNotificationLevelValue"), value)),
-        };
+            if (!Enum.IsDefined(typeof(TranslationNotificationLevel), value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), string.Format(
+                        "Invalid value for TranslationNotificationLevel: {0}".L10N("Client:ClientCore:InvalidTranslationNotificationLevelValue"), value));
+            }
+
+            return (TranslationNotificationLevel)value;
+        }
     }
 
     extension(TranslationNotificationLevel thisLevel)
