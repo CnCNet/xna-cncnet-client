@@ -167,6 +167,8 @@ namespace DTAClient
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)
                 {
+                    Translation.Instance.MissingKeyNotificationLevel = TranslationNotificationLevel.FromInt(UserINISettings.Instance.TranslationStubNotificationLevel.Value);
+
                     string stubPath = SafePath.CombineFilePath(
                         ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.TranslationIniName);
 
@@ -177,7 +179,7 @@ namespace DTAClient
                         ini.WriteIniFile(stubPath);
                     };
 
-                    Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
+                    Logger.Log($"Translation stub generation feature is now enabled. Notification level: {Translation.Instance.MissingKeyNotificationLevel}. The stub file will be written when the client exits.");
 
                     // Lookup all compile-time available strings
                     ClientCore.Generated.TranslationNotifier.Register();
