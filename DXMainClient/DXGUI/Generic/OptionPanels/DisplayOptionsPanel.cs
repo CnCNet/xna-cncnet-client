@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     maxResolution: maximumIngameResolution);
 
                 // Add custom in-game resolutions
-                ScreenResolution minimumIngameResolution =ClientConfiguration.Instance.MinimumIngameResolution;
+                ScreenResolution minimumIngameResolution = ClientConfiguration.Instance.MinimumIngameResolution;
                 var customIngameResolutions = XNAScreenResolutionManager.GetCustomIngameResolutions();
                 foreach (var customRes in customIngameResolutions)
                 {
@@ -186,7 +186,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add client resolutions
             {
-                ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;                
+                ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;
+                if (!minimumClientResolution.Fits(XNAScreenResolutionManager.DesktopResolution))
+                {
+                    throw new Exception(string.Format("Your desktop resolution {0} is too small. At least {1} is required. Please change your desktop resolution and restart the client.".L10N("Client:DTAConfig:DesktopResolutionTooSmall"),
+                        XNAScreenResolutionManager.DesktopResolution, minimumClientResolution));
+                }
+
                 SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
