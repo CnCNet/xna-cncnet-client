@@ -187,11 +187,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             // Add client resolutions
             {
                 ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;
-                if (!minimumClientResolution.Fits(XNAScreenResolutionManager.DesktopResolution))
-                {
-                    throw new Exception(string.Format("Your desktop resolution {0} is too small. At least {1} is required. Please change your desktop resolution and restart the client.".L10N("Client:DTAConfig:DesktopResolutionTooSmall"),
-                        XNAScreenResolutionManager.DesktopResolution, minimumClientResolution));
-                }
+
+                XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
 
                 SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
@@ -201,6 +198,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
+
+                Debug.Assert(resolutionList.Count > 0, "No client resolutions available. This should be impossible.");
 
                 foreach (ScreenResolution res in resolutionList)
                 {

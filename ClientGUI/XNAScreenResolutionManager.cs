@@ -5,6 +5,7 @@ using System.Linq;
 
 using ClientCore;
 using ClientCore.Display;
+using ClientCore.Extensions;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -174,6 +175,21 @@ namespace ClientGUI
 
         public static ScreenResolution GetBestRecommendedResolution() =>
             GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
+
+        public static void RequireDesktopResolutionFitsMinimumResolution(ScreenResolution minimumClientResolution)
+        {
+            if (!DesktopResolution.Fits(minimumClientResolution))
+            {
+                throw new Exception(string.Format("Your desktop resolution {0} is too small. At least {1} is required. Please change your desktop resolution and restart the client.".L10N("Client:DTAConfig:DesktopResolutionTooSmall"),
+                    DesktopResolution, minimumClientResolution));
+            }
+            else if (!SafeMaximumResolution.Fits(minimumClientResolution))
+            {
+                // This usually means the minimium client resolution exceeds the HiDef limitation.
+                throw new Exception(string.Format("The maximum supported resolution {0} is too small to fit the minimum client resolution {1}. Please contact support at {2}.".L10N("Client:DTAConfig:MaximumResolutionTooSmall"),
+                    SafeMaximumResolution, minimumClientResolution, ClientConfiguration.Instance.LongSupportURL));
+            }
+        }
 
     }
 }

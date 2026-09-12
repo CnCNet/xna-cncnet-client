@@ -381,10 +381,14 @@ namespace DTAClient.DXGUI
         /// <param name="centerOnScreen">Whether to center the client window on the screen</param>
         public static void SetGraphicsMode(WindowManager wm, bool centerOnScreen = true)
         {
-            int windowWidth = UserINISettings.Instance.ClientResolutionX;
-            int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
-            SetGraphicsMode(wm, windowWidth, windowHeight, centerOnScreen);
+            if (!((ScreenResolution)(UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY)).Fits(ClientConfiguration.Instance.MinimumClientResolution))
+            {
+                UserINISettings.Instance.ClientResolutionX.Value = ClientConfiguration.Instance.MinimumClientResolution.Width;
+                UserINISettings.Instance.ClientResolutionY.Value = ClientConfiguration.Instance.MinimumClientResolution.Height;
+            }
+
+            SetGraphicsMode(wm, UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY, centerOnScreen);
         }
 
         /// <inheritdoc cref="SetGraphicsMode(WindowManager, bool)"/>
@@ -405,6 +409,9 @@ namespace DTAClient.DXGUI
         {
             var clientConfiguration = ClientConfiguration.Instance;
 
+            ScreenResolution minimumClientResolution = clientConfiguration.MinimumClientResolution;
+            XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
+
             (int desktopWidth, int desktopHeight) = XNAScreenResolutionManager.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
@@ -416,7 +423,7 @@ namespace DTAClient.DXGUI
             {
                 // fallback to the minimum supported resolution when the desktop is not sufficient to contain the client
                 // e.g., when users set a lower desktop resolution but the client resolution in the settings file remains high
-                if (!wm.InitGraphicsMode(1024, 600, false))
+                if (!wm.InitGraphicsMode(minimumClientResolution.Width, minimumClientResolution.Height, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
 
