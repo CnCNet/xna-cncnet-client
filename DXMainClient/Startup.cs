@@ -66,8 +66,8 @@ namespace DTAClient
             Thread onlineIdThread = new Thread(GenerateOnlineId);
             onlineIdThread.Start();
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
-                Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+            if (GameLogManager.IsSupported)
+                Task.Run(GameLogManager.PruneGameLogs);
 
             Task.Run(MigrateOldLogFiles);
 
@@ -181,50 +181,6 @@ namespace DTAClient
                     Logger.Log("Steam init failed: " + e.Message);
                     // Couldn't init for some reason (steam is closed etc)
                 }
-            }
-        }
-
-        /// <summary>
-        /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
-        /// If directory is empty after deleting files, the directory itself will also be deleted.
-        /// </summary>
-        /// <param name="directory">Directory to prune files from.</param>
-        /// <param name="pruneThresholdTime">Time at or before which files must have been created for them to be pruned.</param>
-        private void PruneFiles(DirectoryInfo directory, DateTime pruneThresholdTime)
-        {
-            if (!directory.Exists)
-                return;
-
-            try
-            {
-                foreach (FileSystemInfo fsEntry in directory.EnumerateFileSystemInfos())
-                {
-                    if ((fsEntry.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                        PruneFiles(new DirectoryInfo(fsEntry.FullName), pruneThresholdTime);
-                    else
-                    {
-                        try
-                        {
-                            FileInfo fileInfo = new FileInfo(fsEntry.FullName);
-                            if (fileInfo.CreationTime <= pruneThresholdTime)
-                                fileInfo.Delete();
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Name +
-                                ". Error message: " + ex.ToString());
-                            continue;
-                        }
-                    }
-                }
-
-                if (!directory.EnumerateFileSystemInfos().Any())
-                    directory.Delete();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("PruneFiles: An error occurred while pruning files from " +
-                   directory.Name + ". Message: " + ex.ToString());
             }
         }
 
