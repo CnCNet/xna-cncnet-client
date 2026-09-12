@@ -63,6 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
         protected XNAClientCheckBox chkAutoReady;
+        protected XNAClientCheckBox chkAutoLaunch;
 
         private Random random;
 
@@ -185,6 +186,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();
 
+            chkAutoLaunch = FindChild<XNAClientCheckBox>(nameof(chkAutoLaunch), optional: true);
+
+            if (chkAutoLaunch != null)
+            {
+                chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
+                chkAutoLaunch.Disable();
+            }
+
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
@@ -278,6 +287,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (UserINISettings.Instance.StopGameLobbyMessageAudio)
                 sndMessageSound.Enabled = false;
+
+            if (chkAutoLaunch != null)
+                chkAutoLaunch.Checked = false;
 
             base.StartGame();
         }
@@ -405,6 +417,81 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             UpdateLaunchGameButtonStatus();
             RequestReadyStatus();
+        }
+
+        private void ChkAutoLaunch_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckAutoStartGame();
+        }
+
+        /// <summary>
+        /// Whether this lobby supports automatically starting the game
+        /// when the room is full and all players are ready.
+        /// </summary>
+        protected virtual bool SupportsAutoLaunch => false;
+
+        /// <summary>
+        /// Automatically starts the game if the host has enabled auto-launch,
+        /// the room is full and all players are ready. Locks the room first
+        /// if it is not locked already.
+        /// Auto-launch is one-shot: it disarms itself before attempting the launch,
+        /// so a failed launch attempt or a finished match requires the host
+        /// to enable it again for another attempt.
+        /// </summary>
+        protected void CheckAutoStartGame()
+        {
+            if (!SupportsAutoLaunch || !IsHost || chkAutoLaunch == null || !chkAutoLaunch.Checked)
+                return;
+
+            if (ProgramConstants.IsInGame || !btnLaunchGame.Enabled)
+                return;
+
+            if (!IsRoomFull())
+                return;
+
+            if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
+                return;
+
+            if (!Locked)
+            {
+                AddNotice("The game room has been locked.".L10N("Client:Main:AutoLaunchGameRoomLocked"));
+                LockGame();
+            }
+
+            chkAutoLaunch.Checked = false;
+
+            BtnLaunchGame_LeftClick(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Determines whether the game room can not take in any more players,
+        /// either because the player limit of the room or the maximum player
+        /// count of the selected map has been reached.
+        /// </summary>
+        private bool IsRoomFull()
+        {
+            if (Players.Count + AIPlayers.Count >= MaxPlayerCount)
+                return true;
+
+            if (GameModeMap == null || GameModeMap.MaxPlayers < 1)
+                return false;
+
+            int playerCount = Players.Count(p => !IsPlayerSpectator(p)) + AIPlayers.Count;
+
+            return playerCount >= GameModeMap.MaxPlayers;
+        }
+
+        protected void ResetAutoLaunchCheckbox()
+        {
+            if (chkAutoLaunch == null)
+                return;
+
+            chkAutoLaunch.Checked = false;
+
+            if (IsHost && SupportsAutoLaunch)
+                chkAutoLaunch.Enable();
+            else
+                chkAutoLaunch.Disable();
         }
 
         protected void ResetAutoReadyCheckbox()
@@ -643,6 +730,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Visible = true;
                 chkAutoReady.Disable();
 
+                ResetAutoLaunchCheckbox();
+
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
                     dd.InputEnabled = true;
@@ -665,6 +754,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
                 ReadINIForControl(chkAutoReady);
+
+                ResetAutoLaunchCheckbox();
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;

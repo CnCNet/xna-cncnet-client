@@ -160,6 +160,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override int MaxPlayerCount => playerLimit;
 
+        protected override bool SupportsAutoLaunch => true;
+
         private bool closed = false;
 
         private int skillLevel = ClientConfiguration.Instance.DefaultSkillLevelIndex;
@@ -1467,6 +1469,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            CheckAutoStartGame();
         }
 
         /// <summary>
