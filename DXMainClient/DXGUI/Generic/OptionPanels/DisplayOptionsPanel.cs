@@ -186,13 +186,12 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add client resolutions
             {
-                int minimumClientWidth = ClientConfiguration.Instance.MinimumClientWidth;
-                int minimumClientHeight = ClientConfiguration.Instance.MinimumClientHeight;
+                ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;                
                 SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
-                    .. XNAScreenResolutionManager.GetFullScreenResolutions(minimumClientWidth, minimumClientHeight),
-                    .. XNAScreenResolutionManager.GetWindowedResolutions(minimumClientWidth, minimumClientHeight),
+                    .. XNAScreenResolutionManager.GetFullScreenResolutions(minResolution: minimumClientResolution),
+                    .. XNAScreenResolutionManager.GetWindowedResolutions(minResolution: minimumClientResolution),
                     .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();

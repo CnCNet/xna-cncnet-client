@@ -52,18 +52,15 @@ namespace ClientGUI
         /// </summary>
         public static ScreenResolution SafeFullScreenResolution =>
             _safeFullScreenResolution
-            ??= GetFullScreenResolutions(ClientConfiguration.Instance.MinimumClientResolution).Max
+            ??= GetFullScreenResolutions(minResolution: ClientConfiguration.Instance.MinimumClientResolution).Max
             ?? SafeMaximumResolution;
 
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(ScreenResolution minResolution) =>
             GetFullScreenResolutions(minResolution.Width, minResolution.Height);
-
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
             GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
-
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(ScreenResolution minResolution, ScreenResolution maxResolution) =>
             GetFullScreenResolutions(minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
-
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             SortedSet<ScreenResolution> screenResolutions = [];
@@ -115,12 +112,20 @@ namespace ClientGUI
             return resolutions;
         }
 
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(ScreenResolution minResolution) =>
+            GetWindowedResolutions(minResolution.Width, minResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) =>
             GetWindowedResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, ScreenResolution minResolution) =>
+            GetWindowedResolutions(optimalResolutions, minResolution.Width, minResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight) =>
             GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(ScreenResolution minResolution, ScreenResolution maxResolution) =>
+            GetWindowedResolutions(minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight) =>
             GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, maxWidth, maxHeight);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, ScreenResolution minResolution, ScreenResolution maxResolution) =>
+            GetWindowedResolutions(optimalResolutions, minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             ScreenResolution maxResolution = (maxWidth, maxHeight);
