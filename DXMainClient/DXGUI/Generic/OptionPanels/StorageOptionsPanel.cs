@@ -197,7 +197,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblSavedGamesHeader = new XNALabel(WindowManager);
         lblSavedGamesHeader.Name = nameof(lblSavedGamesHeader);
         lblSavedGamesHeader.FontIndex = 1;
-        lblSavedGamesHeader.Text = "Single-player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
+        lblSavedGamesHeader.Text = "Single-Player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
         lblSavedGamesHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
 
         var lblKeptSavedGames = new XNALabel(WindowManager);
