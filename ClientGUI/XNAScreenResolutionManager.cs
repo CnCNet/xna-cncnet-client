@@ -176,6 +176,8 @@ namespace ClientGUI
         public static ScreenResolution GetBestRecommendedResolution() =>
             GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
 
+        public static void RequireDesktopResolutionFitsMinimumResolution()
+            => RequireDesktopResolutionFitsMinimumResolution(ClientConfiguration.Instance.MinimumClientResolution);
         public static void RequireDesktopResolutionFitsMinimumResolution(ScreenResolution minimumClientResolution)
         {
             if (!DesktopResolution.Fits(minimumClientResolution))
