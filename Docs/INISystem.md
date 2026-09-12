@@ -903,6 +903,15 @@ AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
 ```
 
 ```ini
+[Settings]
+ReplaySupport=false            ; boolean, enables replay recording and playback for packages with a compatible spawner.
+                               ; The current implementation targets RA2/YR and is off by default.
+ReplaysDirectory=Replays       ; string,  directory, relative to the game directory, that replays are
+                               ; recorded into and listed from.
+ReplayFileExtension=yrrp       ; string,  file extension of replay files, without a leading dot.
+```
+
+```ini
 [ClientLogs]
 MaxKeptLogFiles=20      ; maximum number of timestamped old log files; 0 = unlimited
 MaxLogFolderSizeMB=50   ; maximum combined size of old log files in MB; 0 = unlimited

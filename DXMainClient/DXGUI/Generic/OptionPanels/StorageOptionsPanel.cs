@@ -1,14 +1,18 @@
 #nullable enable
 
 using System;
+using System.IO;
 
 using ClientCore;
 using ClientCore.Extensions;
 
 using ClientGUI;
 
+using DTAClient.Domain;
+
 using Microsoft.Xna.Framework;
 
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -50,6 +54,11 @@ class StorageOptionsPanel : XNAOptionsPanel
     private XNATextBox? tbMaxGameLogAge;
     private XNATextBox? tbMaxGameLogFolderSize;
 
+    private XNATextBox? tbMaxKeptReplays;
+    private XNATextBox? tbMaxReplayFolderSize;
+    private XNATextBox? tbReplayKeyframeStorageLimit;
+    private XNALabel? lblReplayUsage;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -73,6 +82,9 @@ class StorageOptionsPanel : XNAOptionsPanel
             nextSectionY = InitializeGameLogSection(nextSectionY);
 
         nextSectionY = InitializeSavedGameSection(nextSectionY);
+
+        if (ReplayManager.IsSupported)
+            nextSectionY = InitializeReplaySections(nextSectionY);
 
         // A spacer so the last row does not sit flush against the bottom edge when scrolled down.
         var bottomMargin = new XNAPanel(WindowManager);
@@ -246,6 +258,86 @@ class StorageOptionsPanel : XNAOptionsPanel
         return lblSavedGameRetentionHint.Bottom + 12;
     }
 
+    private int InitializeReplaySections(int y)
+    {
+        var lblReplaysHeader = new XNALabel(WindowManager);
+        lblReplaysHeader.Name = nameof(lblReplaysHeader);
+        lblReplaysHeader.FontIndex = 1;
+        lblReplaysHeader.Text = "Replays".L10N("Client:DTAConfig:StorageReplaysHeader");
+        lblReplaysHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+
+        var lblKeptReplays = new XNALabel(WindowManager);
+        lblKeptReplays.Name = nameof(lblKeptReplays);
+        lblKeptReplays.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
+        lblKeptReplays.ClientRectangle = new Rectangle(12, lblReplaysHeader.Bottom + ROW_SPACING - 12, 0, 0);
+
+        var tbMaxKeptReplays = new XNATextBox(WindowManager);
+        tbMaxKeptReplays.Name = nameof(tbMaxKeptReplays);
+        tbMaxKeptReplays.MaximumTextLength = 6;
+        tbMaxKeptReplays.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblKeptReplays.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxKeptReplays = tbMaxKeptReplays;
+
+        var lblKeptReplaysSuffix = new XNALabel(WindowManager);
+        lblKeptReplaysSuffix.Name = nameof(lblKeptReplaysSuffix);
+        lblKeptReplaysSuffix.Text = "replays  (0 = no limit)".L10N("Client:DTAConfig:StorageKeepAtMostSuffix");
+        lblKeptReplaysSuffix.ClientRectangle = new Rectangle(
+            tbMaxKeptReplays.Right + 8, lblKeptReplays.Y, 0, 0);
+
+        var lblFolderSize = new XNALabel(WindowManager);
+        lblFolderSize.Name = nameof(lblFolderSize);
+        lblFolderSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageMaxSize");
+        lblFolderSize.ClientRectangle = new Rectangle(12, lblKeptReplays.Y + ROW_SPACING, 0, 0);
+
+        var tbMaxReplayFolderSize = new XNATextBox(WindowManager);
+        tbMaxReplayFolderSize.Name = nameof(tbMaxReplayFolderSize);
+        tbMaxReplayFolderSize.MaximumTextLength = 7;
+        tbMaxReplayFolderSize.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblFolderSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxReplayFolderSize = tbMaxReplayFolderSize;
+
+        var lblFolderSizeSuffix = new XNALabel(WindowManager);
+        lblFolderSizeSuffix.Name = nameof(lblFolderSizeSuffix);
+        lblFolderSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageMaxSizeSuffix");
+        lblFolderSizeSuffix.ClientRectangle = new Rectangle(
+            tbMaxReplayFolderSize.Right + 8, lblFolderSize.Y, 0, 0);
+
+        var lblReplayUsage = new XNALabel(WindowManager);
+        lblReplayUsage.Name = nameof(lblReplayUsage);
+        lblReplayUsage.ClientRectangle = new Rectangle(12, lblFolderSize.Y + ROW_SPACING + 6, 0, 0);
+        this.lblReplayUsage = lblReplayUsage;
+
+        var lblKeyframesHeader = new XNALabel(WindowManager);
+        lblKeyframesHeader.Name = nameof(lblKeyframesHeader);
+        lblKeyframesHeader.FontIndex = 1;
+        lblKeyframesHeader.Text = "Playback keyframes".L10N("Client:DTAConfig:StorageKeyframesHeader");
+        lblKeyframesHeader.ClientRectangle = new Rectangle(12, lblReplayUsage.Y + ROW_SPACING, 0, 0);
+
+        var lblKeyframeSize = new XNALabel(WindowManager);
+        lblKeyframeSize.Name = nameof(lblKeyframeSize);
+        lblKeyframeSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageKeyframeMaxSize");
+        lblKeyframeSize.ClientRectangle = new Rectangle(12, lblKeyframesHeader.Bottom + ROW_SPACING - 12, 0, 0);
+
+        var tbReplayKeyframeStorageLimit = new XNATextBox(WindowManager);
+        tbReplayKeyframeStorageLimit.Name = nameof(tbReplayKeyframeStorageLimit);
+        tbReplayKeyframeStorageLimit.MaximumTextLength = 7;
+        tbReplayKeyframeStorageLimit.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblKeyframeSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbReplayKeyframeStorageLimit = tbReplayKeyframeStorageLimit;
+
+        var lblKeyframeSizeSuffix = new XNALabel(WindowManager);
+        lblKeyframeSizeSuffix.Name = nameof(lblKeyframeSizeSuffix);
+        lblKeyframeSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageKeyframeMaxSizeSuffix");
+        lblKeyframeSizeSuffix.ClientRectangle = new Rectangle(
+            tbReplayKeyframeStorageLimit.Right + 8, lblKeyframeSize.Y, 0, 0);
+
+        AddContent(lblReplaysHeader, lblKeptReplays, tbMaxKeptReplays, lblKeptReplaysSuffix,
+            lblFolderSize, tbMaxReplayFolderSize, lblFolderSizeSuffix, lblReplayUsage,
+            lblKeyframesHeader, lblKeyframeSize, tbReplayKeyframeStorageLimit, lblKeyframeSizeSuffix);
+
+        return tbReplayKeyframeStorageLimit.Bottom + 12;
+    }
+
     public override void Load()
     {
         base.Load();
@@ -259,6 +351,15 @@ class StorageOptionsPanel : XNAOptionsPanel
         {
             tbMaxGameLogAge!.Text = IniSettings.MaxGameLogAgeDays.Value.ToString();
             tbMaxGameLogFolderSize!.Text = IniSettings.MaxGameLogFolderSizeMB.Value.ToString();
+        }
+
+        if (ReplayManager.IsSupported)
+        {
+            tbMaxKeptReplays!.Text = IniSettings.MaxKeptReplays.Value.ToString();
+            tbMaxReplayFolderSize!.Text = IniSettings.MaxReplayFolderSizeMB.Value.ToString();
+            tbReplayKeyframeStorageLimit!.Text = IniSettings.ReplayKeyframeStorageLimitMB.Value.ToString();
+
+            RefreshUsageLabel();
         }
     }
 
@@ -283,7 +384,55 @@ class StorageOptionsPanel : XNAOptionsPanel
                 ParseLimit(tbMaxGameLogFolderSize!.Text, IniSettings.MaxGameLogFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
         }
 
+        if (ReplayManager.IsSupported)
+        {
+            IniSettings.MaxKeptReplays.Value =
+                ParseLimit(tbMaxKeptReplays!.Text, IniSettings.MaxKeptReplays.Value, MAX_KEPT_FILES_LIMIT);
+            IniSettings.MaxReplayFolderSizeMB.Value =
+                ParseLimit(tbMaxReplayFolderSize!.Text, IniSettings.MaxReplayFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+            IniSettings.ReplayKeyframeStorageLimitMB.Value =
+                ParseLimit(tbReplayKeyframeStorageLimit!.Text,
+                    IniSettings.ReplayKeyframeStorageLimitMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+        }
+
         return restartRequired;
+    }
+
+    public override bool RefreshPanel()
+    {
+        bool valuesChanged = base.RefreshPanel();
+
+        if (ReplayManager.IsSupported)
+            RefreshUsageLabel();
+
+        return valuesChanged;
+    }
+
+    private void RefreshUsageLabel()
+    {
+        int count = 0;
+        long bytes = 0;
+
+        try
+        {
+            DirectoryInfo directory = ReplayManager.GetReplayDirectory();
+            if (directory.Exists)
+            {
+                foreach (FileInfo file in directory.EnumerateFiles(ReplayManager.SearchPattern))
+                {
+                    count++;
+                    bytes += file.Length;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log("StorageOptionsPanel: could not measure the replay directory: " + ex.Message);
+        }
+
+        lblReplayUsage!.Text = string.Format(
+            "Currently stored: {0} replays, {1:0.#} MB".L10N("Client:DTAConfig:StorageReplayUsage"),
+            count, bytes / (1024.0 * 1024.0));
     }
 
     private static int ParseLimit(string? text, int previousValue, int maximum)

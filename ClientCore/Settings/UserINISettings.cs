@@ -23,6 +23,7 @@ namespace ClientCore
         public const string COMPATIBILITY = "Compatibility";
         public const string GAME_FILTERS = "GameFilters";
         public const string GAME_OPTION_FILTERS = "GameOptionFilters";
+        public const string REPLAYS = "Replays";
         public const string CLIENT_LOGS = "ClientLogs";
         public const string GAME_LOGS = "GameLogs";
         public const string SAVED_GAMES = "SavedGames";
@@ -202,6 +203,17 @@ namespace ClientCore
             MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
             MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
 
+            MaxKeptReplays = new IntSetting(iniFile, REPLAYS, "MaxKeptReplays", 50);
+            MaxReplayFolderSizeMB = new IntSetting(iniFile, REPLAYS, "MaxReplayFolderSizeMB", 2048);
+            ReplayKeyframeStorageLimitMB = new IntSetting(iniFile, REPLAYS, "ReplayKeyframeStorageLimitMB", 512);
+            ReplayPlaybackShroudEnabled = new BoolSetting(iniFile, REPLAYS, "PlaybackShroudEnabled", false);
+            ReplayPlaybackFollowCamera = new BoolSetting(iniFile, REPLAYS, "PlaybackFollowCamera", true);
+            ReplayPlaybackShowSelections = new BoolSetting(iniFile, REPLAYS, "PlaybackShowSelections", true);
+            ReplayPlaybackSpectator = new BoolSetting(iniFile, REPLAYS, "PlaybackSpectator", true);
+            ReplayPlaybackShowChatAndBeacons = new BoolSetting(iniFile, REPLAYS, "PlaybackShowChatAndBeacons", true);
+            ReplayPlaybackGameSpeed = new IntSetting(iniFile, REPLAYS, "PlaybackGameSpeed", 0);
+            ReplayPlaybackKeyframeInterval = new IntSetting(iniFile, REPLAYS, "PlaybackKeyframeInterval", 750);
+
             SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
             HideLockedGames = new BoolSetting(iniFile, GAME_FILTERS, "HideLockedGames", DEFAULT_HIDE_LOCKED_GAMES);
@@ -356,6 +368,33 @@ namespace ClientCore
             else
                 SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value);
         }
+
+        /***********/
+        /* REPLAYS */
+        /***********/
+
+        /// <summary>Maximum number of replays to keep. 0 means unlimited.</summary>
+        public IntSetting MaxKeptReplays { get; private set; }
+
+        /// <summary>Maximum total size of the replay directory in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxReplayFolderSizeMB { get; private set; }
+
+        /// <summary>Maximum playback keyframe storage in megabytes. 0 means unlimited.</summary>
+        public IntSetting ReplayKeyframeStorageLimitMB { get; private set; }
+
+        public BoolSetting ReplayPlaybackShroudEnabled { get; private set; }
+
+        public BoolSetting ReplayPlaybackFollowCamera { get; private set; }
+
+        public BoolSetting ReplayPlaybackShowSelections { get; private set; }
+
+        public BoolSetting ReplayPlaybackSpectator { get; private set; }
+
+        public BoolSetting ReplayPlaybackShowChatAndBeacons { get; private set; }
+
+        public IntSetting ReplayPlaybackGameSpeed { get; private set; }
+
+        public IntSetting ReplayPlaybackKeyframeInterval { get; private set; }
 
         /********/
         /* MISC */
