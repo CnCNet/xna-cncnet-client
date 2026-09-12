@@ -27,16 +27,32 @@ class StorageOptionsPanel : XNAOptionsPanel
     private const int ROW_SPACING = 30;
     private const int MAX_KEPT_FILES_LIMIT = 100000;
     private const int MAX_FOLDER_SIZE_LIMIT_MB = 1024 * 1024;
+    private const int MAX_AGE_DAYS_LIMIT = 3650;
+
+    /// <summary>Exposes the content panel, which holds everything that scrolls.</summary>
+    private sealed class StorageScrollPanel : XNAScrollPanel
+    {
+        public StorageScrollPanel(WindowManager windowManager) : base(windowManager)
+        {
+        }
+
+        public XNAPanel Content => ContentPanel;
+    }
 
     public StorageOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
         : base(windowManager, iniSettings)
     {
     }
 
+    private StorageScrollPanel scrollPanel = null!;
+
     private XNATextBox tbMaxKeptLogFiles = null!;
     private XNATextBox tbMaxLogFolderSize = null!;
     private XNATextBox tbMaxKeptSavedGames = null!;
     private XNATextBox tbMaxSavedGameFolderSize = null!;
+
+    private XNATextBox? tbMaxGameLogAge;
+    private XNATextBox? tbMaxGameLogFolderSize;
 
     private XNATextBox? tbMaxKeptReplays;
     private XNATextBox? tbMaxReplayFolderSize;
@@ -49,11 +65,48 @@ class StorageOptionsPanel : XNAOptionsPanel
 
         Name = "StorageOptionsPanel";
 
+        // The sections outgrow the panel once every feature is enabled, so they scroll.
+        scrollPanel = new StorageScrollPanel(WindowManager);
+        scrollPanel.Name = nameof(scrollPanel);
+        scrollPanel.ClientRectangle = new Rectangle(0, 0, Width, Height);
+        scrollPanel.DrawBorders = false;
+        scrollPanel.AllowScroll = (false, true);
+        // Arrow keys belong to the text boxes.
+        scrollPanel.AllowKeyboardInput = false;
+        scrollPanel.ScrollStep = ROW_SPACING;
+        AddChild(scrollPanel);
+
+        int nextSectionY = InitializeClientLogSection(14);
+
+        if (GameLogManager.IsSupported)
+            nextSectionY = InitializeGameLogSection(nextSectionY);
+
+        nextSectionY = InitializeSavedGameSection(nextSectionY);
+
+        if (ReplayManager.IsSupported)
+            nextSectionY = InitializeReplaySections(nextSectionY);
+
+        // A spacer so the last row does not sit flush against the bottom edge when scrolled down.
+        var bottomMargin = new XNAPanel(WindowManager);
+        bottomMargin.Name = nameof(bottomMargin);
+        bottomMargin.DrawBorders = false;
+        bottomMargin.ClientRectangle = new Rectangle(0, nextSectionY, 1, 1);
+        AddContent(bottomMargin);
+    }
+
+    private void AddContent(params XNAControl[] controls)
+    {
+        foreach (XNAControl control in controls)
+            scrollPanel.Content.AddChild(control);
+    }
+
+    private int InitializeClientLogSection(int y)
+    {
         var lblLogsHeader = new XNALabel(WindowManager);
         lblLogsHeader.Name = nameof(lblLogsHeader);
         lblLogsHeader.FontIndex = 1;
         lblLogsHeader.Text = "Client Logs".L10N("Client:DTAConfig:StorageLogsHeader");
-        lblLogsHeader.ClientRectangle = new Rectangle(12, 14, 0, 0);
+        lblLogsHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
 
         var lblKeptLogFiles = new XNALabel(WindowManager);
         lblKeptLogFiles.Name = nameof(lblKeptLogFiles);
@@ -89,18 +142,66 @@ class StorageOptionsPanel : XNAOptionsPanel
         lblLogFolderSizeSuffix.ClientRectangle = new Rectangle(
             tbMaxLogFolderSize.Right + 8, lblLogFolderSize.Y, 0, 0);
 
-        AddChild(lblLogsHeader);
-        AddChild(lblKeptLogFiles);
-        AddChild(tbMaxKeptLogFiles);
-        AddChild(lblKeptLogFilesSuffix);
-        AddChild(lblLogFolderSize);
-        AddChild(tbMaxLogFolderSize);
-        AddChild(lblLogFolderSizeSuffix);
+        AddContent(lblLogsHeader, lblKeptLogFiles, tbMaxKeptLogFiles, lblKeptLogFilesSuffix,
+            lblLogFolderSize, tbMaxLogFolderSize, lblLogFolderSizeSuffix);
 
-        int nextSectionY = InitializeSavedGameSection(lblLogFolderSize.Y + ROW_SPACING);
+        return lblLogFolderSize.Y + ROW_SPACING;
+    }
 
-        if (ReplayManager.IsSupported)
-            InitializeReplaySections(nextSectionY);
+    private int InitializeGameLogSection(int y)
+    {
+        var lblGameLogsHeader = new XNALabel(WindowManager);
+        lblGameLogsHeader.Name = nameof(lblGameLogsHeader);
+        lblGameLogsHeader.FontIndex = 1;
+        lblGameLogsHeader.Text = "Game Logs".L10N("Client:DTAConfig:StorageGameLogsHeader");
+        lblGameLogsHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+
+        var lblGameLogAge = new XNALabel(WindowManager);
+        lblGameLogAge.Name = nameof(lblGameLogAge);
+        lblGameLogAge.Text = "Delete after:".L10N("Client:DTAConfig:StorageDeleteAfter");
+        lblGameLogAge.ClientRectangle = new Rectangle(12, lblGameLogsHeader.Bottom + ROW_SPACING - 12, 0, 0);
+
+        var tbMaxGameLogAge = new XNATextBox(WindowManager);
+        tbMaxGameLogAge.Name = nameof(tbMaxGameLogAge);
+        tbMaxGameLogAge.MaximumTextLength = 4;
+        tbMaxGameLogAge.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblGameLogAge.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxGameLogAge = tbMaxGameLogAge;
+
+        var lblGameLogAgeSuffix = new XNALabel(WindowManager);
+        lblGameLogAgeSuffix.Name = nameof(lblGameLogAgeSuffix);
+        lblGameLogAgeSuffix.Text = "days  (0 = never)".L10N("Client:DTAConfig:StorageDeleteAfterDaysSuffix");
+        lblGameLogAgeSuffix.ClientRectangle = new Rectangle(
+            tbMaxGameLogAge.Right + 8, lblGameLogAge.Y, 0, 0);
+
+        var lblGameLogFolderSize = new XNALabel(WindowManager);
+        lblGameLogFolderSize.Name = nameof(lblGameLogFolderSize);
+        lblGameLogFolderSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageMaxSize");
+        lblGameLogFolderSize.ClientRectangle = new Rectangle(12, lblGameLogAge.Y + ROW_SPACING, 0, 0);
+
+        var tbMaxGameLogFolderSize = new XNATextBox(WindowManager);
+        tbMaxGameLogFolderSize.Name = nameof(tbMaxGameLogFolderSize);
+        tbMaxGameLogFolderSize.MaximumTextLength = 7;
+        tbMaxGameLogFolderSize.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblGameLogFolderSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxGameLogFolderSize = tbMaxGameLogFolderSize;
+
+        var lblGameLogFolderSizeSuffix = new XNALabel(WindowManager);
+        lblGameLogFolderSizeSuffix.Name = nameof(lblGameLogFolderSizeSuffix);
+        lblGameLogFolderSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageMaxSizeSuffix");
+        lblGameLogFolderSizeSuffix.ClientRectangle = new Rectangle(
+            tbMaxGameLogFolderSize.Right + 8, lblGameLogFolderSize.Y, 0, 0);
+
+        var lblGameLogRetentionHint = new XNALabel(WindowManager);
+        lblGameLogRetentionHint.Name = nameof(lblGameLogRetentionHint);
+        lblGameLogRetentionHint.ClientRectangle = new Rectangle(12, lblGameLogFolderSize.Y + ROW_SPACING, 0, 0);
+        lblGameLogRetentionHint.Text = ("The game's debug folder: its logs and the snapshots saved for crashes and desyncs.\n" +
+            "Applied at client startup; the newest is always kept.").L10N("Client:DTAConfig:StorageGameLogRetentionHint");
+
+        AddContent(lblGameLogsHeader, lblGameLogAge, tbMaxGameLogAge, lblGameLogAgeSuffix,
+            lblGameLogFolderSize, tbMaxGameLogFolderSize, lblGameLogFolderSizeSuffix, lblGameLogRetentionHint);
+
+        return lblGameLogRetentionHint.Bottom + 12;
     }
 
     private int InitializeSavedGameSection(int y)
@@ -151,19 +252,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         lblSavedGameRetentionHint.Text = ("Limits permanently delete oldest saves at client startup and after games.\n" +
             "The newest save is always kept, even if it exceeds the size limit.").L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
 
-        AddChild(lblSavedGamesHeader);
-        AddChild(lblKeptSavedGames);
-        AddChild(tbMaxKeptSavedGames);
-        AddChild(lblKeptSavedGamesSuffix);
-        AddChild(lblSavedGameFolderSize);
-        AddChild(tbMaxSavedGameFolderSize);
-        AddChild(lblSavedGameFolderSizeSuffix);
-        AddChild(lblSavedGameRetentionHint);
+        AddContent(lblSavedGamesHeader, lblKeptSavedGames, tbMaxKeptSavedGames, lblKeptSavedGamesSuffix,
+            lblSavedGameFolderSize, tbMaxSavedGameFolderSize, lblSavedGameFolderSizeSuffix, lblSavedGameRetentionHint);
 
         return lblSavedGameRetentionHint.Bottom + 12;
     }
 
-    private void InitializeReplaySections(int y)
+    private int InitializeReplaySections(int y)
     {
         var lblReplaysHeader = new XNALabel(WindowManager);
         lblReplaysHeader.Name = nameof(lblReplaysHeader);
@@ -236,18 +331,11 @@ class StorageOptionsPanel : XNAOptionsPanel
         lblKeyframeSizeSuffix.ClientRectangle = new Rectangle(
             tbReplayKeyframeStorageLimit.Right + 8, lblKeyframeSize.Y, 0, 0);
 
-        AddChild(lblReplaysHeader);
-        AddChild(lblKeptReplays);
-        AddChild(tbMaxKeptReplays);
-        AddChild(lblKeptReplaysSuffix);
-        AddChild(lblFolderSize);
-        AddChild(tbMaxReplayFolderSize);
-        AddChild(lblFolderSizeSuffix);
-        AddChild(lblReplayUsage);
-        AddChild(lblKeyframesHeader);
-        AddChild(lblKeyframeSize);
-        AddChild(tbReplayKeyframeStorageLimit);
-        AddChild(lblKeyframeSizeSuffix);
+        AddContent(lblReplaysHeader, lblKeptReplays, tbMaxKeptReplays, lblKeptReplaysSuffix,
+            lblFolderSize, tbMaxReplayFolderSize, lblFolderSizeSuffix, lblReplayUsage,
+            lblKeyframesHeader, lblKeyframeSize, tbReplayKeyframeStorageLimit, lblKeyframeSizeSuffix);
+
+        return tbReplayKeyframeStorageLimit.Bottom + 12;
     }
 
     public override void Load()
@@ -258,6 +346,12 @@ class StorageOptionsPanel : XNAOptionsPanel
         tbMaxLogFolderSize.Text = IniSettings.MaxClientLogFolderSizeMB.Value.ToString();
         tbMaxKeptSavedGames.Text = IniSettings.MaxKeptSavedGames.Value.ToString();
         tbMaxSavedGameFolderSize.Text = IniSettings.MaxSavedGameFolderSizeMB.Value.ToString();
+
+        if (GameLogManager.IsSupported)
+        {
+            tbMaxGameLogAge!.Text = IniSettings.MaxGameLogAgeDays.Value.ToString();
+            tbMaxGameLogFolderSize!.Text = IniSettings.MaxGameLogFolderSizeMB.Value.ToString();
+        }
 
         if (ReplayManager.IsSupported)
         {
@@ -281,6 +375,14 @@ class StorageOptionsPanel : XNAOptionsPanel
             ParseLimit(tbMaxKeptSavedGames.Text, IniSettings.MaxKeptSavedGames.Value, MAX_KEPT_FILES_LIMIT);
         IniSettings.MaxSavedGameFolderSizeMB.Value =
             ParseLimit(tbMaxSavedGameFolderSize.Text, IniSettings.MaxSavedGameFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+
+        if (GameLogManager.IsSupported)
+        {
+            IniSettings.MaxGameLogAgeDays.Value =
+                ParseLimit(tbMaxGameLogAge!.Text, IniSettings.MaxGameLogAgeDays.Value, MAX_AGE_DAYS_LIMIT);
+            IniSettings.MaxGameLogFolderSizeMB.Value =
+                ParseLimit(tbMaxGameLogFolderSize!.Text, IniSettings.MaxGameLogFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+        }
 
         if (ReplayManager.IsSupported)
         {
