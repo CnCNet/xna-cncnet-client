@@ -23,6 +23,7 @@ namespace ClientCore
         public const string GAME_FILTERS = "GameFilters";
         public const string GAME_OPTION_FILTERS = "GameOptionFilters";
         public const string CLIENT_LOGS = "ClientLogs";
+        public const string GAME_LOGS = "GameLogs";
         public const string SAVED_GAMES = "SavedGames";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
@@ -186,6 +187,9 @@ namespace ClientCore
 
             MaxKeptClientLogFiles = new IntSetting(iniFile, CLIENT_LOGS, "MaxKeptLogFiles", 20);
             MaxClientLogFolderSizeMB = new IntSetting(iniFile, CLIENT_LOGS, "MaxLogFolderSizeMB", 50);
+
+            MaxGameLogAgeDays = new IntSetting(iniFile, GAME_LOGS, "MaxGameLogAgeDays", 7);
+            MaxGameLogFolderSizeMB = new IntSetting(iniFile, GAME_LOGS, "MaxGameLogFolderSizeMB", 0);
 
             MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
             MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
@@ -378,6 +382,12 @@ namespace ClientCore
 
         /// <summary>Maximum total size of old client log files in megabytes. 0 means unlimited.</summary>
         public IntSetting MaxClientLogFolderSizeMB { get; private set; }
+
+        /// <summary>Days after which game logs and crash snapshots in the debug folder are deleted. 0 means never.</summary>
+        public IntSetting MaxGameLogAgeDays { get; private set; }
+
+        /// <summary>Maximum total size of the game's debug folder in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxGameLogFolderSizeMB { get; private set; }
 
         /// <summary>Maximum number of single-player saved games to keep. 0 means unlimited.</summary>
         public IntSetting MaxKeptSavedGames { get; private set; }
