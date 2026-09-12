@@ -93,7 +93,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblLogsHeader = new XNALabel(WindowManager);
         lblLogsHeader.Name = nameof(lblLogsHeader);
         lblLogsHeader.FontIndex = 1;
-        lblLogsHeader.Text = "Client logs".L10N("Client:DTAConfig:StorageLogsHeader");
+        lblLogsHeader.Text = "Client Logs".L10N("Client:DTAConfig:StorageLogsHeader");
         lblLogsHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
 
         var lblKeptLogFiles = new XNALabel(WindowManager);
@@ -197,7 +197,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblSavedGamesHeader = new XNALabel(WindowManager);
         lblSavedGamesHeader.Name = nameof(lblSavedGamesHeader);
         lblSavedGamesHeader.FontIndex = 1;
-        lblSavedGamesHeader.Text = "Single-player saved games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
+        lblSavedGamesHeader.Text = "Single-player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
         lblSavedGamesHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
 
         var lblKeptSavedGames = new XNALabel(WindowManager);
