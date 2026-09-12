@@ -48,7 +48,7 @@ public class YRReplayGame
     private const int STABLE_PREFIX_SIZE = 12;
 
     /// <summary>Size of the replay header.</summary>
-    private const int KNOWN_HEADER_SIZE = 1124;
+    private const int KNOWN_HEADER_SIZE = 1072;
 
     private const uint MAX_HEADER_SIZE = 64 * 1024;
 
