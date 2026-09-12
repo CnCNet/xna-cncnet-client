@@ -112,21 +112,28 @@ namespace ClientCore
 
             public static GameLogEntry Create(FileSystemInfo info)
             {
-                if (info is not DirectoryInfo snapshotDirectory)
-                    return new GameLogEntry(info, ((FileInfo)info).Length, info.LastWriteTimeUtc);
-
-                // A snapshot is as recent as the newest file in it; the client copies logs into it
-                // after the game exits.
-                long size = 0;
-                DateTime lastWriteTimeUtc = snapshotDirectory.LastWriteTimeUtc;
-                foreach (FileInfo file in snapshotDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
+                switch (info)
                 {
-                    size += file.Length;
-                    if (file.LastWriteTimeUtc > lastWriteTimeUtc)
-                        lastWriteTimeUtc = file.LastWriteTimeUtc;
-                }
+                    case FileInfo fileInfo:
+                        return new GameLogEntry(info, fileInfo.Length, info.LastWriteTimeUtc);
 
-                return new GameLogEntry(info, size, lastWriteTimeUtc);
+                    case DirectoryInfo snapshotDirectory:
+                        // A snapshot is as recent as the newest file in it; the client copies logs into it
+                        // after the game exits.
+                        long size = 0;
+                        DateTime lastWriteTimeUtc = snapshotDirectory.LastWriteTimeUtc;
+                        foreach (FileInfo file in snapshotDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
+                        {
+                            size += file.Length;
+                            if (file.LastWriteTimeUtc > lastWriteTimeUtc)
+                                lastWriteTimeUtc = file.LastWriteTimeUtc;
+                        }
+
+                        return new GameLogEntry(info, size, lastWriteTimeUtc);
+
+                    default:
+                        throw new ArgumentException("Unexpected file system info type: " + info.GetType().FullName, nameof(info));
+                }
             }
         }
     }
