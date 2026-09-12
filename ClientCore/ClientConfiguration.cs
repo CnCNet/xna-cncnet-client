@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using ClientCore.Display;
 using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.I18N;
@@ -227,16 +228,16 @@ namespace ClientCore
         public bool SidebarHack => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
 
         public int MinimumRenderWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderWidth", 1280);
-
         public int MinimumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderHeight", 768);
+        public ScreenResolution MinimumRenderResolution => (MinimumRenderWidth, MinimumRenderHeight);
 
         public int MaximumRenderWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderWidth", 1280);
-
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
+        public ScreenResolution MaximumRenderResolution => (MaximumRenderWidth, MaximumRenderHeight);
 
         public int MinimumClientWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumClientWidth", 800);
-
         public int MinimumClientHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumClientHeight", 600);
+        public ScreenResolution MinimumClientResolution => (MinimumClientWidth, MinimumClientHeight);
 
         public string[] RecommendedResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "RecommendedResolutions",
             $"{MinimumRenderWidth}x{MinimumRenderHeight},{MaximumRenderWidth}x{MaximumRenderHeight}");
@@ -388,12 +389,12 @@ namespace ClientCore
             ClientGameType == ClientType.RA ? "WinHotKeys" : "Hotkey");
 
         public int MinimumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640);
-
         public int MinimumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameHeight", 480);
+        public ScreenResolution MinimumIngameResolution => (MinimumIngameWidth, MinimumIngameHeight);
 
         public int MaximumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", int.MaxValue);
-
         public int MaximumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue);
+        public ScreenResolution MaximumIngameResolution => (MaximumIngameWidth, MaximumIngameHeight);
 
         public string[] CustomIngameResolutions => clientDefinitionsIni.GetStringListValue(SETTINGS, "CustomIngameResolutions", string.Empty);
 
