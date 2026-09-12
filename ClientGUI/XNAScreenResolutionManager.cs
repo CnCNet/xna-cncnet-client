@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore;
+using ClientCore.Display;
+using ClientCore.Extensions;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,63 +15,8 @@ namespace ClientGUI
     /// <summary>
     /// A single screen resolution.
     /// </summary>
-    public sealed record ScreenResolution : IComparable<ScreenResolution>
+    public static class XNAScreenResolutionManager
     {
-
-        /// <summary>
-        /// The width of the resolution in pixels.
-        /// </summary>
-        public int Width { get; }
-
-        /// <summary>
-        /// The height of the resolution in pixels.
-        /// </summary>
-        public int Height { get; }
-
-        public ScreenResolution(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
-
-        public ScreenResolution(Rectangle rectangle)
-        {
-            Width = rectangle.Width;
-            Height = rectangle.Height;
-        }
-
-        public ScreenResolution(string resolution)
-        {
-            List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
-            Width = resolutionList[0];
-            Height = resolutionList[1];
-        }
-
-        public static implicit operator ScreenResolution(string resolution) => new(resolution);
-
-        public sealed override string ToString() => Width + "x" + Height;
-
-        public static implicit operator string(ScreenResolution resolution) => resolution.ToString();
-
-        public void Deconstruct(out int width, out int height)
-        {
-            width = this.Width;
-            height = this.Height;
-        }
-
-        public static implicit operator ScreenResolution((int Width, int Height) resolutionTuple) => new(resolutionTuple.Width, resolutionTuple.Height);
-
-        public static implicit operator (int Width, int Height)(ScreenResolution resolution) => new(resolution.Width, resolution.Height);
-
-        public bool Fits(ScreenResolution child) => this.Width >= child.Width && this.Height >= child.Height;
-
-        public int CompareTo(ScreenResolution? other)
-        {
-            if (other is null)
-                return 1;
-            return (this.Width, this.Height).CompareTo((other.Width, other.Height));
-        }
-
         // Accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
         private static ScreenResolution? _desktopResolution = null;
 
@@ -104,10 +51,17 @@ namespace ClientGUI
         /// <summary>
         /// The maximum resolution supported by the graphic profile, or the largest full screen resolution supported by the primary monitor, whichever is smaller.
         /// </summary>
-        public static ScreenResolution SafeFullScreenResolution => _safeFullScreenResolution ??= GetFullScreenResolutions(minWidth: 800, minHeight: 600).Max ?? SafeMaximumResolution;
+        public static ScreenResolution SafeFullScreenResolution =>
+            _safeFullScreenResolution
+            ??= GetFullScreenResolutions(minResolution: ClientConfiguration.Instance.MinimumClientResolution).Max
+            ?? SafeMaximumResolution;
 
+        public static SortedSet<ScreenResolution> GetFullScreenResolutions(ScreenResolution minResolution) =>
+            GetFullScreenResolutions(minResolution.Width, minResolution.Height);
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight) =>
             GetFullScreenResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetFullScreenResolutions(ScreenResolution minResolution, ScreenResolution maxResolution) =>
+            GetFullScreenResolutions(minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
         public static SortedSet<ScreenResolution> GetFullScreenResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             SortedSet<ScreenResolution> screenResolutions = [];
@@ -141,14 +95,14 @@ namespace ClientGUI
 
         public const int MAX_INT_SCALE = 9;
 
-        public SortedSet<ScreenResolution> GetIntegerScaledResolutions() =>
-            GetIntegerScaledResolutions(SafeMaximumResolution);
-        public SortedSet<ScreenResolution> GetIntegerScaledResolutions(ScreenResolution maxResolution)
+        public static SortedSet<ScreenResolution> GetIntegerScaledResolutionsFrom(ScreenResolution thisResolution) =>
+            GetIntegerScaledResolutionsFrom(thisResolution, SafeMaximumResolution);
+        public static SortedSet<ScreenResolution> GetIntegerScaledResolutionsFrom(ScreenResolution thisResolution, ScreenResolution maxResolution)
         {
             SortedSet<ScreenResolution> resolutions = [];
             for (int i = 1; i <= MAX_INT_SCALE; i++)
             {
-                ScreenResolution scaledResolution = (this.Width * i, this.Height * i);
+                ScreenResolution scaledResolution = (thisResolution.Width * i, thisResolution.Height * i);
 
                 if (maxResolution.Fits(scaledResolution))
                     resolutions.Add(scaledResolution);
@@ -159,12 +113,20 @@ namespace ClientGUI
             return resolutions;
         }
 
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(ScreenResolution minResolution) =>
+            GetWindowedResolutions(minResolution.Width, minResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight) =>
             GetWindowedResolutions(minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, ScreenResolution minResolution) =>
+            GetWindowedResolutions(optimalResolutions, minResolution.Width, minResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight) =>
             GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, SafeMaximumResolution.Width, SafeMaximumResolution.Height);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(ScreenResolution minResolution, ScreenResolution maxResolution) =>
+            GetWindowedResolutions(minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight) =>
             GetWindowedResolutions(OptimalWindowedResolutions, minWidth, minHeight, maxWidth, maxHeight);
+        public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, ScreenResolution minResolution, ScreenResolution maxResolution) =>
+            GetWindowedResolutions(optimalResolutions, minResolution.Width, minResolution.Height, maxResolution.Width, maxResolution.Height);
         public static SortedSet<ScreenResolution> GetWindowedResolutions(IEnumerable<ScreenResolution> optimalResolutions, int minWidth, int minHeight, int maxWidth, int maxHeight)
         {
             ScreenResolution maxResolution = (maxWidth, maxHeight);
@@ -187,8 +149,16 @@ namespace ClientGUI
 
         public static SortedSet<ScreenResolution> GetRecommendedResolutions()
         {
-            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions.Select(resolution => (ScreenResolution)resolution).ToList();
-            SortedSet<ScreenResolution> scaledRecommendedResolutions = [.. recommendedResolutions.SelectMany(resolution => resolution.GetIntegerScaledResolutions())];
+            ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;
+            List<ScreenResolution> recommendedResolutions = ClientConfiguration.Instance.RecommendedResolutions
+                .Select(resolution => (ScreenResolution)resolution).ToList();
+
+            SortedSet<ScreenResolution> scaledRecommendedResolutions =
+            [
+                .. recommendedResolutions
+                    .SelectMany(resolution => GetIntegerScaledResolutionsFrom(resolution))
+                    .Where(resolution => resolution.Fits(minimumClientResolution)),
+            ];
             return scaledRecommendedResolutions;
         }
 
@@ -198,13 +168,30 @@ namespace ClientGUI
                 .Where(resolution => !string.IsNullOrWhiteSpace(resolution))
                 .Select(resolution => (ScreenResolution)resolution)
                 .ToList();
-            
+
             var sortedCustomIngameResolutions = new SortedSet<ScreenResolution>(customIngameResolutions);
             return sortedCustomIngameResolutions;
         }
 
         public static ScreenResolution GetBestRecommendedResolution() =>
             GetRecommendedResolutions().Max ?? SafeFullScreenResolution;
+
+        public static void RequireDesktopResolutionFitsMinimumResolution()
+            => RequireDesktopResolutionFitsMinimumResolution(ClientConfiguration.Instance.MinimumClientResolution);
+        public static void RequireDesktopResolutionFitsMinimumResolution(ScreenResolution minimumClientResolution)
+        {
+            if (!DesktopResolution.Fits(minimumClientResolution))
+            {
+                throw new Exception(string.Format("Your desktop resolution {0} is too small. At least {1} is required. Please change your desktop resolution and restart the client.".L10N("Client:DTAConfig:DesktopResolutionTooSmall"),
+                    DesktopResolution, minimumClientResolution));
+            }
+            else if (!SafeMaximumResolution.Fits(minimumClientResolution))
+            {
+                // This usually means the minimium client resolution exceeds the HiDef limitation.
+                throw new Exception(string.Format("The maximum supported resolution {0} is too small to fit the minimum client resolution {1}. Please contact support at {2}.".L10N("Client:DTAConfig:MaximumResolutionTooSmall"),
+                    SafeMaximumResolution, minimumClientResolution, ClientConfiguration.Instance.LongSupportURL));
+            }
+        }
 
     }
 }

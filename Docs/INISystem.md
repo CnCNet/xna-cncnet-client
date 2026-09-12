@@ -832,6 +832,20 @@ SaveCampaignGameOptions=false  ; boolean, whether or not previously used game op
 
 ```ini
 [Settings]
+MinimumRenderWidth=1024   ; integer, the minimum internal render width for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MinimumRenderHeight=600   ; integer, the minimum internal render height for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MaximumRenderWidth=1280   ; integer, the maximum internal render width for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MaximumRenderHeight=720   ; integer, the maximum internal render height for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MinimumClientWidth=800    ; integer, the minimum client resolution width offered in the client resolution selection.
+MinimumClientHeight=600   ; integer, the minimum client resolution height offered in the client resolution selection.
+```
+
+```ini
+[Settings]
 CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
 CustomMissionSupplementFile0Extension=csf ; extension of the first supplement file
 CustomMissionSupplementFile0CopyAs=stringtable99.csf ; target filename for the first supplement file (required if Extension is present)

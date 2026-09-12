@@ -133,7 +133,7 @@ namespace DTAClient
             if (!UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Find the largest recommended resolution as the default windowed resolution
-                var bestRecommendedResolution = ScreenResolution.GetBestRecommendedResolution();
+                var bestRecommendedResolution = XNAScreenResolutionManager.GetBestRecommendedResolution();
 
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
@@ -141,7 +141,7 @@ namespace DTAClient
             else
             {
                 // Find the largest fullscreen resolution as the default fullscreen resolution
-                var resolution = ScreenResolution.SafeFullScreenResolution;
+                var resolution = XNAScreenResolutionManager.SafeFullScreenResolution;
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
             }
