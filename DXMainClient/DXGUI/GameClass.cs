@@ -26,6 +26,8 @@ using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 using System.Threading.Tasks;
+using ClientCore.Display;
+
 
 #if WINFORMS
 using System.Windows.Forms;
@@ -55,7 +57,7 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 
             // Enable HiDef on a large monitor.
-            if (!ScreenResolution.HiDefLimitResolution.Fits(ScreenResolution.DesktopResolution))
+            if (!XNAScreenResolutionManager.HiDefLimitResolution.Fits(XNAScreenResolutionManager.DesktopResolution))
             {
                 // Enabling HiDef profile drops legacy GPUs not supporting DirectX 10.
                 // In practice, it's recommended to have a DirectX 11 capable GPU.
@@ -403,7 +405,7 @@ namespace DTAClient.DXGUI
         {
             var clientConfiguration = ClientConfiguration.Instance;
 
-            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
+            (int desktopWidth, int desktopHeight) = XNAScreenResolutionManager.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
@@ -465,7 +467,7 @@ namespace DTAClient.DXGUI
                 // Check whether we could integer-scale our client window
                 if (ratio > 1.0)
                 {
-                    for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
+                    for (int i = 2; i <= XNAScreenResolutionManager.MAX_INT_SCALE; i++)
                     {
                         int sharpScaleRenderResX = windowWidth / i;
                         int sharpScaleRenderResY = windowHeight / i;
@@ -516,15 +518,15 @@ namespace DTAClient.DXGUI
             {
                 // Note: on fullscreen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
                 ScreenResolution clientResolution = (windowWidth, windowHeight);
-                if (ScreenResolution.DesktopResolution == clientResolution)
+                if (XNAScreenResolutionManager.DesktopResolution == clientResolution)
                 {
-                    Logger.Log($"Entering fullscreen mode with resolution {ScreenResolution.DesktopResolution}.");
+                    Logger.Log($"Entering fullscreen mode with resolution {XNAScreenResolutionManager.DesktopResolution}.");
                     graphics.IsFullScreen = true;
                     graphics.ApplyChanges();
                 }
                 else
                 {
-                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
+                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {XNAScreenResolutionManager.DesktopResolution}, Client: {clientResolution}.");
                 }
             }
 

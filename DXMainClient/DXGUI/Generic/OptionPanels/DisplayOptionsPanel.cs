@@ -20,6 +20,7 @@ using ClientCore.I18N;
 using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
+using ClientCore.Display;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {
@@ -82,13 +83,13 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
 
-                SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
+                SortedSet<ScreenResolution> resolutions = XNAScreenResolutionManager.GetFullScreenResolutions(
                     ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
                     maximumIngameResolution.Width, maximumIngameResolution.Height);
 
                 // Add custom in-game resolutions
                 var minimumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight);
-                var customIngameResolutions = ScreenResolution.GetCustomIngameResolutions();
+                var customIngameResolutions = XNAScreenResolutionManager.GetCustomIngameResolutions();
                 foreach (var customRes in customIngameResolutions)
                 {
                     // Throw on too small or too large in-game resolutions
@@ -187,11 +188,11 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 int minimumClientWidth = ClientConfiguration.Instance.MinimumClientWidth;
                 int minimumClientHeight = ClientConfiguration.Instance.MinimumClientHeight;
-                SortedSet<ScreenResolution> scaledRecommendedResolutions = ScreenResolution.GetRecommendedResolutions();
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
-                    .. ScreenResolution.GetFullScreenResolutions(minimumClientWidth, minimumClientHeight),
-                    .. ScreenResolution.GetWindowedResolutions(minimumClientWidth, minimumClientHeight),
+                    .. XNAScreenResolutionManager.GetFullScreenResolutions(minimumClientWidth, minimumClientHeight),
+                    .. XNAScreenResolutionManager.GetWindowedResolutions(minimumClientWidth, minimumClientHeight),
                     .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
@@ -492,7 +493,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 ddClientResolution.AllowDropDown = false;
 
-                string nativeRes = ScreenResolution.SafeFullScreenResolution;
+                string nativeRes = XNAScreenResolutionManager.SafeFullScreenResolution;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)

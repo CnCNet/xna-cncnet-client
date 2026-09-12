@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore;
+using ClientCore.Display;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,63 +14,8 @@ namespace ClientGUI
     /// <summary>
     /// A single screen resolution.
     /// </summary>
-    public sealed record ScreenResolution : IComparable<ScreenResolution>
+    public static class XNAScreenResolutionManager
     {
-
-        /// <summary>
-        /// The width of the resolution in pixels.
-        /// </summary>
-        public int Width { get; }
-
-        /// <summary>
-        /// The height of the resolution in pixels.
-        /// </summary>
-        public int Height { get; }
-
-        public ScreenResolution(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
-
-        public ScreenResolution(Rectangle rectangle)
-        {
-            Width = rectangle.Width;
-            Height = rectangle.Height;
-        }
-
-        public ScreenResolution(string resolution)
-        {
-            List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
-            Width = resolutionList[0];
-            Height = resolutionList[1];
-        }
-
-        public static implicit operator ScreenResolution(string resolution) => new(resolution);
-
-        public sealed override string ToString() => Width + "x" + Height;
-
-        public static implicit operator string(ScreenResolution resolution) => resolution.ToString();
-
-        public void Deconstruct(out int width, out int height)
-        {
-            width = this.Width;
-            height = this.Height;
-        }
-
-        public static implicit operator ScreenResolution((int Width, int Height) resolutionTuple) => new(resolutionTuple.Width, resolutionTuple.Height);
-
-        public static implicit operator (int Width, int Height)(ScreenResolution resolution) => new(resolution.Width, resolution.Height);
-
-        public bool Fits(ScreenResolution child) => this.Width >= child.Width && this.Height >= child.Height;
-
-        public int CompareTo(ScreenResolution? other)
-        {
-            if (other is null)
-                return 1;
-            return (this.Width, this.Height).CompareTo((other.Width, other.Height));
-        }
-
         // Accessing GraphicsAdapter.DefaultAdapter requiring DXMainClient.GameClass has been constructed. Lazy loading prevents possible null reference issues for now.
         private static ScreenResolution? _desktopResolution = null;
 
@@ -144,14 +90,14 @@ namespace ClientGUI
 
         public const int MAX_INT_SCALE = 9;
 
-        public SortedSet<ScreenResolution> GetIntegerScaledResolutions() =>
-            GetIntegerScaledResolutions(SafeMaximumResolution);
-        public SortedSet<ScreenResolution> GetIntegerScaledResolutions(ScreenResolution maxResolution)
+        public static SortedSet<ScreenResolution> GetIntegerScaledResolutionsFrom(ScreenResolution thisResolution) =>
+            GetIntegerScaledResolutionsFrom(thisResolution, SafeMaximumResolution);
+        public static SortedSet<ScreenResolution> GetIntegerScaledResolutionsFrom(ScreenResolution thisResolution, ScreenResolution maxResolution)
         {
             SortedSet<ScreenResolution> resolutions = [];
             for (int i = 1; i <= MAX_INT_SCALE; i++)
             {
-                ScreenResolution scaledResolution = (this.Width * i, this.Height * i);
+                ScreenResolution scaledResolution = (thisResolution.Width * i, thisResolution.Height * i);
 
                 if (maxResolution.Fits(scaledResolution))
                     resolutions.Add(scaledResolution);
@@ -197,7 +143,7 @@ namespace ClientGUI
             SortedSet<ScreenResolution> scaledRecommendedResolutions =
             [
                 .. recommendedResolutions
-                    .SelectMany(resolution => resolution.GetIntegerScaledResolutions())
+                    .SelectMany(resolution => GetIntegerScaledResolutionsFrom(resolution))
                     .Where(resolution => resolution.Width >= minimumClientWidth
                         && resolution.Height >= minimumClientHeight)
             ];
