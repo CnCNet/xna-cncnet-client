@@ -169,6 +169,7 @@ namespace ClientGUI
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();
+            SinglePlayerSavedGameManager.PruneSavedGames();
             GameProcessExited?.Invoke();
         }
     }

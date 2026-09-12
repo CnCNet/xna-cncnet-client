@@ -9,6 +9,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using ClientUpdater;
 using DTAClient.Domain;
 
@@ -41,7 +42,7 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576, 475);
+            ClientRectangle = new Rectangle(0, 0, 576 + UIDesignConstants.BUTTON_WIDTH_92, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
             tabControl = new XNAClientTabControl(WindowManager);
@@ -55,6 +56,9 @@ namespace DTAClient.DXGUI.Generic
             tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), UIDesignConstants.BUTTON_WIDTH_92);
+
+            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), UIDesignConstants.BUTTON_WIDTH_92);
+
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -75,15 +79,18 @@ namespace DTAClient.DXGUI.Generic
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
-            optionsPanels = new XNAOptionsPanel[]
+            var panels = new List<XNAOptionsPanel>
             {
                 displayOptionsPanel,
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection, tunnelHandler),
                 updaterOptionsPanel,
-                componentsPanel
+                componentsPanel,
+                new StorageOptionsPanel(WindowManager, UserINISettings.Instance)
             };
+
+            optionsPanels = panels.ToArray();
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {

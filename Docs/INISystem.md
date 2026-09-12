@@ -871,6 +871,28 @@ AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
                                            ; Official maps are not affected by this filter.
 ```
 
+```ini
+[ClientLogs]
+MaxKeptLogFiles=20      ; maximum number of timestamped old log files; 0 = unlimited
+MaxLogFolderSizeMB=50   ; maximum combined size of old log files in MB; 0 = unlimited
+```
+
+Game logs are the game's own `debug` folder (Ares, Phobos and spawner logs, and the snapshot folders for crashes and desyncs), pruned at client startup when `ClientGameType` is `Ares`. Each log file or snapshot folder is kept or deleted whole, and the newest is always kept when applying the size limit.
+
+```ini
+[GameLogs]
+MaxGameLogAgeDays=7         ; delete entries not written to for this many days; 0 = never
+MaxGameLogFolderSizeMB=0    ; maximum combined size of the debug folder in MB, oldest deleted first; 0 = unlimited (default)
+```
+
+Packages can provide initial values in `Resources/UserDefaults.ini`; existing user settings take precedence.
+
+```ini
+[SavedGames]
+MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 = unlimited (default)
+MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
+```
+
 ## Game Modes
 
 Game modes are defined in the `[GameModes]` section of `MPMaps.ini`. Each game mode can have its own configuration section with the same name.
