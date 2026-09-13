@@ -58,7 +58,7 @@ namespace ClientCore
                     }
                     catch (Exception ex)
                     {
-                        // Failed deletions still count towards both limits and can be retried next time.
+                        // Failed deletions still count towards both limits and will be retried next time.
                         Logger.Log("Could not delete single-player saved game " + save.Name + ": " + ex.Message);
                     }
                 }
