@@ -183,8 +183,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblGameLogRetentionHint = new XNALabel(WindowManager);
         lblGameLogRetentionHint.Name = nameof(lblGameLogRetentionHint);
         lblGameLogRetentionHint.ClientRectangle = new Rectangle(12, lblGameLogFolderSize.Y + ROW_SPACING, 0, 0);
-        lblGameLogRetentionHint.Text = ("The game's debug folder: its logs and the snapshots saved for crashes and desyncs.\n" +
-            "Applied at client startup; the newest is always kept.").L10N("Client:DTAConfig:StorageGameLogRetentionHint");
+        lblGameLogRetentionHint.Text = ("The debug folder: crash snapshots and sync files.").L10N("Client:DTAConfig:StorageGameLogRetentionHint");
 
         AddContent(lblGameLogsHeader, lblGameLogAge, tbMaxGameLogAge, lblGameLogAgeSuffix,
             lblGameLogFolderSize, tbMaxGameLogFolderSize, lblGameLogFolderSizeSuffix, lblGameLogRetentionHint);
