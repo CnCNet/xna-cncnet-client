@@ -87,7 +87,7 @@ namespace DTAClient.DXGUI.Generic
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection, tunnelHandler),
                 updaterOptionsPanel,
                 componentsPanel,
-                new StorageOptionsPanel(WindowManager, UserINISettings.Instance)
+                new StorageOptionsPanel(WindowManager, UserINISettings.Instance),
             };
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
