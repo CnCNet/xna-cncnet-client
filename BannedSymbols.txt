@@ -1,1 +1,2 @@
 T:System.BitConverter; Do not use System.BitConverter. Use System.Buffers.Binary.BinaryPrimitives instead.
+T:System.Drawing; Do not use System.Drawing. Use Rampastring.XNAUI instead.
