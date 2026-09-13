@@ -62,10 +62,10 @@ namespace ClientCore
                     long maxFolderSizeBytes = maxFolderSizeMB * 1024L * 1024L;
                     long totalSize = entries.Sum(entry => entry.Size);
 
-                    // Always keep the newest entry - the last game's log - even if it alone exceeds the limit.
+                    // Always keep the newest entry -- the last game's log -- even if it alone exceeds the limit.
                     for (int i = entries.Count - 1; i > 0 && totalSize > maxFolderSizeBytes; i--)
                     {
-                        // Failed deletions still count as freed and are retried next time.
+                        // Failed deletions still count as freed and will be retried next time.
                         totalSize -= entries[i].Size;
                         TryDelete(entries[i]);
                     }
@@ -118,8 +118,7 @@ namespace ClientCore
                         return new GameLogEntry(info, fileInfo.Length, info.LastWriteTimeUtc);
 
                     case DirectoryInfo snapshotDirectory:
-                        // A snapshot is as recent as the newest file in it; the client copies logs into it
-                        // after the game exits.
+                        // We define the latest write time of a snapshot folder as the latest write time of any file in it, so that the folder is considered "new" if any of its files are new.
                         long size = 0;
                         DateTime lastWriteTimeUtc = snapshotDirectory.LastWriteTimeUtc;
                         foreach (FileInfo file in snapshotDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
