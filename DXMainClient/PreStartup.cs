@@ -304,7 +304,7 @@ namespace DTAClient
             }
             catch
             {
-                // Ignored - the previous log will be overwritten.
+                // Ignored -- the previous log will be overwritten.
             }
 
             List<FileInfo> backups = clientUserFilesDirectory
@@ -340,7 +340,7 @@ namespace DTAClient
             }
             catch
             {
-                // Ignored - the file will simply be considered again on the next startup.
+                // Ignored -- the file will simply be considered again on the next startup.
             }
         }
 
