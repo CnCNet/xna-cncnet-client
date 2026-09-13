@@ -384,8 +384,8 @@ namespace DTAClient.DXGUI
 
             if (!((ScreenResolution)(UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY)).Fits(ClientConfiguration.Instance.MinimumClientResolution))
             {
-                UserINISettings.Instance.ClientResolutionX.Value = ClientConfiguration.Instance.MinimumClientResolution.Width;
-                UserINISettings.Instance.ClientResolutionY.Value = ClientConfiguration.Instance.MinimumClientResolution.Height;
+                UserINISettings.Instance.ClientResolutionX.SetDefault();
+                UserINISettings.Instance.ClientResolutionY.SetDefault();
             }
 
             SetGraphicsMode(wm, UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY, centerOnScreen);
