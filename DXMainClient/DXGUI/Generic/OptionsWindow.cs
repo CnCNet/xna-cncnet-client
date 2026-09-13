@@ -79,7 +79,7 @@ namespace DTAClient.DXGUI.Generic
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
-            var panels = new List<XNAOptionsPanel>
+            optionsPanels = new XNAOptionsPanel[]
             {
                 displayOptionsPanel,
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
@@ -89,8 +89,6 @@ namespace DTAClient.DXGUI.Generic
                 componentsPanel,
                 new StorageOptionsPanel(WindowManager, UserINISettings.Instance)
             };
-
-            optionsPanels = panels.ToArray();
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {
