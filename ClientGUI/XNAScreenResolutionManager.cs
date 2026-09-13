@@ -7,13 +7,12 @@ using ClientCore;
 using ClientCore.Display;
 using ClientCore.Extensions;
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace ClientGUI
 {
     /// <summary>
-    /// A single screen resolution.
+    /// Queries the display adapter for supported, safe and recommended client resolutions.
     /// </summary>
     public static class XNAScreenResolutionManager
     {
