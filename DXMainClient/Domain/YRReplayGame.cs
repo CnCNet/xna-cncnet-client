@@ -47,8 +47,8 @@ public class YRReplayGame
     /// <summary>Size of the version-independent header prefix.</summary>
     private const int STABLE_PREFIX_SIZE = 12;
 
-    /// <summary>Size of the replay header.</summary>
-    private const int KNOWN_HEADER_SIZE = 1072;
+    /// <summary>Size of the replay header: sizeof(ReplayHeader) in the spawner's ReplayFormat.h.</summary>
+    private const int KNOWN_HEADER_SIZE = 1084;
 
     private const uint MAX_HEADER_SIZE = 64 * 1024;
 
