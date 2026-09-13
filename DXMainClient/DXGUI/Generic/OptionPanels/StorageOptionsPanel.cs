@@ -237,8 +237,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblSavedGameRetentionHint = new XNALabel(WindowManager);
         lblSavedGameRetentionHint.Name = nameof(lblSavedGameRetentionHint);
         lblSavedGameRetentionHint.ClientRectangle = new Rectangle(12, lblSavedGameFolderSize.Y + ROW_SPACING, 0, 0);
-        lblSavedGameRetentionHint.Text = ("Limits permanently delete oldest saves at client startup and after games.\n" +
-            "The newest save is always kept, even if it exceeds the size limit.").L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
+        lblSavedGameRetentionHint.Text = "Oldest saves are permanently deleted.".L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
 
         AddContent(lblSavedGamesHeader, lblKeptSavedGames, tbMaxKeptSavedGames, lblKeptSavedGamesSuffix,
             lblSavedGameFolderSize, tbMaxSavedGameFolderSize, lblSavedGameFolderSizeSuffix, lblSavedGameRetentionHint);
