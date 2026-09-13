@@ -1,13 +1,12 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 
 namespace ClientCore.Display;
 
 /// <summary>
-/// A single screen resolution.
+/// A screen resolution with width and height in pixels.
 /// </summary>
 public sealed record ScreenResolution : IComparable<ScreenResolution>
 {
@@ -26,12 +25,6 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
     {
         Width = width;
         Height = height;
-    }
-
-    public ScreenResolution(Rectangle rectangle)
-    {
-        Width = rectangle.Width;
-        Height = rectangle.Height;
     }
 
     public ScreenResolution(string resolution)
