@@ -1243,10 +1243,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameChatChannelName).Join();
+            var localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName)
+                ?? throw new Exception("Could not find local game chat channel: " + localGameChatChannelName);
+            localGameChatChannel.Join();
 
-            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameBroadcastChannel).Join();
+            string localGameBroadcastChannelName = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
+            var localGameBroadcastChannel = connectionManager.FindChannel(localGameBroadcastChannelName)
+                ?? throw new Exception("Could not find local game broadcast channel: " + localGameBroadcastChannelName);
+            localGameBroadcastChannel.Join();
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {
