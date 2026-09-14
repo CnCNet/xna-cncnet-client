@@ -459,6 +459,9 @@ namespace ClientCore
         /// <summary>Replay file extension without a leading dot.</summary>
         public string ReplayFileExtension => clientDefinitionsIni.GetStringValue(SETTINGS, "ReplayFileExtension", "yrrp");
 
+        /// <summary>Page listing downloadable versions of the game package.</summary>
+        public string ReleasesURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ReleasesURL", string.Empty);
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

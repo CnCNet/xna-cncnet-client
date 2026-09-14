@@ -909,6 +909,7 @@ ReplaySupport=false            ; boolean, enables replay recording and playback 
 ReplaysDirectory=Replays       ; string,  directory, relative to the game directory, that replays are
                                ; recorded into and listed from.
 ReplayFileExtension=yrrp       ; string,  file extension of replay files, without a leading dot.
+ReleasesURL=                   ; string,  page where players can download other versions of the game package.
 ```
 
 ```ini

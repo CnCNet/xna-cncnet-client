@@ -28,8 +28,6 @@ namespace DTAClient.DXGUI.Generic.LoadGamePanels;
 /// </summary>
 public class ReplaysPanel : XNAPanel
 {
-    private const int MAX_LISTED_MISMATCHES = 4;
-
     private const int LIST_HEIGHT = 240;
     private const int DETAILS_HEIGHT = 100;
     private const int ROW_SPACING = 24;
@@ -62,6 +60,7 @@ public class ReplaysPanel : XNAPanel
     private XNAMultiColumnListBox lbReplayList = null!;
     private XNATextBlock tbDetails = null!;
     private XNAContextMenu replayContextMenu = null!;
+    private XNALinkLabel lblReleases = null!;
 
     private XNAClientCheckBox chkShroudEnabled = null!;
     private XNAClientCheckBox chkFollowRecordedCamera = null!;
@@ -83,6 +82,9 @@ public class ReplaysPanel : XNAPanel
     public string LaunchButtonText => "Play".L10N("Client:Main:ButtonPlayReplay");
 
     public bool CanLaunch => SelectedReplay?.IsPlayable == true;
+
+    /// <summary>Whether replays from other versions can point players to the package's releases page.</summary>
+    private static bool HasReleasesURL => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.ReleasesURL);
 
     public bool CanDelete => lbReplayList.SelectedIndex > -1;
 
@@ -136,6 +138,13 @@ public class ReplaysPanel : XNAPanel
         lblPlayback.Name = nameof(lblPlayback);
         lblPlayback.ClientRectangle = new Rectangle(0, tbDetails.Bottom + 10, 0, 0);
         lblPlayback.Text = "Playback:".L10N("Client:Main:ReplayPlaybackSettings");
+
+        // Shares the playback label's row, right-aligned, because the details box is already full.
+        lblReleases = new XNALinkLabel(WindowManager);
+        lblReleases.Name = nameof(lblReleases);
+        lblReleases.ClientRectangle = new Rectangle(0, lblPlayback.Y, 0, 0);
+        lblReleases.LeftClick += (_, _) => ProcessLauncher.StartShellProcess(ClientConfiguration.Instance.ReleasesURL);
+        lblReleases.Disable();
 
         int firstRowY = lblPlayback.Bottom + 8;
 
@@ -217,6 +226,7 @@ public class ReplaysPanel : XNAPanel
         AddChild(replayContextMenu);
         AddChild(tbDetails);
         AddChild(lblPlayback);
+        AddChild(lblReleases);
         AddChild(lblWatchAs);
         AddChild(ddWatchAs);
         AddChild(lblGameSpeed);
@@ -334,6 +344,7 @@ public class ReplaysPanel : XNAPanel
     private void UpdateForSelection()
     {
         UpdateDetails();
+        UpdateReleasesLink();
         UpdateWatchAsDropDown();
     }
 
@@ -491,8 +502,16 @@ public class ReplaysPanel : XNAPanel
             details.AppendLine();
         }
 
-        details.Append(string.Format("Version: {0}".L10N("Client:Main:ReplayDetailVersion"),
-            SafeForDetails(GetDisplayVersion(replay))));
+        if (IsFromOtherVersion(replay))
+        {
+            details.Append(string.Format("Version: {0} (yours: {1})".L10N("Client:Main:ReplayDetailOtherVersion"),
+                SafeForDetails(replay.GamePackageVersion), SafeForDetails(ReplayManager.GamePackageVersion)));
+        }
+        else
+        {
+            details.Append(string.Format("Version: {0}".L10N("Client:Main:ReplayDetailVersion"),
+                SafeForDetails(GetDisplayVersion(replay))));
+        }
 
         if (!replay.IsComplete)
         {
@@ -503,6 +522,39 @@ public class ReplaysPanel : XNAPanel
 
         tbDetails.Text = details.ToString();
     }
+
+    /// <summary>Offers the releases page for replays recorded on another version of the game.</summary>
+    private void UpdateReleasesLink()
+    {
+        YRReplayGame? replay = SelectedReplay;
+        string? linkText = null;
+
+        if (replay != null && HasReleasesURL)
+        {
+            if (!replay.IsPlayable)
+                linkText = "Download the version this replay was recorded with to play it"
+                    .L10N("Client:Main:ReplayDownloadRecordedVersion");
+            else if (IsFromOtherVersion(replay))
+                linkText = string.Format("Recorded on {0} - download it for accurate playback"
+                    .L10N("Client:Main:ReplayDownloadVersion"), replay.GamePackageVersion);
+        }
+
+        if (linkText == null)
+        {
+            lblReleases.Disable();
+            return;
+        }
+
+        lblReleases.Text = Renderer.GetSafeString(linkText, lblReleases.FontIndex);
+        lblReleases.X = Width - lblReleases.Width;
+        lblReleases.Enable();
+    }
+
+    /// <summary>Whether a readable replay names a game version other than the installed one.</summary>
+    private static bool IsFromOtherVersion(YRReplayGame replay)
+        => !string.IsNullOrWhiteSpace(replay.GamePackageVersion)
+            && !string.Equals(replay.GamePackageVersion, ReplayManager.GamePackageVersion,
+                StringComparison.OrdinalIgnoreCase);
 
     private ReplayPlayer? LaunchPerspective => IsSpectatorSelected ? null : SelectedPlayer;
 
@@ -574,25 +626,26 @@ public class ReplaysPanel : XNAPanel
         foreach (string mismatch in fileMismatches)
             Logger.Log("Replay file mismatch: " + mismatch);
 
-        string details = string.Join("\n\n", fileMismatches.Take(MAX_LISTED_MISMATCHES));
+        string recordedVersion = GetDisplayVersion(replay);
+        string currentVersion = ReplayManager.GamePackageVersion;
 
-        if (fileMismatches.Count > MAX_LISTED_MISMATCHES)
-        {
-            details += "\n\n" + string.Format("...and {0} more".L10N("Client:Main:ReplayMoreMismatches"),
-                fileMismatches.Count - MAX_LISTED_MISMATCHES);
-        }
 
-        var msgBox = new XNAMessageBox(WindowManager,
-            "Replay File Mismatch".L10N("Client:Main:ReplayFileMismatchTitle"),
-            string.Format(("This replay was recorded with different game files, so it will " +
-                "most likely not play back correctly - it may load and then do nothing.\n\n" +
-                "Recorded with: {0}\n" +
-                "You have: {1}\n\n" +
-                "{2}\n\n" +
-                "Play it anyway?").L10N("Client:Main:ReplayFileMismatchText"),
-                SafeForDialog(GetDisplayVersion(replay)), SafeForDialog(ReplayManager.GamePackageVersion),
-                SafeForDialog(details)),
-            XNAMessageBoxButtons.YesNo);
+        XNAMessageBox msgBox = string.Equals(recordedVersion, currentVersion, StringComparison.OrdinalIgnoreCase)
+            ? new XNAMessageBox(WindowManager,
+                "Different Game Files".L10N("Client:Main:ReplayFilesDifferTitle"),
+                ("Some of your game files are different from the ones this replay was recorded with. " +
+                    "If you continue, it may not play back correctly.\n\n" +
+                    "Play it anyway?").L10N("Client:Main:ReplayFilesDifferText"),
+                XNAMessageBoxButtons.YesNo)
+            : new XNAMessageBox(WindowManager,
+                "Different Game Version".L10N("Client:Main:ReplayVersionMismatchTitle"),
+                string.Format(("This replay was recorded on a different version of the game. " +
+                    "If you continue, it may not play back correctly.\n\n" +
+                    "Recorded with: {0}\n" +
+                    "Current version: {1}\n\n" +
+                    "Play it anyway?").L10N("Client:Main:ReplayVersionMismatchText"),
+                    SafeForDialog(recordedVersion), SafeForDialog(currentVersion)),
+                XNAMessageBoxButtons.YesNo);
 
         msgBox.YesClickedAction = _ => StartPlayback(replay, spawnIni, spawnMapContent, perspective);
         msgBox.Show();
@@ -740,8 +793,11 @@ public class ReplaysPanel : XNAPanel
             replay.RecordedAt.ToString("f")));
         details.AppendLine();
 
-        details.Append(("This replay was recorded in a newer format than this version of the game " +
-            "can read. Update the game to watch it.").L10N("Client:Main:ReplayUnsupportedVersion"));
+        details.Append(("This replay was recorded on a different version of the game, so it can't be " +
+            "played with the version you have.").L10N("Client:Main:ReplayUnsupportedVersion"));
+        details.AppendLine();
+        details.Append(string.Format("Current version: {0}".L10N("Client:Main:ReplayDetailCurrentVersion"),
+            SafeForDetails(ReplayManager.GamePackageVersion)));
 
         return details.ToString();
     }

@@ -63,24 +63,23 @@ public static class ReplayFileHashes
             string recordedHash = value.Substring(separator + 1);
             recordedPaths.Add(relativePath);
 
+            // These only go to the log, so they are not translated.
             if (!local.TryGetValue(relativePath, out string? localHash))
             {
-                mismatches.Add(string.Format("{0} is missing locally".L10N("Client:Main:ReplayFileMissing"), relativePath));
+                mismatches.Add($"{relativePath} is missing locally");
                 continue;
             }
 
             if (string.Equals(localHash, recordedHash, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            mismatches.Add(string.Format("{0}\n    replay: {1}\n    yours:  {2}".L10N("Client:Main:ReplayFileDifferent"), relativePath, recordedHash, localHash));
+            mismatches.Add($"{relativePath} differs (replay: {recordedHash}, local: {localHash})");
         }
 
         foreach (string relativePath in local.Keys)
         {
             if (!recordedPaths.Contains(relativePath))
-            {
-                mismatches.Add(string.Format("{0} was not recorded with this replay".L10N("Client:Main:ReplayFileNotRecorded"), relativePath));
-            }
+                mismatches.Add($"{relativePath} was not recorded with this replay");
         }
 
         return mismatches;
