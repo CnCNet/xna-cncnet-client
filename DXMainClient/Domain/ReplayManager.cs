@@ -190,15 +190,18 @@ public static class ReplayManager
 
             List<FileInfo> files = directory
                 .EnumerateFiles(SearchPattern, SearchOption.TopDirectoryOnly)
-                .OrderBy(file => file.LastWriteTime)
+                .OrderByDescending(file => file.LastWriteTimeUtc)
+                .ThenBy(file => file.Name, StringComparer.Ordinal)
                 .ToList();
 
             long maxSizeBytes = maxSizeMB > 0 ? maxSizeMB * 1024L * 1024L : long.MaxValue;
             long totalBytes = files.Sum(file => file.Length);
             int fileCount = files.Count;
 
-            foreach (FileInfo file in files)
+            // Always keep the newest replay, even when it alone exceeds the size limit.
+            for (int i = files.Count - 1; i > 0; i--)
             {
+                FileInfo file = files[i];
                 bool overCount = maxCount > 0 && fileCount > maxCount;
                 bool overSize = totalBytes > maxSizeBytes;
 
