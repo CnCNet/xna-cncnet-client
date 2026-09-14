@@ -116,7 +116,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "d2k",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
                     UIName = "Dune 2000".L10N("Client:ClientCore:Dune2000"),
-                    Supported = false
                 },
 
                 new DefaultCnCNetGame("DTAClient.Icons.tsicon.png")
