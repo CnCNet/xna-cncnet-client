@@ -1,8 +1,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using System.Timers;
 using ClientCore.Extensions;
 using ClientGUI;
@@ -28,6 +30,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
         private bool isInQueue;
         private bool isBusy;
         private int consecutiveErrors;
+        private string? activeSearchingLadder;
         private DateTime lastActionTime = DateTime.MinValue;
         private const double ActionCooldownMs = 1000;
 
@@ -57,30 +60,43 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
         public bool IsInQueue => isInQueue;
 
+        public DateTime? QueueStartTime { get; private set; }
+
         private string LocalPlayerName => localPlayerNameProvider();
 
         public void ToggleQueue()
         {
+            if (isInQueue)
+            {
+                LeaveQueue(true);
+                return;
+            }
+
             if (DateTime.Now.Subtract(lastActionTime).TotalMilliseconds < ActionCooldownMs)
             {
                 return;
             }
-
-            lastActionTime = DateTime.Now;
 
             if (isBusy)
             {
                 return;
             }
 
+            lastActionTime = DateTime.Now;
+            StartQueue();
+        }
+
+        public void CancelQueue()
+        {
             if (isInQueue)
             {
                 LeaveQueue(true);
-
-                return;
             }
+        }
 
-            StartQueue();
+        public Task<Dictionary<string, int>?> GetQueueCountsAsync()
+        {
+            return apiService.GetQueueCountsAsync();
         }
 
         public async void StartQueue()
@@ -92,7 +108,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
             if (!canJoinQueueProvider())
             {
-                addNoticeAction("Cannot join matchmaking queue while in a game room or loading.".L10N("Client:Matchmaking:CannotJoinInRoom"));
+                SafeAddNotice("Cannot join matchmaking queue while in a game room or loading.".L10N("Client:Matchmaking:CannotJoinInRoom"));
 
                 return;
             }
@@ -100,6 +116,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
             isBusy = true;
 
             string ladder = MatchmakingSettings.Instance.Ladder;
+            activeSearchingLadder = ladder;
             bool casual = MatchmakingSettings.Instance.Casual;
             int side = chosenSideProvider();
 
@@ -108,14 +125,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
             Logger.Log($"[Matchmaking] Starting search for {LocalPlayerName} on ladder {ladder} (casual={casual}, side={side})");
 
             isInQueue = true;
-            isBusy = true;
+            QueueStartTime = DateTime.UtcNow;
             consecutiveErrors = 0;
-            setQueueUiStateAction(true);
-            addNoticeAction("Searching for opponent...".L10N("Client:Matchmaking:SearchingNotice"));
+            SafeSetQueueUiState(true);
+            SafeAddNotice("Searching for opponent...".L10N("Client:Matchmaking:SearchingNotice"));
 
             QmMatchResponse? response = await apiService.SendMatchRequestAsync(ladder, LocalPlayerName, request);
 
             isBusy = false;
+
+            if (!isInQueue)
+            {
+                Logger.Log("[Matchmaking] Initial request completed but queue was cancelled by user.");
+                return;
+            }
 
             if (response == null || response.Type == "error")
             {
@@ -142,21 +165,31 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
             pollTimer.Stop();
             isInQueue = false;
+            isBusy = false;
+            QueueStartTime = null;
             consecutiveErrors = 0;
-            setQueueUiStateAction(false);
-            addNoticeAction("Matchmaking search cancelled.".L10N("Client:Matchmaking:CancelledNotice"));
+            SafeSetQueueUiState(false);
+            SafeAddNotice("Matchmaking search cancelled.".L10N("Client:Matchmaking:CancelledNotice"));
 
             if (notifyServer)
             {
-                string ladder = MatchmakingSettings.Instance.Ladder;
-                QmMatchRequest request = new QmMatchRequest
+                try
                 {
-                    Type = "quit",
-                    Casual = MatchmakingSettings.Instance.Casual,
-                    Version = "2.0"
-                };
+                    string ladder = activeSearchingLadder ?? MatchmakingSettings.Instance.Ladder;
+                    activeSearchingLadder = null;
+                    QmMatchRequest request = new QmMatchRequest
+                    {
+                        Type = "quit",
+                        Casual = MatchmakingSettings.Instance.Casual,
+                        Version = "2.0"
+                    };
 
-                await apiService.SendMatchRequestAsync(ladder, LocalPlayerName, request);
+                    await apiService.SendMatchRequestAsync(ladder, LocalPlayerName, request);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"[Matchmaking] Error sending quit request: {ex.Message}");
+                }
             }
         }
 
@@ -174,24 +207,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                     consecutiveErrors = 0;
                     int waitSeconds = response.CheckBack > 0 ? Math.Min(response.CheckBack, 2) : 2;
                     Logger.Log($"[Matchmaking] Queued. Waiting {waitSeconds}s for next check...");
-                    pollTimer.Interval = waitSeconds * 1000;
+                    pollTimer.Interval = 1500;
                     pollTimer.Start();
                     break;
 
                 case "spawn":
                     consecutiveErrors = 0;
                     Logger.Log("[Matchmaking] Match found! Spawning game...");
-                    addNoticeAction("Match found! Launching game...".L10N("Client:Matchmaking:MatchFoundNotice"));
+                    SafeAddNotice("Match found! Launching game...".L10N("Client:Matchmaking:MatchFoundNotice"));
 
                     pollTimer.Stop();
                     isInQueue = false;
-                    setQueueUiStateAction(false);
+                    QueueStartTime = null;
+                    SafeSetQueueUiState(false);
 
                     bool filesWritten = spawnService.WriteSpawnFiles(response);
 
                     if (!filesWritten)
                     {
-                        addNoticeAction("Error preparing match files.".L10N("Client:Matchmaking:SpawnError"));
+                        SafeAddNotice("Error preparing match files.".L10N("Client:Matchmaking:SpawnError"));
 
                         return;
                     }
@@ -223,7 +257,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                         break;
                     }
 
-                    addNoticeAction(string.Format("Matchmaking error: {0}".L10N("Client:Matchmaking:ErrorFormat"), desc));
+                    SafeAddNotice(string.Format("Matchmaking error: {0}".L10N("Client:Matchmaking:ErrorFormat"), desc));
                     LeaveQueue(false);
                     break;
             }
@@ -244,9 +278,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
             QmMatchResponse? response = await apiService.SendMatchRequestAsync(ladder, LocalPlayerName, request);
 
+            if (!isInQueue)
+            {
+                Logger.Log("[Matchmaking] Poll request completed but queue was cancelled by user.");
+                return;
+            }
+
             if (response == null)
             {
-                // Network glitch; retry after default interval
                 pollTimer.Interval = 3000;
                 pollTimer.Start();
 
@@ -254,6 +293,22 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
             }
 
             HandleResponse(response);
+        }
+
+        private void SafeSetQueueUiState(bool inQueue)
+        {
+            windowManager.AddCallback(new Action(() =>
+            {
+                setQueueUiStateAction(inQueue);
+            }), null);
+        }
+
+        private void SafeAddNotice(string message)
+        {
+            windowManager.AddCallback(new Action(() =>
+            {
+                addNoticeAction(message);
+            }), null);
         }
 
         private QmMatchRequest CreateMatchRequest(string type, bool casual, int side)
