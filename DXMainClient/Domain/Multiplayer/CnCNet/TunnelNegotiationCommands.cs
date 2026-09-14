@@ -15,9 +15,6 @@ public static class TunnelNegotiationCommands
     /// <summary>Host broadcasts this to ask all clients to restart all their tunnel negotiations.</summary>
     public const string RenegotiateAll = "RENEGALL";
 
-    /// <summary>Asks peers to renegotiate the tunnel they share with the sender.</summary>
-    public const string TunnelRenegotiate = "TNLRENEG";
-
     /// <summary>Announces a host-selected tunnel server change.</summary>
     public const string ChangeTunnelServer = "CHTNL";
 }

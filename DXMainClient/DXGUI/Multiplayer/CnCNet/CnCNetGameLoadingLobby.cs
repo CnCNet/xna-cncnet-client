@@ -72,7 +72,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new IntCommandHandler(PLAYER_READY_CTCP_COMMAND, HandlePlayerReadyRequest),
                 new StringCommandHandler(TunnelNegotiationCommands.ChangeTunnelServer, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.NegotiationReport, HandleNegotiationReportMessage),
-                new StringCommandHandler(TunnelNegotiationCommands.TunnelRenegotiate, HandleTunnelRenegotiateMessage),
             };
         }
 
@@ -709,9 +708,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void HandleNegotiationReportMessage(string sender, string data)
             => _negotiator.HandleNegotiationReportMessage(sender, data);
-
-        private void HandleTunnelRenegotiateMessage(string sender, string tunnelAddressAndPort)
-            => _negotiator.HandleRemoteTunnelRenegotiate(sender, tunnelAddressAndPort);
 
         #endregion
 

@@ -668,31 +668,6 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
-    /// Handles a remote player's request to renegotiate the tunnel shared with us.
-    /// </summary>
-    public void HandleRemoteTunnelRenegotiate(string sender, string tunnelAddressAndPort)
-    {
-        if (host.TunnelMode != TunnelMode.V3Dynamic || IsLocalGameRouteActive())
-            return;
-
-        string[] split = tunnelAddressAndPort.Split(':');
-        if (split.Length != 2 || !int.TryParse(split[1], out int tunnelPort))
-            return;
-
-        string tunnelAddress = split[0];
-
-        var remoteV3Player = FindPlayer(sender);
-        if (remoteV3Player == null)
-            return;
-
-        if (remoteV3Player.Tunnel?.Address == tunnelAddress && remoteV3Player.Tunnel?.Port == tunnelPort)
-        {
-            host.AddNotice(string.Format("{0} needs to renegotiate tunnel. Starting renegotiation...".L10N("Client:Main:PeerRenegotiating"), sender), Color.Orange);
-            RestartNegotiations(new[] { remoteV3Player });
-        }
-    }
-
-    /// <summary>
     /// Removes a single player's V3 negotiation state (the lobby still owns its own player list).
     /// </summary>
     public void RemovePlayer(string playerName)
