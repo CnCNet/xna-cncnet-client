@@ -166,10 +166,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             GameList.AddRange(GetCustomGames(defaultGames.Concat<CnCNetGame>(otherGames).ToList()));
             GameList.AddRange(otherGames);
 
-            if (GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame) == -1)
+            int gameIndex = GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame);
+            if (gameIndex == -1)
             {
                 throw new ClientConfigurationException("Could not find a game in the game collection matching LocalGame value of " +
                     ClientConfiguration.Instance.LocalGame + ".");
+            }
+            else if (!GameList[gameIndex].Supported)
+            {
+                throw new ClientConfigurationException("The game specified in LocalGame value of " + ClientConfiguration.Instance.LocalGame +
+                    " is marked as not supported.");
             }
 
             // Fire-and-forget background preloading of images.
