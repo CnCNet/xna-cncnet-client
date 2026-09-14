@@ -31,6 +31,7 @@ public class V3TunnelNegotiationManager
     private readonly WindowManager windowManager;
     private readonly List<V3PlayerInfo> _v3PlayerInfos = new();
     private readonly NegotiationDataManager _negotiationData = new();
+    private readonly Dictionary<string, int> _lastReportedPings = new();
 
     // Pairs whose P2P routes had to be kept when the player left mid-game (the bridge
     // was still routing to them); cleaned up once the game bridge stops so departed
@@ -425,6 +426,8 @@ public class V3TunnelNegotiationManager
         string localName = ProgramConstants.PLAYERNAME;
         var sb = new System.Text.StringBuilder();
 
+        _lastReportedPings.Clear();
+
         foreach (var peer in _v3PlayerInfos)
         {
             if (peer.Name == localName)
@@ -445,7 +448,10 @@ public class V3TunnelNegotiationManager
             {
                 var peerPing = _negotiationData.GetPing(localName, peer.Name);
                 if (peerPing.HasValue && peerPing.Value.IsValid())
+                {
                     sb.Append(':').Append(peerPing.Value.Milliseconds);
+                    _lastReportedPings[peer.Name] = peerPing.Value.Milliseconds;
+                }
             }
         }
 
@@ -902,14 +908,15 @@ public class V3TunnelNegotiationManager
         if (reportedStatus != NegotiationStatus.Succeeded)
             return;
 
-        var previousPing = _negotiationData.GetPing(localName, player.Name);
         _negotiationData.UpdatePing(localName, player.Name, rttMs);
         host.OnPairPingUpdated(pInfo, rttMs);
 
-        // Quiet broadcast: only push the refreshed ping over IRC when it changed
-        // materially — otherwise every pong would trigger wire traffic.
-        if (previousPing == null || !previousPing.Value.IsValid() ||
-            PingQualityRules.IsMaterialChange(previousPing.Value.Milliseconds, rttMs))
+        // Quiet broadcast: only push the refreshed ping over IRC when it has moved into a
+        // different quality tier by a clear margin from what other players last saw. They only
+        // see it in the status panel, so exact values aren't worth the channel traffic; our
+        // own pairs still update live locally.
+        if (!_lastReportedPings.TryGetValue(player.Name, out int lastReportedMs) ||
+            PingQualityRules.IsMaterialChange(lastReportedMs, rttMs))
         {
             BroadcastNegotiationInfo();
         }
