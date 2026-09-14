@@ -665,16 +665,6 @@ namespace ClientCore
         public uint V3CyclesPerTunnelListRefresh => (uint)networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "CyclesPerTunnelListRefresh", 3);
 
         /// <summary>
-        /// Ping (ms) above which a tunnel server is considered to be responding badly.
-        /// </summary>
-        public int V3TunnelFailedPingAmountMs => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelFailedPingAmountMs", 2000);
-
-        /// <summary>
-        /// Number of consecutive bad pings before a tunnel server is reported as failed.
-        /// </summary>
-        public int V3TunnelFailedConsecutivePings => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "TunnelFailedConsecutivePings", 2);
-
-        /// <summary>
         /// How many unanswered ICMP probes in a row a tunnel's last good ping is kept for before
         /// it reads as unknown. 0 discards the measurement on the first miss.
         /// </summary>
@@ -683,7 +673,7 @@ namespace ClientCore
         /// datagram would otherwise leave a healthy tunnel unmeasured for a whole refresh
         /// interval — long enough for matchmaking to drop it from the shortlist and never try it.
         /// Kept small: a tunnel that has actually gone away should stop advertising a stale
-        /// latency quickly, and tunnel-failure detection reads the raw probe result regardless.
+        /// latency quickly.
         /// </remarks>
         public int V3RetainedPingFailures => networkDefinitionsIni.GetIntValue(V3_TUNNEL_NEGOTIATION, "RetainedPingFailures", 2);
 

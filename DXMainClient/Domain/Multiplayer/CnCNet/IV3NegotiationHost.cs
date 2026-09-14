@@ -30,11 +30,6 @@ public interface IV3NegotiationHost
     /// </summary>
     void SendNegotiationReport(string message);
 
-    /// <summary>
-    /// Sends a CTCP system message to the game channel with the given queue priority.
-    /// </summary>
-    void SendChannelCTCP(string message, int priority);
-
     /// <summary>Adds a notice to the lobby chat.</summary>
     void AddNotice(string message, Color color);
 

@@ -18,9 +18,6 @@ public static class TunnelNegotiationCommands
     /// <summary>Asks peers to renegotiate the tunnel they share with the sender.</summary>
     public const string TunnelRenegotiate = "TNLRENEG";
 
-    /// <summary>Notifies the host that the sender can no longer reach a tunnel.</summary>
-    public const string TunnelFailed = "TNLFAIL";
-
     /// <summary>Announces a host-selected tunnel server change.</summary>
     public const string ChangeTunnelServer = "CHTNL";
 }
