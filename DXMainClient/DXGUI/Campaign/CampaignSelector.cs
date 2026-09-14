@@ -476,7 +476,7 @@ namespace DTAClient.DXGUI.Campaign
                 case ClientType.TS:
                     spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
                     break;
-                    // TODO figure out the RA one
+                // TODO figure out the RA one
             }
 
             spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
