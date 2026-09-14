@@ -26,7 +26,7 @@ public static class PingQualityRules
 
     public const int HighPingWarningMs = V3PoorMaxMs;
     public const int KickSuggestionMinWorstMs = 600;
-    public const int KickSuggestionMinImprovementMs = 150;
+    public const int KickSuggestionMinImprovementMs = 350;
     public const int MaterialChangeMinDeltaMs = 25;
 
     public static PingQualityTier GetTier(PingValue ping)
