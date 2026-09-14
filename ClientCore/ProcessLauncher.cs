@@ -20,7 +20,10 @@ namespace ClientCore
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to start process '{commandLine} {arguments}': {ex.Message}");
+                if (string.IsNullOrEmpty(arguments))
+                    Logger.Log($"Failed to start process '{commandLine}': {ex.Message}");
+                else
+                    Logger.Log($"Failed to start process '{commandLine} {arguments}': {ex.Message}");
             }
         }
     }
