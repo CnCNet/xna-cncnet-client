@@ -175,7 +175,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             else if (!GameList[gameIndex].Supported)
             {
                 throw new ClientConfigurationException("The game specified in LocalGame value of " + ClientConfiguration.Instance.LocalGame +
-                    " is marked as not supported by this client version.");
+                    " is marked as not supported.");
             }
 
             // Fire-and-forget background preloading of images.
