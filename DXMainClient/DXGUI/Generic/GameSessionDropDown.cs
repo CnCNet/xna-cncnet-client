@@ -1,5 +1,6 @@
 ﻿using System;
 
+using ClientCore;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 
@@ -79,6 +80,57 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
     /// </summary>
     public int SortOrder { get; private set; } = DEFAULT_SORT_ORDER;
 
+    /// <summary>Whether this dropdown's value is remembered per user in [LocalGameOptions], keyed by its INI section name (<see cref="XNAControl.Name"/>).</summary>
+    public bool Persistent { get; private set; }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        LoadPersistedValue();
+        SelectedIndexChanged += (_, _) => PersistValue();
+    }
+
+    public override void GetAttributes(IniFile iniFile)
+    {
+        // Campaign windows load attributes after Initialize; lobbies load them before it.
+        // Restore only after the whole section is read, so Persistent can appear anywhere.
+        try
+        {
+            restoringValue = true;
+            base.GetAttributes(iniFile);
+            LoadPersistedValue();
+        }
+        finally
+        {
+            restoringValue = false;
+        }
+    }
+
+    /// <summary>Suppresses persistence while INI defaults or stored preferences are being loaded.</summary>
+    private bool restoringValue;
+
+    private void PersistValue()
+    {
+        if (restoringValue || !Persistent)
+            return;
+
+        UserINISettings.Instance.SetValue(UserINISettings.LOCAL_GAME_OPTIONS, Name, SelectedIndex);
+        UserINISettings.Instance.SaveSettings();
+    }
+
+    private void LoadPersistedValue()
+    {
+        if (!Persistent)
+            return;
+
+        int storedIndex = UserINISettings.Instance.GetValue(UserINISettings.LOCAL_GAME_OPTIONS, Name, SelectedIndex);
+
+        // A package update may have removed the remembered item. Keep the INI default in that case.
+        if (storedIndex >= 0 && storedIndex < Items.Count)
+            SelectedIndex = storedIndex;
+    }
+
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         // shorthand for localization function
@@ -149,6 +201,9 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
             case "SortOrder":
                 SortOrder = int.Parse(value);
                 return;
+            case "Persistent":
+                Persistent = Conversions.BooleanFromString(value, false);
+                return;
         }
 
         base.ParseControlINIAttribute(iniFile, key, value);
@@ -201,7 +256,7 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         // FIXME there's a discrepancy with how base XNAUI handles this
         // it doesn't set handled if changing the setting is not allowed
         inputEventArgs.Handled = true;
-            
+
         if (!AllowDropDown)
             return;
 
