@@ -59,6 +59,27 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                 int myIndex = spawnIni.GetIntValue("Settings", "MyIndex", 0);
                 spawnIni.SetStringValue("Settings", "Host", myIndex == 0 ? "Yes" : "No");
 
+                // Dynamically apply forced settings from active mode in Matchmaking.ini
+                MatchmakingModeInfo? activeMode = MatchmakingConfig.Instance.CurrentMode;
+                if (activeMode != null)
+                {
+                    foreach (var kvp in activeMode.ForceCheckboxes)
+                    {
+                        string settingName = kvp.Key.StartsWith("chk", StringComparison.OrdinalIgnoreCase)
+                            ? kvp.Key.Substring(3)
+                            : kvp.Key;
+                        spawnIni.SetBooleanValue("Settings", settingName, kvp.Value);
+                    }
+
+                    foreach (var kvp in activeMode.ForceDropdowns)
+                    {
+                        string settingName = kvp.Key.StartsWith("cmb", StringComparison.OrdinalIgnoreCase)
+                            ? kvp.Key.Substring(3)
+                            : kvp.Key;
+                        spawnIni.SetStringValue("Settings", settingName, kvp.Value);
+                    }
+                }
+
                 int myPort = spawnIni.GetIntValue("Settings", "Port", 0);
                 if (myPort <= 0)
                 {

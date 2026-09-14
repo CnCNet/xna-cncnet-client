@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -88,10 +88,16 @@ namespace ClientGUI
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
+                QResProcess.StartInfo.WorkingDirectory = ProgramConstants.GamePath;
                 QResProcess.StartInfo.UseShellExecute = false;
 
                 if (!string.IsNullOrEmpty(extraCommandLine))
-                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + "-SPAWN " + extraCommandLine;
+                {
+                    if (extraCommandLine.Contains("-SPAWN"))
+                        QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + extraCommandLine;
+                    else
+                        QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + "-SPAWN " + extraCommandLine;
+                }
                 else
                     QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + "-SPAWN";
                 QResProcess.EnableRaisingEvents = true;
@@ -120,7 +126,12 @@ namespace ClientGUI
                 string arguments;
 
                 if (!string.IsNullOrWhiteSpace(extraCommandLine))
-                    arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
+                {
+                    if (extraCommandLine.Contains("-SPAWN"))
+                        arguments = " " + additionalExecutableName + extraCommandLine;
+                    else
+                        arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
+                }
                 else
                     arguments = additionalExecutableName + "-SPAWN";
 
@@ -128,6 +139,7 @@ namespace ClientGUI
 
                 var gameProcess = new Process();
                 gameProcess.StartInfo.FileName = gameFileInfo.FullName;
+                gameProcess.StartInfo.WorkingDirectory = ProgramConstants.GamePath;
                 gameProcess.StartInfo.Arguments = arguments;
                 gameProcess.StartInfo.UseShellExecute = false;
 
