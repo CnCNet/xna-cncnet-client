@@ -65,6 +65,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientCheckBox chkAutoReady;
         protected XNAClientCheckBox chkAutoLaunch;
 
+        private bool autoLaunchBlockedNoticeShown;
+        private bool autoLaunchStartedGame;
+
         private Random random;
 
         protected bool IsHost = false;
@@ -288,8 +291,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UserINISettings.Instance.StopGameLobbyMessageAudio)
                 sndMessageSound.Enabled = false;
 
-            if (chkAutoLaunch != null)
-                chkAutoLaunch.Checked = false;
+            autoLaunchStartedGame = true;
+            DisarmAutoLaunch();
 
             base.StartGame();
         }
@@ -421,6 +424,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ChkAutoLaunch_CheckedChanged(object sender, EventArgs e)
         {
+            autoLaunchBlockedNoticeShown = false;
+
+            OnAutoLaunchArmedChanged();
             CheckAutoStartGame();
         }
 
@@ -431,9 +437,43 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual bool SupportsAutoLaunch => false;
 
         /// <summary>
+        /// Whether the lobby is carrying out work that has to be completed
+        /// before the game can be launched, such as tunnel negotiations.
+        /// </summary>
+        protected virtual bool IsLaunchPreparationInProgress => false;
+
+        /// <summary>
+        /// Called when the host turns auto-launch on or off.
+        /// </summary>
+        protected virtual void OnAutoLaunchArmedChanged() { }
+
+        /// <summary>
+        /// The number of players that take part in the game, excluding spectators.
+        /// </summary>
+        private int GamePlayerCount => Players.Count(p => !IsPlayerSpectator(p)) + AIPlayers.Count;
+
+        /// <summary>
+        /// The number of players that has to be reached for auto-launch to start
+        /// the game: the player limit of the game room, or the maximum player
+        /// count of the selected map if the map takes in fewer players.
+        /// </summary>
+        private int AutoLaunchPlayerTarget
+        {
+            get
+            {
+                int target = MaxPlayerCount;
+
+                if (GameModeMap != null && GameModeMap.MaxPlayers > 0 && GameModeMap.MaxPlayers < target)
+                    target = GameModeMap.MaxPlayers;
+
+                return target;
+            }
+        }
+
+        /// <summary>
         /// Automatically starts the game if the host has enabled auto-launch,
-        /// the room is full and all players are ready. Locks the room first
-        /// if it is not locked already.
+        /// the game room has the players it is waiting for and all players are
+        /// ready. Locks the room first if it is not locked already.
         /// Auto-launch is one-shot: it disarms itself before attempting the launch,
         /// so a failed launch attempt or a finished match requires the host
         /// to enable it again for another attempt.
@@ -446,8 +486,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ProgramConstants.IsInGame || !btnLaunchGame.Enabled)
                 return;
 
-            if (!IsRoomFull())
+            // Do not spend the launch attempt on a state that resolves on its own.
+            // The check is run again once the preparations are done.
+            if (IsLaunchPreparationInProgress)
                 return;
+
+            if (GamePlayerCount < AutoLaunchPlayerTarget)
+            {
+                NotifyIfAutoLaunchBlocked();
+                return;
+            }
 
             if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
                 return;
@@ -458,27 +506,47 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 LockGame();
             }
 
+            autoLaunchStartedGame = false;
             chkAutoLaunch.Checked = false;
 
             BtnLaunchGame_LeftClick(this, EventArgs.Empty);
+
+            if (!autoLaunchStartedGame && !IsLaunchPreparationInProgress)
+            {
+                AddNotice("Auto Launch could not start the game and has been turned off."
+                    .L10N("Client:Main:AutoLaunchFailed"), Color.Yellow);
+                FlashWindowForHost();
+            }
         }
 
         /// <summary>
-        /// Determines whether the game room can not take in any more players,
-        /// either because the player limit of the room or the maximum player
-        /// count of the selected map has been reached.
+        /// Notifies the host once if the game room can not take in the players
+        /// that auto-launch is waiting for, which happens when spectators occupy
+        /// the remaining slots of the room.
         /// </summary>
-        private bool IsRoomFull()
+        private void NotifyIfAutoLaunchBlocked()
         {
-            if (Players.Count + AIPlayers.Count >= MaxPlayerCount)
-                return true;
+            if (Players.Count + AIPlayers.Count < MaxPlayerCount)
+            {
+                autoLaunchBlockedNoticeShown = false;
+                return;
+            }
 
-            if (GameModeMap == null || GameModeMap.MaxPlayers < 1)
-                return false;
+            if (autoLaunchBlockedNoticeShown)
+                return;
 
-            int playerCount = Players.Count(p => !IsPlayerSpectator(p)) + AIPlayers.Count;
+            autoLaunchBlockedNoticeShown = true;
 
-            return playerCount >= GameModeMap.MaxPlayers;
+            AddNotice("Auto Launch is waiting for more players, but the game room is already full."
+                .L10N("Client:Main:AutoLaunchRoomFull"), Color.Yellow);
+            FlashWindowForHost();
+        }
+
+        private void FlashWindowForHost()
+        {
+#if WINFORMS
+            WindowManager.FlashWindow();
+#endif
         }
 
         protected void ResetAutoLaunchCheckbox()
@@ -486,12 +554,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (chkAutoLaunch == null)
                 return;
 
-            chkAutoLaunch.Checked = false;
+            DisarmAutoLaunch();
 
             if (IsHost && SupportsAutoLaunch)
                 chkAutoLaunch.Enable();
             else
                 chkAutoLaunch.Disable();
+        }
+
+        /// <summary>
+        /// Turns auto-launch off without running the code that reacts to the
+        /// host turning it on or off.
+        /// </summary>
+        private void DisarmAutoLaunch()
+        {
+            if (chkAutoLaunch == null)
+                return;
+
+            chkAutoLaunch.CheckedChanged -= ChkAutoLaunch_CheckedChanged;
+            chkAutoLaunch.Checked = false;
+            chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
+
+            autoLaunchBlockedNoticeShown = false;
         }
 
         protected void ResetAutoReadyCheckbox()
