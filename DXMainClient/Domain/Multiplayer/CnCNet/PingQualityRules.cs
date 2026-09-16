@@ -25,9 +25,9 @@ public static class PingQualityRules
     public const int V3PoorMaxMs = 500;
 
     public const int HighPingWarningMs = V3PoorMaxMs;
-    public const int KickSuggestionMinWorstMs = 400;
-    public const int KickSuggestionMinImprovementMs = 150;
-    public const int MaterialChangeMinDeltaMs = 25;
+    public const int KickSuggestionMinWorstMs = 600;
+    public const int KickSuggestionMinImprovementMs = 350;
+    public const int MaterialChangeMinDeltaMs = 50;
 
     public static PingQualityTier GetTier(PingValue ping)
         => ping.IsValid() ? GetTier(ping.Milliseconds) : PingQualityTier.Unknown;
@@ -63,6 +63,6 @@ public static class PingQualityRules
         => ping.IsValid() && ping.Milliseconds > HighPingWarningMs;
 
     public static bool IsMaterialChange(int oldMilliseconds, int newMilliseconds)
-        => Math.Abs(newMilliseconds - oldMilliseconds) > MaterialChangeMinDeltaMs ||
-           GetV3Tier(oldMilliseconds) != GetV3Tier(newMilliseconds);
+        => GetV3Tier(oldMilliseconds) != GetV3Tier(newMilliseconds) &&
+           Math.Abs(newMilliseconds - oldMilliseconds) >= MaterialChangeMinDeltaMs;
 }

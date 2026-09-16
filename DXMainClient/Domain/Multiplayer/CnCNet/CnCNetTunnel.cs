@@ -112,24 +112,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public PingValue Ping { get; set; } = PingValue.Unknown;
 
         /// <summary>
-        /// How many ping attempts in a row have failed (unknown result or excessive latency).
-        /// Maintained by TunnelHandler so a single dropped ICMP echo doesn't declare the
-        /// tunnel failed and trigger renegotiations.
-        /// </summary>
-        internal int ConsecutivePingFailures { get; set; }
-
-        /// <summary>
-        /// Whether this tunnel has ever answered an ICMP echo. Unknown ping results only
-        /// count as failures once this is true; some networks block ICMP entirely while
-        /// UDP tunnel traffic works fine, and such tunnels must not be declared failed.
-        /// </summary>
-        internal bool HasRespondedToPing { get; set; }
-
-        /// <summary>
         /// How many ICMP probes in a row have come back unanswered. Drives how long the last good
-        /// measurement is retained by <see cref="ApplyPingResult"/>; distinct from
-        /// <see cref="ConsecutivePingFailures"/>, which also counts answered-but-slow probes and
-        /// drives the tunnel-failed notification.
+        /// measurement is retained by <see cref="ApplyPingResult"/>.
         /// </summary>
         internal int ConsecutiveUnknownPings { get; private set; }
 
@@ -148,8 +132,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// minute later. That is more damaging than it sounds: matchmaking ranks a tunnel nobody
         /// could measure below every tunnel that was measured, so the best server drops off the
         /// shortlist entirely and is never even tried. Retaining is deliberately bounded — a
-        /// tunnel that has genuinely gone away stops reporting a stale ping after a few rounds,
-        /// and the tunnel-failed path runs off the raw probe result either way.
+        /// tunnel that has genuinely gone away stops reporting a stale ping after a few rounds.
         /// </remarks>
         internal void ApplyPingResult(PingValue measuredPing, int maxRetainedFailures)
         {

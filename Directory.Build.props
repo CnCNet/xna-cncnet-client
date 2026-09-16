@@ -117,4 +117,9 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
   </ItemGroup>
 
+  <!-- Promote CA1806 "Do not ignore method results" as error -->
+  <PropertyGroup>
+    <WarningsAsErrors>$(WarningsAsErrors);CA1806</WarningsAsErrors>
+  </PropertyGroup>
+
 </Project>

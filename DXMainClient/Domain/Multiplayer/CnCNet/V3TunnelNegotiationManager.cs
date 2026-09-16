@@ -31,6 +31,7 @@ public class V3TunnelNegotiationManager
     private readonly WindowManager windowManager;
     private readonly List<V3PlayerInfo> _v3PlayerInfos = new();
     private readonly NegotiationDataManager _negotiationData = new();
+    private readonly Dictionary<string, int> _lastReportedPings = new();
 
     // Pairs whose P2P routes had to be kept when the player left mid-game (the bridge
     // was still routing to them); cleaned up once the game bridge stops so departed
@@ -425,6 +426,8 @@ public class V3TunnelNegotiationManager
         string localName = ProgramConstants.PLAYERNAME;
         var sb = new System.Text.StringBuilder();
 
+        _lastReportedPings.Clear();
+
         foreach (var peer in _v3PlayerInfos)
         {
             if (peer.Name == localName)
@@ -445,7 +448,10 @@ public class V3TunnelNegotiationManager
             {
                 var peerPing = _negotiationData.GetPing(localName, peer.Name);
                 if (peerPing.HasValue && peerPing.Value.IsValid())
+                {
                     sb.Append(':').Append(peerPing.Value.Milliseconds);
+                    _lastReportedPings[peer.Name] = peerPing.Value.Milliseconds;
+                }
             }
         }
 
@@ -563,44 +569,6 @@ public class V3TunnelNegotiationManager
     private string NameForId(uint id) => _v3PlayerInfos.FirstOrDefault(p => p.Id == id)?.Name ?? id.ToString("x8");
 
     /// <summary>
-    /// Returns remote players whose negotiated tunnel matches the given address/port.
-    /// </summary>
-    public List<V3PlayerInfo> FindRemotePlayersUsingTunnel(string address, int port)
-        => _v3PlayerInfos
-            .Where(p => p.Name != ProgramConstants.PLAYERNAME &&
-                        p.Tunnel?.Address == address && p.Tunnel?.Port == port)
-            .ToList();
-
-    /// <summary>
-    /// Reacts to a tunnel failure in dynamic mode by renegotiating with the players routed
-    /// through it: notifies the lobby, broadcasts TunnelRenegotiate so remote clients restart
-    /// the same pairs, and restarts the affected negotiations.
-    /// Returns false in non-dynamic modes so the caller can run its own fallback.
-    /// </summary>
-    public bool TryHandleTunnelFailure(CnCNetTunnel failedTunnel)
-    {
-        if (host.TunnelMode != TunnelMode.V3Dynamic)
-            return false;
-
-        // Broadcasting TunnelRenegotiate now would make lobby-side peers restart their
-        // pair with us while we can't reciprocate, stranding the pair. The keepalive
-        // monitor will surface a genuinely dead path after we return to the lobby.
-        if (IsLocalGameRouteActive())
-            return true;
-
-        var affectedPlayers = FindRemotePlayersUsingTunnel(failedTunnel.Address, failedTunnel.Port);
-
-        if (affectedPlayers.Count > 0)
-        {
-            host.AddNotice(string.Format("Tunnel {0} failed. Starting renegotiation with affected players...".L10N("Client:Main:TunnelFailedRenegotiating"), failedTunnel.Name), Color.Orange);
-            host.SendChannelCTCP($"{TunnelNegotiationCommands.TunnelRenegotiate} {failedTunnel.Address}:{failedTunnel.Port}", 10);
-            RestartNegotiations(affectedPlayers);
-        }
-
-        return true;
-    }
-
-    /// <summary>
     /// Points every V3 player at the given tunnel. Only relevant in static mode, where all
     /// players share the host-selected tunnel; no-op in other modes.
     /// </summary>
@@ -703,42 +671,6 @@ public class V3TunnelNegotiationManager
 
         RefreshKeepAliveTargets();
         host.OnNegotiationStateChanged();
-    }
-
-    /// <summary>
-    /// Handles a remote player's request to renegotiate the tunnel shared with us.
-    /// </summary>
-    public void HandleRemoteTunnelRenegotiate(string sender, string tunnelAddressAndPort)
-    {
-        if (host.TunnelMode != TunnelMode.V3Dynamic || IsLocalGameRouteActive())
-            return;
-
-        string[] split = tunnelAddressAndPort.Split(':');
-        if (split.Length != 2 || !int.TryParse(split[1], out int tunnelPort))
-            return;
-
-        string tunnelAddress = split[0];
-
-        var remoteV3Player = FindPlayer(sender);
-        if (remoteV3Player == null)
-            return;
-
-        if (remoteV3Player.Tunnel?.Address == tunnelAddress && remoteV3Player.Tunnel?.Port == tunnelPort)
-        {
-            host.AddNotice(string.Format("{0} needs to renegotiate tunnel. Starting renegotiation...".L10N("Client:Main:PeerRenegotiating"), sender), Color.Orange);
-            RestartNegotiations(new[] { remoteV3Player });
-        }
-    }
-
-    /// <summary>
-    /// Surfaces a remote player's tunnel-failure report in the lobby chat.
-    /// </summary>
-    public void HandleRemoteTunnelFailed(string sender, string tunnelName)
-    {
-        if (host.IsHost)
-            host.AddNotice(string.Format("{0} can no longer connect to tunnel: {1}. Change the tunnel or the game won't start.".L10N("Client:Main:PlayerTunnelFailedHost"), sender, tunnelName), Color.Orange);
-        else
-            host.AddNotice(string.Format("{0} can no longer connect to tunnel: {1}. The host needs to change the tunnel or the game won't start.".L10N("Client:Main:PlayerTunnelFailed"), sender, tunnelName), Color.Orange);
     }
 
     /// <summary>
@@ -976,14 +908,15 @@ public class V3TunnelNegotiationManager
         if (reportedStatus != NegotiationStatus.Succeeded)
             return;
 
-        var previousPing = _negotiationData.GetPing(localName, player.Name);
         _negotiationData.UpdatePing(localName, player.Name, rttMs);
         host.OnPairPingUpdated(pInfo, rttMs);
 
-        // Quiet broadcast: only push the refreshed ping over IRC when it changed
-        // materially — otherwise every pong would trigger wire traffic.
-        if (previousPing == null || !previousPing.Value.IsValid() ||
-            PingQualityRules.IsMaterialChange(previousPing.Value.Milliseconds, rttMs))
+        // Quiet broadcast: only push the refreshed ping over IRC when it has moved into a
+        // different quality tier by a clear margin from what other players last saw. They only
+        // see it in the status panel, so exact values aren't worth the channel traffic; our
+        // own pairs still update live locally.
+        if (!_lastReportedPings.TryGetValue(player.Name, out int lastReportedMs) ||
+            PingQualityRules.IsMaterialChange(lastReportedMs, rttMs))
         {
             BroadcastNegotiationInfo();
         }

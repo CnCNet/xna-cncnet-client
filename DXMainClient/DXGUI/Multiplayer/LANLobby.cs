@@ -324,19 +324,21 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void GameCreationWindow_LoadGame(object sender, GameLoadEventArgs e)
         {
-            lanGameLoadingLobby.SetUp(true,
+            if (lanGameLoadingLobby.SetUp(true,
                 new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT),
-                null, e.LoadedGameID);
-
-            lanGameLoadingLobby.Enable();
+                null, e.LoadedGameID))
+            {
+                lanGameLoadingLobby.Enable();
+            }
         }
 
         private void GameCreationWindow_NewGame(object sender, EventArgs e)
         {
-            lanGameLobby.SetUp(true,
-                new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
-
-            lanGameLobby.Enable();
+            if (lanGameLobby.SetUp(true,
+                new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null))
+            {
+                lanGameLobby.Enable();
+            }
         }
 
         private void SetChatColor()

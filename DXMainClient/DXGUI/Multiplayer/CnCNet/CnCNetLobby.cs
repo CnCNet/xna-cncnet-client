@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -456,7 +457,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string translatedGameMode = string.IsNullOrEmpty(hg.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown")
-                : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
+                : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", TranslationNotificationLevel.Verbose);
 
             string translatedMapName = string.IsNullOrEmpty(hg.Map)
                 ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(hg.Map)
@@ -1242,10 +1243,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameChatChannelName).Join();
+            var localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName)
+                ?? throw new Exception("Could not find local game chat channel: " + localGameChatChannelName);
+            localGameChatChannel.Join();
 
-            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameBroadcastChannel).Join();
+            string localGameBroadcastChannelName = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
+            var localGameBroadcastChannel = connectionManager.FindChannel(localGameBroadcastChannelName)
+                ?? throw new Exception("Could not find local game broadcast channel: " + localGameBroadcastChannelName);
+            localGameBroadcastChannel.Join();
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {

@@ -72,8 +72,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new IntCommandHandler(PLAYER_READY_CTCP_COMMAND, HandlePlayerReadyRequest),
                 new StringCommandHandler(TunnelNegotiationCommands.ChangeTunnelServer, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.NegotiationReport, HandleNegotiationReportMessage),
-                new StringCommandHandler(TunnelNegotiationCommands.TunnelRenegotiate, HandleTunnelRenegotiateMessage),
-                new StringCommandHandler(TunnelNegotiationCommands.TunnelFailed, HandleTunnelFailedMessage),
             };
         }
 
@@ -185,7 +183,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tunnelHandler.CurrentTunnel = _tunnelMode == TunnelMode.V3Dynamic ? null : tunnel;
             tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
-            tunnelHandler.TunnelFailed += TunnelHandler_TunnelFailed;
 
             started = false;
 
@@ -231,7 +228,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tunnelHandler.CurrentTunnel = null;
             tunnelHandler.CurrentTunnelPinged -= TunnelHandler_CurrentTunnelPinged;
-            tunnelHandler.TunnelFailed -= TunnelHandler_TunnelFailed;
 
             topBar.RemovePrimarySwitchable(this);
         }
@@ -713,12 +709,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleNegotiationReportMessage(string sender, string data)
             => _negotiator.HandleNegotiationReportMessage(sender, data);
 
-        private void HandleTunnelRenegotiateMessage(string sender, string tunnelAddressAndPort)
-            => _negotiator.HandleRemoteTunnelRenegotiate(sender, tunnelAddressAndPort);
-
-        private void HandleTunnelFailedMessage(string sender, string tunnelName)
-            => _negotiator.HandleRemoteTunnelFailed(sender, tunnelName);
-
         #endregion
 
         protected override void HostStartGame()
@@ -937,9 +927,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         void IV3NegotiationHost.SendNegotiationReport(string message)
             => channel.SendCTCPMessage(message, QueuedMessageType.GAME_NEGOTIATION_MESSAGE, 10);
 
-        void IV3NegotiationHost.SendChannelCTCP(string message, int priority)
-            => channel.SendCTCPMessage(message, QueuedMessageType.SYSTEM_MESSAGE, priority);
-
         void IV3NegotiationHost.AddNotice(string message, Color color) => AddNotice(message, color);
 
         void IV3NegotiationHost.OnNegotiationStateChanged() => UpdateLoadGameButtonStatus();
@@ -1001,25 +988,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tunnelHandler.CurrentTunnel = null;
 
             UpdateLoadGameButtonStatus();
-        }
-
-        private void TunnelHandler_TunnelFailed(object sender, TunnelFailedEventArgs e)
-        {
-            CnCNetTunnel failedTunnel = e.Tunnel;
-            if (tunnelHandler.GameTunnelBridge != null && tunnelHandler.GameTunnelBridge.IsRunning)
-                return;
-
-            if (_negotiator.TryHandleTunnelFailure(failedTunnel))
-                return;
-
-            if (IsHost)
-                AddNotice(string.Format("Tunnel {0} failed. Please select a different tunnel.".L10N("Client:Main:TunnelFailedSelectDifferent"), failedTunnel.Name), Color.Orange);
-            else
-            {
-                AddNotice(string.Format("Tunnel {0} failed. Waiting for host to select a new tunnel...".L10N("Client:Main:TunnelFailedWaitingForHost"), failedTunnel.Name), Color.Orange);
-                channel.SendCTCPMessage($"{TunnelNegotiationCommands.TunnelFailed} {failedTunnel.Name}",
-                    QueuedMessageType.SYSTEM_MESSAGE, 10);
-            }
         }
 
         #endregion

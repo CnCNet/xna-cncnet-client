@@ -318,7 +318,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapContextMenu.AddItem("Delete Map".L10N("Client:Main:DeleteMap"),
                 selectAction: DeleteMapConfirmation,
                 visibilityChecker: CanDeleteMap);
-            mapContextMenu.AddItem("Show in folder".L10N("Client:Main:ShowInFolder"),
+            mapContextMenu.AddItem("Show in Folder".L10N("Client:Main:ShowInFolder"),
                 selectAction: ShowInFolder);
 
             AddChild(mapContextMenu);
