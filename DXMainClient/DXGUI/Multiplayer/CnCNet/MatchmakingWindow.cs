@@ -101,8 +101,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRulesDescription = new XNALabel(WindowManager)
             {
                 Name = nameof(lblRulesDescription),
-                ClientRectangle = new Rectangle(16, 254, 528, 30),
-                Text = "10,000 Credits | Game Speed 1 | Short Game | No Yuri | Crates Off".L10N("Client:Matchmaking:RulesDescription")
+                ClientRectangle = new Rectangle(16, 252, 528, 36),
+                Text = "Rules: 10,000 Credits | Speed 1 | Short Game | No Yuri | Crates Off".L10N("Client:Matchmaking:RulesDescription")
             };
             AddChild(lblRulesDescription);
 
@@ -273,8 +273,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lblModeDescription.Text = mode.Description;
             }
 
-            int mapCount = mode.Maps.Count;
-            lblRulesDescription.Text = $"10k Credits | Speed 1 | Short Game | No Yuri | Crates Off ({mapCount} Maps Available)";
+            string mapsInfo = mode.MapDisplayNames.Count > 0
+                ? string.Join(", ", mode.MapDisplayNames)
+                : $"{mode.Maps.Count} Maps Available";
+
+            lblRulesDescription.Text = $"Maps: {mapsInfo}\nRules: 10,000 Credits | Speed 1 | Short Game | No Yuri | Crates Off";
         }
 
         public void Open()

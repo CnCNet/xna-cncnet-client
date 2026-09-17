@@ -19,6 +19,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
         public Dictionary<string, bool> ForceCheckboxes { get; } = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, string> ForceDropdowns { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public List<string> Maps { get; } = new List<string>();
+        public List<string> MapDisplayNames { get; } = new List<string>();
 
         public string Description
         {
@@ -158,6 +159,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                         foreach (var kvp in sec.Keys)
                         {
                             mode.Maps.Add(kvp.Value);
+
+                            string raw = kvp.Value;
+                            int semi = raw.IndexOf(';');
+                            if (semi >= 0 && semi < raw.Length - 1)
+                            {
+                                string name = raw.Substring(semi + 1).Trim();
+                                if (!string.IsNullOrEmpty(name))
+                                    mode.MapDisplayNames.Add(name);
+                            }
                         }
                     }
                 }
