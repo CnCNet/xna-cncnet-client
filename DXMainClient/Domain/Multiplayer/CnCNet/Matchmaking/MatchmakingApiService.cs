@@ -162,10 +162,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
             fallbackTested = true;
 
+            // Only attempt local gateway probing if configured to localhost or loopback
+            if (!apiBaseUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase) &&
+                !apiBaseUrl.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             string[] candidates = new[]
             {
                 "http://10.0.2.2:3000/api/v1",       // VirtualBox NAT host gateway
-                "http://192.168.0.57:3000/api/v1",   // Host LAN IP
                 "http://localhost:3000/api/v1"       // Local host
             };
 
