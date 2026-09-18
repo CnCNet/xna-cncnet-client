@@ -19,6 +19,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
         [JsonPropertyName("version")]
         public string Version { get; set; } = "2.0";
 
+        [JsonPropertyName("client_version")]
+        public string? ClientVersion { get; set; }
+
         [JsonPropertyName("lan_ip")]
         public string? LanIp { get; set; }
 

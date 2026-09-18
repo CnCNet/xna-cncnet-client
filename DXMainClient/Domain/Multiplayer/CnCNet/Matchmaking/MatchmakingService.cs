@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using ClientCore.Extensions;
 using ClientGUI;
+using DTAClient.Online;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
@@ -31,6 +32,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
         private bool isBusy;
         private int consecutiveErrors;
         private string? activeSearchingLadder;
+        private string? sessionFileHash;
         private DateTime lastActionTime = DateTime.MinValue;
         private const double ActionCooldownMs = 1000;
 
@@ -112,6 +114,21 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
 
                 return;
             }
+
+            // Verify file integrity (identical to CnCNet lobby anti-cheat check)
+            FileHashCalculator fhc = new FileHashCalculator();
+            fhc.CalculateHashes();
+            string currentHash = fhc.GetCompleteHash();
+
+            if (sessionFileHash != null && sessionFileHash != currentHash)
+            {
+                Logger.Log("[Matchmaking] Modified game files detected during client session!");
+                SafeAddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("Client:Main:PlayerModifyFileCheat"), LocalPlayerName));
+
+                return;
+            }
+
+            sessionFileHash = currentHash;
 
             isBusy = true;
 
@@ -321,6 +338,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                 Casual = casual,
                 Side = side,
                 Version = "2.0",
+                ClientVersion = sessionFileHash != null && sessionFileHash.Length > 32 ? sessionFileHash.Substring(0, 32) : sessionFileHash,
                 LanIp = localIp,
                 LanPort = 50000,
                 IpAddress = localIp,
