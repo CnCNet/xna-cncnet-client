@@ -277,7 +277,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ? string.Join(", ", mode.MapDisplayNames)
                 : $"{mode.Maps.Count} Maps Available";
 
-            lblRulesDescription.Text = $"Maps: {mapsInfo}\nRules: 10,000 Credits | Speed 1 | Short Game | No Yuri | Crates Off";
+            var rulesList = new List<string>();
+            if (mode.ForceDropdowns.TryGetValue("cmbCredits", out string? credits))
+            {
+                rulesList.Add(int.TryParse(credits, out int cVal) ? $"{cVal:N0} Credits" : $"{credits} Credits");
+            }
+            if (mode.ForceDropdowns.TryGetValue("cmbGameSpeedCapMultiplayer", out string? speed))
+            {
+                rulesList.Add($"Speed {speed}");
+            }
+            if (mode.ForceCheckboxes.TryGetValue("chkShortGame", out bool shortGame) && shortGame)
+            {
+                rulesList.Add("Short Game");
+            }
+            if (mode.ForceCheckboxes.TryGetValue("chkNoYuri", out bool noYuri) && noYuri)
+            {
+                rulesList.Add("No Yuri");
+            }
+            if (mode.ForceCheckboxes.TryGetValue("chkCrates", out bool crates))
+            {
+                rulesList.Add(crates ? "Crates On" : "Crates Off");
+            }
+
+            string rulesStr = rulesList.Count > 0 ? string.Join(" | ", rulesList) : "Standard Rules";
+            lblRulesDescription.Text = $"Maps: {mapsInfo}\nRules: {rulesStr}";
         }
 
         public void Open()

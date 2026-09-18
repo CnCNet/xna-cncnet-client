@@ -68,7 +68,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                         string settingName = kvp.Key.StartsWith("chk", StringComparison.OrdinalIgnoreCase)
                             ? kvp.Key.Substring(3)
                             : kvp.Key;
-                        spawnIni.SetBooleanValue("Settings", settingName, kvp.Value);
+                        if (!spawnIni.KeyExists("Settings", settingName))
+                            spawnIni.SetBooleanValue("Settings", settingName, kvp.Value);
                     }
 
                     foreach (var kvp in activeMode.ForceDropdowns)
@@ -76,7 +77,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                         string settingName = kvp.Key.StartsWith("cmb", StringComparison.OrdinalIgnoreCase)
                             ? kvp.Key.Substring(3)
                             : kvp.Key;
-                        spawnIni.SetStringValue("Settings", settingName, kvp.Value);
+                        if (!spawnIni.KeyExists("Settings", settingName))
+                            spawnIni.SetStringValue("Settings", settingName, kvp.Value);
                     }
                 }
 

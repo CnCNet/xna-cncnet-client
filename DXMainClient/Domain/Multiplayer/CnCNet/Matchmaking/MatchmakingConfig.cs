@@ -141,11 +141,30 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                         }
                     }
 
+                    // Read [Mode_Maps] directly from Matchmaking.ini
+                    IniSection? mapsSec = ini.GetSection($"{modeId}_Maps");
+                    if (mapsSec != null)
+                    {
+                        foreach (var mapKvp in mapsSec.Keys)
+                        {
+                            string raw = mapKvp.Value.Trim('"', ' ');
+                            string[] parts = raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                string hash = parts[0].Trim();
+                                modeInfo.Maps.Add(hash);
+
+                                string name = parts.Length > 1 ? parts[1].Trim() : hash;
+                                modeInfo.MapDisplayNames.Add(name);
+                            }
+                        }
+                    }
+
                     Modes.Add(modeInfo);
                 }
             }
 
-            // Load maps from MatchmakingMaps.ini if present
+            // Optional fallback: load from MatchmakingMaps.ini if mode.Maps was not defined in Matchmaking.ini
             string mapsIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "MatchmakingMaps.ini");
             FileInfo mapsFileInfo = SafePath.GetFile(mapsIniPath);
             if (mapsFileInfo.Exists)
@@ -153,20 +172,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Matchmaking
                 IniFile mapsIni = new IniFile(mapsIniPath);
                 foreach (var mode in Modes)
                 {
+                    if (mode.Maps.Count > 0)
+                        continue;
+
                     IniSection? sec = mapsIni.GetSection(mode.UIName);
                     if (sec != null)
                     {
                         foreach (var kvp in sec.Keys)
                         {
-                            mode.Maps.Add(kvp.Value);
-
-                            string raw = kvp.Value;
-                            int semi = raw.IndexOf(';');
-                            if (semi >= 0 && semi < raw.Length - 1)
+                            string raw = kvp.Value.Trim('"', ' ');
+                            string[] parts = raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
                             {
-                                string name = raw.Substring(semi + 1).Trim();
-                                if (!string.IsNullOrEmpty(name))
-                                    mode.MapDisplayNames.Add(name);
+                                string hash = parts[0].Trim();
+                                mode.Maps.Add(hash);
+
+                                string name = parts.Length > 1 ? parts[1].Trim() : hash;
+                                mode.MapDisplayNames.Add(name);
                             }
                         }
                     }
