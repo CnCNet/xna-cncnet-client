@@ -203,6 +203,7 @@ namespace ClientCore
             MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
             MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
 
+            RecordReplays = new BoolSetting(iniFile, REPLAYS, "RecordReplays", true);
             MaxKeptReplays = new IntSetting(iniFile, REPLAYS, "MaxKeptReplays", 50);
             MaxReplayFolderSizeMB = new IntSetting(iniFile, REPLAYS, "MaxReplayFolderSizeMB", 2048);
             ReplayKeyframeStorageLimitMB = new IntSetting(iniFile, REPLAYS, "ReplayKeyframeStorageLimitMB", 512);
@@ -372,6 +373,9 @@ namespace ClientCore
         /***********/
         /* REPLAYS */
         /***********/
+
+        /// <summary>Whether the player's games are recorded to replays.</summary>
+        public BoolSetting RecordReplays { get; private set; }
 
         /// <summary>Maximum number of replays to keep. 0 means unlimited.</summary>
         public IntSetting MaxKeptReplays { get; private set; }

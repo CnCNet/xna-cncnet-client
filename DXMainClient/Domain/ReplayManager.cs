@@ -51,13 +51,20 @@ public static class ReplayManager
     public static string GetReplayFileRelativePath(string fileName)
         => SafePath.CombineFilePath(DirectoryName, fileName);
 
-    /// <summary>Adds replay metadata when recording is enabled in spawn.ini.</summary>
+    /// <summary>
+    /// Records when the player's setting is on or spawn.ini already enables recording, such as through
+    /// [ForcedSpawnIniOptions] or a host's check box, and adds the replay metadata when recording.
+    /// </summary>
     public static void PrepareRecording(IniFile spawnIni, string mapName)
     {
         if (!IsSupported)
             return;
 
-        if (!spawnIni.GetBooleanValue("Settings", "EnableReplayRecording", false))
+        bool record = UserINISettings.Instance.RecordReplays
+            || spawnIni.GetBooleanValue("Settings", "EnableReplayRecording", false);
+        spawnIni.SetBooleanValue("Settings", "EnableReplayRecording", record);
+
+        if (!record)
             return;
 
         spawnIni.SetStringValue("Settings", "GamePackageVersion", GamePackageVersion);
