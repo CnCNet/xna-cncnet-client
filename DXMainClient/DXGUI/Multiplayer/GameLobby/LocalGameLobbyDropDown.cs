@@ -14,7 +14,6 @@ public class LocalGameLobbyDropDown : GameSessionDropDown
 
     public override void Initialize()
     {
-        // Register separately from broadcast game options.
         XNAControl parent = Parent;
         while (parent != null)
         {

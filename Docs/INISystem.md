@@ -399,10 +399,8 @@ EnabledIcon=                               ; string,  texture name for the icon 
 DisabledIcon=                              ; string,  texture name for the icon when setting is disabled.
 SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
                                            ;          Lower values appear first.
-Persistent=false                           ; boolean, remember this checkbox's value per user in the `[LocalGameOptions]`
-                                           ;          section of the user's settings INI, keyed by the checkbox's own
-                                           ;          section name (`SOMEGAMESESSIONCHECKBOX` above). Without it, `Checked`
-                                           ;          applies on every client start.
+Persistent=false                           ; boolean, remember the value per user in the `[LocalGameOptions]` section of
+                                           ;          the user settings INI, keyed by this control's section name.
 ```
 
 ##### [CampaignCheckBox](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignCheckBox.cs)
@@ -426,18 +424,14 @@ Use this control type for game lobby checkboxes in `GameLobbyBase.ini`. Inherits
 
 _(inherits [GameSessionCheckBox](#GameSessionCheckBox))_
 
-Use this control type for game lobby checkboxes in `GameLobbyBase.ini` that only affect the local player, such as replay recording. Unlike `GameLobbyCheckBox` it isn't sent in game option messages, so each player (including non-hosts) sets it for themselves and `BroadcastToLobby`/the game list properties don't apply. Still written to `spawn.ini` via `SpawnIniOption`, usually paired with `Persistent=true` to remember the player's choice.
-
-For example, a "Record replay" checkbox that every player sets for themselves and that is remembered between client sessions:
+Use this control type for game lobby checkboxes in `GameLobbyBase.ini` that only affect the local player, such as replay recording. Inherits all properties from `GameSessionCheckBox`. Unlike `GameLobbyCheckBox`, the value is not sent to other players and every player can change it, including non-hosts. `BroadcastToLobby` and the `ShowIn*`/`ShowIcon*` properties have no effect.
 
 ```ini
-[chkRecordReplay]                    ; LocalGameLobbyCheckBox, in GameLobbyBase.ini
-SpawnIniOption=EnableReplayRecording ; written to spawn.ini as EnableReplayRecording=True/False for the game engine to read
-Persistent=true                      ; remembered under [LocalGameOptions] -> chkRecordReplay=True/False in the user's settings INI
-Checked=true                         ; default the first time the client runs
+[chkRecordReplay]                          ; LocalGameLobbyCheckBox
+SpawnIniOption=EnableReplayRecording
+Checked=true
+Persistent=true
 ```
-
-`Persistent` has no separate key name to configure - it always uses the control's own INI section name (`chkRecordReplay` here) as the storage key in `[LocalGameOptions]`. That keeps the key unique automatically (section names are already unique within an INI file) and avoids modders having to invent and keep a second name in sync.
 
 ##### [GameSessionDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Generic/GameSessionDropDown.cs)
 
@@ -470,10 +464,8 @@ Icons=                                     ; comma-separated strings,
                                            ;          number of items.
 SortOrder=0                                ; integer, display order for icons in GameInformationPanel and GameListBox. 
                                            ;          Lower values appear first.
-Persistent=false                           ; boolean, remember this dropdown's selected item per user in the
-                                           ;          `[LocalGameOptions]` section of the user's settings INI, keyed by
-                                           ;          the dropdown's own section name. Without it, `DefaultIndex` applies
-                                           ;          on every client start.
+Persistent=false                           ; boolean, remember the value per user in the `[LocalGameOptions]` section of
+                                           ;          the user settings INI, keyed by this control's section name.
 ```
 
 ##### [CampaignDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/DXMainClient/DXGUI/Campaign/CampaignDropDown.cs)
@@ -492,7 +484,7 @@ Use this control type for game lobby dropdowns in `GameLobbyBase.ini`. Inherits 
 
 _(inherits [GameSessionDropDown](#GameSessionDropDown))_
 
-Dropdown counterpart of [LocalGameLobbyCheckBox](#LocalGameLobbyCheckBox); the same rules apply.
+Use this control type for game lobby dropdowns in `GameLobbyBase.ini` that only affect the local player. Inherits all properties from `GameSessionDropDown`. Unlike `GameLobbyDropDown`, the value is not sent to other players and every player can change it, including non-hosts. `BroadcastToLobby` and the `ShowIn*`/`ShowIcon*` properties have no effect.
 
 #### XNAOptionsPanel Controls
 

@@ -14,7 +14,6 @@ public class LocalGameLobbyCheckBox : GameSessionCheckBox
 
     public override void Initialize()
     {
-        // Register separately from broadcast game options.
         XNAControl parent = Parent;
         while (parent != null)
         {
