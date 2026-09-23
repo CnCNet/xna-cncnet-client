@@ -20,7 +20,11 @@ class StorageOptionsPanel : XNAOptionsPanel
     private const int TEXT_BOX_WIDTH = 70;
     private const int TEXT_BOX_HEIGHT = 21;
     private const int TEXT_BOX_X = 170;
+
     private const int ROW_SPACING = 30;
+    private const int HEADER_ADDITIONAL_ROW_SPACING = 8;
+    private const int END_OF_SECTION_ADDITIONAL_ROW_SPACING = 12;
+
     private const int MAX_KEPT_FILES_LIMIT = 100000;
     private const int MAX_FOLDER_SIZE_LIMIT_MB = 1024 * 1024;
     private const int MAX_AGE_DAYS_LIMIT = 3650;
@@ -99,7 +103,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblKeptLogFiles = new XNALabel(WindowManager);
         lblKeptLogFiles.Name = nameof(lblKeptLogFiles);
         lblKeptLogFiles.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
-        lblKeptLogFiles.ClientRectangle = new Rectangle(12, lblLogsHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeptLogFiles.ClientRectangle = new Rectangle(12, lblLogsHeader.Bottom + ROW_SPACING - 12 + HEADER_ADDITIONAL_ROW_SPACING, 0, 0); // TODO: what does the "12" mean here?
 
         tbMaxKeptLogFiles = new XNATextBox(WindowManager);
         tbMaxKeptLogFiles.Name = nameof(tbMaxKeptLogFiles);
@@ -133,7 +137,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblLogsHeader, lblKeptLogFiles, tbMaxKeptLogFiles, lblKeptLogFilesSuffix,
             lblLogFolderSize, tbMaxLogFolderSize, lblLogFolderSizeSuffix);
 
-        return lblLogFolderSize.Y + ROW_SPACING;
+        return tbMaxLogFolderSize.Bottom + END_OF_SECTION_ADDITIONAL_ROW_SPACING;
     }
 
     private int InitializeGameLogSection(int y)
@@ -147,7 +151,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblGameLogAge = new XNALabel(WindowManager);
         lblGameLogAge.Name = nameof(lblGameLogAge);
         lblGameLogAge.Text = "Delete after:".L10N("Client:DTAConfig:StorageDeleteAfter");
-        lblGameLogAge.ClientRectangle = new Rectangle(12, lblGameLogsHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblGameLogAge.ClientRectangle = new Rectangle(12, lblGameLogsHeader.Bottom + ROW_SPACING - 12 + HEADER_ADDITIONAL_ROW_SPACING, 0, 0); // TODO: what does the "12" mean here?
 
         var tbMaxGameLogAge = new XNATextBox(WindowManager);
         tbMaxGameLogAge.Name = nameof(tbMaxGameLogAge);
@@ -188,7 +192,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblGameLogsHeader, lblGameLogAge, tbMaxGameLogAge, lblGameLogAgeSuffix,
             lblGameLogFolderSize, tbMaxGameLogFolderSize, lblGameLogFolderSizeSuffix, lblGameLogRetentionHint);
 
-        return lblGameLogRetentionHint.Bottom + 12;
+        return lblGameLogRetentionHint.Bottom + END_OF_SECTION_ADDITIONAL_ROW_SPACING;
     }
 
     private int InitializeSavedGameSection(int y)
@@ -202,7 +206,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblKeptSavedGames = new XNALabel(WindowManager);
         lblKeptSavedGames.Name = nameof(lblKeptSavedGames);
         lblKeptSavedGames.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
-        lblKeptSavedGames.ClientRectangle = new Rectangle(12, lblSavedGamesHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeptSavedGames.ClientRectangle = new Rectangle(12, lblSavedGamesHeader.Bottom + ROW_SPACING - 12 + HEADER_ADDITIONAL_ROW_SPACING, 0, 0); // TODO: what does the "12" mean here?
 
         tbMaxKeptSavedGames = new XNATextBox(WindowManager);
         tbMaxKeptSavedGames.Name = nameof(tbMaxKeptSavedGames);
@@ -241,7 +245,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblSavedGamesHeader, lblKeptSavedGames, tbMaxKeptSavedGames, lblKeptSavedGamesSuffix,
             lblSavedGameFolderSize, tbMaxSavedGameFolderSize, lblSavedGameFolderSizeSuffix, lblSavedGameRetentionHint);
 
-        return lblSavedGameRetentionHint.Bottom + 12;
+        return lblSavedGameRetentionHint.Bottom + END_OF_SECTION_ADDITIONAL_ROW_SPACING;
     }
 
     public override void Load()
