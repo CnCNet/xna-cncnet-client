@@ -1,7 +1,10 @@
-﻿using System;
+#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+
 using Rampastring.Tools;
+
 using Point = Microsoft.Xna.Framework.Point;
 
 namespace DTAClient.Domain.Multiplayer
@@ -14,11 +17,11 @@ namespace DTAClient.Domain.Multiplayer
     internal sealed class MapPreviewSource
     {
         public Map Map { get; }
-        public string ImmediateImagePath { get; }
+        public string? ImmediateImagePath { get; }
         public bool IsGenerated { get; }
-        private readonly double[] transform;
+        private readonly double[]? transform;
 
-        public MapPreviewSource(Map map, string immediateImagePath, bool generated = false, double[] projection = null)
+        public MapPreviewSource(Map map, string? immediateImagePath, bool generated = false, double[]? projection = null)
         {
             Map = map;
             ImmediateImagePath = immediateImagePath;

@@ -1,6 +1,6 @@
 # Preview lifecycle tests (Windows .NET Framework 4.8)
 
-Compile PreviewTests.cs with the framework C# compiler, referencing System.Drawing.dll. Run **only in a disposable fixture directory**, never the live game folder: the test intentionally creates/removes Maps/Standard/test.map and copy.map and writes UserPreviewTest.ini.
+Compile PreviewTests.cs with the a modern Roslyn C# compiler (C# 8 or later, for nullable annotations) targeting .NET Framework 4.8, referencing System.Drawing.dll. Run **only in a disposable fixture directory**, never the live game folder: the test intentionally creates/removes Maps/Standard/test.map and copy.map and writes UserPreviewTest.ini.
 
 Copy a built WindowsDX net48 client and dependencies to the fixture root, plus a valid mod Resources directory containing ClientDefinitions.ini, DTACnCNetClient.ini and GameOptions.ini. Supply a test Maps/Standard/test.map. Add this to the fixture ClientDefinitions.ini:
 

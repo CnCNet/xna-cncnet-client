@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.IO;
 using System.Reflection;
@@ -5,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Drawing;
 class PreviewTests {
- static Type Service,MapType;static object Settings,Definitions;
+ static Type Service = null!, MapType = null!;static object Settings = null!, Definitions = null!;
  static BindingFlags Pub=BindingFlags.Public|BindingFlags.Static;
  static object Call(string name,params object[] a){return Service.GetMethod(name,BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static).Invoke(null,a);}
  static void Setting(string key,bool value){var p=Settings.GetType().GetProperty(key).GetValue(Settings,null);p.GetType().GetProperty("Value").SetValue(p,value,null);}
@@ -16,6 +17,19 @@ class PreviewTests {
  static void Check(bool ok,string text){if(!ok)throw new Exception(text);Console.WriteLine("PASS: "+text);}
  static void Register(params object[] maps){var arr=Array.CreateInstance(MapType,maps.Length);for(int i=0;i<maps.Length;i++)arr.SetValue(maps[i],i);Call("Register",arr);((Task)Call("PruneAsync")).GetAwaiter().GetResult();}
  static void Architecture(object map,Assembly asm){
+  var extractorType=asm.GetType("DTAClient.Domain.Multiplayer.ExternalMapPreviewExtractor",true);
+  var contract=asm.GetType("DTAClient.Domain.Multiplayer.IExternalMapPreviewExtractor",true);
+  Check(contract.IsAssignableFrom(extractorType),"external renderer implements asynchronous extractor contract");
+  var options=Activator.CreateInstance(asm.GetType("DTAClient.Domain.Multiplayer.MapPreviewRenderOptions",true),
+   new object[]{Directory.GetCurrentDirectory(),"PreviewTests.exe","--renderer {map} {output} {width} {height}","test",128,64,1});
+  using(var cancel=new CancellationTokenSource()){
+   cancel.Cancel();string output=Path.Combine(Directory.GetCurrentDirectory(),"cancelled-extraction.png");File.Delete(output);
+   var task=(Task)extractorType.GetMethod("ExtractAsync").Invoke(Activator.CreateInstance(extractorType),
+    new object[]{options,"Maps/Standard/test.map",output,cancel.Token});
+   try{task.GetAwaiter().GetResult();throw new Exception("Cancelled extraction ran");}
+   catch(OperationCanceledException){}
+   Check(!File.Exists(output),"pre-cancelled extractor never produces output");
+  }
   var resolve=MapType.GetMethod("ResolvePreviewSource",BindingFlags.Instance|BindingFlags.NonPublic);
   var sd=resolve.Invoke(map,new object[]{false});var hd=resolve.Invoke(map,new object[]{true});var sourceType=sd.GetType();
   Check(!(bool)sourceType.GetProperty("IsGenerated").GetValue(sd,null)&&(bool)sourceType.GetProperty("IsGenerated").GetValue(hd,null),"same map resolves independent original and generated sources");
@@ -39,9 +53,9 @@ class PreviewTests {
   Check((bool)MapType.GetMethod("IsNonImmediatePreviewImageAvailable").Invoke(custom,null)&&!(bool)MapType.GetMethod("IsNonImmediatePreviewImageAvailable").Invoke(official,null),"original custom/official non-immediate availability contract preserved");
   var manager=Activator.CreateInstance(asm.GetType("DTAClient.Domain.Multiplayer.MapPreviewCacheManager"),new object[]{2});
   try{
-   object[] args={custom,null,true,false};var request=manager.GetType().GetMethod("Request");
+   object?[] args={custom,null,true,false};var request=manager.GetType().GetMethod("Request");
    Check((bool)request.Invoke(manager,args)&&args[1]==null,"hidden embedded preview remains a cached null lease");
-   File.Delete("Maps/Standard/hidden.map");args=new object[]{custom,null,true,false};
+   File.Delete("Maps/Standard/hidden.map");args=new object?[]{custom,null,true,false};
    Check((bool)request.Invoke(manager,args)&&args[1]==null&&(int)manager.GetType().GetProperty("Count").GetValue(manager,null)==1,"non-immediate cache retains null without re-extraction");
   }finally{((IDisposable)manager).Dispose();}
  }
@@ -56,7 +70,7 @@ class PreviewTests {
  try{
  var root=Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);Directory.SetCurrentDirectory(root);
  File.WriteAllText("renderer-mode.txt","");File.WriteAllText("UserPreviewTest.ini","[Video]\nRenderMapPreviews=yes\nShowGeneratedMapPreviews=no\n");
- var asm=Assembly.LoadFrom("clientdx.exe");Service=asm.GetType("DTAClient.Domain.Multiplayer.RenderedMapPreviews",true);MapType=asm.GetType("DTAClient.Domain.Multiplayer.Map",true);
+ var asm=Assembly.LoadFrom("clientdx.exe");Service=asm.GetType("DTAClient.Domain.Multiplayer.MapPreviewGenerationService",true);MapType=asm.GetType("DTAClient.Domain.Multiplayer.Map",true);
  var core=Assembly.LoadFrom("ClientCore.dll");core.GetType("ClientCore.I18N.Translation").GetProperty("InitialUICulture").SetValue(null,System.Globalization.CultureInfo.InvariantCulture,null);var st=core.GetType("ClientCore.UserINISettings");st.GetMethod("Initialize").Invoke(null,new object[]{"UserPreviewTest.ini"});Settings=st.GetProperty("Instance",Pub).GetValue(null,null);
  var cfg=core.GetType("ClientCore.ClientConfiguration");var ci=cfg.GetProperty("Instance",Pub).GetValue(null,null);Definitions=cfg.GetField("clientDefinitionsIni",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(ci);
  var map=Map("Maps/Standard/test");Register(map);

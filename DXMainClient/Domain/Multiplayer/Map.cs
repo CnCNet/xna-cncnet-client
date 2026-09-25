@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -608,7 +608,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         internal MapPreviewSource ResolvePreviewSource(bool preferGenerated)
         {
-            return (preferGenerated ? RenderedMapPreviews.CachedSource(this) : null)
+            return (preferGenerated ? MapPreviewGenerationService.CachedSource(this) : null)
                 ?? new MapPreviewSource(this,
                     IsImmediatePreviewImageAvailable() ? SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName : null);
         }

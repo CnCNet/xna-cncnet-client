@@ -64,3 +64,17 @@ Images use the normal theme asset lookup, like Favorite. HD represents the actio
 Embedded extraction still goes through the existing `MapPreviewCacheManager`: its sequential queue, LRU policy, cached-null results for hidden previews, and reference-counted image leases are unchanged. An external generation job remains asynchronous and separate from image extraction. It never runs inside a synchronous cache miss, and a not-yet-generated image is never inserted into the embedded-image cache as a null result.
 
 `MapPreviewBox` requests the selected source from the loader and owns only its resulting texture. Generated-mode and projection metadata are not stored on shared Map instances. Projection data is captured for that view; calculating HD marker coordinates cannot overwrite the original preview's coordinate cache used by other views.
+
+## Responsibilities
+
+| Class | Responsibility |
+| --- | --- |
+| `IExternalMapPreviewExtractor` / `ExternalMapPreviewExtractor` | Asynchronously run the configured executable, capture bounded diagnostics, handle timeout and cancellation, and produce a PNG at a staging path. No UI or cache policy. |
+| `MapPreviewRenderOptions` | Immutable configuration snapshot for one generation request. |
+| `MapPreviewDiskCache` | Hash paths, validation, fingerprinting, staging cleanup, publishing PNG/metadata, and pruning. Receives an extractor through its constructor. |
+| `MapPreviewGenerationService` | Queue and deduplicate requests, track map lifetime, cancel for game/settings changes, and notify views. Publication is guarded against map deletion. |
+| `MapPreviewModeButton` | SD/HD selection, persisted preference and theme artwork. The host handles its usual settings-refresh event. |
+| `MapPreviewSource` | Per-view selection and projection metadata, without shared map mutation or resource ownership. |
+| Existing `MapLoader` / `MapPreviewCacheManager` | Load ready images and preserve the original embedded-image cache and lease lifecycle. |
+
+The synchronous `IMapPreviewExtractor` returns an in-memory image and remains unchanged. External generation has its own asynchronous interface because it produces an output file, may take seconds, and needs cancellation. No synchronous adapter blocks the UI or the embedded-image cache worker. All new C# files explicitly enable nullable reference types.
