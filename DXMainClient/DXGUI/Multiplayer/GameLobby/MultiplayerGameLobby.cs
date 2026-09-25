@@ -497,6 +497,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
+            // The selected map takes in fewer players than there are in the room.
+            // Keep waiting for the host to select a map that fits.
+            if (GamePlayerCount > AutoLaunchPlayerTarget)
+                return;
+
             if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
                 return;
 
