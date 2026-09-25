@@ -411,6 +411,7 @@ namespace DTAClient.Domain.Multiplayer
                 gameModes.RemoveAll(g => g.Maps.Count < 1);
 
             _snapshot = new Snapshot(gameModes, new GameModeMapCollection(gameModes));
+            RenderedMapPreviews.Register(GameModeMaps.Select(item => item.Map));
         }
 
         private List<GameMode> CloneGameModeSnapshot() => GameModes.Select(gameMode => gameMode.Clone()).ToList();
@@ -729,6 +730,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
+            RenderedMapPreviews.Remove(gameModeMap.Map);
 
             lock (mapModificationLock)
             {

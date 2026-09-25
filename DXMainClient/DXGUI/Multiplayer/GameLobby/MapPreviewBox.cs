@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -122,7 +122,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             set
             {
                 _gameModeMap = value;
+                if (previewGenerationStatus != null) previewGenerationStatus.Text = "";
                 UpdateMap();
+                _ = RenderedMapPreviews.Request(value?.Map);
             }
         }
 
@@ -151,6 +153,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private XNAContextMenu mainContextMenu;
         private XNAContextMenu contextMenu;
+        private XNALabel previewGenerationStatus;
+        private XNAClientButton btnToggleRenderedPreview;
+        private Texture2D previewHDButtonImage, previewHDButtonHoverImage;
+        private Texture2D previewSDButtonImage, previewSDButtonHoverImage;
+        private Texture2D previewTextButtonImage;
         private Point lastContextMenuPoint;
 
         private XNAContextMenu mapContextMenu;
@@ -220,10 +227,48 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 SelectableChecker = () => GameModeMap != null
             };
             mapContextMenu = new XNAContextMenu(WindowManager);
-            mapContextMenu.ClientRectangle = new Rectangle(0, 0, 120, 2);
+            mapContextMenu.ClientRectangle = new Rectangle(0, 0, 280, 2);
             mapContextMenu.AddItem(toggleFavoriteMapItem);
             mapContextMenu.AddItem(toggleExtraTexturesItem);
             mapContextMenu.AddItem(showInFolderItem);
+            mapContextMenu.AddItem(new XNAContextMenuItem {
+                Text = "Regenerate HD Preview".L10N("Client:Main:RegenerateMapPreview"),
+                SelectAction = () => { _ = RenderedMapPreviews.Request(GameModeMap?.Map, true); },
+                SelectableChecker = () => GameModeMap != null && RenderedMapPreviews.Selected
+            });
+            previewGenerationStatus = new XNALabel(WindowManager) { Name = "lblRenderedPreviewStatus", Text = "", ClientRectangle = new Rectangle(4, 4, 0, 0), DrawOrder = 500 };
+            AddChild(previewGenerationStatus);
+            RenderedMapPreviews.Progress += (map, message) => WindowManager.AddCallback(new Action(() => {
+                if (GameModeMap?.Map.SHA1 == map.SHA1 && RenderedMapPreviews.Selected)
+                    previewGenerationStatus.Text = string.IsNullOrEmpty(message) ? "" : "Generating hi-res map preview…".L10N("Client:Main:GeneratingMapPreview");
+            }), null);
+            RenderedMapPreviews.Completed += (map, changed, error) => WindowManager.AddCallback(new Action(() => {
+                if (GameModeMap?.Map.SHA1 != map.SHA1 || !RenderedMapPreviews.Selected) return;
+                if (changed) UpdateMap();
+                if (error != null) previewGenerationStatus.Text = "Preview unavailable; keeping original image".L10N("Client:Main:MapPreviewFailed");
+            }), null);
+            btnToggleRenderedPreview = new XNAClientButton(WindowManager) { Name = "btnToggleRenderedPreview", Text = "HD", FontIndex = 1 };
+            previewHDButtonImage = LoadPreviewButtonImage(ClientConfiguration.Instance.MapPreviewHDButtonImage);
+            previewHDButtonHoverImage = LoadPreviewButtonImage(ClientConfiguration.Instance.MapPreviewHDButtonHoverImage);
+            previewSDButtonImage = LoadPreviewButtonImage(ClientConfiguration.Instance.MapPreviewSDButtonImage);
+            previewSDButtonHoverImage = LoadPreviewButtonImage(ClientConfiguration.Instance.MapPreviewSDButtonHoverImage);
+            // Supply a real fallback texture before Initialize: there is no theme 0pxbtn.png.
+            previewTextButtonImage = AssetLoader.CreateTexture(Color.Transparent, 32, 18);
+            RefreshRenderedPreviewButton(Width);
+            btnToggleRenderedPreview.LeftClick += (sender, args) => {
+                if (!RenderedMapPreviews.Enabled) return;
+                UserINISettings.Instance.ShowGeneratedMapPreviews.Value = !UserINISettings.Instance.ShowGeneratedMapPreviews.Value;
+                UserINISettings.Instance.SaveSettings();
+                previewGenerationStatus.Text = "";
+                UpdateMap();
+                _ = RenderedMapPreviews.Request(GameModeMap?.Map);
+            };
+            AddChild(btnToggleRenderedPreview);
+            UserINISettings.Instance.SettingsSaved += (sender, args) => WindowManager.AddCallback(new Action(() => {
+                previewGenerationStatus.Text = "";
+                UpdateMap();
+                _ = RenderedMapPreviews.Request(GameModeMap?.Map);
+            }), null);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
             btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
@@ -433,15 +478,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
-
-            mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true)
-                // This null case indicates a "hidden preview", where the map itself intends not to show a preview, so we just show a black box instead of no texture at all.
-                // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
-                ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2))
-                // `mapPreviewTexture` may be null if the engine fails to load the texture.
-                ?? throw new Exception($"Failed to load map preview texture. Map: {GameModeMap.Map.PreviewPath}.");
-
+            GameModeMap.Map.RefreshRenderedPreview();
+            GameModeMap.Map.GeneratedPreviewActive = false;
+            string generated = RenderedMapPreviews.CachedImage(GameModeMap.Map);
+            if (generated != null)
+            {
+                try
+                {
+                    mapPreviewTexture = AssetLoader.LoadTextureUncached(generated);
+                    GameModeMap.Map.GeneratedPreviewActive = true;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log("Cannot load generated map preview: " + e.Message);
+                    generated = null;
+                }
+            }
+            if (generated == null)
+                mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true)
+                    ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2);
             mapPreviewTextureNeedsDispose = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
@@ -479,7 +534,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
-            useNearestNeighbour = ratio < 1.0;
+            useNearestNeighbour = generated == null && ratio < 1.0;
 
             textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
@@ -542,9 +597,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             btnToggleFavoriteMap.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
+            RefreshRenderedPreviewButton(buttonX);
 
             RefreshExtraTexturesBtn();
             RefreshFavoriteBtn();
+        }
+
+        private static Texture2D LoadPreviewButtonImage(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            try
+            {
+                if (AssetLoader.AssetExists(name)) return AssetLoader.LoadTexture(name);
+                Logger.Log("Map preview button image not found: " + name);
+            }
+            catch (Exception e)
+            {
+                Logger.Log("Cannot load map preview button image " + name + ": " + e.Message);
+            }
+            return null;
+        }
+
+        private void RefreshRenderedPreviewButton(int buttonX)
+        {
+            bool showOriginal = RenderedMapPreviews.Selected;
+            Texture2D idle = showOriginal ? previewSDButtonImage : previewHDButtonImage;
+            Texture2D hover = showOriginal ? previewSDButtonHoverImage : previewHDButtonHoverImage;
+            btnToggleRenderedPreview.Text = idle == null ? (showOriginal ? "SD" : "HD") : string.Empty;
+            btnToggleRenderedPreview.IdleTexture = idle ?? previewTextButtonImage;
+            btnToggleRenderedPreview.HoverTexture = idle == null ? previewTextButtonImage : (hover ?? idle);
+            int width = idle?.Width ?? 32;
+            int height = idle?.Height ?? 18;
+            btnToggleRenderedPreview.ClientRectangle = new Rectangle(buttonX - 28 - width, 4, width, height);
+            btnToggleRenderedPreview.ToolTipText = showOriginal
+                ? "Show original map preview".L10N("Client:Main:ShowOriginalPreview")
+                : "Show generated HD map preview".L10N("Client:Main:ShowGeneratedPreview");
+            if (RenderedMapPreviews.Enabled) btnToggleRenderedPreview.Enable(); else btnToggleRenderedPreview.Disable();
         }
 
         public void RefreshFavoriteBtn()
