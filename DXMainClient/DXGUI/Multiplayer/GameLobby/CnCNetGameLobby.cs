@@ -757,6 +757,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 AddNotice(string.Format("Maximum players changed to {0}."
                     .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+                CheckAutoStartGame();
             }
 
             if (skillLevelChanged)
@@ -1475,6 +1476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            CheckAutoStartGame();
         }
 
         /// <summary>

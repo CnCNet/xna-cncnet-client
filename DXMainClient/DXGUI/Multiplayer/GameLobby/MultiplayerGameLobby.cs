@@ -515,7 +515,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 AddNotice("Auto Launch could not start the game and has been turned off."
                     .L10N("Client:Main:AutoLaunchFailed"), Color.Yellow);
-                FlashWindowForHost();
+                AlertHostOfAutoLaunchProblem();
             }
         }
 
@@ -539,11 +539,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice("Auto Launch is waiting for more players, but the game room is already full."
                 .L10N("Client:Main:AutoLaunchRoomFull"), Color.Yellow);
-            FlashWindowForHost();
+            AlertHostOfAutoLaunchProblem();
         }
 
-        private void FlashWindowForHost()
+        /// <summary>
+        /// Draws the attention of the host to an auto-launch problem. The sound
+        /// distinguishes it from the window flash that a joining player causes.
+        /// </summary>
+        private void AlertHostOfAutoLaunchProblem()
         {
+            sndGetReadySound.Play();
 #if WINFORMS
             WindowManager.FlashWindow();
 #endif
@@ -1344,6 +1349,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RequestReadyStatus();
 
             LastMapChangeWasInvalid = resetAutoReady;
+
+            CheckAutoStartGame();
 
             //if (IsHost)
             //    OnGameOptionChanged();
