@@ -265,13 +265,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblReplaysHeader = new XNALabel(WindowManager);
         lblReplaysHeader.Name = nameof(lblReplaysHeader);
         lblReplaysHeader.FontIndex = 1;
-        lblReplaysHeader.Text = "Replays".L10N("Client:DTAConfig:StorageReplaysHeader");
         lblReplaysHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+        lblReplaysHeader.Text = "Replays".L10N("Client:DTAConfig:StorageReplaysHeader");
 
         var lblKeptReplays = new XNALabel(WindowManager);
         lblKeptReplays.Name = nameof(lblKeptReplays);
         lblKeptReplays.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
-        lblKeptReplays.ClientRectangle = new Rectangle(12, lblReplaysHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeptReplays.ClientRectangle = new Rectangle(12, lblReplaysHeader.Bottom + HEADER_SPACING, 0, 0);
 
         var tbMaxKeptReplays = new XNATextBox(WindowManager);
         tbMaxKeptReplays.Name = nameof(tbMaxKeptReplays);
@@ -312,13 +312,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblKeyframesHeader = new XNALabel(WindowManager);
         lblKeyframesHeader.Name = nameof(lblKeyframesHeader);
         lblKeyframesHeader.FontIndex = 1;
-        lblKeyframesHeader.Text = "Playback keyframes".L10N("Client:DTAConfig:StorageKeyframesHeader");
         lblKeyframesHeader.ClientRectangle = new Rectangle(12, lblReplayUsage.Y + ROW_SPACING, 0, 0);
+        lblKeyframesHeader.Text = "Playback keyframes".L10N("Client:DTAConfig:StorageKeyframesHeader");
 
         var lblKeyframeSize = new XNALabel(WindowManager);
         lblKeyframeSize.Name = nameof(lblKeyframeSize);
         lblKeyframeSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageKeyframeMaxSize");
-        lblKeyframeSize.ClientRectangle = new Rectangle(12, lblKeyframesHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeyframeSize.ClientRectangle = new Rectangle(12, lblKeyframesHeader.Bottom + HEADER_SPACING, 0, 0);
 
         var tbReplayKeyframeStorageLimit = new XNATextBox(WindowManager);
         tbReplayKeyframeStorageLimit.Name = nameof(tbReplayKeyframeStorageLimit);
@@ -337,7 +337,7 @@ class StorageOptionsPanel : XNAOptionsPanel
             lblFolderSize, tbMaxReplayFolderSize, lblFolderSizeSuffix, lblReplayUsage,
             lblKeyframesHeader, lblKeyframeSize, tbReplayKeyframeStorageLimit, lblKeyframeSizeSuffix);
 
-        return tbReplayKeyframeStorageLimit.Bottom + 12;
+        return tbReplayKeyframeStorageLimit.Bottom + SECTION_SPACING;
     }
 
     public override void Load()

@@ -53,7 +53,7 @@ public static class ReplayManager
 
     /// <summary>
     /// Records when the player's setting is on or spawn.ini already enables recording, such as through
-    /// [ForcedSpawnIniOptions] or a host's check box, and adds the replay metadata when recording.
+    /// [ForcedSpawnIniOptions], and adds the replay metadata when recording.
     /// </summary>
     public static void PrepareRecording(IniFile spawnIni, string mapName)
     {

@@ -917,6 +917,14 @@ MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 =
 MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
 ```
 
+```ini
+[Replays]                          ; only used when ReplaySupport=true
+RecordReplays=true                 ; record the player's games to replays
+MaxKeptReplays=50                  ; maximum number of replays; 0 = unlimited
+MaxReplayFolderSizeMB=2048         ; maximum combined size of replays in MB, oldest deleted first; 0 = unlimited
+ReplayKeyframeStorageLimitMB=512   ; maximum size of the seek keyframes written during playback in MB; 0 = unlimited
+```
+
 ## Game Modes
 
 Game modes are defined in the `[GameModes]` section of `MPMaps.ini`. Each game mode can have its own configuration section with the same name.

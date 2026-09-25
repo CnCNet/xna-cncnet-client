@@ -63,7 +63,6 @@ public static class ReplayFileHashes
             string recordedHash = value.Substring(separator + 1);
             recordedPaths.Add(relativePath);
 
-            // These only go to the log, so they are not translated.
             if (!local.TryGetValue(relativePath, out string? localHash))
             {
                 mismatches.Add($"{relativePath} is missing locally");
@@ -85,14 +84,12 @@ public static class ReplayFileHashes
         return mismatches;
     }
 
-    /// <summary>
-    /// Whether every segment of a tracked path is a valid Win32 file name.
-    /// </summary>
-    private static bool IsStorablePath(string relativePath)
-        => relativePath.Split('/').All(segment => segment == segment.ToWin32FileName());
-
     private static SortedDictionary<string, string> Collect()
     {
+        // Whether every segment of a normalized tracked path is a valid Win32 file name.
+        static bool IsStorablePath(string relativePath)
+            => relativePath.Split('/').All(segment => segment == segment.ToWin32FileName());
+
         var hashes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (FileHashCalculator.TrackedFile tracked in new FileHashCalculator().EnumerateTrackedFiles())
