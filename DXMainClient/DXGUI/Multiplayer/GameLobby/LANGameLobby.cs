@@ -315,7 +315,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Players.Add(lpInfo);
 
-            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
+            while (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             if (IsHost && Players.Count == 1)
