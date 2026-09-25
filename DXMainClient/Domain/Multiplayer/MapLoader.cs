@@ -826,16 +826,35 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
+            => GetPreviewTextureFromMap(map, syncLoadOnCacheMiss, false, out _);
+
+        internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss,
+            bool preferGenerated, out MapPreviewSource source)
         {
-            if (map?.IsImmediatePreviewImageAvailable() ?? false)
-                return AssetLoader.LoadTextureUncached(map.PreviewPath);
+            source = map?.ResolvePreviewSource(preferGenerated);
+            if (source == null) return null;
+            try
+            {
+                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
+            }
+            catch (Exception e) when (source.IsGenerated)
+            {
+                Logger.Log("Cannot load generated map preview: " + e.Message);
+                source = map.ResolvePreviewSource(false);
+                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
+            }
+        }
 
-            using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
+        private Texture2D LoadPreviewTexture(MapPreviewSource source, bool syncLoadOnCacheMiss)
+        {
+            // A PNG already on disk is immediate, regardless of its producer.
+            if (source.ImmediateImagePath != null)
+                return AssetLoader.LoadTextureUncached(source.ImmediateImagePath);
 
-            if (cacheLease != null)
-                return AssetLoader.TextureFromImage(cacheLease.Value);
-            else
-                return null;
+            // Embedded PreviewPack extraction stays under the existing LRU,
+            // background queue, hidden-preview null cache and reference leases.
+            using var cacheLease = GetCachedPreviewImageFromMap(source.Map, syncLoadOnCacheMiss);
+            return cacheLease == null ? null : AssetLoader.TextureFromImage(cacheLease.Value);
         }
 
         public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)

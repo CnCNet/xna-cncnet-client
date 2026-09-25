@@ -56,3 +56,11 @@ SDButtonHoverImage=previewSD_hover.png
 ```
 
 Images use the normal theme asset lookup, like Favorite. HD represents the action to switch to generated previews; SD switches to Original. An idle PNG replaces the text and sets the button to its native pixel dimensions; 18x18 or 32x18 is recommended. Hover PNGs should match the corresponding idle size. Without a hover PNG, the idle image remains visible. Empty, missing or unreadable idle images fall back independently to SD/HD text on a transparent background. Missing/unreadable configured assets are logged. Restart the client after changing these settings or assets.
+
+## Integration with existing image caching
+
+`Map` retains its original immediate-PNG and non-immediate custom PreviewPack APIs. Resolving a preview produces a view-local `MapPreviewSource`: a completed generated PNG is immediate just like a nearby PNG. `MapLoader` loads both through the same texture-loading path. Missing/corrupt generated images fall back there, rather than in the control.
+
+Embedded extraction still goes through the existing `MapPreviewCacheManager`: its sequential queue, LRU policy, cached-null results for hidden previews, and reference-counted image leases are unchanged. An external generation job remains asynchronous and separate from image extraction. It never runs inside a synchronous cache miss, and a not-yet-generated image is never inserted into the embedded-image cache as a null result.
+
+`MapPreviewBox` requests the selected source from the loader and owns only its resulting texture. Generated-mode and projection metadata are not stored on shared Map instances. Projection data is captured for that view; calculating HD marker coordinates cannot overwrite the original preview's coordinate cache used by other views.

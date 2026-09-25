@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -113,11 +113,14 @@ namespace DTAClient.Domain.Multiplayer
             catch (UnauthorizedAccessException) { return null; }
         }
 
-        public static string CachedImage(Map map)
+        public static string CachedImage(Map map) => CachedSource(map)?.ImmediateImagePath;
+
+        internal static MapPreviewSource CachedSource(Map map)
         {
             if (!Selected) return null;
             var path = ImagePath(map);
-            return path != null && File.Exists(path) && ReadRecord(path) != null ? path : null;
+            var record = path != null && File.Exists(path) ? ReadRecord(path) : null;
+            return record == null ? null : new MapPreviewSource(map, path, true, record.Transform);
         }
 
         private static bool ValidImage(string path)
@@ -235,20 +238,5 @@ namespace DTAClient.Domain.Multiplayer
             });
         }
 
-        public static bool TryCoordinate(Map map, int x, int y, int level, Point size, out Point result)
-        {
-            result = default;
-            if (!map.GeneratedPreviewActive) return false;
-            var path = CachedImage(map);
-            var t = path == null ? null : ReadRecord(path)?.Transform;
-            if (t == null) return false;
-            if (level == 0) for (int i = 9; i + 2 < t.Length; i += 3)
-                if ((int)t[i] == x && (int)t[i + 1] == y) { level = (int)t[i + 2]; break; }
-            double px = (x - y + map.RenderedMapWidth - 1) * 30.0;
-            double py = (x + y - map.RenderedMapWidth - 1 - level) * 15.0;
-            result = new Point((int)Math.Round(((px - t[0]) * t[4] + t[5]) * size.X / t[7]),
-                (int)Math.Round(((py - t[1]) * t[4] + t[6]) * size.Y / t[8]));
-            return true;
-        }
     }
 }

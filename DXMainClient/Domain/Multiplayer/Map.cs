@@ -195,11 +195,6 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
-        [JsonIgnore] public bool GeneratedPreviewActive { get; set; }
-        [JsonIgnore] public int RenderedMapWidth => Conversions.IntFromString(actualSize[2], 0);
-        public void RefreshRenderedPreview() { startingLocations = null; }
-
-
         public void CalculateSHA()
         {
             SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
@@ -403,24 +398,26 @@ namespace DTAClient.Domain.Multiplayer
         public List<Point> GetStartingLocationPreviewCoords(Point previewSize)
         {
             if (startingLocations == null)
-            {
-                startingLocations = new List<Point>();
-
-                foreach (string waypoint in waypoints)
-                {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
-                    else
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
-                }
-            }
-
+                startingLocations = CalculateStartingLocationPreviewCoords(previewSize);
             return startingLocations;
+        }
+
+        // Views with different source-image sizes must not replace the shared
+        // original-image coordinate cache (e.g. lobby HD versus game list SD).
+        internal List<Point> CalculateStartingLocationPreviewCoords(Point previewSize)
+        {
+            var result = new List<Point>();
+            foreach (string waypoint in waypoints)
+            {
+                result.Add(MainClientConstants.USE_ISOMETRIC_CELLS
+                    ? GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize)
+                    : GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
+            }
+            return result;
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
         {
-            if (RenderedMapPreviews.TryCoordinate(this, mapPoint.X, mapPoint.Y, level, previewSize, out var rendered)) return rendered;
             if (MainClientConstants.USE_ISOMETRIC_CELLS)
                 return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
 
@@ -604,13 +601,25 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Resolve this view's image source without changing shared map state.
+        /// A completed external render is an immediate PNG; embedded extraction
+        /// continues to use the existing non-immediate cache-manager path.
+        /// </summary>
+        internal MapPreviewSource ResolvePreviewSource(bool preferGenerated)
+        {
+            return (preferGenerated ? RenderedMapPreviews.CachedSource(this) : null)
+                ?? new MapPreviewSource(this,
+                    IsImmediatePreviewImageAvailable() ? SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName : null);
+        }
+
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
         public Image GetImmediatePreviewImage() => IsImmediatePreviewImageAvailable()
             ? Image.Load(SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName)
             : throw new FileNotFoundException("Immediate preview texture not found for map " + BaseFilePath);
 
-        public bool IsNonImmediatePreviewImageAvailable() => File.Exists(CompleteFilePath);
+        public bool IsNonImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(customMapFilePath) && File.Exists(customMapFilePath);
 
         public Image GetNonImmediatePreviewImage()
         {
@@ -619,7 +628,7 @@ namespace DTAClient.Domain.Multiplayer
 
             // Debug.WriteLine("Loading map preview from custom map INI for map " + BaseFilePath);
 
-            return FastMapPreviewExtractor.Instance.ExtractMapPreview(CompleteFilePath);
+            return FastMapPreviewExtractor.Instance.ExtractMapPreview(customMapFilePath);
         }
 
         public IniFile GetMapIni()
@@ -794,7 +803,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
         /// <returns>The waypoint's location on the map preview as a point.</returns>
-        private Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
+        private static Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
             Point previewSizePoint)
         {
             string[] parts = waypoint.Split(',');
@@ -809,7 +818,6 @@ namespace DTAClient.Domain.Multiplayer
             if (parts.Length > 1)
                 level = Conversions.IntFromString(parts[1], 0);
 
-            if (RenderedMapPreviews.TryCoordinate(this, isoTileX, isoTileY, level, previewSizePoint, out var rendered)) return rendered;
             return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint, level);
         }
 
