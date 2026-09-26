@@ -158,6 +158,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override int MaxPlayerCount => playerLimit;
 
+        protected override bool SupportsAutoLaunch => true;
+
+        protected override bool IsLaunchPreparationInProgress
+        {
+            get
+            {
+                if (_negotiator.LaunchConnectivityCheckInProgress)
+                    return true;
+
+                if (_tunnelMode != TunnelMode.V3Dynamic || Players.Count <= 1)
+                    return false;
+
+                // Only negotiations that are still running are waited for.
+                // Failed ones are left to the launch attempt, which tells
+                // the host about them and offers to renegotiate.
+                (int incomplete, int _) = _negotiator.NegotiationData
+                    .GetNegotiationStatusCounts(Players.Select(p => p.Name).ToList());
+
+                return incomplete > 0;
+            }
+        }
+
         private bool closed = false;
 
         private int skillLevel = ClientConfiguration.Instance.DefaultSkillLevelIndex;
@@ -400,6 +422,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             gameHostInactiveChecker?.Start();
+        }
+
+        /// <summary>
+        /// The host is expected to leave the lobby unattended while waiting for
+        /// auto-launch, so the inactivity check is suspended while it is on.
+        /// </summary>
+        protected override void OnAutoLaunchArmedChanged()
+        {
+            if (chkAutoLaunch.Checked)
+                StopInactiveCheck();
+            else if (!ProgramConstants.IsInGame)
+                StartInactiveCheck();
         }
 
         public void StopInactiveCheck() => gameHostInactiveChecker?.Stop();
@@ -704,6 +738,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 AddNotice(string.Format("Maximum players changed to {0}."
                     .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+                CheckAutoStartGame();
             }
 
             if (skillLevelChanged)
@@ -1422,6 +1457,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            CheckAutoStartGame();
         }
 
         /// <summary>
@@ -1442,6 +1478,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            CheckAutoStartGame();
         }
 
         /// <summary>
@@ -1733,6 +1770,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             UpdateLaunchGameButtonStatus();
+            CheckAutoStartGame();
         }
 
         private void CheckHighPingPairs()
