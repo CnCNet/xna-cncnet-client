@@ -29,4 +29,5 @@ If checked, describe the breaking change:
 
 - [ ] This pull request is not a bug fix or a new feature
 - [ ] This pull request is scoped to one miscellaneous change only
+- [ ] The percentage of human involvement in this PR is ____. If the percentage is below 50%, this PR should be opened as a DRAFT.
 - [ ] Verifier: I honestly verified the implementation by running the client with this PR. Verifier name: ____. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.

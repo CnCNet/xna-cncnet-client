@@ -33,4 +33,5 @@ If checked, describe the breaking change:
 
 - [ ] I linked the corresponding feature issue above
 - [ ] This pull request is scoped to one feature only
+- [ ] The percentage of human involvement in this PR is ____. If the percentage is below 50%, this PR should be opened as a DRAFT.
 - [ ] Verifier: I honestly verified the implementation by running the client with this PR. Verifier name: ____. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.
