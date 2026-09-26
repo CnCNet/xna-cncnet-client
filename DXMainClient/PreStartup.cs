@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using DTAClient.Domain;
+using DTAClient.DXGUI;
 using Rampastring.Tools;
 using ClientCore;
+using ClientGUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
@@ -66,7 +68,13 @@ namespace DTAClient
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
 #endif
-            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                // The process ends when this returns, so use a blocking message box; the XNA one
+                // would never be drawn.
+                MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
+                HandleException(sender, (Exception)args.ExceptionObject);
+            };
 
             DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
@@ -268,6 +276,25 @@ namespace DTAClient
             }
             catch { }
 
+            // With V3 tunnels the game's traffic is relayed by this process on its own threads, so
+            // stay alive until the game exits.
+            if (GameProcessLogic.IsGameProcessRunning)
+            {
+                Logger.Log("The game is still running; keeping the client alive until it exits before reporting the crash.");
+
+                // Stop Windows offering to end the unresponsive process while we wait.
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    DisableProcessWindowsGhosting();
+
+                GameProcessLogic.WaitForGameProcessExit();
+            }
+
+            if (GameClass.IsGraphicsDeviceLostException(ex))
+            {
+                GameClass.ShowGraphicsDeviceLostError();
+                return;
+            }
+
             string error = string.Format("{0} has crashed. Error message:".L10N("Client:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
                 "A crash log has been saved to the following file:".L10N("Client:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
@@ -280,6 +307,10 @@ namespace DTAClient
 
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
+
+        [DllImport("user32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern void DisableProcessWindowsGhosting();
 
         private const int DEFAULT_MAX_KEPT_LOG_FILES = 20;
         private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;

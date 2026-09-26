@@ -25,6 +25,16 @@ namespace ClientGUI
         public static bool UseQres { get; set; }
         public static bool SingleCoreAffinity { get; set; }
 
+        private static readonly ManualResetEventSlim gameProcessNotRunning = new(true);
+
+        public static bool IsGameProcessRunning => !gameProcessNotRunning.IsSet;
+
+        /// <summary>
+        /// Blocks until the game process exits. Doesn't rely on the game loop, so it also works
+        /// from a crashed UI thread.
+        /// </summary>
+        public static void WaitForGameProcessExit() => gameProcessNotRunning.Wait();
+
         /// <summary>
         /// Starts the main game process.
         /// </summary>
@@ -98,6 +108,7 @@ namespace ClientGUI
                 QResProcess.Exited += new EventHandler(Process_Exited);
                 Logger.Log("Launch executable: " + QResProcess.StartInfo.FileName);
                 Logger.Log("Launch arguments: " + QResProcess.StartInfo.Arguments);
+                gameProcessNotRunning.Reset();
                 try
                 {
                     QResProcess.Start();
@@ -136,6 +147,7 @@ namespace ClientGUI
 
                 Logger.Log("Launch executable: " + gameProcess.StartInfo.FileName);
                 Logger.Log("Launch arguments: " + gameProcess.StartInfo.Arguments);
+                gameProcessNotRunning.Reset();
                 try
                 {
                     gameProcess.Start();
@@ -166,6 +178,7 @@ namespace ClientGUI
         static void Process_Exited(object sender, EventArgs e)
         {
             Logger.Log("GameProcessLogic: Process exited.");
+            gameProcessNotRunning.Set();
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();
