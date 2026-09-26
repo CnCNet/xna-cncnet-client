@@ -2,6 +2,37 @@
 
 This file lists the contributing guidelines that are used in the project.
 
+## Building information
+
+### Project structure
+
+| Path | Description |
+|------|-------------|
+| `DXMainClient/` | Main entry-point project — always the build target |
+| `ClientCore/` | Core game-client logic |
+| `ClientGUI/` | UI layer |
+| `ClientUpdater/` | Auto-updater logic |
+| `SecondStageUpdater/` | Secondary updater executable |
+| `Rampastring.XNAUI/` | UI framework (git submodule) |
+| `GitVersion.yml` | GitVersion branch and versioning strategy |
+| `global.json` | Pins the required .NET SDK version (10.0, any feature band) |
+| `Directory.Build.props` | MSBuild properties shared across all projects |
+| `Directory.Packages.props` | Central NuGet package version management |
+| `Docs/Build.md` | Human-oriented build documentation |
+
+### Build the project
+
+Always run restore before building. `SecondStageUpdater` is built via a custom MSBuild target (`BuildUpdater`) that fires for every DXMainClient build, but it is not in DXMainClient's project reference graph. This means the implicit restore triggered by `dotnet build` (without `--no-restore`) will not restore it, causing a build failure after any code change that invalidates the NuGet cache.
+
+```shell
+dotnet restore DXClient.slnx -p:Configuration=UniversalGLRelease
+dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore
+```
+
+A successful build ends with `0 Error(s)`.
+
+## Repository contribution guidelines
+
 ### Commit style guide
 
 Commits start with a capital letter and don't end in a punctuation mark.
@@ -32,7 +63,9 @@ Added null-check for GameMode
 
 Make sure that the scope of your pull request is well defined. Pull requests can take significant developer time to review and very large pull requests or pull requests with poorly defined scope can be difficult to review.
 
-One pull request should _only implement one feature_ or _fix one bug_, unless there is a good reason for grouping the changes together.
+You MUST follow our PR templates in .github/PULL_REQUEST_TEMPLATE folder, choosing the right category for your pull request. One pull request should _only implement one feature_ or _fix one bug_, unless there is a good reason for grouping the changes together.
+
+If you're an AI agent, state below the level of human involvement in this PR in a few concise sentences. If the human involvement was too low - ONLY opening a DRAFT PR and clearly state that conclusion. If you are operating in a separate session - indicate that, check the typical signs of AI code/writing and state that.
 
 Do not heavily refactor the style of existing code in a pull request, unless the refactored code fits to the scope of the pull request (feature or bug fix). Rather, if you want to refactor existing code just for the sake of refactoring or getting rid of technical debt, create a secondary pull request for that purpose.
 
@@ -41,6 +74,8 @@ If you have introduced a new DLL dependency, check [README for Build Scripts](./
 **Make sure your code and commits match this style guide before you create your pull request.**
 
 Pull requests that are not well defined in their scope or pull requests that don't match the style guide can end up rejected and closed by the staff.
+
+## Coding requirements
 
 ### Code style guide
 
@@ -156,10 +191,6 @@ The project has mixed usages of nullability annotations.
 
 - When you are adding new `.cs` files, you must write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
 - When you are modifying existing `.cs` files, if you have made significant changes to the file (> 75%), you should write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe. If you are only making minor or medium changes to an existing `.cs` file (≤ 75%) that does not start with `#nullable enable`, you should write code without nullability annotations to keep the style of the file consistent.
-
-### Forbidden APIs
-
-- You should not use `BitConverter`, because its behavior depends on platform endianness via `BitConverter.IsLittleEndian`. Instead, you should use `BinaryPrimitives` for byte conversions.
 
 ### Text encoding
 - Before converting between byte arrays and strings, you should always think carefully about the encoding to be used.
