@@ -150,14 +150,18 @@ namespace DTAClient.DXGUI
             if (Game.IsFixedTimeStep)
                 Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
 
+            // Restoring the window or graphics mode recreates render targets, which throws on a lost
+            // device and would abort the rest of this post-game handling.
+            bool restoreGraphics = !GameClass.IsGraphicsDeviceLost;
+
 #if WINFORMS
-            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+            if (restoreGraphics && UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MaximizeWindow();
 
 #endif
             UserINISettings.Instance.ReloadSettings();
 
-            if (UserINISettings.Instance.BorderlessWindowedClient)
+            if (restoreGraphics && UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Hack: Re-set graphics mode
                 // Windows resizes our window if we're in fullscreen mode and

@@ -69,6 +69,27 @@ namespace DTAClient.DXGUI
 
         private static GraphicsDeviceManager graphics;
         ContentManager content;
+        private WindowManager windowManager;
+
+        // DXGI errors after which the device is unusable. MonoGame can't recreate it
+        // (MonoGame/MonoGame#6265), so the client has to close.
+        private static readonly int[] graphicsDeviceLostHResults =
+        [
+            unchecked((int)0x887A0005), // DXGI_ERROR_DEVICE_REMOVED
+            unchecked((int)0x887A0006), // DXGI_ERROR_DEVICE_HUNG
+            unchecked((int)0x887A0007), // DXGI_ERROR_DEVICE_RESET
+            unchecked((int)0x887A0020), // DXGI_ERROR_DRIVER_INTERNAL_ERROR
+        ];
+
+        // Lets the post-game handling (statistics, replays) run before the client closes.
+        private static readonly TimeSpan GRAPHICS_DEVICE_LOST_EXIT_DELAY = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Set once the graphics device is lost. Code that recreates graphics resources (e.g.
+        /// changing the window or graphics mode) must skip that work while this is set.
+        /// </summary>
+        public static bool IsGraphicsDeviceLost { get; private set; }
+        private DateTime? graphicsDeviceLostExitTime;
 
         protected override void Initialize()
         {
@@ -154,6 +175,7 @@ namespace DTAClient.DXGUI
             InitializeUISettings();
 
             WindowManager wm = new(this, graphics);
+            windowManager = wm;
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
             IServiceProvider serviceProvider = null;
@@ -248,6 +270,115 @@ namespace DTAClient.DXGUI
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
                 (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+        }
+
+        public static bool IsGraphicsDeviceLostException(Exception ex)
+        {
+            for (Exception e = ex; e != null; e = e.InnerException)
+            {
+                if (Array.IndexOf(graphicsDeviceLostHResults, e.HResult) >= 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+#if DX
+            // Nothing throws while nothing touches the GPU (e.g. while the game is running), so
+            // check the device before the game-exit callbacks in base.Update can restore the window.
+            if (!IsGraphicsDeviceLost && GraphicsDevice?.Handle is SharpDX.Direct3D11.Device device &&
+                device.DeviceRemovedReason.Failure)
+            {
+                OnGraphicsDeviceLost(device.DeviceRemovedReason.ToString());
+            }
+#endif
+
+            try
+            {
+                base.Update(gameTime);
+            }
+            catch (Exception ex) when (IsGraphicsDeviceLostException(ex))
+            {
+                OnGraphicsDeviceLost(ex.ToString());
+            }
+
+            if (IsGraphicsDeviceLost)
+                ExitAfterGraphicsDeviceLossWhenNoGameRunning();
+        }
+
+        protected override bool BeginDraw() => !IsGraphicsDeviceLost && base.BeginDraw();
+
+        protected override void Draw(GameTime gameTime)
+        {
+            try
+            {
+                base.Draw(gameTime);
+            }
+            catch (Exception ex) when (IsGraphicsDeviceLostException(ex))
+            {
+                OnGraphicsDeviceLost(ex.ToString());
+            }
+        }
+
+        protected override void EndDraw()
+        {
+            // Also skipped on the frame the loss is caught in Draw, as presenting with its render
+            // target still bound throws.
+            if (!IsGraphicsDeviceLost)
+                base.EndDraw();
+        }
+
+        /// <summary>
+        /// Stops rendering but keeps the client running, as with V3 tunnels it relays the game's
+        /// traffic. A loss surfacing in a window message (e.g. a resize) bypasses this and is
+        /// handled by <see cref="PreStartup.HandleException"/>.
+        /// </summary>
+        private static void OnGraphicsDeviceLost(string details)
+        {
+            if (IsGraphicsDeviceLost)
+                return;
+
+            IsGraphicsDeviceLost = true;
+            Logger.Log("The graphics device was lost. Rendering has stopped; the client will close once no game is running. " + details);
+        }
+
+        private void ExitAfterGraphicsDeviceLossWhenNoGameRunning()
+        {
+            if (GameProcessLogic.IsGameProcessRunning)
+            {
+                graphicsDeviceLostExitTime = DateTime.UtcNow + GRAPHICS_DEVICE_LOST_EXIT_DELAY;
+                return;
+            }
+
+            graphicsDeviceLostExitTime ??= DateTime.UtcNow;
+
+            if (DateTime.UtcNow < graphicsDeviceLostExitTime)
+                return;
+
+            ShowGraphicsDeviceLostError(exit: false);
+
+            try
+            {
+                windowManager.CloseGame();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error while closing the client after graphics device loss: " + ex);
+            }
+
+            // Skip disposing the game, which can throw on a lost device.
+            Environment.Exit(0);
+        }
+
+        // Uses the system message box, as the client can no longer draw its own.
+        public static void ShowGraphicsDeviceLostError(bool exit)
+        {
+            MainClientConstants.DefaultDisplayErrorAction(
+                "Client Needs Restarting".L10N("Client:Main:GraphicsDeviceLostTitle"),
+                "Your graphics driver was reset, so the client can no longer display. Please start the client again.".L10N("Client:Main:GraphicsDeviceLostText"),
+                exit);
         }
 
         private static Random GetRandom()
