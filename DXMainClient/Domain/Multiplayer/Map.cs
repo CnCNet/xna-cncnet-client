@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -398,19 +398,22 @@ namespace DTAClient.Domain.Multiplayer
         public List<Point> GetStartingLocationPreviewCoords(Point previewSize)
         {
             if (startingLocations == null)
-            {
-                startingLocations = new List<Point>();
-
-                foreach (string waypoint in waypoints)
-                {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
-                    else
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
-                }
-            }
-
+                startingLocations = CalculateStartingLocationPreviewCoords(previewSize);
             return startingLocations;
+        }
+
+        // Views with different source-image sizes must not replace the shared
+        // original-image coordinate cache (e.g. lobby HD versus game list SD).
+        internal List<Point> CalculateStartingLocationPreviewCoords(Point previewSize)
+        {
+            var result = new List<Point>();
+            foreach (string waypoint in waypoints)
+            {
+                result.Add(MainClientConstants.USE_ISOMETRIC_CELLS
+                    ? GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize)
+                    : GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
+            }
+            return result;
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
@@ -596,6 +599,18 @@ namespace DTAClient.Domain.Multiplayer
                 ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key,
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, string.Empty)));
             }
+        }
+
+        /// <summary>
+        /// Resolve this view's image source without changing shared map state.
+        /// A completed external render is an immediate PNG; embedded extraction
+        /// continues to use the existing non-immediate cache-manager path.
+        /// </summary>
+        internal MapPreviewSource ResolvePreviewSource(bool preferGenerated)
+        {
+            return (preferGenerated ? MapPreviewGenerationService.CachedSource(this) : null)
+                ?? new MapPreviewSource(this,
+                    IsImmediatePreviewImageAvailable() ? SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName : null);
         }
 
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;

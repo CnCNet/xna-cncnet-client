@@ -47,6 +47,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientPreferredItemDropDown ddClientResolution;
         private XNAClientCheckBox chkBorderlessClient;
         private XNAClientCheckBox chkIntegerScaledClient;
+        private XNAClientCheckBox chkRenderMapPreviews;
         private XNAClientDropDown ddClientTheme;
         private XNAClientDropDown ddTranslation;
 
@@ -287,6 +288,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 lblTranslation.Y - 2,
                 ddClientTheme.Width,
                 ddClientTheme.Height);
+
+            chkRenderMapPreviews = new XNAClientCheckBox(WindowManager) {
+                Name = "chkRenderMapPreviews",
+                Text = "Allow generated map previews".L10N("Client:DTAConfig:RenderMapPreviews"),
+                ToolTipText = "Use the HD button beside the map favorite button to generate a preview.".L10N("Client:DTAConfig:RenderMapPreviewsHint"),
+                ClientRectangle = new Rectangle(lblTranslation.X, ddTranslation.Bottom + 18, 0, 0)
+            };
+            AddChild(chkRenderMapPreviews);
 
             foreach (var (translation, name) in Translation.GetTranslations())
                 ddTranslation.AddItem(new XNADropDownItem { Text = name, Tag = translation });
@@ -551,6 +560,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         public override void Load()
         {
+            chkRenderMapPreviews.Checked = IniSettings.RenderMapPreviews.Value;
             base.Load();
 
             LoadRenderer();
@@ -637,6 +647,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         public override bool Save()
         {
+            IniSettings.RenderMapPreviews.Value = chkRenderMapPreviews.Checked;
             bool restartRequired = base.Save();
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;

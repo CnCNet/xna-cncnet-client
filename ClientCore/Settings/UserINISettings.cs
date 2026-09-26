@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -185,6 +185,8 @@ namespace ClientCore
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
             ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
             GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
+            RenderMapPreviews = new BoolSetting(iniFile, VIDEO, "RenderMapPreviews", true);
+            ShowGeneratedMapPreviews = new BoolSetting(iniFile, VIDEO, "ShowGeneratedMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
@@ -371,6 +373,10 @@ namespace ClientCore
         public IntSetting GameSpeed { get; private set; }
 
         public IntSetting ScrollDelay { get; private set; }
+
+        public BoolSetting RenderMapPreviews { get; private set; }
+        public BoolSetting ShowGeneratedMapPreviews { get; private set; }
+
 
         public BoolSetting ForceLowestDetailLevel { get; private set; }
 
