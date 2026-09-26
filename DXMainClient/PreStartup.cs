@@ -291,7 +291,7 @@ namespace DTAClient
 
             if (GameClass.IsGraphicsDeviceLostException(ex))
             {
-                GameClass.ShowGraphicsDeviceLostError();
+                GameClass.ShowGraphicsDeviceLostError(exit: true);
                 return;
             }
 

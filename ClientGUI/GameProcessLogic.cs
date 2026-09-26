@@ -115,6 +115,8 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
+                    // Before any UI work that could throw, so nothing waits on a game that never started.
+                    gameProcessNotRunning.Set();
                     Logger.Log("Error launching QRes: " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
                         errorLaunchingTitle,
@@ -155,6 +157,7 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
+                    gameProcessNotRunning.Set();
                     Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
                         errorLaunchingTitle,
