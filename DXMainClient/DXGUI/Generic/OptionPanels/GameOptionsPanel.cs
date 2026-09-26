@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
@@ -33,6 +34,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
         private XNAClientCheckBox chkShowHiddenObjects;
+        private XNAClientCheckBox chkRecordReplays;
 
         private XNAControl topBar;
 
@@ -145,6 +147,22 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     chkAltToUndeploy.Bottom + 30, 0, 0);
             }
 
+            if (ReplayManager.IsSupported)
+            {
+                chkRecordReplays = new XNAClientCheckBox(WindowManager);
+                chkRecordReplays.Name = nameof(chkRecordReplays);
+                chkRecordReplays.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    lblPlayerName.Y - 6, 0, 0);
+                chkRecordReplays.Text = "Record Replays".L10N("Client:DTAConfig:RecordReplays");
+
+                AddChild(chkRecordReplays);
+
+                lblPlayerName.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkRecordReplays.Bottom + 30, 0, 0);
+            }
+
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = nameof(tbPlayerName);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
@@ -215,6 +233,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
             tbPlayerName.Text = UserINISettings.Instance.PlayerName;
+
+            if (chkRecordReplays != null)
+                chkRecordReplays.Checked = IniSettings.RecordReplays;
         }
 
         public override bool Save()
@@ -227,6 +248,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
+
+            if (chkRecordReplays != null)
+                IniSettings.RecordReplays.Value = chkRecordReplays.Checked;
 
             return restartRequired;
         }
