@@ -23,6 +23,7 @@ using System.Linq;
 using System.Threading;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
+using DXMainClient.Domain;
 using DTAClient.DXGUI.Campaign;
 
 namespace DTAClient.DXGUI.Generic
@@ -163,6 +164,8 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
 
+        private VideoBackground videoBackground;
+
         /// <summary>
         /// Initializes the main menu's controls.
         /// </summary>
@@ -174,6 +177,36 @@ namespace DTAClient.DXGUI.Generic
             Name = nameof(MainMenu);
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu/mainmenubg.png");
             ClientRectangle = new Rectangle(0, 0, BackgroundTexture.Width, BackgroundTexture.Height);
+
+            // Optionally, load the video background
+            {
+                int videoWidth = BackgroundTexture.Width;
+                int videoHeight = BackgroundTexture.Height;
+
+                string videoFilePath = null;
+                foreach (string searchPath in AssetLoader.AssetSearchPaths)
+                {
+                    var fileinfo = SafePath.GetFile(searchPath, "MainMenu/mainmenubg.mp4");
+                    if (fileinfo.Exists)
+                    {
+                        videoFilePath = fileinfo.FullName;
+                        break;
+                    }
+                }
+
+                if (videoFilePath != null)
+                {
+                    try
+                    {
+                        videoBackground = new VideoBackground(GraphicsDevice, videoFilePath, videoWidth, videoHeight);
+                        BackgroundTexture = videoBackground.Texture;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log("Error loading video background: " + ex.ToString());
+                    }
+                }
+            }
 
             WindowManager.CenterControlOnScreen(this);
 
@@ -1136,6 +1169,9 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
+
+            // shut the Video, else it'll do some memory violation tomfoolery
+            VideoBackground.ShutdownLibVLC();
             themeSong?.Dispose();
         }
 
