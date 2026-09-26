@@ -206,6 +206,12 @@ namespace DTAClient.Domain.Multiplayer
         [JsonInclude]
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
 
+        [JsonInclude]
+        public List<KeyValuePair<string, bool>> RecommendedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+
+        [JsonInclude]
+        public List<KeyValuePair<string, int>> RecommendedDropDownValues = new List<KeyValuePair<string, int>>(0);
+
         [JsonIgnore]
         private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
 
@@ -345,6 +351,15 @@ namespace DTAClient.Domain.Multiplayer
                         ParseForcedOptions(iniFile, foSection);
                 }
 
+                string recommendedOptionsSections = iniFile.GetStringValue(BaseFilePath, "RecommendedOptions", string.Empty);
+
+                if (!string.IsNullOrEmpty(recommendedOptionsSections))
+                {
+                    string[] sections = recommendedOptionsSections.Split(',');
+                    foreach (string roSection in sections)
+                        ParseRecommendedOptions(iniFile, roSection);
+                }
+
                 string forcedSpawnIniOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", string.Empty);
 
                 if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSections))
@@ -429,6 +444,7 @@ namespace DTAClient.Domain.Multiplayer
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
             customMapIni.AddSection("ForcedOptions");
+            customMapIni.AddSection("RecommendedOptions");
             customMapIni.AddSection("ForcedSpawnIniOptions");
 
             // Optionally load preview sections, to accelerate building custom map caches without reading preview.
@@ -537,6 +553,7 @@ namespace DTAClient.Domain.Multiplayer
                 GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
+                ParseRecommendedOptions(iniFile, "RecommendedOptions");
                 ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");
 
                 ExtraININame = basicSection.GetStringValueOrNull("ExtraIniName") ?? basicSection.GetStringValueOrNull("ExtraININame");
@@ -584,6 +601,24 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
                 }
+            }
+        }
+
+        private void ParseRecommendedOptions(IniFile iniFile, string recommendedOptionsSection)
+        {
+            List<string> keys = iniFile.GetSectionKeys(recommendedOptionsSection);
+
+            if (keys == null)
+                return;
+
+            foreach (string key in keys)
+            {
+                string value = iniFile.GetStringValue(recommendedOptionsSection, key, string.Empty);
+
+                if (int.TryParse(value, out int intValue))
+                    RecommendedDropDownValues.Add(new KeyValuePair<string, int>(key, intValue));
+                else
+                    RecommendedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
             }
         }
 

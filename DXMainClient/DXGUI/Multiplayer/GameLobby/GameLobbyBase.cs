@@ -2532,6 +2532,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (var dd in dropDownListClone)
                 dd.SelectedIndex = dd.HostSelectedIndex;
 
+            ApplyRecommendedCheckBoxOptions(GameMode.RecommendedCheckBoxValues);
+            ApplyRecommendedCheckBoxOptions(Map.RecommendedCheckBoxValues);
+
+            ApplyRecommendedDropDownOptions(GameMode.RecommendedDropDownValues);
+            ApplyRecommendedDropDownOptions(Map.RecommendedDropDownValues);
+
             // Enable all sides by default
             foreach (var ddSide in ddPlayerSides)
             {
@@ -2670,6 +2676,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     dropDown.SelectedIndex = option.Value;
                     dropDown.AllowDropDown = false;
                     optionList.Remove(dropDown);
+                }
+            }
+        }
+
+        private void ApplyRecommendedCheckBoxOptions(List<KeyValuePair<string, bool>> recommendedOptions)
+        {
+            foreach (KeyValuePair<string, bool> option in recommendedOptions)
+            {
+                GameLobbyCheckBox checkBox = CheckBoxes.Find(chk => chk.Name == option.Key);
+                if (checkBox != null)
+                {
+                    checkBox.Checked = option.Value;
+                    checkBox.HostChecked = option.Value;
+                }
+            }
+        }
+
+        private void ApplyRecommendedDropDownOptions(List<KeyValuePair<string, int>> recommendedOptions)
+        {
+            foreach (KeyValuePair<string, int> option in recommendedOptions)
+            {
+                GameLobbyDropDown dropDown = DropDowns.Find(dd => dd.Name == option.Key);
+                if (dropDown != null)
+                {
+                    dropDown.SelectedIndex = option.Value;
+                    dropDown.HostSelectedIndex = option.Value;
                 }
             }
         }
