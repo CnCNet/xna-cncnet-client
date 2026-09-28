@@ -1181,6 +1181,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
+            if (GameModeMap == null)
+            {
+                AddNotice("The game host has started the game, but you don't have the selected map. Unable to launch the game.".L10N("Client:Main:LaunchFailedMapMissing"), Color.Red);
+                return;
+            }
+
             CopyPlayerDataToUI();
             StartGame();
         }
