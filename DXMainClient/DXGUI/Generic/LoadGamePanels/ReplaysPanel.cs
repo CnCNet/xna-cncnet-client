@@ -462,7 +462,9 @@ public class ReplaysPanel : XNAPanel
 
             lbReplayList.SelectedIndex = restored < 0 ? 0 : restored;
 
-            if (lbReplayList.SelectedIndex > lbReplayList.LastIndex)
+            if (lbReplayList.SelectedIndex < lbReplayList.TopIndex)
+                lbReplayList.TopIndex = lbReplayList.SelectedIndex;
+            else if (lbReplayList.SelectedIndex > lbReplayList.LastIndex)
                 lbReplayList.TopIndex += lbReplayList.SelectedIndex - lbReplayList.LastIndex;
         }
 
