@@ -200,6 +200,8 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             bool restartRequired = false;
+            int previousMaxKeptReplays = UserINISettings.Instance.MaxKeptReplays;
+            int previousMaxReplayFolderSizeMB = UserINISettings.Instance.MaxReplayFolderSizeMB;
 
             try
             {
@@ -207,6 +209,12 @@ namespace DTAClient.DXGUI.Generic
                     restartRequired = panel.Save() || restartRequired;
 
                 UserINISettings.Instance.SaveSettings();
+
+                if (previousMaxKeptReplays != UserINISettings.Instance.MaxKeptReplays.Value ||
+                    previousMaxReplayFolderSizeMB != UserINISettings.Instance.MaxReplayFolderSizeMB.Value)
+                {
+                    ReplayManager.Prune();
+                }
             }
             catch (Exception ex)
             {
