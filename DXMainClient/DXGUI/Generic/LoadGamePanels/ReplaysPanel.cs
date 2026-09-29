@@ -616,7 +616,7 @@ public class ReplaysPanel : XNAPanel
             return;
 
         int customMissionID = spawnIni.GetIntValue("Settings", "CustomMissionID", 0);
-        if (campaignTagSelector.UniqueIDToMissions.TryGetValue(customMissionID, out Mission mission))
+        if (campaignTagSelector.UniqueIDToMissions.TryGetValue(customMissionID, out Mission? mission))
             CustomMissionHelper.CopySupplementalMissionFiles(mission);
     }
 
@@ -689,7 +689,7 @@ public class ReplaysPanel : XNAPanel
         if (spawnerSettingsFile.Exists)
             spawnerSettingsFile.Delete();
 
-        spawnIni.FileName = spawnerSettingsFile.FullName;
+        spawnIni.FilePath = spawnerSettingsFile.FullName;
         spawnIni.Encoding = EncodingExt.UTF8NoBOM;
         spawnIni.WriteIniFile();
 
