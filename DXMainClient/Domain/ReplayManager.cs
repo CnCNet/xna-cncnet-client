@@ -161,6 +161,70 @@ public static class ReplayManager
             parsedReplays.Remove(name);
     }
 
+    public static bool HasReplayExtension(string path)
+        => string.Equals(Path.GetExtension(path), "." + FileExtension, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Copies a replay from elsewhere into the replay directory, which playback reads from.
+    /// Returns its file name there, or null when it is not a readable replay.
+    /// </summary>
+    public static string? Import(string path)
+    {
+        try
+        {
+            var source = new FileInfo(path);
+            if (!source.Exists || !HasReplayExtension(source.Name))
+                return null;
+
+            DirectoryInfo directory = GetReplayDirectory();
+            char[] separators = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+            if (string.Equals(source.DirectoryName?.TrimEnd(separators), directory.FullName.TrimEnd(separators),
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return new YRReplayGame(source.Name).ParseInfo() ? source.Name : null;
+            }
+
+            directory.Create();
+
+            string baseName = Path.GetFileNameWithoutExtension(source.Name)
+                .TruncateToUtf8ByteLength(MaxRecordingBaseFileNameBytes).TrimEnd();
+            string fileName = baseName + "." + FileExtension;
+            string? sourceHash = null;
+
+            int counter = 1;
+            FileInfo target;
+            while ((target = GetReplayFile(fileName)).Exists)
+            {
+                if (target.Length == source.Length)
+                {
+                    sourceHash ??= Utilities.CalculateSHA1ForFile(source.FullName);
+                    if (Utilities.CalculateSHA1ForFile(target.FullName) == sourceHash)
+                        return new YRReplayGame(fileName).ParseInfo() ? fileName : null;
+                }
+
+                fileName = $"{baseName} ({counter})." + FileExtension;
+                counter++;
+            }
+
+            source.CopyTo(target.FullName);
+
+            if (!new YRReplayGame(fileName).ParseInfo())
+            {
+                target.Delete();
+                return null;
+            }
+
+            Logger.Log($"ReplayManager: imported {source.FullName} as {fileName}");
+            return fileName;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"ReplayManager: could not import {path}: {ex.Message}");
+            return null;
+        }
+    }
+
     public static bool Delete(YRReplayGame replay)
     {
         Logger.Log("Deleting replay " + replay.FileName);

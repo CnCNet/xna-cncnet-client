@@ -318,6 +318,9 @@ namespace DTAClient.DXGUI.Generic
             CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
             WindowManager.GameClosing += WindowManager_GameClosing;
+#if WINFORMS
+            WindowManager.FilesDropped += WindowManager_FilesDropped;
+#endif
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
@@ -554,6 +557,76 @@ namespace DTAClient.DXGUI.Generic
         private void SharedUILogic_GameProcessStarted() => MusicOff();
 
         private void WindowManager_GameClosing(object sender, EventArgs e) => Clean();
+
+#if WINFORMS
+        private void WindowManager_FilesDropped(object sender, Rampastring.XNAUI.PlatformSpecific.FileDropEventArgs e)
+            => AddCallback(new Action<string[]>(OpenDroppedReplay), new object[] { e.FilePaths });
+
+        /// <summary>
+        /// Opens a replay dropped onto the client window in the Load Game window.
+        /// </summary>
+        private void OpenDroppedReplay(string[] filePaths)
+        {
+            if (!ReplayManager.IsSupported || !CanOpenDroppedReplay())
+                return;
+
+            string replayPath = filePaths.FirstOrDefault(ReplayManager.HasReplayExtension);
+            if (replayPath == null)
+                return;
+
+            string fileName = ReplayManager.Import(replayPath);
+            if (fileName == null)
+            {
+                XNAMessageBox.Show(WindowManager, "Cannot Open Replay".L10N("Client:Main:DroppedReplayUnreadableTitle"),
+                    string.Format("{0} is not a replay that can be opened.".L10N("Client:Main:DroppedReplayUnreadableText"),
+                        Path.GetFileName(replayPath)));
+                return;
+            }
+
+            gameLoadingWindow.OpenReplay(fileName);
+        }
+
+        /// <summary>
+        /// Whether the player is on the main menu, the skirmish lobby or the CnCNet lobby with no other
+        /// window open over it, apart from the Load Game window.
+        /// Open message boxes can't be detected, so a drop still goes through while one is showing.
+        /// </summary>
+        private bool CanOpenDroppedReplay()
+        {
+            if (!topBar.Enabled || gameInProgressWindow.Enabled || campaignTagSelector.IsOpen)
+                return false;
+
+            ISwitchable topMostPrimary = topBar.GetTopMostPrimarySwitchable();
+            if (topMostPrimary != this && topMostPrimary != skirmishLobby)
+                return false;
+
+            if (topBar.LastSwitchType == SwitchType.SECONDARY)
+            {
+                if (cncnetLobby.HasDialogOpen)
+                    return false;
+            }
+            else if (topMostPrimary == skirmishLobby && skirmishLobby.HasDialogOpen)
+            {
+                return false;
+            }
+
+            XNAControl[] windows =
+            {
+                cnCNetGameLoadingLobby,
+                cnCNetGameLobby,
+                lanLobby,
+                privateMessagingWindow,
+                optionsWindow,
+                statisticsWindow,
+                updateQueryWindow,
+                manualUpdateQueryWindow,
+                updateWindow,
+                extrasWindow,
+            };
+
+            return !windows.Any(window => window.Enabled);
+        }
+#endif
 
         private void SkirmishLobby_Exited(object sender, EventArgs e)
         {

@@ -1804,6 +1804,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public string GetSwitchName() => "CnCNet Lobby".L10N("Client:Main:CnCNetLobby");
 
+        /// <summary>Whether the game creation, login or password window is open over the lobby.</summary>
+        public bool HasDialogOpen => ((XNAControl)gameCreationPanel.Tag).Enabled || loginWindow.Enabled || passwordRequestWindow.Enabled;
+
         private bool CanReceiveInvitationMessagesFrom(string username)
         {
             IRCUser iu = connectionManager.UserList.Find(u => u.Name == username);
