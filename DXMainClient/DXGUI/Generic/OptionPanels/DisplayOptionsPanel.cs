@@ -2,6 +2,7 @@ using ClientCore.Extensions;
 using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -296,6 +297,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 ClientRectangle = new Rectangle(lblTranslation.X, ddTranslation.Bottom + 18, 0, 0)
             };
             AddChild(chkRenderMapPreviews);
+            if (!MapPreviewGenerationService.Configured)
+                chkRenderMapPreviews.Disable();
 
             foreach (var (translation, name) in Translation.GetTranslations())
                 ddTranslation.AddItem(new XNADropDownItem { Text = name, Tag = translation });

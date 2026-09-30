@@ -34,6 +34,11 @@ internal sealed class MapPreviewDiskCache
         var record = ReadRecord(path);
         return record == null ? null : new MapPreviewSource(map, path, true, record.Transform);
     }
+    // Each render works in its own folder under here, so everything the renderer writes can be removed together.
+    private string StagingPath => Path.Combine(DirectoryPath, "staging");
+
+    /// <summary>Deletes entries for maps that are no longer loaded, and staging folders left behind
+    /// by renders that never finished (e.g. the client was killed). Must not run during a render.</summary>
     internal void Prune(IEnumerable<string> liveHashes)
     {
         if (!Directory.Exists(DirectoryPath)) return;
@@ -46,6 +51,9 @@ internal sealed class MapPreviewDiskCache
                     || file.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
                 File.Delete(file);
         }
+        if (Directory.Exists(StagingPath))
+            foreach (var directory in Directory.EnumerateDirectories(StagingPath))
+                Directory.Delete(directory, true);
     }
 
     // publishIfCurrent runs publication under the coordinator's registry lock so deletion
@@ -58,8 +66,9 @@ internal sealed class MapPreviewDiskCache
         string fingerprint = Fingerprint(options.Executable, options.Arguments, options.Width, options.Height, options.Version);
         string output = ImagePath(map);
         if (!force && ReadRecord(output)?.Fingerprint == fingerprint && ValidImage(output)) return false;
-        Directory.CreateDirectory(DirectoryPath);
-        string temporary = Path.Combine(DirectoryPath, map.SHA1.ToLowerInvariant() + "." + Guid.NewGuid().ToString("N") + ".png");
+        string stagingDirectory = Path.Combine(StagingPath, Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(stagingDirectory);
+        string temporary = Path.Combine(stagingDirectory, Path.GetFileName(output));
         try
         {
             progress();
@@ -80,7 +89,8 @@ internal sealed class MapPreviewDiskCache
             return publishIfCurrent(() =>
             {
                 if (File.Exists(output)) File.Replace(temporary, output, null); else File.Move(temporary, output);
-                string metadata = Path.ChangeExtension(output, ".json"), staging = metadata + ".tmp";
+                string metadata = Path.ChangeExtension(output, ".json");
+                string staging = Path.Combine(stagingDirectory, Path.GetFileName(metadata));
                 File.WriteAllText(staging, JsonSerializer.Serialize(new Record
                 {
                     Fingerprint = fingerprint,
@@ -93,10 +103,9 @@ internal sealed class MapPreviewDiskCache
         }
         finally
         {
-            foreach (var suffix in new[] { "", ".transform.json", ".assets.log" })
-                try { File.Delete(temporary + suffix); }
-                catch (IOException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
-                catch (UnauthorizedAccessException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
+            try { Directory.Delete(stagingDirectory, true); }
+            catch (IOException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
+            catch (UnauthorizedAccessException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
         }
     }
 

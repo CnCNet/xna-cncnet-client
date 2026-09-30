@@ -31,8 +31,8 @@ class PreviewTests {
    catch(OperationCanceledException){}
    Check(!File.Exists(output),"pre-cancelled extractor never produces output");
   }
-  var resolve=MapType.GetMethod("ResolvePreviewSource",BindingFlags.Instance|BindingFlags.NonPublic);
-  var sd=resolve.Invoke(map,new object[]{false});var hd=resolve.Invoke(map,new object[]{true});var sourceType=sd.GetType();
+  var resolve=MapType.GetMethod("ResolveOriginalPreviewSource",BindingFlags.Instance|BindingFlags.NonPublic);
+  var sd=resolve.Invoke(map,null);var hd=Call("CachedSource",map);var sourceType=sd.GetType();
   Check(!(bool)sourceType.GetProperty("IsGenerated").GetValue(sd,null)&&(bool)sourceType.GetProperty("IsGenerated").GetValue(hd,null),"same map resolves independent original and generated sources");
   Check(((string)sourceType.GetProperty("ImmediateImagePath").GetValue(sd,null)).EndsWith("test.png"),"original source keeps its nearby PNG");
   Check(((string)sourceType.GetProperty("ImmediateImagePath").GetValue(hd,null)).EndsWith(Sha(map).ToLowerInvariant()+".png"),"completed generated PNG is an immediate source");

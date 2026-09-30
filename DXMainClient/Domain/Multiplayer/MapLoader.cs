@@ -831,8 +831,13 @@ namespace DTAClient.Domain.Multiplayer
         internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss,
             bool preferGenerated, out MapPreviewSource source)
         {
-            source = map?.ResolvePreviewSource(preferGenerated);
-            if (source == null) return null;
+            if (map == null)
+            {
+                source = null;
+                return null;
+            }
+            source = (preferGenerated ? MapPreviewGenerationService.CachedSource(map) : null)
+                ?? map.ResolveOriginalPreviewSource();
             try
             {
                 return LoadPreviewTexture(source, syncLoadOnCacheMiss);
@@ -840,7 +845,7 @@ namespace DTAClient.Domain.Multiplayer
             catch (Exception e) when (source.IsGenerated)
             {
                 Logger.Log("Cannot load generated map preview: " + e.Message);
-                source = map.ResolvePreviewSource(false);
+                source = map.ResolveOriginalPreviewSource();
                 return LoadPreviewTexture(source, syncLoadOnCacheMiss);
             }
         }

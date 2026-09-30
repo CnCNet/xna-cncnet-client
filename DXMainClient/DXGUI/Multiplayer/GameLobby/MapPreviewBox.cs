@@ -228,15 +228,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 SelectableChecker = () => GameModeMap != null
             };
             mapContextMenu = new XNAContextMenu(WindowManager);
-            mapContextMenu.ClientRectangle = new Rectangle(0, 0, 280, 2);
+            var regeneratePreviewItem = new XNAContextMenuItem
+            {
+                Text = "Regenerate HD Preview".L10N("Client:Main:RegenerateMapPreview"),
+                SelectAction = () => { _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map, true); },
+                SelectableChecker = () => GameModeMap != null && MapPreviewGenerationService.Selected,
+                VisibilityChecker = () => MapPreviewGenerationService.Configured
+            };
+            int mapContextMenuWidth = MapPreviewGenerationService.Configured
+                ? Math.Max(120, (int)Renderer.GetTextDimensions(regeneratePreviewItem.Text, mapContextMenu.FontIndex).X + 8)
+                : 120;
+            mapContextMenu.ClientRectangle = new Rectangle(0, 0, mapContextMenuWidth, 2);
             mapContextMenu.AddItem(toggleFavoriteMapItem);
             mapContextMenu.AddItem(toggleExtraTexturesItem);
             mapContextMenu.AddItem(showInFolderItem);
-            mapContextMenu.AddItem(new XNAContextMenuItem {
-                Text = "Regenerate HD Preview".L10N("Client:Main:RegenerateMapPreview"),
-                SelectAction = () => { _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map, true); },
-                SelectableChecker = () => GameModeMap != null && MapPreviewGenerationService.Selected
-            });
+            mapContextMenu.AddItem(regeneratePreviewItem);
             previewGenerationStatus = new XNALabel(WindowManager) { Name = "lblRenderedPreviewStatus", Text = "", ClientRectangle = new Rectangle(4, 4, 0, 0), DrawOrder = 500 };
             AddChild(previewGenerationStatus);
             MapPreviewGenerationService.Progress += (map, message) => WindowManager.AddCallback(new Action(() => {

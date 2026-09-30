@@ -1,6 +1,4 @@
 #nullable enable
-using System;
-
 using ClientCore;
 using ClientCore.Extensions;
 
@@ -11,7 +9,6 @@ using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby;
@@ -27,11 +24,10 @@ internal sealed class MapPreviewModeButton : XNAClientButton
     {
         Name = "btnToggleRenderedPreview";
         FontIndex = 1;
-        var config = ClientConfiguration.Instance;
-        previewHDButtonImage = LoadPreviewButtonImage(config.MapPreviewHDButtonImage);
-        previewHDButtonHoverImage = LoadPreviewButtonImage(config.MapPreviewHDButtonHoverImage);
-        previewSDButtonImage = LoadPreviewButtonImage(config.MapPreviewSDButtonImage);
-        previewSDButtonHoverImage = LoadPreviewButtonImage(config.MapPreviewSDButtonHoverImage);
+        previewHDButtonImage = LoadPreviewButtonImage("previewHD.png");
+        previewHDButtonHoverImage = LoadPreviewButtonImage("previewHD_c.png");
+        previewSDButtonImage = LoadPreviewButtonImage("previewSD.png");
+        previewSDButtonHoverImage = LoadPreviewButtonImage("previewSD_c.png");
         previewTextButtonImage = AssetLoader.CreateTexture(Color.Transparent, 32, 18);
         LeftClick += (sender, args) =>
         {
@@ -43,19 +39,7 @@ internal sealed class MapPreviewModeButton : XNAClientButton
     }
 
     private static Texture2D? LoadPreviewButtonImage(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return null;
-        try
-        {
-            if (AssetLoader.AssetExists(name)) return AssetLoader.LoadTexture(name);
-            Logger.Log("Map preview button image not found: " + name);
-        }
-        catch (Exception e)
-        {
-            Logger.Log("Cannot load map preview button image " + name + ": " + e.Message);
-        }
-        return null;
-    }
+        => AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
     public void Refresh(int buttonX)
     {

@@ -89,10 +89,10 @@ namespace DTAClient.Domain.Multiplayer
             await Queue.WaitAsync().ConfigureAwait(false);
             try
             {
-                lock (Sync)
-                {
-                    Cache.Prune(Maps.Values.Where(m => File.Exists(m.CompleteFilePath)).Select(m => m.SHA1));
-                }
+                // Holding Queue means no render can publish meanwhile, so file I/O can run outside Sync.
+                List<Map> maps;
+                lock (Sync) maps = Maps.Values.ToList();
+                Cache.Prune(maps.Where(m => File.Exists(m.CompleteFilePath)).Select(m => m.SHA1));
             }
             catch (Exception e) { Logger.Log("Map preview cache pruning failed: " + e.Message); }
             finally { Queue.Release(); }

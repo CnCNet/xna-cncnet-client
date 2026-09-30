@@ -62,8 +62,8 @@ namespace DTAClient.Domain.Multiplayer
                         break;
                     }
             int width = Conversions.IntFromString(Map.actualSize[2], 0);
-            double px = (point.X - point.Y + width - 1) * 30.0;
-            double py = (point.X + point.Y - width - 1 - level) * 15.0;
+            double px = (point.X - point.Y + width - 1) * MainClientConstants.MAP_CELL_SIZE_X / 2.0;
+            double py = (point.X + point.Y - width - 1 - level) * MainClientConstants.MAP_CELL_SIZE_Y / 2.0;
             return new Point((int)Math.Round(((px - t[0]) * t[4] + t[5]) * size.X / t[7]),
                 (int)Math.Round(((py - t[1]) * t[4] + t[6]) * size.Y / t[8]));
         }

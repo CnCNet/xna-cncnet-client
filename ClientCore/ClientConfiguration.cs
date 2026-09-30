@@ -18,10 +18,6 @@ namespace ClientCore
         // Optional external map renderer. Empty values disable integration.
         public string MapRendererPath => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "Executable", string.Empty);
         public string MapRendererArguments => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "Arguments", string.Empty);
-        public string MapPreviewHDButtonImage => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "HDButtonImage", string.Empty);
-        public string MapPreviewHDButtonHoverImage => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "HDButtonHoverImage", string.Empty);
-        public string MapPreviewSDButtonImage => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "SDButtonImage", string.Empty);
-        public string MapPreviewSDButtonHoverImage => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "SDButtonHoverImage", string.Empty);
         public string MapRendererVersion => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "AssetVersion", string.Empty);
         public int MapRendererWidth => Math.Max(64, Math.Min(4096, clientDefinitionsIni.GetIntValue("MapPreviewRenderer", "Width", 1920)));
         public int MapRendererHeight => Math.Max(64, Math.Min(4096, clientDefinitionsIni.GetIntValue("MapPreviewRenderer", "Height", 880)));

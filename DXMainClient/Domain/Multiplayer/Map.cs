@@ -602,15 +602,11 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Resolve this view's image source without changing shared map state.
-        /// A completed external render is an immediate PNG; embedded extraction
-        /// continues to use the existing non-immediate cache-manager path.
+        /// Resolve the original preview source without changing shared map state:
+        /// a nearby PNG if there is one, otherwise the embedded PreviewPack.
         /// </summary>
-        internal MapPreviewSource ResolvePreviewSource(bool preferGenerated)
-        {
-            return (preferGenerated ? MapPreviewGenerationService.CachedSource(this) : null)
-                ?? new MapPreviewSource(this, IsImmediatePreviewImageAvailable() ? PreviewPath : null);
-        }
+        internal MapPreviewSource ResolveOriginalPreviewSource()
+            => new MapPreviewSource(this, IsImmediatePreviewImageAvailable() ? PreviewPath : null);
 
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
