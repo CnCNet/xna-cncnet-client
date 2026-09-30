@@ -47,11 +47,6 @@ namespace DTAClient.Domain.Multiplayer
 
         public PingValue Ping { get; set; } = PingValue.Unknown;
 
-        /// <summary>
-        /// The handicap level for a human player.
-        /// 0 = Disabled, 1 = Level 1, 2 = Level 2, 3 = Level 3.
-        /// </summary>
-        public int Handicap { get; set; }
 
         /// <summary>
         /// The difficulty level of an AI player for in-client purposes.
@@ -80,7 +75,6 @@ namespace DTAClient.Domain.Multiplayer
             sb.Append(AILevel);
             sb.Append(IsAI.ToString());
             sb.Append(Index);
-            sb.Append(Handicap);
             return sb.ToString();
         }
 
@@ -94,7 +88,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             var values = str.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (values.Length < 8)
+            if (values.Length != 8)
                 return null;
 
             var pInfo = new PlayerInfo();
@@ -107,7 +101,6 @@ namespace DTAClient.Domain.Multiplayer
             pInfo.AILevel = Conversions.IntFromString(values[5], 0);
             pInfo.IsAI = Conversions.BooleanFromString(values[6], true);
             pInfo.Index = Conversions.IntFromString(values[7], 0);
-            pInfo.Handicap = values.Length > 8 ? Conversions.IntFromString(values[8], 0) : 0;
 
             return pInfo;
         }
