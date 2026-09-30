@@ -609,8 +609,7 @@ namespace DTAClient.Domain.Multiplayer
         internal MapPreviewSource ResolvePreviewSource(bool preferGenerated)
         {
             return (preferGenerated ? MapPreviewGenerationService.CachedSource(this) : null)
-                ?? new MapPreviewSource(this,
-                    IsImmediatePreviewImageAvailable() ? SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).FullName : null);
+                ?? new MapPreviewSource(this, IsImmediatePreviewImageAvailable() ? PreviewPath : null);
         }
 
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;

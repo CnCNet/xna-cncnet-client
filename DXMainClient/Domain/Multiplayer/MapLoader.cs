@@ -847,7 +847,16 @@ namespace DTAClient.Domain.Multiplayer
 
         private Texture2D LoadPreviewTexture(MapPreviewSource source, bool syncLoadOnCacheMiss)
         {
-            // A PNG already on disk is immediate, regardless of its producer.
+            // Generated PNGs are not assets: AssetLoader names are relative to its search
+            // paths, so load these directly from their absolute cache path.
+            if (source.IsGenerated)
+            {
+                using Image image = Image.Load(source.ImmediateImagePath);
+                return AssetLoader.TextureFromImage(image)
+                    ?? throw new IOException("Cannot create texture from " + source.ImmediateImagePath);
+            }
+
+            // Original nearby PNGs keep the relative-path asset lookup.
             if (source.ImmediateImagePath != null)
                 return AssetLoader.LoadTextureUncached(source.ImmediateImagePath);
 

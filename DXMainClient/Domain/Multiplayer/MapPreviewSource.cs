@@ -17,6 +17,7 @@ namespace DTAClient.Domain.Multiplayer
     internal sealed class MapPreviewSource
     {
         public Map Map { get; }
+        /// <summary>Relative asset path for an original preview; absolute cache path for a generated one.</summary>
         public string? ImmediateImagePath { get; }
         public bool IsGenerated { get; }
         private readonly double[]? transform;
