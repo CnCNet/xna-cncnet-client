@@ -9,10 +9,6 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.IO;
-using System.Reflection;
-using ClientCore.Settings;
-using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {
@@ -39,7 +35,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkBlackChatBackground;
         private XNAClientCheckBox chkShowHiddenObjects;
         private XNAClientCheckBox chkRecordReplays;
-        private XNAClientCheckBox chkLiveAPMTracker;
 
         private XNAControl topBar;
 
@@ -168,25 +163,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     chkRecordReplays.Bottom + 30, 0, 0);
             }
 
-            // Live APM Tracker checkbox (D2K only)
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                // For D2K, the last checkbox is chkTooltips (since it's not TS)
-                chkLiveAPMTracker = new XNAClientCheckBox(WindowManager);
-                chkLiveAPMTracker.Name = nameof(chkLiveAPMTracker);
-                chkLiveAPMTracker.ClientRectangle = new Rectangle(
-                    lblScrollRate.X,
-                    chkTooltips.Bottom + 24, 0, 0);
-                chkLiveAPMTracker.Text = "Live APM Tracker".L10N("Client:DTAConfig:LiveAPMTracker");
-
-                AddChild(chkLiveAPMTracker);
-
-                // Adjust player name position to be after Live APM Tracker
-                lblPlayerName.ClientRectangle = new Rectangle(
-                    lblScrollRate.X,
-                    chkLiveAPMTracker.Bottom + 30, 0, 0);
-            }
-
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = nameof(tbPlayerName);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
@@ -247,7 +223,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         public override void Load()
         {
             base.Load();
-            
+
             int scrollRate = ReverseScrollRate(IniSettings.ScrollRate);
 
             if (scrollRate >= trbScrollRate.MinValue && scrollRate <= trbScrollRate.MaxValue)
@@ -260,45 +236,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (chkRecordReplays != null)
                 chkRecordReplays.Checked = IniSettings.RecordReplays;
-
-            // Load Live APM Tracker setting (D2K only)
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K && chkLiveAPMTracker != null)
-            {
-                // Use reflection to safely access LiveAPMTracker property in case it doesn't exist in old builds
-                var liveAPMTrackerProperty = typeof(UserINISettings).GetProperty("LiveAPMTracker", BindingFlags.Public | BindingFlags.Instance);
-                if (liveAPMTrackerProperty != null)
-                {
-                    try
-                    {
-                        var liveAPMTrackerSetting = liveAPMTrackerProperty.GetValue(UserINISettings.Instance) as BoolSetting;
-                        if (liveAPMTrackerSetting != null)
-                        {
-                            chkLiveAPMTracker.Checked = liveAPMTrackerSetting.Value;
-                            Logger.Log($"Loaded Live APM Tracker setting: {liveAPMTrackerSetting.Value}");
-                        }
-                        else
-                        {
-                            chkLiveAPMTracker.Checked = false;
-                            Logger.Log("LiveAPMTracker setting object is null, defaulting to false");
-                        }
-                    }
-                    catch (MissingMethodException ex)
-                    {
-                        Logger.Log($"LiveAPMTracker property getter not available: {ex.Message}, defaulting to false");
-                        chkLiveAPMTracker.Checked = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log($"Error accessing LiveAPMTracker property: {ex.Message}, defaulting to false");
-                        chkLiveAPMTracker.Checked = false;
-                    }
-                }
-                else
-                {
-                    Logger.Log("LiveAPMTracker property not found via reflection, defaulting to false");
-                    chkLiveAPMTracker.Checked = false;
-                }
-            }
         }
 
         public override bool Save()
@@ -314,96 +251,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (chkRecordReplays != null)
                 IniSettings.RecordReplays.Value = chkRecordReplays.Checked;
-
-            // Save Live APM Tracker and copy files (D2K only)
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K && chkLiveAPMTracker != null)
-            {
-                try
-                {
-                    bool isEnabled = chkLiveAPMTracker.Checked;
-                    
-                    // Use reflection to safely check if property exists before accessing
-                    var liveAPMTrackerProperty = typeof(UserINISettings).GetProperty("LiveAPMTracker", BindingFlags.Public | BindingFlags.Instance);
-                    if (liveAPMTrackerProperty != null)
-                    {
-                        try
-                        {
-                            var liveAPMTrackerSetting = liveAPMTrackerProperty.GetValue(UserINISettings.Instance) as BoolSetting;
-                            if (liveAPMTrackerSetting != null)
-                            {
-                                liveAPMTrackerSetting.Value = isEnabled;
-                                Logger.Log($"Saved Live APM Tracker setting: {isEnabled}");
-                            }
-                            else
-                            {
-                                Logger.Log("LiveAPMTracker setting is null, cannot save");
-                            }
-                        }
-                        catch (MissingMethodException ex)
-                        {
-                            Logger.Log($"LiveAPMTracker property getter not available, skipping save: {ex.Message}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log($"Failed to save Live APM Tracker setting: {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log("LiveAPMTracker property not found via reflection, skipping save");
-                    }
-
-                    // Copy files based on enabled/disabled state
-                    string sourceDirectory = isEnabled
-                        ? SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", "Perennie-LiveAPM", "apm")
-                        : SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", "Perennie-LiveAPM", "default");
-                    string targetDirectory = SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k");
-
-                    if (Directory.Exists(sourceDirectory))
-                    {
-                        string[] filesToCopy = Directory.GetFiles(sourceDirectory);
-                        
-                        if (filesToCopy.Length > 0)
-                        {
-                            foreach (string sourceFile in filesToCopy)
-                            {
-                                string fileName = Path.GetFileName(sourceFile);
-                                string targetFile = SafePath.CombineFilePath(targetDirectory, fileName);
-
-                                try
-                                {
-                                    // Remove read-only attribute if it exists
-                                    FileInfo targetFileInfo = SafePath.GetFile(targetFile);
-                                    if (targetFileInfo.Exists && targetFileInfo.IsReadOnly)
-                                    {
-                                        targetFileInfo.IsReadOnly = false;
-                                    }
-
-                                    File.Copy(sourceFile, targetFile, true);
-                                    Logger.Log($"Copied Live APM Tracker file from {sourceFile} to {targetFile}");
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log($"Failed to copy Live APM Tracker file {fileName}: {ex.Message}");
-                                }
-                            }
-                            Logger.Log($"Live APM Tracker {(isEnabled ? "enabled" : "disabled")}: Copied {filesToCopy.Length} file(s) from {sourceDirectory} to {targetDirectory}");
-                        }
-                        else
-                        {
-                            Logger.Log($"Live APM Tracker source directory is empty: {sourceDirectory}");
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log($"Live APM Tracker source directory not found: {sourceDirectory}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Failed to save Live APM Tracker setting or copy files: {ex.Message}");
-                }
-            }
 
             return restartRequired;
         }

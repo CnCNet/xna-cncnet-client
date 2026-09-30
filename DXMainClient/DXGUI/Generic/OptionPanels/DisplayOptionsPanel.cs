@@ -1,6 +1,5 @@
 using ClientCore.Extensions;
 using ClientCore;
-using ClientCore.Settings;
 using ClientGUI;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
@@ -50,7 +49,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkIntegerScaledClient;
         private XNAClientDropDown ddClientTheme;
         private XNAClientDropDown ddTranslation;
-        private XNAClientDropDown ddBorderColor;
 
         private XNALabel lblCompatibilityFixes;
         private XNALabel lblGameCompatibilityFix;
@@ -104,19 +102,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     resolutions.Add(customRes);
                 }
 
-                // Add D2K-specific resolutions that should always be available
-                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-                {
-                    ScreenResolution res640x480 = new ScreenResolution(640, 480);
-                    ScreenResolution res960x720 = new ScreenResolution(960, 720);
-                    
-                    // Check if they fit within the maximum resolution and add them if not already present
-                    if (maximumIngameResolution.Fits(res640x480))
-                        resolutions.Add(res640x480);
-                    if (maximumIngameResolution.Fits(res960x720))
-                        resolutions.Add(res960x720);
-                }
-
                 foreach (var res in resolutions)
                     ddIngameResolution.AddItem(res.ToString());
             }
@@ -161,41 +146,10 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 });
             }
 
-            // Border Color dropdown (D2K only)
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                var lblBorderColor = new XNALabel(WindowManager);
-                lblBorderColor.Name = nameof(lblBorderColor);
-                lblBorderColor.ClientRectangle = new Rectangle(lblRenderer.X,
-                    ddRenderer.Bottom + 16, 0, 0);
-                lblBorderColor.Text = "Border Color:".L10N("Client:DTAConfig:BorderColor");
-
-                ddBorderColor = new XNAClientDropDown(WindowManager);
-                ddBorderColor.Name = nameof(ddBorderColor);
-                ddBorderColor.ClientRectangle = new Rectangle(
-                    ddRenderer.X,
-                    lblBorderColor.Y - 2,
-                    ddRenderer.Width,
-                    ddRenderer.Height);
-
-                ddBorderColor.AddItem("Default");
-                ddBorderColor.AddItem("Blue");
-                ddBorderColor.AddItem("Green");
-                ddBorderColor.AddItem("Purple");
-                ddBorderColor.AddItem("Yellow");
-
-                AddChild(lblBorderColor);
-                AddChild(ddBorderColor);
-            }
-
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
             chkWindowedMode.Name = nameof(chkWindowedMode);
-            // Position Windowed Mode after Border Color if D2K, otherwise after Renderer
-            int windowedModeY = ClientConfiguration.Instance.ClientGameType == ClientType.D2K && ddBorderColor != null
-                ? ddBorderColor.Bottom + 16
-                : ddRenderer.Bottom + 16;
             chkWindowedMode.ClientRectangle = new Rectangle(lblDetailLevel.X,
-                windowedModeY, 0, 0);
+                ddRenderer.Bottom + 16, 0, 0);
             chkWindowedMode.Text = "Windowed Mode".L10N("Client:DTAConfig:WindowedMode");
             chkWindowedMode.CheckedChanged += ChkWindowedMode_CheckedChanged;
 
@@ -296,19 +250,16 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             var lblClientTheme = new XNALabel(WindowManager);
             lblClientTheme.Name = nameof(lblClientTheme);
-            // Position theme selector below DDWrapper checkbox (which is at Y=147) to avoid overlap
-            // Use chkBackBufferInVRAM position as reference, or position after DDWrapper if it exists
-            int themeY = chkBackBufferInVRAM.Bottom + 16;
             lblClientTheme.ClientRectangle = new Rectangle(
                 lblClientResolution.X,
-                themeY, 0, 0);
+                chkWindowedMode.Y, 0, 0);
             lblClientTheme.Text = "Client Theme:".L10N("Client:DTAConfig:ClientTheme");
 
             ddClientTheme = new XNAClientDropDown(WindowManager);
             ddClientTheme.Name = nameof(ddClientTheme);
             ddClientTheme.ClientRectangle = new Rectangle(
                 ddClientResolution.X,
-                lblClientTheme.Y - 2,
+                chkWindowedMode.Y,
                 ddClientResolution.Width,
                 ddRenderer.Height);
 
@@ -626,10 +577,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 // enabled through their own config INI file
                 // (for example DxWnd and CnC-DDRAW)
 
-                // For D2K, ddraw.ini is in the d2k subdirectory
-                string rendererConfigPath = SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName);
-
-                IniFile rendererSettingsIni = new IniFile(rendererConfigPath);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName));
 
                 chkWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
                     renderer.WindowedModeKey, false);
@@ -755,29 +703,25 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             directDrawWrapperManager.Save(newSelectedRenderer);
 
-            DirectDrawWrapper selectedRenderer = directDrawWrapperManager.SelectedRenderer;
-
-            if (selectedRenderer.UsesCustomWindowedOption())
+            if (directDrawWrapperManager.SelectedRenderer.UsesCustomWindowedOption())
             {
-                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, directDrawWrapperManager.SelectedRenderer.ConfigFileName));
 
-                rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
-                    selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
+                rendererSettingsIni.SetBooleanValue(directDrawWrapperManager.SelectedRenderer.WindowedModeSection,
+                    directDrawWrapperManager.SelectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
 
-                if (!string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey))
+                if (!string.IsNullOrEmpty(directDrawWrapperManager.SelectedRenderer.BorderlessWindowedModeKey))
                 {
                     bool borderlessModeIniValue = chkBorderlessWindowedMode.Checked;
-                    if (selectedRenderer.IsBorderlessWindowedModeKeyReversed)
+                    if (directDrawWrapperManager.SelectedRenderer.IsBorderlessWindowedModeKeyReversed)
                         borderlessModeIniValue = !borderlessModeIniValue;
 
-                    rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
-                        selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
+                    rendererSettingsIni.SetBooleanValue(directDrawWrapperManager.SelectedRenderer.WindowedModeSection,
+                        directDrawWrapperManager.SelectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
                 }
 
                 rendererSettingsIni.WriteIniFile();
             }
-
-            IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
             {
