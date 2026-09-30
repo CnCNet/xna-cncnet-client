@@ -755,7 +755,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             directDrawWrapperManager.Save(newSelectedRenderer);
 
-            if (directDrawWrapperManager.SelectedRenderer.UsesCustomWindowedOption())
+            DirectDrawWrapper selectedRenderer = directDrawWrapperManager.SelectedRenderer;
+
+            if (selectedRenderer.UsesCustomWindowedOption())
             {
                 IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
 
@@ -771,6 +773,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
                         selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
                 }
+
+                rendererSettingsIni.WriteIniFile();
             }
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
