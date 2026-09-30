@@ -47,7 +47,6 @@ namespace DTAClient.Domain.Multiplayer
 
         public PingValue Ping { get; set; } = PingValue.Unknown;
 
-
         /// <summary>
         /// The difficulty level of an AI player for in-client purposes.
         /// Logical increasing scale, like in the vanilla Tiberian Sun UI.
