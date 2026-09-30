@@ -127,7 +127,7 @@ namespace ClientCore
             IntegerScaledClient = new BoolSetting(iniFile, VIDEO, "IntegerScaledClient", ClientConfiguration.Instance.UserDefault_IntegerScaledClient);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
-            BorderColor = new StringSetting(iniFile, VIDEO, "BorderColor", "Default");
+            BorderColor = new StringSetting(iniFile, VIDEO, "BorderColor", "Default"); // D2K
 
             // RA1 reads MultiplayerScoreVolume instead of ScoreVolume. This value is handled when saving
             ScoreVolume = new DoubleSetting(iniFile,
