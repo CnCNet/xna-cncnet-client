@@ -13,7 +13,8 @@ class PreviewTests {
  static void Config(string key,string value){Definitions.GetType().GetMethod("SetStringValue").Invoke(Definitions,new object[]{"MapPreviewRenderer",key,value});}
  static object Map(string name){var m=Activator.CreateInstance(MapType,new object[]{name,false});MapType.GetMethod("CalculateSHA").Invoke(m,null);MapType.GetProperty("PreviewPath").SetValue(m,name+".png",null);return m;}
  static string Sha(object m){return (string)MapType.GetProperty("SHA1").GetValue(m,null);}
- static Task<bool> Request(object m,bool force){return (Task<bool>)Call("Request",m,force);}
+ static readonly object View=new object();
+ static Task<bool> Request(object m,bool force){return (Task<bool>)Call("Request",View,m,force);}
  static void Check(bool ok,string text){if(!ok)throw new Exception(text);Console.WriteLine("PASS: "+text);}
  static void Register(params object[] maps){var arr=Array.CreateInstance(MapType,maps.Length);for(int i=0;i<maps.Length;i++)arr.SetValue(maps[i],i);Call("Register",arr);((Task)Call("PruneAsync")).GetAwaiter().GetResult();}
  static void Architecture(object map,Assembly asm){

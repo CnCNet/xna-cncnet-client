@@ -34,7 +34,7 @@ The first setting is the **Allow generated map previews** checkbox in Display op
 
 `Client/MapPreviewCache/<existing-map-SHA1>.png` and `.json` belong to the client. Original files are never overwritten. On map-list refresh/startup, orphaned hash entries are pruned. Custom-map deletion also removes its entry unless another loaded map with that hash still exists. Deleted or edited maps cannot publish stale in-flight results. Temporary renderer output is removed after success, failure, cancellation and timeout. No additional output files should be created outside the staging location.
 
-One renderer runs at a time. Requests for the same map hash are coalesced. Starting a match cancels rendering; no job is published during a match. Nonzero exits, invalid images and timeouts are logged with the map path, while the original/current preview stays available. A killed client can leave staging files; only orphaned managed hash PNG/JSON entries are pruned automatically in this draft.
+One renderer runs at a time. Requests for the same map hash are coalesced. Only maps a preview is currently showing are rendered: selecting another map cancels a render nobody is showing any more, and skips queued ones. Starting a match cancels rendering; no job is published during a match. Nonzero exits, invalid images and timeouts are logged with the map path, while the original/current preview stays available. A killed client can leave staging files; only orphaned managed hash PNG/JSON entries are pruned automatically in this draft.
 
 ## Optional coordinate metadata
 

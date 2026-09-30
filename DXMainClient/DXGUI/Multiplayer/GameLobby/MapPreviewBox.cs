@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 _gameModeMap = value;
                 if (previewGenerationStatus != null) previewGenerationStatus.Text = "";
                 UpdateMap();
-                _ = MapPreviewGenerationService.Request(value?.Map);
+                _ = MapPreviewGenerationService.Request(this, value?.Map);
             }
         }
 
@@ -230,7 +230,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapContextMenu.AddItem(showInFolderItem);
             mapContextMenu.AddItem(new XNAContextMenuItem {
                 Text = "Regenerate HD Preview".L10N("Client:Main:RegenerateMapPreview"),
-                SelectAction = () => { _ = MapPreviewGenerationService.Request(GameModeMap?.Map, true); },
+                SelectAction = () => { _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map, true); },
                 SelectableChecker = () => GameModeMap != null && MapPreviewGenerationService.Selected
             });
             previewGenerationStatus = new XNALabel(WindowManager) { Name = "lblRenderedPreviewStatus", Text = "", ClientRectangle = new Rectangle(4, 4, 0, 0), DrawOrder = 500 };
@@ -250,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UserINISettings.Instance.SettingsSaved += (sender, args) => WindowManager.AddCallback(new Action(() => {
                 previewGenerationStatus.Text = "";
                 UpdateMap();
-                _ = MapPreviewGenerationService.Request(GameModeMap?.Map);
+                _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map);
             }), null);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);

@@ -21,8 +21,11 @@ namespace DTAClient.Domain.Multiplayer
         private static readonly object Sync = new();
         private static readonly HashSet<string> Pending = new(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, Map> Maps = new(StringComparer.OrdinalIgnoreCase);
+        // The map hash each view currently shows. Renders no view wants are cancelled or skipped.
+        private static readonly Dictionary<object, string> Wanted = new();
         private static bool inGame;
         private static CancellationTokenSource? activeCancellation;
+        private static string? activeHash;
         private static readonly MapPreviewDiskCache Cache = new(CacheDirectory, new ExternalMapPreviewExtractor());
         private static string Root => ProgramConstants.GamePath;
         internal static string CacheDirectory => Path.Combine(Root, "Client", "MapPreviewCache");
@@ -41,6 +44,14 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         private static void CancelRendering() => activeCancellation?.Cancel();
+
+        private static bool IsWanted(string hash) => Wanted.Values.Any(h => string.Equals(h, hash, StringComparison.OrdinalIgnoreCase));
+
+        private static void CancelUnwanted()
+        {
+            if (activeHash != null && !IsWanted(activeHash))
+                CancelRendering();
+        }
 
         private static bool StillPresent(Map map) => Maps.Values.Any(m => m.SHA1 == map.SHA1 && File.Exists(m.CompleteFilePath));
 
@@ -78,9 +89,29 @@ namespace DTAClient.Domain.Multiplayer
         public static string? CachedImage(Map map) => CachedSource(map)?.ImmediateImagePath;
         internal static MapPreviewSource? CachedSource(Map map) => Selected ? Cache.Read(map) : null;
 
-        public static Task<bool> Request(Map? map, bool force = false)
+        /// <summary>Records the map a view now shows and renders it if needed.
+        /// A render that no view shows any more is cancelled, or skipped if still queued.</summary>
+        public static Task<bool> Request(object view, Map? map, bool force = false)
         {
-            if (map == null || !Selected || !MapPreviewDiskCache.ValidHash(map.SHA1)) return Task.FromResult(false);
+            if (map == null || !Selected || !MapPreviewDiskCache.ValidHash(map.SHA1))
+            {
+                lock (Sync)
+                {
+                    Wanted.Remove(view);
+                    CancelUnwanted();
+                }
+                return Task.FromResult(false);
+            }
+            lock (Sync)
+            {
+                Wanted[view] = map.SHA1;
+                CancelUnwanted();
+            }
+            return Enqueue(map, force);
+        }
+
+        private static Task<bool> Enqueue(Map map, bool force)
+        {
             lock (Sync)
             {
                 if (inGame || !Pending.Add(map.SHA1)) return Task.FromResult(false);
@@ -96,8 +127,9 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     lock (Sync)
                     {
-                        if (inGame || !StillPresent(map) || !Selected) return false;
+                        if (inGame || !StillPresent(map) || !Selected || !IsWanted(map.SHA1)) return false;
                         activeCancellation = cancellation;
+                        activeHash = map.SHA1;
                     }
                     var config = ClientConfiguration.Instance;
                     var options = new MapPreviewRenderOptions(Root, config.MapRendererPath,
@@ -125,14 +157,19 @@ namespace DTAClient.Domain.Multiplayer
                 }
                 finally
                 {
+                    bool retry;
                     lock (Sync)
                     {
                         activeCancellation = null;
+                        activeHash = null;
                         Pending.Remove(map.SHA1);
+                        // A view may have switched back to this map while its cancelled render was stopping.
+                        retry = cancellation.IsCancellationRequested && !inGame && Selected && IsWanted(map.SHA1);
                     }
                     Queue.Release();
                     Progress?.Invoke(map, string.Empty);
                     Completed?.Invoke(map, changed, error);
+                    if (retry) _ = Enqueue(map, force);
                 }
             });
         }
