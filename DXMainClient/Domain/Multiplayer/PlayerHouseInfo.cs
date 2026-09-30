@@ -125,6 +125,8 @@ namespace DTAClient.Domain.Multiplayer
             overrideGameRandomLocations |= ClientConfiguration.Instance.UseClientRandomStartLocations;
             if (IsSpectator)
             {
+                StartingWaypoint = 90;
+
                 // D2K: using a sentinel waypoint index (like 90) can result in invalid coordinates
                 // (e.g. 255,255 "outside map") if the game/spawner tries to spawn something for the spectator house.
                 // Use -1 so the D2K spawn writer falls back to StartingLocation=0 (game-chosen random).
@@ -133,10 +135,7 @@ namespace DTAClient.Domain.Multiplayer
                     RealStartingWaypoint = -1;
                     StartingWaypoint = -1;
                 }
-                else
-                {
-                    StartingWaypoint = 90;
-                }
+
                 return;
             }
 
