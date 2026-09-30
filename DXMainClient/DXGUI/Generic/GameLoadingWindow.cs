@@ -219,6 +219,26 @@ namespace DTAClient.DXGUI.Generic
             Enable();
         }
 
+        /// <summary>
+        /// Opens the window on the Replays tab with the given replay selected.
+        /// </summary>
+        /// <param name="fileName">The replay's file name in the replay directory.</param>
+        public void OpenReplay(string fileName)
+        {
+            if (replaysPanel == null)
+                return;
+
+            replaysPanel.SelectOnNextRefresh(fileName);
+
+            // Switching tabs refreshes the list, which selects the replay.
+            if (!IsReplayTabSelected)
+                tabControl.SelectedTab = REPLAYS_TAB_INDEX;
+            else if (Enabled)
+                RefreshSelectedTab();
+
+            Enable();
+        }
+
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             Disable();
