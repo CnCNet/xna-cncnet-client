@@ -1670,7 +1670,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Writing spawn.ini");
 
             // For D2K, write spawn.ini directly to d2k\spawn.ini instead of the root
-            string spawnIniPath = ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase)
+            string spawnIniPath = ClientConfiguration.Instance.ClientGameType == ClientType.D2K
                 ? SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", ProgramConstants.SPAWNER_SETTINGS)
                 : SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
             FileInfo spawnerSettingsFile = SafePath.GetFile(spawnIniPath);
@@ -1709,7 +1709,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
             
             // D2K uses a different spawn.ini format
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 // For D2K, Scenario should be the map filename without extension
                 string mapFileName = Path.GetFileNameWithoutExtension(Map.BaseFilePath);
@@ -1761,7 +1761,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 dd.ApplySpawnIniCode(spawnIni);
 
             // D2K-specific format conversions
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 // Convert boolean values to Yes/No format
                 string[] booleanKeys = { "ShortGame", "Crates", "DisableEngineer", "DisableTurrets", "NoCarryall" };
@@ -1844,7 +1844,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
 
                 // D2K multiplayer: each other player's start in their section (0-based start slot)
-                if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
                 {
                     int otherStart = pHouseInfo.StartingWaypoint >= 0 ? pHouseInfo.StartingWaypoint : 0;
                     spawnIni.SetIntValue(sectionName, "StartingLocation", otherStart);
@@ -2075,7 +2075,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map.ApplyMapIniVars(mapIni);
 
             // D2K-specific: Handle build queues checkbox - set Vars based on checkbox state
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 GameLobbyCheckBox buildQueuesCheckBox = CheckBoxes.Find(chk => chk.Name == "chkBuildQueues");
                 if (buildQueuesCheckBox == null)
@@ -2117,7 +2117,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // D2K-specific: Write the modified map INI to d2k\data\maps\<scenario>.ini
             // This is where the game actually reads the map INI from (not spawnmap.ini)
             // We write here AFTER modifying it with Vars, so the game gets the updated version
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 // Get scenario name from map file path (same logic as WriteSpawnIni uses)
                 // BaseFilePath is like "Maps/Standard/032cf10c246b5fbfa54b78451786a9fe1ff58678"

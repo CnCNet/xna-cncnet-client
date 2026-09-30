@@ -79,7 +79,7 @@ namespace DTAClient.Domain
         /// </summary>
         private static int GetSideFromIniOrSection(IniFile iniFile, string sectionName)
         {
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 if (sectionName.Length >= 3)
                 {
@@ -100,7 +100,7 @@ namespace DTAClient.Domain
         /// </summary>
         private static int GetCampaignIdFromIniOrSection(IniFile iniFile, string sectionName)
         {
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 if (sectionName.Length >= 5 && char.IsDigit(sectionName[3]) && char.IsDigit(sectionName[4])
                     && int.TryParse(sectionName.Substring(3, 2), out int id))

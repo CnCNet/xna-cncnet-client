@@ -216,7 +216,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.WriteSpawnIniAdditions(iniFile);
 
             // D2K skirmish needs Host, Port, and GameID
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 iniFile.SetStringValue("Settings", "Host", "Yes");
                 iniFile.SetIntValue("Settings", "Port", ProgramConstants.LAN_INGAME_PORT);

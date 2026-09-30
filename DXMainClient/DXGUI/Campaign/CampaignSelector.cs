@@ -456,7 +456,7 @@ namespace DTAClient.DXGUI.Campaign
             IniSection spawnIniSettings = new("Settings");
 
             // D2K uses a different spawn.ini format
-            if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
                 // For D2K, Scenario should be the map filename without extension
                 // The game adds an underscore prefix, so we remove it if present
