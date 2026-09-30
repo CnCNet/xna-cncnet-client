@@ -627,9 +627,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 // (for example DxWnd and CnC-DDRAW)
 
                 // For D2K, ddraw.ini is in the d2k subdirectory
-                string rendererConfigPath = ClientConfiguration.Instance.ClientGameType == ClientType.D2K
-                    ? SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", renderer.ConfigFileName)
-                    : SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName);
+                string rendererConfigPath = SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName);
 
                 IniFile rendererSettingsIni = new IniFile(rendererConfigPath);
 
@@ -687,52 +685,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
             }
-
-            // Load border color setting (D2K only)
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K && ddBorderColor != null)
-            {
-                try
-                {
-                    // Use reflection to safely check if property exists before accessing
-                    var borderColorProperty = typeof(UserINISettings).GetProperty("BorderColor", BindingFlags.Public | BindingFlags.Instance);
-                    if (borderColorProperty != null)
-                    {
-                        var borderColorSetting = borderColorProperty.GetValue(UserINISettings.Instance) as StringSetting;
-                        if (borderColorSetting != null)
-                        {
-                            string borderColor = borderColorSetting.Value;
-                            Logger.Log($"Loading border color setting: {borderColor}");
-                            int borderColorIndex = ddBorderColor.Items.FindIndex(i => i.Text.Equals(borderColor, StringComparison.OrdinalIgnoreCase));
-                            if (borderColorIndex > -1)
-                            {
-                                ddBorderColor.SelectedIndex = borderColorIndex;
-                                Logger.Log($"Set border color dropdown to index {borderColorIndex} ({borderColor})");
-                            }
-                            else
-                            {
-                                Logger.Log($"Border color '{borderColor}' not found in dropdown, defaulting to 'Default'");
-                                ddBorderColor.SelectedIndex = 0;
-                            }
-                        }
-                        else
-                        {
-                            Logger.Log("BorderColor setting is null, defaulting to 'Default'");
-                            ddBorderColor.SelectedIndex = 0;
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log("BorderColor property not found via reflection, defaulting to 'Default'");
-                        ddBorderColor.SelectedIndex = 0;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // BorderColor property not available (old build), default to "Default"
-                    Logger.Log($"Failed to load border color setting: {ex.Message}");
-                    ddBorderColor.SelectedIndex = 0;
-                }
-            }
         }
 
         public override bool Save()
@@ -744,39 +696,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             ScreenResolution ingameRes = ddIngameResolution.SelectedItem.Text;
 
             (IniSettings.IngameScreenWidth.Value, IniSettings.IngameScreenHeight.Value) = ingameRes;
-
-            // For D2K, also update dune2000.ini with the game resolution and fullscreen setting
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                string dune2000IniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", "dune2000.ini");
-                if (File.Exists(dune2000IniPath))
-                {
-                    try
-                    {
-                        IniFile dune2000Ini = new IniFile(dune2000IniPath);
-                        dune2000Ini.SetIntValue("Options", "GameWidth", ingameRes.Width);
-                        dune2000Ini.SetIntValue("Options", "GameHeight", ingameRes.Height);
-                        
-                        // Set Fullscreen based on windowed mode checkboxes
-                        // If windowed mode or borderless windowed mode is enabled, set Fullscreen=No
-                        // Otherwise, set Fullscreen=Yes
-                        bool isWindowed = chkWindowedMode.Checked || chkBorderlessWindowedMode.Checked;
-                        string fullscreenValue = !isWindowed ? "Yes" : "No";
-                        dune2000Ini.SetStringValue("Options", "Fullscreen", fullscreenValue);
-                        
-                        dune2000Ini.WriteIniFile();
-                        Logger.Log($"Updated dune2000.ini with resolution {ingameRes.Width}x{ingameRes.Height} and Fullscreen={(!isWindowed ? "Yes" : "No")}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log($"Failed to update dune2000.ini: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    Logger.Log($"dune2000.ini not found at {dune2000IniPath}");
-                }
-            }
 
             // Calculate drag selection distance, scale it with resolution width
             // CustomDragDistance > 0 overrides auto-scaling for players who need a specific value
