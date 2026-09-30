@@ -87,8 +87,6 @@ namespace DTAClient.DXGUI.Campaign
         };
 
         private Mission missionToLaunch;
-        private DateTime? campaignGameProcessStartTime;
-
         private List<Mission> _allMissions = [];
         public IReadOnlyCollection<Mission> AllMissions { get => _allMissions; }
 
@@ -562,7 +560,6 @@ namespace DTAClient.DXGUI.Campaign
 
             discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
-            campaignGameProcessStartTime = DateTime.UtcNow;
 
             GameProcessLogic.StartGameProcess(WindowManager);
         }
