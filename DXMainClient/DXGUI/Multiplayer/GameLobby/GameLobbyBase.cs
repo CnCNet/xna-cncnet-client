@@ -2289,18 +2289,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!stackedStartingLocations)
                 return;
 
-            // We also need to modify spawn.ini because WriteSpawnIni
-            // doesn't handle stacked positions.
-            // We could move this code there, but then we'd have to process
-            // the stacked locations in two places (here and in WriteSpawnIni)
-            // because we'd need to modify the map anyway.
-            // Not sure whether having it like this or in WriteSpawnIni
-            // is better, but this implementation is quicker to write for now.
-            // For D2K, spawn.ini is in d2k\spawn.ini instead of the root
-            string spawnIniPath = ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase)
-                ? SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", ProgramConstants.SPAWNER_SETTINGS)
-                : SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
-            IniFile spawnIni = new IniFile(spawnIniPath);
+            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawn.ini");
 
             // For each player, check if they're sharing the starting location
             // with someone else
