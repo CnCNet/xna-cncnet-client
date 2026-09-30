@@ -161,7 +161,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientColorDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
-        protected XNAClientDropDown[] ddPlayerHandicaps;
 
         protected XNAClientButton btnPlayerExtraOptionsOpen;
         protected PlayerExtraOptionsPanel PlayerExtraOptionsPanel;
@@ -1078,7 +1077,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerColors = new XNAClientColorDropDown[MAX_PLAYER_COUNT];
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
-            ddPlayerHandicaps = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
             int playerOptionVecticalMargin = ConfigIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
             int playerOptionHorizontalMargin = ConfigIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
@@ -1088,7 +1086,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int colorWidth = ConfigIni.GetIntValue(Name, "ColorWidth", 79);
             int startWidth = ConfigIni.GetIntValue(Name, "StartWidth", 49);
             int teamWidth = ConfigIni.GetIntValue(Name, "TeamWidth", 46);
-            int handicapWidth = ConfigIni.GetIntValue(Name, "HandicapWidth", 70);
             int locationX = ConfigIni.GetIntValue(Name, "PlayerOptionLocationX", 25);
             int locationY = ConfigIni.GetIntValue(Name, "PlayerOptionLocationY", 24);
 
@@ -1172,38 +1169,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerStart.Enabled = false;
                 ddPlayerStart.Tag = true;
 
-                var ddPlayerHandicap = new XNAClientDropDown(WindowManager);
-                ddPlayerHandicap.Name = "ddPlayerHandicap" + i;
-                ddPlayerHandicap.ClientRectangle = new Rectangle(
-                    ddPlayerStart.Right + playerOptionHorizontalMargin,
-                    ddPlayerName.Y, handicapWidth, DROP_DOWN_HEIGHT);
-                ddPlayerHandicap.AddItem("Level 1".L10N("Client:Main:HandicapLevel1"));
-                ddPlayerHandicap.AddItem("Level 2".L10N("Client:Main:HandicapLevel2"));
-                ddPlayerHandicap.AddItem("Level 3".L10N("Client:Main:HandicapLevel3"));
-                ddPlayerHandicap.AllowDropDown = false;
-                ddPlayerHandicap.SelectedIndexChanged += CopyPlayerDataFromUI;
-                ddPlayerHandicap.Tag = false;
-
                 ddPlayerNames[i] = ddPlayerName;
                 ddPlayerSides[i] = ddPlayerSide;
                 ddPlayerColors[i] = ddPlayerColor;
                 ddPlayerStarts[i] = ddPlayerStart;
                 ddPlayerTeams[i] = ddPlayerTeam;
-                ddPlayerHandicaps[i] = ddPlayerHandicap;
 
                 PlayerOptionsPanel.AddChild(ddPlayerName);
                 PlayerOptionsPanel.AddChild(ddPlayerSide);
                 PlayerOptionsPanel.AddChild(ddPlayerColor);
                 PlayerOptionsPanel.AddChild(ddPlayerStart);
                 PlayerOptionsPanel.AddChild(ddPlayerTeam);
-                PlayerOptionsPanel.AddChild(ddPlayerHandicap);
 
                 ReadINIForControl(ddPlayerName);
                 ReadINIForControl(ddPlayerSide);
                 ReadINIForControl(ddPlayerColor);
                 ReadINIForControl(ddPlayerStart);
                 ReadINIForControl(ddPlayerTeam);
-                ReadINIForControl(ddPlayerHandicap);
             }
 
             var lblName = GeneratePlayerOptionCaption("lblName", "PLAYER".L10N("Client:Main:PlayerOptionPlayer"), ddPlayerNames[0].X, playerOptionCaptionLocationY);
@@ -1215,14 +1197,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var lblTeam = GeneratePlayerOptionCaption("lblTeam", "TEAM".L10N("Client:Main:PlayerOptionTeam"), ddPlayerTeams[0].X, playerOptionCaptionLocationY);
 
-            var lblHandicap = GeneratePlayerOptionCaption("lblHandicap", "HANDICAP".L10N("Client:Main:PlayerOptionHandicap"), ddPlayerHandicaps[0].X, playerOptionCaptionLocationY);
-
             ReadINIForControl(lblName);
             ReadINIForControl(lblSide);
             ReadINIForControl(lblColor);
             ReadINIForControl(lblStart);
             ReadINIForControl(lblTeam);
-            ReadINIForControl(lblHandicap);
 
             btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), optional: true);
 
@@ -1644,6 +1623,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Randomize options
 
+            var playerIndices = new List<int>(totalPlayerCount);
             for (int i = 0; i < totalPlayerCount; i++)
                 playerIndices.Add(i);
             playerIndices.Sort((a, b) =>
@@ -1740,8 +1720,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
                 settings.SetIntValue("AIPlayers", AIPlayers.Count);
                 settings.SetIntValue("Seed", RandomSeed);
-                // Player handicap (D2K): Level 1->0, Level 2->1, Level 3->2
-                settings.SetIntValue("Handicap", Players[myIndex].Handicap);
                 // D2K expects Settings.StartingLocation = 0-based start slot (0 = first, 1 = second, …), or 0 for game-chosen random
                 int myStart = houseInfos[myIndex].StartingWaypoint >= 0
                     ? houseInfos[myIndex].StartingWaypoint
@@ -1865,12 +1843,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
 
-                // D2K multiplayer: each other player's start and handicap in their section (0-based start slot)
+                // D2K multiplayer: each other player's start in their section (0-based start slot)
                 if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase))
                 {
                     int otherStart = pHouseInfo.StartingWaypoint >= 0 ? pHouseInfo.StartingWaypoint : 0;
                     spawnIni.SetIntValue(sectionName, "StartingLocation", otherStart);
-                    spawnIni.SetIntValue(sectionName, "Handicap", pInfo.Handicap);
                 }
 
                 otherId++;
@@ -1911,13 +1888,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (houseInfos[pIndex].IsSpectator)
                     spawnIni.SetBooleanValue("IsSpectator", keyName, true);
                 
-                // Write handicap for human players (only for D2K, and only if not a spectator)
-                if (ClientConfiguration.Instance.LocalGame.Equals("d2k", StringComparison.OrdinalIgnoreCase) && 
-                    !houseInfos[pIndex].IsSpectator && 
-                    pIndex < Players.Count)
-                {
-                    spawnIni.SetIntValue("HouseHandicaps", keyName, Players[pIndex].Handicap);
-                }
             }
 
             // Write alliances, the code is pretty big so let's take it to another class
@@ -2432,8 +2402,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.SideId = ddPlayerSides[pId].SelectedIndex;
                 pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
                 pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
-                // Handicap mapping: Level 1->0, Level 2->1, Level 3->2
-                pInfo.Handicap = ddPlayerHandicaps[pId].SelectedIndex;
 
                 if (pInfo.SideId == SideCount + RandomSelectorCount)
                     pInfo.StartingLocation = 0;
@@ -2566,8 +2534,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerStarts[pId].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowPlayerOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
 
-                ddPlayerHandicaps[pId].SelectedIndex = pInfo.Handicap;
-                ddPlayerHandicaps[pId].AllowDropDown = allowPlayerOptionsChange;
             }
 
             // AI players
@@ -2603,8 +2569,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerStarts[index].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
 
-                ddPlayerHandicaps[index].SelectedIndex = 0; // AI players don't have handicap
-                ddPlayerHandicaps[index].AllowDropDown = false;
             }
 
             // Unused player slots
@@ -2630,8 +2594,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeams[ddIndex].SelectedIndex = -1;
                 ddPlayerTeams[ddIndex].AllowDropDown = false;
 
-                ddPlayerHandicaps[ddIndex].SelectedIndex = -1;
-                ddPlayerHandicaps[ddIndex].AllowDropDown = false;
             }
 
             if (allowOptionsChange && Players.Count + AIPlayers.Count < MAX_PLAYER_COUNT)
