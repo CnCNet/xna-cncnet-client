@@ -5,6 +5,7 @@ using System.Linq;
 
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 using ClientCore.Settings;
 
 using Rampastring.Tools;
@@ -21,6 +22,11 @@ namespace ClientCore
         public const string AUDIO = "Audio";
         public const string COMPATIBILITY = "Compatibility";
         public const string GAME_FILTERS = "GameFilters";
+        public const string GAME_OPTION_FILTERS = "GameOptionFilters";
+        public const string REPLAYS = "Replays";
+        public const string CLIENT_LOGS = "ClientLogs";
+        public const string GAME_LOGS = "GameLogs";
+        public const string SAVED_GAMES = "SavedGames";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -57,8 +63,13 @@ namespace ClientCore
 
             var userDefaultIni = new IniFile(userDefaultIniFilePath);
 
-            var combinedUserIni = userDefaultIni.Clone();
-            combinedUserIni.FileName = null;
+            // Create combinedUserIni with all sections cloned from userDefaultIni
+            var combinedUserIni = new IniFile() { FilePath = null };
+            foreach (string sectionName in userDefaultIni.GetSections())
+            {
+                IniSection oldSection = userDefaultIni.GetSection(sectionName);
+                combinedUserIni.AddSection(oldSection.Clone(sectionName));
+            }
 
             // Combine userIni and userDefaultIni
             foreach (string sectionName in userIni.GetSections())
@@ -78,7 +89,7 @@ namespace ClientCore
                 }
             }
 
-            combinedUserIni.FileName = userIni.FileName;
+            combinedUserIni.FilePath = userIni.FilePath;
 
             _instance = new UserINISettings(combinedUserIni);
         }
@@ -92,10 +103,22 @@ namespace ClientCore
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 
-            IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
-            IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
+            IngameScreenWidth = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Width" : "ScreenWidth",
+                1024);
+
+            IngameScreenHeight = new IntSetting(
+                iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Height" : "ScreenHeight",
+                768);
+
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
+            TranslationGameFilesVersion = new StringSetting(iniFile, OPTIONS, nameof(TranslationGameFilesVersion), string.Empty);
+
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, ClientConfiguration.Instance.WindowedModeKey, false);
@@ -106,8 +129,17 @@ namespace ClientCore
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
             BorderColor = new StringSetting(iniFile, VIDEO, "BorderColor", "Default");
 
-            ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
-            SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume. This value is handled when saving
+            ScoreVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                "ScoreVolume",
+                0.7);
+
+            SoundVolume = new DoubleSetting(iniFile,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
+                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Volume" : "SoundVolume",
+                0.7);
+
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
@@ -118,6 +150,7 @@ namespace ClientCore
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+            CustomDragDistance = new IntSetting(iniFile, OPTIONS, "CustomDragDistance", 0);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
 
@@ -136,10 +169,15 @@ namespace ClientCore
             AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
+            DisableMainMenuHotkeys = new BoolSetting(iniFile, MULTIPLAYER, "DisableMainMenuHotkeys", true);
             AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
             MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
+            SearchAllGameModes = new BoolSetting(iniFile, MULTIPLAYER, "SearchAllGameModes", false);
+
+            TunnelMode = new IntSetting(iniFile, MULTIPLAYER, "TunnelMode", 1);
+            EnableP2P = new BoolSetting(iniFile, MULTIPLAYER, "EnableP2P", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -149,13 +187,34 @@ namespace ClientCore
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
             ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
             GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
-            PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
             GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
             GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
-            LiveAPMTracker = new BoolSetting(iniFile, OPTIONS, "LiveAPMTracker", false);
+            TranslationStubNotificationLevel = new IntSetting(iniFile, OPTIONS, nameof(TranslationStubNotificationLevel), (int)TranslationNotificationLevel.Default);
+            LiveAPMTracker = new BoolSetting(iniFile, OPTIONS, "LiveAPMTracker", false); // D2K
+
+            MaxKeptClientLogFiles = new IntSetting(iniFile, CLIENT_LOGS, "MaxKeptLogFiles", 20);
+            MaxClientLogFolderSizeMB = new IntSetting(iniFile, CLIENT_LOGS, "MaxLogFolderSizeMB", 50);
+
+            MaxGameLogAgeDays = new IntSetting(iniFile, GAME_LOGS, "MaxGameLogAgeDays", 7);
+            MaxGameLogFolderSizeMB = new IntSetting(iniFile, GAME_LOGS, "MaxGameLogFolderSizeMB", 0);
+
+            MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
+            MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
+
+            RecordReplays = new BoolSetting(iniFile, REPLAYS, "RecordReplays", true);
+            MaxKeptReplays = new IntSetting(iniFile, REPLAYS, "MaxKeptReplays", 50);
+            MaxReplayFolderSizeMB = new IntSetting(iniFile, REPLAYS, "MaxReplayFolderSizeMB", 2048);
+            ReplayKeyframeStorageLimitMB = new IntSetting(iniFile, REPLAYS, "ReplayKeyframeStorageLimitMB", 512);
+            ReplayPlaybackShroudEnabled = new BoolSetting(iniFile, REPLAYS, "PlaybackShroudEnabled", false);
+            ReplayPlaybackFollowCamera = new BoolSetting(iniFile, REPLAYS, "PlaybackFollowCamera", true);
+            ReplayPlaybackShowSelections = new BoolSetting(iniFile, REPLAYS, "PlaybackShowSelections", true);
+            ReplayPlaybackSpectator = new BoolSetting(iniFile, REPLAYS, "PlaybackSpectator", true);
+            ReplayPlaybackShowChatAndBeacons = new BoolSetting(iniFile, REPLAYS, "PlaybackShowChatAndBeacons", true);
+            ReplayPlaybackGameSpeed = new IntSetting(iniFile, REPLAYS, "PlaybackGameSpeed", 0);
+            ReplayPlaybackKeyframeInterval = new IntSetting(iniFile, REPLAYS, "PlaybackKeyframeInterval", 750);
 
             SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
@@ -177,9 +236,11 @@ namespace ClientCore
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
+
         public StringSetting ClientTheme { get; private set; }
         public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
         public StringSetting Translation { get; private set; }
+        public StringSetting TranslationGameFilesVersion { get; private set; }
         public string TranslationFolderPath => SafePath.CombineDirectoryPath(
             ClientConfiguration.Instance.TranslationsFolderPath, Translation);
         public string TranslationThemeFolderPath => SafePath.CombineDirectoryPath(
@@ -218,6 +279,8 @@ namespace ClientCore
 
         public IntSetting ScrollRate { get; private set; }
         public IntSetting DragDistance { get; private set; }
+        // When > 0, overrides the auto-scaled DragDistance. Allows players to set a fixed pixel threshold regardless of resolution.
+        public IntSetting CustomDragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
 
@@ -240,9 +303,14 @@ namespace ClientCore
         public BoolSetting SteamIntegration { get; private set; }
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
+        public IntSetting TunnelMode { get; private set; }
+        public BoolSetting EnableP2P { get; private set; }
+
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
+
+        public BoolSetting DisableMainMenuHotkeys { get; private set; }
 
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 
@@ -251,6 +319,8 @@ namespace ClientCore
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
 
         public IntSetting MapSortState { get; private set; }
+
+        public BoolSetting SearchAllGameModes { get; private set; }
 
         /*********************/
         /* GAME LIST FILTERS */
@@ -268,6 +338,70 @@ namespace ClientCore
 
         public IntRangeSetting MaxPlayerCount { get; private set; }
 
+        /************************/
+        /* GAME OPTION FILTERS */
+        /************************/
+
+        /// <summary>
+        /// Gets the filter value for a game option (checkbox or dropdown).
+        /// Returns null for "All" (no filter), or the selected index.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public int? GetGameOptionFilterValue(string optionName)
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            if (section == null || !section.KeyExists(optionName))
+                return null;
+
+            return section.GetIntValue(optionName, 0);
+        }
+
+        /// <summary>
+        /// Sets the filter value for a game option.
+        /// null = "All" (no filter), or the selected index.
+        /// When null, removes the key from INI. Otherwise stores the index value.
+        /// For checkboxes: 0 = Off, 1 = On.
+        /// For dropdowns: 0+ = actual option index.
+        /// </summary>
+        public void SetGameOptionFilterValue(string optionName, int? value)
+        {
+            if (value == null)
+                SettingsIni.GetSection(GAME_OPTION_FILTERS)?.RemoveKey(optionName);
+            else
+                SettingsIni.SetIntValue(GAME_OPTION_FILTERS, optionName, value.Value);
+        }
+
+        /***********/
+        /* REPLAYS */
+        /***********/
+
+        /// <summary>Whether the player's games are recorded to replays.</summary>
+        public BoolSetting RecordReplays { get; private set; }
+
+        /// <summary>Maximum number of replays to keep. 0 means unlimited.</summary>
+        public IntSetting MaxKeptReplays { get; private set; }
+
+        /// <summary>Maximum total size of the replay directory in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxReplayFolderSizeMB { get; private set; }
+
+        /// <summary>Maximum playback keyframe storage in megabytes. 0 means unlimited.</summary>
+        public IntSetting ReplayKeyframeStorageLimitMB { get; private set; }
+
+        public BoolSetting ReplayPlaybackShroudEnabled { get; private set; }
+
+        public BoolSetting ReplayPlaybackFollowCamera { get; private set; }
+
+        public BoolSetting ReplayPlaybackShowSelections { get; private set; }
+
+        public BoolSetting ReplayPlaybackSpectator { get; private set; }
+
+        public BoolSetting ReplayPlaybackShowChatAndBeacons { get; private set; }
+
+        public IntSetting ReplayPlaybackGameSpeed { get; private set; }
+
+        public IntSetting ReplayPlaybackKeyframeInterval { get; private set; }
+
         /********/
         /* MISC */
         /********/
@@ -284,8 +418,6 @@ namespace ClientCore
 
         public IntSetting ScrollDelay { get; private set; }
 
-        public BoolSetting PreloadMapPreviews { get; private set; }
-
         public BoolSetting ForceLowestDetailLevel { get; private set; }
 
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
@@ -297,7 +429,27 @@ namespace ClientCore
         public BoolSetting GenerateOnlyNewValuesInTranslationStub { get; private set; }
         public BoolSetting LiveAPMTracker { get; private set; }
 
+        public IntSetting TranslationStubNotificationLevel { get; private set; }
+
         public List<string> FavoriteMaps { get; private set; }
+
+        /// <summary>Maximum number of old client log files to keep. 0 means unlimited.</summary>
+        public IntSetting MaxKeptClientLogFiles { get; private set; }
+
+        /// <summary>Maximum total size of old client log files in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxClientLogFolderSizeMB { get; private set; }
+
+        /// <summary>Days after which game logs and crash snapshots in the debug folder are deleted. 0 means never.</summary>
+        public IntSetting MaxGameLogAgeDays { get; private set; }
+
+        /// <summary>Maximum total size of the game's debug folder in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxGameLogFolderSizeMB { get; private set; }
+
+        /// <summary>Maximum number of single-player saved games to keep. 0 means unlimited.</summary>
+        public IntSetting MaxKeptSavedGames { get; private set; }
+
+        /// <summary>Maximum total size of single-player saved games in megabytes. 0 means unlimited.</summary>
+        public IntSetting MaxSavedGameFolderSizeMB { get; private set; }
 
         public void SetValue(string section, string key, string value)
                => SettingsIni.SetStringValue(section, key, value);
@@ -416,6 +568,10 @@ namespace ClientCore
             ApplyDefaults();
             // CleanUpLegacySettings();
 
+            // RA1 reads MultiplayerScoreVolume instead of ScoreVolume
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
+                SettingsIni.SetDoubleValue(OPTIONS, "MultiplayerScoreVolume", SettingsIni.GetDoubleValue(OPTIONS, "ScoreVolume", 0.7));
+
             SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
@@ -426,7 +582,8 @@ namespace ClientCore
                || HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES
                || HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES
                || HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES
-               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+               || MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT
+               || HasGameOptionFilters();
 
         public void ResetGameFilters()
         {
@@ -435,6 +592,25 @@ namespace ClientCore
             HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
             HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
             MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
+            ResetGameOptionFilters();
+        }
+
+        /// <summary>
+        /// Checks if any game option filters are set.
+        /// </summary>
+        private bool HasGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            return section != null && section.Keys.Count > 0;
+        }
+
+        /// <summary>
+        /// Clears all game option filters.
+        /// </summary>
+        private void ResetGameOptionFilters()
+        {
+            var section = SettingsIni.GetSection(GAME_OPTION_FILTERS);
+            section?.RemoveAllKeys();
         }
 
         /// <summary>

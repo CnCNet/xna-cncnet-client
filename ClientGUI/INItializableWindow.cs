@@ -30,29 +30,11 @@ namespace ClientGUI
         /// </summary>
         protected string IniNameOverride { get; set; }
 
-        public T FindChild<T>(string childName, bool optional = false) where T : XNAControl
-        {
-            T child = FindChild<T>(Children, childName);
-            if (child == null && !optional)
-                throw new KeyNotFoundException("Could not find required child control: " + childName);
+        public T FindChild<T>(string childName, StringComparison comparisonType = StringComparison.Ordinal, bool optional = false, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChild<T>(this, childName, comparisonType, optional, recursive);
 
-            return child;
-        }
-
-        private T FindChild<T>(IEnumerable<XNAControl> list, string controlName) where T : XNAControl
-        {
-            foreach (XNAControl child in list)
-            {
-                if (child.Name == controlName)
-                    return (T)child;
-
-                T childOfChild = FindChild<T>(child.Children, controlName);
-                if (childOfChild != null)
-                    return childOfChild;
-            }
-
-            return null;
-        }
+        public List<T> FindChildrenStartWith<T>(string prefix, StringComparison comparisonType = StringComparison.Ordinal, bool recursive = true) where T : XNAControl
+            => ClientGUI.Extensions.XNAControlExtensions.FindChildrenStartWith<T>(this, prefix, comparisonType, recursive);
 
         /// <summary>
         /// Attempts to locate the ini config file for the current control.
@@ -160,8 +142,8 @@ namespace ClientGUI
             Parser.Instance.SetPrimaryControl(this);
 
             // shorthand for localization function
-            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+            static string Localize(XNAControl control, string attributeName, string defaultValue, TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notificationLevel);
 
             foreach (var kvp in section.Keys)
             {
@@ -183,22 +165,22 @@ namespace ClientGUI
                 else if (kvp.Key == "$X")
                 {
                     control.X = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Y")
                 {
                     control.Y = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Width")
                 {
                     control.Width = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Height")
                 {
                     control.Height = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {

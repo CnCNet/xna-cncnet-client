@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain.Multiplayer;
@@ -24,6 +25,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
+using System.Threading.Tasks;
+using ClientCore.Display;
+
+
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -39,12 +44,20 @@ namespace DTAClient.DXGUI
         public GameClass()
         {
             graphics = new GraphicsDeviceManager(this);
+#if GL
+            // VSync drives frame pacing via SwapBuffers, eliminating micro-stutter caused
+            // by unsynchronised frame delivery. IsFixedTimeStep=false lets VSync be the
+            // sole frame timer so the client renders at the display's refresh rate.
+            graphics.SynchronizeWithVerticalRetrace = true;
+            IsFixedTimeStep = false;
+#else
             graphics.SynchronizeWithVerticalRetrace = false;
+#endif
 #if !XNA
             graphics.HardwareModeSwitch = false;
 
             // Enable HiDef on a large monitor.
-            if (!ScreenResolution.HiDefLimitResolution.Fits(ScreenResolution.DesktopResolution))
+            if (!XNAScreenResolutionManager.HiDefLimitResolution.Fits(XNAScreenResolutionManager.DesktopResolution))
             {
                 // Enabling HiDef profile drops legacy GPUs not supporting DirectX 10.
                 // In practice, it's recommended to have a DirectX 11 capable GPU.
@@ -93,8 +106,8 @@ namespace DTAClient.DXGUI
 
             try
             {
-                Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
-                Color[] colorArray = new Color[100 * 100];
+                Texture2D texture = new Texture2D(GraphicsDevice, 10, 10, false, SurfaceFormat.Color);
+                Color[] colorArray = new Color[10 * 10];
                 texture.SetData(colorArray);
 
                 _ = AssetLoader.LoadTextureUncached("checkBoxClear.png");
@@ -142,6 +155,10 @@ namespace DTAClient.DXGUI
 
             WindowManager wm = new(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+
+            IServiceProvider serviceProvider = null;
+            Task buildServiceProviderTask = Task.Run(() => { serviceProvider = BuildServiceProvider(wm); });
+
             IMEHandler imeHandler = IMEHandler.Create(this);
             wm.IMEHandler = imeHandler;
 
@@ -224,7 +241,9 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            IServiceProvider serviceProvider = BuildServiceProvider(wm);
+            buildServiceProviderTask.GetAwaiter().GetResult();
+
+            Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
@@ -236,7 +255,7 @@ namespace DTAClient.DXGUI
             var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             byte[] intBytes = new byte[sizeof(int)];
             rng.GetBytes(intBytes);
-            int seed = BitConverter.ToInt32(intBytes, 0);
+            int seed = BinaryPrimitives.ReadInt32LittleEndian(intBytes);
             return new Random(seed);
         }
 
@@ -258,7 +277,8 @@ namespace DTAClient.DXGUI
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
-                            .AddSingleton<Random>(GetRandom());
+                            .AddSingleton<Random>(GetRandom())
+                            .AddSingleton<DirectDrawWrapperManager>();
 
                         // singleton xna controls - same instance on each request
                         services
@@ -277,7 +297,7 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<MapPreviewBox>()
                             .AddSingletonXnaControl<GameLaunchButton>()
                             .AddSingletonXnaControl<PlayerExtraOptionsPanel>()
-                            .AddSingletonXnaControl<CampaignSelector>()
+                            .AddSingletonXnaControl<CampaignTagSelector>()
                             .AddSingletonXnaControl<GameLoadingWindow>()
                             .AddSingletonXnaControl<StatisticsWindow>()
                             .AddSingletonXnaControl<UpdateQueryWindow>()
@@ -305,6 +325,7 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNAProgressBar>()
                             .AddTransientXnaControl<XNASuggestionTextBox>()
                             .AddTransientXnaControl<XNATextBox>()
+                            .AddTransientXnaControl<XNATextBlock>()
                             .AddTransientXnaControl<XNATrackbar>()
                             .AddTransientXnaControl<XNAChatTextBox>()
                             .AddTransientXnaControl<ChatListBox>()
@@ -360,10 +381,14 @@ namespace DTAClient.DXGUI
         /// <param name="centerOnScreen">Whether to center the client window on the screen</param>
         public static void SetGraphicsMode(WindowManager wm, bool centerOnScreen = true)
         {
-            int windowWidth = UserINISettings.Instance.ClientResolutionX;
-            int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
-            SetGraphicsMode(wm, windowWidth, windowHeight, centerOnScreen);
+            if (!((ScreenResolution)(UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY)).Fits(ClientConfiguration.Instance.MinimumClientResolution))
+            {
+                UserINISettings.Instance.ClientResolutionX.SetDefault();
+                UserINISettings.Instance.ClientResolutionY.SetDefault();
+            }
+
+            SetGraphicsMode(wm, UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY, centerOnScreen);
         }
 
         /// <inheritdoc cref="SetGraphicsMode(WindowManager, bool)"/>
@@ -384,7 +409,10 @@ namespace DTAClient.DXGUI
         {
             var clientConfiguration = ClientConfiguration.Instance;
 
-            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
+            ScreenResolution minimumClientResolution = clientConfiguration.MinimumClientResolution;
+            XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
+
+            (int desktopWidth, int desktopHeight) = XNAScreenResolutionManager.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
@@ -395,7 +423,7 @@ namespace DTAClient.DXGUI
             {
                 // fallback to the minimum supported resolution when the desktop is not sufficient to contain the client
                 // e.g., when users set a lower desktop resolution but the client resolution in the settings file remains high
-                if (!wm.InitGraphicsMode(1024, 600, false))
+                if (!wm.InitGraphicsMode(minimumClientResolution.Width, minimumClientResolution.Height, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
 
@@ -446,7 +474,7 @@ namespace DTAClient.DXGUI
                 // Check whether we could integer-scale our client window
                 if (ratio > 1.0)
                 {
-                    for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
+                    for (int i = 2; i <= XNAScreenResolutionManager.MAX_INT_SCALE; i++)
                     {
                         int sharpScaleRenderResX = windowWidth / i;
                         int sharpScaleRenderResY = windowHeight / i;
@@ -497,15 +525,15 @@ namespace DTAClient.DXGUI
             {
                 // Note: on fullscreen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
                 ScreenResolution clientResolution = (windowWidth, windowHeight);
-                if (ScreenResolution.DesktopResolution == clientResolution)
+                if (XNAScreenResolutionManager.DesktopResolution == clientResolution)
                 {
-                    Logger.Log($"Entering fullscreen mode with resolution {ScreenResolution.DesktopResolution}.");
+                    Logger.Log($"Entering fullscreen mode with resolution {XNAScreenResolutionManager.DesktopResolution}.");
                     graphics.IsFullScreen = true;
                     graphics.ApplyChanges();
                 }
                 else
                 {
-                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
+                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {XNAScreenResolutionManager.DesktopResolution}, Client: {clientResolution}.");
                 }
             }
 

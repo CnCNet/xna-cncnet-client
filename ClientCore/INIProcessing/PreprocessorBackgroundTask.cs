@@ -1,7 +1,9 @@
-﻿using Rampastring.Tools;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+
+using Rampastring.Tools;
 
 namespace ClientCore.INIProcessing
 {
@@ -59,6 +61,9 @@ namespace ClientCore.INIProcessing
 
             foreach (FileInfo iniFile in iniFiles)
             {
+                if (iniFile.Name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 if (!infoStore.IsIniUpToDate(iniFile.Name))
                 {
                     Logger.Log("INI file " + iniFile.Name + " is not processed or outdated, re-processing it.");

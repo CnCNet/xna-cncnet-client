@@ -146,7 +146,7 @@ namespace ClientGUI
                     Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.ToString());
                     XNAMessageBox.Show(windowManager,
                         errorLaunchingTitle,
-                        string.Format(errorLaunchingTitle, gameFileInfo.Name, ex.Message));
+                        string.Format(errorLaunchingText, gameFileInfo.Name, ex.Message));
                     Process_Exited(gameProcess, EventArgs.Empty);
                     return;
                 }
@@ -169,6 +169,7 @@ namespace ClientGUI
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();
+            SinglePlayerSavedGameManager.PruneSavedGames();
             GameProcessExited?.Invoke();
         }
     }

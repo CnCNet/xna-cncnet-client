@@ -16,6 +16,7 @@
 namespace ClientUpdater.Compression;
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,9 @@ public static class CompressionHelper
             using (outputStream)
             {
                 encoder.WriteCoderProperties(outputStream);
-                await outputStream.WriteAsync(BitConverter.GetBytes(inputStream.Length).AsMemory(0, 8), cancellationToken).ConfigureAwait(false);
+                byte[] lengthBytes = new byte[sizeof(long)];
+                BinaryPrimitives.WriteInt64LittleEndian(lengthBytes, inputStream.Length);
+                await outputStream.WriteAsync(lengthBytes.AsMemory(0, sizeof(long)), cancellationToken).ConfigureAwait(false);
                 encoder.Code(inputStream, outputStream, inputStream.Length, outputStream.Length, null);
             }
         }
@@ -72,7 +75,7 @@ public static class CompressionHelper
                 await inputStream.ReadAsync(properties, cancellationToken).ConfigureAwait(false);
                 await inputStream.ReadAsync(fileLengthArray, cancellationToken).ConfigureAwait(false);
 
-                long fileLength = BitConverter.ToInt64(fileLengthArray, 0);
+                long fileLength = BinaryPrimitives.ReadInt64LittleEndian(fileLengthArray);
 
                 decoder.SetDecoderProperties(properties);
                 decoder.Code(inputStream, outputStream, inputStream.Length, fileLength, null);

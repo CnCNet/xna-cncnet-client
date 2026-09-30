@@ -418,6 +418,8 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY < 0)
                 {
                     locationY += DOWN_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
+                    if (locationY > 0)
+                        locationY = 0;
                     ClientRectangle = new Rectangle(X, (int)locationY,
                         Width, Height);
                 }
@@ -431,6 +433,8 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY > -Height - 1)
                 {
                     locationY -= UP_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
+                    if (locationY < -Height - 1)
+                        locationY = -Height - 1;
                     ClientRectangle = new Rectangle(X, (int)locationY,
                         Width, Height);
                 }

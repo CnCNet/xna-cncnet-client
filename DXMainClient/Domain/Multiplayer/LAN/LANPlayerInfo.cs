@@ -1,4 +1,7 @@
 ﻿using ClientCore;
+
+using DTAClient.Domain.Multiplayer.CnCNet;
+
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -200,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 {
                     PingReply reply = p.Send(System.Net.IPAddress.Parse(IPAddress), LAN_PING_TIMEOUT);
                     if (reply.Status == IPStatus.Success)
-                        Ping = Convert.ToInt32(reply.RoundtripTime);
+                        Ping = PingValue.FromMs((int)reply.RoundtripTime);
 
                     wm.AddCallback(PlayerPinged, this, EventArgs.Empty);
                 }

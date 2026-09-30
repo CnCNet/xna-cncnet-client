@@ -66,10 +66,13 @@ namespace DTAClient
             Thread onlineIdThread = new Thread(GenerateOnlineId);
             onlineIdThread.Start();
 
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares)
-                Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+            if (GameLogManager.IsSupported)
+                Task.Run(GameLogManager.PruneGameLogs);
 
             Task.Run(MigrateOldLogFiles);
+
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
 
@@ -102,6 +105,8 @@ namespace DTAClient
                 }
             }
 
+            SinglePlayerSavedGameManager.PruneSavedGames();
+
             if (Updater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");
@@ -118,22 +123,19 @@ namespace DTAClient
                 }
             }
 
-            FinalSunSettings.WriteFinalSunIni();
+            FinalSunSettings.WriteFinalSunIniAsync();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 WriteInstallPathToRegistry();
 
             ClientConfiguration.Instance.RefreshSettings();
 
-            // Start INI file preprocessor
-            PreprocessorBackgroundTask.Instance.Run();
-
-            GameClass gameClass = new GameClass();
+            using GameClass gameClass = new GameClass();
 
             if (!UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Find the largest recommended resolution as the default windowed resolution
-                var bestRecommendedResolution = ScreenResolution.GetBestRecommendedResolution();
+                var bestRecommendedResolution = XNAScreenResolutionManager.GetBestRecommendedResolution();
 
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", bestRecommendedResolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", bestRecommendedResolution.Height);
@@ -141,7 +143,7 @@ namespace DTAClient
             else
             {
                 // Find the largest fullscreen resolution as the default fullscreen resolution
-                var resolution = ScreenResolution.SafeFullScreenResolution;
+                var resolution = XNAScreenResolutionManager.SafeFullScreenResolution;
                 UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", resolution.Width);
                 UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", resolution.Height);
             }
@@ -154,78 +156,31 @@ namespace DTAClient
             }
 #endif
 
-#if ISWINDOWS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Task.Run(InitSteamworks);
+
+            gameClass.Run();
+        }
+
+        [SupportedOSPlatform("windows")]
+        private void InitSteamworks()
+        {
             if (UserINISettings.Instance.SteamIntegration)
             {
+                uint? steamAppId = ClientConfiguration.Instance.ClientGameType.ToSteamAppId();
+                if (!steamAppId.HasValue)
+                    return;
+
                 try
                 {
-                    if (ClientConfiguration.Instance.ClientGameType == ClientType.Ares || ClientConfiguration.Instance.ClientGameType == ClientType.YR)
-                    {
-                        Logger.Log("Steam init called");
-                        SteamClient.Init(2229850);
-                    }
-                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)
-                    {
-                        Logger.Log("Steam init called");
-                        SteamClient.Init(2229880);
-                    }
-                    else if (ClientConfiguration.Instance.ClientGameType == ClientType.RA)
-                    {
-                        Logger.Log("Steam init called");
-                        SteamClient.Init(2229840);
-                    }
+                    Logger.Log("Steam init called");
+                    SteamClient.Init(steamAppId.Value);
                 }
                 catch (System.Exception e)
                 {
                     Logger.Log("Steam init failed: " + e.Message);
                     // Couldn't init for some reason (steam is closed etc)
                 }
-            }
-#endif
-            gameClass.Run();
-        }
-
-        /// <summary>
-        /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
-        /// If directory is empty after deleting files, the directory itself will also be deleted.
-        /// </summary>
-        /// <param name="directory">Directory to prune files from.</param>
-        /// <param name="pruneThresholdTime">Time at or before which files must have been created for them to be pruned.</param>
-        private void PruneFiles(DirectoryInfo directory, DateTime pruneThresholdTime)
-        {
-            if (!directory.Exists)
-                return;
-
-            try
-            {
-                foreach (FileSystemInfo fsEntry in directory.EnumerateFileSystemInfos())
-                {
-                    if ((fsEntry.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                        PruneFiles(new DirectoryInfo(fsEntry.FullName), pruneThresholdTime);
-                    else
-                    {
-                        try
-                        {
-                            FileInfo fileInfo = new FileInfo(fsEntry.FullName);
-                            if (fileInfo.CreationTime <= pruneThresholdTime)
-                                fileInfo.Delete();
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Name +
-                                ". Error message: " + ex.ToString());
-                            continue;
-                        }
-                    }
-                }
-
-                if (!directory.EnumerateFileSystemInfos().Any())
-                    directory.Delete();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("PruneFiles: An error occurred while pruning files from " +
-                   directory.Name + ". Message: " + ex.ToString());
             }
         }
 
@@ -447,5 +402,6 @@ namespace DTAClient
                 Logger.Log("Failed to write installation path to the Windows registry");
             }
         }
+
     }
 }

@@ -4,6 +4,7 @@ using System.Windows.Forms;
 #endif
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
@@ -19,6 +20,7 @@ using ClientCore.I18N;
 using System.Globalization;
 using System.Security;
 using System.Transactions;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 
 namespace DTAClient
 {
@@ -42,6 +44,9 @@ namespace DTAClient
 
     static class PreStartup
     {
+        private static readonly Stopwatch startupStopwatch = Stopwatch.StartNew();
+        public static TimeSpan StartupElapsed => startupStopwatch.Elapsed;
+
         /// <summary>
         /// Initializes various basic systems like the client's logger, 
         /// constants, and the general exception handler.
@@ -54,6 +59,8 @@ namespace DTAClient
         {
             Translation.InitialUICulture = CultureInfo.CurrentUICulture;
             CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
+
+            IniFile.DisallowDesktopIni = true;
 
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
@@ -73,13 +80,7 @@ namespace DTAClient
             ProgramConstants.LogFileName = clientLogFile.FullName;
 
             if (clientLogFile.Exists)
-            {
-                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
-                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
-                if (clientPrevLogFile.Exists)
-                    File.Delete(clientPrevLogFile.FullName);
-                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
-            }
+                RotateLogFiles(clientUserFilesDirectory, clientLogFile);
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -160,6 +161,8 @@ namespace DTAClient
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)
                 {
+                    Translation.Instance.MissingKeyNotificationLevel = TranslationNotificationLevel.FromInt(UserINISettings.Instance.TranslationStubNotificationLevel.Value);
+
                     string stubPath = SafePath.CombineFilePath(
                         ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.TranslationIniName);
 
@@ -170,7 +173,7 @@ namespace DTAClient
                         ini.WriteIniFile(stubPath);
                     };
 
-                    Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
+                    Logger.Log($"Translation stub generation feature is now enabled. Notification level: {Translation.Instance.MissingKeyNotificationLevel}. The stub file will be written when the client exits.");
 
                     // Lookup all compile-time available strings
                     ClientCore.Generated.TranslationNotifier.Register();
@@ -184,25 +187,31 @@ namespace DTAClient
                 Logger.Log("Failed to generate the translation stub: " + ex.ToString());
             }
 
+            // Custom mission initialization
+            CustomMissionHelper.Initialize();
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+
             // Delete obsolete files from old target project versions
-
-            gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
-            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
-
-            try
+            Task.Run(() =>
             {
-                gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
-            }
-            catch (Exception ex)
-            {
-                LogException(ex);
+                gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
+                gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
 
-                string error = ("Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again." + "\n\n" +
-                    "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+                try
+                {
+                    gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex);
 
-                MainClientConstants.DisplayErrorAction(null, error, true);
-            }
+                    string error = ("Deleting wsock32.dll failed! Please close any " +
+                        "applications that could be using the file, and then start the client again." + "\n\n" +
+                        "Message:").L10N("Client:Main:DeleteWsock32Failed") + " " + ex.Message;
+
+                    MainClientConstants.DisplayErrorAction(null, error, true);
+                }
+            });
 
             Startup startup = new();
 #if DEBUG
@@ -272,6 +281,92 @@ namespace DTAClient
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
+        private const int DEFAULT_MAX_KEPT_LOG_FILES = 20;
+        private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;
+        private const string LOG_BACKUP_SEARCH_PATTERN = "client_*.log";
+
+        /// <summary>
+        /// Renames the previous client.log to a timestamped backup and prunes old backups
+        /// down to the configured count/size limits. Settings are read directly from the
+        /// settings INI since UserINISettings is not initialized yet.
+        /// </summary>
+        private static void RotateLogFiles(DirectoryInfo clientUserFilesDirectory, FileInfo clientLogFile)
+        {
+            (int maxKeptLogFiles, int maxFolderSizeMB) = ReadLogRetentionSettings();
+
+            FileInfo backupFile = SafePath.GetFile(clientUserFilesDirectory.FullName,
+                $"client_{DateTime.Now:yyyyMMdd_HHmmss_fff}.log");
+
+            try
+            {
+                if (backupFile.Exists)
+                    backupFile.Delete();
+
+                File.Move(clientLogFile.FullName, backupFile.FullName);
+            }
+            catch
+            {
+                // Ignored -- the previous log will be overwritten.
+            }
+
+            List<FileInfo> backups = clientUserFilesDirectory
+                .EnumerateFiles(LOG_BACKUP_SEARCH_PATTERN)
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .ToList();
+
+            if (maxKeptLogFiles > 0)
+            {
+                foreach (FileInfo old in backups.Skip(maxKeptLogFiles))
+                    TryDeleteFile(old);
+
+                backups = backups.Take(maxKeptLogFiles).ToList();
+            }
+
+            if (maxFolderSizeMB > 0)
+            {
+                long maxFolderSizeBytes = maxFolderSizeMB * 1024L * 1024L;
+                long totalSize = backups.Sum(f => f.Length);
+                for (int i = backups.Count - 1; i >= 0 && totalSize > maxFolderSizeBytes; i--)
+                {
+                    totalSize -= backups[i].Length;
+                    TryDeleteFile(backups[i]);
+                }
+            }
+        }
+
+        private static void TryDeleteFile(FileInfo file)
+        {
+            try
+            {
+                file.Delete();
+            }
+            catch
+            {
+                // Ignored -- the file will simply be considered again on the next startup.
+            }
+        }
+
+        private static (int maxKeptLogFiles, int maxFolderSizeMB) ReadLogRetentionSettings()
+        {
+            try
+            {
+                FileInfo settingsFile = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.SettingsIniName);
+                if (settingsFile.Exists)
+                {
+                    var settingsIni = new IniFile(settingsFile.FullName);
+                    int maxKeptLogFiles = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES));
+                    int maxFolderSizeMB = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB));
+                    return (maxKeptLogFiles, maxFolderSizeMB);
+                }
+            }
+            catch
+            {
+                // Fall through to defaults.
+            }
+
+            return (DEFAULT_MAX_KEPT_LOG_FILES, DEFAULT_MAX_LOG_FOLDER_SIZE_MB);
+        }
+
         [SupportedOSPlatform("windows")]
         private static void CheckPermissions()
         {
@@ -279,7 +374,7 @@ namespace DTAClient
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredExplanation"),
                 MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
@@ -291,12 +386,7 @@ namespace DTAClient
             DialogResult result = MessageBox.Show(error + "\n\n" + question, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
             {
-                using var _ = Process.Start(new ProcessStartInfo
-                {
-                    FileName = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
-                    Verb = "runas",
-                    UseShellExecute = true,
-                });
+                AdminRestarter.RestartAsAdmin();
             }
 #else
             MainClientConstants.DisplayErrorAction(title, error, true);

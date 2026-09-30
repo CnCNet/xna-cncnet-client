@@ -7,7 +7,7 @@ namespace ClientCore.Statistics
     {
         public PlayerStatistics() { }
 
-        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, 
+        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
             Name = name;
@@ -22,7 +22,7 @@ namespace ClientCore.Statistics
 
         public string Name { get; set; }
         public int Kills { get; set; }
-        public int Losses {get; set;}
+        public int Losses { get; set; }
         public int Economy { get; set; }
         public int Score { get; set; }
         public int Side { get; set; }
@@ -43,9 +43,9 @@ namespace ClientCore.Statistics
             // 1 byte for IsLocalPlayer
             stream.WriteBool(IsLocalPlayer);
             // 4 bytes for kills
-            stream.Write(BitConverter.GetBytes(Kills), 0, 4);
+            stream.WriteInt(Kills);
             // 4 bytes for losses
-            stream.Write(BitConverter.GetBytes(Losses), 0, 4);
+            stream.WriteInt(Losses);
             // Name takes 32 bytes
             stream.WriteString(Name, 32);
             // 1 byte for SawEnd

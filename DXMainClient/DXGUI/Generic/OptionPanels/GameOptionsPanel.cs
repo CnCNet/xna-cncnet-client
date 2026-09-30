@@ -1,4 +1,5 @@
-﻿using ClientCore;
+using ClientCore;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
@@ -37,6 +38,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
         private XNAClientCheckBox chkShowHiddenObjects;
+        private XNAClientCheckBox chkRecordReplays;
         private XNAClientCheckBox chkLiveAPMTracker;
 
         private XNAControl topBar;
@@ -150,6 +152,22 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     chkAltToUndeploy.Bottom + 30, 0, 0);
             }
 
+            if (ReplayManager.IsSupported)
+            {
+                chkRecordReplays = new XNAClientCheckBox(WindowManager);
+                chkRecordReplays.Name = nameof(chkRecordReplays);
+                chkRecordReplays.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    lblPlayerName.Y - 6, 0, 0);
+                chkRecordReplays.Text = "Record Replays".L10N("Client:DTAConfig:RecordReplays");
+
+                AddChild(chkRecordReplays);
+
+                lblPlayerName.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkRecordReplays.Bottom + 30, 0, 0);
+            }
+
             // Live APM Tracker checkbox (D2K only)
             if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
@@ -240,6 +258,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             tbPlayerName.Text = UserINISettings.Instance.PlayerName;
 
+            if (chkRecordReplays != null)
+                chkRecordReplays.Checked = IniSettings.RecordReplays;
+
             // Load Live APM Tracker setting (D2K only)
             if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K && chkLiveAPMTracker != null)
             {
@@ -290,6 +311,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
+
+            if (chkRecordReplays != null)
+                IniSettings.RecordReplays.Value = chkRecordReplays.Checked;
 
             // Save Live APM Tracker and copy files (D2K only)
             if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K && chkLiveAPMTracker != null)

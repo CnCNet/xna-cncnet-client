@@ -35,6 +35,7 @@ namespace ClientGUI.Settings
         }
 
         public bool RestartRequired { get; set; }
+        public bool ResetToDefaultOnGameExit { get; set; }
 
         protected string defaultSection = "CustomSettings";
         protected string defaultKeySuffix = "_SelectedIndex";
@@ -43,8 +44,8 @@ namespace ClientGUI.Settings
         protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             // shorthand for localization function
-            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+            static string Localize(XNAControl control, string attributeName, string defaultValue, TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notificationLevel);
 
             switch (key)
             {

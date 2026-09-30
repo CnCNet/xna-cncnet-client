@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -41,6 +41,20 @@ namespace ClientGUI
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
+        public override void OpenDropDown()
+        {
+            if (PreferredItemIndexes.Count > 0)
+            {
+                PreferredItemIndexes.ForEach(i => Items[i].Text += " " + PreferredItemLabel);
+                base.OpenDropDown();
+                PreferredItemIndexes.ForEach(i => Items[i].Text = Items[i].Text.Substring(0, Items[i].Text.Length - PreferredItemLabel.Length - 1));
+            }
+            else
+            {
+                base.OpenDropDown();
+            }
+        }
+
         /// <summary>
         /// Draws the drop-down.
         /// </summary>
@@ -51,7 +65,6 @@ namespace ClientGUI
                 PreferredItemIndexes.ForEach(i =>
                 {
                     XNADropDownItem preferredItem = Items[i];
-                    string preferredItemOriginalText = preferredItem.Text;
                     preferredItem.Text += " " + PreferredItemLabel;
                 });
 
@@ -67,7 +80,6 @@ namespace ClientGUI
             {
                 base.Draw(gameTime);
             }
-
         }
     }
 }

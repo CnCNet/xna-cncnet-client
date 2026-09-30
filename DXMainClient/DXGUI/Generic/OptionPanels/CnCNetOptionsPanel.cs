@@ -1,6 +1,7 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using ClientGUI;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -15,15 +16,16 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
     class CnCNetOptionsPanel : XNAOptionsPanel
     {
         public CnCNetOptionsPanel(WindowManager windowManager, UserINISettings iniSettings,
-            GameCollection gameCollection)
+            GameCollection gameCollection, TunnelHandler tunnelHandler)
             : base(windowManager, iniSettings)
         {
             this.gameCollection = gameCollection;
+            this.tunnelHandler = tunnelHandler;
         }
 
         XNAClientCheckBox chkPingUnofficialTunnels;
         XNAClientCheckBox chkWriteInstallPathToRegistry;
-        XNAClientCheckBox chkPlaySoundOnGameHosted;
+        XNAClientCheckBox chkDisableMainMenuHotkeys;
 
         XNAClientCheckBox chkNotifyOnUserListChange;
 
@@ -37,7 +39,11 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         XNAClientDropDown ddAllowPrivateMessagesFrom;
 
+        XNAClientDropDown ddTunnelMode;
+        XNAClientCheckBox chkEnableP2P;
+
         GameCollection gameCollection;
+        TunnelHandler tunnelHandler;
 
         List<XNAClientCheckBox> followedGameChks = new List<XNAClientCheckBox>();
 
@@ -72,20 +78,21 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             AddChild(chkWriteInstallPathToRegistry);
 
-            chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
-            chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
-            chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
+            chkDisableMainMenuHotkeys  = new XNAClientCheckBox(WindowManager);
+            chkDisableMainMenuHotkeys .Name = nameof(chkDisableMainMenuHotkeys);
+            chkDisableMainMenuHotkeys .ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
-            chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted");
+            chkDisableMainMenuHotkeys.Text = "Disable main menu hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
+            chkDisableMainMenuHotkeys.ToolTipText = "With this setting active, main menu buttons can only be clicked and will not respond to keyboard shortcuts to prevent accidental presses.".L10N("Client:DTAConfig:DisableMainMenuHotkeysTooltip");
 
-            AddChild(chkPlaySoundOnGameHosted);
+            AddChild(chkDisableMainMenuHotkeys);
 
             chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager);
             chkNotifyOnUserListChange.Name = nameof(chkNotifyOnUserListChange);
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
+                chkDisableMainMenuHotkeys.Bottom + 12, 0, 0);
             chkNotifyOnUserListChange.Text = ("Show player join / quit messages\n" +
                 "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit");
 
@@ -94,9 +101,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
+                chkPingUnofficialTunnels.X,
                 chkNotifyOnUserListChange.Bottom + 8, 0, 0);
-            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages".L10N("Client:DTAConfig:DisablePMPopup");
+            chkDisablePrivateMessagePopup.Text = "Disable popups from private messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
 
@@ -118,7 +125,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkPersistentMode.Name = nameof(chkPersistentMode);
             chkPersistentMode.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkSkipLoginWindow.Bottom + 12, 0, 0);
+                chkSkipLoginWindow.Bottom + 9, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby".L10N("Client:DTAConfig:StayConnect");
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
@@ -128,7 +135,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkConnectOnStartup.Name = nameof(chkConnectOnStartup);
             chkConnectOnStartup.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkPersistentMode.Bottom + 12, 0, 0);
+                chkPersistentMode.Bottom + 9, 0, 0);
             chkConnectOnStartup.Text = "Connect automatically on client startup".L10N("Client:DTAConfig:ConnectOnStart");
             chkConnectOnStartup.AllowChecking = false;
 
@@ -138,7 +145,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDiscordIntegration.Name = nameof(chkDiscordIntegration);
             chkDiscordIntegration.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkConnectOnStartup.Bottom + 12, 0, 0);
+                chkConnectOnStartup.Bottom + 9, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
 
             if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
@@ -157,7 +164,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Name = nameof(chkAllowGameInvitesFromFriendsOnly);
             chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
                 chkDiscordIntegration.X,
-                chkDiscordIntegration.Bottom + 12, 0, 0);
+                chkDiscordIntegration.Bottom + 9, 0, 0);
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
@@ -167,17 +174,79 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkSteamIntegration.Name = nameof(chkSteamIntegration);
             chkSteamIntegration.ClientRectangle = new Rectangle(
                 chkAllowGameInvitesFromFriendsOnly.X,
-                chkAllowGameInvitesFromFriendsOnly.Bottom + 12, 0, 0);
+                chkAllowGameInvitesFromFriendsOnly.Bottom + 9, 0, 0);
             chkSteamIntegration.Text = "Show the game being played in Steam".L10N("Client:DTAConfig:SteamStatus");
 
             AddChild(chkSteamIntegration);
+
+            XNALabel lblTunnelMode = new XNALabel(WindowManager);
+            lblTunnelMode.Name = nameof(lblTunnelMode);
+            lblTunnelMode.Text = "Tunnel mode when hosting:".L10N("Client:DTAConfig:TunnelMode");
+            lblTunnelMode.ClientRectangle = new Rectangle(
+                chkSteamIntegration.X,
+                chkSteamIntegration.Bottom + 12, 165, 0);
+
+            AddChild(lblTunnelMode);
+
+            ddTunnelMode = new XNAClientDropDown(WindowManager);
+            ddTunnelMode.Name = nameof(ddTunnelMode);
+            ddTunnelMode.ClientRectangle = new Rectangle(
+                lblTunnelMode.X,
+                lblTunnelMode.Y + 22, 220, 0);
+            ddTunnelMode.AddItem(new XNADropDownItem()
+            {
+                Text = "Dynamic (V3)".L10N("Client:Main:TunnelSelModeDynamic"),
+                Tag = TunnelMode.V3Dynamic,
+            });
+            ddTunnelMode.AddItem(new XNADropDownItem()
+            {
+                Text = "Static (V3)".L10N("Client:Main:TunnelSelModeStatic"),
+                Tag = TunnelMode.V3Static,
+            });
+            ddTunnelMode.AddItem(new XNADropDownItem()
+            {
+                Text = "Legacy (V2)".L10N("Client:Main:TunnelSelModeLegacy"),
+                Tag = TunnelMode.V2Legacy,
+            });
+
+            AddChild(ddTunnelMode);
+
+            chkEnableP2P = new XNAClientCheckBox(WindowManager);
+            chkEnableP2P.Name = nameof(chkEnableP2P);
+            chkEnableP2P.ClientRectangle = new Rectangle(
+                ddTunnelMode.X,
+                ddTunnelMode.Bottom + 9, 0, 0);
+            chkEnableP2P.Text = "Enable direct P2P connections".L10N("Client:DTAConfig:EnableP2P");
+            chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
+            AddChild(chkEnableP2P);
+        }
+
+        private void ChkEnableP2P_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!chkEnableP2P.Checked)
+                return;
+
+            var msgBox = new XNAMessageBox(WindowManager,
+                "Direct P2P Warning".L10N("Client:DTAConfig:P2PWarningTitle"),
+                ("Enabling P2P allows players to connect directly to each other\n" +
+                 "instead of routing traffic through CnCNet relay servers.\n\n" +
+                 "This will share your IP address with all other players\n" +
+                 "in your game session. Your IP address can reveal your\n" +
+                 "approximate location and may expose you to risks if\n" +
+                 "shared with someone with malicious intent.\n\n" +
+                 "Only enable this if you trust the players you play with.\n\n" +
+                 "Do you want to enable P2P connections?").L10N("Client:DTAConfig:P2PWarningText"),
+                XNAMessageBoxButtons.YesNo);
+            msgBox.YesClickedAction = _ => tunnelHandler.ClearP2PEndpointCache();
+            msgBox.NoClickedAction = _ => chkEnableP2P.Checked = false;
+            msgBox.Show();
         }
 
         private void InitAllowPrivateMessagesFromDropdown()
         {
             XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager);
             lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
-            lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:".L10N("Client:DTAConfig:AllowPMFrom");
+            lblAllPrivateMessagesFrom.Text = "Allow private messages from:".L10N("Client:DTAConfig:AllowPMFrom");
             lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 chkDisablePrivateMessagePopup.X,
                 chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
@@ -187,8 +256,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager);
             ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
             ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
-                lblAllPrivateMessagesFrom.Right,
-                lblAllPrivateMessagesFrom.Y - 2, 110, 0);
+                lblAllPrivateMessagesFrom.Right - 110,
+                lblAllPrivateMessagesFrom.Y + 22, 110, 0);
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
@@ -326,14 +395,18 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             chkPingUnofficialTunnels.Checked = IniSettings.PingUnofficialCnCNetTunnels;
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
-            chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
             chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
+            chkDisableMainMenuHotkeys.Checked = IniSettings.DisableMainMenuHotkeys;
             SetAllowPrivateMessagesFromState(IniSettings.AllowPrivateMessagesFromState);
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
             chkSteamIntegration.Checked = IniSettings.SteamIntegration;
+            SetTunnelMode();
+            chkEnableP2P.CheckedChanged -= ChkEnableP2P_CheckedChanged;
+            chkEnableP2P.Checked = IniSettings.EnableP2P;
+            chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
 
             chkDiscordIntegration.Checked = !ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled
                 && IniSettings.DiscordIntegration;
@@ -354,6 +427,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                 chkBox.Checked = IniSettings.IsGameFollowed(chkBox.Name);
             }
+
         }
 
         public override bool Save()
@@ -362,14 +436,17 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.PingUnofficialCnCNetTunnels.Value = chkPingUnofficialTunnels.Checked;
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
-            IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
             IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
+            IniSettings.DisableMainMenuHotkeys.Value = chkDisableMainMenuHotkeys.Checked;
             IniSettings.AllowPrivateMessagesFromState.Value = GetAllowPrivateMessagesFromState();
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
             IniSettings.SteamIntegration.Value = chkSteamIntegration.Checked;
+            var tunnelMode = (TunnelMode)(ddTunnelMode.SelectedItem?.Tag ?? TunnelMode.V3Static);
+            IniSettings.TunnelMode.Value = (int)tunnelMode;
+            IniSettings.EnableP2P.Value = chkEnableP2P.Checked;
 
             if (!ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
             {
@@ -384,6 +461,16 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
             return restartRequired;
+        }
+
+        private void SetTunnelMode()
+        {
+            var mode = (TunnelMode)IniSettings.TunnelMode.Value;
+            var selectedIndex = ddTunnelMode.Items.FindIndex(i => (TunnelMode)i.Tag == mode);
+            if (selectedIndex < 0)
+                selectedIndex = ddTunnelMode.Items.FindIndex(i => (TunnelMode)i.Tag == TunnelMode.V3Static);
+
+            ddTunnelMode.SelectedIndex = selectedIndex;
         }
 
         private void SetAllowPrivateMessagesFromState(int state)

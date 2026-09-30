@@ -20,7 +20,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool IsForceRandomSides { get; set; }
         public bool IsForceRandomColors { get; set; }
-        public bool IsForceRandomTeams { get; set; }
+        public bool IsForceNoTeams { get; set; }
         public bool IsForceRandomStarts { get; set; }
         public bool IsUseTeamStartMappings { get; set; }
         public List<TeamStartMapping> TeamStartMappings { get; set; } = new List<TeamStartMapping>();
@@ -50,7 +50,7 @@ namespace DTAClient.Domain.Multiplayer
             var stringBuilder = new StringBuilder();
             stringBuilder.Append(IsForceRandomSides ? "1" : "0");
             stringBuilder.Append(IsForceRandomColors ? "1" : "0");
-            stringBuilder.Append(IsForceRandomTeams ? "1" : "0");
+            stringBuilder.Append(IsForceNoTeams ? "1" : "0");
             stringBuilder.Append(IsForceRandomStarts ? "1" : "0");
             stringBuilder.Append(IsUseTeamStartMappings ? "1" : "0");
             stringBuilder.Append(MESSAGE_SEPARATOR);
@@ -73,7 +73,7 @@ namespace DTAClient.Domain.Multiplayer
             {
                 IsForceRandomSides = boolParts[0] == '1',
                 IsForceRandomColors = boolParts[1] == '1',
-                IsForceRandomTeams = boolParts[2] == '1',
+                IsForceNoTeams = boolParts[2] == '1',
                 IsForceRandomStarts = boolParts[3] == '1',
                 IsUseTeamStartMappings = boolParts[4] == '1',
                 TeamStartMappings = TeamStartMapping.FromListString(parts[1])
@@ -85,7 +85,7 @@ namespace DTAClient.Domain.Multiplayer
             var defaultPLayerExtraOptions = new PlayerExtraOptions();
             return IsForceRandomColors == defaultPLayerExtraOptions.IsForceRandomColors &&
                    IsForceRandomStarts == defaultPLayerExtraOptions.IsForceRandomStarts &&
-                   IsForceRandomTeams == defaultPLayerExtraOptions.IsForceRandomTeams &&
+                   IsForceNoTeams == defaultPLayerExtraOptions.IsForceNoTeams &&
                    IsForceRandomSides == defaultPLayerExtraOptions.IsForceRandomSides &&
                    IsUseTeamStartMappings == defaultPLayerExtraOptions.IsUseTeamStartMappings;
         }

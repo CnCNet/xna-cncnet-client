@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -23,24 +25,31 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int GAME_REFRESH_RATE = 1;
         private const int ICON_MARGIN = 2;
-        private const int FONT_INDEX = 0;
         private static string LOADED_GAME_TEXT => " (" + "Loaded Game".L10N("Client:Main:LoadedGame") + ")";
         private readonly string[] SkillLevelOptions;
 
         public GameListBox(WindowManager windowManager, MapLoader mapLoader,
-            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter = null)
+            string localGameIdentifier, GameLobbyBase gameLobby = null,
+            Predicate<GenericHostedGame> gameMatchesFilter = null)
             : base(windowManager)
         {
             this.mapLoader = mapLoader;
             this.localGameIdentifier = localGameIdentifier;
+            this.gameLobby = gameLobby;
             GameMatchesFilter = gameMatchesFilter;
 
-            SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+            SkillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
         }
 
-        private List<Texture2D?> txSkillLevelIcons =  new();
+        private List<Texture2D?> txSkillLevelIcons = new();
 
         private int loadedGameTextWidth;
+
+        /// <summary>
+        /// The font-derived line height, used as the minimum row height when no
+        /// icon is taller than the text.
+        /// </summary>
+        private int baseLineHeight;
 
         public List<GenericHostedGame> HostedGames = new();
 
@@ -58,6 +67,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private string localGameIdentifier;
 
         private MapLoader mapLoader;
+
+        private GameLobbyBase gameLobby;
 
         private GameInformationPanel panelGameInformation;
 
@@ -102,9 +113,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Clear();
 
-            GetSortedAndFilteredGames()
-                .ToList()
-                .ForEach(AddGameToList);
+            var games = GetSortedAndFilteredGames().ToList();
+
+            // Size the rows around the tallest icon, falling back to the font
+            // height when the text is taller than any icon. This is applied
+            // before adding items so their text is vertically centered correctly.
+            LineHeight = Math.Max(baseLineHeight, GetMaxIconHeight(games));
+
+            games.ForEach(AddGameToList);
 
             if (selectedItem != null)
                 SelectedIndex = Items.FindIndex(GameListMatch(selectedItem));
@@ -121,6 +137,9 @@ namespace DTAClient.DXGUI.Multiplayer
         public void AddGame(GenericHostedGame game)
         {
             HostedGames.Add(game);
+
+            // Early notify the map preview cache
+            mapLoader.PrefetchCachedPreviewImageFromMap(mapLoader.FindMapByHash(game.MapHash));
 
             Refresh();
         }
@@ -176,7 +195,7 @@ namespace DTAClient.DXGUI.Multiplayer
             txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
             txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
 
-            panelGameInformation = new GameInformationPanel(WindowManager, mapLoader);
+            panelGameInformation = new GameInformationPanel(WindowManager, mapLoader, gameLobby);
             panelGameInformation.Name = nameof(panelGameInformation);
             panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
             panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
@@ -196,6 +215,10 @@ namespace DTAClient.DXGUI.Multiplayer
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
 
             InitSkillLevelIcons();
+
+            // Remember the configured/font-derived line height so it can serve as
+            // the minimum row height regardless of icon sizes.
+            baseLineHeight = LineHeight;
         }
 
         private void InitSkillLevelIcons()
@@ -203,7 +226,7 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < SkillLevelOptions.Length; i++)
             {
                 string fileName = $"skillLevel{i}.png";
-                    
+
                 txSkillLevelIcons.Add(AssetLoader.AssetExists(fileName)
                     ? AssetLoader.LoadTexture(fileName)
                     : null);
@@ -244,12 +267,122 @@ namespace DTAClient.DXGUI.Multiplayer
                 ShowGamePanelInfoForIndex(HoveredIndex);
         }
 
+        private (List<Texture2D> leftIcons, List<Texture2D> rightIcons) GetGameOptionIcons(GenericHostedGame game)
+        {
+            var leftIcons = new List<Texture2D>();
+            var rightIcons = new List<Texture2D>();
+
+            if (gameLobby == null || game is not HostedCnCNetGame cncnetGame)
+                return (leftIcons, rightIcons);
+
+            if (cncnetGame.BroadcastedGameOptionValues == null || cncnetGame.BroadcastedGameOptionValues.Length == 0)
+                return (leftIcons, rightIcons);
+
+            var broadcastableSettings = gameLobby.GetBroadcastableSettings();
+
+            for (int i = 0; i < broadcastableSettings.Count && i < cncnetGame.BroadcastedGameOptionValues.Length; i++)
+            {
+                var setting = broadcastableSettings[i];
+                int value = cncnetGame.BroadcastedGameOptionValues[i];
+
+                if (setting is GameLobbyCheckBox checkbox && checkbox.ShowInGameList)
+                {
+                    string iconName = value != 0 ? checkbox.EnabledIcon : checkbox.DisabledIcon;
+                    if (string.IsNullOrEmpty(iconName))
+                        continue;
+
+                    Texture2D icon = AssetLoader.LoadTexture(iconName);
+                    if (icon != null)
+                    {
+                        if (checkbox.ShowInGameListOnRight)
+                            rightIcons.Add(icon);
+                        else
+                            leftIcons.Add(icon);
+                    }
+                }
+                else if (setting is GameLobbyDropDown dropdown && dropdown.ShowInGameList)
+                {
+                    // Use the icon for the selected value
+                    if (value >= 0 && value < dropdown.Items.Count)
+                    {
+                        Texture2D icon = dropdown.Items[value].Texture;
+                        if (icon != null)
+                        {
+                            if (dropdown.ShowInGameListOnRight)
+                                rightIcons.Add(icon);
+                            else
+                                leftIcons.Add(icon);
+                        }
+                    }
+                }
+            }
+
+            return (leftIcons, rightIcons);
+        }
+
+        /// <summary>
+        /// Determines the height of the tallest icon that could be drawn for the
+        /// given set of games, so rows can be sized to fit it.
+        /// </summary>
+        private int GetMaxIconHeight(IEnumerable<GenericHostedGame> games)
+        {
+            int maxHeight = 0;
+
+            // Status icons are not game-specific, so always account for them.
+            if (txLockedGame != null)
+                maxHeight = Math.Max(maxHeight, txLockedGame.Height);
+            if (txIncompatibleGame != null)
+                maxHeight = Math.Max(maxHeight, txIncompatibleGame.Height);
+            if (txPasswordedGame != null)
+                maxHeight = Math.Max(maxHeight, txPasswordedGame.Height);
+            foreach (var icon in txSkillLevelIcons)
+            {
+                if (icon != null)
+                    maxHeight = Math.Max(maxHeight, icon.Height);
+            }
+
+            foreach (var game in games)
+            {
+                bool showGameIcon = ClientConfiguration.Instance.ShowGameIconInGameList
+                    || game.Game.InternalName != localGameIdentifier.ToLower();
+                if (showGameIcon && game.Game.Texture != null)
+                    maxHeight = Math.Max(maxHeight, game.Game.Texture.Height);
+
+                var (leftIcons, rightIcons) = GetGameOptionIcons(game);
+                foreach (var icon in leftIcons)
+                    maxHeight = Math.Max(maxHeight, icon.Height);
+                foreach (var icon in rightIcons)
+                    maxHeight = Math.Max(maxHeight, icon.Height);
+            }
+
+            return maxHeight;
+        }
+
         private void AddGameToList(GenericHostedGame hg)
         {
             int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
-            int maxTextWidth = Width - hg.Game.Texture.Width - 
+
+            var (leftIcons, rightIcons) = GetGameOptionIcons(hg);
+            int leftIconsWidth = leftIcons.Count > 0 ?
+                (leftIcons.Sum(icon => icon.Width) + (leftIcons.Count * ICON_MARGIN)) : 0;
+            int rightIconsWidth = rightIcons.Count > 0 ?
+                (rightIcons.Sum(icon => icon.Width) + (rightIcons.Count * ICON_MARGIN)) : 0;
+
+            bool showGameIcon = ClientConfiguration.Instance.ShowGameIconInGameList
+                || hg.Game.InternalName != localGameIdentifier.ToLower();
+            int gameTextureWidth = showGameIcon ? hg.Game.Texture.Width : 0;
+
+            int skillLevelIndex = hg.SkillLevel;
+            int skillLevelIconWidth = 0;
+            if (txSkillLevelIcons[skillLevelIndex] != null)
+                skillLevelIconWidth = txSkillLevelIcons[skillLevelIndex].Width;
+
+            int maxTextWidth = Width - gameTextureWidth -
                 (hg.Incompatible ? txIncompatibleGame.Width : 0) -
-                (hg.Locked ? txLockedGame.Width : 0) - (hg.Passworded ? txPasswordedGame.Width : 0) - 
+                (hg.Locked ? txLockedGame.Width : 0) -
+                (hg.Passworded ? txPasswordedGame.Width : 0) -
+                skillLevelIconWidth -
+                leftIconsWidth - rightIconsWidth -
                 (ICON_MARGIN * 3) - GetScrollBarWidth() - lgTextWidth;
 
             var lbItem = new XNAListBoxItem();
@@ -326,16 +459,32 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                DrawTexture(hostedGame.Game.Texture,
-                    new Rectangle(x, height,
-                    hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
+                // left-side game option icons
+                var (leftIcons, rightIcons) = GetGameOptionIcons(hostedGame);
+                foreach (var icon in leftIcons)
+                {
+                    DrawTexture(icon,
+                        new Rectangle(x, height + (LineHeight - icon.Height) / 2,
+                        icon.Width, icon.Height), Color.White);
+                    x += icon.Width + ICON_MARGIN;
+                }
 
-                x += hostedGame.Game.Texture.Width + ICON_MARGIN;
+                bool showGameIcon = ClientConfiguration.Instance.ShowGameIconInGameList
+                    || hostedGame.Game.InternalName != localGameIdentifier.ToLower();
+
+                if (showGameIcon)
+                {
+                    DrawTexture(hostedGame.Game.Texture,
+                        new Rectangle(x, height + (LineHeight - hostedGame.Game.Texture.Height) / 2,
+                        hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
+
+                    x += hostedGame.Game.Texture.Width + ICON_MARGIN;
+                }
 
                 if (hostedGame.Locked)
                 {
                     DrawTexture(txLockedGame,
-                        new Rectangle(x, height,
+                        new Rectangle(x, height + (LineHeight - txLockedGame.Height) / 2,
                         txLockedGame.Width, txLockedGame.Height), Color.White);
                     x += txLockedGame.Width + ICON_MARGIN;
                 }
@@ -343,28 +492,43 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (hostedGame.Incompatible)
                 {
                     DrawTexture(txIncompatibleGame,
-                        new Rectangle(x, height,
+                        new Rectangle(x, height + (LineHeight - txIncompatibleGame.Height) / 2,
                         txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
                     x += txIncompatibleGame.Width + ICON_MARGIN;
                 }
 
+                // right-side icons (right game option icons, then password, then skill level)
+                int rightX = Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0);
+
+                // right-side game option icons (drawn first, from right to left)
+                for (int iconIndex = rightIcons.Count - 1; iconIndex >= 0; iconIndex--)
+                {
+                    var icon = rightIcons[iconIndex];
+                    rightX -= icon.Width;
+                    DrawTexture(icon,
+                        new Rectangle(rightX, height + (LineHeight - icon.Height) / 2, icon.Width, icon.Height), Color.White);
+                    rightX -= ICON_MARGIN;
+                }
+
+                // password icon
                 if (hostedGame.Passworded)
                 {
+                    rightX -= txPasswordedGame.Width;
                     DrawTexture(txPasswordedGame,
-                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                        height, txPasswordedGame.Width, txPasswordedGame.Height),
+                        new Rectangle(rightX, height + (LineHeight - txPasswordedGame.Height) / 2, txPasswordedGame.Width, txPasswordedGame.Height),
                         Color.White);
+                    rightX -= ICON_MARGIN;
                 }
-                else
+
+                // skill level icon (shown even if passworded)
+                int skillLevelIndex = hostedGame.SkillLevel;
+                Texture2D txSkillLevelIcon = txSkillLevelIcons[skillLevelIndex];
+                if (txSkillLevelIcon != null)
                 {
-                    Texture2D txSkillLevelIcon = txSkillLevelIcons[hostedGame.SkillLevel];
-                    if (txSkillLevelIcon != null)
-                    {
-                        DrawTexture(txSkillLevelIcon,
-                            new Rectangle(Width - txSkillLevelIcon.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                            height, txSkillLevelIcon.Width, txSkillLevelIcon.Height),
-                            Color.White);
-                    }
+                    rightX -= txSkillLevelIcon.Width;
+                    DrawTexture(txSkillLevelIcon,
+                        new Rectangle(rightX, height + (LineHeight - txSkillLevelIcon.Height) / 2, txSkillLevelIcon.Width, txSkillLevelIcon.Height),
+                        Color.White);
                 }
 
                 var text = lbItem.Text;
@@ -374,7 +538,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 x += lbItem.TextXPadding;
 
                 DrawStringWithShadow(text, FontIndex,
-                    new Vector2(x, height),
+                    new Vector2(x, height + lbItem.TextYPadding),
                     lbItem.TextColor);
 
                 height += LineHeight;

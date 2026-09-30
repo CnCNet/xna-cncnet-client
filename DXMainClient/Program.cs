@@ -56,7 +56,149 @@ namespace DTAClient
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #endif
 #endif
+
+#if NETFRAMEWORK
+            // Native libs (e.g. libHarfBuzzSharp.dll from HarfBuzzSharp.NativeAssets.Win32)
+            // ship under either SPECIFIC_LIBRARY_PATH/{x64|x86|arm64}/
+            // or COMMON_LIBRARY_PATH/{x64|x86|arm64}/. The .NET Framework runtime
+            // does not search those subfolders by default, and HarfBuzzSharp's resolver looks
+            // beside the EXE rather than beside its managed wrapper - so without help, P/Invoke
+            // calls fail with "Unable to load library 'libHarfBuzzSharp'".
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                static bool areSecureDllLoadingAPIsAvailable()
+                {
+                    var kernel32ModuleHandle = GetModuleHandle("kernel32");
+                    if (kernel32ModuleHandle == IntPtr.Zero)
+                        throw new Exception("Failed to get handle for kernel32.dll. Is your operating system broken?", new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()));
+
+                    string[] requiredFunctions = ["SetDefaultDllDirectories", "AddDllDirectory", "RemoveDllDirectory"];
+                    foreach (string function in requiredFunctions)
+                    {
+                        if (GetProcAddress(kernel32ModuleHandle, function) == IntPtr.Zero)
+                            return false;
+                    }
+
+                    return true;
+                }
+
+                string archSubfolder = RuntimeInformation.ProcessArchitecture switch
+                {
+                    Architecture.X64 => "x64",
+                    Architecture.X86 => "x86",
+                    Architecture.Arm64 => "arm64",
+                    _ => null
+                };
+
+                if (IsRunningUnderWine())
+                {
+                    // Wine and CrossOver export SetDefaultDllDirectories / AddDllDirectory,
+                    // so areSecureDllLoadingAPIsAvailable() succeeds. On real Windows those APIs
+                    // are the right way to load native libraries from
+                    // SPECIFIC_LIBRARY_PATH/{arch} and COMMON_LIBRARY_PATH/{arch}:
+                    // SetDefaultDllDirectories replaces the process default search path
+                    // with application dir + System32 + AddDllDirectory folders, which
+                    // still finds system libraries because user32.dll, gdi32.dll, and
+                    // similar are Known DLLs mapped from System32.
+                    //
+                    // Wine does not implement that Known-DLL behaviour. Its user32/gdi32
+                    // are placeholder PE files whose real code lives in Unix libraries
+                    // discovered through Wine's private builtin path (WINEDLLPATH /
+                    // lib/wine), which is not one of the LOAD_LIBRARY_SEARCH_* directories.
+                    // After SetDefaultDllDirectories, LoadLibrary("user32.dll") therefore
+                    // fails. The first such call is the P/Invoke inside the static
+                    // constructor of System.Windows.Forms.Control (reached from
+                    // Application.SetCompatibleTextRenderingDefault). That surfaces as
+                    // TypeInitializationException wrapping DllNotFoundException for
+                    // user32.dll, even though user32 is present in the Wine prefix.
+                    // That failure is a Wine loader gap, not incorrect flags on Windows.
+                    //
+                    // Workaround: when running under Wine, do not call
+                    // SetDefaultDllDirectories. Prepend the architecture subfolders to
+                    // PATH instead so libHarfBuzzSharp.dll (and similar) are still found,
+                    // while Wine's default search continues to locate user32/gdi32.
+                    // AddDllDirectory is omitted on this path because, without
+                    // SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_USER_DIRS), those
+                    // directories are not part of the process default search path.
+                    //
+                    // Removal condition: if a future Wine/CrossOver build can load
+                    // user32.dll via P/Invoke after SetDefaultDllDirectories — confirm by
+                    // running through Application.SetCompatibleTextRenderingDefault —
+                    // delete this branch and use the Windows path for Wine as well
+                    // (SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS) +
+                    // AddDllDirectory). Re-test on CrossOver specifically; it often lags
+                    // upstream Wine.
+
+                    if (archSubfolder is not null)
+                    {
+                        static void prependToPathIfExists(string directory)
+                        {
+                            if (!Directory.Exists(directory))
+                                return;
+
+                            string current = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+                            Environment.SetEnvironmentVariable("PATH", directory + Path.PathSeparator + current);
+                        }
+
+                        prependToPathIfExists(Path.Combine(SPECIFIC_LIBRARY_PATH, archSubfolder));
+                        prependToPathIfExists(Path.Combine(COMMON_LIBRARY_PATH, archSubfolder));
+                    }
+                }
+                else
+                {
+                    if (!areSecureDllLoadingAPIsAvailable())
+                        throw new PlatformNotSupportedException("This application requires at least Windows 7 SP1 with KB4457144 (alternatively, KB2533623 or KB3063858) installed.");
+
+                    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
+                    if (archSubfolder is not null)
+                    {
+                        static void addDllDirectoryIfExists(string path)
+                        {
+                            if (Directory.Exists(path))
+                                AddDllDirectory(path);
+                        }
+
+                        addDllDirectoryIfExists(Path.Combine(SPECIFIC_LIBRARY_PATH, archSubfolder));
+                        addDllDirectoryIfExists(Path.Combine(COMMON_LIBRARY_PATH, archSubfolder));
+                    }
+                }
+            }
+#endif
         }
+
+#if NETFRAMEWORK
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern bool SetDllDirectory(string lpPathName);
+
+        private const int LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
+        private const int LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
+        private const int LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
+        private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern bool SetDefaultDllDirectories(int directoryFlags);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr AddDllDirectory(string lpPathName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetModuleHandleW", ExactSpelling = true, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr GetModuleHandle([In][MarshalAs(UnmanagedType.LPWStr)] string lpModuleName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true, ThrowOnUnmappableChar = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr GetProcAddress([In] IntPtr hModule, [In][MarshalAs(UnmanagedType.LPStr)] string lpProcName);
+
+        private static bool IsRunningUnderWine()
+        {
+            IntPtr ntdllModuleHandle = GetModuleHandle("ntdll");
+            return ntdllModuleHandle != IntPtr.Zero && GetProcAddress(ntdllModuleHandle, "wine_get_version") != IntPtr.Zero;
+        }
+#endif
 
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;

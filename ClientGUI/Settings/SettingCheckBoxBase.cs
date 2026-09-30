@@ -1,4 +1,7 @@
 ﻿using System;
+
+using ClientGUI.Extensions;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
@@ -8,12 +11,13 @@ namespace ClientGUI.Settings
     {
         public SettingCheckBoxBase(WindowManager windowManager) : base(windowManager) { }
 
-        public SettingCheckBoxBase(WindowManager windowManager, bool defaultValue, string settingSection, string settingKey, bool restartRequired = false) : base(windowManager)
+        public SettingCheckBoxBase(WindowManager windowManager, bool defaultValue, string settingSection, string settingKey, bool restartRequired = false, bool resetPerGameSession = false) : base(windowManager)
         {
             DefaultValue = defaultValue;
             SettingSection = settingSection;
             SettingKey = settingKey;
             RestartRequired = restartRequired;
+            ResetToDefaultOnGameExit = resetPerGameSession;
         }
 
         public bool DefaultValue { get; set; }
@@ -33,6 +37,7 @@ namespace ClientGUI.Settings
         }
 
         public bool RestartRequired { get; set; }
+        public bool ResetToDefaultOnGameExit { get; set; }
 
         private string _parentCheckBoxName;
         /// <summary>
@@ -44,7 +49,7 @@ namespace ClientGUI.Settings
             set
             {
                 _parentCheckBoxName = value;
-                UpdateParentCheckBox(FindParentCheckBox());
+                UpdateParentCheckBox(Parent.FindChild<XNAClientCheckBox>(_parentCheckBoxName, optional: true, recursive: false));
             }
         }
 
@@ -94,6 +99,9 @@ namespace ClientGUI.Settings
                 case "ParentCheckBoxRequiredValue":
                     ParentCheckBoxRequiredValue = Conversions.BooleanFromString(value, true);
                     return;
+                case "ResetToDefaultOnGameExit":
+                    ResetToDefaultOnGameExit = Conversions.BooleanFromString(value, false);
+                    return;
             }
 
             base.ParseControlINIAttribute(iniFile, key, value);
@@ -102,21 +110,6 @@ namespace ClientGUI.Settings
         public abstract void Load();
 
         public abstract bool Save();
-
-
-        private XNAClientCheckBox FindParentCheckBox()
-        {
-            if (string.IsNullOrEmpty(ParentCheckBoxName))
-                return null;
-
-            foreach (var control in Parent.Children)
-            {
-                if (control is XNAClientCheckBox && control.Name == ParentCheckBoxName)
-                    return control as XNAClientCheckBox;
-            }
-
-            return null;
-        }
 
         private void UpdateParentCheckBox(XNAClientCheckBox parentCheckBox)
         {

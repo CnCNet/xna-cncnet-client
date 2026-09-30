@@ -136,9 +136,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnConnect_LeftClick(object sender, EventArgs e)
         {
-            string errorMessage = NameValidator.IsNameValid(tbPlayerName.Text);
+            NameValidationError validationError = NameValidator.IsNameValid(tbPlayerName.Text, out string errorMessage);
 
-            if (!string.IsNullOrEmpty(errorMessage))
+            if (validationError != NameValidationError.None)
             {
                 XNAMessageBox.Show(WindowManager, "Invalid Player Name".L10N("Client:Main:InvalidPlayerName"), errorMessage);
                 return;
