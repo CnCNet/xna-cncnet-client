@@ -852,10 +852,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
                         selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Failed to update ddraw.ini at {ddrawIniPath}: {ex.Message}");
-                }
             }
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
