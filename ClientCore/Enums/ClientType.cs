@@ -8,6 +8,5 @@ namespace ClientCore.Enums
         TS,
         YR,
         Ares,
-        RA,
     }
 }
