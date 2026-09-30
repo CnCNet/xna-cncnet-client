@@ -70,8 +70,9 @@ namespace DTAClient
 #endif
             AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
             {
-                // The process ends when this returns, so use a blocking message box; the XNA one
-                // would never be drawn.
+                // The process ends as soon as this event handler returns, so an XNA message box
+                // would never be drawn. Use the system message box, which blocks until the user
+                // closes the message box.
                 MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
                 HandleException(sender, (Exception)args.ExceptionObject);
             };
@@ -276,13 +277,15 @@ namespace DTAClient
             }
             catch { }
 
-            // With V3 tunnels the game's traffic is relayed by this process on its own threads, so
-            // stay alive until the game exits.
+            // With V3 tunnels, the client relays the game's network traffic on background threads.
+            // Exiting the client now would disconnect the player from the match, so wait for the
+            // game process to exit before reporting the crash.
             if (GameProcessLogic.IsGameProcessRunning)
             {
                 Logger.Log("The game is still running; keeping the client alive until it exits before reporting the crash.");
 
-                // Stop Windows offering to end the unresponsive process while we wait.
+                // The waiting thread no longer processes window messages. Disable window ghosting so
+                // that Windows does not mark the client as not responding and offer to close the client.
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     DisableProcessWindowsGhosting();
 

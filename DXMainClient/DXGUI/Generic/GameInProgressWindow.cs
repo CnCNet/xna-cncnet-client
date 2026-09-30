@@ -150,8 +150,9 @@ namespace DTAClient.DXGUI
             if (Game.IsFixedTimeStep)
                 Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
 
-            // Restoring the window or graphics mode recreates render targets, which throws on a lost
-            // device and would abort the rest of this post-game handling.
+            // Restoring the window or graphics mode recreates render targets. On a lost graphics
+            // device, recreating render targets throws, which would skip the post-game handling below
+            // (for example, processing screenshots and debug logs).
             bool restoreGraphics = !GameClass.IsGraphicsDeviceLost;
 
 #if WINFORMS

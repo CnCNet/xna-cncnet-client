@@ -30,8 +30,9 @@ namespace ClientGUI
         public static bool IsGameProcessRunning => !gameProcessNotRunning.IsSet;
 
         /// <summary>
-        /// Blocks until the game process exits. Doesn't rely on the game loop, so it also works
-        /// from a crashed UI thread.
+        /// Blocks the calling thread until the game process exits. The wait does not depend on
+        /// the client's update loop, so the client's crash handler can call this method after
+        /// the UI thread has crashed.
         /// </summary>
         public static void WaitForGameProcessExit() => gameProcessNotRunning.Wait();
 
@@ -115,7 +116,9 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
-                    // Before any UI work that could throw, so nothing waits on a game that never started.
+                    // Mark the game as not running before showing the message box below. If showing the
+                    // message box throws, WaitForGameProcessExit would otherwise wait for a game process
+                    // that never started.
                     gameProcessNotRunning.Set();
                     Logger.Log("Error launching QRes: " + ex.ToString());
                     XNAMessageBox.Show(windowManager,

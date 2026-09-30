@@ -71,8 +71,9 @@ namespace DTAClient.DXGUI
         ContentManager content;
         private WindowManager windowManager;
 
-        // DXGI errors after which the device is unusable. MonoGame can't recreate it
-        // (MonoGame/MonoGame#6265), so the client has to close.
+        // DXGI error codes that mean the graphics device is lost and can no longer be used.
+        // MonoGame cannot recreate a lost DirectX 11 graphics device (MonoGame/MonoGame#6265),
+        // so the client must be restarted after any of these errors.
         private static readonly int[] graphicsDeviceLostHResults =
         [
             unchecked((int)0x887A0005), // DXGI_ERROR_DEVICE_REMOVED
@@ -81,12 +82,15 @@ namespace DTAClient.DXGUI
             unchecked((int)0x887A0020), // DXGI_ERROR_DRIVER_INTERNAL_ERROR
         ];
 
-        // Lets the post-game handling (statistics, replays) run before the client closes.
+        // After a graphics device loss, how long the client keeps running once the game process
+        // has exited. The delay gives the post-game handling (for example, saving match statistics
+        // and replays) time to finish before the client closes.
         private static readonly TimeSpan GRAPHICS_DEVICE_LOST_EXIT_DELAY = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Set once the graphics device is lost. Code that recreates graphics resources (e.g.
-        /// changing the window or graphics mode) must skip that work while this is set.
+        /// Whether the graphics device has been lost. Creating graphics resources on a lost device
+        /// throws, so while this property is true, code must not change the window or graphics mode
+        /// or do anything else that recreates graphics resources.
         /// </summary>
         public static bool IsGraphicsDeviceLost { get; private set; }
         private DateTime? graphicsDeviceLostExitTime;
@@ -286,8 +290,10 @@ namespace DTAClient.DXGUI
         protected override void Update(GameTime gameTime)
         {
 #if DX
-            // Nothing throws while nothing touches the GPU (e.g. while the game is running), so
-            // check the device before the game-exit callbacks in base.Update can restore the window.
+            // Drawing on a lost graphics device does not throw; only creating graphics resources
+            // does. A device loss during a match would therefore go unnoticed until the game-exit
+            // callbacks in base.Update restore the client window, and restoring the window creates
+            // graphics resources. Query the device state directly, before base.Update runs.
             if (!IsGraphicsDeviceLost && GraphicsDevice?.Handle is SharpDX.Direct3D11.Device device &&
                 device.DeviceRemovedReason.Failure)
             {
@@ -324,16 +330,18 @@ namespace DTAClient.DXGUI
 
         protected override void EndDraw()
         {
-            // Also skipped on the frame the loss is caught in Draw, as presenting with its render
-            // target still bound throws.
+            // Also skip presenting on the frame in which Draw caught the device loss. The exception
+            // interrupted Draw while a render target was still bound, and presenting while a render
+            // target is bound throws.
             if (!IsGraphicsDeviceLost)
                 base.EndDraw();
         }
 
         /// <summary>
-        /// Stops rendering but keeps the client running, as with V3 tunnels it relays the game's
-        /// traffic. A loss surfacing in a window message (e.g. a resize) bypasses this and is
-        /// handled by <see cref="PreStartup.HandleException"/>.
+        /// Stops rendering but keeps the client running until no game is running, because with
+        /// V3 tunnels the client relays the game's network traffic. A device loss that is thrown
+        /// while Windows messages are processed (for example, on a window resize) does not reach
+        /// this method; <see cref="PreStartup.HandleException"/> handles that case instead.
         /// </summary>
         private static void OnGraphicsDeviceLost(string details)
         {
@@ -368,11 +376,13 @@ namespace DTAClient.DXGUI
                 Logger.Log("Error while closing the client after graphics device loss: " + ex);
             }
 
-            // Skip disposing the game, which can throw on a lost device.
+            // Exit without disposing the GameClass instance, because disposing graphics resources
+            // on a lost graphics device can throw.
             Environment.Exit(0);
         }
 
-        // Uses the system message box, as the client can no longer draw its own.
+        // Uses the system message box, because the client cannot draw its own message box on a
+        // lost graphics device.
         public static void ShowGraphicsDeviceLostError(bool exit)
         {
             MainClientConstants.DefaultDisplayErrorAction(
