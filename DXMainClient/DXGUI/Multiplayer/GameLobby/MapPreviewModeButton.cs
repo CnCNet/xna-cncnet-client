@@ -38,7 +38,7 @@ internal sealed class MapPreviewModeButton : XNAClientButton
             if (!MapPreviewGenerationService.Enabled) return;
             var settings = UserINISettings.Instance;
             settings.ShowGeneratedMapPreviews.Value = !settings.ShowGeneratedMapPreviews.Value;
-            settings.SaveSettings(); // Host refreshes through its existing SettingsSaved subscription.
+            settings.SaveSettings(); // The service then raises ModeChanged for previews to refresh.
         };
     }
 

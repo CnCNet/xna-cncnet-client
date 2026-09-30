@@ -36,11 +36,30 @@ namespace DTAClient.Domain.Multiplayer
         public static bool Enabled => Configured && UserINISettings.Instance.RenderMapPreviews.Value;
         public static bool Selected => Enabled && UserINISettings.Instance.ShowGeneratedMapPreviews.Value;
 
+        /// <summary>Raised when <see cref="Enabled"/> or <see cref="Selected"/> changes, not on every settings save.</summary>
+        public static event Action? ModeChanged;
+        private static bool lastEnabled, lastSelected;
+
         static MapPreviewGenerationService()
         {
+            lastEnabled = Enabled;
+            lastSelected = Selected;
             GameProcessLogic.GameProcessStarting += () => { lock (Sync) { inGame = true; CancelRendering(); } };
             GameProcessLogic.GameProcessExited += () => { lock (Sync) inGame = false; };
-            UserINISettings.Instance.SettingsSaved += (sender, args) => { if (!Selected) lock (Sync) CancelRendering(); };
+            UserINISettings.Instance.SettingsSaved += (sender, args) => OnSettingsSaved();
+        }
+
+        private static void OnSettingsSaved()
+        {
+            bool enabled = Enabled, selected = Selected;
+            lock (Sync)
+            {
+                if (enabled == lastEnabled && selected == lastSelected) return;
+                lastEnabled = enabled;
+                lastSelected = selected;
+                if (!selected) CancelRendering();
+            }
+            ModeChanged?.Invoke();
         }
 
         private static void CancelRendering() => activeCancellation?.Cancel();

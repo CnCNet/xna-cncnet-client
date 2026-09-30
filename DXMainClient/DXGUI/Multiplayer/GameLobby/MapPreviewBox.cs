@@ -124,9 +124,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 _gameModeMap = value;
                 if (previewGenerationStatus != null) previewGenerationStatus.Text = "";
                 UpdateMap();
-                _ = MapPreviewGenerationService.Request(this, value?.Map);
+                previewRequestNeeded = true;
             }
         }
+
+        // Set when the shown map or preview mode changes; the request is made from Update,
+        // which does not run while this preview's lobby is hidden.
+        private bool previewRequestNeeded;
 
         public int FontIndex { get; set; }
 
@@ -247,10 +251,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnToggleRenderedPreview = new MapPreviewModeButton(WindowManager);
             btnToggleRenderedPreview.Refresh(Width);
             AddChild(btnToggleRenderedPreview);
-            UserINISettings.Instance.SettingsSaved += (sender, args) => WindowManager.AddCallback(new Action(() => {
+            MapPreviewGenerationService.ModeChanged += () => WindowManager.AddCallback(new Action(() => {
                 previewGenerationStatus.Text = "";
                 UpdateMap();
-                _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map);
+                previewRequestNeeded = true;
             }), null);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
@@ -693,6 +697,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             base.OnLeftClick(inputEventArgs);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (previewRequestNeeded)
+            {
+                previewRequestNeeded = false;
+                _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map);
+            }
+
+            base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
