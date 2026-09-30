@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -13,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 using System.Linq;
-using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
@@ -2289,7 +2289,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!stackedStartingLocations)
                 return;
 
-            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawn.ini");
+            IniFile spawnIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS));
 
             // For each player, check if they're sharing the starting location
             // with someone else

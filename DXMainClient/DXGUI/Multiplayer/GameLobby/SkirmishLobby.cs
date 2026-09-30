@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.Statistics;
 
