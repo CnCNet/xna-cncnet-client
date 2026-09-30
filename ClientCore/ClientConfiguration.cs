@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +17,7 @@ namespace ClientCore
     {
         // Optional external map renderer. Empty values disable integration.
         public string MapRendererPath => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "Executable", string.Empty);
+        public string UnixMapRendererPath => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "UnixExecutable", MapRendererPath);
         public string MapRendererArguments => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "Arguments", string.Empty);
         public string MapRendererVersion => clientDefinitionsIni.GetStringValue("MapPreviewRenderer", "AssetVersion", string.Empty);
         public int MapRendererWidth => Math.Max(64, Math.Min(4096, clientDefinitionsIni.GetIntValue("MapPreviewRenderer", "Width", 1920)));

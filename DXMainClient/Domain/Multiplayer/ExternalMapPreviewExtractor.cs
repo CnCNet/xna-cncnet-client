@@ -1,10 +1,12 @@
 #nullable enable
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 using Rampastring.Tools;
 
@@ -17,10 +19,15 @@ internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
         CancellationToken cancellationToken) => Task.Run(() =>
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string arguments = options.Arguments.Replace("{game}", Quote(options.Root))
-            .Replace("{map}", Quote(mapPath)).Replace("{output}", Quote(outputPath))
-            .Replace("{width}", options.Width.ToString(System.Globalization.CultureInfo.InvariantCulture))
-            .Replace("{height}", options.Height.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        // Substitute in one pass so a path containing e.g. "{output}" is not expanded again.
+        string arguments = Regex.Replace(options.Arguments, @"\{(game|map|output|width|height)\}", match => match.Groups[1].Value switch
+        {
+            "game" => Quote(options.Root),
+            "map" => Quote(mapPath),
+            "output" => Quote(outputPath),
+            "width" => options.Width.ToString(CultureInfo.InvariantCulture),
+            _ => options.Height.ToString(CultureInfo.InvariantCulture)
+        });
         var messages = new StringBuilder();
         using var process = new Process
         {
@@ -44,17 +51,12 @@ internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
         process.OutputDataReceived += capture;
         process.ErrorDataReceived += capture;
         process.Start();
-        using var registration = cancellationToken.Register(() =>
-        {
-            try { if (!process.HasExited) process.Kill(); }
-            catch (InvalidOperationException) { }
-            catch (System.ComponentModel.Win32Exception e) { Logger.Log("Map renderer cancellation: " + e.Message); }
-        });
+        using var registration = cancellationToken.Register(() => Kill(process));
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         if (!process.WaitForExit(options.TimeoutSeconds * 1000))
         {
-            process.Kill();
+            Kill(process);
             process.WaitForExit();
             throw new IOException("Map renderer timed out.");
         }
@@ -63,6 +65,22 @@ internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
         if (process.ExitCode != 0)
             throw new IOException("Map renderer exit code " + process.ExitCode + ": " + messages);
     }, cancellationToken);
+
+    // The process may exit between the check and the kill, so failures here are expected.
+    private static void Kill(Process process)
+    {
+        try
+        {
+            if (process.HasExited) return;
+#if NETFRAMEWORK
+            process.Kill(); // .NET Framework cannot kill the process tree; child processes of the renderer survive.
+#else
+            process.Kill(entireProcessTree: true);
+#endif
+        }
+        catch (InvalidOperationException) { }
+        catch (System.ComponentModel.Win32Exception e) { Logger.Log("Map renderer termination: " + e.Message); }
+    }
 
     // Quote one argument, including trailing backslashes, without invoking a shell.
     internal static string Quote(string value)

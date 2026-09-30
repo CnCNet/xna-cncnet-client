@@ -18,6 +18,8 @@ AssetVersion=1
 
 This example uses the separately distributed Red Eclipse adapter for CNCMaps. No renderer is bundled with the client or required for normal use. Configure the path and arguments for another renderer to match its CLI. It must create a PNG at `{output}` and exit zero. Placeholders `{game}`, `{map}`, and `{output}` expand to **already quoted** absolute paths; do not surround them with additional quotes. Width/height are integer hints, not mandatory output dimensions. The output path is inside a per-render staging folder under `Client/MapPreviewCache/staging`; the whole folder is deleted afterwards, so the renderer may write logs or other files next to it. The client does not invoke a shell.
 
+On Linux and macOS, `UnixExecutable` is used instead of `Executable` when set, like `UnixMapEditorExePath` for the map editor. On .NET 8 builds, a timed-out or cancelled renderer is terminated together with its child processes; on .NET Framework only the renderer process itself is.
+
 Increase `AssetVersion` when changing mod artwork or renderer dependencies. Renderer executable size/time, invocation template, dimensions and this version invalidate generated entries. Maps use the existing `Map.SHA1`, shared with custom-map handling; identical map contents share one PNG regardless of file name.
 
 ## User settings
@@ -39,10 +41,6 @@ One renderer runs at a time. Requests for the same map hash are coalesced. Only 
 ## Optional coordinate metadata
 
 Standard renderers can omit metadata; the existing client waypoint projection remains in use. An isometric renderer with a different crop may write `{output}.transform.json`: `[cropX,cropY,cropWidth,cropHeight,scale,padX,padY,pngWidth,pngHeight,...waypointTriplets]`. Triplets are tile X/Y/height. Coordinates use the client's isometric cell size (`MapCellSizeX`/`MapCellSizeY` in `[Settings]`; 60x30 for RA2/YR). The client applies the transform only when displaying that generated image. This draft extension needs maintainer review for the external renderer contract.
-
-## Validation
-
-See `Tests/MapPreviewRenderer` for isolated process/cache tests. Human UI verification across themes and graphics backends remains necessary before merging. No gameplay or Phobos changes are included.
 
 ## Theme button images
 

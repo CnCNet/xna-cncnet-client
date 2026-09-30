@@ -245,9 +245,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapContextMenu.AddItem(regeneratePreviewItem);
             previewGenerationStatus = new XNALabel(WindowManager) { Name = "lblRenderedPreviewStatus", Text = "", ClientRectangle = new Rectangle(4, 4, 0, 0), DrawOrder = 500 };
             AddChild(previewGenerationStatus);
-            MapPreviewGenerationService.Progress += (map, message) => WindowManager.AddCallback(new Action(() => {
+            MapPreviewGenerationService.Progress += (map, generating) => WindowManager.AddCallback(new Action(() => {
                 if (GameModeMap?.Map.SHA1 == map.SHA1 && MapPreviewGenerationService.Selected)
-                    previewGenerationStatus.Text = string.IsNullOrEmpty(message) ? "" : "Generating hi-res map preview…".L10N("Client:Main:GeneratingMapPreview");
+                    previewGenerationStatus.Text = generating ? "Generating hi-res map preview…".L10N("Client:Main:GeneratingMapPreview") : "";
             }), null);
             MapPreviewGenerationService.Completed += (map, changed, error) => WindowManager.AddCallback(new Action(() => {
                 if (GameModeMap?.Map.SHA1 != map.SHA1 || !MapPreviewGenerationService.Selected) return;
@@ -471,9 +471,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(GameModeMap.Map,
+            Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
+
+            mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map,
                 syncLoadOnCacheMiss: true, preferGenerated: MapPreviewGenerationService.Selected, out var previewSource)
-                ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2);
+                // This null case indicates a "hidden preview", where the map itself intends not to show a preview, so we just show a black box instead of no texture at all.
+                // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
+                ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2))
+                // `mapPreviewTexture` may be null if the engine fails to load the texture.
+                ?? throw new Exception($"Failed to load map preview texture. Map: {GameModeMap.Map.PreviewPath}.");
             mapPreviewTextureNeedsDispose = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))

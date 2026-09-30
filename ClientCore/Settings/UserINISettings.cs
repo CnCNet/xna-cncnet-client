@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -376,7 +376,6 @@ namespace ClientCore
 
         public BoolSetting RenderMapPreviews { get; private set; }
         public BoolSetting ShowGeneratedMapPreviews { get; private set; }
-
 
         public BoolSetting ForceLowestDetailLevel { get; private set; }
 

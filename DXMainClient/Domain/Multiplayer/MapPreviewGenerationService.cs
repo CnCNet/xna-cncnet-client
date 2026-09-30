@@ -30,8 +30,12 @@ namespace DTAClient.Domain.Multiplayer
         private static string Root => ProgramConstants.GamePath;
         internal static string CacheDirectory => Path.Combine(Root, "Client", "MapPreviewCache");
         public static event Action<Map, bool, string?>? Completed;
-        public static event Action<Map, string>? Progress;
-        public static bool Configured => !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.MapRendererPath)
+        /// <summary>Raised with true when a map's render starts and false when it ends.</summary>
+        public static event Action<Map, bool>? Progress;
+        private static string RendererPath => ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX
+            ? ClientConfiguration.Instance.UnixMapRendererPath
+            : ClientConfiguration.Instance.MapRendererPath;
+        public static bool Configured => !string.IsNullOrWhiteSpace(RendererPath)
             && !string.IsNullOrWhiteSpace(ClientConfiguration.Instance.MapRendererArguments);
         public static bool Enabled => Configured && UserINISettings.Instance.RenderMapPreviews.Value;
         public static bool Selected => Enabled && UserINISettings.Instance.ShowGeneratedMapPreviews.Value;
@@ -151,11 +155,11 @@ namespace DTAClient.Domain.Multiplayer
                         activeHash = map.SHA1;
                     }
                     var config = ClientConfiguration.Instance;
-                    var options = new MapPreviewRenderOptions(Root, config.MapRendererPath,
+                    var options = new MapPreviewRenderOptions(Root, RendererPath,
                         config.MapRendererArguments, config.MapRendererVersion,
                         config.MapRendererWidth, config.MapRendererHeight, config.MapRendererTimeoutSeconds);
                     changed = await Cache.GenerateAsync(map, options, force,
-                        () => Progress?.Invoke(map, "Generating hi-res map previewÃ¢â‚¬Â¦"),
+                        () => Progress?.Invoke(map, true),
                         publish =>
                         {
                             lock (Sync)
@@ -186,7 +190,7 @@ namespace DTAClient.Domain.Multiplayer
                         retry = cancellation.IsCancellationRequested && !inGame && Selected && IsWanted(map.SHA1);
                     }
                     Queue.Release();
-                    Progress?.Invoke(map, string.Empty);
+                    Progress?.Invoke(map, false);
                     Completed?.Invoke(map, changed, error);
                     if (retry) _ = Enqueue(map, force);
                 }
