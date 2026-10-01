@@ -468,8 +468,6 @@ namespace DTAClient.DXGUI.Campaign
                 spawnIniSettings.AddKey("MySideID", mission.Side.ToString(CultureInfo.InvariantCulture));
                 spawnIniSettings.AddKey("MissionNumber", mission.CampaignID.ToString(CultureInfo.InvariantCulture));
                 spawnIniSettings.AddKey("DifficultyLevel", trbDifficultySelector.Value.ToString(CultureInfo.InvariantCulture));
-                spawnIniSettings.AddKey("IsSinglePlayer", "Yes"); // Needed to determine which exe to use (dune2000.exe vs dune2000-spawn.exe)
-                // Seed can be added if needed for multiplayer, but for single player campaigns it's usually not needed
             }
             else
             {
