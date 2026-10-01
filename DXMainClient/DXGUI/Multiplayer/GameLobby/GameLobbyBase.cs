@@ -1635,12 +1635,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var playerIndices = new List<int>(totalPlayerCount);
             for (int i = 0; i < totalPlayerCount; i++)
                 playerIndices.Add(i);
-            playerIndices.Sort((a, b) =>
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
-                string nameA = a < Players.Count ? Players[a].Name : ("AI" + (a - Players.Count));
-                string nameB = b < Players.Count ? Players[b].Name : ("AI" + (b - Players.Count));
-                return string.Compare(nameA, nameB, StringComparison.Ordinal);
-            });
+                playerIndices.Sort((a, b) =>
+                {
+                    string nameA = a < Players.Count ? Players[a].Name : ("AI" + (a - Players.Count));
+                    string nameB = b < Players.Count ? Players[b].Name : ("AI" + (b - Players.Count));
+                    return string.Compare(nameA, nameB, StringComparison.Ordinal);
+                });
+            }
 
             foreach (int i in playerIndices)
             {
