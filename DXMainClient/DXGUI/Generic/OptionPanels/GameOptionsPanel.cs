@@ -18,6 +18,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private const string TEXT_BACKGROUND_COLOR_TRANSPARENT = "0";
         private const string TEXT_BACKGROUND_COLOR_BLACK = "12";
         private const int MAX_SCROLL_RATE = 6;
+        private const int D2K_MAX_SCROLL_RATE = 100;
 
         public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings, XNAControl topBar)
             : base(windowManager, iniSettings)
@@ -71,7 +72,10 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 22);
             trbScrollRate.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             trbScrollRate.MinValue = 0;
-            trbScrollRate.MaxValue = MAX_SCROLL_RATE;
+            trbScrollRate.MaxValue =
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K
+                    ? D2K_MAX_SCROLL_RATE
+                    : MAX_SCROLL_RATE;
             trbScrollRate.ValueChanged += TrbScrollRate_ValueChanged;
 
             chkScrollCoasting = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ScrollMethod", true, "0", "1");
@@ -257,6 +261,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         private int ReverseScrollRate(int scrollRate)
         {
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                return scrollRate;
+
             return Math.Abs(scrollRate - MAX_SCROLL_RATE);
         }
     }
