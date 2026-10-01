@@ -13,11 +13,11 @@ using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 
+using Microsoft.Xna.Framework;
+
 using Rampastring.Tools;
 
-using SixLabors.ImageSharp;
-
-using Point = Microsoft.Xna.Framework.Point;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -185,9 +185,17 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
+        /// Always recomputed from waypoints so that WaypointLevels are applied correctly.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public List<Point> startingLocations;
+
+        /// <summary>
+        /// Per-waypoint tile height levels decoded from IsoMapPack5.
+        /// Index matches the waypoints list. Null until tile level data has been applied.
+        /// </summary>
+        [JsonIgnore]
+        public int[] WaypointLevels;
 
         [JsonInclude]
         public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
@@ -401,16 +409,36 @@ namespace DTAClient.Domain.Multiplayer
             {
                 startingLocations = new List<Point>();
 
-                foreach (string waypoint in waypoints)
+                for (int i = 0; i < waypoints.Count; i++)
                 {
                     if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
+                    {
+                        int levelOverride = WaypointLevels != null && i < WaypointLevels.Length
+                            ? WaypointLevels[i]
+                            : -1;
+                        startingLocations.Add(GetIsometricWaypointCoords(waypoints[i], actualSize, localSize, previewSize, levelOverride));
+                    }
                     else
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
+                    {
+                        startingLocations.Add(GetTDRAWaypointCoords(waypoints[i], x, y, width, height, previewSize));
+                    }
                 }
             }
 
             return startingLocations;
+        }
+
+        /// <summary>
+        /// Applies decoded tile level data to this map.
+        /// Corrects waypoint positions for cliff height and populates auto-detected building overlays.
+        /// </summary>
+        public void ApplyTileLevelData(int[] wpLevels, IReadOnlyList<ExtraMapPreviewTexture> detectedOverlays)
+        {
+            WaypointLevels = wpLevels;
+            startingLocations = null; // force recompute with correct levels
+
+            if (detectedOverlays != null && detectedOverlays.Count > 0)
+                extraTextures.AddRange(detectedOverlays);
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
@@ -507,9 +535,6 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
                 }
-
-                localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
-                actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
                 if (MainClientConstants.USE_ISOMETRIC_CELLS)
                 {
@@ -785,23 +810,38 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
+        /// Extracts isometric cell (x, y) from the numeric part of a waypoint string (e.g. "102063").
+        /// Last 3 digits are X, the remainder is Y.
+        /// Returns (0, 0) if the string is too short or cannot be parsed.
+        /// </summary>
+        internal static (int x, int y) ParseWaypointCellCoords(string waypointNumStr)
+        {
+            if (waypointNumStr.Length < 4)
+                return (0, 0);
+            int xIdx = waypointNumStr.Length - 3;
+            int y = 0;
+            bool ok = int.TryParse(waypointNumStr.Substring(xIdx), NumberStyles.Integer, CultureInfo.InvariantCulture, out int x) &&
+                      int.TryParse(waypointNumStr.Substring(0, xIdx), NumberStyles.Integer, CultureInfo.InvariantCulture, out y);
+            return ok ? (x, y) : (0, 0);
+        }
+
+        /// <summary>
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
+        /// <param name="levelOverride">
+        /// When >= 0, overrides the level from the waypoint string (used when tile level data
+        /// has been decoded from IsoMapPack5). Pass -1 to use the level embedded in the waypoint string.
+        /// </param>
         /// <returns>The waypoint's location on the map preview as a point.</returns>
         private static Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
-            Point previewSizePoint)
+            Point previewSizePoint, int levelOverride = -1)
         {
             string[] parts = waypoint.Split(',');
+            var (isoTileX, isoTileY) = ParseWaypointCellCoords(parts[0]);
 
-            int xCoordIndex = parts[0].Length - 3;
-
-            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex), CultureInfo.InvariantCulture);
-            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex), CultureInfo.InvariantCulture);
-
-            int level = 0;
-
-            if (parts.Length > 1)
-                level = Conversions.IntFromString(parts[1], 0);
+            int level = levelOverride >= 0
+                ? levelOverride
+                : (parts.Length > 1 ? Conversions.IntFromString(parts[1], 0) : 0);
 
             return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint, level);
         }
