@@ -1768,51 +1768,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyDropDown dd in DropDowns)
                 dd.ApplySpawnIniCode(spawnIni);
 
-            // D2K-specific format conversions
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                // Convert boolean values to Yes/No format
-                string[] booleanKeys = { "ShortGame", "Crates", "DisableEngineer", "DisableTurrets", "NoCarryall" };
-                foreach (string key in booleanKeys)
-                {
-                    string value = spawnIni.GetStringValue("Settings", key, string.Empty);
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        bool boolValue = Conversions.BooleanFromString(value, false);
-                        spawnIni.SetStringValue("Settings", key, boolValue ? "Yes" : "No");
-                    }
-                }
-
-                // Worms should be numeric (0 or 1), not boolean
-                string wormsValue = spawnIni.GetStringValue("Settings", "Worms", string.Empty);
-                if (!string.IsNullOrEmpty(wormsValue))
-                {
-                    bool wormsBool = Conversions.BooleanFromString(wormsValue, false);
-                    spawnIni.SetStringValue("Settings", "Worms", wormsBool ? "1" : "0");
-                }
-
-                // GameSpeed: D2K expects a value like 100, not an index
-                // Map index to speed values: 0=MAX, 1=60, 2=30, 3=20, 4=15, 5=12, 6=10
-                int gameSpeedIndex = spawnIni.GetIntValue("Settings", "GameSpeed", -1);
-                if (gameSpeedIndex >= 0)
-                {
-                    int[] speedValues = { 100, 60, 30, 20, 15, 12, 10 };
-                    if (gameSpeedIndex < speedValues.Length)
-                    {
-                        spawnIni.SetIntValue("Settings", "GameSpeed", speedValues[gameSpeedIndex]);
-                    }
-                }
-
-                // MaxAhead: D2K needs this for multiplayer (default 175)
-                if (!spawnIni.KeyExists("Settings", "MaxAhead"))
-                {
-                    spawnIni.SetIntValue("Settings", "MaxAhead", 175);
-                }
-
-                // Remove BuildQueuesEnabled from spawn.ini - build queues are handled in map INI [Vars] section, not spawn.ini
-                spawnIni.RemoveKey("Settings", "BuildQueuesEnabled");
-            }
-
             // Apply forced options from GameOptions.ini
 
             List<string> forcedKeys = GameOptionsIni.GetSectionKeys("ForcedSpawnIniOptions");
@@ -1936,6 +1891,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.WriteIniFile();
 
             return houseInfos;
+        }
+        private void ApplyD2KSpawnIniConversions(IniFile spawnIni)
+        {
+            string disableCarryall = spawnIni.GetStringValue("Settings", "DisableCarryall", string.Empty);
+            if (!spawnIni.KeyExists("Settings", "NoCarryall") && !string.IsNullOrEmpty(disableCarryall))
+                spawnIni.SetStringValue("Settings", "NoCarryall", disableCarryall);
+
+            spawnIni.RemoveKey("Settings", "DisableCarryall");
+
+            string[] booleanKeys = { "ShortGame", "Crates", "DisableEngineer", "DisableTurrets", "NoCarryall" };
+            foreach (string key in booleanKeys)
+            {
+                string value = spawnIni.GetStringValue("Settings", key, string.Empty);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    bool boolValue = Conversions.BooleanFromString(value, false);
+                    spawnIni.SetStringValue("Settings", key, boolValue ? "Yes" : "No");
+                }
+            }
+
+            string wormsValue = spawnIni.GetStringValue("Settings", "Worms", string.Empty);
+            if (!string.IsNullOrEmpty(wormsValue))
+            {
+                bool wormsEnabled = Conversions.BooleanFromString(wormsValue, false);
+                spawnIni.SetStringValue("Settings", "Worms", wormsEnabled ? "1" : "0");
+            }
+
+            int gameSpeedIndex = spawnIni.GetIntValue("Settings", "GameSpeed", -1);
+            int[] speedValues = isMultiplayer
+                ? new[] { 60, 45, 30, 20, 15, 12, 10 }
+                : new[] { 100, 60, 30, 20, 15, 12, 10 };
+
+            if (gameSpeedIndex >= 0 && gameSpeedIndex < speedValues.Length)
+                spawnIni.SetIntValue("Settings", "GameSpeed", speedValues[gameSpeedIndex]);
+
+            if (isMultiplayer && !spawnIni.KeyExists("Settings", "MaxAhead"))
+                spawnIni.SetIntValue("Settings", "MaxAhead", 150);
+
+            // Build-queue options belong to the per-map [Vars] section.
+            spawnIni.RemoveKey("Settings", "BuildQueuesEnabled");
         }
 
         /// <summary>
