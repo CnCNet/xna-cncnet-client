@@ -1681,11 +1681,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Logger.Log("Writing spawn.ini");
 
-            // For D2K, write spawn.ini directly to d2k\spawn.ini instead of the root
-            string spawnIniPath = ClientConfiguration.Instance.ClientGameType == ClientType.D2K
-                ? SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", ProgramConstants.SPAWNER_SETTINGS)
-                : SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
-            FileInfo spawnerSettingsFile = SafePath.GetFile(spawnIniPath);
+            FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
             spawnerSettingsFile.Delete();
 
