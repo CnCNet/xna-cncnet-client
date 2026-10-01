@@ -44,7 +44,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             public static implicit operator Rank(int value) => new Rank(value);
         }
 
-        protected const int MAX_PLAYER_COUNT = 8;
+        protected readonly int MAX_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD => 6,
+            _ => 8,
+        };
+        protected readonly int MAX_NET_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD or ClientType.D2K => 6,
+            _ => 8,
+        };
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
@@ -214,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// The maximum number of players allowed in this lobby.
         /// </summary>
-        protected virtual int MaxPlayerCount => MAX_PLAYER_COUNT;
+        protected virtual int MaxPlayerCount => isMultiplayer ? MAX_NET_PLAYER_COUNT : MAX_PLAYER_COUNT;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
