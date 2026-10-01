@@ -57,7 +57,16 @@ namespace DTAClient.Domain
                 throw new ArgumentNullException(nameof(missionSection));
 
             CD = missionSection.GetIntValue(nameof(CD), 0);
-            Side = missionSection.GetIntValue(nameof(Side), 0);
+            Side = ClientConfiguration.Instance.ClientGameType switch
+            {
+                ClientType.D2K => GetSideFromSectionOrGameOptions(missionSection, missionCodeName),
+                _ => missionSection.GetIntValue(nameof(Side), 0),
+            };
+            CampaignID = ClientConfiguration.Instance.ClientGameType switch
+            {
+                ClientType.D2K => missionSection.GetIntValue("MissionNumber", CampaignID),
+                _ => missionSection.GetIntValue(nameof(CampaignID), CampaignID),
+            };
             Scenario = missionSection.GetStringValue(nameof(Scenario), string.Empty);
             UntranslatedGUIName = missionSection.GetStringValue("Description", "Undefined mission");
             GUIName = UntranslatedGUIName
