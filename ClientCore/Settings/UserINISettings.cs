@@ -102,18 +102,44 @@ namespace ClientCore
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
             else
                 BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-
+            
             IngameScreenWidth = new IntSetting(
                 iniFile,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Width" : "ScreenWidth",
-                1024);
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA or ClientType.D2K => OPTIONS,
+                    _ => VIDEO,
+                },
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA => "Width",
+                    ClientType.D2K => "GameWidth",
+                    _ => "ScreenWidth",
+                },
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.D2K => 640,
+                    _ => 1024,
+                });
 
             IngameScreenHeight = new IntSetting(
                 iniFile,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : VIDEO,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Height" : "ScreenHeight",
-                768);
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA or ClientType.D2K => OPTIONS,
+                    _ => VIDEO,
+                },
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA => "Height",
+                    ClientType.D2K => "GameHeight",
+                    _ => "ScreenHeight",
+                },
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.D2K => 400,
+                    _ => 768,
+                });
 
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
@@ -131,14 +157,29 @@ namespace ClientCore
 
             // RA1 reads MultiplayerScoreVolume instead of ScoreVolume. This value is handled when saving
             ScoreVolume = new DoubleSetting(iniFile,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
-                "ScoreVolume",
-                0.7);
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA or ClientType.D2K => OPTIONS,
+                    _ => AUDIO,
+                },
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? "MusicVolume" : "ScoreVolume",
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? 1.0 : 0.7,
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? 100.0 : 1.0);
 
             SoundVolume = new DoubleSetting(iniFile,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? OPTIONS : AUDIO,
-                ClientConfiguration.Instance.ClientGameType == ClientType.RA ? "Volume" : "SoundVolume",
-                0.7);
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA or ClientType.D2K => OPTIONS,
+                    _ => AUDIO,
+                },
+                ClientConfiguration.Instance.ClientGameType switch
+                {
+                    ClientType.RA => "Volume",
+                    ClientType.D2K => "SFXVolume",
+                    _ => "SoundVolume",
+                },
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? 1.0 : 0.7,
+                ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? 100.0 : 1.0);
 
             VoiceVolume = new DoubleSetting(iniFile, AUDIO, "VoiceVolume", 0.7);
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
@@ -148,7 +189,7 @@ namespace ClientCore
             StopGameLobbyMessageAudio = new BoolSetting(iniFile, AUDIO, "StopGameLobbyMessageAudio", true);
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
-            ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
+            ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", ClientConfiguration.Instance.ClientGameType == ClientType.D2K ? 20 : 3);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
             CustomDragDistance = new IntSetting(iniFile, OPTIONS, "CustomDragDistance", 0);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
