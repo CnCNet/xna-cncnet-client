@@ -2035,6 +2035,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(("Failed to parse random seed from game options message! " +
                     "The game host's game version might be different from yours.").L10N("Client:Main:HostRandomSeedError"), Color.Red);
             }
+            else
+            {
+                RandomSeed = randomSeed;
+            }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(parts[partIndex + 7],
                 Convert.ToInt32(RemoveStartingLocations)));
@@ -2208,11 +2212,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
+            // Last part may be the host's RandomSeed (so client writes spawn.ini with same seed and avoids desync)
+            int seedFromStart;
+            if (parts.Length >= 2 && int.TryParse(parts[parts.Length - 1], out seedFromStart))
+            {
+                RandomSeed = seedFromStart;
+            }
+
             var recentPlayers = new List<string>();
 
-            for (int i = 1; i < parts.Length; i += 2)
+            // Player list: parts[1]=name, parts[2]=ip:port, ... (optional last part is seed)
+            int playerPartCount = (parts.Length >= 2 && int.TryParse(parts[parts.Length - 1], out _)) ? parts.Length - 1 : parts.Length;
+            for (int i = 1; i + 1 < playerPartCount; i += 2)
             {
-                if (parts.Length <= i + 1)
+                if (playerPartCount <= i + 1)
                     return;
 
                 string pName = parts[i];

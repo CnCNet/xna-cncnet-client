@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
@@ -115,7 +115,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     GameBroadcastChannel = "#cncnet-d2k-games",
                     InternalName = "d2k",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
-                    UIName = "Dune 2000".L10N("Client:ClientCore:Dune2000"),
+                    UIName = "Dune 2000".L10N("Client:ClientCore:Dune2000")
                 },
 
                 new DefaultCnCNetGame("DTAClient.Icons.tsicon.png")

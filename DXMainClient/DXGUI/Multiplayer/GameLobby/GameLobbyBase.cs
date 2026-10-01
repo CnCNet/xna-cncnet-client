@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -13,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 using System.Linq;
-using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
@@ -44,7 +44,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             public static implicit operator Rank(int value) => new Rank(value);
         }
 
-        protected const int MAX_PLAYER_COUNT = 8;
+        protected readonly int MAX_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD => 6,
+            _ => 8,
+        };
+        protected readonly int MAX_NET_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD or ClientType.D2K => 6,
+            _ => 8,
+        };
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
@@ -214,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// The maximum number of players allowed in this lobby.
         /// </summary>
-        protected virtual int MaxPlayerCount => MAX_PLAYER_COUNT;
+        protected virtual int MaxPlayerCount => isMultiplayer ? MAX_NET_PLAYER_COUNT : MAX_PLAYER_COUNT;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -1626,7 +1635,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Randomize options
 
+            var playerIndices = new List<int>(totalPlayerCount);
             for (int i = 0; i < totalPlayerCount; i++)
+                playerIndices.Add(i);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                playerIndices.Sort((a, b) =>
+                {
+                    string nameA = a < Players.Count ? Players[a].Name : ("AI" + (a - Players.Count));
+                    string nameB = b < Players.Count ? Players[b].Name : ("AI" + (b - Players.Count));
+                    return string.Compare(nameA, nameB, StringComparison.Ordinal);
+                });
+            }
+
+            foreach (int i in playerIndices)
             {
                 PlayerInfo pInfo;
                 PlayerHouseInfo pHouseInfo = houseInfos[i];
@@ -1694,22 +1716,48 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniSection settings = new IniSection("Settings");
 
             settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
-            settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
-            settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
-            settings.SetStringValue("UIMapName", Map.UntranslatedName);
-
-            // needed for translation in game loading lobbies
-            if (Map.Official)
-                settings.SetStringValue("MapID", Map.BaseFilePath);
-
-            settings.SetIntValue("PlayerCount", Players.Count);
+            
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
-            settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
-            settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
-            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
-            settings.SetIntValue("AIPlayers", AIPlayers.Count);
-            settings.SetIntValue("Seed", RandomSeed);
+            
+            // D2K uses a different spawn.ini format
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                // For D2K, Scenario should be the map filename without extension
+                string mapFileName = Path.GetFileNameWithoutExtension(Map.BaseFilePath);
+                settings.SetStringValue("Scenario", mapFileName);
+                settings.SetStringValue("ScenarioName", Map.UntranslatedName);
+                settings.SetIntValue("MyIndex", myIndex);
+                settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
+                settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+                settings.SetIntValue("AIPlayers", AIPlayers.Count);
+                settings.SetIntValue("Seed", RandomSeed);
+                // D2K expects Settings.StartingLocation = 0-based start slot (0 = first, 1 = second, …), or 0 for game-chosen random
+                int myStart = houseInfos[myIndex].StartingWaypoint >= 0
+                    ? houseInfos[myIndex].StartingWaypoint
+                    : 0;
+                settings.SetIntValue("StartingLocation", myStart);
+                // Port and GameID will be set by WriteSpawnIniAdditions in multiplayer lobbies
+                // Host will be set by WriteSpawnIniAdditions in multiplayer lobbies
+            }
+            else
+            {
+                // YR/RA2 format
+                settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
+                settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
+                settings.SetStringValue("UIMapName", Map.UntranslatedName);
+
+                // needed for translation in game loading lobbies
+                if (Map.Official)
+                    settings.SetStringValue("MapID", Map.BaseFilePath);
+
+                settings.SetIntValue("PlayerCount", Players.Count);
+                settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
+                settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
+                settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+                settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
+                settings.SetIntValue("AIPlayers", AIPlayers.Count);
+                settings.SetIntValue("Seed", RandomSeed);
+            }
             if (GetPvPTeamCount() > 1)
                 settings.SetBooleanValue("CoachMode", true);
             if (GetGameType() == GameType.Coop)
@@ -1761,6 +1809,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
 
+                // D2K multiplayer: each other player's start in their section (0-based start slot)
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                {
+                    int otherStart = pHouseInfo.StartingWaypoint >= 0 ? pHouseInfo.StartingWaypoint : 0;
+                    spawnIni.SetIntValue(sectionName, "StartingLocation", otherStart);
+                }
+
                 otherId++;
             }
 
@@ -1794,8 +1849,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int multiId = 0; multiId < multiCmbIndexes.Count; multiId++)
             {
                 int pIndex = multiCmbIndexes[multiId];
+                string keyName = "Multi" + (multiId + 1);
+                
                 if (houseInfos[pIndex].IsSpectator)
-                    spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
+                    spawnIni.SetBooleanValue("IsSpectator", keyName, true);
+                
             }
 
             // Write alliances, the code is pretty big so let's take it to another class
@@ -1836,6 +1894,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.WriteIniFile();
 
             return houseInfos;
+        }
+        private void ApplyD2KSpawnIniConversions(IniFile spawnIni)
+        {
+            string disableCarryall = spawnIni.GetStringValue("Settings", "DisableCarryall", string.Empty);
+            if (!spawnIni.KeyExists("Settings", "NoCarryall") && !string.IsNullOrEmpty(disableCarryall))
+                spawnIni.SetStringValue("Settings", "NoCarryall", disableCarryall);
+
+            spawnIni.RemoveKey("Settings", "DisableCarryall");
+
+            string[] booleanKeys = { "ShortGame", "Crates", "DisableEngineer", "DisableTurrets", "NoCarryall" };
+            foreach (string key in booleanKeys)
+            {
+                string value = spawnIni.GetStringValue("Settings", key, string.Empty);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    bool boolValue = Conversions.BooleanFromString(value, false);
+                    spawnIni.SetStringValue("Settings", key, boolValue ? "Yes" : "No");
+                }
+            }
+
+            string wormsValue = spawnIni.GetStringValue("Settings", "Worms", string.Empty);
+            if (!string.IsNullOrEmpty(wormsValue))
+            {
+                bool wormsEnabled = Conversions.BooleanFromString(wormsValue, false);
+                spawnIni.SetStringValue("Settings", "Worms", wormsEnabled ? "1" : "0");
+            }
+
+            int gameSpeedIndex = spawnIni.GetIntValue("Settings", "GameSpeed", -1);
+            int[] speedValues = isMultiplayer
+                ? new[] { 60, 45, 30, 20, 15, 12, 10 }
+                : new[] { 100, 60, 30, 20, 15, 12, 10 };
+
+            if (gameSpeedIndex >= 0 && gameSpeedIndex < speedValues.Length)
+                spawnIni.SetIntValue("Settings", "GameSpeed", speedValues[gameSpeedIndex]);
+
+            if (isMultiplayer && !spawnIni.KeyExists("Settings", "MaxAhead"))
+                spawnIni.SetIntValue("Settings", "MaxAhead", 150);
+
+            // Build-queue options belong to the per-map [Vars] section.
+            spawnIni.RemoveKey("Settings", "BuildQueuesEnabled");
         }
 
         /// <summary>
@@ -1979,6 +2077,41 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyDropDown dropDown in DropDowns)
                 dropDown.ApplyMapCode(mapIni, GameMode);
 
+            // Apply Vars from MPMaps.ini to the map INI
+            Map.ApplyMapIniVars(mapIni);
+
+            // D2K-specific: Handle build queues checkbox - set Vars based on checkbox state
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                GameLobbyCheckBox buildQueuesCheckBox = CheckBoxes.Find(chk => chk.Name == "chkBuildQueues");
+                if (buildQueuesCheckBox == null)
+                {
+                    Logger.Log("Build queues checkbox not found in CheckBoxes list");
+                }
+                else
+                {
+                    // Ensure Vars section exists
+                    if (!mapIni.SectionExists("Vars"))
+                        mapIni.AddSection("Vars");
+
+                    if (buildQueuesCheckBox.Checked)
+                    {
+                        Logger.Log("Build queues checkbox is checked - enabling build queues in map INI");
+                        mapIni.SetStringValue("Vars", "buildQueuesEnabled", "Yes");
+                        mapIni.SetIntValue("Vars", "buildQueuesMaxPerFactory", 100);
+                        mapIni.SetIntValue("Vars", "buildQueuesMaxPerUnitType", 10);
+                        mapIni.SetIntValue("Vars", "buildQueuesBulkIncrement", 5);
+                        mapIni.SetStringValue("Vars", "buildQueuesInfinityEnabled", "No");
+                        Logger.Log("Added build queue Vars to map INI");
+                    }
+                    else
+                    {
+                        Logger.Log("Build queues checkbox is not checked - disabling build queues in map INI");
+                        mapIni.SetStringValue("Vars", "buildQueuesEnabled", "No");
+                    }
+                }
+            }
+
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
             CopySupplementalMapFiles(mapIni);
@@ -1986,6 +2119,37 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ManipulateStartingLocations(mapIni, houseInfos);
 
             mapIni.WriteIniFile(spawnMapIniFile.FullName);
+
+            // D2K-specific: Write the modified map INI to d2k\data\maps\<scenario>.ini
+            // This is where the game actually reads the map INI from (not spawnmap.ini)
+            // We write here AFTER modifying it with Vars, so the game gets the updated version
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                // Get scenario name from map file path (same logic as WriteSpawnIni uses)
+                // BaseFilePath is like "Maps/Standard/032cf10c246b5fbfa54b78451786a9fe1ff58678"
+                // Extract just the filename: "032cf10c246b5fbfa54b78451786a9fe1ff58678"
+                string mapFileName = Path.GetFileNameWithoutExtension(Map.BaseFilePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar));
+                
+                if (!string.IsNullOrEmpty(mapFileName))
+                {
+                    string d2kMapIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", "data", "maps", mapFileName + ".ini");
+                    try
+                    {
+                        // Ensure directory exists
+                        string d2kMapsDir = Path.GetDirectoryName(d2kMapIniPath);
+                        if (!Directory.Exists(d2kMapsDir))
+                            Directory.CreateDirectory(d2kMapsDir);
+
+                        // Write the modified map INI (with Vars if checkbox was checked) to where the game reads it
+                        mapIni.WriteIniFile(d2kMapIniPath);
+                        Logger.Log("Wrote D2K map INI with modifications to " + d2kMapIniPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log("Failed to write D2K map INI to " + d2kMapIniPath + ": " + ex.Message);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -2131,13 +2295,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!stackedStartingLocations)
                 return;
 
-            // We also need to modify spawn.ini because WriteSpawnIni
-            // doesn't handle stacked positions.
-            // We could move this code there, but then we'd have to process
-            // the stacked locations in two places (here and in WriteSpawnIni)
-            // because we'd need to modify the map anyway.
-            // Not sure whether having it like this or in WriteSpawnIni
-            // is better, but this implementation is quicker to write for now.
             IniFile spawnIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS));
 
             // For each player, check if they're sharing the starting location
@@ -2371,6 +2528,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerTeams[pId].AllowDropDown = !playerExtraOptions.IsForceNoTeams && allowPlayerOptionsChange && !GameModeMap.IsCoop && !GameModeMap.ForceNoTeams;
                     ddPlayerStarts[pId].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowPlayerOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
+
             }
 
             // AI players
@@ -2405,6 +2563,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerTeams[index].AllowDropDown = !playerExtraOptions.IsForceNoTeams && allowOptionsChange && !GameModeMap.IsCoop && !GameModeMap.ForceNoTeams;
                     ddPlayerStarts[index].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
+
             }
 
             // Unused player slots
@@ -2429,6 +2588,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 ddPlayerTeams[ddIndex].SelectedIndex = -1;
                 ddPlayerTeams[ddIndex].AllowDropDown = false;
+
             }
 
             if (allowOptionsChange && Players.Count + AIPlayers.Count < MAX_PLAYER_COUNT)

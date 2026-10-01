@@ -87,7 +87,6 @@ namespace DTAClient.DXGUI.Campaign
         };
 
         private Mission missionToLaunch;
-
         private List<Mission> _allMissions = [];
         public IReadOnlyCollection<Mission> AllMissions { get => _allMissions; }
 
@@ -456,30 +455,48 @@ namespace DTAClient.DXGUI.Campaign
             };
             IniSection spawnIniSettings = new("Settings");
 
-            if (copyMapsToSpawnmapINI)
-                spawnIniSettings.AddKey("Scenario", "spawnmap.ini");
-            else
-                spawnIniSettings.AddKey("Scenario", scenario);
-
-            // No one wants to play missions on Fastest, so we'll change it to Faster
-            if (UserINISettings.Instance.GameSpeed == 0)
-                UserINISettings.Instance.GameSpeed.Value = 1;
-
-            spawnIniSettings.AddKey("CampaignID", mission.CampaignID.ToString(CultureInfo.InvariantCulture));
-            spawnIniSettings.AddKey("GameSpeed", UserINISettings.Instance.GameSpeed.ToString());
-
-            switch (ClientConfiguration.Instance.ClientGameType)
+            // D2K uses a different spawn.ini format
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
             {
-                case ClientType.YR or ClientType.Ares:
-                    spawnIniSettings.AddKey("Ra2Mode", (!mission.RequiredAddon).ToString(CultureInfo.InvariantCulture));
-                    break;
-                case ClientType.TS:
-                    spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
-                    break;
-                // TODO figure out the RA one
+                // For D2K, Scenario should be the map filename without extension
+                // The game adds an underscore prefix, so we remove it if present
+                string mapFileName = Path.GetFileNameWithoutExtension(scenario);
+                // Remove leading underscore if present (game adds it back)
+                if (mapFileName.StartsWith("_", StringComparison.Ordinal))
+                    mapFileName = mapFileName.Substring(1);
+                spawnIniSettings.AddKey("Scenario", mapFileName);
+                spawnIniSettings.AddKey("MySideID", mission.Side.ToString(CultureInfo.InvariantCulture));
+                spawnIniSettings.AddKey("MissionNumber", mission.CampaignID.ToString(CultureInfo.InvariantCulture));
+                spawnIniSettings.AddKey("DifficultyLevel", trbDifficultySelector.Value.ToString(CultureInfo.InvariantCulture));
             }
+            else
+            {
+                // YR/RA2/TS format
+                if (copyMapsToSpawnmapINI)
+                    spawnIniSettings.AddKey("Scenario", "spawnmap.ini");
+                else
+                    spawnIniSettings.AddKey("Scenario", scenario);
 
-            spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
+                // No one wants to play missions on Fastest, so we'll change it to Faster
+                if (UserINISettings.Instance.GameSpeed == 0)
+                    UserINISettings.Instance.GameSpeed.Value = 1;
+
+                spawnIniSettings.AddKey("CampaignID", mission.CampaignID.ToString(CultureInfo.InvariantCulture));
+                spawnIniSettings.AddKey("GameSpeed", UserINISettings.Instance.GameSpeed.ToString());
+
+                switch (ClientConfiguration.Instance.ClientGameType)
+                {
+                    case ClientType.YR or ClientType.Ares:
+                        spawnIniSettings.AddKey("Ra2Mode", (!mission.RequiredAddon).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case ClientType.TS:
+                        spawnIniSettings.AddKey("Firestorm", mission.RequiredAddon.ToString(CultureInfo.InvariantCulture));
+                        break;
+                        // TODO figure out the RA one
+                }
+
+                spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
+            }
 
             spawnIniSettings.AddKey("IsSinglePlayer", "Yes");
             // Campaign maps may not contain a display name.

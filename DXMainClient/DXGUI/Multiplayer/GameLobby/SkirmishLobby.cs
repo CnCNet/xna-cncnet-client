@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.Statistics;
 
@@ -209,6 +210,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             discordHandler.UpdatePresence(
                 Map.UntranslatedName, GameMode.UntranslatedUIName, currentState, side, resetTimer);
+        }
+
+        protected override void WriteSpawnIniAdditions(IniFile iniFile)
+        {
+            base.WriteSpawnIniAdditions(iniFile);
+
+            // D2K skirmish needs Host, Port, and GameID
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                iniFile.SetStringValue("Settings", "Host", "Yes");
+                iniFile.SetIntValue("Settings", "Port", ProgramConstants.LAN_INGAME_PORT);
+                iniFile.SetIntValue("Settings", "GameID", RandomSeed); // Use seed as GameID for skirmish
+            }
         }
 
         protected override bool AllowPlayerOptionsChange()
