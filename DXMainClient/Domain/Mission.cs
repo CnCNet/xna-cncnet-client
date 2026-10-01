@@ -17,6 +17,40 @@ namespace DTAClient.Domain
     /// </summary>
     public class Mission
     {
+        public string CodeName { get; private set; }
+        public int CampaignID { get; } = -1;
+        public int CustomMissionID { get; private set; }
+
+        public int CD { get; private set; }
+        public int Side { get; private set; }
+
+        /// <summary>
+        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client treats it as a special scenario that does not have a map file, passing the string directly to the spawner.
+        /// </summary>
+        public string Scenario { get; private set; }
+        public string GUIName { get; private set; }
+        public string UntranslatedGUIName { get; private set; }
+        public string IconPath { get; private set; }
+        public string GUIDescription { get; private set; }
+        public string FinalMovie { get; private set; }
+        public bool RequiredAddon { get; private set; }
+        public bool Enabled { get; set; }
+        public bool BuildOffAlly { get; private set; }
+        public bool PlayerAlwaysOnNormalDifficulty { get; private set; }
+        public IReadOnlyCollection<string> Tags { get; private set; }
+
+        /// <summary>
+        /// This property is not set through the ini file.
+        /// For a user custom mission, "scenario" will be assumed as the filename of a map file, with the suffix ".map" (case-insensitive).
+        /// The map file is assumed to be placed at ClientConfiguration.CustomMissionPath.
+        /// When launching a user custom mission, all supplemental files, i.e., files with the same filename (excepts for the suffix), will be temporarily copied into game folder.
+        /// </summary>
+        public bool IsCustomMission { get; private set; }
+
+        public IniSection? GameMissionConfigSection { get; set; }
+
+        public string PreviewImage { get; private set; }
+
         public Mission(IniSection missionSection, string missionCodeName)
         {
             if (missionSection == null)
@@ -112,39 +146,6 @@ namespace DTAClient.Domain
                 fromIni = iniFile.GetIntValue(sectionName, "MissionNumber", -1);
             return fromIni;
         }
-
-        public int CampaignID { get; } = -1;
-        public int CustomMissionID { get; private set; }
-
-        public int CD { get; private set; }
-        public int Side { get; private set; }
-
-        /// <summary>
-        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client treats it as a special scenario that does not have a map file, passing the string directly to the spawner.
-        /// </summary>
-        public string Scenario { get; private set; }
-        public string GUIName { get; private set; }
-        public string UntranslatedGUIName { get; private set; }
-        public string IconPath { get; private set; }
-        public string GUIDescription { get; private set; }
-        public string FinalMovie { get; private set; }
-        public bool RequiredAddon { get; private set; }
-        public bool Enabled { get; set; }
-        public bool BuildOffAlly { get; private set; }
-        public bool PlayerAlwaysOnNormalDifficulty { get; private set; }
-        public IReadOnlyCollection<string> Tags { get; private set; }
-
-        /// <summary>
-        /// This property is not set through the ini file.
-        /// For a user custom mission, "scenario" will be assumed as the filename of a map file, with the suffix ".map" (case-insensitive).
-        /// The map file is assumed to be placed at ClientConfiguration.CustomMissionPath.
-        /// When launching a user custom mission, all supplemental files, i.e., files with the same filename (excepts for the suffix), will be temporarily copied into game folder.
-        /// </summary>
-        public bool IsCustomMission { get; private set; }
-
-        public IniSection? GameMissionConfigSection { get; set; }
-
-        public string PreviewImage { get; private set; }
 
         public bool TryGetScenarioFilePath(out string scenarioFilePath)
         {
