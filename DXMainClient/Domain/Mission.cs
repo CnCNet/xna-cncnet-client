@@ -110,40 +110,16 @@ namespace DTAClient.Domain
         /// <summary>
         /// Gets side (house): for D2K from Battle.ini section name (ATR=0, HAR=1, ORD=2); for other games from INI (default 0).
         /// </summary>
-        private static int GetSideFromIniOrSection(IniFile iniFile, string sectionName)
+        private static int GetSideFromSectionOrGameOptions(IniSection missionSection, string sectionName)
         {
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                if (sectionName.Length >= 3)
-                {
-                    switch (sectionName.Substring(0, 3).ToUpperInvariant())
-                    {
-                        case "ATR": return 0;
-                        case "HAR": return 1;
-                        case "ORD": return 2;
-                    }
-                }
-                return 0;
-            }
-            return iniFile.GetIntValue(sectionName, nameof(Side), 0);
-        }
+            int side = missionSection.GetIntValue(nameof(Side), -1);
+            if (side >= 0)
+                return side;
 
-        /// <summary>
-        /// Gets campaign mission number: for D2K from Battle.ini section name (e.g. ATR01 → 1); for other games from INI (default -1).
-        /// </summary>
-        private static int GetCampaignIdFromIniOrSection(IniFile iniFile, string sectionName)
-        {
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                if (sectionName.Length >= 5 && char.IsDigit(sectionName[3]) && char.IsDigit(sectionName[4])
-                    && int.TryParse(sectionName.Substring(3, 2), out int id))
-                    return id;
-                return -1;
-            }
-            int fromIni = iniFile.GetIntValue(sectionName, nameof(CampaignID), -1);
-            if (fromIni < 0)
-                fromIni = iniFile.GetIntValue(sectionName, "MissionNumber", -1);
-            return fromIni;
+            string sideName = missionSection.GetStringValue("SideName", string.Empty);
+            IniFile iniGameOptions = new(SafePath.CombineFilePath(ProgramConstants.RESOURCES_DIR, "GameOptions.ini"));
+            side = iniGameOptions.GetStringValue("General", "Sides", string.Empty).SplitWithCleanup().IndexOf(sideName);
+            return side != -1 ? side : 0;
         }
 
         public bool TryGetScenarioFilePath(out string scenarioFilePath)
