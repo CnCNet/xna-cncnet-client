@@ -106,8 +106,7 @@ namespace DTAClient.Domain
 #pragma warning restore CA1850 // Prefer static 'HashData' method over 'ComputeHash'
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
         }
-
-        public string CodeName { get; private set; }
+        
         /// <summary>
         /// Gets side (house): for D2K from Battle.ini section name (ATR=0, HAR=1, ORD=2); for other games from INI (default 0).
         /// </summary>
