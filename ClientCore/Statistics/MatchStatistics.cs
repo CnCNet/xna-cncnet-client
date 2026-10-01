@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ClientCore.Enums;
 using ClientCore.Statistics.GameParsers;
 using Rampastring.Tools;
 
@@ -65,8 +66,16 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            var parser = new LogFileStatisticsParser(this, isLoadedGame);
-            parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                var parser = new Dune2000StatisticsParser(this);
+                parser.ParseStats(gamePath);
+            }
+            else
+            {
+                var parser = new LogFileStatisticsParser(this, isLoadedGame);
+                parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+            }
         }
 
         public PlayerStatistics GetEmptyPlayerByName(string playerName)
