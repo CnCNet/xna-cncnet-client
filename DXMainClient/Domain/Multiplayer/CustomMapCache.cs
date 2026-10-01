@@ -1,8 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Serialization;
+
+using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -27,6 +30,9 @@ namespace DTAClient.Domain.Multiplayer
             [JsonInclude]
             public DateTime LastWriteTimeUtc { get; private set; }
 
+            [JsonInclude]
+            public string SupplementalFilesSignature { get; private set; }
+
             public Item() : base() { }
 
             [SetsRequiredMembers]
@@ -45,12 +51,26 @@ namespace DTAClient.Domain.Multiplayer
                     FileSize = 0;
                     LastWriteTimeUtc = DateTime.MinValue;
                 }
+
+                SupplementalFilesSignature = string.Join(
+                    "|",
+                    map.GetMapFilePaths()
+                        .Skip(1)
+                        .Select(path =>
+                        {
+                            var fileInfo = new FileInfo(path);
+                            return Path.GetExtension(path).ToLowerInvariant() + ":" +
+                                   fileInfo.Length + ":" +
+                                   fileInfo.LastWriteTimeUtc.Ticks;
+                        }));
             }
 
             public bool IsOutdated()
             {
                 Item refreshedItem = new(Map);
-                return refreshedItem.FileSize != FileSize || refreshedItem.LastWriteTimeUtc != LastWriteTimeUtc;
+                return refreshedItem.FileSize != FileSize
+                       || refreshedItem.LastWriteTimeUtc != LastWriteTimeUtc
+                       || refreshedItem.SupplementalFilesSignature != SupplementalFilesSignature;
             }
         }
     }

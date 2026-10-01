@@ -197,7 +197,33 @@ namespace DTAClient.Domain.Multiplayer
 
         public void CalculateSHA()
         {
-            SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+            IReadOnlyList<string> mapFilePaths = GetMapFilePaths();
+            if (mapFilePaths.Count == 1)
+            {
+                SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+                return;
+            }
+
+            SHA1 = Utilities.CalculateSHA1ForFile(mapFilePaths);
+        }
+
+        public IReadOnlyList<string> GetMapFilePaths()
+        {
+            var paths = new List<string> { CompleteFilePath };
+            var knownPaths = new HashSet<string>(paths, StringComparer.OrdinalIgnoreCase);
+
+            foreach (string extension in ClientConfiguration.Instance.SupplementalMapFileExtensions)
+            {
+                string ext = "." + extension;
+                if (string.IsNullOrEmpty(ext))
+                    continue;
+
+                string supplementalFilePath = Path.ChangeExtension(CompleteFilePath, ext);
+                if (File.Exists(supplementalFilePath) && knownPaths.Add(supplementalFilePath))
+                    paths.Add(supplementalFilePath);
+            }
+
+            return paths;
         }
 
         [JsonInclude]
@@ -456,7 +482,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Loads map information from a TS/RA2 map INI file.
+        /// Loads map information from the configured INI map file.
         /// Returns true if successful, otherwise false.
         /// </summary>
         public bool InitializeFromCustomMap()
