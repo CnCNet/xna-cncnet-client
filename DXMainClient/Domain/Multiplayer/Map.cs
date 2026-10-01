@@ -7,14 +7,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
-
 using ClientCore;
 using ClientCore.Extensions;
-
 using DTAClient.DXGUI.Multiplayer.GameLobby;
-
 using Rampastring.Tools;
-
 using SixLabors.ImageSharp;
 
 using Point = Microsoft.Xna.Framework.Point;
@@ -204,7 +200,10 @@ namespace DTAClient.Domain.Multiplayer
                 return;
             }
 
-            SHA1 = Utilities.CalculateSHA1ForFile(mapFilePaths);
+            StringBuilder sb = new();
+            foreach (var file in mapFilePaths)
+                sb.AppendLine(Utilities.CalculateSHA1ForFile(file));
+            SHA1 = Utilities.CalculateSHA1ForString(sb.ToString());
         }
 
         public IReadOnlyList<string> GetMapFilePaths()
