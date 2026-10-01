@@ -129,7 +129,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 // D2K: using a sentinel waypoint index (like 90) can result in invalid coordinates
                 // (e.g. 255,255 "outside map") if the game/spawner tries to spawn something for the spectator house.
-                // Use -1 so the D2K spawn writer falls back to StartingLocation=0 (game-chosen random).
+                // D2K uses -1 as the explicit game-chosen starting-location value.
                 if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
                 {
                     RealStartingWaypoint = -1;
