@@ -89,7 +89,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         public event Action GameBridgeStopped;
         public event EventHandler CurrentTunnelPinged;
-        public event EventHandler<TunnelFailedEventArgs> TunnelFailed;
         public event Action<string, int> TunnelPinged; //address, port
 
         private WindowManager wm;
@@ -98,19 +97,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private readonly Stopwatch refreshTimer = Stopwatch.StartNew();
         private TimeSpan? lastTunnelRefreshTimestamp;
         private uint skipCount = 0;
-
-        /// <summary>
-        /// Configurable via NetworkDefinitions.ini ([V3TunnelNegotiation] TunnelFailedPingAmountMs).
-        /// </summary>
-        private static int TUNNEL_FAILED_PING_AMOUNT => ClientConfiguration.Instance.V3TunnelFailedPingAmountMs;
-
-        /// <summary>
-        /// How many bad ping results in a row a tunnel needs before <see cref="TunnelFailed"/>
-        /// fires. ICMP echoes get dropped or deprioritized sporadically; a single miss must not
-        /// trigger renegotiations for everyone using the tunnel.
-        /// Configurable via NetworkDefinitions.ini ([V3TunnelNegotiation] TunnelFailedConsecutivePings).
-        /// </summary>
-        private static int TUNNEL_FAILED_CONSECUTIVE_PINGS => ClientConfiguration.Instance.V3TunnelFailedConsecutivePings;
 
         /// <summary>
         /// How many unanswered probes a tunnel's last good ping survives before it reads as
@@ -126,44 +112,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         public V3KeepAliveMonitor KeepAliveMonitor { get; }
 
-        /// <summary>
-        /// Tracks a tunnel's consecutive ping failures and fires <see cref="TunnelFailed"/>
-        /// once the threshold is crossed (exactly once per losing streak). Call after every
-        /// ping result update.
-        /// </summary>
-        /// <param name="measuredPing">
-        /// The probe's own result, not <see cref="CnCNetTunnel.Ping"/>: a retained measurement
-        /// (see <see cref="CnCNetTunnel.ApplyPingResult"/>) would otherwise keep resetting the
-        /// failure count and a tunnel that has genuinely died would never be reported failed.
-        /// </param>
-        private void EvaluateTunnelHealth(CnCNetTunnel tunnel, PingValue measuredPing)
-        {
-            if (!measuredPing.IsUnknown())
-                tunnel.HasRespondedToPing = true;
-
-            bool pingBad = measuredPing.IsUnknown() || measuredPing.Milliseconds > TUNNEL_FAILED_PING_AMOUNT;
-
-            if (!pingBad)
-            {
-                tunnel.ConsecutivePingFailures = 0;
-                return;
-            }
-
-            // An unknown result only signals failure if this tunnel has answered ICMP
-            // before; otherwise ICMP may simply be blocked on the network while UDP
-            // tunnel traffic works fine.
-            if (measuredPing.IsUnknown() && !tunnel.HasRespondedToPing)
-                return;
-
-            tunnel.ConsecutivePingFailures++;
-
-            if (tunnel.ConsecutivePingFailures == TUNNEL_FAILED_CONSECUTIVE_PINGS &&
-                (CurrentTunnel == null || tunnel == CurrentTunnel))
-            {
-                DoTunnelFailed(tunnel);
-            }
-        }
-
         private void DoTunnelPinged(string address, int port)
         {
             if (TunnelPinged != null)
@@ -174,12 +122,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             if (CurrentTunnelPinged != null)
                 wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
-        }
-
-        private void DoTunnelFailed(CnCNetTunnel tunnel)
-        {
-            if (TunnelFailed != null)
-                wm.AddCallback(TunnelFailed, this, new TunnelFailedEventArgs(tunnel));
         }
 
         private void ConnectionManager_Connected(object sender, EventArgs e)
@@ -267,8 +209,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
             // Group tunnels by IP address and ping each unique address. Matchmaking servers are
-            // skipped: their latency is never ranked against anything, so pinging them would only
-            // produce spurious TunnelFailed reports.
+            // skipped: their latency is never ranked against anything.
             var tunnelsByAddress = Tunnels
                 .Where(t => !t.IsMatchmaking &&
                     (UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended))
@@ -320,9 +261,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 foreach (var tunnel in tunnelsWithSameAddress)
                 {
                     tunnel.ApplyPingResult(measuredPing, PING_RETAINED_FAILURES);
-
-                    EvaluateTunnelHealth(tunnel, measuredPing);
-
                     DoTunnelPinged(tunnel.Address, tunnel.Port);
                 }
             });
@@ -337,9 +275,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 PingValue measuredPing = tunnel.MeasurePing();
                 tunnel.ApplyPingResult(measuredPing, PING_RETAINED_FAILURES);
-
-                EvaluateTunnelHealth(tunnel, measuredPing);
-
                 DoCurrentTunnelPinged();
 
                 if (checkTunnelList)
@@ -351,9 +286,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     foreach (var otherTunnel in otherTunnelsWithSameAddress)
                     {
                         otherTunnel.ApplyPingResult(measuredPing, PING_RETAINED_FAILURES);
-
-                        EvaluateTunnelHealth(otherTunnel, measuredPing);
-
                         DoTunnelPinged(otherTunnel.Address, otherTunnel.Port);
                     }
                 }

@@ -855,6 +855,20 @@ SaveCampaignGameOptions=false  ; boolean, whether or not previously used game op
 
 ```ini
 [Settings]
+MinimumRenderWidth=1024   ; integer, the minimum internal render width for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MinimumRenderHeight=600   ; integer, the minimum internal render height for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MaximumRenderWidth=1280   ; integer, the maximum internal render width for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MaximumRenderHeight=720   ; integer, the maximum internal render height for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MinimumClientWidth=800    ; integer, the minimum client resolution width offered in the client resolution selection.
+MinimumClientHeight=600   ; integer, the minimum client resolution height offered in the client resolution selection.
+```
+
+```ini
+[Settings]
 CustomMissionPath=Maps/CustomMissions ; path to the folder containing fan-made maps
 CustomMissionSupplementFile0Extension=csf ; extension of the first supplement file
 CustomMissionSupplementFile0CopyAs=stringtable99.csf ; target filename for the first supplement file (required if Extension is present)
@@ -892,6 +906,46 @@ ShowGameIconInGameList=true ; boolean, whether to show the game icon in the game
 AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
                                            ; game modes that custom (unofficial) maps are allowed to appear in.
                                            ; Official maps are not affected by this filter.
+```
+
+```ini
+[Settings]
+ReplaySupport=false            ; boolean, enables replay recording and playback for packages with a compatible spawner.
+                               ; The current implementation targets RA2/YR and is off by default.
+ReplaysDirectory=Replays       ; string,  directory, relative to the game directory, that replays are
+                               ; recorded into and listed from.
+ReplayFileExtension=yrrp       ; string,  file extension of replay files, without a leading dot.
+ReleasesURL=                   ; string,  page where players can download other versions of the game package.
+```
+
+```ini
+[ClientLogs]
+MaxKeptLogFiles=20      ; maximum number of timestamped old log files; 0 = unlimited
+MaxLogFolderSizeMB=50   ; maximum combined size of old log files in MB; 0 = unlimited
+```
+
+Game logs are the game's own `debug` folder (Ares, Phobos and spawner logs, and the snapshot folders for crashes and desyncs), pruned at client startup when `ClientGameType` is `Ares`. Each log file or snapshot folder is kept or deleted whole, and the newest is always kept when applying the size limit.
+
+```ini
+[GameLogs]
+MaxGameLogAgeDays=7         ; delete entries not written to for this many days; 0 = never
+MaxGameLogFolderSizeMB=0    ; maximum combined size of the debug folder in MB, oldest deleted first; 0 = unlimited (default)
+```
+
+Packages can provide initial values in `Resources/UserDefaults.ini`; existing user settings take precedence.
+
+```ini
+[SavedGames]
+MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 = unlimited (default)
+MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
+```
+
+```ini
+[Replays]                          ; only used when ReplaySupport=true
+RecordReplays=true                 ; record the player's games to replays
+MaxKeptReplays=50                  ; maximum number of replays; 0 = unlimited
+MaxReplayFolderSizeMB=2048         ; maximum combined size of replays in MB, oldest deleted first; 0 = unlimited
+ReplayKeyframeStorageLimitMB=512   ; maximum size of the seek keyframes written during playback in MB; 0 = unlimited
 ```
 
 ## Game Modes

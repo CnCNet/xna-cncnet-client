@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
@@ -101,10 +102,13 @@ namespace DTAClient.DXGUI.Multiplayer
         private volatile bool leaving;
         private int sessionId;
 
-        public void SetUp(bool isHost,
+        public bool SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client,
             int loadedGameId)
         {
+            if (isHost && !StartHosting())
+                return false;
+
             leaving = false;
             sessionId++;
             Refresh(isHost);
@@ -119,9 +123,6 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
-
-                this.client = new TcpClient();
-                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
                 byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
@@ -145,6 +146,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 CopyPlayerDataToUI();
 
             WindowManager.SelectedControl = tbChatInput;
+            return true;
         }
 
         public void PostJoin()
@@ -157,11 +159,31 @@ namespace DTAClient.DXGUI.Multiplayer
 
         #region Server code
 
+        private bool StartHosting()
+        {
+            try
+            {
+                listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
+                listener.Start();
+
+                this.client = new TcpClient();
+                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
+                return true;
+            }
+            catch (SocketException ex)
+            {
+                Logger.Log("Failed to start hosting the LAN game loading lobby: " + ex.ToString());
+                listener?.Stop();
+                this.client?.Close();
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"),
+                    string.Format("Unable to host the game because TCP port {0} could not be opened. It may already be in use by another program.".L10N("Client:Main:LANListenerStartFailed"),
+                    ProgramConstants.LAN_GAME_LOBBY_PORT));
+                return false;
+            }
+        }
+
         private void ListenForClients()
         {
-            listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
-            listener.Start();
-
             while (true)
             {
                 TcpClient client;

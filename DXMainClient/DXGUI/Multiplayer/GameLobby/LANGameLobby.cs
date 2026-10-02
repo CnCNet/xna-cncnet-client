@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
@@ -137,9 +138,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PostInitialize();
         }
 
-        public void SetUp(bool isHost,
+        public bool SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client)
         {
+            if (isHost && !StartHosting())
+                return false;
+
             leaving = false;
             sessionId++;
             Refresh(isHost);
@@ -151,9 +155,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = random.Next();
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
-
-                this.client = new TcpClient();
-                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
                 byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
@@ -178,6 +179,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
 
             WindowManager.SelectedControl = tbChatInput;
+            return true;
         }
 
         public void PostJoin()
@@ -190,11 +192,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region Server code
 
+        private bool StartHosting()
+        {
+            try
+            {
+                listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
+                listener.Start();
+
+                this.client = new TcpClient();
+                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
+                return true;
+            }
+            catch (SocketException ex)
+            {
+                Logger.Log("Failed to start hosting the LAN game lobby: " + ex.ToString());
+                listener?.Stop();
+                this.client?.Close();
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"),
+                    string.Format("Unable to host the game because TCP port {0} could not be opened. It may already be in use by another program.".L10N("Client:Main:LANListenerStartFailed"),
+                    ProgramConstants.LAN_GAME_LOBBY_PORT));
+                return false;
+            }
+        }
+
         private void ListenForClients()
         {
-            listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
-            listener.Start();
-
             while (true)
             {
                 TcpClient client;
@@ -292,6 +314,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             Players.Add(lpInfo);
+
+            while (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
+                AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             if (IsHost && Players.Count == 1)
                 Players[0].Ready = true;
@@ -498,8 +523,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (player == null || Map == null || GameMode == null)
                 return;
             string side = "";
-            if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
+            int playerIndex = Players.IndexOf(player);
+            if (playerIndex > -1 && playerIndex < ddPlayerSides.Length &&
+                ddPlayerSides[playerIndex].SelectedItem != null)
+            {
+                side = (string)ddPlayerSides[playerIndex].SelectedItem.Tag;
+            }
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
@@ -1151,6 +1180,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UniqueGameID = Conversions.IntFromString(gameId, -1);
             if (UniqueGameID < 0)
                 return;
+
+            if (GameModeMap == null)
+            {
+                AddNotice("The game host has started the game, but you don't have the selected map. Unable to launch the game.".L10N("Client:Main:LaunchFailedMapMissing"), Color.Red);
+                return;
+            }
 
             CopyPlayerDataToUI();
             StartGame();

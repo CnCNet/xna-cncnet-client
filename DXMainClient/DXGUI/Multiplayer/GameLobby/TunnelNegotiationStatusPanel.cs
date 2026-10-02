@@ -358,7 +358,7 @@ public class TunnelNegotiationStatusPanel : XNAPanel
     {
         NegotiationStatus.NotStarted => ("-", Color.Gray),
         NegotiationStatus.InProgress => ("...", Color.Yellow),
-        NegotiationStatus.Succeeded when ping.HasValue => (ping.Value.ToString(), PingQualityVisuals.GetTextColor(ping.Value)),
+        NegotiationStatus.Succeeded when ping.HasValue => (ping.Value.ToString(), PingQualityVisuals.GetTextColor(PingQualityRules.GetV3Tier(ping.Value))),
         NegotiationStatus.Succeeded => ("OK".L10N("Client:Main:NegStatusOK"), Color.LightGreen),
         NegotiationStatus.Failed => ("FAIL".L10N("Client:Main:NegStatusFail"), Color.Red),
         _ => ("?", Color.Gray)
@@ -418,7 +418,7 @@ public class TunnelNegotiationStatusPanel : XNAPanel
                         new Rectangle(2, barY, LIST_BAR_MAX_WIDTH, barHeight), Color.White);
 
                     int fillWidth = Math.Max(2, Math.Min(LIST_BAR_MAX_WIDTH, ms * LIST_BAR_MAX_WIDTH / LIST_BAR_MAX_PING));
-                    DrawTexture(pingBarTextures![PingQualityVisuals.GetTextureIndex(ms)],
+                    DrawTexture(pingBarTextures![PingQualityVisuals.GetTextureIndex(PingQualityRules.GetV3Tier(ms))],
                         new Rectangle(2, barY, fillWidth, barHeight), Color.White);
                 }
 

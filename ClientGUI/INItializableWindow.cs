@@ -142,8 +142,8 @@ namespace ClientGUI
             Parser.Instance.SetPrimaryControl(this);
 
             // shorthand for localization function
-            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+            static string Localize(XNAControl control, string attributeName, string defaultValue, TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notificationLevel);
 
             foreach (var kvp in section.Keys)
             {
@@ -165,22 +165,22 @@ namespace ClientGUI
                 else if (kvp.Key == "$X")
                 {
                     control.X = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Y")
                 {
                     control.Y = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Width")
                 {
                     control.Width = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$Height")
                 {
                     control.Height = Parser.Instance.GetExprValue(
-                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
+                        Localize(control, kvp.Key, kvp.Value, TranslationNotificationLevel.Verbose), control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {

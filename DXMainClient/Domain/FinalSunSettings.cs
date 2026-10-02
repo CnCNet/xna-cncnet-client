@@ -32,7 +32,7 @@ namespace DTAClient.Domain
                     Logger.Log("FinalSun settings file exists.");
 
                     IniFile iniFile = new IniFile();
-                    iniFile.FileName = finalSunIniFile.FullName;
+                    iniFile.FilePath = finalSunIniFile.FullName;
                     iniFile.Encoding = EncodingExt.ANSI;
                     iniFile.Parse();
 

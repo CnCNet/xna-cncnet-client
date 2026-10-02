@@ -9,6 +9,7 @@ This document lists all the breaking changes and how to address them. Each secti
 
 - The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
 - Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
+- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly.
 
 ## 2.13.0
 

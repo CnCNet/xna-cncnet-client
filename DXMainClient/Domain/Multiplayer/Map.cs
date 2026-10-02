@@ -424,7 +424,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>Returns the loaded INI file of a custom map.</summary>
         private IniFile GetCustomMapIniFile(bool loadPreviewTextureSection = true)
         {
-            var customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
+            var customMapIni = new IniFile { FilePath = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");

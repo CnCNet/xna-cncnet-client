@@ -5,6 +5,7 @@ using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -205,7 +206,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
-                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", TranslationNotificationLevel.Verbose);
 
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
                lblGameMode.FontIndex, Width - lblGameMode.X);

@@ -78,6 +78,9 @@ dotnet_remove_unnecessary_suppression_exclusions = none
 # CA1806: Do not ignore method results
 dotnet_diagnostic.CA1806.severity = error
 
+# Enforce Microsoft.CodeAnalysis.BannedApiAnalyzers
+dotnet_diagnostic.RS0030.severity = error
+
 #### C# Coding Conventions ####
 [*.cs]
 

@@ -8,6 +8,7 @@ using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -97,8 +98,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.ChangeTunnelServer, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.NegotiationReport, HandleNegotiationReportMessage),
-                new StringCommandHandler(TunnelNegotiationCommands.TunnelRenegotiate, HandleTunnelRenegotiateMessage),
-                new StringCommandHandler(TunnelNegotiationCommands.TunnelFailed, HandleTunnelFailedMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.RenegotiateAll, HandleRenegotiateAll),
                 new StringCommandHandler("GSETTINGS", ApplyGameLobbySettings)
             };
@@ -358,7 +357,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (_tunnelMode != TunnelMode.V3Dynamic)
                 tunnelHandler.CurrentTunnel = tunnel;
 
-            tunnelHandler.TunnelFailed += TunnelHandler_TunnelFailed;
             tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
@@ -378,28 +376,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
-
-        private void TunnelHandler_TunnelFailed(object sender, TunnelFailedEventArgs e)
-        {
-            CnCNetTunnel failedTunnel = e.Tunnel;
-            if (tunnelHandler.GameTunnelBridge != null && tunnelHandler.GameTunnelBridge.IsRunning)
-                return;
-
-            if (_negotiator.TryHandleTunnelFailure(failedTunnel))
-                return;
-
-            if (IsHost)
-            {
-                AddNotice(string.Format("Tunnel {0} failed. Selecting a new tunnel...".L10N("Client:Main:TunnelFailedSelectingNew"), failedTunnel.Name), Color.Orange);
-                AutoSelectBestTunnel();
-            }
-            else
-            {
-                AddNotice(string.Format("Tunnel {0} failed. Waiting for host to select a new tunnel...".L10N("Client:Main:TunnelFailedWaitingForHost"), failedTunnel.Name), Color.Orange);
-                channel.SendCTCPMessage($"{TunnelNegotiationCommands.TunnelFailed} {failedTunnel.Name}",
-                    QueuedMessageType.SYSTEM_MESSAGE, 10);
-            }
-        }
 
         private void UpdateNegotiationUI()
         {
@@ -568,6 +544,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.UpdatePlayerPingIndicator(pInfo, negotiationStatus, tooltipText);
         }
+
+        protected override Texture2D GetTextureForPing(PingValue ping)
+            => _tunnelMode == TunnelMode.V3Dynamic
+                ? PingTextures[PingQualityVisuals.GetTextureIndex(PingQualityRules.GetV3Tier(ping))]
+                : base.GetTextureForPing(ping);
 
         /// <summary>
         /// Builds a tooltip for V3 dynamic tunnel ping indicator
@@ -895,7 +876,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.Text = string.Empty;
 
             tunnelHandler.CurrentTunnel = null;
-            tunnelHandler.TunnelFailed -= TunnelHandler_TunnelFailed;
             tunnelHandler.CurrentTunnelPinged -= TunnelHandler_CurrentTunnelPinged;
 
             if (MapLoader != null)
@@ -954,8 +934,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (player == null || Map == null || GameMode == null)
                 return;
             string side = "";
-            if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
+            int playerIndex = Players.IndexOf(player);
+            if (playerIndex > -1 && playerIndex < ddPlayerSides.Length &&
+                ddPlayerSides[playerIndex].SelectedItem != null)
+            {
+                side = (string)ddPlayerSides[playerIndex].SelectedItem.Tag;
+            }
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
@@ -1038,7 +1022,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
-            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
+            while (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             sndJoinSound.Play();
@@ -1302,9 +1286,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         void IV3NegotiationHost.SendNegotiationReport(string message)
             => channel.SendCTCPMessage(message, QueuedMessageType.GAME_NEGOTIATION_MESSAGE, 10);
-
-        void IV3NegotiationHost.SendChannelCTCP(string message, int priority)
-            => channel.SendCTCPMessage(message, QueuedMessageType.SYSTEM_MESSAGE, priority);
 
         void IV3NegotiationHost.AddNotice(string message, Color color) => AddNotice(message, color);
 
@@ -2719,10 +2700,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             HandleTunnelServerChange(tunnel);
             UpdateLaunchGameButtonStatus();
         }
-
-        private void HandleTunnelRenegotiateMessage(string sender, string tunnelAddressAndPort) => _negotiator.HandleRemoteTunnelRenegotiate(sender, tunnelAddressAndPort);
-
-        private void HandleTunnelFailedMessage(string sender, string tunnelName) => _negotiator.HandleRemoteTunnelFailed(sender, tunnelName);
 
         private void AutoSelectBestTunnel()
         {

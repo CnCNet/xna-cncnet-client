@@ -215,7 +215,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
             showInFolderItem = new XNAContextMenuItem()
             {
-                Text = "Show in folder".L10N("Client:Main:ShowInFolder"),
+                Text = "Show in Folder".L10N("Client:Main:ShowInFolder"),
                 SelectAction = ShowInFolder,
                 SelectableChecker = () => GameModeMap != null
             };
@@ -666,13 +666,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
 
                 if (previewFileInfo.Exists)
-                {
-                    try
-                    {
-                        ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
-                    }
-                    catch { }
-                }
+                    ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
             }
 
             base.OnLeftClick(inputEventArgs);
