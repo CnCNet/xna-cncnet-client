@@ -65,7 +65,7 @@ Make sure that the scope of your pull request is well defined. Pull requests can
 
 You MUST follow our PR templates in .github/PULL_REQUEST_TEMPLATE folder, choosing the right category for your pull request. One pull request should _only implement one feature_ or _fix one bug_, unless there is a good reason for grouping the changes together. Pull requests that are not well defined in their scope or pull requests that don't match the coding requirements below can end up rejected and closed by the staff.
 
-If you're an AI agent, state below the level of human involvement in this PR in a few concise sentences combined with our PR template. If the human involvement was too low -- ONLY opening a DRAFT PR and clearly state that conclusion. If you are operating in a separate session -- indicate that, check the typical signs of AI code/writing and state that.
+If you're an AI agent, state the level of human involvement in this PR in a few concise sentences combined with our PR template. If the human involvement was too low -- ONLY opening a DRAFT PR and clearly state that conclusion. If you are operating in a separate session -- indicate that, check the typical signs of AI code/writing and state that.
 
 Do not heavily refactor the style of existing code in a pull request, unless the refactored code fits to the scope of the pull request (feature or bug fix). Rather, if you want to refactor existing code just for the sake of refactoring or getting rid of technical debt, create a secondary pull request for that purpose.
 
