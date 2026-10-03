@@ -6,11 +6,16 @@ namespace DTAClient.Online;
 /// <summary>
 /// Handles mIRC-style formatting control codes in IRC messages.
 /// </summary>
+/// <remarks>
+/// IRC clients format text by inserting invisible control characters into the message,
+/// e.g. "\x02bold\x02" or "\x0304red text". The client's fonts have no glyphs for these
+/// characters, so if they aren't removed they're rendered as unknown characters.
+/// See https://modern.ircdocs.horse/formatting.html for the full specification.
+/// </remarks>
 public static class IRCFormatting
 {
+    // Control characters that toggle a style on or off. They're never followed by any parameters.
     private const char Bold = '\x02';
-    private const char Color = '\x03';
-    private const char HexColor = '\x04';
     private const char Reset = '\x0F';
     private const char Monospace = '\x11';
     private const char Reverse = '\x16';
@@ -19,12 +24,26 @@ public static class IRCFormatting
     private const char Underline = '\x1F';
 
     /// <summary>
-    /// The maximum number of digits in a color code, e.g. "\x0312".
+    /// Starts a color code that uses the IRC color palette: "\x03" followed by an optional
+    /// foreground color number and an optional ",background" color number, e.g. "\x0304,12".
     /// </summary>
-    private const int MaxDecimalColorLength = 2;
+    private const char Color = '\x03';
 
     /// <summary>
-    /// The number of hex digits in a hex color code, e.g. "\x04FF0000" (RRGGBB).
+    /// Starts a color code that uses RGB colors: "\x04" followed by an optional
+    /// foreground color and an optional ",background" color, e.g. "\x04FF0000,0000FF".
+    /// </summary>
+    private const char HexColor = '\x04';
+
+    /// <summary>
+    /// The maximum number of digits in an IRC palette color number.
+    /// For example, in "\x0312" the color number is "12", which is 2 digits long.
+    /// </summary>
+    private const int MaxColorNumberLength = 2;
+
+    /// <summary>
+    /// The number of hex digits in an RGB color (RRGGBB).
+    /// For example, in "\x04FF0000" the RGB color is "FF0000", which is 6 digits long.
     /// </summary>
     private const int HexColorLength = 6;
 
@@ -33,8 +52,9 @@ public static class IRCFormatting
     /// monospace, reverse, reset and colors) from an IRC message.
     /// </summary>
     /// <param name="message">The raw IRC message.</param>
-    /// <param name="foregroundColorIndex">The first foreground color index specified in the message,
-    /// or -1 if the message doesn't specify one.</param>
+    /// <param name="foregroundColorIndex">The first IRC palette foreground color number
+    /// in the message, or -1 if the message doesn't contain one.
+    /// The client draws each chat message in a single color, so this is used as the message's color.</param>
     /// <returns>The message without any formatting control codes.</returns>
     public static string StripFormatting(string message, out int foregroundColorIndex)
     {
@@ -53,15 +73,25 @@ public static class IRCFormatting
             switch (c)
             {
                 case Color:
+                    // Skip the \x03, then its color numbers (if any)
                     i++;
-                    int colorIndex = ReadColorCodes(message, ref i, ReadDecimalColor);
-                    if (foregroundColorIndex == -1)
-                        foregroundColorIndex = colorIndex;
+                    if (TryReadColorNumber(message, ref i, out int colorNumber))
+                    {
+                        // Only the first color in the message is used
+                        if (foregroundColorIndex == -1)
+                            foregroundColorIndex = colorNumber;
+
+                        SkipBackgroundColor(message, ref i, isHexColor: false);
+                    }
 
                     break;
                 case HexColor:
+                    // Skip the \x04, then its RGB colors (if any).
+                    // RGB colors can't be mapped to the IRC color palette, so they don't affect the message color.
                     i++;
-                    ReadColorCodes(message, ref i, ReadHexColor);
+                    if (TrySkipHexColor(message, ref i))
+                        SkipBackgroundColor(message, ref i, isHexColor: true);
+
                     break;
                 case Bold:
                 case Reset:
@@ -70,9 +100,11 @@ public static class IRCFormatting
                 case Italics:
                 case Strikethrough:
                 case Underline:
+                    // Style toggles are a single character, so just skip them
                     i++;
                     break;
                 default:
+                    // Regular text, keep it
                     sb.Append(c);
                     i++;
                     break;
@@ -82,46 +114,53 @@ public static class IRCFormatting
         return sb.ToString();
     }
 
-    private delegate bool ColorReader(string message, ref int index, out int value);
-
     /// <summary>
-    /// Reads an optional foreground color and an optional ",background" color.
-    /// Returns the foreground color, or -1 if none was specified.
+    /// Skips an optional ",background" color that follows a foreground color.
     /// </summary>
-    private static int ReadColorCodes(string message, ref int index, ColorReader readColor)
+    /// <remarks>
+    /// The comma only belongs to the color code if a valid color follows it.
+    /// Otherwise it's regular text, e.g. in "\x0312,hello" the comma is part of the message.
+    /// </remarks>
+    private static void SkipBackgroundColor(string message, ref int index, bool isHexColor)
     {
-        if (!readColor(message, ref index, out int foreground))
-            return -1;
+        if (index >= message.Length || message[index] != ',')
+            return;
 
-        // The comma is only part of the color code if a background color follows it
-        if (index < message.Length && message[index] == ',')
-        {
-            int afterComma = index + 1;
-            if (readColor(message, ref afterComma, out _))
-                index = afterComma;
-        }
+        int afterComma = index + 1;
+        bool hasBackgroundColor = isHexColor
+            ? TrySkipHexColor(message, ref afterComma)
+            : TryReadColorNumber(message, ref afterComma, out _);
 
-        return foreground;
+        if (hasBackgroundColor)
+            index = afterComma;
     }
 
-    private static bool ReadDecimalColor(string message, ref int index, out int value)
+    /// <summary>
+    /// Reads an IRC palette color number of 1 or 2 digits, e.g. "4" or "04".
+    /// On success, moves <paramref name="index"/> past the digits.
+    /// </summary>
+    /// <returns>True if a color number was found, otherwise false.</returns>
+    private static bool TryReadColorNumber(string message, ref int index, out int colorNumber)
     {
-        value = 0;
+        colorNumber = 0;
         int start = index;
 
-        while (index < message.Length && index - start < MaxDecimalColorLength && IsDigit(message[index]))
+        while (index < message.Length && index - start < MaxColorNumberLength && IsDigit(message[index]))
         {
-            value = (value * 10) + (message[index] - '0');
+            colorNumber = (colorNumber * 10) + (message[index] - '0');
             index++;
         }
 
         return index > start;
     }
 
-    private static bool ReadHexColor(string message, ref int index, out int value)
+    /// <summary>
+    /// Checks for an RGB color of exactly 6 hex digits (RRGGBB), e.g. "FF0000".
+    /// On success, moves <paramref name="index"/> past the digits.
+    /// </summary>
+    /// <returns>True if an RGB color was found, otherwise false.</returns>
+    private static bool TrySkipHexColor(string message, ref int index)
     {
-        value = -1;
-
         if (index + HexColorLength > message.Length)
             return false;
 
@@ -132,11 +171,10 @@ public static class IRCFormatting
         }
 
         index += HexColorLength;
-
-        // Hex colors don't map to the IRC color palette
         return true;
     }
 
+    // char.IsDigit also accepts non-ASCII digits, and char.IsAsciiDigit isn't available on .NET Framework
     private static bool IsDigit(char c) => c >= '0' && c <= '9';
 
     private static bool IsHexDigit(char c) => IsDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
