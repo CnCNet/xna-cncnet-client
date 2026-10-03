@@ -339,45 +339,17 @@ namespace DTAClient.Online
 
             try
             {
-                Color foreColor;
-
                 // Previously there was an "ACTION" handling, to be compatible with Funky's client, but we don't officially support Funky's client anymore.
 
-                // Color parsing
-                if (message.Length > 0 && message[0] == '\x03')
-                {
-                    int colorCodeEnd = 1; // Position after \x03
-                    string colorString = string.Empty;
+                // Chat messages only support a single color, so the first color code determines the message color
+                // and all other formatting codes are removed so they aren't rendered as unknown characters
+                message = IRCFormatting.StripFormatting(message, out int colorIndex);
 
-                    // Extract up to 2 digits for foreground color
-                    while (colorCodeEnd < message.Length && colorCodeEnd < 3 && char.IsDigit(message[colorCodeEnd]))
-                    {
-                        colorString += message[colorCodeEnd];
-                        colorCodeEnd++;
-                    }
-
-                    // If we found color digits, try to parse them
-                    if (colorString.Length > 0)
-                    {
-                        int colorIndex = Conversions.IntFromString(colorString, -1);
-                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
-                            foreColor = ircChatColors[colorIndex].XnaColor;
-                        else
-                            foreColor = cDefaultChatColor;
-                    }
-                    else
-                    {
-                        foreColor = cDefaultChatColor;
-                    }
-
-                    // Remove the color code from the message
-                    message = message.Substring(colorCodeEnd);
-                }
+                Color foreColor;
+                if (colorIndex > -1 && colorIndex < ircChatColors.Length)
+                    foreColor = ircChatColors[colorIndex].XnaColor;
                 else
                     foreColor = cDefaultChatColor;
-
-                if (message.Length > 1 && message[message.Length - 1] == '\u001f')
-                    message = message.Remove(message.Length - 1);
 
                 ChannelUser user = channel.Users.Find(senderName);
                 bool senderIsAdmin = user != null && user.IsAdmin;
@@ -567,6 +539,8 @@ namespace DTAClient.Online
 
         private void DoPrivateMessageReceived(string sender, string message)
         {
+            message = IRCFormatting.StripFormatting(message, out _);
+
             CnCNetPrivateMessageEventArgs e = new CnCNetPrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);
