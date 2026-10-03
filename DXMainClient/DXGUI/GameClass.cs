@@ -381,10 +381,10 @@ namespace DTAClient.DXGUI
             Environment.Exit(0);
         }
 
-        // Uses the system message box, because the client cannot draw its own message box on a
-        // lost graphics device.
         public static void ShowGraphicsDeviceLostError(bool exit)
         {
+            // Uses the system message box, because the client cannot draw its own message box on a
+            // lost graphics device.
             MainClientConstants.DefaultDisplayErrorAction(
                 "Client Needs Restarting".L10N("Client:Main:GraphicsDeviceLostTitle"),
                 "Your graphics driver was reset, so the client can no longer display. Please start the client again.".L10N("Client:Main:GraphicsDeviceLostText"),
