@@ -339,17 +339,34 @@ namespace DTAClient.Online
 
             try
             {
+                Color foreColor;
+
                 // Previously there was an "ACTION" handling, to be compatible with Funky's client, but we don't officially support Funky's client anymore.
 
-                // Chat messages only support a single color, so the first color code determines the message color
-                // and all other formatting codes are removed so they aren't rendered as unknown characters
-                message = IRCFormatting.StripFormatting(message, out int colorIndex);
-
-                Color foreColor;
-                if (colorIndex > -1 && colorIndex < ircChatColors.Length)
-                    foreColor = ircChatColors[colorIndex].XnaColor;
+                // Color parsing
+                if (message.Contains(Convert.ToString((char)03)))
+                {
+                    if (message.Length < 3)
+                    {
+                        foreColor = cDefaultChatColor;
+                    }
+                    else
+                    {
+                        string colorString = message.Substring(1, 2);
+                        message = message.Remove(0, 3);
+                        int colorIndex = Conversions.IntFromString(colorString, -1);
+                        // Try to parse message color info; if fails, use default color
+                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
+                            foreColor = ircChatColors[colorIndex].XnaColor;
+                        else
+                            foreColor = cDefaultChatColor;
+                    }
+                }
                 else
                     foreColor = cDefaultChatColor;
+
+                if (message.Length > 1 && message[message.Length - 1] == '\u001f')
+                    message = message.Remove(message.Length - 1);
 
                 ChannelUser user = channel.Users.Find(senderName);
                 bool senderIsAdmin = user != null && user.IsAdmin;
@@ -539,8 +556,6 @@ namespace DTAClient.Online
 
         private void DoPrivateMessageReceived(string sender, string message)
         {
-            message = IRCFormatting.StripFormatting(message, out _);
-
             CnCNetPrivateMessageEventArgs e = new CnCNetPrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);
