@@ -19,6 +19,16 @@ namespace DTAClient.Online
         private const char Underline = '\x1F';
 
         /// <summary>
+        /// The maximum number of digits in a color code, e.g. "\x0312".
+        /// </summary>
+        private const int MaxDecimalColorLength = 2;
+
+        /// <summary>
+        /// The number of hex digits in a hex color code, e.g. "\x04FF0000" (RRGGBB).
+        /// </summary>
+        private const int HexColorLength = 6;
+
+        /// <summary>
         /// Removes all formatting control codes (bold, italics, underline, strikethrough,
         /// monospace, reverse, reset and colors) from an IRC message.
         /// </summary>
@@ -99,7 +109,7 @@ namespace DTAClient.Online
             value = 0;
             int start = index;
 
-            while (index < message.Length && index - start < 2 && IsDigit(message[index]))
+            while (index < message.Length && index - start < MaxDecimalColorLength && IsDigit(message[index]))
             {
                 value = (value * 10) + (message[index] - '0');
                 index++;
@@ -112,16 +122,16 @@ namespace DTAClient.Online
         {
             value = -1;
 
-            if (index + 6 > message.Length)
+            if (index + HexColorLength > message.Length)
                 return false;
 
-            for (int i = index; i < index + 6; i++)
+            for (int i = index; i < index + HexColorLength; i++)
             {
                 if (!IsHexDigit(message[i]))
                     return false;
             }
 
-            index += 6;
+            index += HexColorLength;
 
             // Hex colors don't map to the IRC color palette
             return true;
