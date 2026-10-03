@@ -703,6 +703,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string oldGameRoomName = gameRoomName;
             bool oldIsCustomPassword = isCustomPassword;
+            int oldPlayerLimit = playerLimit;
             gameRoomName = newGameRoomName;
             channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
@@ -725,6 +726,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.ChangePassword(actualNewPassword, 10);
             }
 
+            if (maxPlayersChanged)
+                channel.ChangeUserLimit(playerLimit, 10);
+
             BroadcastGameLobbySettings();
 
             if (gameNameChanged)
@@ -738,6 +742,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 AddNotice(string.Format("Maximum players changed to {0}."
                     .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+
+                if (!Locked && Players.Count >= playerLimit)
+                {
+                    AddNotice("Player limit reached. The game room has been locked.".L10N("Client:Main:GameRoomNumberLimitReached"));
+                    LockGame();
+                }
+                else if (Locked && Players.Count >= oldPlayerLimit && Players.Count < playerLimit && !ProgramConstants.IsInGame)
+                {
+                    UnlockGame(true);
+                }
+
                 CheckAutoStartGame();
             }
 
