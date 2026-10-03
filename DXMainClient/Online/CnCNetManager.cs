@@ -313,7 +313,7 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            channel.Topic = topic;
+            channel.Topic = IRCFormatting.StripFormatting(topic, out _);
         }
 
         public void OnChannelTopicChanged(string userName, string channelName, string topic)
