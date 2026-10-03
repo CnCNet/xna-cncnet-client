@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using DTAClient.Domain;
+using DTAClient.DXGUI;
 using Rampastring.Tools;
 using ClientCore;
+using ClientGUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
@@ -66,7 +68,14 @@ namespace DTAClient
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
 #endif
-            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                // The process ends as soon as this event handler returns, so an XNA message box
+                // would never be drawn. Use the system message box, which blocks until the user
+                // closes the message box.
+                MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
+                HandleException(sender, (Exception)args.ExceptionObject);
+            };
 
             DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
@@ -268,6 +277,27 @@ namespace DTAClient
             }
             catch { }
 
+            // With V3 tunnels, the client relays the game's network traffic on background threads.
+            // Exiting the client now would disconnect the player from the match, so wait for the
+            // game process to exit before reporting the crash.
+            if (GameProcessLogic.IsGameProcessRunning)
+            {
+                Logger.Log("The game is still running; keeping the client alive until it exits before reporting the crash.");
+
+                // The waiting thread no longer processes window messages. Disable window ghosting so
+                // that Windows does not mark the client as not responding and offer to close the client.
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    DisableProcessWindowsGhosting();
+
+                GameProcessLogic.WaitForGameProcessExit();
+            }
+
+            if (GameClass.IsGraphicsDeviceLostException(ex))
+            {
+                GameClass.ShowGraphicsDeviceLostError(exit: true);
+                return;
+            }
+
             string error = string.Format("{0} has crashed. Error message:".L10N("Client:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
                 "A crash log has been saved to the following file:".L10N("Client:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
@@ -280,6 +310,10 @@ namespace DTAClient
 
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
+
+        [DllImport("user32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern void DisableProcessWindowsGhosting();
 
         private const int DEFAULT_MAX_KEPT_LOG_FILES = 20;
         private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;

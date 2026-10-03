@@ -669,6 +669,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string oldGameRoomName = gameRoomName;
             bool oldIsCustomPassword = isCustomPassword;
+            int oldPlayerLimit = playerLimit;
             gameRoomName = newGameRoomName;
             channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
@@ -691,6 +692,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.ChangePassword(actualNewPassword, 10);
             }
 
+            if (maxPlayersChanged)
+                channel.ChangeUserLimit(playerLimit, 10);
+
             BroadcastGameLobbySettings();
 
             if (gameNameChanged)
@@ -704,6 +708,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 AddNotice(string.Format("Maximum players changed to {0}."
                     .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+
+                if (!Locked && Players.Count >= playerLimit)
+                {
+                    AddNotice("Player limit reached. The game room has been locked.".L10N("Client:Main:GameRoomNumberLimitReached"));
+                    LockGame();
+                }
+                else if (Locked && Players.Count >= oldPlayerLimit && Players.Count < playerLimit && !ProgramConstants.IsInGame)
+                {
+                    UnlockGame(true);
+                }
             }
 
             if (skillLevelChanged)
@@ -899,8 +913,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (player == null || Map == null || GameMode == null)
                 return;
             string side = "";
-            if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
+            int playerIndex = Players.IndexOf(player);
+            if (playerIndex > -1 && playerIndex < ddPlayerSides.Length &&
+                ddPlayerSides[playerIndex].SelectedItem != null)
+            {
+                side = (string)ddPlayerSides[playerIndex].SelectedItem.Tag;
+            }
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
@@ -983,7 +1001,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
-            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
+            while (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             sndJoinSound.Play();

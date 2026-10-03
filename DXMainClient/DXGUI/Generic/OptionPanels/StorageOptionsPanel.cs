@@ -1,14 +1,18 @@
 #nullable enable
 
 using System;
+using System.IO;
 
 using ClientCore;
 using ClientCore.Extensions;
 
 using ClientGUI;
 
+using DTAClient.Domain;
+
 using Microsoft.Xna.Framework;
 
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
@@ -20,7 +24,11 @@ class StorageOptionsPanel : XNAOptionsPanel
     private const int TEXT_BOX_WIDTH = 70;
     private const int TEXT_BOX_HEIGHT = 21;
     private const int TEXT_BOX_X = 170;
+
     private const int ROW_SPACING = 30;
+    private const int HEADER_SPACING = 11;
+    private const int SECTION_SPACING = 12;
+
     private const int MAX_KEPT_FILES_LIMIT = 100000;
     private const int MAX_FOLDER_SIZE_LIMIT_MB = 1024 * 1024;
     private const int MAX_AGE_DAYS_LIMIT = 3650;
@@ -50,6 +58,11 @@ class StorageOptionsPanel : XNAOptionsPanel
     private XNATextBox? tbMaxGameLogAge;
     private XNATextBox? tbMaxGameLogFolderSize;
 
+    private XNATextBox? tbMaxKeptReplays;
+    private XNATextBox? tbMaxReplayFolderSize;
+    private XNATextBox? tbReplayKeyframeStorageLimit;
+    private XNALabel? lblReplayUsage;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -74,6 +87,9 @@ class StorageOptionsPanel : XNAOptionsPanel
 
         nextSectionY = InitializeSavedGameSection(nextSectionY);
 
+        if (ReplayManager.IsSupported)
+            nextSectionY = InitializeReplaySections(nextSectionY);
+
         // A spacer so the last row does not sit flush against the bottom edge when scrolled down.
         var bottomMargin = new XNAPanel(WindowManager);
         bottomMargin.Name = nameof(bottomMargin);
@@ -93,13 +109,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblLogsHeader = new XNALabel(WindowManager);
         lblLogsHeader.Name = nameof(lblLogsHeader);
         lblLogsHeader.FontIndex = 1;
-        lblLogsHeader.Text = "Client Logs".L10N("Client:DTAConfig:StorageLogsHeader");
         lblLogsHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+        lblLogsHeader.Text = "Client Logs".L10N("Client:DTAConfig:StorageLogsHeader");
 
         var lblKeptLogFiles = new XNALabel(WindowManager);
         lblKeptLogFiles.Name = nameof(lblKeptLogFiles);
         lblKeptLogFiles.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
-        lblKeptLogFiles.ClientRectangle = new Rectangle(12, lblLogsHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeptLogFiles.ClientRectangle = new Rectangle(12, lblLogsHeader.Bottom + HEADER_SPACING, 0, 0);
 
         tbMaxKeptLogFiles = new XNATextBox(WindowManager);
         tbMaxKeptLogFiles.Name = nameof(tbMaxKeptLogFiles);
@@ -133,7 +149,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblLogsHeader, lblKeptLogFiles, tbMaxKeptLogFiles, lblKeptLogFilesSuffix,
             lblLogFolderSize, tbMaxLogFolderSize, lblLogFolderSizeSuffix);
 
-        return lblLogFolderSize.Y + ROW_SPACING;
+        return tbMaxLogFolderSize.Bottom + SECTION_SPACING;
     }
 
     private int InitializeGameLogSection(int y)
@@ -141,13 +157,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblGameLogsHeader = new XNALabel(WindowManager);
         lblGameLogsHeader.Name = nameof(lblGameLogsHeader);
         lblGameLogsHeader.FontIndex = 1;
-        lblGameLogsHeader.Text = "Game Logs".L10N("Client:DTAConfig:StorageGameLogsHeader");
         lblGameLogsHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+        lblGameLogsHeader.Text = "Game Logs".L10N("Client:DTAConfig:StorageGameLogsHeader");
 
         var lblGameLogAge = new XNALabel(WindowManager);
         lblGameLogAge.Name = nameof(lblGameLogAge);
         lblGameLogAge.Text = "Delete after:".L10N("Client:DTAConfig:StorageDeleteAfter");
-        lblGameLogAge.ClientRectangle = new Rectangle(12, lblGameLogsHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblGameLogAge.ClientRectangle = new Rectangle(12, lblGameLogsHeader.Bottom + HEADER_SPACING, 0, 0);
 
         var tbMaxGameLogAge = new XNATextBox(WindowManager);
         tbMaxGameLogAge.Name = nameof(tbMaxGameLogAge);
@@ -188,7 +204,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblGameLogsHeader, lblGameLogAge, tbMaxGameLogAge, lblGameLogAgeSuffix,
             lblGameLogFolderSize, tbMaxGameLogFolderSize, lblGameLogFolderSizeSuffix, lblGameLogRetentionHint);
 
-        return lblGameLogRetentionHint.Bottom + 12;
+        return lblGameLogRetentionHint.Bottom + SECTION_SPACING;
     }
 
     private int InitializeSavedGameSection(int y)
@@ -196,13 +212,13 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblSavedGamesHeader = new XNALabel(WindowManager);
         lblSavedGamesHeader.Name = nameof(lblSavedGamesHeader);
         lblSavedGamesHeader.FontIndex = 1;
-        lblSavedGamesHeader.Text = "Single-Player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
         lblSavedGamesHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+        lblSavedGamesHeader.Text = "Single-Player Saved Games".L10N("Client:DTAConfig:StorageSavedGamesHeader");
 
         var lblKeptSavedGames = new XNALabel(WindowManager);
         lblKeptSavedGames.Name = nameof(lblKeptSavedGames);
         lblKeptSavedGames.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
-        lblKeptSavedGames.ClientRectangle = new Rectangle(12, lblSavedGamesHeader.Bottom + ROW_SPACING - 12, 0, 0);
+        lblKeptSavedGames.ClientRectangle = new Rectangle(12, lblSavedGamesHeader.Bottom + HEADER_SPACING, 0, 0);
 
         tbMaxKeptSavedGames = new XNATextBox(WindowManager);
         tbMaxKeptSavedGames.Name = nameof(tbMaxKeptSavedGames);
@@ -241,7 +257,87 @@ class StorageOptionsPanel : XNAOptionsPanel
         AddContent(lblSavedGamesHeader, lblKeptSavedGames, tbMaxKeptSavedGames, lblKeptSavedGamesSuffix,
             lblSavedGameFolderSize, tbMaxSavedGameFolderSize, lblSavedGameFolderSizeSuffix, lblSavedGameRetentionHint);
 
-        return lblSavedGameRetentionHint.Bottom + 12;
+        return lblSavedGameRetentionHint.Bottom + SECTION_SPACING;
+    }
+
+    private int InitializeReplaySections(int y)
+    {
+        var lblReplaysHeader = new XNALabel(WindowManager);
+        lblReplaysHeader.Name = nameof(lblReplaysHeader);
+        lblReplaysHeader.FontIndex = 1;
+        lblReplaysHeader.ClientRectangle = new Rectangle(12, y, 0, 0);
+        lblReplaysHeader.Text = "Replays".L10N("Client:DTAConfig:StorageReplaysHeader");
+
+        var lblKeptReplays = new XNALabel(WindowManager);
+        lblKeptReplays.Name = nameof(lblKeptReplays);
+        lblKeptReplays.Text = "Keep at most:".L10N("Client:DTAConfig:StorageKeepAtMost");
+        lblKeptReplays.ClientRectangle = new Rectangle(12, lblReplaysHeader.Bottom + HEADER_SPACING, 0, 0);
+
+        var tbMaxKeptReplays = new XNATextBox(WindowManager);
+        tbMaxKeptReplays.Name = nameof(tbMaxKeptReplays);
+        tbMaxKeptReplays.MaximumTextLength = 6;
+        tbMaxKeptReplays.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblKeptReplays.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxKeptReplays = tbMaxKeptReplays;
+
+        var lblKeptReplaysSuffix = new XNALabel(WindowManager);
+        lblKeptReplaysSuffix.Name = nameof(lblKeptReplaysSuffix);
+        lblKeptReplaysSuffix.Text = "replays  (0 = no limit)".L10N("Client:DTAConfig:StorageKeepAtMostSuffix");
+        lblKeptReplaysSuffix.ClientRectangle = new Rectangle(
+            tbMaxKeptReplays.Right + 8, lblKeptReplays.Y, 0, 0);
+
+        var lblFolderSize = new XNALabel(WindowManager);
+        lblFolderSize.Name = nameof(lblFolderSize);
+        lblFolderSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageMaxSize");
+        lblFolderSize.ClientRectangle = new Rectangle(12, lblKeptReplays.Y + ROW_SPACING, 0, 0);
+
+        var tbMaxReplayFolderSize = new XNATextBox(WindowManager);
+        tbMaxReplayFolderSize.Name = nameof(tbMaxReplayFolderSize);
+        tbMaxReplayFolderSize.MaximumTextLength = 7;
+        tbMaxReplayFolderSize.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblFolderSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbMaxReplayFolderSize = tbMaxReplayFolderSize;
+
+        var lblFolderSizeSuffix = new XNALabel(WindowManager);
+        lblFolderSizeSuffix.Name = nameof(lblFolderSizeSuffix);
+        lblFolderSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageMaxSizeSuffix");
+        lblFolderSizeSuffix.ClientRectangle = new Rectangle(
+            tbMaxReplayFolderSize.Right + 8, lblFolderSize.Y, 0, 0);
+
+        var lblReplayUsage = new XNALabel(WindowManager);
+        lblReplayUsage.Name = nameof(lblReplayUsage);
+        lblReplayUsage.ClientRectangle = new Rectangle(12, lblFolderSize.Y + ROW_SPACING + 6, 0, 0);
+        this.lblReplayUsage = lblReplayUsage;
+
+        var lblKeyframesHeader = new XNALabel(WindowManager);
+        lblKeyframesHeader.Name = nameof(lblKeyframesHeader);
+        lblKeyframesHeader.FontIndex = 1;
+        lblKeyframesHeader.ClientRectangle = new Rectangle(12, lblReplayUsage.Y + ROW_SPACING, 0, 0);
+        lblKeyframesHeader.Text = "Playback keyframes".L10N("Client:DTAConfig:StorageKeyframesHeader");
+
+        var lblKeyframeSize = new XNALabel(WindowManager);
+        lblKeyframeSize.Name = nameof(lblKeyframeSize);
+        lblKeyframeSize.Text = "Maximum size:".L10N("Client:DTAConfig:StorageKeyframeMaxSize");
+        lblKeyframeSize.ClientRectangle = new Rectangle(12, lblKeyframesHeader.Bottom + HEADER_SPACING, 0, 0);
+
+        var tbReplayKeyframeStorageLimit = new XNATextBox(WindowManager);
+        tbReplayKeyframeStorageLimit.Name = nameof(tbReplayKeyframeStorageLimit);
+        tbReplayKeyframeStorageLimit.MaximumTextLength = 7;
+        tbReplayKeyframeStorageLimit.ClientRectangle = new Rectangle(
+            TEXT_BOX_X, lblKeyframeSize.Y - 4, TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT);
+        this.tbReplayKeyframeStorageLimit = tbReplayKeyframeStorageLimit;
+
+        var lblKeyframeSizeSuffix = new XNALabel(WindowManager);
+        lblKeyframeSizeSuffix.Name = nameof(lblKeyframeSizeSuffix);
+        lblKeyframeSizeSuffix.Text = "MB  (0 = no limit)".L10N("Client:DTAConfig:StorageKeyframeMaxSizeSuffix");
+        lblKeyframeSizeSuffix.ClientRectangle = new Rectangle(
+            tbReplayKeyframeStorageLimit.Right + 8, lblKeyframeSize.Y, 0, 0);
+
+        AddContent(lblReplaysHeader, lblKeptReplays, tbMaxKeptReplays, lblKeptReplaysSuffix,
+            lblFolderSize, tbMaxReplayFolderSize, lblFolderSizeSuffix, lblReplayUsage,
+            lblKeyframesHeader, lblKeyframeSize, tbReplayKeyframeStorageLimit, lblKeyframeSizeSuffix);
+
+        return tbReplayKeyframeStorageLimit.Bottom + SECTION_SPACING;
     }
 
     public override void Load()
@@ -257,6 +353,15 @@ class StorageOptionsPanel : XNAOptionsPanel
         {
             tbMaxGameLogAge!.Text = IniSettings.MaxGameLogAgeDays.Value.ToString();
             tbMaxGameLogFolderSize!.Text = IniSettings.MaxGameLogFolderSizeMB.Value.ToString();
+        }
+
+        if (ReplayManager.IsSupported)
+        {
+            tbMaxKeptReplays!.Text = IniSettings.MaxKeptReplays.Value.ToString();
+            tbMaxReplayFolderSize!.Text = IniSettings.MaxReplayFolderSizeMB.Value.ToString();
+            tbReplayKeyframeStorageLimit!.Text = IniSettings.ReplayKeyframeStorageLimitMB.Value.ToString();
+
+            RefreshUsageLabel();
         }
     }
 
@@ -281,7 +386,55 @@ class StorageOptionsPanel : XNAOptionsPanel
                 ParseLimit(tbMaxGameLogFolderSize!.Text, IniSettings.MaxGameLogFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
         }
 
+        if (ReplayManager.IsSupported)
+        {
+            IniSettings.MaxKeptReplays.Value =
+                ParseLimit(tbMaxKeptReplays!.Text, IniSettings.MaxKeptReplays.Value, MAX_KEPT_FILES_LIMIT);
+            IniSettings.MaxReplayFolderSizeMB.Value =
+                ParseLimit(tbMaxReplayFolderSize!.Text, IniSettings.MaxReplayFolderSizeMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+            IniSettings.ReplayKeyframeStorageLimitMB.Value =
+                ParseLimit(tbReplayKeyframeStorageLimit!.Text,
+                    IniSettings.ReplayKeyframeStorageLimitMB.Value, MAX_FOLDER_SIZE_LIMIT_MB);
+        }
+
         return restartRequired;
+    }
+
+    public override bool RefreshPanel()
+    {
+        bool valuesChanged = base.RefreshPanel();
+
+        if (ReplayManager.IsSupported)
+            RefreshUsageLabel();
+
+        return valuesChanged;
+    }
+
+    private void RefreshUsageLabel()
+    {
+        int count = 0;
+        long bytes = 0;
+
+        try
+        {
+            DirectoryInfo directory = ReplayManager.GetReplayDirectory();
+            if (directory.Exists)
+            {
+                foreach (FileInfo file in directory.EnumerateFiles(ReplayManager.SearchPattern))
+                {
+                    count++;
+                    bytes += file.Length;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log("StorageOptionsPanel: could not measure the replay directory: " + ex.Message);
+        }
+
+        lblReplayUsage!.Text = string.Format(
+            "Currently stored: {0} replays, {1:0.#} MB".L10N("Client:DTAConfig:StorageReplayUsage"),
+            count, bytes / (1024.0 * 1024.0));
     }
 
     private static int ParseLimit(string? text, int previousValue, int maximum)

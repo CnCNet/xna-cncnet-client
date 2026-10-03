@@ -239,6 +239,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private LoadOrSaveGameOptionPresetWindow loadOrSaveGameOptionPresetWindow;
 
+        /// <summary>Whether the game option preset window is open over the lobby.</summary>
+        public bool HasDialogOpen => loadOrSaveGameOptionPresetWindow?.Enabled == true;
+
         public override void Initialize()
         {
             Name = _iniSectionName;
@@ -1828,6 +1831,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string packedGameOptionValues = GetPackedGameOptionValuesString();
             spawnIni.SetStringValue("Settings", "BroadcastedGameOptionValues", packedGameOptionValues);
 
+            ReplayManager.PrepareRecording(spawnIni, Map.UntranslatedName);
+
             spawnIni.WriteIniFile();
 
             return houseInfos;
@@ -2205,6 +2210,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             UpdateDiscordPresence(true);
+
+            ReplayManager.Prune();
         }
 
         /// <summary>
