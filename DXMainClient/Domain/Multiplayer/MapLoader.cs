@@ -411,6 +411,7 @@ namespace DTAClient.Domain.Multiplayer
                 gameModes.RemoveAll(g => g.Maps.Count < 1);
 
             _snapshot = new Snapshot(gameModes, new GameModeMapCollection(gameModes));
+            MapPreviewGenerationService.Register(GameModeMaps.Select(item => item.Map));
         }
 
         private List<GameMode> CloneGameModeSnapshot() => GameModes.Select(gameMode => gameMode.Clone()).ToList();
@@ -729,6 +730,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
+            MapPreviewGenerationService.Remove(gameModeMap.Map);
 
             lock (mapModificationLock)
             {
@@ -824,16 +826,49 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
+            => GetPreviewTextureFromMap(map, syncLoadOnCacheMiss, false, out _);
+
+        internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss,
+            bool preferGenerated, out MapPreviewSource source)
         {
-            if (map?.IsImmediatePreviewImageAvailable() ?? false)
-                return AssetLoader.LoadTextureUncached(map.PreviewPath);
-
-            using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
-
-            if (cacheLease != null)
-                return AssetLoader.TextureFromImage(cacheLease.Value);
-            else
+            if (map == null)
+            {
+                source = null;
                 return null;
+            }
+            source = (preferGenerated ? MapPreviewGenerationService.CachedSource(map) : null)
+                ?? map.ResolveOriginalPreviewSource();
+            try
+            {
+                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
+            }
+            catch (Exception e) when (source.IsGenerated)
+            {
+                Logger.Log("Cannot load generated map preview: " + e.Message);
+                source = map.ResolveOriginalPreviewSource();
+                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
+            }
+        }
+
+        private Texture2D LoadPreviewTexture(MapPreviewSource source, bool syncLoadOnCacheMiss)
+        {
+            // Generated PNGs are not assets: AssetLoader names are relative to its search
+            // paths, so load these directly from their absolute cache path.
+            if (source.IsGenerated)
+            {
+                using Image image = Image.Load(source.ImmediateImagePath);
+                return AssetLoader.TextureFromImage(image)
+                    ?? throw new IOException("Cannot create texture from " + source.ImmediateImagePath);
+            }
+
+            // Original nearby PNGs keep the relative-path asset lookup.
+            if (source.ImmediateImagePath != null)
+                return AssetLoader.LoadTextureUncached(source.ImmediateImagePath);
+
+            // Embedded PreviewPack extraction stays under the existing LRU,
+            // background queue, hidden-preview null cache and reference leases.
+            using var cacheLease = GetCachedPreviewImageFromMap(source.Map, syncLoadOnCacheMiss);
+            return cacheLease == null ? null : AssetLoader.TextureFromImage(cacheLease.Value);
         }
 
         public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
