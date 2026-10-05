@@ -1715,37 +1715,34 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
             
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            
-            // D2K uses a different spawn.ini format
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+
+            // needed for translation in game loading lobbies
+            if (Map.Official)
+                settings.SetStringValue("MapID", Map.BaseFilePath);
+
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K) // D2K format
             {
-                // For D2K, Scenario should be the map filename without extension
-                string mapFileName = Path.GetFileNameWithoutExtension(Map.BaseFilePath);
+                // scenario should be the map filename without extension
+                string mapFileName = GetD2KScenarioName();
                 settings.SetStringValue("Scenario", mapFileName);
                 settings.SetStringValue("ScenarioName", Map.UntranslatedName);
                 settings.SetIntValue("MyIndex", myIndex);
                 settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
                 settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+                settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
+                settings.SetIntValue("Team", GetD2KTeamId(Players[myIndex]));
                 settings.SetIntValue("AIPlayers", AIPlayers.Count);
                 settings.SetIntValue("Seed", RandomSeed);
-                // D2K expects Settings.StartingLocation = 0-based start slot (0 = first, 1 = second, …), or 0 for game-chosen random
-                int myStart = houseInfos[myIndex].StartingWaypoint >= 0
-                    ? houseInfos[myIndex].StartingWaypoint
-                    : 0;
-                settings.SetIntValue("StartingLocation", myStart);
+                // D2K uses zero-based slots and -1 for game-chosen random.
+                settings.SetIntValue("StartingLocation", houseInfos[myIndex].StartingWaypoint);
                 // Port and GameID will be set by WriteSpawnIniAdditions in multiplayer lobbies
                 // Host will be set by WriteSpawnIniAdditions in multiplayer lobbies
             }
-            else
+            else // Other games format
             {
-                // YR/RA2 format
                 settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
                 settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
                 settings.SetStringValue("UIMapName", Map.UntranslatedName);
-
-                // needed for translation in game loading lobbies
-                if (Map.Official)
-                    settings.SetStringValue("MapID", Map.BaseFilePath);
 
                 settings.SetIntValue("PlayerCount", Players.Count);
                 settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
@@ -1755,10 +1752,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 settings.SetIntValue("AIPlayers", AIPlayers.Count);
                 settings.SetIntValue("Seed", RandomSeed);
             }
+
             if (GetPvPTeamCount() > 1)
                 settings.SetBooleanValue("CoachMode", true);
+
             if (GetGameType() == GameType.Coop)
                 settings.SetBooleanValue("AutoSurrender", false);
+
             spawnIni.AddSection(settings);
             WriteSpawnIniAdditions(spawnIni);
 

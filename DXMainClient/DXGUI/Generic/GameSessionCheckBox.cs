@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using ClientGUI;
 
@@ -41,7 +41,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     public bool AllowChanges { get; set; } = true;
 
     public bool AffectsSpawnIni => !string.IsNullOrWhiteSpace(spawnIniOption);
-    public bool AffectsMapCode => !string.IsNullOrWhiteSpace(customIniPath);
+    public bool AffectsMapCode => !string.IsNullOrWhiteSpace(customIniPath) || !string.IsNullOrWhiteSpace(mapIniOption);
 
     public bool AllowScoring
         => !((mapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && Checked)
