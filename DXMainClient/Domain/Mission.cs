@@ -1,13 +1,13 @@
+#nullable enable
+
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-
 using ClientCore;
 using ClientCore.Enums;
 using ClientCore.Extensions;
-
 using Rampastring.Tools;
 
 namespace DTAClient.Domain
