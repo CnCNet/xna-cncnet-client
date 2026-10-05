@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this._tunnelMode = (TunnelMode)UserINISettings.Instance.TunnelMode.Value;
             _negotiator = new V3TunnelNegotiationManager(this, tunnelHandler, windowManager);
 
-            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled ? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -309,7 +309,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(skillLevel);
             this.gameRoomName = channel.UIName;
             tunnelErrorMode = false;
-            
+
             hostUploadedMaps.Clear();
             chatCommandDownloadedMaps.Clear();
 
@@ -669,6 +669,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string oldGameRoomName = gameRoomName;
             bool oldIsCustomPassword = isCustomPassword;
+            int oldPlayerLimit = playerLimit;
             gameRoomName = newGameRoomName;
             channel.UIName = newGameRoomName;
             playerLimit = newMaxPlayers;
@@ -691,6 +692,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.ChangePassword(actualNewPassword, 10);
             }
 
+            if (maxPlayersChanged)
+                channel.ChangeUserLimit(playerLimit, 10);
+
             BroadcastGameLobbySettings();
 
             if (gameNameChanged)
@@ -704,6 +708,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
                 AddNotice(string.Format("Maximum players changed to {0}."
                     .L10N("Client:Main:MaxPlayersChanged"), newMaxPlayers));
+
+                if (!Locked && Players.Count >= playerLimit)
+                {
+                    AddNotice("Player limit reached. The game room has been locked.".L10N("Client:Main:GameRoomNumberLimitReached"));
+                    LockGame();
+                }
+                else if (Locked && Players.Count >= oldPlayerLimit && Players.Count < playerLimit && !ProgramConstants.IsInGame)
+                {
+                    UnlockGame(true);
+                }
             }
 
             if (skillLevelChanged)
@@ -2035,10 +2049,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(("Failed to parse random seed from game options message! " +
                     "The game host's game version might be different from yours.").L10N("Client:Main:HostRandomSeedError"), Color.Red);
             }
-            else
-            {
-                RandomSeed = randomSeed;
-            }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(parts[partIndex + 7],
                 Convert.ToInt32(RemoveStartingLocations)));
@@ -2212,20 +2222,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
-            // Last part may be the host's RandomSeed (so client writes spawn.ini with same seed and avoids desync)
-            int seedFromStart;
-            if (parts.Length >= 2 && int.TryParse(parts[parts.Length - 1], out seedFromStart))
-            {
-                RandomSeed = seedFromStart;
-            }
-
             var recentPlayers = new List<string>();
 
-            // Player list: parts[1]=name, parts[2]=ip:port, ... (optional last part is seed)
-            int playerPartCount = (parts.Length >= 2 && int.TryParse(parts[parts.Length - 1], out _)) ? parts.Length - 1 : parts.Length;
-            for (int i = 1; i + 1 < playerPartCount; i += 2)
+            for (int i = 1; i < parts.Length; i += 2)
             {
-                if (playerPartCount <= i + 1)
+                if (parts.Length <= i + 1)
                     return;
 
                 string pName = parts[i];
