@@ -5,9 +5,9 @@ using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers;
 
-public class LogFileStatisticsParser : GenericMatchParser
+public class UniversalStatisticsParser : GenericMatchParser
 {
-    public LogFileStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
+    public UniversalStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
     {
         this.isLoadedGame = isLoadedGame;
     }

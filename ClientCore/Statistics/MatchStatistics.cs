@@ -73,7 +73,7 @@ public class MatchStatistics
         }
         else
         {
-            var parser = new LogFileStatisticsParser(this, isLoadedGame);
+            var parser = new UniversalStatisticsParser(this, isLoadedGame);
             parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
         }
     }
