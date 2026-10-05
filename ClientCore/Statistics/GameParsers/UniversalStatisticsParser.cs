@@ -7,16 +7,14 @@ namespace ClientCore.Statistics.GameParsers;
 
 public class UniversalStatisticsParser : MatchParserBase
 {
-    public UniversalStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
+    public UniversalStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms, isLoadedGame)
     {
-        this.isLoadedGame = isLoadedGame;
     }
 
     private string fileName = "DTA.log";
     private string economyString = "Economy"; // RA2/YR do not have economy stat, but a number of built objects.
-    private bool isLoadedGame;
 
-    public void ParseStats(string gamepath, string fileName)
+    public override void ParseStats(string gamepath, string fileName)
     {
         this.fileName = fileName;
         if (ClientConfiguration.Instance.UseBuiltStatistic) economyString = "Built";

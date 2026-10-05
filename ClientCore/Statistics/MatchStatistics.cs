@@ -66,6 +66,22 @@ public class MatchStatistics
 
         LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
+        MatchParserBase parser;
+        switch (ClientConfiguration.Instance.ClientGameType)
+        {
+            case ClientType.D2K:
+                parser = (MatchParserBase)new Dune2000StatisticsParser(this);
+                parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+                break;
+            case ClientType.RA:
+            case ClientType.TS:
+            case ClientType.YR:
+            case ClientType.Ares:
+            default:
+                parser = MatchParserBasenew UniversalStatisticsParser(this, isLoadedGame);
+                parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+                break;
+        }
         if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
         {
             var parser = new Dune2000StatisticsParser(this);

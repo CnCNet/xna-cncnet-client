@@ -32,7 +32,7 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
     private uint? endState;
     private bool suddenDisconnect;
 
-    public Dune2000StatisticsParser(MatchStatistics statistics) : base(statistics)
+    public Dune2000StatisticsParser(MatchStatistics statistics, bool isLoaded) : base(statistics, isLoaded)
     {
     }
 
