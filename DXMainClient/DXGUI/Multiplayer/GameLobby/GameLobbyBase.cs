@@ -1785,6 +1785,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
                 AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, pseudoRandom, SideCount); // Forced options from the map
 
+            // Convert only after all configurable and forced options have supplied their final values.
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                ApplyD2KSpawnIniConversions(spawnIni);
+
             // Player options
 
             int otherId = 1;
@@ -1809,8 +1813,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // D2K multiplayer: each other player's start in their section (0-based start slot)
                 if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
                 {
-                    int otherStart = pHouseInfo.StartingWaypoint >= 0 ? pHouseInfo.StartingWaypoint : 0;
-                    spawnIni.SetIntValue(sectionName, "StartingLocation", otherStart);
+                    spawnIni.SetIntValue(sectionName, "StartingLocation", pHouseInfo.StartingWaypoint);
+                    spawnIni.SetIntValue(sectionName, "Team", GetD2KTeamId(pInfo));
                 }
 
                 otherId++;
@@ -1892,6 +1896,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             return houseInfos;
         }
+
+        private static int GetD2KTeamId(PlayerInfo playerInfo) =>
+            playerInfo.TeamId > 0 ? playerInfo.TeamId - 1 : -1;
+
+        private string GetD2KScenarioName() =>
+            Map.Official
+                ? Path.GetFileNameWithoutExtension(Map.BaseFilePath).TrimStart('_')
+                : Map.SHA1;
+
         private void ApplyD2KSpawnIniConversions(IniFile spawnIni)
         {
             string disableCarryall = spawnIni.GetStringValue("Settings", "DisableCarryall", string.Empty);
@@ -1919,12 +1932,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int gameSpeedIndex = spawnIni.GetIntValue("Settings", "GameSpeed", -1);
-            int[] speedValues = isMultiplayer
-                ? new[] { 60, 45, 30, 20, 15, 12, 10 }
-                : new[] { 100, 60, 30, 20, 15, 12, 10 };
-
-            if (gameSpeedIndex >= 0 && gameSpeedIndex < speedValues.Length)
-                spawnIni.SetIntValue("Settings", "GameSpeed", speedValues[gameSpeedIndex]);
+            GameLobbyDropDown gameSpeedDropDown = DropDowns.Find(
+                dropDown => dropDown.Name == "cmbGameSpeedCap");
+            if (gameSpeedDropDown != null &&
+                gameSpeedIndex >= 0 && gameSpeedIndex < gameSpeedDropDown.Items.Count &&
+                int.TryParse(gameSpeedDropDown.Items[gameSpeedIndex].Tag?.ToString(), out int gameSpeed))
+            {
+                spawnIni.SetIntValue("Settings", "GameSpeed", gameSpeed);
+            }
 
             if (isMultiplayer && !spawnIni.KeyExists("Settings", "MaxAhead"))
                 spawnIni.SetIntValue("Settings", "MaxAhead", 150);
@@ -2041,6 +2056,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("Writing map.");
 
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                WriteD2KMap(pseudoRandom);
+                return;
+            }
+
             Logger.Log("Loading map INI from " + Map.CompleteFilePath);
 
             IniFile mapIni = Map.GetMapIni();
@@ -2077,38 +2098,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Apply Vars from MPMaps.ini to the map INI
             Map.ApplyMapIniVars(mapIni);
 
-            // D2K-specific: Handle build queues checkbox - set Vars based on checkbox state
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                GameLobbyCheckBox buildQueuesCheckBox = CheckBoxes.Find(chk => chk.Name == "chkBuildQueues");
-                if (buildQueuesCheckBox == null)
-                {
-                    Logger.Log("Build queues checkbox not found in CheckBoxes list");
-                }
-                else
-                {
-                    // Ensure Vars section exists
-                    if (!mapIni.SectionExists("Vars"))
-                        mapIni.AddSection("Vars");
-
-                    if (buildQueuesCheckBox.Checked)
-                    {
-                        Logger.Log("Build queues checkbox is checked - enabling build queues in map INI");
-                        mapIni.SetStringValue("Vars", "buildQueuesEnabled", "Yes");
-                        mapIni.SetIntValue("Vars", "buildQueuesMaxPerFactory", 100);
-                        mapIni.SetIntValue("Vars", "buildQueuesMaxPerUnitType", 10);
-                        mapIni.SetIntValue("Vars", "buildQueuesBulkIncrement", 5);
-                        mapIni.SetStringValue("Vars", "buildQueuesInfinityEnabled", "No");
-                        Logger.Log("Added build queue Vars to map INI");
-                    }
-                    else
-                    {
-                        Logger.Log("Build queues checkbox is not checked - disabling build queues in map INI");
-                        mapIni.SetStringValue("Vars", "buildQueuesEnabled", "No");
-                    }
-                }
-            }
-
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
             CopySupplementalMapFiles(mapIni);
@@ -2117,35 +2106,80 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.WriteIniFile(spawnMapIniFile.FullName);
 
-            // D2K-specific: Write the modified map INI to d2k\data\maps\<scenario>.ini
-            // This is where the game actually reads the map INI from (not spawnmap.ini)
-            // We write here AFTER modifying it with Vars, so the game gets the updated version
-            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-            {
-                // Get scenario name from map file path (same logic as WriteSpawnIni uses)
-                // BaseFilePath is like "Maps/Standard/032cf10c246b5fbfa54b78451786a9fe1ff58678"
-                // Extract just the filename: "032cf10c246b5fbfa54b78451786a9fe1ff58678"
-                string mapFileName = Path.GetFileNameWithoutExtension(Map.BaseFilePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar));
-                
-                if (!string.IsNullOrEmpty(mapFileName))
-                {
-                    string d2kMapIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "d2k", "data", "maps", mapFileName + ".ini");
-                    try
-                    {
-                        // Ensure directory exists
-                        string d2kMapsDir = Path.GetDirectoryName(d2kMapIniPath);
-                        if (!Directory.Exists(d2kMapsDir))
-                            Directory.CreateDirectory(d2kMapsDir);
+        }
 
-                        // Write the modified map INI (with Vars if checkbox was checked) to where the game reads it
-                        mapIni.WriteIniFile(d2kMapIniPath);
-                        Logger.Log("Wrote D2K map INI with modifications to " + d2kMapIniPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log("Failed to write D2K map INI to " + d2kMapIniPath + ": " + ex.Message);
-                    }
+        private void WriteD2KMap(Random pseudoRandom)
+        {
+            string scenarioName = GetD2KScenarioName();
+            if (string.IsNullOrWhiteSpace(scenarioName))
+                throw new InvalidDataException("The selected Dune 2000 map has no scenario name.");
+
+            string sourceMapPath = Map.GetMapFilePaths().FirstOrDefault(path =>
+                string.Equals(Path.GetExtension(path), ".map", StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(sourceMapPath))
+                throw new FileNotFoundException(
+                    "The selected Dune 2000 map is missing its required supplemental .map file.");
+
+            string mapsDirectory = SafePath.CombineDirectoryPath(
+                ProgramConstants.GamePath, "data", "maps");
+            string destinationMapPath = SafePath.CombineFilePath(
+                mapsDirectory, scenarioName + ".map");
+            string destinationIniPath = SafePath.CombineFilePath(
+                mapsDirectory, scenarioName + ".ini");
+            string destinationMissionPath = SafePath.CombineFilePath(
+                mapsDirectory, "_" + scenarioName + ".mis");
+
+            try
+            {
+                Directory.CreateDirectory(mapsDirectory);
+
+                if (!string.Equals(
+                        Path.GetFullPath(sourceMapPath),
+                        Path.GetFullPath(destinationMapPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(sourceMapPath, destinationMapPath, overwrite: true);
                 }
+
+                string sourceMissionPath = Map.GetMapFilePaths()
+                    .FirstOrDefault(path =>
+                        string.Equals(Path.GetExtension(path), ".mis", StringComparison.OrdinalIgnoreCase));
+
+                if (File.Exists(sourceMissionPath) &&
+                    !string.Equals(
+                        Path.GetFullPath(sourceMissionPath),
+                        Path.GetFullPath(destinationMissionPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(sourceMissionPath, destinationMissionPath, overwrite: true);
+                }
+                else if (File.Exists(destinationMissionPath))
+                {
+                    if (string.IsNullOrEmpty(sourceMissionPath))
+                        File.Delete(destinationMissionPath);
+                }
+
+                IniFile mapIni = Map.GetMapIni();
+
+                foreach (IniFile iniFile in GameMode.GetMapRulesIniFiles(pseudoRandom))
+                    MapCodeHelper.ApplyMapCode(mapIni, iniFile);
+
+                foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                    checkBox.ApplyMapCode(mapIni, GameMode);
+
+                foreach (GameLobbyDropDown dropDown in DropDowns)
+                    dropDown.ApplyMapCode(mapIni, GameMode);
+
+                Map.ApplyMapIniVars(mapIni);
+                mapIni.WriteIniFile(destinationIniPath);
+
+                Logger.Log("Prepared Dune 2000 map bundle in " + mapsDirectory);
+            }
+            catch (Exception ex)
+            {
+                throw new IOException(
+                    $"Failed to prepare Dune 2000 map '{Map.UntranslatedName}' in '{mapsDirectory}'.",
+                    ex);
             }
         }
 
@@ -2335,9 +2369,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Random pseudoRandom = new Random(RandomSeed);
 
-            PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
-            InitializeMatchStatistics(houseInfos);
-            WriteMap(houseInfos, pseudoRandom);
+            try
+            {
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                    SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "stats.dmp");
+
+                PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
+                InitializeMatchStatistics(houseInfos);
+                WriteMap(houseInfos, pseudoRandom);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Game preparation failed: " + ex);
+                XNAMessageBox.Show(
+                    WindowManager,
+                    "Cannot launch game".L10N("Client:Main:LaunchGameErrorTitle"),
+                    ex.Message);
+                return;
+            }
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 

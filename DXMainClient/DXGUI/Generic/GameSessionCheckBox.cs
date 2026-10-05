@@ -41,7 +41,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     public bool AllowChanges { get; set; } = true;
 
     public bool AffectsSpawnIni => !string.IsNullOrWhiteSpace(spawnIniOption);
-    public bool AffectsMapCode => !string.IsNullOrWhiteSpace(customIniPath) || !string.IsNullOrWhiteSpace(mapIniOption);
+    public bool AffectsMapCode => !string.IsNullOrWhiteSpace(customIniPath) || AffectsMapIni;
 
     public bool AllowScoring
         => !((mapScoringMode == CheckBoxMapScoringMode.DenyWhenChecked && Checked)
@@ -52,6 +52,17 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     private string spawnIniOption;
 
     private string customIniPath;
+
+    private string mapIniSection;
+    private string mapIniOption;
+    private string enabledMapIniValue;
+    private string disabledMapIniValue;
+
+    private bool AffectsMapIni =>
+        !string.IsNullOrWhiteSpace(mapIniSection) &&
+        !string.IsNullOrWhiteSpace(mapIniOption) &&
+        enabledMapIniValue != null &&
+        disabledMapIniValue != null;
 
     protected bool reversed;
 
@@ -129,6 +140,18 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
             case "CustomIniPath":
                 customIniPath = value;
                 return;
+            case "MapIniSection":
+                mapIniSection = value;
+                return;
+            case "MapIniOption":
+                mapIniOption = value;
+                return;
+            case "EnabledMapIniValue":
+                enabledMapIniValue = value;
+                return;
+            case "DisabledMapIniValue":
+                disabledMapIniValue = value;
+                return;
             case "Reversed":
                 reversed = Conversions.BooleanFromString(value, false);
                 return;
@@ -196,10 +219,17 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
         
     public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
     {
-        if (!AffectsMapCode || Checked == reversed)
+        if (!AffectsMapCode)
             return;
 
-        MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
+        if (AffectsMapIni)
+        {
+            string value = Checked != reversed ? enabledMapIniValue : disabledMapIniValue;
+            mapIni.SetStringValue(mapIniSection, mapIniOption, value);
+        }
+
+        if (Checked != reversed && !string.IsNullOrWhiteSpace(customIniPath))
+            MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
     }
 
     public override void OnLeftClick(InputEventArgs inputEventArgs)
