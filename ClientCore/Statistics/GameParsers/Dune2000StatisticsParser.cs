@@ -36,7 +36,7 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
     {
     }
 
-    public void ParseStats(string gamePath) => ParseStatistics(gamePath);
+    public override void ParseStats(string gamePath, string fileName) => ParseStatistics(gamePath);
 
     protected override void ParseStatistics(string gamePath)
     {

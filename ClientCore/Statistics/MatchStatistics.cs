@@ -70,7 +70,7 @@ public class MatchStatistics
         switch (ClientConfiguration.Instance.ClientGameType)
         {
             case ClientType.D2K:
-                parser = (MatchParserBase)new Dune2000StatisticsParser(this);
+                parser = new Dune2000StatisticsParser(this, isLoadedGame);
                 parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
                 break;
             case ClientType.RA:
@@ -78,19 +78,9 @@ public class MatchStatistics
             case ClientType.YR:
             case ClientType.Ares:
             default:
-                parser = MatchParserBasenew UniversalStatisticsParser(this, isLoadedGame);
+                parser = new UniversalStatisticsParser(this, isLoadedGame);
                 parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
                 break;
-        }
-        if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
-        {
-            var parser = new Dune2000StatisticsParser(this);
-            parser.ParseStats(gamePath);
-        }
-        else
-        {
-            var parser = new UniversalStatisticsParser(this, isLoadedGame);
-            parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
         }
     }
 
