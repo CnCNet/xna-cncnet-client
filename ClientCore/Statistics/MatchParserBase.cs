@@ -1,10 +1,10 @@
 ﻿namespace ClientCore.Statistics;
 
-public abstract class GenericMatchParser
+public abstract class MatchParserBase
 {
     public MatchStatistics Statistics {get; set;}
 
-    public GenericMatchParser(MatchStatistics ms)
+    public MatchParserBase(MatchStatistics ms)
     {
         Statistics = ms;
     }

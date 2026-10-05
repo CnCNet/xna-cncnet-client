@@ -9,7 +9,7 @@ using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers;
 
-public sealed class Dune2000StatisticsParser : GenericMatchParser
+public sealed class Dune2000StatisticsParser : MatchParserBase
 {
     private const string StatisticsFileName = "stats.dmp";
     private const int MaxPlayerCount = 8;

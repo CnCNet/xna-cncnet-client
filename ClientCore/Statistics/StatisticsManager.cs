@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace ClientCore.Statistics;
 
-public class StatisticsManager : GenericStatisticsManager
+public class StatisticsManager : StatisticsManagerBase
 {
     private const string VERSION = "1.06";
     private const string SCORE_FILE_PATH = "Client/dscore.dat";

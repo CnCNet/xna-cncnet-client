@@ -4,7 +4,7 @@ using System.IO;
 
 namespace ClientCore.Statistics;
 
-public abstract class GenericStatisticsManager
+public abstract class StatisticsManagerBase
 {
     protected List<MatchStatistics> Statistics = new List<MatchStatistics>();
 
