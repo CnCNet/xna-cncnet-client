@@ -35,11 +35,14 @@ internal sealed class Program
     private static ConsoleColor defaultColor;
     private static bool hasHandle;
     private static Mutex clientMutex;
+    private static bool unattended;
 
     // e.g. args = ["clientogl.dll", "\"C:\\Game\\\""];
+    // An optional "-unattended" argument skips restarting the client and waiting for a key press on failure.
     private static void Main(string[] args)
     {
         defaultColor = Console.ForegroundColor;
+        unattended = args.Skip(2).Contains("-unattended", StringComparer.OrdinalIgnoreCase);
 
         try
         {
@@ -187,6 +190,14 @@ internal sealed class Program
                     versionFile.CopyTo(destinationFile.FullName, true);
                 }
 
+                if (unattended)
+                {
+                    Write("Files successfully updated. Unattended update, not starting the launcher.", true, ConsoleColor.Green);
+                    Exit(true);
+
+                    return;
+                }
+
                 Write("Files successfully updated. Starting launcher..", true, ConsoleColor.Green);
                 string launcherExe = string.Empty;
 
@@ -256,8 +267,12 @@ internal sealed class Program
 
         if (!success)
         {
-            Write("Press any key to exit.");
-            Console.ReadKey();
+            if (!unattended)
+            {
+                Write("Press any key to exit.");
+                Console.ReadKey();
+            }
+
             Environment.Exit(1);
         }
     }
