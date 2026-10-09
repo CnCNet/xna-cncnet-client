@@ -998,6 +998,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
+            // Keep excess users out of the local roster while the host's KICK is pending.
+            if (Players.Count >= MAX_PLAYER_COUNT || (IsHost && Players.Count >= playerLimit))
+            {
+                if (IsHost)
+                    channel.SendKickMessage(e.User.IRCUser.Name, 8);
+
+                return;
+            }
+
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
