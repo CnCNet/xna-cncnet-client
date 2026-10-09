@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Globalization;
+using System.IO;
 #if WINFORMS
 using System.Runtime.InteropServices;
 #endif
@@ -215,7 +215,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
             string currentFileText = "Current file:".L10N("Client:Main:CurrentFile") + " " + currFileName;
             int availableWidth = Math.Max(0, Width - lblCurrentFile.X - 12);
-            lblCurrentFile.Text = FitCurrentFileText(currentFileText, lblCurrentFile.FontIndex, availableWidth);
+            lblCurrentFile.Text = FitCurrentFileText(currentFileText, currFileName, lblCurrentFile.FontIndex, availableWidth);
             lblUpdaterStatus.Text = "Downloading files".L10N("Client:Main:DownloadingFiles");
 #if WINFORMS
 
@@ -240,7 +240,7 @@ namespace DTAClient.DXGUI.Generic
 #endif
         }
 
-        private static string FitCurrentFileText(string text, int fontIndex, int availableWidth)
+        private static string FitCurrentFileText(string text, string fileName, int fontIndex, int availableWidth)
         {
             if (Renderer.GetTextDimensions(text, fontIndex).X <= availableWidth)
                 return text;
@@ -249,65 +249,25 @@ namespace DTAClient.DXGUI.Generic
             if (Renderer.GetTextDimensions(ellipsis, fontIndex).X > availableWidth)
                 return string.Empty;
 
-            int[] textElements = StringInfo.ParseCombiningCharacters(text);
-#if NETFRAMEWORK
-            // Framework text elements can split emoji sequences. Keep the non-ASCII
-            // span and its adjacent elements together rather than cut inside it.
-            int firstNonAscii = text.Length;
-            int lastNonAscii = -1;
-            for (int i = 0; i < text.Length; i++)
+            string extension = Path.GetExtension(fileName);
+            string suffix = ellipsis + extension;
+            if (Renderer.GetTextDimensions(suffix, fontIndex).X > availableWidth)
+                suffix = ellipsis;
+
+            string prefix = text.Substring(0, text.Length - extension.Length);
+            int prefixWidth = availableWidth - (int)Math.Ceiling(Renderer.GetTextDimensions(suffix, fontIndex).X);
+            while (prefixWidth >= 0)
             {
-                if (text[i] > 127)
-                {
-                    firstNonAscii = Math.Min(firstNonAscii, i);
-                    lastNonAscii = i;
-                }
+                string fittedText = Renderer.GetStringWithLimitedWidth(prefix, fontIndex, prefixWidth) + suffix;
+                float overflow = Renderer.GetTextDimensions(fittedText, fontIndex).X - availableWidth;
+                if (overflow <= 0)
+                    return fittedText;
+
+                // The suffix can change shaping or kerning; recheck the combined text.
+                prefixWidth -= Math.Max(1, (int)Math.Ceiling(overflow));
             }
 
-            if (lastNonAscii >= 0)
-            {
-                int firstElement = Array.BinarySearch(textElements, firstNonAscii);
-                if (firstElement < 0)
-                    firstElement = ~firstElement - 1;
-
-                int lastElement = Array.BinarySearch(textElements, lastNonAscii);
-                if (lastElement < 0)
-                    lastElement = ~lastElement - 1;
-
-                firstElement = Math.Max(0, firstElement - 1);
-                lastElement = Math.Min(textElements.Length - 1, lastElement + 1);
-                int removedElements = lastElement - firstElement;
-                var safeElements = new int[textElements.Length - removedElements];
-                Array.Copy(textElements, safeElements, firstElement + 1);
-                Array.Copy(textElements, lastElement + 1, safeElements, firstElement + 1, textElements.Length - lastElement - 1);
-                textElements = safeElements;
-            }
-#endif
-            int low = 0;
-            int high = textElements.Length - 1;
-            string fittedText = ellipsis;
-
-            while (low <= high)
-            {
-                int retainedElements = low + (high - low) / 2;
-                int leadingElements = (retainedElements + 1) / 2;
-                int trailingElements = retainedElements / 2;
-                int prefixLength = leadingElements == 0 ? 0 : textElements[leadingElements];
-                int suffixStart = trailingElements == 0 ? text.Length : textElements[textElements.Length - trailingElements];
-                string candidate = text.Substring(0, prefixLength) + ellipsis + text.Substring(suffixStart);
-
-                if (Renderer.GetTextDimensions(candidate, fontIndex).X <= availableWidth)
-                {
-                    fittedText = candidate;
-                    low = retainedElements + 1;
-                }
-                else
-                {
-                    high = retainedElements - 1;
-                }
-            }
-
-            return fittedText;
+            return suffix;
         }
 
         private void Updater_OnFileDownloadCompleted(string archiveName)
