@@ -38,11 +38,14 @@ internal sealed class Program
     private static bool unattended;
 
     // e.g. args = ["clientogl.dll", "\"C:\\Game\\\""];
-    // An optional "-unattended" argument skips restarting the client and waiting for a key press on failure.
+    // An optional "-unattended" flag, before or after the other arguments, skips restarting the client and waiting for a key press on failure.
     private static void Main(string[] args)
     {
         defaultColor = Console.ForegroundColor;
-        unattended = args.Skip(2).Contains("-unattended", StringComparer.OrdinalIgnoreCase);
+
+        const string unattendedFlag = "-unattended";
+        unattended = args.Contains(unattendedFlag, StringComparer.OrdinalIgnoreCase);
+        args = args.Where(arg => !arg.Equals(unattendedFlag, StringComparison.OrdinalIgnoreCase)).ToArray();
 
         try
         {
@@ -52,7 +55,7 @@ internal sealed class Program
             if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]))
             {
                 Write("Invalid arguments given!", true, ConsoleColor.Red);
-                Write("Usage: <client_executable_name> <base_directory>");
+                Write("Usage: <client_executable_name> <base_directory> [-unattended]");
                 Write(string.Empty);
                 Exit(false);
             }
