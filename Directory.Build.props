@@ -58,6 +58,14 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net48'">win-x86</RuntimeIdentifiers>
+    <Platforms>AnyCPU</Platforms>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+    
   <!-- For Constants -->
   <PropertyGroup>
     <!-- Is Debug -->
