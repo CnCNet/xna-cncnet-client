@@ -72,6 +72,8 @@ public class ReplaysPanel : XNAPanel
 
     private List<YRReplayGame> replays = new List<YRReplayGame>();
 
+    private string? pendingSelection;
+
     /// <summary>Players available in ddWatchAs, one-for-one with its items after the leading Spectator entry.</summary>
     private IReadOnlyList<ReplayPlayer> watchAsPlayers = Array.Empty<ReplayPlayer>();
 
@@ -416,10 +418,14 @@ public class ReplaysPanel : XNAPanel
             : player.Name;
     }
 
+    /// <summary>Selects the named replay on the next refresh instead of keeping the current selection.</summary>
+    public void SelectOnNextRefresh(string fileName) => pendingSelection = fileName;
+
     public void Refresh()
     {
         // Preserve selection by file name because deletion changes list indices.
-        string? previouslySelected = SelectedReplay?.FileName;
+        string? previouslySelected = pendingSelection ?? SelectedReplay?.FileName;
+        pendingSelection = null;
 
         lbReplayList.ClearItems();
         lbReplayList.SelectedIndex = -1;
@@ -455,6 +461,11 @@ public class ReplaysPanel : XNAPanel
                     string.Equals(replay.FileName, previouslySelected, StringComparison.OrdinalIgnoreCase));
 
             lbReplayList.SelectedIndex = restored < 0 ? 0 : restored;
+
+            if (lbReplayList.SelectedIndex < lbReplayList.TopIndex)
+                lbReplayList.TopIndex = lbReplayList.SelectedIndex;
+            else if (lbReplayList.SelectedIndex > lbReplayList.LastIndex)
+                lbReplayList.TopIndex += lbReplayList.SelectedIndex - lbReplayList.LastIndex;
         }
 
         UpdateForSelection();

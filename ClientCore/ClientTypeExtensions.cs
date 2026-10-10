@@ -3,7 +3,7 @@ using System;
 
 using ClientCore.Extensions;
 
-namespace ClientCore.Enums;
+namespace ClientCore;
 
 public static class ClientTypeExtensions
 {
@@ -41,4 +41,3 @@ public static class ClientTypeExtensions
         };
     }
 }
-

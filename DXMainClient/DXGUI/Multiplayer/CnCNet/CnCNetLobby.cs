@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 using SixLabors.ImageSharp;
@@ -1803,6 +1803,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void SwitchOff() => Disable();
 
         public string GetSwitchName() => "CnCNet Lobby".L10N("Client:Main:CnCNetLobby");
+
+        /// <summary>Whether the game creation, login or password window is open over the lobby.</summary>
+        public bool HasDialogOpen => ((XNAControl)gameCreationPanel.Tag).Enabled || loginWindow.Enabled || passwordRequestWindow.Enabled;
 
         private bool CanReceiveInvitationMessagesFrom(string username)
         {

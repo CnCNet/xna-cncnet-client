@@ -6,7 +6,6 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
-using ClientCore.Enums;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Linq;
@@ -150,14 +149,19 @@ namespace DTAClient.DXGUI
             if (Game.IsFixedTimeStep)
                 Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
 
+            // Restoring the window or graphics mode recreates render targets. On a lost graphics
+            // device, recreating render targets throws, which would skip the post-game handling below
+            // (for example, processing screenshots and debug logs).
+            bool restoreGraphics = !GameClass.IsGraphicsDeviceLost;
+
 #if WINFORMS
-            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+            if (restoreGraphics && UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MaximizeWindow();
 
 #endif
             UserINISettings.Instance.ReloadSettings();
 
-            if (UserINISettings.Instance.BorderlessWindowedClient)
+            if (restoreGraphics && UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Hack: Re-set graphics mode
                 // Windows resizes our window if we're in fullscreen mode and

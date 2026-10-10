@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using ClientCore;
-using ClientCore.Enums;
 using ClientCore.Extensions;
 using Rampastring.Tools;
 

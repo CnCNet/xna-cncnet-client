@@ -34,7 +34,7 @@ namespace DTAClient.DXGUI.Generic
         private const int BUTTON_SPACING = 10;
         private const int MARGIN = 12;
         private const int REPLAYS_TAB_INDEX = 1;
-        private const int DATE_COLUMN_WIDTH = 174;
+        private const int DATE_COLUMN_WIDTH = 214;
 
         public GameLoadingWindow(WindowManager windowManager, DiscordHandler discordHandler, CampaignTagSelector campaignTagSelector) : base(windowManager)
         {
@@ -216,6 +216,26 @@ namespace DTAClient.DXGUI.Generic
 
         public void Open()
         {
+            Enable();
+        }
+
+        /// <summary>
+        /// Opens the window on the Replays tab with the given replay selected.
+        /// </summary>
+        /// <param name="fileName">The replay's file name in the replay directory.</param>
+        public void OpenReplay(string fileName)
+        {
+            if (replaysPanel == null)
+                return;
+
+            replaysPanel.SelectOnNextRefresh(fileName);
+
+            // Switching tabs refreshes the list, which selects the replay.
+            if (!IsReplayTabSelected)
+                tabControl.SelectedTab = REPLAYS_TAB_INDEX;
+            else if (Enabled)
+                RefreshSelectedTab();
+
             Enable();
         }
 

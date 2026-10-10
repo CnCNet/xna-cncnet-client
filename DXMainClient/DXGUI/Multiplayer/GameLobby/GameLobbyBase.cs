@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 using System.Linq;
+using ClientCore.Sorting;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
@@ -247,6 +248,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private XNAContextMenu loadSaveGameOptionsMenu { get; set; }
 
         private LoadOrSaveGameOptionPresetWindow loadOrSaveGameOptionPresetWindow;
+
+        /// <summary>Whether the game option preset window is open over the lobby.</summary>
+        public bool HasDialogOpen => loadOrSaveGameOptionPresetWindow?.Enabled == true;
 
         public override void Initialize()
         {
