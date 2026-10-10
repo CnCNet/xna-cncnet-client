@@ -70,6 +70,7 @@ namespace DTAClient
             CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
 
             IniFile.DisallowDesktopIni = true;
+            MainClientConstants.UnattendedUpdate = parameters.UnattendedUpdate;
 
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
@@ -89,7 +90,7 @@ namespace DTAClient
             Environment.CurrentDirectory = gameDirectory.FullName;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CheckPermissions(parameters.UnattendedUpdate);
+                CheckPermissions();
 
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
@@ -239,12 +240,6 @@ namespace DTAClient
             try
             {
                 startup.Execute(parameters.UnattendedUpdate);
-            }
-            catch (Exception ex) when (parameters.UnattendedUpdate)
-            {
-                // Nobody is there to close an error message box
-                LogException(ex);
-                Environment.ExitCode = Startup.UNATTENDED_UPDATE_FAILED;
             }
             catch (Exception ex)
             {
@@ -418,13 +413,13 @@ namespace DTAClient
         }
 
         [SupportedOSPlatform("windows")]
-        private static void CheckPermissions(bool unattendedUpdate)
+        private static void CheckPermissions()
         {
             if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
-            // Nobody is there to answer the prompt. The logger is not initialized yet, so the exit code is the only signal.
-            if (unattendedUpdate)
+            // Nobody is there to answer the prompt. The log folder is inside the write-protected directory, so the exit code is the only signal.
+            if (MainClientConstants.UnattendedUpdate)
                 Environment.Exit(Startup.UNATTENDED_UPDATE_FAILED);
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +

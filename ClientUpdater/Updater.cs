@@ -1432,6 +1432,7 @@ public static class Updater
                                 FileName = secondStageUpdaterExecutable.FullName,
                                 Arguments = secondStageUpdaterArguments,
                                 UseShellExecute = false,
+                                CreateNoWindow = Unattended,
                             };
                         }
                         else
@@ -1442,6 +1443,9 @@ public static class Updater
                                 FileName = "dotnet",
                                 Arguments = "\"" + secondStageUpdaterExecutable.FullName + "\" " + secondStageUpdaterArguments,
                                 UseShellExecute = true,
+
+                                // CreateNoWindow is ignored when UseShellExecute is true
+                                WindowStyle = Unattended ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal,
                             };
                         }
 
