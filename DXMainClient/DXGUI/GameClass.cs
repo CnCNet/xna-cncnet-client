@@ -26,6 +26,8 @@ using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 using System.Threading.Tasks;
+using ClientCore.Display;
+
 
 #if WINFORMS
 using System.Windows.Forms;
@@ -55,7 +57,7 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 
             // Enable HiDef on a large monitor.
-            if (!ScreenResolution.HiDefLimitResolution.Fits(ScreenResolution.DesktopResolution))
+            if (!XNAScreenResolutionManager.HiDefLimitResolution.Fits(XNAScreenResolutionManager.DesktopResolution))
             {
                 // Enabling HiDef profile drops legacy GPUs not supporting DirectX 10.
                 // In practice, it's recommended to have a DirectX 11 capable GPU.
@@ -67,6 +69,31 @@ namespace DTAClient.DXGUI
 
         private static GraphicsDeviceManager graphics;
         ContentManager content;
+        private WindowManager windowManager;
+
+        // DXGI error codes that mean the graphics device is lost and can no longer be used.
+        // MonoGame cannot recreate a lost DirectX 11 graphics device (MonoGame/MonoGame#6265),
+        // so the client must be restarted after any of these errors.
+        private static readonly int[] graphicsDeviceLostHResults =
+        [
+            unchecked((int)0x887A0005), // DXGI_ERROR_DEVICE_REMOVED
+            unchecked((int)0x887A0006), // DXGI_ERROR_DEVICE_HUNG
+            unchecked((int)0x887A0007), // DXGI_ERROR_DEVICE_RESET
+            unchecked((int)0x887A0020), // DXGI_ERROR_DRIVER_INTERNAL_ERROR
+        ];
+
+        // After a graphics device loss, how long the client keeps running once the game process
+        // has exited. The delay gives the post-game handling (for example, saving match statistics
+        // and replays) time to finish before the client closes.
+        private static readonly TimeSpan GRAPHICS_DEVICE_LOST_EXIT_DELAY = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Whether the graphics device has been lost. Creating graphics resources on a lost device
+        /// throws, so while this property is true, code must not change the window or graphics mode
+        /// or do anything else that recreates graphics resources.
+        /// </summary>
+        public static bool IsGraphicsDeviceLost { get; private set; }
+        private DateTime? graphicsDeviceLostExitTime;
 
         protected override void Initialize()
         {
@@ -152,6 +179,7 @@ namespace DTAClient.DXGUI
             InitializeUISettings();
 
             WindowManager wm = new(this, graphics);
+            windowManager = wm;
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
             IServiceProvider serviceProvider = null;
@@ -246,6 +274,121 @@ namespace DTAClient.DXGUI
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
                 (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+        }
+
+        public static bool IsGraphicsDeviceLostException(Exception ex)
+        {
+            for (Exception e = ex; e != null; e = e.InnerException)
+            {
+                if (Array.IndexOf(graphicsDeviceLostHResults, e.HResult) >= 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+#if DX
+            // Drawing on a lost graphics device does not throw; only creating graphics resources
+            // does. A device loss during a match would therefore go unnoticed until the game-exit
+            // callbacks in base.Update restore the client window, and restoring the window creates
+            // graphics resources. Query the device state directly, before base.Update runs.
+            if (!IsGraphicsDeviceLost && GraphicsDevice?.Handle is SharpDX.Direct3D11.Device device &&
+                device.DeviceRemovedReason.Failure)
+            {
+                OnGraphicsDeviceLost(device.DeviceRemovedReason.ToString());
+            }
+#endif
+
+            try
+            {
+                base.Update(gameTime);
+            }
+            catch (Exception ex) when (IsGraphicsDeviceLostException(ex))
+            {
+                OnGraphicsDeviceLost(ex.ToString());
+            }
+
+            if (IsGraphicsDeviceLost)
+                ExitAfterGraphicsDeviceLossWhenNoGameRunning();
+        }
+
+        protected override bool BeginDraw() => !IsGraphicsDeviceLost && base.BeginDraw();
+
+        protected override void Draw(GameTime gameTime)
+        {
+            try
+            {
+                base.Draw(gameTime);
+            }
+            catch (Exception ex) when (IsGraphicsDeviceLostException(ex))
+            {
+                OnGraphicsDeviceLost(ex.ToString());
+            }
+        }
+
+        protected override void EndDraw()
+        {
+            // Also skip presenting on the frame in which Draw caught the device loss. The exception
+            // interrupted Draw while a render target was still bound, and presenting while a render
+            // target is bound throws.
+            if (!IsGraphicsDeviceLost)
+                base.EndDraw();
+        }
+
+        /// <summary>
+        /// Stops rendering but keeps the client running until no game is running, because with
+        /// V3 tunnels the client relays the game's network traffic. A device loss that is thrown
+        /// while Windows messages are processed (for example, on a window resize) does not reach
+        /// this method; <see cref="PreStartup.HandleException"/> handles that case instead.
+        /// </summary>
+        private static void OnGraphicsDeviceLost(string details)
+        {
+            if (IsGraphicsDeviceLost)
+                return;
+
+            IsGraphicsDeviceLost = true;
+            Logger.Log("The graphics device was lost. Rendering has stopped; the client will close once no game is running. " + details);
+        }
+
+        private void ExitAfterGraphicsDeviceLossWhenNoGameRunning()
+        {
+            if (GameProcessLogic.IsGameProcessRunning)
+            {
+                graphicsDeviceLostExitTime = DateTime.UtcNow + GRAPHICS_DEVICE_LOST_EXIT_DELAY;
+                return;
+            }
+
+            graphicsDeviceLostExitTime ??= DateTime.UtcNow;
+
+            if (DateTime.UtcNow < graphicsDeviceLostExitTime)
+                return;
+
+            ShowGraphicsDeviceLostError(exit: false);
+
+            try
+            {
+                windowManager.CloseGame();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error while closing the client after graphics device loss: " + ex);
+            }
+
+            // Exit without disposing the GameClass instance, because disposing graphics resources
+            // on a lost graphics device can throw.
+            Environment.Exit(0);
+        }
+
+        public static void ShowGraphicsDeviceLostError(bool exit)
+        {
+            // Uses the system message box, because the client cannot draw its own message box on a
+            // lost graphics device.
+            MainClientConstants.DefaultDisplayErrorAction(
+                "Client Needs Restarting".L10N("Client:Main:GraphicsDeviceLostTitle"),
+                "Your graphics driver was reset, so the client can no longer display. Please start the client again.".L10N("Client:Main:GraphicsDeviceLostText"),
+                exit);
         }
 
         private static Random GetRandom()
@@ -379,10 +522,14 @@ namespace DTAClient.DXGUI
         /// <param name="centerOnScreen">Whether to center the client window on the screen</param>
         public static void SetGraphicsMode(WindowManager wm, bool centerOnScreen = true)
         {
-            int windowWidth = UserINISettings.Instance.ClientResolutionX;
-            int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
-            SetGraphicsMode(wm, windowWidth, windowHeight, centerOnScreen);
+            if (!((ScreenResolution)(UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY)).Fits(ClientConfiguration.Instance.MinimumClientResolution))
+            {
+                UserINISettings.Instance.ClientResolutionX.SetDefault();
+                UserINISettings.Instance.ClientResolutionY.SetDefault();
+            }
+
+            SetGraphicsMode(wm, UserINISettings.Instance.ClientResolutionX, UserINISettings.Instance.ClientResolutionY, centerOnScreen);
         }
 
         /// <inheritdoc cref="SetGraphicsMode(WindowManager, bool)"/>
@@ -403,7 +550,10 @@ namespace DTAClient.DXGUI
         {
             var clientConfiguration = ClientConfiguration.Instance;
 
-            (int desktopWidth, int desktopHeight) = ScreenResolution.SafeMaximumResolution;
+            ScreenResolution minimumClientResolution = clientConfiguration.MinimumClientResolution;
+            XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
+
+            (int desktopWidth, int desktopHeight) = XNAScreenResolutionManager.SafeMaximumResolution;
 
             if (desktopWidth >= windowWidth && desktopHeight >= windowHeight)
             {
@@ -414,7 +564,7 @@ namespace DTAClient.DXGUI
             {
                 // fallback to the minimum supported resolution when the desktop is not sufficient to contain the client
                 // e.g., when users set a lower desktop resolution but the client resolution in the settings file remains high
-                if (!wm.InitGraphicsMode(1024, 600, false))
+                if (!wm.InitGraphicsMode(minimumClientResolution.Width, minimumClientResolution.Height, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
 
@@ -465,7 +615,7 @@ namespace DTAClient.DXGUI
                 // Check whether we could integer-scale our client window
                 if (ratio > 1.0)
                 {
-                    for (int i = 2; i <= ScreenResolution.MAX_INT_SCALE; i++)
+                    for (int i = 2; i <= XNAScreenResolutionManager.MAX_INT_SCALE; i++)
                     {
                         int sharpScaleRenderResX = windowWidth / i;
                         int sharpScaleRenderResY = windowHeight / i;
@@ -516,15 +666,15 @@ namespace DTAClient.DXGUI
             {
                 // Note: on fullscreen mode, the client resolution must exactly match the desktop resolution. Otherwise buttons outside of client resolution are unclickable.
                 ScreenResolution clientResolution = (windowWidth, windowHeight);
-                if (ScreenResolution.DesktopResolution == clientResolution)
+                if (XNAScreenResolutionManager.DesktopResolution == clientResolution)
                 {
-                    Logger.Log($"Entering fullscreen mode with resolution {ScreenResolution.DesktopResolution}.");
+                    Logger.Log($"Entering fullscreen mode with resolution {XNAScreenResolutionManager.DesktopResolution}.");
                     graphics.IsFullScreen = true;
                     graphics.ApplyChanges();
                 }
                 else
                 {
-                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {ScreenResolution.DesktopResolution}, Client: {clientResolution}.");
+                    Logger.Log($"Not entering fullscreen mode due to resolution mismatch. Desktop: {XNAScreenResolutionManager.DesktopResolution}, Client: {clientResolution}.");
                 }
             }
 

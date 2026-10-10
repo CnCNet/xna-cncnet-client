@@ -342,7 +342,9 @@ namespace DTAClient.DXGUI.Multiplayer
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
             GameProcessLogic.StartGameProcess(WindowManager);
 
-            fsw.EnableRaisingEvents = true;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = true;
+
             UpdateDiscordPresence(true);
         }
 
@@ -351,7 +353,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected virtual void HandleGameProcessExited()
         {
-            fsw.EnableRaisingEvents = false;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = false;
 
             GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 

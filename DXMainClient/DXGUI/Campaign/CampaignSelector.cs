@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 
 using ClientCore;
-using ClientCore.Enums;
 using ClientCore.Extensions;
 
 using ClientGUI;
@@ -482,6 +481,8 @@ namespace DTAClient.DXGUI.Campaign
             spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
 
             spawnIniSettings.AddKey("IsSinglePlayer", "Yes");
+            // Campaign maps may not contain a display name.
+            spawnIniSettings.AddKey("UIMapName", mission.UntranslatedGUIName);
             spawnIniSettings.AddKey("SidebarHack", ClientConfiguration.Instance.SidebarHack.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("Side", mission.Side.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("BuildOffAlly", mission.BuildOffAlly.ToString(CultureInfo.InvariantCulture));
@@ -506,17 +507,9 @@ namespace DTAClient.DXGUI.Campaign
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini
+            ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
 
-            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
-
-            if (forcedKeys != null)
-            {
-                foreach (string key in forcedKeys)
-                {
-                    spawnIni.SetStringValue("Settings", key,
-                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, String.Empty));
-                }
-            }
+            ReplayManager.PrepareRecording(spawnIni, mission.UntranslatedGUIName);
 
             spawnIni.WriteIniFile();
 
@@ -550,6 +543,20 @@ namespace DTAClient.DXGUI.Campaign
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
+        }
+
+        public static void ApplyCampaignForcedSpawnIniOptions(IniFile spawnIni, IniFile gameOptionsIni)
+        {
+            List<string> forcedKeys = gameOptionsIni.GetSectionKeys("CampaignForcedSpawnIniOptions");
+
+            if (forcedKeys != null)
+            {
+                foreach (string key in forcedKeys)
+                {
+                    spawnIni.SetStringValue("Settings", key,
+                        gameOptionsIni.GetStringValue("CampaignForcedSpawnIniOptions", key, string.Empty));
+                }
+            }
         }
 
         public static void WriteMissionSectionToSpawnIni(IniFile spawnIni, Mission mission)
@@ -648,6 +655,8 @@ namespace DTAClient.DXGUI.Campaign
 
             CustomMissionHelper.DeleteSupplementalMissionFiles();
 
+            ReplayManager.Prune();
+
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
             discordHandler.UpdatePresence();
 
@@ -682,7 +691,10 @@ namespace DTAClient.DXGUI.Campaign
 
         private void ReadMissionList()
         {
-            ParseBattleIni("INI/Battle.ini");
+            Debug.Assert(AllMissions.Count == 0 && UniqueIDToMissions.Count == 0, "AllMissions and UniqueIDToMissions should be empty when ReadMissionList() is called. We didn't handle reloading missions yet.");
+
+            if (!ClientConfiguration.Instance.IgnoreBattleIni && AllMissions.Count == 0)
+                ParseBattleIni("INI/Battle.ini");
 
             if (AllMissions.Count == 0)
                 ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);

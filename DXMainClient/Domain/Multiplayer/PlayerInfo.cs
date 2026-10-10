@@ -1,4 +1,5 @@
-﻿using Rampastring.Tools;
+﻿using DTAClient.Domain.Multiplayer.CnCNet;
+using Rampastring.Tools;
 using System;
 
 namespace DTAClient.Domain.Multiplayer
@@ -44,7 +45,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public int Index { get; set; }
 
-        public int Ping { get; set; } = -1;
+        public PingValue Ping { get; set; } = PingValue.Unknown;
 
         /// <summary>
         /// The difficulty level of an AI player for in-client purposes.

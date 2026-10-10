@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using DTAClient.Domain;
+using DTAClient.DXGUI;
 using Rampastring.Tools;
 using ClientCore;
+using ClientGUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
@@ -66,7 +68,14 @@ namespace DTAClient
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
 #endif
-            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                // The process ends as soon as this event handler returns, so an XNA message box
+                // would never be drawn. Use the system message box, which blocks until the user
+                // closes the message box.
+                MainClientConstants.DisplayErrorAction = MainClientConstants.DefaultDisplayErrorAction;
+                HandleException(sender, (Exception)args.ExceptionObject);
+            };
 
             DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
@@ -80,13 +89,7 @@ namespace DTAClient
             ProgramConstants.LogFileName = clientLogFile.FullName;
 
             if (clientLogFile.Exists)
-            {
-                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
-                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
-                if (clientPrevLogFile.Exists)
-                    File.Delete(clientPrevLogFile.FullName);
-                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
-            }
+                RotateLogFiles(clientUserFilesDirectory, clientLogFile);
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -167,6 +170,8 @@ namespace DTAClient
             {
                 if (UserINISettings.Instance.GenerateTranslationStub)
                 {
+                    Translation.Instance.MissingKeyNotificationLevel = TranslationNotificationLevel.FromInt(UserINISettings.Instance.TranslationStubNotificationLevel.Value);
+
                     string stubPath = SafePath.CombineFilePath(
                         ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.TranslationIniName);
 
@@ -177,7 +182,7 @@ namespace DTAClient
                         ini.WriteIniFile(stubPath);
                     };
 
-                    Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
+                    Logger.Log($"Translation stub generation feature is now enabled. Notification level: {Translation.Instance.MissingKeyNotificationLevel}. The stub file will be written when the client exits.");
 
                     // Lookup all compile-time available strings
                     ClientCore.Generated.TranslationNotifier.Register();
@@ -272,6 +277,27 @@ namespace DTAClient
             }
             catch { }
 
+            // With V3 tunnels, the client relays the game's network traffic on background threads.
+            // Exiting the client now would disconnect the player from the match, so wait for the
+            // game process to exit before reporting the crash.
+            if (GameProcessLogic.IsGameProcessRunning)
+            {
+                Logger.Log("The game is still running; keeping the client alive until it exits before reporting the crash.");
+
+                // The waiting thread no longer processes window messages. Disable window ghosting so
+                // that Windows does not mark the client as not responding and offer to close the client.
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    DisableProcessWindowsGhosting();
+
+                GameProcessLogic.WaitForGameProcessExit();
+            }
+
+            if (GameClass.IsGraphicsDeviceLostException(ex))
+            {
+                GameClass.ShowGraphicsDeviceLostError(exit: true);
+                return;
+            }
+
             string error = string.Format("{0} has crashed. Error message:".L10N("Client:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
                 "A crash log has been saved to the following file:".L10N("Client:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
@@ -283,6 +309,96 @@ namespace DTAClient
                 MainClientConstants.SUPPORT_URL_SHORT);
 
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
+        }
+
+        [DllImport("user32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern void DisableProcessWindowsGhosting();
+
+        private const int DEFAULT_MAX_KEPT_LOG_FILES = 20;
+        private const int DEFAULT_MAX_LOG_FOLDER_SIZE_MB = 50;
+        private const string LOG_BACKUP_SEARCH_PATTERN = "client_*.log";
+
+        /// <summary>
+        /// Renames the previous client.log to a timestamped backup and prunes old backups
+        /// down to the configured count/size limits. Settings are read directly from the
+        /// settings INI since UserINISettings is not initialized yet.
+        /// </summary>
+        private static void RotateLogFiles(DirectoryInfo clientUserFilesDirectory, FileInfo clientLogFile)
+        {
+            (int maxKeptLogFiles, int maxFolderSizeMB) = ReadLogRetentionSettings();
+
+            FileInfo backupFile = SafePath.GetFile(clientUserFilesDirectory.FullName,
+                $"client_{DateTime.Now:yyyyMMdd_HHmmss_fff}.log");
+
+            try
+            {
+                if (backupFile.Exists)
+                    backupFile.Delete();
+
+                File.Move(clientLogFile.FullName, backupFile.FullName);
+            }
+            catch
+            {
+                // Ignored -- the previous log will be overwritten.
+            }
+
+            List<FileInfo> backups = clientUserFilesDirectory
+                .EnumerateFiles(LOG_BACKUP_SEARCH_PATTERN)
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .ToList();
+
+            if (maxKeptLogFiles > 0)
+            {
+                foreach (FileInfo old in backups.Skip(maxKeptLogFiles))
+                    TryDeleteFile(old);
+
+                backups = backups.Take(maxKeptLogFiles).ToList();
+            }
+
+            if (maxFolderSizeMB > 0)
+            {
+                long maxFolderSizeBytes = maxFolderSizeMB * 1024L * 1024L;
+                long totalSize = backups.Sum(f => f.Length);
+                for (int i = backups.Count - 1; i >= 0 && totalSize > maxFolderSizeBytes; i--)
+                {
+                    totalSize -= backups[i].Length;
+                    TryDeleteFile(backups[i]);
+                }
+            }
+        }
+
+        private static void TryDeleteFile(FileInfo file)
+        {
+            try
+            {
+                file.Delete();
+            }
+            catch
+            {
+                // Ignored -- the file will simply be considered again on the next startup.
+            }
+        }
+
+        private static (int maxKeptLogFiles, int maxFolderSizeMB) ReadLogRetentionSettings()
+        {
+            try
+            {
+                FileInfo settingsFile = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.SettingsIniName);
+                if (settingsFile.Exists)
+                {
+                    var settingsIni = new IniFile(settingsFile.FullName);
+                    int maxKeptLogFiles = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxKeptLogFiles", DEFAULT_MAX_KEPT_LOG_FILES));
+                    int maxFolderSizeMB = Math.Max(0, settingsIni.GetIntValue("ClientLogs", "MaxLogFolderSizeMB", DEFAULT_MAX_LOG_FOLDER_SIZE_MB));
+                    return (maxKeptLogFiles, maxFolderSizeMB);
+                }
+            }
+            catch
+            {
+                // Fall through to defaults.
+            }
+
+            return (DEFAULT_MAX_KEPT_LOG_FILES, DEFAULT_MAX_LOG_FOLDER_SIZE_MB);
         }
 
         [SupportedOSPlatform("windows")]

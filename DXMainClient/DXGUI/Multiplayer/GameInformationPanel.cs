@@ -5,6 +5,7 @@ using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -205,7 +206,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
-                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", TranslationNotificationLevel.Verbose);
 
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
                lblGameMode.FontIndex, Width - lblGameMode.X);
@@ -224,7 +225,22 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
 
-            lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
+            string pingText;
+
+            if (game is HostedCnCNetGame hostedGame)
+            {
+                if (hostedGame.TunnelServer == null)
+                    pingText = "Ping: Dynamic".L10N("Client:Main:GameInfoPingDynamic");
+                else
+                    pingText = "Ping:".L10N("Client:Main:GameInfoPing") + " " + hostedGame.TunnelServer.Ping.ToString();
+            }
+            else
+            {
+                pingText = "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString();
+            }
+
+            lblPing.Text = pingText;
+
             lblPing.Visible = true;
 
             lblPlayers.Visible = true;

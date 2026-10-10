@@ -1,4 +1,7 @@
 ﻿using System;
+
+using ClientGUI.Extensions;
+
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
@@ -46,7 +49,7 @@ namespace ClientGUI.Settings
             set
             {
                 _parentCheckBoxName = value;
-                UpdateParentCheckBox(FindParentCheckBox());
+                UpdateParentCheckBox(Parent.FindChild<XNAClientCheckBox>(_parentCheckBoxName, optional: true, recursive: false));
             }
         }
 
@@ -107,21 +110,6 @@ namespace ClientGUI.Settings
         public abstract void Load();
 
         public abstract bool Save();
-
-
-        private XNAClientCheckBox FindParentCheckBox()
-        {
-            if (string.IsNullOrEmpty(ParentCheckBoxName))
-                return null;
-
-            foreach (var control in Parent.Children)
-            {
-                if (control is XNAClientCheckBox && control.Name == ParentCheckBoxName)
-                    return control as XNAClientCheckBox;
-            }
-
-            return null;
-        }
 
         private void UpdateParentCheckBox(XNAClientCheckBox parentCheckBox)
         {

@@ -8,7 +8,6 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.I18N;
-using ClientCore.Enums;
 
 using Rampastring.Tools;
 
@@ -83,6 +82,52 @@ namespace DTAClient.Online
 
         public FileHashCalculator() => ParseConfigFile();
 
+        /// <summary>A file covered by compatibility hashing.</summary>
+        public readonly struct TrackedFile
+        {
+            public TrackedFile(string relativePath, string fullPath)
+            {
+                RelativePath = relativePath;
+                FullPath = fullPath;
+            }
+
+            public string RelativePath { get; }
+
+            public string FullPath { get; }
+        }
+
+        /// <summary>Enumerates configured files and INI directories used by compatibility checks.</summary>
+        public IEnumerable<TrackedFile> EnumerateTrackedFiles()
+        {
+            foreach (string relativePath in fileNamesToCheck)
+            {
+                yield return new TrackedFile(relativePath,
+                    SafePath.CombineFilePath(ProgramConstants.GamePath, relativePath));
+            }
+
+            List<DirectoryInfo> iniPaths = [SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")];
+
+            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
+                iniPaths.Add(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
+
+            foreach (DirectoryInfo path in iniPaths)
+            {
+                if (!path.Exists)
+                    continue;
+
+                foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.FullName.Substring(path.FullName.Length)))
+                {
+                    if (Path.GetFileName(filename).Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string fileFullPath = SafePath.CombineFilePath(path.FullName, filename);
+                    Debug.Assert(File.Exists(fileFullPath), $"File {fileFullPath} is supposed to but does not exist.");
+
+                    yield return new TrackedFile(SafePath.CombineFilePath(path.Name, filename), fileFullPath);
+                }
+            }
+        }
+
         private string finalHash = string.Empty;
 
         public void CalculateHashes()
@@ -124,36 +169,13 @@ namespace DTAClient.Online
             if (!string.IsNullOrEmpty(ClientConfiguration.Instance.GameLauncherExecutableName))
                 Logger.Log($"Hash for {ClientConfiguration.Instance.GameLauncherExecutableName}: {fh.LauncherExeHash}");
 
-            foreach (string relativePath in fileNamesToCheck)
+            foreach (TrackedFile tracked in EnumerateTrackedFiles())
             {
-                string fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, relativePath);
-                string hash = fh.AddHashForFileIfExists(relativePath, fullPath);
+                string hash = fh.AddHashForFileIfExists(tracked.RelativePath, tracked.FullPath);
                 if (!string.IsNullOrEmpty(hash))
-                    Logger.Log($"Hash for {relativePath}: {hash}");
-            }
-
-            List<DirectoryInfo> iniPaths = [SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")];
-
-            if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
-                iniPaths.Add(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
-
-            foreach (DirectoryInfo path in iniPaths)
-            {
-                if (path.Exists)
                 {
-                    foreach (string filename in path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.FullName.Substring(path.FullName.Length)))
-                    {
-                        if (Path.GetFileName(filename).Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
-                            continue;
-
-                        string fileRelativePath = SafePath.CombineFilePath(path.Name, filename);
-                        string fileFullPath = SafePath.CombineFilePath(path.FullName, filename);
-                        Debug.Assert(File.Exists(fileFullPath), $"File {fileFullPath} is supposed to but does not exist.");
-
-                        string hash = fh.AddHashForFileIfExists(fileRelativePath, fileFullPath);
-                        if (!string.IsNullOrEmpty(hash))
-                            Logger.Log("Hash for " + fileRelativePath + ": " + hash);
-                    }
+                    StoreTrackedFileHash(tracked.FullPath, hash);
+                    Logger.Log($"Hash for {tracked.RelativePath}: {hash}");
                 }
             }
 
@@ -205,7 +227,59 @@ namespace DTAClient.Online
             fileNamesToCheck = filenames.ToArray();
         }
 
-        private static string NormalizePath(string path) => path.Replace('\\', '/');
+        internal static string NormalizePath(string path) => path.Replace('\\', '/');
+
+        /// <summary>Hashes computed by the most recent compatibility check, keyed by full path.</summary>
+        private static readonly Dictionary<string, CachedFileHash> trackedFileHashes
+            = new(StringComparer.OrdinalIgnoreCase);
+
+        private readonly struct CachedFileHash
+        {
+            public CachedFileHash(FileInfo file, string hash)
+            {
+                length = file.Length;
+                lastWriteTicks = file.LastWriteTimeUtc.Ticks;
+                Hash = hash;
+            }
+
+            private readonly long length;
+            private readonly long lastWriteTicks;
+
+            public string Hash { get; }
+
+            public bool Matches(FileInfo file)
+                => length == file.Length && lastWriteTicks == file.LastWriteTimeUtc.Ticks;
+        }
+
+        private static void StoreTrackedFileHash(string fullPath, string hash)
+        {
+            FileInfo file = SafePath.GetFile(fullPath);
+
+            if (file.Exists)
+                trackedFileHashes[fullPath] = new CachedFileHash(file, hash);
+        }
+
+        /// <summary>
+        /// Reuses the hash of an unchanged file. <see cref="CalculateHashes"/> deliberately does not
+        /// use this, so that it keeps detecting files modified during a client session.
+        /// </summary>
+        internal static string GetTrackedFileHash(string fullPath)
+        {
+            FileInfo file = SafePath.GetFile(fullPath);
+
+            if (!file.Exists)
+                return string.Empty;
+
+            if (trackedFileHashes.TryGetValue(fullPath, out CachedFileHash cached) && cached.Matches(file))
+                return cached.Hash;
+
+            string hash = CalculateSHA1ForFile(fullPath);
+
+            if (!string.IsNullOrEmpty(hash))
+                StoreTrackedFileHash(fullPath, hash);
+
+            return hash;
+        }
 
         private static string CalculateSHA1ForFile(string path)
         {
@@ -230,31 +304,13 @@ namespace DTAClient.Online
                 byte[] bytes = utf8Encoding.GetBytes(text);
 
                 using SHA1 sha1 = SHA1.Create();
-                return BytesToString(sha1.ComputeHash(bytes));
+                return Utilities.BytesToHexString(sha1.ComputeHash(bytes));
             }
             else
             {
                 using SHA1 sha1 = SHA1.Create();
-                return BytesToString(sha1.ComputeHash(inputStream));
+                return Utilities.BytesToHexString(sha1.ComputeHash(inputStream));
             }
-        }
-
-        private static string BytesToString(byte[] bytes)
-        {
-            char[] result = new char[bytes.Length * 2];
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                byte b = bytes[i];
-                result[i * 2] = GetHexChar(b >> 4);
-                result[i * 2 + 1] = GetHexChar(b & 0x0F);
-            }
-            return new string(result);
-        }
-
-        private static char GetHexChar(int digit)
-        {
-            Debug.Assert(digit >= 0 && digit < 16, $"Value {digit} is out of range for a hex digit.");
-            return (char)(digit < 10 ? '0' + digit : 'a' + digit - 10);
         }
 
         private class FileHashes()
@@ -320,7 +376,7 @@ namespace DTAClient.Online
                 byte[] buffer = Encoding.ASCII.GetBytes(finalHash);
                 using SHA1 sha1 = SHA1.Create();
                 byte[] hash = sha1.ComputeHash(buffer);
-                return BytesToString(hash);
+                return Utilities.BytesToHexString(hash);
             }
         }
     }

@@ -1,10 +1,11 @@
-﻿namespace ClientCore.Enums
+﻿namespace ClientCore
 {
     public enum ClientType
     {
+        TD,
+        RA,
         TS,
         YR,
         Ares,
-        RA,
     }
 }

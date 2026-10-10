@@ -95,8 +95,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     GameBroadcastChannel = "#cncnet-td-games",
                     InternalName = "td",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Dawn",
-                    UIName = "Tiberian Dawn".L10N("Client:ClientCore:TiberianDawn"),
-                    Supported = false
+                    UIName = "Tiberian Dawn".L10N("Client:ClientCore:TiberianDawn")
                 },
 
                 new DefaultCnCNetGame("DTAClient.Icons.raicon.png")
@@ -117,7 +116,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     InternalName = "d2k",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Dune 2000",
                     UIName = "Dune 2000".L10N("Client:ClientCore:Dune2000"),
-                    Supported = false
                 },
 
                 new DefaultCnCNetGame("DTAClient.Icons.tsicon.png")
@@ -168,10 +166,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             GameList.AddRange(GetCustomGames(defaultGames.Concat<CnCNetGame>(otherGames).ToList()));
             GameList.AddRange(otherGames);
 
-            if (GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame) == -1)
+            int gameIndex = GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame);
+            if (gameIndex == -1)
             {
                 throw new ClientConfigurationException("Could not find a game in the game collection matching LocalGame value of " +
                     ClientConfiguration.Instance.LocalGame + ".");
+            }
+            else if (!GameList[gameIndex].Supported)
+            {
+                throw new ClientConfigurationException("The game specified in LocalGame value of " + ClientConfiguration.Instance.LocalGame +
+                    " is marked as not supported.");
             }
 
             // Fire-and-forget background preloading of images.
