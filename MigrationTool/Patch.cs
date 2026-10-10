@@ -40,11 +40,11 @@ internal abstract class Patch
     {
         if (src.KeyExists(section, key))
         {
-            Logger.Log($"Update {src.FileName}: Skip adding [{section}]->{key}, reason: already exist");
+            Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist");
         }
         else
         {
-            Logger.Log($"Update {src.FileName}: Add [{section}]->{key}={value}");
+            Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
             
             if (!src.SectionExists(section))
                 src.AddSection(section);
@@ -59,11 +59,11 @@ internal abstract class Patch
     {
         if (!src.KeyExists(section, key))
         {
-            Logger.Log($"Update {src.FileName}: Skip removing [{section}]->{key}, reason: doesn't exist");
+            Logger.Log($"Update {src.FilePath}: Skip removing [{section}]->{key}, reason: doesn't exist");
         }
         else
         {
-            Logger.Log($"Update {src.FileName}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
+            Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
             src.GetSection(section).RemoveKey(key);
         }
 
@@ -80,7 +80,7 @@ internal abstract class Patch
 
         var positionKeys = new List<string>() { "$X", "$Y", "X", "Y", "Location" };
 
-        Logger.Log($"Update {ini.FileName}: Fix position for {child} control in {parent}");
+        Logger.Log($"Update {ini.FilePath}: Fix position for {child} control in {parent}");
 
         foreach (var control in new List<List<string>>() { parentKeys, childKeys })
         {

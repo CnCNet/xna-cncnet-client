@@ -410,8 +410,8 @@ internal class Patch_v2_11_0 : Patch
                 gameOptionsIni.RemoveSection($"{MultiplayerGameLobby}");
                 SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
                 SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
-                skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FileName));
-                multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobbyIni_old.FileName));
+                skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FilePath));
+                multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobbyIni_old.FilePath));
 
                 gameOptionsIni.WriteIniFile();
                 gameLobbyBaseIni.WriteIniFile();
