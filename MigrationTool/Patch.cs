@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using Rampastring.Tools;
-using ClientCore.Enums;
+using ClientCore;
 namespace MigrationTool;
 
 internal abstract class Patch

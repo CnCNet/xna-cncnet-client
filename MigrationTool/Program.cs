@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 
 using Rampastring.Tools;
-using ClientCore.Enums;
+using ClientCore;
 using ClientCore.Extensions;
 
 namespace MigrationTool;
