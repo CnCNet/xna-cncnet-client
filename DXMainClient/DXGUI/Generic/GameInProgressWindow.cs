@@ -6,7 +6,6 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
-using ClientCore.Enums;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Linq;

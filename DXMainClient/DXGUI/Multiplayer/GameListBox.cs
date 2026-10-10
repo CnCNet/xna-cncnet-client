@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using ClientCore.Extensions;
 
 using DTAClient.Domain.Multiplayer;

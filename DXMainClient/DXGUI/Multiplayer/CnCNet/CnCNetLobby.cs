@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 using SixLabors.ImageSharp;
