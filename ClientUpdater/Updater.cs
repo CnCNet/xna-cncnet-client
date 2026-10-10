@@ -76,6 +76,12 @@ public static class Updater
     public static string CallingExecutableFileName { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Whether the update runs without user interaction.
+    /// The second-stage updater then does not restart the client or wait for a key press.
+    /// </summary>
+    public static bool Unattended { get; set; }
+
+    /// <summary>
     /// Gets read-only collection of all custom components.
     /// </summary>
     public static ReadOnlyCollection<CustomComponent> CustomComponents => customComponents?.AsReadOnly();
@@ -1411,6 +1417,12 @@ public static class Updater
                             }
                         }
 
+                        string secondStageUpdaterArguments = CallingExecutableFileName + " \"" + GamePath + "\"";
+
+                        // Double a trailing backslash so it does not escape the closing quote and merge the flag into the path argument
+                        if (Unattended)
+                            secondStageUpdaterArguments = CallingExecutableFileName + " \"" + (GamePath.EndsWith("\\", StringComparison.Ordinal) ? GamePath + "\\" : GamePath) + "\" -unattended";
+
                         ProcessStartInfo secondStageUpdaterStartInfo;
                         if (runNativeWindowsExe)
                         {
@@ -1418,8 +1430,9 @@ public static class Updater
                             secondStageUpdaterStartInfo = new ProcessStartInfo
                             {
                                 FileName = secondStageUpdaterExecutable.FullName,
-                                Arguments = CallingExecutableFileName + " \"" + GamePath + "\"",
+                                Arguments = secondStageUpdaterArguments,
                                 UseShellExecute = false,
+                                CreateNoWindow = Unattended,
                             };
                         }
                         else
@@ -1428,8 +1441,11 @@ public static class Updater
                             secondStageUpdaterStartInfo = new ProcessStartInfo
                             {
                                 FileName = "dotnet",
-                                Arguments = "\"" + secondStageUpdaterExecutable.FullName + "\" " + CallingExecutableFileName + " \"" + GamePath + "\"",
+                                Arguments = "\"" + secondStageUpdaterExecutable.FullName + "\" " + secondStageUpdaterArguments,
                                 UseShellExecute = true,
+
+                                // CreateNoWindow is ignored when UseShellExecute is true
+                                WindowStyle = Unattended ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal,
                             };
                         }
 

@@ -32,15 +32,22 @@ namespace DTAClient
     struct StartupParams
     {
         public StartupParams(bool noAudio, bool multipleInstanceMode,
-            List<string> unknownParams)
+            bool unattendedUpdate, List<string> unknownParams)
         {
             NoAudio = noAudio;
             MultipleInstanceMode = multipleInstanceMode;
+            UnattendedUpdate = unattendedUpdate;
             UnknownStartupParams = unknownParams;
         }
 
         public bool NoAudio { get; }
         public bool MultipleInstanceMode { get; }
+
+        /// <summary>
+        /// Whether the client should check for and install updates without showing any UI, then exit.
+        /// </summary>
+        public bool UnattendedUpdate { get; }
+
         public List<string> UnknownStartupParams { get; }
     }
 
@@ -63,6 +70,7 @@ namespace DTAClient
             CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
 
             IniFile.DisallowDesktopIni = true;
+            MainClientConstants.UnattendedUpdate = parameters.UnattendedUpdate;
 
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
@@ -124,6 +132,9 @@ namespace DTAClient
 
             if (parameters.MultipleInstanceMode)
                 Logger.Log("Startup parameter: Allow multiple client instances");
+
+            if (parameters.UnattendedUpdate)
+                Logger.Log("Startup parameter: Unattended update");
 
             parameters.UnknownStartupParams.ForEach(p => Logger.Log("Unknown startup parameter: " + p));
 
@@ -224,11 +235,11 @@ namespace DTAClient
 
             Startup startup = new();
 #if DEBUG
-            startup.Execute();
+            startup.Execute(parameters.UnattendedUpdate);
 #else
             try
             {
-                startup.Execute();
+                startup.Execute(parameters.UnattendedUpdate);
             }
             catch (Exception ex)
             {
@@ -406,6 +417,10 @@ namespace DTAClient
         {
             if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
+
+            // Nobody is there to answer the prompt. The log folder is inside the write-protected directory, so the exit code is the only signal.
+            if (MainClientConstants.UnattendedUpdate)
+                Environment.Exit(Startup.UNATTENDED_UPDATE_FAILED);
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative privileges.\n\n" +
