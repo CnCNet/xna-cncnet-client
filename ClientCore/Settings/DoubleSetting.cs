@@ -4,24 +4,27 @@ namespace ClientCore.Settings
 {
     public class DoubleSetting : INISetting<double>
     {
-        public DoubleSetting(IniFile iniFile, string iniSection, string iniKey, double defaultValue)
+        private readonly double scale;
+
+        public DoubleSetting(IniFile iniFile, string iniSection, string iniKey, double defaultValue, double storageScale = 1.0)
             : base(iniFile, iniSection, iniKey, defaultValue)
         {
+            this.scale = storageScale;
         }
 
         protected override double Get()
         {
-            return IniFile.GetDoubleValue(IniSection, IniKey, DefaultValue);
+            return IniFile.GetDoubleValue(IniSection, IniKey, DefaultValue * scale) / scale;
         }
 
         protected override void Set(double value)
         {
-            IniFile.SetDoubleValue(IniSection, IniKey, value);
+            IniFile.SetDoubleValue(IniSection, IniKey, value * scale);
         }
 
         public override void Write()
         {
-            IniFile.SetDoubleValue(IniSection, IniKey, Get());
+            Set(Get());
         }
 
         public override string ToString()

@@ -1,12 +1,12 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-
 using ClientCore;
 using ClientCore.Extensions;
-
 using Rampastring.Tools;
 
 namespace DTAClient.Domain
@@ -16,13 +16,56 @@ namespace DTAClient.Domain
     /// </summary>
     public class Mission
     {
+        public string CodeName { get; private set; }
+        public int CampaignID { get; } = -1;
+        public int CustomMissionID { get; private set; }
+
+        public int CD { get; private set; }
+        public int Side { get; private set; }
+
+        /// <summary>
+        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client treats it as a special scenario that does not have a map file, passing the string directly to the spawner.
+        /// </summary>
+        public string Scenario { get; private set; }
+        public string GUIName { get; private set; }
+        public string UntranslatedGUIName { get; private set; }
+        public string IconPath { get; private set; }
+        public string GUIDescription { get; private set; }
+        public string FinalMovie { get; private set; }
+        public bool RequiredAddon { get; private set; }
+        public bool Enabled { get; set; }
+        public bool BuildOffAlly { get; private set; }
+        public bool PlayerAlwaysOnNormalDifficulty { get; private set; }
+        public IReadOnlyCollection<string> Tags { get; private set; }
+
+        /// <summary>
+        /// This property is not set through the ini file.
+        /// For a user custom mission, "scenario" will be assumed as the filename of a map file, with the suffix ".map" (case-insensitive).
+        /// The map file is assumed to be placed at ClientConfiguration.CustomMissionPath.
+        /// When launching a user custom mission, all supplemental files, i.e., files with the same filename (excepts for the suffix), will be temporarily copied into game folder.
+        /// </summary>
+        public bool IsCustomMission { get; private set; }
+
+        public IniSection? GameMissionConfigSection { get; set; }
+
+        public string PreviewImage { get; private set; }
+
         public Mission(IniSection missionSection, string missionCodeName)
         {
             if (missionSection == null)
                 throw new ArgumentNullException(nameof(missionSection));
 
             CD = missionSection.GetIntValue(nameof(CD), 0);
-            Side = missionSection.GetIntValue(nameof(Side), 0);
+            Side = ClientConfiguration.Instance.ClientGameType switch
+            {
+                ClientType.D2K => GetSideFromSectionOrGameOptions(missionSection, missionCodeName),
+                _ => missionSection.GetIntValue(nameof(Side), 0),
+            };
+            CampaignID = ClientConfiguration.Instance.ClientGameType switch
+            {
+                ClientType.D2K => missionSection.GetIntValue("MissionNumber", CampaignID),
+                _ => missionSection.GetIntValue(nameof(CampaignID), CampaignID),
+            };
             Scenario = missionSection.GetStringValue(nameof(Scenario), string.Empty);
             UntranslatedGUIName = missionSection.GetStringValue("Description", "Undefined mission");
             GUIName = UntranslatedGUIName
@@ -71,40 +114,21 @@ namespace DTAClient.Domain
 #pragma warning restore CA1850 // Prefer static 'HashData' method over 'ComputeHash'
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
         }
-
-        public string CodeName { get; private set; }
-        public int CampaignID { get; } = -1;
-        public int CustomMissionID { get; private set; }
-
-        public int CD { get; private set; }
-        public int Side { get; private set; }
-
+        
         /// <summary>
-        /// Refers to the map file. Must be a relative path to the game folder. If it contains invalid path characters like '>', the client treats it as a special scenario that does not have a map file, passing the string directly to the spawner.
+        /// Gets side (house): for D2K from Battle.ini section name (ATR=0, HAR=1, ORD=2); for other games from INI (default 0).
         /// </summary>
-        public string Scenario { get; private set; }
-        public string GUIName { get; private set; }
-        public string UntranslatedGUIName { get; private set; }
-        public string IconPath { get; private set; }
-        public string GUIDescription { get; private set; }
-        public string FinalMovie { get; private set; }
-        public bool RequiredAddon { get; private set; }
-        public bool Enabled { get; set; }
-        public bool BuildOffAlly { get; private set; }
-        public bool PlayerAlwaysOnNormalDifficulty { get; private set; }
-        public IReadOnlyCollection<string> Tags { get; private set; }
+        private static int GetSideFromSectionOrGameOptions(IniSection missionSection, string sectionName)
+        {
+            int side = missionSection.GetIntValue(nameof(Side), -1);
+            if (side >= 0)
+                return side;
 
-        /// <summary>
-        /// This property is not set through the ini file.
-        /// For a user custom mission, "scenario" will be assumed as the filename of a map file, with the suffix ".map" (case-insensitive).
-        /// The map file is assumed to be placed at ClientConfiguration.CustomMissionPath.
-        /// When launching a user custom mission, all supplemental files, i.e., files with the same filename (excepts for the suffix), will be temporarily copied into game folder.
-        /// </summary>
-        public bool IsCustomMission { get; private set; }
-
-        public IniSection? GameMissionConfigSection { get; set; }
-
-        public string PreviewImage { get; private set; }
+            string sideName = missionSection.GetStringValue("SideName", string.Empty);
+            IniFile iniGameOptions = new(SafePath.CombineFilePath(ProgramConstants.RESOURCES_DIR, "GameOptions.ini"));
+            side = iniGameOptions.GetStringValue("General", "Sides", string.Empty).SplitWithCleanup().IndexOf(sideName);
+            return side != -1 ? side : 0;
+        }
 
         public bool TryGetScenarioFilePath(out string scenarioFilePath)
         {

@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this._tunnelMode = (TunnelMode)UserINISettings.Instance.TunnelMode.Value;
             _negotiator = new V3TunnelNegotiationManager(this, tunnelHandler, windowManager);
 
-            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled? new GameHostInactiveChecker(WindowManager) : null;
+            gameHostInactiveChecker = ClientConfiguration.Instance.InactiveHostKickEnabled ? new GameHostInactiveChecker(WindowManager) : null;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -309,7 +309,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(skillLevel);
             this.gameRoomName = channel.UIName;
             tunnelErrorMode = false;
-            
+
             hostUploadedMaps.Clear();
             chatCommandDownloadedMaps.Clear();
 

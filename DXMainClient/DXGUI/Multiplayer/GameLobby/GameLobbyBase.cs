@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -44,7 +45,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             public static implicit operator Rank(int value) => new Rank(value);
         }
 
-        protected const int MAX_PLAYER_COUNT = 8;
+        protected readonly int MAX_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD => 6,
+            _ => 8,
+        };
+        protected readonly int MAX_NET_PLAYER_COUNT = ClientConfiguration.Instance.ClientGameType switch
+        {
+            ClientType.TD or ClientType.D2K => 6,
+            _ => 8,
+        };
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
@@ -214,7 +224,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// The maximum number of players allowed in this lobby.
         /// </summary>
-        protected virtual int MaxPlayerCount => MAX_PLAYER_COUNT;
+        protected virtual int MaxPlayerCount => isMultiplayer ? MAX_NET_PLAYER_COUNT : MAX_PLAYER_COUNT;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -1626,7 +1636,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Randomize options
 
+            var playerIndices = new List<int>(totalPlayerCount);
             for (int i = 0; i < totalPlayerCount; i++)
+                playerIndices.Add(i);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                playerIndices.Sort((a, b) =>
+                {
+                    string nameA = a < Players.Count ? Players[a].Name : ("AI" + (a - Players.Count));
+                    string nameB = b < Players.Count ? Players[b].Name : ("AI" + (b - Players.Count));
+                    return string.Compare(nameA, nameB, StringComparison.Ordinal);
+                });
+            }
+
+            foreach (int i in playerIndices)
             {
                 PlayerInfo pInfo;
                 PlayerHouseInfo pHouseInfo = houseInfos[i];
@@ -1694,26 +1717,52 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniSection settings = new IniSection("Settings");
 
             settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
-            settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
-            settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
-            settings.SetStringValue("UIMapName", Map.UntranslatedName);
+            
+            int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
 
             // needed for translation in game loading lobbies
             if (Map.Official)
                 settings.SetStringValue("MapID", Map.BaseFilePath);
 
-            settings.SetIntValue("PlayerCount", Players.Count);
-            int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
-            settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
-            settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
-            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
-            settings.SetIntValue("AIPlayers", AIPlayers.Count);
-            settings.SetIntValue("Seed", RandomSeed);
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K) // D2K format
+            {
+                // scenario should be the map filename without extension
+                string mapFileName = GetD2KScenarioName();
+                settings.SetStringValue("Scenario", mapFileName);
+                settings.SetStringValue("ScenarioName", Map.UntranslatedName);
+                settings.SetIntValue("MyIndex", myIndex);
+                settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
+                settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+                settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
+                settings.SetIntValue("Team", GetD2KTeamId(Players[myIndex]));
+                settings.SetIntValue("AIPlayers", AIPlayers.Count);
+                settings.SetIntValue("Seed", RandomSeed);
+                // D2K uses zero-based slots and -1 for game-chosen random.
+                settings.SetIntValue("StartingLocation", houseInfos[myIndex].StartingWaypoint);
+                // Port and GameID will be set by WriteSpawnIniAdditions in multiplayer lobbies
+                // Host will be set by WriteSpawnIniAdditions in multiplayer lobbies
+            }
+            else // Other games format
+            {
+                settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
+                settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
+                settings.SetStringValue("UIMapName", Map.UntranslatedName);
+
+                settings.SetIntValue("PlayerCount", Players.Count);
+                settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
+                settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
+                settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+                settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
+                settings.SetIntValue("AIPlayers", AIPlayers.Count);
+                settings.SetIntValue("Seed", RandomSeed);
+            }
+
             if (GetPvPTeamCount() > 1)
                 settings.SetBooleanValue("CoachMode", true);
+
             if (GetGameType() == GameType.Coop)
                 settings.SetBooleanValue("AutoSurrender", false);
+
             spawnIni.AddSection(settings);
             WriteSpawnIniAdditions(spawnIni);
 
@@ -1740,6 +1789,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
                 AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, pseudoRandom, SideCount); // Forced options from the map
 
+            // Convert only after all configurable and forced options have supplied their final values.
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                ApplyD2KSpawnIniConversions(spawnIni);
+
             // Player options
 
             int otherId = 1;
@@ -1760,6 +1813,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
                 spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
+
+                // D2K multiplayer: each other player's start in their section (0-based start slot)
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                {
+                    spawnIni.SetIntValue(sectionName, "StartingLocation", pHouseInfo.StartingWaypoint);
+                    spawnIni.SetIntValue(sectionName, "Team", GetD2KTeamId(pInfo));
+                }
 
                 otherId++;
             }
@@ -1794,8 +1854,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int multiId = 0; multiId < multiCmbIndexes.Count; multiId++)
             {
                 int pIndex = multiCmbIndexes[multiId];
+                string keyName = "Multi" + (multiId + 1);
+                
                 if (houseInfos[pIndex].IsSpectator)
-                    spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
+                    spawnIni.SetBooleanValue("IsSpectator", keyName, true);
+                
             }
 
             // Write alliances, the code is pretty big so let's take it to another class
@@ -1836,6 +1899,57 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.WriteIniFile();
 
             return houseInfos;
+        }
+
+        private static int GetD2KTeamId(PlayerInfo playerInfo) =>
+            playerInfo.TeamId > 0 ? playerInfo.TeamId - 1 : -1;
+
+        private string GetD2KScenarioName() =>
+            Map.Official
+                ? Path.GetFileNameWithoutExtension(Map.BaseFilePath).TrimStart('_')
+                : Map.SHA1;
+
+        private void ApplyD2KSpawnIniConversions(IniFile spawnIni)
+        {
+            string disableCarryall = spawnIni.GetStringValue("Settings", "DisableCarryall", string.Empty);
+            if (!spawnIni.KeyExists("Settings", "NoCarryall") && !string.IsNullOrEmpty(disableCarryall))
+                spawnIni.SetStringValue("Settings", "NoCarryall", disableCarryall);
+
+            spawnIni.RemoveKey("Settings", "DisableCarryall");
+
+            string[] booleanKeys = { "ShortGame", "Crates", "DisableEngineer", "DisableTurrets", "NoCarryall" };
+            foreach (string key in booleanKeys)
+            {
+                string value = spawnIni.GetStringValue("Settings", key, string.Empty);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    bool boolValue = Conversions.BooleanFromString(value, false);
+                    spawnIni.SetStringValue("Settings", key, boolValue ? "Yes" : "No");
+                }
+            }
+
+            string wormsValue = spawnIni.GetStringValue("Settings", "Worms", string.Empty);
+            if (!string.IsNullOrEmpty(wormsValue))
+            {
+                bool wormsEnabled = Conversions.BooleanFromString(wormsValue, false);
+                spawnIni.SetStringValue("Settings", "Worms", wormsEnabled ? "1" : "0");
+            }
+
+            int gameSpeedIndex = spawnIni.GetIntValue("Settings", "GameSpeed", -1);
+            GameLobbyDropDown gameSpeedDropDown = DropDowns.Find(
+                dropDown => dropDown.Name == "cmbGameSpeedCap");
+            if (gameSpeedDropDown != null &&
+                gameSpeedIndex >= 0 && gameSpeedIndex < gameSpeedDropDown.Items.Count &&
+                int.TryParse(gameSpeedDropDown.Items[gameSpeedIndex].Tag?.ToString(), out int gameSpeed))
+            {
+                spawnIni.SetIntValue("Settings", "GameSpeed", gameSpeed);
+            }
+
+            if (isMultiplayer && !spawnIni.KeyExists("Settings", "MaxAhead"))
+                spawnIni.SetIntValue("Settings", "MaxAhead", 150);
+
+            // Build-queue options belong to the per-map [Vars] section.
+            spawnIni.RemoveKey("Settings", "BuildQueuesEnabled");
         }
 
         /// <summary>
@@ -1946,6 +2060,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("Writing map.");
 
+            if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+            {
+                WriteD2KMap(pseudoRandom);
+                return;
+            }
+
             Logger.Log("Loading map INI from " + Map.CompleteFilePath);
 
             IniFile mapIni = Map.GetMapIni();
@@ -1979,6 +2099,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyDropDown dropDown in DropDowns)
                 dropDown.ApplyMapCode(mapIni, GameMode);
 
+            // Apply Vars from MPMaps.ini to the map INI
+            Map.ApplyMapIniVars(mapIni);
+
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
             CopySupplementalMapFiles(mapIni);
@@ -1986,6 +2109,82 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ManipulateStartingLocations(mapIni, houseInfos);
 
             mapIni.WriteIniFile(spawnMapIniFile.FullName);
+
+        }
+
+        private void WriteD2KMap(Random pseudoRandom)
+        {
+            string scenarioName = GetD2KScenarioName();
+            if (string.IsNullOrWhiteSpace(scenarioName))
+                throw new InvalidDataException("The selected Dune 2000 map has no scenario name.");
+
+            string sourceMapPath = Map.GetMapFilePaths().FirstOrDefault(path =>
+                string.Equals(Path.GetExtension(path), ".map", StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(sourceMapPath))
+                throw new FileNotFoundException(
+                    "The selected Dune 2000 map is missing its required supplemental .map file.");
+
+            string mapsDirectory = SafePath.CombineDirectoryPath(
+                ProgramConstants.GamePath, "data", "maps");
+            string destinationMapPath = SafePath.CombineFilePath(
+                mapsDirectory, scenarioName + ".map");
+            string destinationIniPath = SafePath.CombineFilePath(
+                mapsDirectory, scenarioName + ".ini");
+            string destinationMissionPath = SafePath.CombineFilePath(
+                mapsDirectory, "_" + scenarioName + ".mis");
+
+            try
+            {
+                Directory.CreateDirectory(mapsDirectory);
+
+                if (!string.Equals(
+                        Path.GetFullPath(sourceMapPath),
+                        Path.GetFullPath(destinationMapPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(sourceMapPath, destinationMapPath, overwrite: true);
+                }
+
+                string sourceMissionPath = Map.GetMapFilePaths()
+                    .FirstOrDefault(path =>
+                        string.Equals(Path.GetExtension(path), ".mis", StringComparison.OrdinalIgnoreCase));
+
+                if (File.Exists(sourceMissionPath) &&
+                    !string.Equals(
+                        Path.GetFullPath(sourceMissionPath),
+                        Path.GetFullPath(destinationMissionPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(sourceMissionPath, destinationMissionPath, overwrite: true);
+                }
+                else if (File.Exists(destinationMissionPath))
+                {
+                    if (string.IsNullOrEmpty(sourceMissionPath))
+                        File.Delete(destinationMissionPath);
+                }
+
+                IniFile mapIni = Map.GetMapIni();
+
+                foreach (IniFile iniFile in GameMode.GetMapRulesIniFiles(pseudoRandom))
+                    MapCodeHelper.ApplyMapCode(mapIni, iniFile);
+
+                foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                    checkBox.ApplyMapCode(mapIni, GameMode);
+
+                foreach (GameLobbyDropDown dropDown in DropDowns)
+                    dropDown.ApplyMapCode(mapIni, GameMode);
+
+                Map.ApplyMapIniVars(mapIni);
+                mapIni.WriteIniFile(destinationIniPath);
+
+                Logger.Log("Prepared Dune 2000 map bundle in " + mapsDirectory);
+            }
+            catch (Exception ex)
+            {
+                throw new IOException(
+                    $"Failed to prepare Dune 2000 map '{Map.UntranslatedName}' in '{mapsDirectory}'.",
+                    ex);
+            }
         }
 
         /// <summary>
@@ -2131,13 +2330,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!stackedStartingLocations)
                 return;
 
-            // We also need to modify spawn.ini because WriteSpawnIni
-            // doesn't handle stacked positions.
-            // We could move this code there, but then we'd have to process
-            // the stacked locations in two places (here and in WriteSpawnIni)
-            // because we'd need to modify the map anyway.
-            // Not sure whether having it like this or in WriteSpawnIni
-            // is better, but this implementation is quicker to write for now.
             IniFile spawnIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS));
 
             // For each player, check if they're sharing the starting location
@@ -2181,9 +2373,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Random pseudoRandom = new Random(RandomSeed);
 
-            PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
-            InitializeMatchStatistics(houseInfos);
-            WriteMap(houseInfos, pseudoRandom);
+            try
+            {
+                if (ClientConfiguration.Instance.ClientGameType == ClientType.D2K)
+                    SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "stats.dmp");
+
+                PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
+                InitializeMatchStatistics(houseInfos);
+                WriteMap(houseInfos, pseudoRandom);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Game preparation failed: " + ex);
+                XNAMessageBox.Show(
+                    WindowManager,
+                    "Cannot launch game".L10N("Client:Main:LaunchGameErrorTitle"),
+                    ex.Message);
+                return;
+            }
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
@@ -2371,6 +2578,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerTeams[pId].AllowDropDown = !playerExtraOptions.IsForceNoTeams && allowPlayerOptionsChange && !GameModeMap.IsCoop && !GameModeMap.ForceNoTeams;
                     ddPlayerStarts[pId].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowPlayerOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
+
             }
 
             // AI players
@@ -2405,6 +2613,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerTeams[index].AllowDropDown = !playerExtraOptions.IsForceNoTeams && allowOptionsChange && !GameModeMap.IsCoop && !GameModeMap.ForceNoTeams;
                     ddPlayerStarts[index].AllowDropDown = !playerExtraOptions.IsForceRandomStarts && allowOptionsChange && !GameModeMap.ForceRandomStartLocations;
                 }
+
             }
 
             // Unused player slots
@@ -2429,6 +2638,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 ddPlayerTeams[ddIndex].SelectedIndex = -1;
                 ddPlayerTeams[ddIndex].AllowDropDown = false;
+
             }
 
             if (allowOptionsChange && Players.Count + AIPlayers.Count < MAX_PLAYER_COUNT)
