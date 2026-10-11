@@ -88,29 +88,42 @@ internal class Patch_v2_11_0 : Patch
             optionsWindowIni.WriteIniFile();
         }
 
-        // Add DTACnCNetClient.ini
+        // Add parser constants to DTACnCNetClient.ini in each theme directory and Resources
         {
-            IniFile dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "DTACnCNetClient.ini"));
-            var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
-            addKey("DEFAULT_LBL_HEIGHT", "12");
-            addKey("DEFAULT_CONTROL_HEIGHT", "21");
-            addKey("DEFAULT_BUTTON_HEIGHT", "23");
-            addKey("BUTTON_WIDTH_133", "133");
-            addKey("OPEN_BUTTON_WIDTH", "18");
-            addKey("OPEN_BUTTON_HEIGHT", "22");
-            addKey("EMPTY_SPACE_TOP", "12");
-            addKey("EMPTY_SPACE_BOTTOM", "12");
-            addKey("EMPTY_SPACE_SIDES", "12");
-            addKey("BUTTON_SPACING", "12");
-            addKey("LABEL_SPACING", "6");
-            addKey("CHECKBOX_SPACING", "24");
-            addKey("LOBBY_EMPTY_SPACE_SIDES", "12");
-            addKey("LOBBY_PANEL_SPACING", "10");
-            addKey("GAME_OPTION_COLUMN_SPACING", "160");
-            addKey("GAME_OPTION_ROW_SPACING", "6");
-            addKey("GAME_OPTION_DD_WIDTH", "132");
-            addKey("GAME_OPTION_DD_HEIGHT", "22");
-            dtaCnCNetClientIni.WriteIniFile();
+            var clientDefinitionsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "ClientDefinitions.ini"));
+
+            var addParserConstants = (string path) =>
+            {
+                var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, path, "DTACnCNetClient.ini"));
+                var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
+                addKey("DEFAULT_LBL_HEIGHT", "12");
+                addKey("DEFAULT_CONTROL_HEIGHT", "21");
+                addKey("DEFAULT_BUTTON_HEIGHT", "23");
+                addKey("BUTTON_WIDTH_133", "133");
+                addKey("OPEN_BUTTON_WIDTH", "18");
+                addKey("OPEN_BUTTON_HEIGHT", "22");
+                addKey("EMPTY_SPACE_TOP", "12");
+                addKey("EMPTY_SPACE_BOTTOM", "12");
+                addKey("EMPTY_SPACE_SIDES", "12");
+                addKey("BUTTON_SPACING", "12");
+                addKey("LABEL_SPACING", "6");
+                addKey("CHECKBOX_SPACING", "24");
+                addKey("LOBBY_EMPTY_SPACE_SIDES", "12");
+                addKey("LOBBY_PANEL_SPACING", "10");
+                addKey("GAME_OPTION_COLUMN_SPACING", "160");
+                addKey("GAME_OPTION_ROW_SPACING", "6");
+                addKey("GAME_OPTION_DD_WIDTH", "132");
+                addKey("GAME_OPTION_DD_HEIGHT", "22");
+                dtaCnCNetClientIni.WriteIniFile();
+            };
+
+            addParserConstants(ResouresDir.FullName);
+
+            foreach (var themeKey in clientDefinitionsIni.GetSectionKeys("Themes"))
+            {
+                var themePath = clientDefinitionsIni.GetStringValue("Themes", themeKey, string.Empty).Split(',')[1];
+                addParserConstants(themePath);
+            }
         }
 
         // Add PlayerExtraOptionsPanel.ini
