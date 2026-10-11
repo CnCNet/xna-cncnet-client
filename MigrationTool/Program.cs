@@ -17,6 +17,8 @@ internal sealed class Program
         CnCNet Client Migration Tool.
         
         Execute this file with path to the unmigrated client directory as first argument.
+
+        Make sure that you migrate old YR or TS mod client configs with this tool.
         """;
 
     private static void Main(string[] args)
@@ -28,6 +30,7 @@ internal sealed class Program
         Logger.WriteLogFile = true;
         Logger.WriteToConsole = false;
         Logger.Log("CnCNet Client Migration Tool");
+        Logger.Log("Warning: Migration Tool is an experimental application.");
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
@@ -55,7 +58,7 @@ internal sealed class Program
 
                 if (!SafePath.GetFile(SafePath.CombineFilePath(arg, "Resources", "ClientDefinitions.ini")).Exists)
                 {
-                    Logger.Log("Unable to find Resources/ClientDefinitions.ini. Migration aborted.");
+                    Logger.Log("Unable to find Resources/ClientDefinitions.ini. Migration halted.");
                     return;
                 }
 
