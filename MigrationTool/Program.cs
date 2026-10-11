@@ -62,6 +62,10 @@ internal sealed class Program
                     return;
                 }
 
+                Logger.Log("Warning: Back your folder before running the tool, because client configuration can be failed.");
+                Logger.Log("Press any key to begin migration.");
+                Console.ReadKey();
+
                 var assembly = Assembly.GetExecutingAssembly();
                 Patch? patch = null;
                 try
