@@ -154,7 +154,10 @@ internal class Patch_v2_11_0 : Patch
 
             Logger.Log($"Unable to find {GameLobbyBase}.ini. Checking {SkirmishLobby}.ini, {MultiplayerGameLobby}.ini...");
             
-            if (!skirmishLobbyIni_old.SectionExists("GameOptionsPanel") && !multiplayerGameLobbyIni_old.SectionExists("GameOptionsPanel"))
+            if (!skirmishLobbyIni_old.SectionExists("GameOptionsPanel") && !multiplayerGameLobbyIni_old.SectionExists("GameOptionsPanel")
+                || skirmishLobbyIni_old.SectionExists("GameOptionsPanel") && skirmishLobbyIni_old.GetSectionKeys("GameOptionsPanel").Exists(x => !x.StartsWith("$"))
+                && multiplayerGameLobbyIni_old.SectionExists("GameOptionsPanel") && multiplayerGameLobbyIni_old.GetSectionKeys("GameOptionsPanel").Exists(x => !x.StartsWith("$"))
+                )
             {
                 Logger.Log($"Generating {GameLobbyBase}.ini...");
 
