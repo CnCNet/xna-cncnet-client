@@ -1,4 +1,5 @@
-﻿namespace ClientCore.Statistics;
+﻿#nullable enable
+namespace ClientCore.Statistics;
 
 public abstract class MatchParserBase
 {
