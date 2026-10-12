@@ -276,7 +276,7 @@ public class StatisticsManager : StatisticsManagerBase
 
         for (int i = 0; i < Statistics.Count; i++)
         {
-            if (Statistics[i].LengthInSeconds < 60)
+            if (Statistics[i].LengthInSeconds < 60 && !Statistics[i].SawCompletion)
             {
                 Logger.Log("Removing match on " + Statistics[i].MapName + " because it's too short.");
                 Statistics.RemoveAt(i);
@@ -311,7 +311,7 @@ public class StatisticsManager : StatisticsManagerBase
             return;
         }
 
-        if (ms.LengthInSeconds < 60)
+        if (ms.LengthInSeconds < 60 && !ms.SawCompletion)
         {
             Logger.Log("Skipping adding match to statistics because the game was cancelled.");
             return;
