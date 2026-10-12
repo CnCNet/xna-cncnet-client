@@ -2329,6 +2329,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!stackedStartingLocations)
                 return;
 
+            // We also need to modify spawn.ini because WriteSpawnIni
+            // doesn't handle stacked positions.
+            // We could move this code there, but then we'd have to process
+            // the stacked locations in two places (here and in WriteSpawnIni)
+            // because we'd need to modify the map anyway.
+            // Not sure whether having it like this or in WriteSpawnIni
+            // is better, but this implementation is quicker to write for now.
             IniFile spawnIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS));
 
             // For each player, check if they're sharing the starting location
