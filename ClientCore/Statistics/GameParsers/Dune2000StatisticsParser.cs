@@ -204,10 +204,7 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
             && (!endState.HasValue || endState.Value is 0 or 1 or 2 or 5 or 6);
     }
 
-    private static bool TryGetHouseIndex(
-        string id,
-        string prefix,
-        out int houseIndex)
+    private static bool TryGetHouseIndex(string id, string prefix, out int houseIndex)
     {
         houseIndex = -1;
         if (id.Length != 4
