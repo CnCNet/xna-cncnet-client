@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using ClientCore;
-using ClientCore.Enums;
 
 namespace DTAClient.Domain.Multiplayer
 {

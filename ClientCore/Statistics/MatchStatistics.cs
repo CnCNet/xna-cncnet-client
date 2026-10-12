@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ClientCore.Enums;
 using ClientCore.Statistics.GameParsers;
 using Rampastring.Tools;
 
