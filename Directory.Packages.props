@@ -17,7 +17,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="OpenMcdf" Version="3.1.4" />
-    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.11" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.13" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
@@ -36,7 +36,7 @@
   </ItemGroup>
   <!-- Polyfill on .NET 4.8 (SecondStageUpdater excluded) -->
   <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' And $(TargetFrameworkIdentifier) == '.NETFramework'">
-    <GlobalPackageReference Include="Polyfill" Version="11.3.0" />
+    <GlobalPackageReference Include="Polyfill" Version="11.4.4" />
     <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Memory" Condition="$(TargetFrameworkIdentifier) == '.NETStandard' or $(TargetFrameworkIdentifier) == '.NETFramework' or $(TargetFramework.StartsWith('netcoreapp2'))" />
