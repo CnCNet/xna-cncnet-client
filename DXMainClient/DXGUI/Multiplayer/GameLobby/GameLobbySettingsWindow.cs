@@ -33,7 +33,7 @@ public class GameLobbySettingsWindow(WindowManager windowManager) : XNAWindow(wi
 
     public override void Initialize()
     {
-        SkillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+        SkillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
         Name = "GameLobbySettingsWindow";
         ClientRectangle = new Rectangle(0, 0, 400, 240);

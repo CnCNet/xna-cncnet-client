@@ -18,8 +18,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -456,7 +457,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string translatedGameMode = string.IsNullOrEmpty(hg.GameMode)
                 ? "Unknown".L10N("Client:Main:Unknown")
-                : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
+                : hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", TranslationNotificationLevel.Verbose);
 
             string translatedMapName = string.IsNullOrEmpty(hg.Map)
                 ? "Unknown".L10N("Client:Main:Unknown") : mapLoader.TranslatedMapNames.ContainsKey(hg.Map)
@@ -606,7 +607,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 #endif
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(
-                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), clientVersion),
+                    string.Format("*** CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessageV2"), clientVersion),
                     lbChatMessages.FontIndex)));
 
             {
@@ -787,6 +788,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
         {
+            isJoiningGame = false;
             topBar.SwitchToSecondary();
             isInGameRoom = false;
             SetLogOutButtonText();
@@ -797,6 +799,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
         {
+            isJoiningGame = false;
             topBar.SwitchToSecondary();
             isInGameRoom = false;
             SetLogOutButtonText();
@@ -877,7 +880,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return "Cannot join game. The host is on a different game version than you.".L10N("Client:Main:DisallowJoiningIncompatibleGames");
 
             if (hg.Locked)
-                return "The selected game is locked!".L10N("Client:Main:GameLocked");
+                return string.Format("The game {0} is locked!".L10N("Client:Main:GameLockedWithName"), hg.RoomName);
 
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!".L10N("Client:Main:NotInSavedGame");
@@ -928,8 +931,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
             }
 
-            // if (hg.GameVersion != ProgramConstants.GAME_VERSION)
-            // TODO Show warning
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
+                messageView.AddMessage(new ChatMessage(Color.Yellow, "The game host is on a different game version than you. Version incompatibilities may cause issues.".L10N("Client:Main:JoinGameVersionMismatch")));
 
             if (hg.Passworded)
             {
@@ -1005,14 +1008,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameChannel_InviteOnlyErrorOnJoin(object sender, EventArgs e)
         {
-            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
             var channel = (Channel)sender;
 
             var game = FindGameByChannelName(channel.ChannelName);
             if (game != null)
             {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, string.Format("The game {0} is locked!".L10N("Client:Main:GameLockedWithName"), game.RoomName)));
                 game.Locked = true;
                 SortAndRefreshHostedGames();
+            }
+            else
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
             }
 
             ClearGameJoinAttempt((Channel)sender);
@@ -1236,10 +1243,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cncnetChannel?.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameChatChannelName).Join();
+            var localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName)
+                ?? throw new Exception("Could not find local game chat channel: " + localGameChatChannelName);
+            localGameChatChannel.Join();
 
-            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameBroadcastChannel).Join();
+            string localGameBroadcastChannelName = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
+            var localGameBroadcastChannel = connectionManager.FindChannel(localGameBroadcastChannelName)
+                ?? throw new Exception("Could not find local game broadcast channel: " + localGameBroadcastChannelName);
+            localGameBroadcastChannel.Join();
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {
@@ -1258,6 +1269,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameCheckCancellation = new CancellationTokenSource();
             CnCNetGameCheck.Instance.InitializeService(gameCheckCancellation);
+
+            if (UserINISettings.Instance.EnableP2P)
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.Orange, Renderer.GetSafeString(
+                    ("Direct P2P connections are enabled. Your IP address may be shared with other " +
+                     "players when a P2P connection is used in a match. You can change this in Options.")
+                        .L10N("Client:Main:P2PEnabledOnlineNotice"),
+                    lbChatMessages.FontIndex)));
+            }
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1591,12 +1611,53 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                bool isDynamicTunnels = splitMessage[9] == "[DYN]";
+                CnCNetTunnel tunnel = null;
+                if (!isDynamicTunnels)
+                {
+                    if (tunnelHandler.Tunnels.Count == 0)
+                    {
+                        Logger.Log("Ignoring CTCP game message because there are no tunnels at all. Available tunnel count: 0. Is the connection to CnCNet HTTP service broken?");
+
+                        if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelMessageShown)
+                        {
+                            ctcpNoTunnelMessageShown = true;
+                            string message = ("There are no games listed. The client did receive a valid game message but can't add it to the list because there are no available tunnels. " +
+                                "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.").L10N("Client:Main:NoTunnels");
+
+                            lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
+                        }
+
+                        return;
+                    }
+
+                    string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                    string tunnelAddress = tunnelAddressAndPort[0];
+                    int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
+                    tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+
+                    if (tunnel == null)
+                    {
+                        Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {0}:{1} is not available. Available tunnel count: {2}",
+                            tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
+
+                        if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelForGamesMessageShown)
+                        {
+                            ctcpNoTunnelForGamesMessageShown = true;
+
+                            string message = string.Format(("There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
+                                "You can ignore this prompt if there are games listed later. Otherwise, please contact support at {0}.").L10N("Client:Main:NoTunnelForGames"), ClientConfiguration.Instance.LongSupportURL);
+
+                            lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
+                        }
+
+                        return;
+                    }
+                }
 
                 string loadedGameId = splitMessage[10];
-                int skillLevel = int.Parse(splitMessage[11]);
+                int skillLevel = ClientConfiguration.Instance.NormalizeSkillLevel(
+                    Conversions.IntFromString(splitMessage[11], ClientConfiguration.Instance.DefaultSkillLevelIndex));
                 string mapHash = splitMessage[12];
 
                 int[] gameOptionValues = null;
@@ -1648,48 +1709,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (cncnetGame == null)
                     return;
 
-                // Find the tunnel server specified in the game message
-
-                if (tunnelHandler.Tunnels.Count == 0)
-                {
-                    Logger.Log("Ignoring CTCP game message because there are no tunnels at all. Available tunnel count: 0. Is the connection to CnCNet HTTP service broken?");
-
-                    // Remind users that the game is ignored because of no tunnel
-                    if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelMessageShown)
-                    {
-                        ctcpNoTunnelMessageShown = true;
-                        string message = ("There are no games listed. The client did receive a valid game message but can't add it to the list because there are no available tunnels. " +
-                            "You can ignore this prompt if there are games listed later. Otherwise, it might indicate a network problem to CnCNet HTTP service.").L10N("Client:Main:NoTunnels");
-
-                        lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
-                    }
-
-                    return;
-                }
-
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                {
-                    Logger.Log(string.Format("Ignoring CTCP game message because the specified tunnel {0}:{1} is not available. Available tunnel count: {2}",
-                        tunnelAddress, tunnelPort, tunnelHandler.Tunnels.Count));
-
-                    // Remind users that the game is ignored because of no specified tunnel
-                    if (lbGameList.Items.Count == 0 && lbGameList.HostedGames.Count == 0 && !ctcpNoTunnelForGamesMessageShown)
-                    {
-                        ctcpNoTunnelForGamesMessageShown = true;
-
-                        string message = string.Format(("There are no games listed. The client did receive a valid game message but can't add it to the list because the specified tunnel is not available. " +
-                            "You can ignore this prompt if there are games listed later. Otherwise, please contact support at {0}.").L10N("Client:Main:NoTunnelForGames"), ClientConfiguration.Instance.LongSupportURL);
-
-                        lbChatMessages.AddMessage(new ChatMessage(Color.Gray, message));
-                    }
-
-                    return;
-                }
-
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
+                    gameRoomDisplayName, isCustomPassword, !isDynamicTunnels, players,
                     e.UserName, mapName, gameMode, mapHash);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
@@ -1782,6 +1803,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void SwitchOff() => Disable();
 
         public string GetSwitchName() => "CnCNet Lobby".L10N("Client:Main:CnCNetLobby");
+
+        /// <summary>Whether the game creation, login or password window is open over the lobby.</summary>
+        public bool HasDialogOpen => ((XNAControl)gameCreationPanel.Tag).Enabled || loginWindow.Enabled || passwordRequestWindow.Enabled;
 
         private bool CanReceiveInvitationMessagesFrom(string username)
         {
@@ -1883,6 +1907,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 messageView.AddMessage(new ChatMessage(Color.White, string.Format("{0} is not in a game!".L10N("Client:Main:UserNotInGame"), user.Name)));
                 return;
+            }
+
+            int gameIndex = lbGameList.Items.FindIndex(item => item.Tag == game);
+            if (gameIndex >= 0)
+            {
+                lbGameList.SelectedIndex = gameIndex;
+                lbGameList.ScrollToSelectedElement();
             }
 
             JoinGame(game, string.Empty, messageView);

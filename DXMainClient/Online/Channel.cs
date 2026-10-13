@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.Enums;
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
@@ -64,7 +63,7 @@ namespace DTAClient.Online
 
         #region Public members
 
-        public string UIName { get; }
+        public string UIName { get; set; }
 
         public string ChannelName { get; }
 
@@ -334,6 +333,17 @@ namespace DTAClient.Online
                 connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
                     string.Format("MODE {0} -k+k {1} {2}", ChannelName, oldPassword, newPassword));
             }
+        }
+
+        /// <summary>
+        /// Changes the channel's user limit.
+        /// </summary>
+        /// <param name="newLimit">The new maximum number of users in the channel.</param>
+        /// <param name="priority">The priority of the message in the send queue.</param>
+        public void ChangeUserLimit(int newLimit, int priority)
+        {
+            connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
+                string.Format("MODE {0} +l {1}", ChannelName, newLimit));
         }
 
         public void Join()

@@ -56,8 +56,15 @@
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
     <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
+      <Link>x64/steam_api64.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <None Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll">
+      <Link>runtimes/win-x64/native/steam_api64.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

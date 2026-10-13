@@ -138,7 +138,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             string validName = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
-                return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
+                return validName.SubstringSurrogateAware(0, ClientConfiguration.Instance.MaxNameLength);
 
             return validName;
         }

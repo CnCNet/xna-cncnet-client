@@ -16,57 +16,53 @@ However, there is no limitation in the client that would prevent incorporating i
 
 ## Development requirements
 
-The client has 2 variants: .NET 4.8 and .NET 8.0.
-* Both variants have 3 builds: Windows DirectX11, Windows OpenGL and Windows XNA.
-* .NET 8.0 in addition has a cross-platform Universal OpenGL build.
-* The DirectX11 and OpenGL builds rely on MonoGame.
-* The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
+The client supports 2 runtimes: .NET 4.8 and .NET 8.0.
+* Both runtimes have 3 rendering engines: Windows DirectX11, Windows OpenGL and Windows XNA.
+* .NET 8.0 in addition has a cross-platform Universal OpenGL engine.
+* The DirectX11 and OpenGL engines rely on MonoGame.
+* The XNA engine relies on Microsoft's XNA Framework 4.0 Refresh.
 
-To build this project, you must use Git to clone the repository, instead of downloading a ZIP archive. After cloning, make sure to initialize and update the submodules using the following command:
+To build the client, **you must use Git to clone the repository**, instead of downloading a ZIP archive. After cloning, make sure to **initialize and update the submodules** using the following command:
 ```shell
 git submodule update --init --recursive
 ```
 
-Building the solution for **any** platform requires the .NET SDK 10.0.100. Editing the source code requires Visual Studio 2026 or newer, or Rider 2025.3 or newer. A modern version of Visual Studio Code also works, but is not officially supported.
+Building for **any** platform requires the .NET SDK 10.0. Editing the source code requires Visual Studio 2026 or newer, or Rider 2025.3 or newer. A modern version of Visual Studio Code also works, but is not officially supported.
 To debug WindowsXNA builds the .NET SDK 10.0 x86 is additionally required.
-When using the included build scripts PowerShell 7.2 or newer is required.[^install-powershell]
+When using the included build scripts, [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) is required.
 
-## Compiling and debugging
+## Building and debugging
 
-* Compiling itself is simple: assuming you have the .NET SDK 10.0 installed, you can just open the solution with Visual Studio and compile it right away.
+* It is simple to build the client. Assuming you have the .NET SDK 10.0 and PowerShell 7 installed, you can just double-click `Scripts/build.bat` to compile it right away. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project. Please turn off Visual Studio while executing scripts.
+
+* If you want to run the client in debug mode, open the solution file `DXClient.slnx` using Visual Studio, and select Debug -> Start Debugging (F5).
+
+> [!IMPORTANT]
+> If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 runtimes, **it is highly recommended to restart Visual Studio after switching configurations to prevent unexpected error messages**. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project by running `ClearObjDirs.bat` in `Scripts` folder. Due to the same reason, **it is also highly recommended to close Visual Studio when using any scripts in `Scripts` folder**.
+
+### Advanced notes on building and debugging
+
 * When built as a debug build, the client executable expects to reside in the same directory with the target project's main game executable. Resources should exist in a "Resources" sub-directory in the same directory. The repository contains sample resources and post-build commands for copying them so that you can immediately run the client in debug mode by just hitting the Debug button in Visual Studio.
+
 * When built in release mode, the client executables expect to reside in the `Resources` sub-directory itself for .NET 4.8, named `clientdx.exe`, `clientogl.exe` and `clientxna.exe`. Each `.exe` file or `.dll` file expects a `.pdb` file for diagnostics purpose. It's advised not to delete these `.pdb` files. Keep all `.pdb` files even for end users.
-* The `Scripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
 
-<details>
-  <summary>.NET 8 builds</summary>
+* For .NET 8, When built in release mode, the client executables expect to reside in `Resources/BinariesNET8/{Windows, OpenGL, UniversalGL, XNA}` folders, named `client{dx, ogl, ogl, xna}.dll`, respectively. Note that `client{dx, ogl, ogl, xna}.runtimeconfig.json` files are required for the corresponding .NET 8 DLLs. When built on an OS other than Windows, only the Universal OpenGL engine is available.
 
-* For .NET 8, When built in release mode, the client executables expect to reside in `Resources/BinariesNET8/{Windows, OpenGL, UniversalGL, XNA}` folders, named `client{dx, ogl, ogl, xna}.dll`, respectively. Note that `client{dx, ogl, ogl, xna}.runtimeconfig.json` files are required for the corresponding .NET 8 dlls.
-* When built on an OS other than Windows, only the Universal OpenGL build is available.
-</details>
-
-<details>
-  <summary>Development workarounds</summary>
-
-* If you switch among different solution configurations in Visual Studio (e.g. switch to `UniversalGLRelease` from `WindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is highly advised to close Visual Studio when building the client using the scripts in `Scripts` folder.
 * Some dependencies are stored in `References` folder instead of the official NuGet source. This folder is also useful if you are working on modifying a dependency and debugging in your local machine without publishing the modification to NuGet. However, if you have replaced the `.(s)nupkg` files of a package, without altering the package version, be sure to remove the corresponding package from `%USERPROFILE%\.nuget\packages` folder (Windows) to purge the old version. 
 
 Refer to [Docs/Build.md](/Docs/Build.md) for more information about building the client.
 
-</details>
-
-## End-user usage
-
-* Windows: Windows 7 SP1 or higher is required. The preferred build is DirectX11 (.NET 4.8), i.e., `clientdx.exe`. If your GPU does not support DX11, consider using the OpenGL or XNA build instead. Advanced users may experiment with the .NET 8 builds at their discretion.
-* Other OS: Use the Universal OpenGL build.
-
 ## End-user requirements
+
+* Windows: Windows 7 SP1 or higher is required. The preferred rendering engine is DirectX11 (.NET 4.8), i.e., `clientdx.exe`. If your GPU does not support DX11, consider using the OpenGL or XNA engine instead. Advanced users may experiment with .NET 8 runtime at their discretion.
+
+* Other OS: Use the Universal OpenGL engine.
 
 ### Windows .NET 4.8 requirements:
 
 * The [.NET Framework 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net48-web-installer)
 
-(Optional) The XNA build requires:
+(Optional) The XNA engine requires:
 * [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598).
 
 ### Linux requirements:
@@ -84,7 +80,7 @@ Refer to [Docs/Build.md](/Docs/Build.md) for more information about building the
 
 * The [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime?initial-os=windows) for your specific platform.
 
-(Optional) The XNA build requires:
+(Optional) The XNA engine requires:
 * [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598).
 * [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
 
@@ -131,11 +127,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 If you modify this program, or any covered work, by linking or combining it with the Steamworks SDK (or a modified version of that library), containing parts covered by the terms of the Steamworks SDK's license, the licensors of this program grant you additional permission to convey the resulting work.
 
-Sponsored by
-------------
+## Sponsored by
+
 <a href="https://www.digitalocean.com/?refcode=337544e2ec7b&utm_campaign=Referral_Invite&utm_medium=opensource&utm_source=CnCNet" title="Powered by Digital Ocean" target="_blank">
     <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_blue.svg" width="201px" alt="Powered By Digital Ocean" />
 </a>
-
-
-[^install-powershell]: [How To Install PowerShell Core](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows)

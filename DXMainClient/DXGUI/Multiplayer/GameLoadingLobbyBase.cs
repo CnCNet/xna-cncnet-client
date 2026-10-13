@@ -67,6 +67,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string loadedGameID;
 
+        protected string savedMapSHA1 = string.Empty;
+        protected string savedBroadcastOptionValues = string.Empty;
+
         private bool isSettingUp = false;
         private FileSystemWatcher fsw;
 
@@ -339,7 +342,9 @@ namespace DTAClient.DXGUI.Multiplayer
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
             GameProcessLogic.StartGameProcess(WindowManager);
 
-            fsw.EnableRaisingEvents = true;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = true;
+
             UpdateDiscordPresence(true);
         }
 
@@ -348,7 +353,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected virtual void HandleGameProcessExited()
         {
-            fsw.EnableRaisingEvents = false;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = false;
 
             GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 
@@ -401,6 +407,8 @@ namespace DTAClient.DXGUI.Multiplayer
             IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
 
             loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
+            savedMapSHA1 = spawnSGIni.GetStringValue("Settings", "MapSHA1", string.Empty);
+            savedBroadcastOptionValues = spawnSGIni.GetStringValue("Settings", "BroadcastedGameOptionValues", string.Empty);
             lblMapNameValue.Tag = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
             lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{spawnSGIni.GetStringValue("Settings", "MapID", string.Empty)}:Description");
             lblGameModeValue.Tag = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);

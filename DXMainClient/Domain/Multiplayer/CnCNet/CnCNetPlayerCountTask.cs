@@ -1,7 +1,6 @@
-﻿using ClientCore;
+#nullable enable
+using ClientCore;
 using System;
-using System.IO;
-using System.Net;
 using System.Threading;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
@@ -15,14 +14,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static int REFRESH_INTERVAL = 60000; // 1 minute
 
-        internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
+        internal static event EventHandler<PlayerCountEventArgs>? CnCNetGameCountUpdated;
 
-        private static string cncnetLiveStatusIdentifier;
+        private static string? cncnetLiveStatusIdentifier;
 
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
-            
+
             // This call is synchronous. Therefore, we use a short timeout to avoid blocking the main thread for too long.
             PlayerCount = GetCnCNetPlayerCount(timeoutMilliseconds: 1000);
 
@@ -30,9 +29,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
 
-        private static void RunService(object tokenObj)
+        private static void RunService(object? tokenObj)
         {
-            var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;
+            var waitHandle = ((CancellationTokenSource)tokenObj!).Token.WaitHandle;
 
             while (true)
             {
@@ -52,34 +51,27 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                // Don't fetch the player count if it is explicitly disabled
+                // Don't fetch the player count if it is explicitly disabled.
                 // For example, the official CnCNet server might be unavailable/unstable in a country with Internet censorship,
-                // which causes lags in the splash screen. In the worst case, say if packets are dropped, it waits until timeouts
+                // which causes lags in the splash screen. In the worst case, say if packets are dropped, it waits until timeouts.
                 if (string.IsNullOrWhiteSpace(ClientConfiguration.Instance.CnCNetPlayerCountURL))
                     return -1;
 
-                WebClient client = new ExtendedWebClient(timeout: timeoutMilliseconds);
-                Stream data = client.OpenRead(ClientConfiguration.Instance.CnCNetPlayerCountURL);
+                string info = new TimedHttpClient(timeoutMilliseconds)
+                    .GetString(ClientConfiguration.Instance.CnCNetPlayerCountURL);
 
-                string info = string.Empty;
-
-                using (StreamReader reader = new StreamReader(data))
-                {
-                    info = reader.ReadToEnd();
-                }
-
-                info = info.Replace("{", String.Empty);
-                info = info.Replace("}", String.Empty);
-                info = info.Replace("\"", String.Empty);
+                info = info.Replace("{", string.Empty);
+                info = info.Replace("}", string.Empty);
+                info = info.Replace("\"", string.Empty);
                 string[] values = info.Split(new char[] { ',' });
 
                 int numGames = -1;
 
                 foreach (string value in values)
                 {
-                    if (value.Contains(cncnetLiveStatusIdentifier))
+                    if (value.Contains(cncnetLiveStatusIdentifier!))
                     {
-                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
+                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier!.Length + 1));
                         return numGames;
                     }
                 }

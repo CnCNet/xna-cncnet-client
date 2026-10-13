@@ -58,6 +58,8 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
     private string enabledSpawnIniValue = "True";
     private string disabledSpawnIniValue = "False";
 
+    private bool DefaultChecked { get; set; }
+
     /// <summary>
     /// Whether this checkbox should be included in the GAME broadcast.
     /// </summary>
@@ -132,7 +134,7 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
                 return;
             case "Checked":
                 bool checkedValue = Conversions.BooleanFromString(value, false);
-                Checked = checkedValue;
+                DefaultChecked = Checked = checkedValue;
                 return;
             case "MapScoringMode":
                 mapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -210,5 +212,13 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
             return;
 
         base.OnLeftClick(inputEventArgs);
+    }
+
+    public void ResetToDefault()
+    {
+        if (!AllowChanges)
+            throw new InvalidOperationException("Cannot reset to default when changes are not allowed.");
+
+        Checked = DefaultChecked;
     }
 }

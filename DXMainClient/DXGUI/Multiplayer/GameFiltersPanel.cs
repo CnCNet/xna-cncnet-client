@@ -60,6 +60,13 @@ namespace DTAClient.DXGUI.Multiplayer
             this.gameLobby = gameLobby;
         }
 
+        private static int GetVerticalScrollbarReserveWidth()
+        {
+            return AssetLoader.AssetExists("sbUpArrow.png")
+                ? AssetLoader.LoadTexture("sbUpArrow.png").Width
+                : 0;
+        }
+
         public override void Initialize()
         {
             base.Initialize();
@@ -166,6 +173,8 @@ namespace DTAClient.DXGUI.Multiplayer
             );
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
+            AddChild(scrollPanel);
+
             scrollPanel.GetContentPanel().AddChild(lblTitle);
             scrollPanel.GetContentPanel().AddChild(chkBoxFriendsOnly);
             scrollPanel.GetContentPanel().AddChild(chkBoxHideLockedGames);
@@ -178,7 +187,6 @@ namespace DTAClient.DXGUI.Multiplayer
             bottomPanel.AddChild(btnSave);
             bottomPanel.AddChild(btnCancel);
 
-            AddChild(scrollPanel);
             AddChild(bottomPanel);
         }
 
@@ -199,15 +207,17 @@ namespace DTAClient.DXGUI.Multiplayer
             const int iconLabelSpacing = 6;
             const int itemVerticalSpacing = 4;
             const int minLabelRowHeight = 18;
+            int verticalScrollbarReserveWidth = GetVerticalScrollbarReserveWidth();
+            int contentWidth = Math.Max(scrollPanel.Width - verticalScrollbarReserveWidth, scrollPanel.Width / 2);
 
-            int dropdownWidth = (scrollPanel.Width - (GAP * 3)) / 2;
+            int dropdownWidth = (contentWidth - (GAP * 3)) / 2;
 
-            var divider = CreateDivider(currentY, scrollPanel.Width);
+            var divider = CreateDivider(currentY, contentWidth);
             scrollPanel.GetContentPanel().AddChild(divider);
             currentY += divider.Height + GAP;
 
             int leftColumnX = GAP;
-            int rightColumnX = scrollPanel.Width / 2 + GAP / 2;
+            int rightColumnX = leftColumnX + dropdownWidth + GAP;
             int filterIndex = 0;
             int maxItemHeight = 0;
 
@@ -374,7 +384,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 int numRows = (filterIndex + 1) / 2;
                 currentY += numRows * maxItemHeight;
 
-                var secondDivider = CreateDivider(currentY, scrollPanel.Width);
+                var secondDivider = CreateDivider(currentY, contentWidth);
                 scrollPanel.GetContentPanel().AddChild(secondDivider);
 
                 currentY += secondDivider.Height + GAP;

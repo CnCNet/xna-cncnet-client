@@ -17,14 +17,15 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.IO;
 using ClientCore.I18N;
-using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
+using ClientCore.Display;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {
     class DisplayOptionsPanel : XNAOptionsPanel
     {
+        // Mouse must move at least this many pixels from click point before drag selection activates.
         private const int DRAG_DISTANCE_DEFAULT = 4;
         private const int ORIGINAL_RESOLUTION_WIDTH = 640;
 
@@ -79,16 +80,26 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add in-game resolutions
             {
-                var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
+                ScreenResolution maximumIngameResolution = ClientConfiguration.Instance.MaximumIngameResolution;
 
-#if XNA
-                if (!ScreenResolution.HiDefLimitResolution.Fits(maximumIngameResolution))
-                    maximumIngameResolution = ScreenResolution.HiDefLimitResolution;
-#endif
+                SortedSet<ScreenResolution> resolutions = XNAScreenResolutionManager.GetFullScreenResolutions(
+                    minResolution: ClientConfiguration.Instance.MinimumIngameResolution,
+                    maxResolution: maximumIngameResolution);
 
-                SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
-                    ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
-                    maximumIngameResolution.Width, maximumIngameResolution.Height);
+                // Add custom in-game resolutions
+                ScreenResolution minimumIngameResolution = ClientConfiguration.Instance.MinimumIngameResolution;
+                var customIngameResolutions = XNAScreenResolutionManager.GetCustomIngameResolutions();
+                foreach (var customRes in customIngameResolutions)
+                {
+                    // Throw on too small or too large in-game resolutions
+                    if (!customRes.Fits(minimumIngameResolution))
+                        throw new ClientConfigurationException($"Custom in-game resolution {customRes} is too small. Please check 'MinimumIngameWidth' and 'MinimumIngameHeight' in 'ClientDefinitions.ini' file.");
+
+                    if (!maximumIngameResolution.Fits(customRes))
+                        throw new ClientConfigurationException($"Custom in-game resolution {customRes} is too large. Please check 'MaximumIngameWidth' and 'MaximumIngameHeight' in 'ClientDefinitions.ini' file.");
+
+                    resolutions.Add(customRes);
+                }
 
                 foreach (var res in resolutions)
                     ddIngameResolution.AddItem(res.ToString());
@@ -174,14 +185,20 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add client resolutions
             {
-                SortedSet<ScreenResolution> scaledRecommendedResolutions = ScreenResolution.GetRecommendedResolutions();
+                ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;
+
+                XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
+
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
-                    .. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
-                    .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600),
+                    .. XNAScreenResolutionManager.GetFullScreenResolutions(minResolution: minimumClientResolution),
+                    .. XNAScreenResolutionManager.GetWindowedResolutions(minResolution: minimumClientResolution),
                     .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
+
+                Debug.Assert(resolutionList.Count > 0, "No client resolutions available. This should be impossible.");
 
                 foreach (ScreenResolution res in resolutionList)
                 {
@@ -348,23 +365,23 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
-            if (regKey == null)
-                return;
-
-            object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
-            string tsCompatFixString = (string)tsCompatFixValue;
-
-            if (tsCompatFixString == "Yes")
+            if (regKey != null)
             {
-                GameCompatFixInstalled = true;
-            }
+                object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
+                string tsCompatFixString = (string)tsCompatFixValue;
 
-            object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
-            string fsCompatFixString = (string)fsCompatFixValue;
+                if (tsCompatFixString == "Yes")
+                {
+                    GameCompatFixInstalled = true;
+                }
 
-            if (fsCompatFixString == "Yes")
-            {
-                FinalSunCompatFixInstalled = true;
+                object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
+                string fsCompatFixString = (string)fsCompatFixValue;
+
+                if (fsCompatFixString == "Yes")
+                {
+                    FinalSunCompatFixInstalled = true;
+                }
             }
 
             // These compatibility fixes from 2015 are no longer necessary on modern systems.
@@ -479,7 +496,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 ddClientResolution.AllowDropDown = false;
 
-                string nativeRes = ScreenResolution.SafeFullScreenResolution;
+                string nativeRes = XNAScreenResolutionManager.SafeFullScreenResolution;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
@@ -628,7 +645,10 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             (IniSettings.IngameScreenWidth.Value, IniSettings.IngameScreenHeight.Value) = ingameRes;
 
             // Calculate drag selection distance, scale it with resolution width
-            int dragDistance = ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
+            // CustomDragDistance > 0 overrides auto-scaling for players who need a specific value
+            int dragDistance = IniSettings.CustomDragDistance.Value > 0
+                ? IniSettings.CustomDragDistance.Value
+                : ingameRes.Width / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
             var newSelectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
@@ -664,37 +684,15 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
-            restartRequired = restartRequired || !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
-
-            IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
-
-            ClientConfiguration.Instance.RefreshTranslationGameFiles();
-
-            // copy translation files to the game directory
-            foreach (var tgf in ClientConfiguration.Instance.TranslationGameFiles)
             {
-                string sourcePath = SafePath.CombineFilePath(IniSettings.TranslationFolderPath, tgf.Source);
-                string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, tgf.Target);
+                bool updateTranslation = !IniSettings.Translation.ToString().Equals((string)ddTranslation.SelectedItem.Tag, StringComparison.InvariantCultureIgnoreCase);
 
-                if (File.Exists(sourcePath))
-                {
-                    string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
-                    string destinationHash = Utilities.CalculateSHA1ForFile(targetPath);
+                restartRequired = restartRequired || updateTranslation;
 
-                    if (sourceHash != destinationHash)
-                    {
-                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
-                        new FileInfo(targetPath).IsReadOnly = true;
-                    }
-                }
-                else
-                {
-                    if (File.Exists(targetPath))
-                    {
-                        new FileInfo(targetPath).IsReadOnly = false;
-                        File.Delete(targetPath);
-                    }
-                }
+                IniSettings.Translation.Value = (string)ddTranslation.SelectedItem.Tag;
+
+                if (updateTranslation)
+                    IniSettings.TranslationGameFilesVersion.Value = string.Empty;
             }
 
             if (ClientConfiguration.Instance.ClientGameType == ClientType.TS)

@@ -1,6 +1,8 @@
 ﻿using DTAClient.Domain.Multiplayer.CnCNet;
 using System;
 
+using ClientCore;
+
 namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
@@ -24,11 +26,15 @@ namespace DTAClient.Domain.Multiplayer
 
         public int MaxPlayers { get; set; } = 8;
 
-        public abstract int Ping { get; }
+        public abstract PingValue Ping { get; }
 
         public DateTime LastRefreshTime { get; set; }
 
-        public int SkillLevel { get; set; }
+        public int SkillLevel
+        {
+            get => field;
+            set => field = ClientConfiguration.Instance.NormalizeSkillLevel(value);
+        }
 
         public virtual bool Equals(GenericHostedGame other)
             => string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);

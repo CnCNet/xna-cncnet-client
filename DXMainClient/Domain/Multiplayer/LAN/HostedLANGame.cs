@@ -27,13 +27,7 @@ namespace DTAClient.Domain.LAN
 
         public TimeSpan TimeWithoutRefresh { get; set; }
 
-        public override int Ping
-        {
-            get
-            {
-                return -1;
-            }
-        }
+        public override PingValue Ping => PingValue.Unknown;
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {

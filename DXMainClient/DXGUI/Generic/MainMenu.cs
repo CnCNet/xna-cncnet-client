@@ -1,5 +1,5 @@
 using ClientCore;
-using ClientCore.Enums;
+using ClientCore.I18N;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -317,6 +317,9 @@ namespace DTAClient.DXGUI.Generic
             CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
             WindowManager.GameClosing += WindowManager_GameClosing;
+#if WINFORMS
+            WindowManager.FilesDropped += WindowManager_FilesDropped;
+#endif
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
@@ -331,7 +334,7 @@ namespace DTAClient.DXGUI.Generic
 
             Updater.Restart += Updater_Restart;
 
-            SetButtonHotkeys(true);
+            SetButtonHotkeys(!UserINISettings.Instance.DisableMainMenuHotkeys);
         }
 
         private void SetButtonHotkeys(bool enableHotkeys)
@@ -426,6 +429,8 @@ namespace DTAClient.DXGUI.Generic
                 discordHandler.Connect();
             else
                 discordHandler.Disconnect();
+
+            SetButtonHotkeys(!UserINISettings.Instance.DisableMainMenuHotkeys);
         }
 
         /// <summary>
@@ -517,6 +522,29 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.PostInit();
         }
 
+        private void CheckAndApplyTranslationGameFiles(bool skipVersionCheck = false)
+        {
+            // In ModMode there is no updater, so always apply translation game files.
+            // Otherwise, skip if already applied for the current game version.
+            if (!skipVersionCheck && !ClientConfiguration.Instance.ModMode &&
+                UserINISettings.Instance.TranslationGameFilesVersion.Value == Updater.GameVersion)
+                return;
+
+            try
+            {
+                Translation.Instance.ApplyTranslationGameFiles();
+                UserINISettings.Instance.TranslationGameFilesVersion.Value = Updater.GameVersion;
+                UserINISettings.Instance.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to apply translation game files. " + ex.ToString());
+                XNAMessageBox.Show(WindowManager,
+                    "Applying Translation Files Failed".L10N("Client:Main:ApplyTranslationFilesFailTitle"),
+                    "Applying translation files failed! Error message:".L10N("Client:Main:ApplyTranslationFilesFailText") + " " + ex.Message);
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -528,6 +556,76 @@ namespace DTAClient.DXGUI.Generic
         private void SharedUILogic_GameProcessStarted() => MusicOff();
 
         private void WindowManager_GameClosing(object sender, EventArgs e) => Clean();
+
+#if WINFORMS
+        private void WindowManager_FilesDropped(object sender, Rampastring.XNAUI.PlatformSpecific.FileDropEventArgs e)
+            => AddCallback(new Action<string[]>(OpenDroppedReplay), new object[] { e.FilePaths });
+
+        /// <summary>
+        /// Opens a replay dropped onto the client window in the Load Game window.
+        /// </summary>
+        private void OpenDroppedReplay(string[] filePaths)
+        {
+            if (!ReplayManager.IsSupported || !CanOpenDroppedReplay())
+                return;
+
+            string replayPath = filePaths.FirstOrDefault(ReplayManager.HasReplayExtension);
+            if (replayPath == null)
+                return;
+
+            string fileName = ReplayManager.Import(replayPath);
+            if (fileName == null)
+            {
+                XNAMessageBox.Show(WindowManager, "Cannot Open Replay".L10N("Client:Main:DroppedReplayUnreadableTitle"),
+                    string.Format("{0} is not a replay that can be opened.".L10N("Client:Main:DroppedReplayUnreadableText"),
+                        Path.GetFileName(replayPath)));
+                return;
+            }
+
+            gameLoadingWindow.OpenReplay(fileName);
+        }
+
+        /// <summary>
+        /// Whether the player is on the main menu, the skirmish lobby or the CnCNet lobby with no other
+        /// window open over it, apart from the Load Game window.
+        /// Open message boxes can't be detected, so a drop still goes through while one is showing.
+        /// </summary>
+        private bool CanOpenDroppedReplay()
+        {
+            if (!topBar.Enabled || gameInProgressWindow.Enabled || campaignTagSelector.IsOpen)
+                return false;
+
+            ISwitchable topMostPrimary = topBar.GetTopMostPrimarySwitchable();
+            if (topMostPrimary != this && topMostPrimary != skirmishLobby)
+                return false;
+
+            if (topBar.LastSwitchType == SwitchType.SECONDARY)
+            {
+                if (cncnetLobby.HasDialogOpen)
+                    return false;
+            }
+            else if (topMostPrimary == skirmishLobby && skirmishLobby.HasDialogOpen)
+            {
+                return false;
+            }
+
+            XNAControl[] windows =
+            {
+                cnCNetGameLoadingLobby,
+                cnCNetGameLobby,
+                lanLobby,
+                privateMessagingWindow,
+                optionsWindow,
+                statisticsWindow,
+                updateQueryWindow,
+                manualUpdateQueryWindow,
+                updateWindow,
+                extrasWindow,
+            };
+
+            return !windows.Any(window => window.Enabled);
+        }
+#endif
 
         private void SkirmishLobby_Exited(object sender, EventArgs e)
         {
@@ -657,6 +755,7 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+            CheckAndApplyTranslationGameFiles();
 
             Logger.Log("Main menu initialization complete.");
 
@@ -765,6 +864,12 @@ namespace DTAClient.DXGUI.Generic
             UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = false;
+
+            // The update completed without requiring a client restart, so apply
+            // translation game files immediately for the new game version.
+            // (If a restart were required, Updater.Restart fires and the client
+            // exits; the next startup naturally detects the version change.)
+            CheckAndApplyTranslationGameFiles(skipVersionCheck: true);
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
@@ -1104,10 +1209,6 @@ namespace DTAClient.DXGUI.Generic
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
             themeSong?.Dispose();
-#if !XNA
-            Thread.Sleep(1000);
-            Environment.Exit(0);
-#endif
         }
 
         public void SwitchOn()

@@ -4,13 +4,39 @@ This document describes optional, non-breaking changes. While not mandatory, ado
 
 Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
+## 2.14.0
+
+- The client now supports V3 dynamic tunnels. The default host tunnel mode is Dynamic (V3), and the new "Tunnel mode" selector in both the game creation window and the Options window offers 3 options: Dynamic (V3), Static (V3), and Legacy (V2). See [Tunnel Settings section of INISystem.md](INISystem.md#tunnel-settings) for setup details.
+
+- A new "Enable direct P2P connections" checkbox is added to the CnCNet tab in the Options window. When enabled, the client will attempt to establish direct P2P connections with other players. This can improve latency and reduce server load, but may not work in all network environments.
+
+- The client now supports the Tiberian Dawn game type. Specify `[Settings]->ClientGameType=TD` in `ClientDefinitions.ini` to use this game type.
+
+- Replay recording and playback are now available to packages with a compatible spawner. Opt-in through `ReplaySupport=true` in `ClientDefinitions.ini`. Players turn recording on or off in the Game tab of the Options window. See [INISystem.md](INISystem.md) for the replay settings.
+
+## 2.13.4
+
+- The `KeyboardCommands.ini` file now supports `DisableModifierKeys`. It is recommended to set this key for RA2/YR's `PlanningMode` (Waypoint Mode) command. See [INISystem.md](INISystem.md).
+
 ## 2.13.0
 
-- Custom mission support and game mode updates offer several new features. Details will be provided later.
+- The client now supports using TTF/OTF font files. See [Fonts.md](Fonts.md) for details.
+
+- Custom mission support allows fan-made campaign maps to appear alongside official missions. Features include supplemental file management (string tables, palettes, loading screens), mission preview images, and save game integration. See `Custom Mission Map Files` sections in [INISystem.md](INISystem.md).
+
+- An optional campaign tag selector is provided, allowing players to select a category of campaign missions before the mission selector. This can also be used to separate official missions from custom missions. See `Campaign Tag Selector` section in [INISystem.md](INISystem.md).
+
+- The campaign selector now supports displaying mission preview images. See `[pnlMissionPreview]` section in [INISystem.md](INISystem.md).
+
+- Game mode configuration in `MPMaps.ini` has been expanded. Game mode sections now support `UIName`, `DisallowedPlayerSides`, `DisallowedHumanPlayerSides`, `DisallowedComputerPlayerSides`, `ForcedOptions`, `ForcedSpawnIniOptions`, `MapCodeIniName`, `RandomizedMapCodeIniNames`, and player count overrides. See [INISystem.md](INISystem.md).
+
+- `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` forces spawn.ini keys for campaign missions separately from multiplayer. See [INISystem.md](INISystem.md).
 
 - The following controls are now available to support broadcasting customized game options to the CnCNet lobby and displaying them in the game list and filters. `GameSessionCheckBox`, `GameLobbyCheckBox`, `GameSessionDropDown`, `GameLobbyDropDown`. See [INISystem.md](INISystem.md).
 
 - The game icon in the game lobby list can be turned off. See `ShowGameIconInGameList` in [INISystem.md](INISystem.md).
+
+- The client will now apply modders' suggested default hotkeys as long as they are missing from the user's keyboard ini. This allows modders to provide a more customized experience for their mods by editing the `KeyboardCommands.ini` file.
 
 ## 2.12.18
 

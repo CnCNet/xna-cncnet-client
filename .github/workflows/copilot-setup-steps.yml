@@ -1,0 +1,57 @@
+name: Copilot setup steps
+
+# Automatically run the setup steps when they are changed to allow for easy validation, and
+# allow manual testing through the repository's "Actions" tab
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code with full history and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      
+      # the set-branches call is required to collapse the shallow-clone's specific-branch refspec back to the glob, preventing a LibGit2Sharp crash in GitVersion 5.12.0
+      - name: Unshallow clone and fetch develop branch
+        run: |
+          git fetch --unshallow origin || true
+          git remote set-branches origin '*'
+          git fetch origin develop
+          # Apply the same fix to every submodule (including nested ones), because GitVersion.MsBuild
+          # runs against each submodule directory that carries it, and the same LibGit2Sharp refspec
+          # crash occurs there when the submodule was checked out with a narrow single-branch refspec.
+          git submodule foreach --recursive \
+            'git fetch --unshallow origin || true; git remote set-branches origin "*"; git fetch origin'
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: Restore NuGet packages
+        # Restore from the solution file so that SecondStageUpdater is included.
+        # SecondStageUpdater is not a ProjectReference of DXMainClient, but it is
+        # always built via the BuildUpdater MSBuild target; omitting it from the
+        # restore causes NETSDK1127/NETSDK1004 on subsequent agent builds.
+        run: dotnet restore DXClient.slnx -p:Configuration=UniversalGLRelease
+
+      - name: Build
+        # --no-restore is required: the implicit restore triggered by 'dotnet build'
+        # only walks DXMainClient's ProjectReference graph and therefore skips
+        # SecondStageUpdater, leaving its restore assets stale.
+        run: dotnet build DXMainClient/DXMainClient.csproj -p:Configuration=UniversalGLRelease -f net8.0 --no-restore

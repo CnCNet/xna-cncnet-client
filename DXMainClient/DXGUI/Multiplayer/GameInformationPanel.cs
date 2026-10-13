@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.I18N;
 
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -15,7 +16,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Image = SixLabors.ImageSharp.Image;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -178,7 +178,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameInformation.ClientRectangle = new Rectangle(lblGameInformation.X, gameInfoLabelTopPadding,
                 lblGameInformation.Width, lblGameInformation.Height);
 
-            skillLevelOptions = ClientConfiguration.Instance.SkillLevelOptions.Split(',');
+            skillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
             base.Initialize();
         }
@@ -206,7 +206,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             string translatedGameModeName = string.IsNullOrEmpty(game.GameMode)
-                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
+                ? "Unknown".L10N("Client:Main:Unknown") : game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", TranslationNotificationLevel.Verbose);
 
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(translatedGameModeName, lblGameMode.FontIndex),
                lblGameMode.FontIndex, Width - lblGameMode.X);
@@ -225,7 +225,22 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
 
-            lblPing.Text = game.Ping > 0 ? "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString() + " ms" : "Ping: Unknown".L10N("Client:Main:GameInfoPingUnknown");
+            string pingText;
+
+            if (game is HostedCnCNetGame hostedGame)
+            {
+                if (hostedGame.TunnelServer == null)
+                    pingText = "Ping: Dynamic".L10N("Client:Main:GameInfoPingDynamic");
+                else
+                    pingText = "Ping:".L10N("Client:Main:GameInfoPing") + " " + hostedGame.TunnelServer.Ping.ToString();
+            }
+            else
+            {
+                pingText = "Ping:".L10N("Client:Main:GameInfoPing") + " " + game.Ping.ToString();
+            }
+
+            lblPing.Text = pingText;
+
             lblPing.Visible = true;
 
             lblPlayers.Visible = true;
@@ -242,8 +257,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayerNames[i].Visible = false;
             }
 
-            string skillLevel = skillLevelOptions[game.SkillLevel];
-            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{game.SkillLevel}");
+            int skillLevelIndex = game.SkillLevel;
+            string skillLevel = skillLevelOptions[skillLevelIndex];
+            string localizedSkillLevel = skillLevel.L10N($"INI:ClientDefinitions:SkillLevel:{skillLevelIndex}");
             lblSkillLevel.Text = "Preferred Skill Level:".L10N("Client:Main:GameInfoSkillLevel") + " " + localizedSkillLevel;
             lblSkillLevel.Visible = true;
 
@@ -251,31 +267,34 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (mapLoader != null && !string.IsNullOrEmpty(game.MapHash))
             {
-                Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before loading a new texture. ClearInfo() should have done that. What's wrong here?");
 
                 Map map = mapLoader.FindMapByHash(game.MapHash);
-
-                Image mapPreviewImage = map != null ? mapLoader.GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss: false) : null;
-
-                if (mapPreviewImage != null)
+                mapPreviewTexture = mapLoader.GetPreviewTextureFromMap(map, syncLoadOnCacheMiss: false);
+                if (mapPreviewTexture != null)
                 {
-                    mapPreviewTexture = AssetLoader.TextureFromImage(mapPreviewImage);
                     mapPreviewTextureNeedsDispose = true;
-                }
-                else if (noMapPreviewTexture != null)
-                {
-                    Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
-                    mapPreviewTexture = noMapPreviewTexture;
-                    mapPreviewTextureNeedsDispose = false;
                 }
                 else
                 {
-                    mapPreviewTexture = null;
-                    mapPreviewTextureNeedsDispose = false;
+                    // Try loading noMapPreviewTexture
+                    if (noMapPreviewTexture != null)
+                    {
+                        Debug.Assert(!noMapPreviewTexture.IsDisposed, "noMapPreviewTexture should never be disposed.");
+                        mapPreviewTexture = noMapPreviewTexture;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
+                    else
+                    {
+                        mapPreviewTexture = null;
+                        mapPreviewTextureNeedsDispose = false;
+                    }
                 }
             }
             else
             {
+                Debug.Assert(!mapPreviewTextureNeedsDispose, "Previous texture must be disposed before. ClearInfo() should have done that. What's wrong here?");
+
                 if (mapPreviewTextureNeedsDispose &&
                     mapPreviewTexture != null &&
                     !mapPreviewTexture.IsDisposed)

@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
@@ -27,7 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int GAME_OPTION_SPECIAL_FLAG_COUNT = 5;
 
         private const double DROPOUT_TIMEOUT = 20.0;
-        private const double GAME_BROADCAST_INTERVAL = 10.0;
+        private const double GAME_BROADCAST_INTERVAL = 2.0;
 
         private const string CHAT_COMMAND = "GLCHAT";
         private const string RETURN_COMMAND = "RETURN";
@@ -65,6 +66,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 new ClientStringCommandHandler(CHAT_COMMAND, Player_HandleChatCommand),
                 new ClientNoParamCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
+                new ClientNoParamCommandHandler(PLAYER_QUIT_COMMAND, HandleHostQuit),
                 new ClientStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
                 new ClientStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
                 new ClientStringCommandHandler(PlayerExtraOptions.LAN_MESSAGE_KEY, HandlePlayerExtraOptionsBroadcast),
@@ -106,6 +108,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private TcpListener listener;
         private TcpClient client;
+        private volatile bool leaving;
+        private int sessionId;
 
         private IPEndPoint hostEndPoint;
         private LANColor[] chatColors;
@@ -134,9 +138,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PostInitialize();
         }
 
-        public void SetUp(bool isHost,
+        public bool SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client)
         {
+            if (isHost && !StartHosting())
+                return false;
+
+            leaving = false;
+            sessionId++;
             Refresh(isHost);
 
             this.hostEndPoint = hostEndPoint;
@@ -146,9 +155,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = random.Next();
                 Thread thread = new Thread(ListenForClients);
                 thread.Start();
-
-                this.client = new TcpClient();
-                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
                 byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
@@ -173,6 +179,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
 
             WindowManager.SelectedControl = tbChatInput;
+            return true;
         }
 
         public void PostJoin()
@@ -185,11 +192,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region Server code
 
+        private bool StartHosting()
+        {
+            try
+            {
+                listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
+                listener.Start();
+
+                this.client = new TcpClient();
+                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
+                return true;
+            }
+            catch (SocketException ex)
+            {
+                Logger.Log("Failed to start hosting the LAN game lobby: " + ex.ToString());
+                listener?.Stop();
+                this.client?.Close();
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"),
+                    string.Format("Unable to host the game because TCP port {0} could not be opened. It may already be in use by another program.".L10N("Client:Main:LANListenerStartFailed"),
+                    ProgramConstants.LAN_GAME_LOBBY_PORT));
+                return false;
+            }
+        }
+
         private void ListenForClients()
         {
-            listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
-            listener.Start();
-
             while (true)
             {
                 TcpClient client;
@@ -288,6 +315,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Players.Add(lpInfo);
 
+            while (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
+                AIPlayers.RemoveAt(AIPlayers.Count - 1);
+
             if (IsHost && Players.Count == 1)
                 Players[0].Ready = true;
 
@@ -297,16 +327,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(string.Format("{0} connected from {1}".L10N("Client:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
             lpInfo.StartReceiveLoop();
 
+            OnGameOptionChanged();
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
             BroadcastPlayerExtraOptions();
-            OnGameOptionChanged();
             UpdateDiscordPresence();
         }
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
         {
-            var lpInfo = (LANPlayerInfo)sender;
+            AddCallback(new Action<LANPlayerInfo>(HandleConnectionLost), (LANPlayerInfo)sender);
+        }
+
+        private void HandleConnectionLost(LANPlayerInfo lpInfo)
+        {
             CleanUpPlayer(lpInfo);
             Players.Remove(lpInfo);
 
@@ -357,6 +391,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int bytesRead = 0;
 
+            int mySessionId = sessionId;
+
             if (!client.Connected)
                 return;
 
@@ -374,6 +410,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     // Disconnect from server
 
+                    if (leaving)
+                        break;
+
                     Logger.Log(string.Format(
                         "Reading data from the server failed! Server address: {0}. Exception: {1}",
                         hostEndPoint.Address.ToString(), ex.ToString()));
@@ -382,7 +421,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         "Reading data from the server failed! Server address: {0}. Exception: {1}".L10N("Client:Main:LanServerReadError"),
                          hostEndPoint.Address.ToString(), ex.Message);
 
-                    LeaveGame(localizedMessage);
+                    AddCallback(() =>
+                    {
+                        if (sessionId == mySessionId)
+                            LeaveGame(localizedMessage);
+                    });
                     break;
                 }
 
@@ -411,13 +454,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     foreach (string cmd in commands)
                     {
-                        AddCallback(new Action<string>(HandleMessageFromServer), cmd);
+                        string capturedCmd = cmd;
+                        AddCallback(() =>
+                        {
+                            if (sessionId == mySessionId)
+                                HandleMessageFromServer(capturedCmd);
+                        });
                     }
 
                     continue;
                 }
 
                 // Disconnect from server
+                if (leaving)
+                    break;
+
                 {
                     Logger.Log(string.Format(
                         "Reading data from the server failed (0 bytes received)! Server address: {0}", hostEndPoint.Address.ToString()));
@@ -426,7 +477,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         "Reading data from the server failed (0 bytes received)! Server address: {0}".L10N("Client:Main:LanServerReadZero"),
                          hostEndPoint.Address.ToString());
 
-                    LeaveGame(localizedMessage);
+                    AddCallback(() =>
+                    {
+                        if (sessionId == mySessionId)
+                            LeaveGame(localizedMessage);
+                    });
                 }
 
                 break;
@@ -450,6 +505,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void LeaveGame(string message = null)
         {
+            if (leaving)
+                return;
+
             Clear();
             GameLeft?.Invoke(this, new GameLeftEventArgs() { Message = message });
             PlayerExtraOptionsPanel?.Disable();
@@ -465,8 +523,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (player == null || Map == null || GameMode == null)
                 return;
             string side = "";
-            if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
+            int playerIndex = Players.IndexOf(player);
+            if (playerIndex > -1 && playerIndex < ddPlayerSides.Length &&
+                ddPlayerSides[playerIndex].SelectedItem != null)
+            {
+                side = (string)ddPlayerSides[playerIndex].SelectedItem.Tag;
+            }
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
@@ -477,19 +539,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Clear()
         {
-            base.Clear();
-
             if (IsHost)
             {
+                GameBroadcast?.Invoke(this, new GameBroadcastEventArgs("GAMECLOSED"));
                 BroadcastMessage(PLAYER_QUIT_COMMAND);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
-                Players.Clear();
                 listener.Stop();
             }
             else
             {
                 SendMessageToHost(PLAYER_QUIT_COMMAND);
             }
+
+            base.Clear();
+
+            leaving = true;
 
             if (this.client.Connected)
                 this.client.Close();
@@ -840,6 +904,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GetReadyNotification();
         }
 
+        private void HandleHostQuit()
+        {
+            if (!IsHost && !leaving)
+                LeaveGame();
+        }
+
         private void HandlePlayerOptionsRequest(string sender, string data)
         {
             if (!IsHost)
@@ -1110,6 +1180,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UniqueGameID = Conversions.IntFromString(gameId, -1);
             if (UniqueGameID < 0)
                 return;
+
+            if (GameModeMap == null)
+            {
+                AddNotice("The game host has started the game, but you don't have the selected map. Unable to launch the game.".L10N("Client:Main:LaunchFailedMapMissing"), Color.Red);
+                return;
+            }
 
             CopyPlayerDataToUI();
             StartGame();

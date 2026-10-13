@@ -1,11 +1,15 @@
-﻿using ClientCore;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+using ClientCore;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.Online
 {
@@ -17,33 +21,44 @@ namespace DTAClient.Online
 
         private const int RECENT_LIMIT = 50;
 
+        private readonly Lazy<List<string>> lazyFriendList;
+
         /// <summary>
         /// A list which contains names of friended users. If you manipulate this list
         /// directly you have to also invoke UserFriendToggled event handler for every
         /// user name added or removed.
         /// </summary>
-        public List<string> FriendList { get; private set; } = new();
+        public List<string> FriendList => lazyFriendList.Value;
+
+        private readonly Lazy<List<string>> lazyIgnoreList;
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
         /// directly you have to also invoke UserIgnoreToggled event handler for every
         /// user ident added or removed.
         /// </summary>
-        public List<string> IgnoreList { get; private set; } = new();
+        public List<string> IgnoreList => lazyIgnoreList.Value;
+
+        private readonly Lazy<List<RecentPlayer>> lazyRecentList;
 
         /// <summary>
         /// A list which contains names of players from recent games.
         /// </summary>
-        public List<RecentPlayer> RecentList { get; private set; } = new();
+        public List<RecentPlayer> RecentList => lazyRecentList.Value;
 
         public event EventHandler<UserNameEventArgs> UserFriendToggled;
         public event EventHandler<IdentEventArgs> UserIgnoreToggled;
 
         public CnCNetUserData(WindowManager windowManager)
         {
-            LoadFriendList();
-            LoadIgnoreList();
-            LoadRecentPlayerList();
+            lazyFriendList = new Lazy<List<string>>(LoadFriendList, LazyThreadSafetyMode.ExecutionAndPublication);
+            lazyIgnoreList = new Lazy<List<string>>(LoadIgnoreList, LazyThreadSafetyMode.ExecutionAndPublication);
+            lazyRecentList = new Lazy<List<RecentPlayer>>(LoadRecentPlayerList, LazyThreadSafetyMode.ExecutionAndPublication);
+
+            // Load lists in background. Fire-and-forget.
+            Task.Run(() => _ = FriendList);
+            Task.Run(() => _ = IgnoreList);
+            Task.Run(() => _ = RecentList);
 
             windowManager.GameClosing += WindowManager_GameClosing;
         }
@@ -131,11 +146,11 @@ namespace DTAClient.Online
                 list.Add(value);
         }
 
-        private void LoadFriendList() => FriendList = LoadTextList(FRIEND_LIST_PATH);
+        private List<string> LoadFriendList() => LoadTextList(FRIEND_LIST_PATH);
 
-        private void LoadIgnoreList() => IgnoreList = LoadTextList(IGNORE_LIST_PATH);
+        private List<string> LoadIgnoreList() => LoadTextList(IGNORE_LIST_PATH);
 
-        private void LoadRecentPlayerList() => RecentList = LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
+        private List<RecentPlayer> LoadRecentPlayerList() => LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
 
         private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
 
@@ -185,7 +200,7 @@ namespace DTAClient.Online
                 GameTime = now
             }));
             int skipCount = Math.Max(0, RecentList.Count - RECENT_LIMIT);
-            RecentList = RecentList.Skip(skipCount).ToList();
+            RecentList.RemoveRange(0, skipCount);
         }
 
         /// <summary>

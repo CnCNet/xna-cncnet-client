@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout
@@ -41,7 +41,7 @@ jobs:
         }
 
     - name: Build
-      run: ./Scripts/build.ps1
+      run: ./Scripts/Build.ps1
       shell: pwsh
 
     - name: Zip Artifact

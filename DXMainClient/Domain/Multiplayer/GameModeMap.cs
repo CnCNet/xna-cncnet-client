@@ -59,7 +59,10 @@ namespace DTAClient.Domain.Multiplayer
             Map.CoopInfo ?? GameMode.CoopInfo ?? null;
 
         public bool EnforceMaxPlayers =>
-            Map.EnforceMaxPlayers ?? GameMode.EnforceMaxPlayers ?? false;
+            Map.EnforceMaxPlayers ?? GameMode.EnforceMaxPlayers ?? IsCoop;
+
+        public bool EnforceMinPlayers =>
+            Map.EnforceMinPlayers ?? GameMode.EnforceMinPlayers ?? IsCoop;
 
         public bool ForceNoTeams =>
             Map.ForceNoTeams ?? GameMode.ForceNoTeams ?? false;
@@ -74,8 +77,6 @@ namespace DTAClient.Domain.Multiplayer
             Map.IsCoop ?? GameMode.IsCoop ?? false;
 
         public int MaxPlayers =>
-            // Note: GameLobbyBase.GetMapList() assumes the priority.
-            // If you have modified the expression here, you should also update GameLobbyBase.GetMapList().
             GameMode.MaxPlayersOverride ?? Map.MaxPlayers ?? GameMode.MaxPlayers ?? 0;
 
         public int MinPlayers =>

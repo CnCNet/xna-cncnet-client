@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -6,12 +9,22 @@ namespace ClientCore
     {
         public static void StartShellProcess(string commandLine, string arguments = null)
         {
-            using var _ = Process.Start(new ProcessStartInfo
+            try
             {
-                FileName = commandLine,
-                Arguments = arguments,
-                UseShellExecute = true
-            });
+                using var _ = Process.Start(new ProcessStartInfo
+                {
+                    FileName = commandLine,
+                    Arguments = arguments,
+                    UseShellExecute = true,
+                });
+            }
+            catch (Exception ex)
+            {
+                if (string.IsNullOrEmpty(arguments))
+                    Logger.Log($"Failed to start process '{commandLine}': {ex.Message}");
+                else
+                    Logger.Log($"Failed to start process '{commandLine} {arguments}': {ex.Message}");
+            }
         }
     }
 }

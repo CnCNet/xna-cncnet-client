@@ -7,6 +7,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -72,7 +73,7 @@ namespace DTAClient.Online
                 new IRCColor("Sky Blue".L10N("Client:Main:ColorSkyBlue"), true, Color.LightSkyBlue, 11),
                 new IRCColor("Blue".L10N("Client:Main:ColorBlue"), true, Color.RoyalBlue, 12),
                 new IRCColor("Pink".L10N("Client:Main:ColorPink"), true, Color.DeepPink, 13),
-                new IRCColor("Metalic".L10N("Client:Main:ColorLightGrayMetalic"), true, Color.LightGray, 14),
+                new IRCColor("Metallic".L10N("Client:Main:ColorLightGrayMetallic"), true, Color.LightGray, 14),
                 new IRCColor("Gray".L10N("Client:Main:ColorGray"), false, Color.Gray, 15)
             };
         }
@@ -312,7 +313,7 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            channel.Topic = topic;
+            channel.Topic = IRCFormatting.StripFormatting(topic, out _);
         }
 
         public void OnChannelTopicChanged(string userName, string channelName, string topic)
@@ -333,55 +334,36 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            Color foreColor;
+            if (string.IsNullOrEmpty(message))
+                return;
 
-            // Handle ACTION
-            if (message.Contains("ACTION"))
+            try
             {
-                message = message.Remove(0, 7);
-                message = "====> " + senderName + " " + message;
-                senderName = String.Empty;
+                // Previously there was an "ACTION" handling, to be compatible with Funky's client, but we don't officially support Funky's client anymore.
 
-                // Replace Funky's game identifiers with real game names
-                for (int i = 0; i < gameCollection.GameList.Count; i++)
-                    // TODO localize this or not?
-                    message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
-                        "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
+                // Chat messages only support a single color, so the first color code determines the message color
+                // and all other formatting codes are removed so they aren't rendered as unknown characters
+                message = IRCFormatting.StripFormatting(message, out int colorIndex);
 
-                foreColor = Color.White;
-            }
-            else
-            {
-                // Color parsing
-                if (message.Contains(Convert.ToString((char)03)))
-                {
-                    if (message.Length < 3)
-                    {
-                        foreColor = cDefaultChatColor;
-                    }
-                    else
-                    {
-                        string colorString = message.Substring(1, 2);
-                        message = message.Remove(0, 3);
-                        int colorIndex = Conversions.IntFromString(colorString, -1);
-                        // Try to parse message color info; if fails, use default color
-                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
-                            foreColor = ircChatColors[colorIndex].XnaColor;
-                        else
-                            foreColor = cDefaultChatColor;
-                    }
-                }
+                Color foreColor;
+                if (colorIndex > -1 && colorIndex < ircChatColors.Length)
+                    foreColor = ircChatColors[colorIndex].XnaColor;
                 else
                     foreColor = cDefaultChatColor;
+
+                ChannelUser user = channel.Users.Find(senderName);
+                bool senderIsAdmin = user != null && user.IsAdmin;
+
+                channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
             }
+            catch (Exception ex)
+            {
+                Logger.Log("Warning: failed to process IRC message (receiver=" + receiver + ", sender=" + senderName + ", ident=" + ident + "): " + ex);
 
-            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
-                message = message.Remove(message.Length - 1);
-
-            ChannelUser user = channel.Users.Find(senderName);
-            bool senderIsAdmin = user != null && user.IsAdmin;
-
-            channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+#if DEBUG
+                Debugger.Break();
+#endif
+            }
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)
@@ -557,6 +539,8 @@ namespace DTAClient.Online
 
         private void DoPrivateMessageReceived(string sender, string message)
         {
+            message = IRCFormatting.StripFormatting(message, out _);
+
             CnCNetPrivateMessageEventArgs e = new CnCNetPrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);

@@ -1,10 +1,11 @@
-﻿using ClientCore;
-using Rampastring.Tools;
+﻿#nullable enable
+
 using System;
-using System.Buffers.Binary;
 using System.IO;
-using OpenMcdf;
-using System.Diagnostics;
+
+using ClientCore;
+
+using Rampastring.Tools;
 
 namespace DTAClient.Domain
 {
@@ -21,7 +22,7 @@ namespace DTAClient.Domain
         }
 
         public string FileName { get; private set; }
-        public string GUIName { get; private set; }
+        public string GUIName { get; private set; } = string.Empty;
         public DateTime LastModified { get; private set; }
         public int CustomMissionID { get; private set; }
 
@@ -37,26 +38,23 @@ namespace DTAClient.Domain
 
                 using (Stream file = savedGameFileInfo.Open(FileMode.Open, FileAccess.Read))
                 {
-                    var cf = new CompoundFile(file);
+                    SavedGameMetadata metadata = OpenTSSavedGameReader.HasSignature(file)
+                        ? OpenTSSavedGameReader.ReadInfo(file)
+                        : OleSavedGameReader.ReadInfo(file);
 
-                    GUIName = System.Text.Encoding.Unicode.GetString(cf.RootStorage.GetStream("Scenario Description").GetData()).TrimEnd(['\0']);
-                    try
-                    {
-                        CustomMissionID = BinaryPrimitives.ReadInt32LittleEndian(cf.RootStorage.GetStream("CustomMissionID").GetData());
-                    }
-                    catch (CFItemNotFound)
-                    {
-                        CustomMissionID = 0;
-                    }
+                    GUIName = metadata.Description;
+                    CustomMissionID = metadata.CustomMissionID;
                 }
 
                 LastModified = savedGameFileInfo.LastWriteTime;
+
                 return true;
             }
             catch (Exception ex)
             {
                 Logger.Log("An error occured while parsing saved game " + FileName + ":" +
                     ex.ToString());
+
                 return false;
             }
         }

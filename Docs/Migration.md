@@ -1,15 +1,21 @@
-Migrating from older versions
------------------------------
+# Migrating from older versions
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
-## 2.13.0
-- The `CampaignSelector` window has been migrated to `INItializableWindow`. You must update the `CampaignSelector.ini` file. An example will be provided later.
+## 2.14.0
 
-- The control `chkBoxForceRandomTeams` has been renamed to chkBoxForceNoTeams. Please update `PlayerExtraOptionsPanel.ini` file by renaming the `[chkBoxForceRandomTeams]` section to `[chkBoxForceNoTeams]`.
+- The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
+- Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
+- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly.
+
+## 2.13.0
+
+- `PlayerExtraOptionsPanel` control in `GameLobbyBase` has been changed from `XNAWindow` to `XNAPanel`. INI file `PlayerExtraOptionsPanel.ini` is no longer parsed for control attributes, and therefore all contents in this file should be appended to `GameLobbyBase.ini`. In addition, the control `chkBoxForceRandomTeams` has been renamed to `chkBoxForceNoTeams`, so please rename the `[chkBoxForceRandomTeams]` section to `[chkBoxForceNoTeams]`.
+- The `Ude.NetStandard.dll` file has been moved to a new path. Please follow the "delete `Binaries` and `BinariesNET8`" note above.
+- The `steam_api64.dll` file has been moved to a new path. Please follow the "delete `Binaries` and `BinariesNET8`" note above.
 
 ## 2.12.12
 

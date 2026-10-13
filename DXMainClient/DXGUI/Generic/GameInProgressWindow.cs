@@ -6,7 +6,6 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
-using ClientCore.Enums;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Linq;
@@ -31,6 +30,7 @@ namespace DTAClient.DXGUI
 
         private bool initialized = false;
         private bool nativeCursorUsed = false;
+        private bool savedIsFixedTimeStep;
 
         private List<string> debugSnapshotDirectories;
         private DateTime debugLogLastWriteTime;
@@ -42,6 +42,7 @@ namespace DTAClient.DXGUI
                 throw new InvalidOperationException("GameInProgressWindow cannot be initialized twice!");
 
             initialized = true;
+            savedIsFixedTimeStep = Game.IsFixedTimeStep;
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -70,7 +71,8 @@ namespace DTAClient.DXGUI
 
             window.CenterOnParent();
 
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
+            if (Game.IsFixedTimeStep)
+                Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
 
             Visible = false;
             Enabled = false;
@@ -119,6 +121,8 @@ namespace DTAClient.DXGUI
             nativeCursorUsed = Game.IsMouseVisible;
             Game.IsMouseVisible = false;
             ProgramConstants.IsInGame = true;
+            savedIsFixedTimeStep = Game.IsFixedTimeStep;
+            Game.IsFixedTimeStep = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
 #if WINFORMS
 
@@ -141,16 +145,23 @@ namespace DTAClient.DXGUI
             else
                 WindowManager.Cursor.Visible = true;
             ProgramConstants.IsInGame = false;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
+            Game.IsFixedTimeStep = savedIsFixedTimeStep;
+            if (Game.IsFixedTimeStep)
+                Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
+
+            // Restoring the window or graphics mode recreates render targets. On a lost graphics
+            // device, recreating render targets throws, which would skip the post-game handling below
+            // (for example, processing screenshots and debug logs).
+            bool restoreGraphics = !GameClass.IsGraphicsDeviceLost;
 
 #if WINFORMS
-            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+            if (restoreGraphics && UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MaximizeWindow();
 
 #endif
             UserINISettings.Instance.ReloadSettings();
 
-            if (UserINISettings.Instance.BorderlessWindowedClient)
+            if (restoreGraphics && UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Hack: Re-set graphics mode
                 // Windows resizes our window if we're in fullscreen mode and

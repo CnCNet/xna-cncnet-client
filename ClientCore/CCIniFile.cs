@@ -54,11 +54,11 @@ namespace ClientCore
             if (basedOn.Contains("$THEME_DIR$"))
                 baseIniFile = SafePath.GetFile(basedOn.Replace("$THEME_DIR$", ProgramConstants.GetResourcePath()));
             else
-                baseIniFile = SafePath.GetFile(SafePath.GetFileDirectoryName(FileName), basedOn);
+                baseIniFile = SafePath.GetFile(SafePath.GetFileDirectoryName(FilePath), basedOn);
 
             // Consolidate with the INI file that this INI file is based on
             if (!baseIniFile.Exists)
-                Logger.Log(FileName + ": Base INI file not found! " + baseIniFile.FullName);
+                Logger.Log(FilePath + ": Base INI file not found! " + baseIniFile.FullName);
 
             CCIniFile baseIni = new CCIniFile(baseIniFile.FullName);
             ConsolidateIniFiles(baseIni, this);

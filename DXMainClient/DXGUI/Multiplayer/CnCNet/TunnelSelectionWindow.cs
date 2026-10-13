@@ -1,6 +1,7 @@
-﻿using ClientGUI;
+using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
@@ -8,7 +9,7 @@ using System;
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     /// <summary>
-    /// A window for selecting a CnCNet tunnel server.
+    /// A window for selecting a CnCNet tunnel server and tunnel mode.
     /// </summary>
     class TunnelSelectionWindow : XNAWindow
     {
@@ -17,14 +18,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.tunnelHandler = tunnelHandler;
         }
 
-        public event EventHandler<TunnelEventArgs> TunnelSelected;
+        public event EventHandler<TunnelSelectedEventArgs> TunnelSelected;
 
         private readonly TunnelHandler tunnelHandler;
         private TunnelListBox lbTunnelList;
+        private XNAPanel pnlTunnelListDisabledOverlay;
         private XNALabel lblDescription;
+        private XNADropDown ddMode;
         private XNAClientButton btnApply;
 
-        private string originalTunnelAddress;
+        private CnCNetTunnel originalTunnel;
+        private TunnelMode originalMode;
 
         public override void Initialize()
         {
@@ -43,12 +47,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             AddChild(lblDescription);
 
+            ddMode = new XNADropDown(WindowManager);
+            ddMode.Name = nameof(ddMode);
+            ddMode.X = lblDescription.X;
+            ddMode.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
+            ddMode.Width = 220;
+            ddMode.Height = UIDesignConstants.BUTTON_HEIGHT;
+            ddMode.AddItem(new XNADropDownItem { Text = "Dynamic (V3)".L10N("Client:Main:TunnelSelModeDynamic"), Tag = TunnelMode.V3Dynamic });
+            ddMode.AddItem(new XNADropDownItem { Text = "Static (V3)".L10N("Client:Main:TunnelSelModeStatic"), Tag = TunnelMode.V3Static });
+            ddMode.AddItem(new XNADropDownItem { Text = "Legacy (V2)".L10N("Client:Main:TunnelSelModeLegacy"), Tag = TunnelMode.V2Legacy });
+            ddMode.SelectedIndexChanged += DdMode_SelectedIndexChanged;
+            AddChild(ddMode);
+
             lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
             lbTunnelList.Name = nameof(lbTunnelList);
-            lbTunnelList.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             lbTunnelList.X = UIDesignConstants.EMPTY_SPACE_SIDES + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
+            lbTunnelList.Y = ddMode.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             AddChild(lbTunnelList);
             lbTunnelList.SelectedIndexChanged += LbTunnelList_SelectedIndexChanged;
+
+            pnlTunnelListDisabledOverlay = new XNAPanel(WindowManager);
+            pnlTunnelListDisabledOverlay.Name = nameof(pnlTunnelListDisabledOverlay);
+            pnlTunnelListDisabledOverlay.ClientRectangle = lbTunnelList.ClientRectangle;
+            pnlTunnelListDisabledOverlay.DrawBorders = false;
+            pnlTunnelListDisabledOverlay.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            AddChild(pnlTunnelListDisabledOverlay);
 
             btnApply = new XNAClientButton(WindowManager);
             btnApply.Name = nameof(btnApply);
@@ -76,35 +99,68 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
         }
 
+        private TunnelMode GetSelectedMode() => (TunnelMode)(ddMode.SelectedItem?.Tag ?? TunnelMode.V3Dynamic);
+
+        private void DdMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var mode = GetSelectedMode();
+            bool isDynamic = mode == TunnelMode.V3Dynamic;
+
+            lbTunnelList.Enabled = !isDynamic;
+            pnlTunnelListDisabledOverlay.Visible = isDynamic;
+            lbTunnelList.TargetVersion = mode == TunnelMode.V2Legacy ? 2 : 3;
+
+            UpdateApplyButton();
+        }
+
+        private void UpdateApplyButton()
+        {
+            var mode = GetSelectedMode();
+            if (mode == TunnelMode.V3Dynamic)
+            {
+                btnApply.AllowClick = originalMode != TunnelMode.V3Dynamic;
+            }
+            else
+            {
+                bool modeChanged = mode != originalMode;
+                bool tunnelChanged = originalTunnel == null ||
+                    !lbTunnelList.IsTunnelSelected(originalTunnel.Address, originalTunnel.Port);
+                btnApply.AllowClick = lbTunnelList.IsValidIndexSelected() && (modeChanged || tunnelChanged);
+            }
+        }
+
         private void BtnApply_LeftClick(object sender, EventArgs e)
         {
             Disable();
 
-            if (!lbTunnelList.IsValidIndexSelected())
+            var mode = GetSelectedMode();
+            CnCNetTunnel tunnel = (mode == TunnelMode.V3Dynamic) ? null : lbTunnelList.GetSelectedTunnel();
+
+            if (mode != TunnelMode.V3Dynamic && tunnel == null)
                 return;
 
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex];
-            TunnelSelected?.Invoke(this, new TunnelEventArgs(tunnel));
+            TunnelSelected?.Invoke(this, new TunnelSelectedEventArgs(tunnel, mode));
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e) => Disable();
 
-        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e) =>
-            btnApply.AllowClick = !lbTunnelList.IsTunnelSelected(originalTunnelAddress) && lbTunnelList.IsValidIndexSelected();
+        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e) => UpdateApplyButton();
 
         /// <summary>
-        /// Sets the window's description and selects the tunnel server
-        /// with the given address.
+        /// Opens the window with the given description, pre-selecting the current tunnel and mode.
         /// </summary>
-        /// <param name="description">The window description.</param>
-        /// <param name="tunnelAddress">The address of the tunnel server to select.</param>
-        public void Open(string description, string tunnelAddress = null)
+        public void Open(string description, CnCNetTunnel currentTunnel = null, TunnelMode currentMode = TunnelMode.V3Dynamic)
         {
             lblDescription.Text = description;
-            originalTunnelAddress = tunnelAddress;
+            originalTunnel = currentTunnel;
+            originalMode = currentMode;
 
-            if (!string.IsNullOrWhiteSpace(tunnelAddress))
-                lbTunnelList.SelectTunnel(tunnelAddress);
+            ddMode.SelectedIndex = Math.Max(0, ddMode.Items.FindIndex(i => (TunnelMode)i.Tag == currentMode));
+
+            DdMode_SelectedIndexChanged(this, EventArgs.Empty);
+
+            if (GetSelectedMode() != TunnelMode.V3Dynamic && currentTunnel != null)
+                lbTunnelList.SelectTunnel(currentTunnel.Address, currentTunnel.Port);
             else
                 lbTunnelList.SelectedIndex = -1;
 
@@ -112,8 +168,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 lbTunnelList.SetTopIndex(0);
 
-                while (lbTunnelList.SelectedIndex > lbTunnelList.LastIndex)
-                    lbTunnelList.TopIndex++;
+                int diff = lbTunnelList.SelectedIndex - lbTunnelList.LastIndex;
+                if (diff > 0)
+                    lbTunnelList.TopIndex = Math.Min(lbTunnelList.TopIndex + diff, lbTunnelList.ItemCount - 1);
             }
 
             btnApply.AllowClick = false;
@@ -121,13 +178,4 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
     }
 
-    class TunnelEventArgs : EventArgs
-    {
-        public TunnelEventArgs(CnCNetTunnel tunnel)
-        {
-            Tunnel = tunnel;
-        }
-
-        public CnCNetTunnel Tunnel { get; }
-    }
 }

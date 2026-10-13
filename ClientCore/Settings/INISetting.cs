@@ -47,6 +47,11 @@ namespace ClientCore.Settings
                 Set(DefaultValue);
         }
 
+        public void SetDefault()
+        {
+            Set(DefaultValue);
+        }
+
         protected abstract T Get();
 
         protected abstract void Set(T value);

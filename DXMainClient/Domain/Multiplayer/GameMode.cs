@@ -13,7 +13,7 @@ namespace DTAClient.Domain.Multiplayer
     /// <summary>
     /// A multiplayer game mode.
     /// </summary>
-    public class GameMode : GameModeMapBase
+    public class GameMode : GameModeMapBase, ICloneable
     {
         public GameMode(string name)
         {
@@ -75,6 +75,23 @@ namespace DTAClient.Domain.Multiplayer
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
+        public GameMode Clone()
+        {
+            GameMode clone = (GameMode)MemberwiseClone();
+            clone.Maps = [.. clone.Maps];
+            clone.DisallowedPlayerSides = [.. clone.DisallowedPlayerSides];
+            clone.DisallowedHumanPlayerSides = [.. clone.DisallowedHumanPlayerSides];
+            clone.DisallowedComputerPlayerSides = [.. clone.DisallowedComputerPlayerSides];
+            clone.ForcedCheckBoxValues = [.. clone.ForcedCheckBoxValues];
+            clone.ForcedDropDownValues = [.. clone.ForcedDropDownValues];
+            clone.ForcedSpawnIniOptions = [.. clone.ForcedSpawnIniOptions];
+            clone.randomizedMapCodeININames = [.. clone.randomizedMapCodeININames];
+
+            return clone;
+        }
+
+        object ICloneable.Clone() => Clone();
+
         public void Initialize()
         {
             IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
@@ -89,8 +106,8 @@ namespace DTAClient.Domain.Multiplayer
             MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
 
             forcedOptionsSection = section.GetStringValue("ForcedOptions", string.Empty);
-            mapCodeININame = section.GetStringValue("MapCodeININame", Name + ".ini");
-            randomizedMapCodeININames = section.GetStringValue("RandomizedMapCodeININames", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            mapCodeININame = section.GetStringValue("MapCodeIniName", section.GetStringValue("MapCodeININame", Name + ".ini"));
+            randomizedMapCodeININames = section.GetStringValue("RandomizedMapCodeIniNames", section.GetStringValue("RandomizedMapCodeININames", string.Empty)).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
             randomizedMapCodesCount = section.GetIntValue("RandomizedMapCodesCount", 1);
 
             DisallowedPlayerSides = section.GetListValue("DisallowedPlayerSides", ',', int.Parse);
