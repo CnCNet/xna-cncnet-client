@@ -1052,16 +1052,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == playerName);
 
-            if (pInfo != null)
-            {
-                _negotiator.RemovePlayer(playerName);
+            if (pInfo == null)
+                return;
 
-                Players.Remove(pInfo);
-                CopyPlayerDataToUI();
+            _negotiator.RemovePlayer(playerName);
 
-                if (IsHost)
-                    BroadcastPlayerOptions();
-            }
+            Players.Remove(pInfo);
+            CopyPlayerDataToUI();
+
+            if (IsHost)
+                BroadcastPlayerOptions();
 
             sndLeaveSound.Play();
 
