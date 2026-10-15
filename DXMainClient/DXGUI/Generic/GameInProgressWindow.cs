@@ -31,6 +31,9 @@ namespace DTAClient.DXGUI
         private bool initialized = false;
         private bool nativeCursorUsed = false;
         private bool savedIsFixedTimeStep;
+#if WINFORMS
+        private bool inGameIconUsed;
+#endif
 
         private List<string> debugSnapshotDirectories;
         private DateTime debugLogLastWriteTime;
@@ -125,6 +128,7 @@ namespace DTAClient.DXGUI
             Game.IsFixedTimeStep = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
 #if WINFORMS
+            SetInGameIcon(true);
 
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MinimizeWindow();
@@ -155,6 +159,8 @@ namespace DTAClient.DXGUI
             bool restoreGraphics = !GameClass.IsGraphicsDeviceLost;
 
 #if WINFORMS
+            SetInGameIcon(false);
+
             if (restoreGraphics && UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MaximizeWindow();
 
@@ -224,6 +230,30 @@ namespace DTAClient.DXGUI
                 CopySyncErrorLogs(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SyncErrorLogs"), dtn);
             }
         }
+
+#if WINFORMS
+        private void SetInGameIcon(bool inGame)
+        {
+            if (!inGame && !inGameIconUsed)
+                return;
+
+            try
+            {
+                string iconPath = SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(),
+                    inGame ? "ingameicon.ico" : "clienticon.ico");
+
+                if (inGame && !File.Exists(iconPath))
+                    return;
+
+                WindowManager.SetIcon(iconPath);
+                inGameIconUsed = inGame;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Unable to change the client window icon: " + ex.ToString());
+            }
+        }
+#endif
 
         /// <summary>
         /// Attempts to copy a general error log from game directory to another directory.

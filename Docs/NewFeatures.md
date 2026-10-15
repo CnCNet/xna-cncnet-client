@@ -14,6 +14,8 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - Replay recording and playback are now available to packages with a compatible spawner. Opt-in through `ReplaySupport=true` in `ClientDefinitions.ini`. Players turn recording on or off in the Game tab of the Options window. See [INISystem.md](INISystem.md) for the replay settings.
 
+- Windows builds that use WinForms support an optional `Resources/ingameicon.ico`. When present, the client uses it as its window icon while a launched game is running, then restores `Resources/clienticon.ico` when the game exits. If the optional icon is missing or cannot be loaded, the client keeps its current icon.
+
 ## 2.13.4
 
 - The `KeyboardCommands.ini` file now supports `DisableModifierKeys`. It is recommended to set this key for RA2/YR's `PlanningMode` (Waypoint Mode) command. See [INISystem.md](INISystem.md).
