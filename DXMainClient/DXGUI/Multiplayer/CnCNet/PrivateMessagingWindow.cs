@@ -62,6 +62,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNATextBox tbMessageInput;
 
+        private XNAClientButton btnBlockUser;
+
+        private readonly string BLOCK_USER = "Block User".L10N("Client:Main:BlockUser");
+        private readonly string UNBLOCK_USER = "Unblock User".L10N("Client:Main:UnblockUser");
+        private readonly string USER_BLOCKED = "{0} has been blocked.".L10N("Client:Main:UserBlocked");
+        private readonly string USER_UNBLOCKED = "{0} has been unblocked.".L10N("Client:Main:UserUnblocked");
+
+        /// <summary>
+        /// Users for which a WHOIS request to resolve their ident is pending,
+        /// so that multiple rapid clicks on the block button can't double-toggle.
+        /// </summary>
+        private readonly Dictionary<string, EventHandler<WhoEventArgs>> pendingWhoIsUsers =
+            new Dictionary<string, EventHandler<WhoEventArgs>>(StringComparer.OrdinalIgnoreCase);
+
         private GlobalContextMenu globalContextMenu;
 
         private CnCNetManager connectionManager;
@@ -184,6 +198,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
+            btnBlockUser = new XNAClientButton(WindowManager);
+            btnBlockUser.Name = nameof(btnBlockUser);
+            btnBlockUser.ClientRectangle = new Rectangle(
+                lbMessages.Right - UIDesignConstants.BUTTON_WIDTH_121,
+                lbMessages.Y - UIDesignConstants.BUTTON_HEIGHT,
+                UIDesignConstants.BUTTON_WIDTH_121,
+                UIDesignConstants.BUTTON_HEIGHT);
+            btnBlockUser.Text = BLOCK_USER;
+            btnBlockUser.LeftClick += BtnBlockUser_LeftClick;
+
             mclbRecentPlayerList = new RecentPlayerTable(WindowManager, connectionManager);
             mclbRecentPlayerList.ClientRectangle = new Rectangle(lbUserList.X, lbUserList.Y, lbMessages.Right - lbUserList.X, lbUserList.Height);
             mclbRecentPlayerList.PlayerRightClick += RecentPlayersList_RightClick;
@@ -203,6 +227,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblMessages);
             AddChild(lbMessages);
             AddChild(tbMessageInput);
+            AddChild(btnBlockUser);
             AddChild(mclbRecentPlayerList);
             AddChild(globalContextMenu);
             WindowManager.AddAndInitializeControl(notificationBox);
@@ -259,6 +284,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void ConnectionManager_UserRemoved(object sender, UserNameIndexEventArgs e)
         {
+            CancelPendingWhoIs(e.UserName);
+
             var pmUser = privateMessageUsers.Find(pmsgUser => pmsgUser.IrcUser.Name == e.UserName);
             ChatMessage leaveMessage = null;
 
@@ -333,7 +360,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     if (lbItem == lbUserList.SelectedItem)
                     {
-                        tbMessageInput.Enabled = true;
+                        tbMessageInput.Enabled = !IsUserBlocked(e.User);
+                        UpdateBlockUserButton();
 
                         if (joinMessage != null)
                             lbMessages.AddMessage(joinMessage);
@@ -376,6 +404,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
+            UpdateBlockUserButton();
         }
 
         public void SetInviteChannelInfo(string channelName, string gameName, string channelPassword)
@@ -426,6 +455,92 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private bool IsPlayerOnline(string playerName) => !string.IsNullOrEmpty(playerName) && connectionManager.UserList.Find(u => u.Name == playerName) != null;
+
+        private bool IsUserBlocked(IRCUser ircUser) =>
+            ircUser != null && !string.IsNullOrEmpty(ircUser.Ident) && cncnetUserData.IsIgnored(ircUser.Ident);
+
+        private void UpdateBlockUserButton()
+        {
+            var ircUser = (IRCUser)lbUserList.SelectedItem?.Tag;
+
+            btnBlockUser.Enabled = ircUser != null;
+
+            if (ircUser == null || string.IsNullOrEmpty(ircUser.Ident))
+            {
+                btnBlockUser.Text = BLOCK_USER;
+                return;
+            }
+
+            btnBlockUser.Text = cncnetUserData.IsIgnored(ircUser.Ident) ? UNBLOCK_USER : BLOCK_USER;
+        }
+
+        private void BtnBlockUser_LeftClick(object sender, EventArgs e)
+        {
+            var ircUser = (IRCUser)lbUserList.SelectedItem?.Tag;
+            if (ircUser == null)
+                return;
+
+            if (!string.IsNullOrEmpty(ircUser.Ident))
+            {
+                ToggleIgnoreUserAndNotify(ircUser, ircUser.Ident);
+                return;
+            }
+
+            if (pendingWhoIsUsers.ContainsKey(ircUser.Name))
+                return;
+
+            EventHandler<WhoEventArgs> whoIsReply = (whoSender, whoEventargs) =>
+            {
+                if (!string.Equals(whoEventargs.UserName, ircUser.Name, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                CancelPendingWhoIs(ircUser.Name);
+
+                if (!string.IsNullOrEmpty(whoEventargs.Ident))
+                {
+                    ircUser.Ident = whoEventargs.Ident;
+                    ToggleIgnoreUserAndNotify(ircUser, whoEventargs.Ident);
+                }
+            };
+
+            pendingWhoIsUsers.Add(ircUser.Name, whoIsReply);
+            connectionManager.WhoReplyReceived += whoIsReply;
+            connectionManager.SendWhoIsMessage(ircUser.Name);
+        }
+
+        private void CancelPendingWhoIs(string userName)
+        {
+            if (string.IsNullOrEmpty(userName))
+                return;
+
+            if (pendingWhoIsUsers.TryGetValue(userName, out EventHandler<WhoEventArgs> whoIsReply))
+            {
+                connectionManager.WhoReplyReceived -= whoIsReply;
+                pendingWhoIsUsers.Remove(userName);
+            }
+        }
+
+        private void ToggleIgnoreUserAndNotify(IRCUser ircUser, string ident)
+        {
+            bool isBlocked = !cncnetUserData.IsIgnored(ident);
+            cncnetUserData.ToggleIgnoreUser(ident);
+            ircUser.IsIgnored = isBlocked;
+
+            ChatMessage systemMessage = new ChatMessage(string.Format(
+                isBlocked ? USER_BLOCKED : USER_UNBLOCKED, ircUser.Name));
+
+            PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == ircUser.Name);
+            if (pmUser != null)
+                pmUser.Messages.Add(systemMessage);
+
+            if (ReferenceEquals(lbUserList.SelectedItem?.Tag, ircUser))
+            {
+                lbMessages.AddMessage(systemMessage);
+                tbMessageInput.Enabled = IsPlayerOnline(ircUser.Name) && !isBlocked;
+            }
+
+            UpdateBlockUserButton();
+        }
 
         private void PrivateMessageHandler_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
         {
@@ -584,7 +699,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             var ircUser = (IRCUser)lbUserList.SelectedItem.Tag;
-            tbMessageInput.Enabled = IsPlayerOnline(ircUser?.Name);
+            tbMessageInput.Enabled = IsPlayerOnline(ircUser?.Name) && !IsUserBlocked(ircUser);
+            UpdateBlockUserButton();
 
             var pmUser = privateMessageUsers.Find(u =>
                 u.IrcUser.Name == lbUserList.SelectedItem.Text);
@@ -669,6 +785,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tbMessageInput.Disable();
                 lblMessages.Disable();
                 lbUserList.Disable();
+                btnBlockUser.Disable();
                 lblPlayers.Text = RECENT_PLAYERS_TEXT;
                 mclbRecentPlayerList.Enable();
             }
@@ -680,6 +797,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbUserList.Enable();
                 lblPlayers.Text = DEFAULT_PLAYERS_TEXT;
                 mclbRecentPlayerList.Disable();
+                UpdateBlockUserButton();
             }
         }
 
