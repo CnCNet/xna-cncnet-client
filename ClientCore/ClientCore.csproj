@@ -3,6 +3,7 @@
     <Description>CnCNet Client Core Library</Description>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="Ude.NetStandard" />
   </ItemGroup>
