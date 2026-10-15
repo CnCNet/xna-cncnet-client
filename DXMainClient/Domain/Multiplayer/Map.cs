@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -7,14 +7,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
-
 using ClientCore;
 using ClientCore.Extensions;
-
 using DTAClient.DXGUI.Multiplayer.GameLobby;
-
 using Rampastring.Tools;
-
 using SixLabors.ImageSharp;
 
 using Point = Microsoft.Xna.Framework.Point;
@@ -197,7 +193,36 @@ namespace DTAClient.Domain.Multiplayer
 
         public void CalculateSHA()
         {
-            SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+            IReadOnlyList<string> mapFilePaths = GetMapFilePaths();
+            if (mapFilePaths.Count == 1)
+            {
+                SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+                return;
+            }
+
+            StringBuilder sb = new();
+            foreach (var file in mapFilePaths)
+                sb.AppendLine(Utilities.CalculateSHA1ForFile(file));
+            SHA1 = Utilities.CalculateSHA1ForString(sb.ToString());
+        }
+
+        public IReadOnlyList<string> GetMapFilePaths()
+        {
+            var paths = new List<string> { CompleteFilePath };
+            var knownPaths = new HashSet<string>(paths, StringComparer.OrdinalIgnoreCase);
+
+            foreach (string extension in ClientConfiguration.Instance.SupplementalMapFileExtensions)
+            {
+                string ext = "." + extension;
+                if (string.IsNullOrEmpty(ext))
+                    continue;
+
+                string supplementalFilePath = Path.ChangeExtension(CompleteFilePath, ext);
+                if (File.Exists(supplementalFilePath) && knownPaths.Add(supplementalFilePath))
+                    paths.Add(supplementalFilePath);
+            }
+
+            return paths;
         }
 
         [JsonInclude]
@@ -213,6 +238,9 @@ namespace DTAClient.Domain.Multiplayer
 
         [JsonIgnore]
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
+
+        [JsonIgnore]
+        private List<KeyValuePair<string, string>> Vars = new List<KeyValuePair<string, string>>(0);
 
         /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
@@ -356,6 +384,15 @@ namespace DTAClient.Domain.Multiplayer
 
                 ExtraININame = section.GetStringValueOrNull("ExtraIniName") ?? section.GetStringValueOrNull("ExtraININame");
 
+                string varsSections = iniFile.GetStringValue(BaseFilePath, "Vars", string.Empty);
+
+                if (!string.IsNullOrEmpty(varsSections))
+                {
+                    string[] sections = varsSections.Split(',');
+                    foreach (string varsSection in sections)
+                        ParseVars(iniFile, varsSection);
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -444,7 +481,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Loads map information from a TS/RA2 map INI file.
+        /// Loads map information from the configured INI map file.
         /// Returns true if successful, otherwise false.
         /// </summary>
         public bool InitializeFromCustomMap()
@@ -598,6 +635,23 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        private void ParseVars(IniFile iniFile, string varsSection)
+        {
+            List<string> varsKeys = iniFile.GetSectionKeys(varsSection);
+
+            if (varsKeys == null)
+            {
+                Logger.Log("Invalid Vars section \"" + varsSection + "\" in map " + BaseFilePath);
+                return;
+            }
+
+            foreach (string key in varsKeys)
+            {
+                Vars.Add(new KeyValuePair<string, string>(key,
+                    iniFile.GetStringValue(varsSection, key, string.Empty)));
+            }
+        }
+
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
         public Image GetImmediatePreviewImage() => IsImmediatePreviewImageAvailable()
@@ -631,6 +685,19 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             return mapIni;
+        }
+
+        public void ApplyMapIniVars(IniFile mapIni)
+        {
+            if (Vars.Count == 0)
+                return;
+
+            // Ensure Vars section exists
+            if (!mapIni.SectionExists("Vars"))
+                mapIni.AddSection("Vars");
+
+            foreach (KeyValuePair<string, string> key in Vars)
+                mapIni.SetStringValue("Vars", key.Key, key.Value);
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount,

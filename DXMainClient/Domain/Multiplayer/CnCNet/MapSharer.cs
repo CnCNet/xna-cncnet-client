@@ -143,17 +143,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (zipFile.Exists) zipFile.Delete();
 
-            string mapFileName = $"{map.SHA1}.{ClientConfiguration.Instance.MapFileExtension}";
-
-            File.Copy(SafePath.CombineFilePath(map.CompleteFilePath), SafePath.CombineFilePath(ProgramConstants.GamePath, mapFileName));
-
-            CreateZipFile(mapFileName, zipFile.FullName);
-
-            try
-            {
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, mapFileName);
-            }
-            catch { }
+            CreateZipFile(map, zipFile.FullName);
 
             // Upload the file to the URI. 
             // The 'UploadFile(uriString,fileName)' method implicitly uses HTTP POST method. 
@@ -222,11 +212,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return new TimedHttpClient(UPLOAD_TIMEOUT).Post(address, content);
         }
 
-        private static void CreateZipFile(string file, string zipName)
+        private static void CreateZipFile(Map map, string zipName)
         {
             using var zipFileStream = new FileStream(zipName, FileMode.CreateNew, FileAccess.Write);
             using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
-            archive.CreateEntryFromFile(SafePath.CombineFilePath(ProgramConstants.GamePath, file), file);
+
+            foreach (string filePath in map.GetMapFilePaths())
+            {
+                string entryName = map.SHA1 + Path.GetExtension(filePath).ToLowerInvariant();
+                archive.CreateEntryFromFile(filePath, entryName);
+            }
         }
 
         private static string ExtractZipFile(string zipFile, string destDir)

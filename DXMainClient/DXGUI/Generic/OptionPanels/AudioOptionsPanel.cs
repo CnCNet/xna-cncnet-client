@@ -1,9 +1,13 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
+
 using ClientGUI;
+
 using Microsoft.Xna.Framework;
+
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+
 using System;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
