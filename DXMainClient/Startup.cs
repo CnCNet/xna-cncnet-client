@@ -28,10 +28,15 @@ namespace DTAClient
     /// </summary>
     public class Startup
     {
+        public const int UNATTENDED_UPDATE_SUCCEEDED = 0;
+        public const int UNATTENDED_UPDATE_FAILED = 1;
+        public const int UNATTENDED_UPDATE_MANUAL_UPDATE_REQUIRED = 2;
+
         /// <summary>
         /// The main method for startup and initialization.
         /// </summary>
-        public void Execute()
+        /// <param name="unattendedUpdate">Whether to only check for and install updates without showing any UI.</param>
+        public void Execute(bool unattendedUpdate)
         {
             ProgramConstants.RESOURCES_DIR = SafePath.CombineDirectoryPath(ProgramConstants.BASE_RESOURCE_PATH, UserINISettings.Instance.ThemeFolderPath);
 
@@ -45,6 +50,14 @@ namespace DTAClient
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "version_u");
 
             Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
+
+            if (unattendedUpdate)
+            {
+                DeleteTemporaryUpdaterDirectory();
+                Environment.ExitCode = RunUnattendedUpdate();
+
+                return;
+            }
 
             Logger.Log("OSDescription: " + RuntimeInformation.OSDescription);
             Logger.Log("OSArchitecture: " + RuntimeInformation.OSArchitecture);
@@ -73,19 +86,7 @@ namespace DTAClient
             // Start INI file preprocessor
             PreprocessorBackgroundTask.Instance.Run();
 
-            DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
-
-            if (updaterFolder.Exists)
-            {
-                Logger.Log("Attempting to delete temporary updater directory.");
-                try
-                {
-                    updaterFolder.Delete(true);
-                }
-                catch
-                {
-                }
-            }
+            DeleteTemporaryUpdaterDirectory();
 
             if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
             {
@@ -159,6 +160,80 @@ namespace DTAClient
                 Task.Run(InitSteamworks);
 
             gameClass.Run();
+        }
+
+        private static void DeleteTemporaryUpdaterDirectory()
+        {
+            DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
+
+            if (updaterFolder.Exists)
+            {
+                Logger.Log("Attempting to delete temporary updater directory.");
+                try
+                {
+                    updaterFolder.Delete(true);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks for updates and installs them without showing any UI.
+        /// </summary>
+        /// <returns>The exit code of the client process.</returns>
+        private static int RunUnattendedUpdate()
+        {
+            if (Updater.UpdateMirrors.Count < 1)
+            {
+                Logger.Log("Unattended update: No update mirrors are configured.");
+                return UNATTENDED_UPDATE_FAILED;
+            }
+
+            Updater.Unattended = true;
+            Updater.CheckLocalFileVersions();
+
+            var versionCheck = new TaskCompletionSource<bool>();
+            Updater.FileIdentifiersUpdated += () => versionCheck.TrySetResult(true);
+            Updater.CheckForUpdates();
+            versionCheck.Task.Wait();
+
+            switch (Updater.VersionState)
+            {
+                case VersionState.UPTODATE:
+                    Logger.Log("Unattended update: The game is up to date.");
+                    return UNATTENDED_UPDATE_SUCCEEDED;
+                case VersionState.OUTDATED when Updater.ManualUpdateRequired:
+                    Logger.Log("Unattended update: A manual update is required. Download URL: " + Updater.ManualDownloadURL);
+                    return UNATTENDED_UPDATE_MANUAL_UPDATE_REQUIRED;
+                case VersionState.OUTDATED:
+                    break;
+                default:
+                    Logger.Log("Unattended update: Checking for updates failed.");
+                    return UNATTENDED_UPDATE_FAILED;
+            }
+
+            Logger.Log("Unattended update: Updating to version " + Updater.ServerGameVersion + ".");
+
+            var update = new TaskCompletionSource<bool>();
+            Updater.OnUpdateCompleted += () => update.TrySetResult(true);
+            Updater.OnUpdateFailed += _ => update.TrySetResult(false);
+
+            // The second-stage updater replaces the remaining files after this process exits
+            Updater.Restart += (_, _) => update.TrySetResult(true);
+
+            Updater.StartUpdate();
+
+            if (!update.Task.Result)
+            {
+                Logger.Log("Unattended update: The update failed.");
+                return UNATTENDED_UPDATE_FAILED;
+            }
+
+            Logger.Log("Unattended update: The update finished.");
+
+            return UNATTENDED_UPDATE_SUCCEEDED;
         }
 
         [SupportedOSPlatform("windows")]

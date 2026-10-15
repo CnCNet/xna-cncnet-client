@@ -251,6 +251,7 @@ namespace DTAClient
 
             bool noAudio = false;
             bool multipleInstanceMode = false;
+            bool unattendedUpdate = false;
             List<string> unknownStartupParams = new List<string>();
 
             for (int arg = 0; arg < args.Length; arg++)
@@ -265,13 +266,16 @@ namespace DTAClient
                     case "-MULTIPLEINSTANCE":
                         multipleInstanceMode = true;
                         break;
+                    case "-UPDATE":
+                        unattendedUpdate = true;
+                        break;
                     default:
                         unknownStartupParams.Add(argument);
                         break;
                 }
             }
 
-            var parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
+            var parameters = new StartupParams(noAudio, multipleInstanceMode, unattendedUpdate, unknownStartupParams);
 
             if (multipleInstanceMode)
             {
@@ -301,6 +305,8 @@ namespace DTAClient
                 }
                 catch (TimeoutException)
                 {
+                    // Another client instance is running
+                    Environment.ExitCode = 1;
                     return;
                 }
 
