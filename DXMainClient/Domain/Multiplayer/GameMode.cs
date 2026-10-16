@@ -62,6 +62,11 @@ namespace DTAClient.Domain.Multiplayer
 
         public int? MaxPlayersOverride { get; private set; }
 
+        /// <summary>
+        /// Use difficulty dropdown in game lobby instead of <see cref="GameModeMapBase.CoopDifficultyLevel"/> for AI difficulty.
+        /// </summary>
+        public bool? UseDifficultyDropDown { get; set; }
+
         private string mapCodeININame;
         private List<string> randomizedMapCodeININames;
         private int randomizedMapCodesCount;
@@ -104,6 +109,7 @@ namespace DTAClient.Domain.Multiplayer
 
             MinPlayersOverride = section.GetIntValueOrNull("MinPlayersOverride");
             MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
+            UseDifficultyDropDown = section.GetBooleanValueOrNull("UseDifficultyDropDown");
 
             forcedOptionsSection = section.GetStringValue("ForcedOptions", string.Empty);
             mapCodeININame = section.GetStringValue("MapCodeIniName", section.GetStringValue("MapCodeININame", Name + ".ini"));

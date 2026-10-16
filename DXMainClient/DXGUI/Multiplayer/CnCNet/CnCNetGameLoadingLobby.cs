@@ -884,6 +884,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(savedMapSHA1);
             sb.Append(";");
             sb.Append(savedBroadcastOptionValues);
+            sb.Append(CoopDifficulty);
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
