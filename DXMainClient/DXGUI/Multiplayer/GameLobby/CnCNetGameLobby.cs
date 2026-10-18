@@ -1000,6 +1000,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
+            // Keep excess users out of the game lobby
+            if (Players.Count >= MAX_PLAYER_COUNT || (IsHost && Players.Count >= playerLimit))
+            {
+                if (IsHost)
+                    channel.SendKickMessage(e.User.IRCUser.Name, 8);
+
+                return;
+            }
+
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
@@ -1045,16 +1054,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == playerName);
 
-            if (pInfo != null)
-            {
-                _negotiator.RemovePlayer(playerName);
+            if (pInfo == null)
+                return;
 
-                Players.Remove(pInfo);
-                CopyPlayerDataToUI();
+            _negotiator.RemovePlayer(playerName);
 
-                if (IsHost)
-                    BroadcastPlayerOptions();
-            }
+            Players.Remove(pInfo);
+            CopyPlayerDataToUI();
+
+            if (IsHost)
+                BroadcastPlayerOptions();
 
             sndLeaveSound.Play();
 

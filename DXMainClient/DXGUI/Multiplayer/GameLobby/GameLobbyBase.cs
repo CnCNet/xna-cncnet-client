@@ -2706,13 +2706,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
-                if (checkBox.AllowScoring)
+                if (!checkBox.AllowScoring)
                     return Rank.None;
             }
 
             foreach (GameLobbyDropDown dropDown in DropDowns)
             {
-                if (dropDown.AllowScoring)
+                if (!dropDown.AllowScoring)
                     return Rank.None;
             }
 
