@@ -10,7 +10,7 @@ jobs:
   build-clients:
     runs-on: windows-2025-vs2026
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: recursive
@@ -24,7 +24,7 @@ jobs:
       run: ./Scripts/Build.ps1
       shell: pwsh
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       name: Upload Artifacts
       with:
         name: artifacts
