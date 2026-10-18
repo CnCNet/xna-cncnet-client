@@ -146,18 +146,18 @@ function Script:Invoke-BuildProject
 
 function Script:Invoke-BuildMigrationTool
 {
-    ForEach ($Engine in 'net8.0', 'net48')
+    ForEach ($Engine in 'net48')
     {
         $Private:MTFramework = $Engine
         $Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
         $Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
-        $Private:MTOutput = Join-Path $MTCompiledPath 'Resources' $FrameworkBinariesFolderMap[$Engine]
+        $Private:MTOutput = Join-Path $MTCompiledPath 'MigrationTool'
         $Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
         $Private:MTArgumentList.Add('publish')
         $Private:MTArgumentList.Add("$MTProjectPath")
         $Private:MTArgumentList.Add('--graph')
         $Private:MTArgumentList.Add("--framework:$MTFramework")
-        $Private:MTArgumentList.Add("--output:$MTOutput\MigrationTool")
+        $Private:MTArgumentList.Add("--output:$MTOutput")
         $Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
         if ($Log)
         {

@@ -22,10 +22,7 @@ jobs:
 
     - name: Build
       shell: pwsh
-      run: |
-        ./Scripts/Build.ps1
-        mv ./Compiled/Resources/Binaries/MigrationTool ./Compiled/MigrationTool
-        rm -r -fo ./Compiled/Resources/BinariesNET8/MigrationTool
+      run: ./Scripts/Build.ps1
 
     - uses: actions/upload-artifact@v7
       name: Upload Client Artifacts
