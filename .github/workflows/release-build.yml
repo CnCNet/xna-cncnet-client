@@ -41,15 +41,24 @@ jobs:
         }
 
     - name: Build
-      run: ./Scripts/Build.ps1
       shell: pwsh
+      run: |
+        ./Scripts/Build.ps1
+        mv ./Compiled/Resources/Binaries/MigrationTool ./Compiled/MigrationTool
+        rm -r -fo ./Compiled/Resources/BinariesNET8/MigrationTool
 
-    - name: Zip Artifact
-      run: 7z a -t7z -mx=9 -m0=lzma2 -ms=on -r -- ${{ format('xna-cncnet-client-{0}.7z', env.GitVersion_SemVer) }} ./Compiled/*
+    - name: Zip Client Artifacts
       shell: pwsh
+      run: 7z a -t7z -mx=9 -m0=lzma2 -ms=on -r -- ${{ format('xna-cncnet-client-{0}.7z', env.GitVersion_SemVer) }} ./Compiled/Resources/*
+
+    - name: Zip Migration Tool Artifacts
+      shell: pwsh
+      run: 7z a -t7z -mx=9 -m0=lzma2 -ms=on -r -- ${{ format('migration-tool-{0}.7z', env.GitVersion_SemVer) }} ./Compiled/MigrationTool/*
 
     - name: Upload Final Artifact to the Release
       uses: softprops/action-gh-release@v2
       with:
         append_body: true
-        files: ${{ format('xna-cncnet-client-{0}.7z', env.GitVersion_SemVer) }}
+        files: |
+          ${{ format('xna-cncnet-client-{0}.7z', env.GitVersion_SemVer) }}
+          ${{ format('migration-tool-{0}.7z', env.GitVersion_SemVer) }}

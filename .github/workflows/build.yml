@@ -21,11 +21,20 @@ jobs:
         global-json-file: ./global.json
 
     - name: Build
-      run: ./Scripts/Build.ps1
       shell: pwsh
+      run: |
+        ./Scripts/Build.ps1
+        mv ./Compiled/Resources/Binaries/MigrationTool ./Compiled/MigrationTool
+        rm -r -fo ./Compiled/Resources/BinariesNET8/MigrationTool
 
     - uses: actions/upload-artifact@v7
-      name: Upload Artifacts
+      name: Upload Client Artifacts
       with:
-        name: artifacts
-        path: ./Compiled
+        name: artifacts-client
+        path: ./Compiled/Resources
+          
+    - uses: actions/upload-artifact@v7
+      name: Upload Migration Tool Artifacts
+      with:
+        name: artifacts-migration-tool
+        path: ./Compiled/MigrationTool
