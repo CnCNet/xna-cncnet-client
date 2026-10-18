@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.VisualBasic.FileIO;
 
 using Rampastring.Tools;
 
@@ -60,20 +61,15 @@ internal sealed class Program
                     return;
                 }
 
-                Logger.Log("Warning: Back your folder before running the tool, because client configuration can be failed.");
+                Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
                 Logger.Log("Press any key to begin migration.");
                 Console.ReadKey();
 
-                var thisDir = SafePath.GetDirectory(arg);
-                var parentDir = thisDir.Parent;
-                string backupDirPath = SafePath.CombineFilePath(parentDir?.FullName, thisDir.Name + "_backup");
-                var backupDir = SafePath.GetDirectory(backupDirPath);
-
-                if (!Directory.Exists(backupDirPath))
+                if (!Directory.Exists(arg + "_backup"))
                 {
-                    Logger.Log($"Creating backup: {backupDirPath}");
-                    CopyDirectory(thisDir, backupDir);
-                    Logger.Log("Backup completed.");
+                    Logger.Log($"Creating backup: {arg + "_backup"}");
+                    FileSystem.CopyDirectory(arg, arg + "_backup");
+                    Logger.Log("Backup created.");
                 }
 
                 var assembly = Assembly.GetExecutingAssembly();
@@ -106,16 +102,5 @@ internal sealed class Program
                 Console.WriteLine(ERROR_MESSAGE);
                 break;
         }
-    }
-
-    private static void CopyDirectory(DirectoryInfo source, DirectoryInfo destination)
-    {
-        destination.Create();
-
-        foreach (var file in source.GetFiles())
-            file.CopyTo(SafePath.CombineFilePath(destination.FullName, file.Name));
-
-        foreach (var directory in source.GetDirectories())
-            CopyDirectory(directory, SafePath.GetDirectory(destination.FullName, directory.Name));
     }
 }

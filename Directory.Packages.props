@@ -47,6 +47,9 @@
     <PackageVersion Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
   <!-- I don't know how to write it. but I think we should make a note at here. -->
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'DXMainClient'">
     <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
