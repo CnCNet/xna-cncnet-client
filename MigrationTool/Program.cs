@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 
 using Rampastring.Tools;
-using ClientCore;
-using ClientCore.Extensions;
 
 namespace MigrationTool;
 
@@ -66,6 +64,18 @@ internal sealed class Program
                 Logger.Log("Press any key to begin migration.");
                 Console.ReadKey();
 
+                var thisDir = SafePath.GetDirectory(arg);
+                var parentDir = thisDir.Parent;
+                string backupDirPath = SafePath.CombineFilePath(parentDir?.FullName, thisDir.Name + "_backup");
+                var backupDir = SafePath.GetDirectory(backupDirPath);
+
+                if (!Directory.Exists(backupDirPath))
+                {
+                    Logger.Log($"Creating backup: {backupDirPath}");
+                    CopyDirectory(thisDir, backupDir);
+                    Logger.Log("Backup completed.");
+                }
+
                 var assembly = Assembly.GetExecutingAssembly();
                 Patch? patch = null;
                 try
@@ -96,5 +106,16 @@ internal sealed class Program
                 Console.WriteLine(ERROR_MESSAGE);
                 break;
         }
+    }
+
+    private static void CopyDirectory(DirectoryInfo source, DirectoryInfo destination)
+    {
+        destination.Create();
+
+        foreach (var file in source.GetFiles())
+            file.CopyTo(SafePath.CombineFilePath(destination.FullName, file.Name));
+
+        foreach (var directory in source.GetDirectories())
+            CopyDirectory(directory, SafePath.GetDirectory(destination.FullName, directory.Name));
     }
 }
