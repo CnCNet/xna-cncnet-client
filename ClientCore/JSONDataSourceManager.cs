@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,6 +142,9 @@ public class JSONDataSourceManager
 
     private class DataSource
     {
+        // Per-request timeouts are applied with a CancellationToken in DownloadWithTimeout.
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+
         private readonly string _id;
         private readonly string _url;
         private readonly int _refreshIntervalSeconds;
@@ -208,6 +211,10 @@ public class JSONDataSourceManager
                 try
                 {
                     await FetchAndNotifyAsync(token);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -276,38 +283,32 @@ public class JSONDataSourceManager
             }
         }
 
+        /// <summary>
+        /// Downloads the URL as a string, or returns null on timeout or error.
+        /// Throws <see cref="OperationCanceledException"/> if <paramref name="token"/> is cancelled.
+        /// </summary>
         private async Task<string> DownloadWithTimeout(string url, int timeoutSeconds, CancellationToken token)
         {
-            using (var cts = new CancellationTokenSource())
-            using (var webClient = new WebClient())
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+
+            try
             {
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
-                var downloadTask = webClient.DownloadStringTaskAsync(url);
-
-                var completed = await Task.WhenAny(downloadTask, timeoutTask);
-
-                if (completed == timeoutTask)
-                {
-                    Logger.Log($"JSONDataSourceManager: Timeout for '{_id}' ({url})");
-                    return null;
-                }
-
-                cts.Cancel();
-
-                if (token.IsCancellationRequested)
-                    return null;
-
-                try
-                {
-                    return await downloadTask;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"JSONDataSourceManager: Download error for '{_id}': {ex.Message}");
-                    return null;
-                }
+                // GetAsync buffers the whole body by default, so the timeout covers the full download.
+                using var response = await _httpClient.GetAsync(url, cts.Token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!token.IsCancellationRequested)
+            {
+                Logger.Log($"JSONDataSourceManager: Timeout for '{_id}' ({url})");
+                return null;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Logger.Log($"JSONDataSourceManager: Download error for '{_id}': {ex.Message}");
+                return null;
             }
         }
-
     }
 }
