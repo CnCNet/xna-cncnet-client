@@ -244,7 +244,7 @@ internal static class TelemetryService
 #endif
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var cts = new CancellationTokenSource(REQUEST_TIMEOUT_MILLISECONDS);
-            using var response = await httpClient.PostAsync(INGEST_URL, content, cts.Token).ConfigureAwait(false);
+            using var response = await httpClient.PostAsync(GetIngestUrl(), content, cts.Token).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
@@ -274,6 +274,20 @@ internal static class TelemetryService
         ["Game.name"] = ClientConfiguration.Instance.LocalGame,
         ["Game.version"] = ProgramConstants.GAME_VERSION,
     };
+
+    /// <summary>
+    /// Returns the namespace endpoint if the game has a TelemetryDeck namespace configured,
+    /// otherwise the endpoint for organizations without a namespace.
+    /// </summary>
+    private static string GetIngestUrl()
+    {
+        string telemetryNamespace = ClientConfiguration.Instance.TelemetryDeckNamespace.Trim();
+
+        if (string.IsNullOrEmpty(telemetryNamespace))
+            return INGEST_URL;
+
+        return INGEST_URL + "namespace/" + Uri.EscapeDataString(telemetryNamespace) + "/";
+    }
 
     /// <summary>
     /// Lists the type and message of the exception and its inner exceptions,

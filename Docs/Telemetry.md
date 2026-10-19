@@ -10,10 +10,12 @@ How to set up telemetry for your mod/game
 -----------------------------------
 1. Create an account and an app on [TelemetryDeck](https://dashboard.telemetrydeck.com/).
 2. Copy the app ID and insert it as a value of `Resources/ClientDefinitions.ini`->`[Settings]`->`TelemetryDeckAppID` key.
+3. If your TelemetryDeck organization has a namespace, insert it as a value of the `TelemetryDeckNamespace` key. TelemetryDeck recommends sending signals to the namespace endpoint when there is one.
 
 ```ini
 [Settings]
 TelemetryDeckAppID=00000000-0000-0000-0000-000000000000
+TelemetryDeckNamespace=com.example
 ```
 
 Debug builds of the client mark their signals as test signals, so they don't show up in your production data.

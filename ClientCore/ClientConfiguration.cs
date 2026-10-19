@@ -222,6 +222,11 @@ namespace ClientCore
         /// </summary>
         public string TelemetryDeckAppID => clientDefinitionsIni.GetStringValue(SETTINGS, "TelemetryDeckAppID", string.Empty);
 
+        /// <summary>
+        /// The TelemetryDeck namespace of the organization that owns the app, if it has one.
+        /// </summary>
+        public string TelemetryDeckNamespace => clientDefinitionsIni.GetStringValue(SETTINGS, "TelemetryDeckNamespace", string.Empty);
+
         public bool TelemetryAvailable => !string.IsNullOrWhiteSpace(TelemetryDeckAppID);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
