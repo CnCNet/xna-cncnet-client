@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.Win32;
 using DTAClient.Domain;
+using DTAClient.Domain.Telemetry;
 using ClientCore;
 using Rampastring.Tools;
 using DTAClient.DXGUI;
@@ -60,6 +61,12 @@ namespace DTAClient
                 Thread thread = new Thread(CheckSystemSpecifications);
                 thread.Start();
             }
+            else
+            {
+                TelemetryService.SetSystemSpecifications(null);
+            }
+
+            TelemetryService.Initialize();
 
             // Using tasks here causes crashes on Wine for some reason
             Thread onlineIdThread = new Thread(GenerateOnlineId);
@@ -159,6 +166,8 @@ namespace DTAClient
                 Task.Run(InitSteamworks);
 
             gameClass.Run();
+
+            TelemetryService.Shutdown();
         }
 
         [SupportedOSPlatform("windows")]
@@ -239,71 +248,15 @@ namespace DTAClient
         }
 
         /// <summary>
-        /// Writes processor, graphics card and memory info to the log file.
+        /// Writes processor, graphics card and memory info to the log file
+        /// and passes it on to telemetry.
         /// </summary>
         [SupportedOSPlatform("windows")]
         private static void CheckSystemSpecifications()
         {
-            string cpu = string.Empty;
-            string videoController = string.Empty;
-            string memory = string.Empty;
-
-            ManagementObjectSearcher searcher;
-
-            try
-            {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
-
-                foreach (var proc in searcher.Get())
-                {
-                    cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
-                }
-
-            }
-            catch
-            {
-                cpu = "CPU info not found";
-            }
-
-            try
-            {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-
-                foreach (ManagementObject mo in searcher.Get())
-                {
-                    var currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
-                    var description = mo.Properties["Description"];
-                    if (currentBitsPerPixel != null && description != null)
-                    {
-                        if (currentBitsPerPixel.Value != null)
-                            videoController = videoController + "Video controller: " + description.Value.ToString().Trim() + " ";
-                    }
-                }
-            }
-            catch
-            {
-                cpu = "Video controller info not found";
-            }
-
-            try
-            {
-                searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
-                ulong total = 0;
-
-                foreach (ManagementObject ram in searcher.Get())
-                {
-                    total += Convert.ToUInt64(ram.GetPropertyValue("Capacity"));
-                }
-
-                if (total != 0)
-                    memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
-            }
-            catch
-            {
-                cpu = "Memory info not found";
-            }
-
-            Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
+            SystemSpecifications specifications = SystemSpecifications.Collect();
+            Logger.Log("Hardware info: " + specifications);
+            TelemetryService.SetSystemSpecifications(specifications);
         }
 
         /// <summary>
