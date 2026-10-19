@@ -214,7 +214,8 @@ internal static class TelemetryService
 
         try
         {
-            task.Wait(SHUTDOWN_TIMEOUT_MILLISECONDS);
+            if (!task.Wait(SHUTDOWN_TIMEOUT_MILLISECONDS))
+                Logger.Log("Telemetry: Signals were still being sent on exit and were dropped.");
         }
         catch (Exception ex)
         {
@@ -238,11 +239,18 @@ internal static class TelemetryService
         try
         {
             string json = JsonSerializer.Serialize(signals);
+#if DEBUG
+            Logger.Log("Telemetry: Sending " + json);
+#endif
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var cts = new CancellationTokenSource(REQUEST_TIMEOUT_MILLISECONDS);
             using var response = await httpClient.PostAsync(INGEST_URL, content, cts.Token).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
+            {
+                Logger.Log($"Telemetry: Sent {signals.Count} signal(s).");
+            }
+            else
             {
                 string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logger.Log($"Telemetry: Sending {signals.Count} signal(s) failed with status {(int)response.StatusCode}: {responseBody}");

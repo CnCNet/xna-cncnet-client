@@ -1,7 +1,6 @@
 ﻿using ClientCore;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using DTAClient.Domain.Telemetry;
 using ClientGUI;
 using ClientCore.Extensions;
 using ClientGUI.Settings;
@@ -35,7 +34,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkBlackChatBackground;
         private XNAClientCheckBox chkShowHiddenObjects;
         private XNAClientCheckBox chkRecordReplays;
-        private XNAClientCheckBox chkTelemetry;
 
         private XNAControl topBar;
 
@@ -164,19 +162,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                     chkRecordReplays.Bottom + 30, 0, 0);
             }
 
-            if (TelemetryService.IsAvailable)
-            {
-                chkTelemetry = new XNAClientCheckBox(WindowManager);
-                chkTelemetry.Name = nameof(chkTelemetry);
-                chkTelemetry.ClientRectangle = new Rectangle(
-                    276,
-                    chkScrollCoasting.Y, 0, 0);
-                chkTelemetry.Text = "Send anonymous usage statistics".L10N("Client:DTAConfig:SendTelemetry");
-                chkTelemetry.ToolTipText = "Sends anonymous information such as hardware, settings and client version to help improve the client and the game. No personal data or identifiers are sent.".L10N("Client:DTAConfig:SendTelemetryTooltip");
-
-                AddChild(chkTelemetry);
-            }
-
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = nameof(tbPlayerName);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
@@ -250,9 +235,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (chkRecordReplays != null)
                 chkRecordReplays.Checked = IniSettings.RecordReplays;
-
-            if (chkTelemetry != null)
-                chkTelemetry.Checked = IniSettings.TelemetryEnabled;
         }
 
         public override bool Save()
@@ -268,9 +250,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (chkRecordReplays != null)
                 IniSettings.RecordReplays.Value = chkRecordReplays.Checked;
-
-            if (chkTelemetry != null)
-                IniSettings.TelemetryEnabled.Value = chkTelemetry.Checked;
 
             return restartRequired;
         }

@@ -21,7 +21,7 @@ Debug builds of the client mark their signals as test signals, so they don't sho
 What players see
 -----------------------------------
 - The privacy notice at the bottom of the main menu has an extra paragraph about telemetry. It is shown until the player clicks `Got it`.
-- The `Game` tab of the options window has a `Send anonymous usage statistics` checkbox (`chkTelemetry`).
+- The `CnCNet` tab of the options window has a `Send anonymous usage statistics` checkbox (`chkTelemetry`).
 
 The texts can be translated with the `Client:Main:TelemetryText`, `Client:DTAConfig:SendTelemetry` and `Client:DTAConfig:SendTelemetryTooltip` keys.
 

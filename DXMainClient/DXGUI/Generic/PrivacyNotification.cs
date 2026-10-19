@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI.Generic
                 lblTelemetry.X = lblDescription.X;
                 lblTelemetry.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
                 lblTelemetry.Text = Renderer.FixText(
-                    "This application sends anonymous usage statistics, such as hardware, settings and client version, to help improve it. No personal data or identifiers are sent. You can turn this off in the game options.".L10N("Client:Main:TelemetryText"),
+                    "This application sends anonymous usage statistics, such as hardware, settings and client version, to help improve it. No personal data or identifiers are sent. You can turn this off in the CnCNet tab of the options.".L10N("Client:Main:TelemetryText"),
                     lblTelemetry.FontIndex, WindowManager.RenderResolutionX - (UIDesignConstants.EMPTY_SPACE_SIDES * 2)).Text;
                 AddChild(lblTelemetry);
                 lastInformationControl = lblTelemetry;
