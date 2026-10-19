@@ -279,7 +279,7 @@ OptionX=                        ; string,  the text option for dropdown. `X` is 
 ; Option_ThirdOption=33333
 ```
 
-#### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientCheckBox.cs)
+#### [XNAClientDropDown](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAClientDropDown.cs)
 
 _(inherits XNADropDown)_
 
@@ -903,7 +903,7 @@ Data sources for web labels are listed in [DataSources] section, then defined se
 [DataSources]
 Count=2                                                          ; integer, number of data sources
 1=YRLadder                                                       ; string,  first data source name
-2=RALadder                                                         ; string,  second data source name
+2=RALadder                                                       ; string,  second data source name
 
 [YRLadder]                                                       ; Section name is the DataSourceID
 URL=https://ladder.cncnet.org/api/v1/qm/ladder/rankings          ; string,  URL to fetch data from
