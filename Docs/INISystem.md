@@ -294,7 +294,7 @@ _(inherits [XNAClientLinkLabel](#XNAClientLinkLabel))_
 
 Displays data fetched from a URL, using JSONPath expressions in a `Template` string. Supports JSON and INI response formats. Data sources are defined in `ClientDefinitions.ini`. Inherits URL click, hover colour, and underline from `XNAClientLinkLabel` — set `URL` and `DrawUnderline=true` to make the label act as a link.
 
-Uses Newtonsoft.Json for JSONPath queries.
+Paths use [JSONPath (RFC 9535)](https://www.rfc-editor.org/rfc/rfc9535), evaluated with [JsonPath.Net](https://docs.json-everything.net/path/basics/). The leading `$` is optional.
 
 ```ini
 [SOMEWEBLABEL]               ; XNAClientWebLabel
@@ -325,8 +325,10 @@ ToolTip=                     ; text,    tooltip shown on hover (inherited).
 ```
 
 **JSONPath Syntax:**
-See Newtonsoft.Json documentation: https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm
+See the JsonPath.Net documentation: https://docs.json-everything.net/path/basics/
 
+- `{YR[0].name}` and `{$.YR[0].name}` are equivalent; keys with special characters use brackets, e.g. `{news['some-key']}`.
+- Common selectors: `[0]` index, `[-1]` last item, `[*]` all items, `[0:3]` slice, `[?(\@.points > 700)]` filter.
 - A placeholder that matches several values joins them with `, ` (see `MaxResults`); one that matches nothing is replaced with `FallbackText`.
 - `@` is the client's INI newline character, so filter expressions must escape it as `\@`, e.g. `{YR[?(\@.points > 700)].player_name}`.
 - Colons inside brackets belong to the path (e.g. the slice `{YR[0:3].player_name}`); the first colon outside brackets starts the format.

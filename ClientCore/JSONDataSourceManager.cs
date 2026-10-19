@@ -4,17 +4,17 @@ using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Newtonsoft.Json.Linq;
 using Rampastring.Tools;
 
 namespace ClientCore;
 
 /// <summary>
-/// Manages shared JSON data sources for XNAClientWebLabel.
-/// Data sources are defined in INI files under [DataSources] section.
+/// Manages shared web data sources (JSON or INI) for XNAClientWebLabel.
+/// Data sources are listed in the [DataSources] section of an INI file.
 /// </summary>
 public class JSONDataSourceManager
 {
@@ -75,12 +75,12 @@ public class JSONDataSourceManager
     }
 
     /// <summary>
-    /// Subscribes to a data source and receives JSON updates.
+    /// Subscribes to a data source and receives its data whenever it updates.
     /// </summary>
     /// <param name="dataSourceId">The ID of the data source</param>
-    /// <param name="callback">Callback invoked when new data is available (jToken, isError)</param>
+    /// <param name="callback">Callback invoked when new data is available (data, isError)</param>
     /// <returns>True if subscription was successful, false if data source not found</returns>
-    public bool Subscribe(string dataSourceId, Action<JToken, bool> callback)
+    public bool Subscribe(string dataSourceId, Action<JsonNode, bool> callback)
     {
         if (string.IsNullOrEmpty(dataSourceId))
             return false;
@@ -95,7 +95,7 @@ public class JSONDataSourceManager
     /// <summary>
     /// Unsubscribes from a data source.
     /// </summary>
-    public void Unsubscribe(string dataSourceId, Action<JToken, bool> callback)
+    public void Unsubscribe(string dataSourceId, Action<JsonNode, bool> callback)
     {
         if (string.IsNullOrEmpty(dataSourceId))
             return;
@@ -154,35 +154,35 @@ public class JSONDataSourceManager
 
     private interface IDataSourceFormat
     {
-        JToken Convert(string input);
+        JsonNode Convert(string input);
     }
 
     private class JsonDataSourceFormat : IDataSourceFormat
     {
-        public JToken Convert(string input) => JToken.Parse(input);
+        public JsonNode Convert(string input) => JsonNode.Parse(input);
     }
 
     private class IniDataSourceFormat : IDataSourceFormat
     {
-        public JToken Convert(string input)
+        public JsonNode Convert(string input)
         {
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(input));
             var iniFile = new IniFile(stream, applyBaseIni: false);
 
-            var result = new JObject();
+            var result = new JsonObject();
             foreach (var sectionName in iniFile.GetSections())
             {
                 var section = iniFile.GetSection(sectionName);
-                var sectionObj = new JObject();
+                var sectionObj = new JsonObject();
                 foreach (var key in section.Keys)
                 {
                     string value = section.GetStringValue(key.Key, string.Empty);
                     if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
-                        sectionObj[key.Key] = intValue;
+                        sectionObj[key.Key] = JsonValue.Create(intValue);
                     else if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
-                        sectionObj[key.Key] = doubleValue;
+                        sectionObj[key.Key] = JsonValue.Create(doubleValue);
                     else
-                        sectionObj[key.Key] = value;
+                        sectionObj[key.Key] = JsonValue.Create(value);
                 }
                 result[section.SectionName] = sectionObj;
             }
@@ -201,9 +201,9 @@ public class JSONDataSourceManager
         private readonly int _timeoutSeconds;
         private readonly IDataSourceFormat _format;
         private readonly PauseGate _pauseGate;
-        private readonly List<Action<JToken, bool>> _subscribers = new List<Action<JToken, bool>>();
+        private readonly List<Action<JsonNode, bool>> _subscribers = new List<Action<JsonNode, bool>>();
         private CancellationTokenSource _cts;
-        private volatile JToken _lastJToken;
+        private volatile JsonNode _lastData;
 
         public DataSource(string id, string url, int refreshIntervalSeconds, int timeoutSeconds, IDataSourceFormat format, PauseGate pauseGate)
         {
@@ -215,7 +215,7 @@ public class JSONDataSourceManager
             _pauseGate = pauseGate;
         }
 
-        public void Subscribe(Action<JToken, bool> callback)
+        public void Subscribe(Action<JsonNode, bool> callback)
         {
             lock (_subscribers)
             {
@@ -228,12 +228,12 @@ public class JSONDataSourceManager
                     StartFetching();
             }
 
-            JToken cached = _lastJToken;
+            JsonNode cached = _lastData;
             if (cached != null)
                 InvokeSubscriber(callback, cached, false);
         }
 
-        public void Unsubscribe(Action<JToken, bool> callback)
+        public void Unsubscribe(Action<JsonNode, bool> callback)
         {
             lock (_subscribers)
             {
@@ -302,10 +302,10 @@ public class JSONDataSourceManager
                 return;
             }
 
-            JToken jToken;
+            JsonNode parsed;
             try
             {
-                jToken = _format.Convert(data);
+                parsed = _format.Convert(data);
             }
             catch (Exception ex)
             {
@@ -314,8 +314,8 @@ public class JSONDataSourceManager
                 return;
             }
 
-            _lastJToken = jToken;
-            NotifySubscribers(jToken, false);
+            _lastData = parsed;
+            NotifySubscribers(parsed, false);
         }
 
         /// <summary>
@@ -324,26 +324,26 @@ public class JSONDataSourceManager
         /// </summary>
         private void NotifyError()
         {
-            if (_lastJToken == null)
+            if (_lastData == null)
                 NotifySubscribers(null, true);
         }
 
-        private void NotifySubscribers(JToken jToken, bool isError)
+        private void NotifySubscribers(JsonNode data, bool isError)
         {
             // Call subscribers outside the lock so a slow callback can't block Subscribe/Unsubscribe.
-            Action<JToken, bool>[] subscribers;
+            Action<JsonNode, bool>[] subscribers;
             lock (_subscribers)
                 subscribers = _subscribers.ToArray();
 
             foreach (var subscriber in subscribers)
-                InvokeSubscriber(subscriber, jToken, isError);
+                InvokeSubscriber(subscriber, data, isError);
         }
 
-        private void InvokeSubscriber(Action<JToken, bool> subscriber, JToken jToken, bool isError)
+        private void InvokeSubscriber(Action<JsonNode, bool> subscriber, JsonNode data, bool isError)
         {
             try
             {
-                subscriber(jToken, isError);
+                subscriber(data, isError);
             }
             catch (Exception ex)
             {

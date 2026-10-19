@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ClientCore;
 using ClientCore.Extensions;
-using Newtonsoft.Json.Linq;
+using Json.Path;
 
 namespace ClientGUI;
 
@@ -25,7 +27,7 @@ public class XNAClientWebLabel : XNAClientLinkLabel
     private static readonly Regex PlaceholderRegex = new Regex(@"\{((?:\[[^\]]*\]|[^\}\[:])+)(?::([^\}]+))?\}", RegexOptions.Compiled);
 
     private readonly JSONDataSourceManager _dataSourceManager;
-    private Action<JToken, bool> _dataSourceCallback;
+    private Action<JsonNode, bool> _dataSourceCallback;
     private bool _isSubscribed = false;
 
     public XNAClientWebLabel(WindowManager windowManager, JSONDataSourceManager dataSourceManager) : base(windowManager)
@@ -83,9 +85,9 @@ public class XNAClientWebLabel : XNAClientLinkLabel
             Text = FallbackText;
     }
 
-    private void OnDataReceived(JToken jToken, bool isError)
+    private void OnDataReceived(JsonNode data, bool isError)
     {
-        if (isError || jToken == null)
+        if (isError || data == null)
         {
             WindowManager.AddCallback(() => Text = FallbackText, null);
             return;
@@ -93,7 +95,7 @@ public class XNAClientWebLabel : XNAClientLinkLabel
 
         try
         {
-            string displayText = ProcessTemplate(Template, jToken);
+            string displayText = ProcessTemplate(Template, data);
             WindowManager.AddCallback(() => Text = displayText, null);
         }
         catch (Exception ex)
@@ -103,7 +105,7 @@ public class XNAClientWebLabel : XNAClientLinkLabel
         }
     }
 
-    private string ProcessTemplate(string template, JToken jToken)
+    private string ProcessTemplate(string template, JsonNode data)
     {
         if (string.IsNullOrEmpty(template))
         {
@@ -116,10 +118,13 @@ public class XNAClientWebLabel : XNAClientLinkLabel
             string jsonPath = match.Groups[1].Value.Trim();
             string format = match.Groups[2].Success ? match.Groups[2].Value.Trim() : null;
 
-            List<JToken> tokens;
+            List<JsonNode> values;
             try
             {
-                tokens = jToken.SelectTokens(jsonPath).Where(t => t != null && t.Type != JTokenType.Null).ToList();
+                values = JsonPath.Parse(ToRootedPath(jsonPath)).Evaluate(data).Matches
+                    .Select(m => m.Value)
+                    .Where(v => v != null) // JSON null
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -127,43 +132,71 @@ public class XNAClientWebLabel : XNAClientLinkLabel
                 return FallbackText;
             }
 
-            if (tokens.Count == 0)
+            if (values.Count == 0)
                 return FallbackText;
 
-            if (MaxResults > 0 && tokens.Count > MaxResults)
-                tokens = tokens.GetRange(0, MaxResults);
+            if (MaxResults > 0 && values.Count > MaxResults)
+                values = values.GetRange(0, MaxResults);
 
-            return string.Join(", ", tokens.Select(t => FormatToken(t, format)));
+            return string.Join(", ", values.Select(v => FormatValue(v, format)));
         });
     }
 
-    private static string FormatToken(JToken token, string format)
+    /// <summary>
+    /// JSONPath (RFC 9535) queries must start at the root ($). Templates may omit it,
+    /// e.g. "YR[0].name" or "['some key']", so add it when missing.
+    /// </summary>
+    private static string ToRootedPath(string path)
     {
-        if (token is not JValue jValue)
-            return token.ToString(Newtonsoft.Json.Formatting.None);
+        if (path.StartsWith("$", StringComparison.Ordinal))
+            return path;
 
-        object value = jValue.Value;
+        return path.StartsWith("[", StringComparison.Ordinal) ? "$" + path : "$." + path;
+    }
 
-        // Numeric strings (e.g. quoted JSON numbers) should still accept number formats.
-        if (!string.IsNullOrEmpty(format) && value is string str)
+    private static string FormatValue(JsonNode node, string format)
+    {
+        object value;
+
+        switch (node.GetValueKind())
         {
-            if (long.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l))
-                value = l;
-            else if (double.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
-                value = d;
-            else if (DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime dt))
-                value = dt;
+            case JsonValueKind.String:
+                string str = node.GetValue<string>();
+                value = str;
+
+                // Numeric and date strings should still accept number/date formats.
+                if (!string.IsNullOrEmpty(format))
+                {
+                    if (long.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l))
+                        value = l;
+                    else if (double.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
+                        value = d;
+                    else if (DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime dt))
+                        value = dt;
+                }
+
+                break;
+            case JsonValueKind.Number:
+                // The JSON text of a number is culture-invariant.
+                string number = node.ToJsonString();
+                value = long.TryParse(number, NumberStyles.Integer, CultureInfo.InvariantCulture, out long integer)
+                    ? integer
+                    : double.Parse(number, NumberStyles.Float, CultureInfo.InvariantCulture);
+                break;
+            case JsonValueKind.True:
+                return "true";
+            case JsonValueKind.False:
+                return "false";
+            default:
+                // Objects and arrays
+                return node.ToJsonString();
         }
 
         // Format straight from the typed value so the user's culture is applied
         // exactly once, instead of round-tripping through a culture-specific string.
-        return value switch
-        {
-            null => string.Empty,
-            bool b => b ? "true" : "false",
-            IFormattable formattable => formattable.ToString(string.IsNullOrEmpty(format) ? null : format, CultureInfo.CurrentCulture),
-            _ => value.ToString(),
-        };
+        return value is IFormattable formattable
+            ? formattable.ToString(string.IsNullOrEmpty(format) ? null : format, CultureInfo.CurrentCulture)
+            : value.ToString();
     }
 
     public override void Kill()
