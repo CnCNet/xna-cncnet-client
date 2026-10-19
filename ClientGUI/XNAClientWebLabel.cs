@@ -29,15 +29,18 @@ public class XNAClientWebLabel : XNAClientLinkLabel
         DrawUnderline = false;
     }
 
+    // INItializableWindow parses attributes before Initialize, while XNAWindow initializes
+    // children before GetAttributes, so subscribe from whichever runs last. Subscribing
+    // mid-parse could process cached data before Template has been read.
     public override void Initialize()
     {
         base.Initialize();
+        TrySubscribeToDataSource();
+    }
 
-        if (!string.IsNullOrEmpty(LoadingText))
-            Text = LoadingText;
-        else if (!string.IsNullOrEmpty(Template))
-            Text = Template;
-
+    public override void GetAttributes(IniFile iniFile)
+    {
+        base.GetAttributes(iniFile);
         TrySubscribeToDataSource();
     }
 
@@ -47,7 +50,6 @@ public class XNAClientWebLabel : XNAClientLinkLabel
         {
             case "DataSourceID":
                 DataSourceID = value;
-                TrySubscribeToDataSource();
                 return;
             case "MaxResults":
                 MaxResults = Conversions.IntFromString(value, 0);
@@ -61,6 +63,11 @@ public class XNAClientWebLabel : XNAClientLinkLabel
     {
         if (_isSubscribed || string.IsNullOrEmpty(DataSourceID))
             return;
+
+        if (!string.IsNullOrEmpty(LoadingText))
+            Text = LoadingText;
+        else if (!string.IsNullOrEmpty(Template))
+            Text = Template;
 
         _dataSourceCallback = OnDataReceived;
         bool success = _dataSourceManager.Subscribe(DataSourceID, _dataSourceCallback);
