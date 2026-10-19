@@ -3,6 +3,8 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using ClientCore;
 using ClientCore.Extensions;
@@ -17,6 +19,10 @@ public class XNAClientWebLabel : XNAClientLinkLabel
     public string LoadingText { get; set; }
     public int MaxResults { get; set; } = 0;
     public string FallbackText { get; set; } = "---";
+
+    // Matches {JSONPath} or {JSONPath:Format}. Bracketed parts of the path may contain
+    // colons (e.g. slices like [0:3]), so only a colon outside brackets starts the format.
+    private static readonly Regex PlaceholderRegex = new Regex(@"\{((?:\[[^\]]*\]|[^\}\[:])+)(?::([^\}]+))?\}", RegexOptions.Compiled);
 
     private readonly JSONDataSourceManager _dataSourceManager;
     private Action<JToken, bool> _dataSourceCallback;
@@ -105,81 +111,59 @@ public class XNAClientWebLabel : XNAClientLinkLabel
             return FallbackText;
         }
 
-        // Regex to match {JSONPath:Format} or {JSONPath}
-        // group 1 = JSONPath, group 2 = format(optional)
-        var regex = new Regex(@"\{([^\}:]+)(?::([^\}]+))?\}");
-
-        var result = regex.Replace(template, match =>
+        return PlaceholderRegex.Replace(template, match =>
         {
             string jsonPath = match.Groups[1].Value.Trim();
             string format = match.Groups[2].Success ? match.Groups[2].Value.Trim() : null;
 
+            List<JToken> tokens;
             try
             {
-                var values = EvaluateJSONPath(jToken, jsonPath);
-
-                if (values == null || values.Count == 0)
-                    return FallbackText;
-
-                if (MaxResults > 0 && values.Count > MaxResults)
-                    values = values.GetRange(0, MaxResults);
-
-                string value = values.Count == 1 ? values[0] : string.Join(", ", values);
-
-                if (!string.IsNullOrEmpty(format))
-                {
-                    var formatted = new List<string>();
-
-                    foreach (var v in values)
-                    {
-                        if (long.TryParse(v, out long num))
-                            formatted.Add(num.ToString(format));
-                        else if (double.TryParse(v, out double dbl))
-                            formatted.Add(dbl.ToString(format));
-                        else if (DateTime.TryParse(v, out DateTime dt))
-                            formatted.Add(dt.ToString(format));
-                        else
-                            formatted.Add(v);
-                    }
-
-                    return string.Join(", ", formatted);
-                }
-
-                return value;
+                tokens = jToken.SelectTokens(jsonPath).Where(t => t != null && t.Type != JTokenType.Null).ToList();
             }
             catch (Exception ex)
             {
-                Logger.Log($"XNAClientWebLabel JSONPath '{jsonPath}' error: {ex.Message}");
+                Logger.Log($"XNAClientWebLabel [{Name}] JSONPath '{jsonPath}' error: {ex.Message}");
                 return FallbackText;
             }
-        });
 
-        return result;
+            if (tokens.Count == 0)
+                return FallbackText;
+
+            if (MaxResults > 0 && tokens.Count > MaxResults)
+                tokens = tokens.GetRange(0, MaxResults);
+
+            return string.Join(", ", tokens.Select(t => FormatToken(t, format)));
+        });
     }
 
-    private List<string> EvaluateJSONPath(JToken jToken, string pathExpression)
+    private static string FormatToken(JToken token, string format)
     {
-        try
+        if (token is not JValue jValue)
+            return token.ToString(Newtonsoft.Json.Formatting.None);
+
+        object value = jValue.Value;
+
+        // Numeric strings (e.g. quoted JSON numbers) should still accept number formats.
+        if (!string.IsNullOrEmpty(format) && value is string str)
         {
-            var tokens = jToken.SelectTokens(pathExpression);
-
-            if (tokens == null)
-                return null;
-
-            var results = new List<string>();
-            foreach (var token in tokens)
-            {
-                if (token != null)
-                    results.Add(token.ToString());
-            }
-
-            return results.Count > 0 ? results : null;
+            if (long.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l))
+                value = l;
+            else if (double.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
+                value = d;
+            else if (DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime dt))
+                value = dt;
         }
-        catch (Exception ex)
+
+        // Format straight from the typed value so the user's culture is applied
+        // exactly once, instead of round-tripping through a culture-specific string.
+        return value switch
         {
-            Logger.Log($"JSONPath error: {ex.Message}");
-            return null;
-        }
+            null => string.Empty,
+            bool b => b ? "true" : "false",
+            IFormattable formattable => formattable.ToString(string.IsNullOrEmpty(format) ? null : format, CultureInfo.CurrentCulture),
+            _ => value.ToString(),
+        };
     }
 
     public override void Kill()

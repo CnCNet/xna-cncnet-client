@@ -92,14 +92,14 @@ public class TranslationINIParser : IControlINIAttributeParser
             case "UnixURL" when control is XNALinkButton button:
                 button.UnixURL = Localize(control, key, value.FromIniString(), TranslationNotificationLevel.Verbose);
                 return true;
-            case "FallbackText" when control is XNAClientWebLabel jsonLabel:
-                jsonLabel.FallbackText = Localize(control, key, value.FromIniString());
+            case "FallbackText" when control is XNAClientWebLabel webLabel:
+                webLabel.FallbackText = Localize(control, key, value.FromIniString());
                 return true;
-            case "LoadingText" when control is XNAClientWebLabel jsonLabel:
-                jsonLabel.LoadingText = Localize(control, key, value.FromIniString());
+            case "LoadingText" when control is XNAClientWebLabel webLabel:
+                webLabel.LoadingText = Localize(control, key, value.FromIniString());
                 return true;
-            case "Template" when control is XNAClientWebLabel jsonLabel:
-                jsonLabel.Template = Localize(control, key, value.FromIniString());
+            case "Template" when control is XNAClientWebLabel webLabel:
+                webLabel.Template = Localize(control, key, value.FromIniString());
                 return true;
         }
 

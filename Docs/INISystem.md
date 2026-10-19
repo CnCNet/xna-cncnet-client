@@ -321,10 +321,15 @@ DrawUnderline=false          ; boolean, whether to underline the label text. Def
                              ;          Set to true alongside URL to indicate the label is clickable.
 IdleColor=                   ; color,   text colour when not hovered. Replaces RemapColor (inherited).
 HoverColor=                  ; color,   text colour when hovered, only applies if URL is set (inherited).
+ToolTip=                     ; text,    tooltip shown on hover (inherited).
 ```
 
 **JSONPath Syntax:**
 See Newtonsoft.Json documentation: https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm
+
+- A placeholder that matches several values joins them with `, ` (see `MaxResults`); one that matches nothing is replaced with `FallbackText`.
+- `@` is the client's INI newline character, so filter expressions must escape it as `\@`, e.g. `{YR[?(\@.points > 700)].player_name}`.
+- Colons inside brackets belong to the path (e.g. the slice `{YR[0:3].player_name}`); the first colon outside brackets starts the format.
 
 **Example — JSON with link:**
 ```ini
