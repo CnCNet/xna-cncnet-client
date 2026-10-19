@@ -269,9 +269,16 @@ namespace DTAClient.DXGUI
 
             buildServiceProviderTask.GetAwaiter().GetResult();
 
-            // Initialize JSON data sources
+            // Load data sources for web labels
             var jsonDataSourceManager = serviceProvider.GetService<JSONDataSourceManager>();
-            jsonDataSourceManager?.LoadFromINI(ClientConfiguration.Instance.ClientDefinitionsIni);
+            if (jsonDataSourceManager != null)
+            {
+                jsonDataSourceManager.LoadFromINI(ClientConfiguration.Instance.ClientDefinitionsIni);
+
+                // Don't poll web data sources while the game is running
+                GameProcessLogic.GameProcessStarted += jsonDataSourceManager.Pause;
+                GameProcessLogic.GameProcessExited += jsonDataSourceManager.Resume;
+            }
 
             Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();

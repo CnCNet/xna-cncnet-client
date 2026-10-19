@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -18,6 +19,7 @@ namespace ClientCore;
 public class JSONDataSourceManager
 {
     private readonly Dictionary<string, DataSource> _dataSources = new Dictionary<string, DataSource>();
+    private readonly PauseGate _pauseGate = new PauseGate();
 
     public JSONDataSourceManager() { }
 
@@ -67,7 +69,7 @@ public class JSONDataSourceManager
                 _ => new JsonDataSourceFormat()
             };
 
-            var dataSource = new DataSource(dataSourceName, url, refreshInterval, timeout, format);
+            var dataSource = new DataSource(dataSourceName, url, refreshInterval, timeout, format, _pauseGate);
             _dataSources.Add(dataSourceName, dataSource);
         }
     }
@@ -102,6 +104,54 @@ public class JSONDataSourceManager
             dataSource.Unsubscribe(callback);
     }
 
+    /// <summary>
+    /// Stops starting new fetches, e.g. while the game is running. Fetches already
+    /// in progress complete normally.
+    /// </summary>
+    public void Pause() => _pauseGate.Pause();
+
+    /// <summary>
+    /// Resumes fetching. Sources whose refresh came due while paused fetch immediately.
+    /// </summary>
+    public void Resume() => _pauseGate.Resume();
+
+    private class PauseGate
+    {
+        private readonly object _lock = new object();
+        private TaskCompletionSource<bool> _resumed;
+
+        public void Pause()
+        {
+            lock (_lock)
+                _resumed ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        public void Resume()
+        {
+            TaskCompletionSource<bool> resumed;
+            lock (_lock)
+            {
+                resumed = _resumed;
+                _resumed = null;
+            }
+
+            resumed?.TrySetResult(true);
+        }
+
+        public async Task WaitWhilePausedAsync(CancellationToken token)
+        {
+            Task resumedTask;
+            lock (_lock)
+                resumedTask = _resumed?.Task;
+
+            if (resumedTask == null)
+                return;
+
+            await Task.WhenAny(resumedTask, Task.Delay(Timeout.Infinite, token)).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+        }
+    }
+
     private interface IDataSourceFormat
     {
         JToken Convert(string input);
@@ -127,9 +177,9 @@ public class JSONDataSourceManager
                 foreach (var key in section.Keys)
                 {
                     string value = section.GetStringValue(key.Key, string.Empty);
-                    if (int.TryParse(value, out int intValue))
+                    if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
                         sectionObj[key.Key] = intValue;
-                    else if (double.TryParse(value, out double doubleValue))
+                    else if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
                         sectionObj[key.Key] = doubleValue;
                     else
                         sectionObj[key.Key] = value;
@@ -150,35 +200,37 @@ public class JSONDataSourceManager
         private readonly int _refreshIntervalSeconds;
         private readonly int _timeoutSeconds;
         private readonly IDataSourceFormat _format;
+        private readonly PauseGate _pauseGate;
         private readonly List<Action<JToken, bool>> _subscribers = new List<Action<JToken, bool>>();
         private CancellationTokenSource _cts;
-        private Task _fetchTask;
-        private JToken _lastJToken;
+        private volatile JToken _lastJToken;
 
-        public DataSource(string id, string url, int refreshIntervalSeconds, int timeoutSeconds, IDataSourceFormat format)
+        public DataSource(string id, string url, int refreshIntervalSeconds, int timeoutSeconds, IDataSourceFormat format, PauseGate pauseGate)
         {
             _id = id;
             _url = url;
             _refreshIntervalSeconds = refreshIntervalSeconds;
             _timeoutSeconds = timeoutSeconds;
             _format = format;
+            _pauseGate = pauseGate;
         }
 
         public void Subscribe(Action<JToken, bool> callback)
         {
             lock (_subscribers)
             {
-                if (!_subscribers.Contains(callback))
-                {
-                    _subscribers.Add(callback);
+                if (_subscribers.Contains(callback))
+                    return;
 
-                    if (_lastJToken != null) // cached
-                        callback(_lastJToken, false);
+                _subscribers.Add(callback);
 
-                    if (_subscribers.Count == 1 && _fetchTask == null)
-                        StartFetching();
-                }
+                if (_cts == null)
+                    StartFetching();
             }
+
+            JToken cached = _lastJToken;
+            if (cached != null)
+                InvokeSubscriber(callback, cached, false);
         }
 
         public void Unsubscribe(Action<JToken, bool> callback)
@@ -195,13 +247,16 @@ public class JSONDataSourceManager
         private void StartFetching()
         {
             _cts = new CancellationTokenSource();
-            _fetchTask = Task.Run(() => FetchLoopAsync(_cts.Token));
+            CancellationToken token = _cts.Token;
+            Task.Run(() => FetchLoopAsync(token));
         }
 
+        // A loop that is still finishing a request exits on its own once it sees the cancellation,
+        // so a new loop can be started straight away if a label subscribes again.
         private void StopFetching()
         {
             _cts?.Cancel();
-            _fetchTask = null;
+            _cts = null;
         }
 
         private async Task FetchLoopAsync(CancellationToken token)
@@ -210,7 +265,8 @@ public class JSONDataSourceManager
             {
                 try
                 {
-                    await FetchAndNotifyAsync(token);
+                    await _pauseGate.WaitWhilePausedAsync(token).ConfigureAwait(false);
+                    await FetchAndNotifyAsync(token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
@@ -219,7 +275,7 @@ public class JSONDataSourceManager
                 catch (Exception ex)
                 {
                     Logger.Log($"JSONDataSourceManager: Error fetching '{_id}': {ex.Message}");
-                    NotifySubscribers(null, true);
+                    NotifyError();
                 }
 
                 if (_refreshIntervalSeconds <= 0)
@@ -227,7 +283,7 @@ public class JSONDataSourceManager
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(_refreshIntervalSeconds), token);
+                    await Task.Delay(TimeSpan.FromSeconds(_refreshIntervalSeconds), token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -238,14 +294,11 @@ public class JSONDataSourceManager
 
         private async Task FetchAndNotifyAsync(CancellationToken token)
         {
-            if (token.IsCancellationRequested)
-                return;
-
-            string data = await DownloadWithTimeout(_url, _timeoutSeconds, token);
+            string data = await DownloadWithTimeout(_url, _timeoutSeconds, token).ConfigureAwait(false);
 
             if (data == null)
             {
-                NotifySubscribers(null, true);
+                NotifyError();
                 return;
             }
 
@@ -257,7 +310,7 @@ public class JSONDataSourceManager
             catch (Exception ex)
             {
                 Logger.Log($"JSONDataSourceManager: Error parsing data for '{_id}': {ex.Message}");
-                NotifySubscribers(null, true);
+                NotifyError();
                 return;
             }
 
@@ -265,21 +318,36 @@ public class JSONDataSourceManager
             NotifySubscribers(jToken, false);
         }
 
+        /// <summary>
+        /// Reports a failed fetch. Once data has been received, a failed refresh keeps
+        /// showing the last good data instead of replacing it with the fallback text.
+        /// </summary>
+        private void NotifyError()
+        {
+            if (_lastJToken == null)
+                NotifySubscribers(null, true);
+        }
+
         private void NotifySubscribers(JToken jToken, bool isError)
         {
+            // Call subscribers outside the lock so a slow callback can't block Subscribe/Unsubscribe.
+            Action<JToken, bool>[] subscribers;
             lock (_subscribers)
+                subscribers = _subscribers.ToArray();
+
+            foreach (var subscriber in subscribers)
+                InvokeSubscriber(subscriber, jToken, isError);
+        }
+
+        private void InvokeSubscriber(Action<JToken, bool> subscriber, JToken jToken, bool isError)
+        {
+            try
             {
-                foreach (var subscriber in _subscribers)
-                {
-                    try
-                    {
-                        subscriber(jToken, isError);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log($"JSONDataSourceManager: Error notifying subscriber for '{_id}': {ex.Message}");
-                    }
-                }
+                subscriber(jToken, isError);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"JSONDataSourceManager: Error notifying subscriber for '{_id}': {ex.Message}");
             }
         }
 
