@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 #if WINFORMS
 using System.Runtime.InteropServices;
 #endif
@@ -215,7 +214,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
             string currentFileText = "Current file:".L10N("Client:Main:CurrentFile") + " " + currFileName;
             int availableWidth = Math.Max(0, Width - lblCurrentFile.X - 12);
-            lblCurrentFile.Text = FitCurrentFileText(currentFileText, currFileName, lblCurrentFile.FontIndex, availableWidth);
+            lblCurrentFile.Text = Renderer.GetStringWithLimitedWidthTrimMiddle(currentFileText, lblCurrentFile.FontIndex, availableWidth);
             lblUpdaterStatus.Text = "Downloading files".L10N("Client:Main:DownloadingFiles");
 #if WINFORMS
 
@@ -238,36 +237,6 @@ namespace DTAClient.DXGUI.Generic
             {
             }
 #endif
-        }
-
-        private static string FitCurrentFileText(string text, string fileName, int fontIndex, int availableWidth)
-        {
-            if (Renderer.GetTextDimensions(text, fontIndex).X <= availableWidth)
-                return text;
-
-            const string ellipsis = "...";
-            if (Renderer.GetTextDimensions(ellipsis, fontIndex).X > availableWidth)
-                return string.Empty;
-
-            string extension = Path.GetExtension(fileName);
-            string suffix = ellipsis + extension;
-            if (Renderer.GetTextDimensions(suffix, fontIndex).X > availableWidth)
-                suffix = ellipsis;
-
-            string prefix = text.Substring(0, text.Length - extension.Length);
-            int prefixWidth = availableWidth - (int)Math.Ceiling(Renderer.GetTextDimensions(suffix, fontIndex).X);
-            while (prefixWidth >= 0)
-            {
-                string fittedText = Renderer.GetStringWithLimitedWidth(prefix, fontIndex, prefixWidth) + suffix;
-                float overflow = Renderer.GetTextDimensions(fittedText, fontIndex).X - availableWidth;
-                if (overflow <= 0)
-                    return fittedText;
-
-                // The suffix can change shaping or kerning; recheck the combined text.
-                prefixWidth -= Math.Max(1, (int)Math.Ceiling(overflow));
-            }
-
-            return suffix;
         }
 
         private void Updater_OnFileDownloadCompleted(string archiveName)
