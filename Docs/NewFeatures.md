@@ -10,7 +10,7 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - A new "Enable direct P2P connections" checkbox is added to the CnCNet tab in the Options window. When enabled, the client will attempt to establish direct P2P connections with other players. This can improve latency and reduce server load, but may not work in all network environments.
 
-- The client now supports the Tiberian Dawn game type. Specify `[Settings]->ClientGameType=TD` in `ClientDefinitions.ini` to use this game type.
+- The client now supports the Tiberian Dawn or Dune 2000 game type. Specify `[Settings]->ClientGameType=TD` or `[Settings]->ClientGameType=D2K` in `ClientDefinitions.ini` to use this game type.
 
 - Replay recording and playback are now available to packages with a compatible spawner. Opt-in through `ReplaySupport=true` in `ClientDefinitions.ini`. Players turn recording on or off in the Game tab of the Options window. See [INISystem.md](INISystem.md) for the replay settings.
 
