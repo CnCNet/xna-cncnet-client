@@ -21,6 +21,7 @@ public static class ClientTypeExtensions
         {
             "TD" => ClientType.TD,
             "RA" => ClientType.RA,
+            "D2K" => ClientType.D2K,
             "TS" => ClientType.TS,
             "YR" => ClientType.YR,
             "Ares" => ClientType.Ares,

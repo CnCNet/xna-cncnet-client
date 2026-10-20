@@ -4,6 +4,7 @@
     {
         TD,
         RA,
+        D2K,
         TS,
         YR,
         Ares,
