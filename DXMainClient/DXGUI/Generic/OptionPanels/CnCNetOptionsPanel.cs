@@ -9,7 +9,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ClientCore.Enums;
+using ClientCore.Settings;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {

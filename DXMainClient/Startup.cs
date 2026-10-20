@@ -12,7 +12,6 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
-using ClientCore.Enums;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;

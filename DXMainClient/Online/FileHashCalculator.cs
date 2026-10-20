@@ -8,7 +8,6 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.I18N;
-using ClientCore.Enums;
 
 using Rampastring.Tools;
 

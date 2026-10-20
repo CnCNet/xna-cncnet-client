@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 using System.Linq;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
@@ -2706,13 +2706,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
-                if (checkBox.AllowScoring)
+                if (!checkBox.AllowScoring)
                     return Rank.None;
             }
 
             foreach (GameLobbyDropDown dropDown in DropDowns)
             {
-                if (dropDown.AllowScoring)
+                if (!dropDown.AllowScoring)
                     return Rank.None;
             }
 

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using ClientCore.Display;
-using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 

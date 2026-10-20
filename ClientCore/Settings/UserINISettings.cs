@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 using ClientCore.Settings;
+using ClientCore.Sorting;
 
 using Rampastring.Tools;
 

@@ -1,7 +1,6 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.DXGUI.Generic.OptionPanels;
 using Microsoft.Xna.Framework;
