@@ -39,9 +39,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
+#if XNA
+            // flags16.png exceeds the XNA maximum texture size (2048px), so flags are not shown
+            flagsSpriteSheet = null;
+#else
             using Stream flagsStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.flags16.png");
             var flagsPNG = SixLabors.ImageSharp.Image.Load(flagsStream);
             flagsSpriteSheet = AssetLoader.TextureFromImage(flagsPNG);
+#endif
 
             var flagListBox = new FlagListBox(windowManager, tunnelHandler, flagsSpriteSheet);
             flagListBox.FontIndex = FontIndex;
@@ -364,7 +369,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     Rectangle? flagRect = Items[i].Tag as Rectangle?;
 
-                    if (flagRect.HasValue)
+                    if (flagsSpriteSheet != null && flagRect.HasValue)
                     {
                         int x = (Width - FLAG_WIDTH) / 2;
                         DrawTexture(flagsSpriteSheet,
