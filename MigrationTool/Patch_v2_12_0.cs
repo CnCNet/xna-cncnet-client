@@ -8,11 +8,11 @@ using Rampastring.Tools;
 
 namespace MigrationTool;
 
-internal class Patch_v2_12_1 : Patch
+internal class Patch_v2_12_0 : Patch
 {
-    public Patch_v2_12_1(string clientPath) : base(clientPath)
+    public Patch_v2_12_0(string clientPath) : base(clientPath)
     {
-        ClientVersion = Version.v2_12_1;
+        ClientVersion = Version.v2_12_0;
     }
     public override void Apply()
     {
