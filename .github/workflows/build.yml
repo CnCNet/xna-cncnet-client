@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 jobs:
   build-clients:
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     steps:
     - uses: actions/checkout@v4
       with:

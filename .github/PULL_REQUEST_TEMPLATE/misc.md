@@ -3,6 +3,13 @@
 > [!WARNING]
 > This pull request template is for miscellaneous changes that do not fall under the categories of bug fixes or new features. Please ensure that your changes are appropriate for this template.
 
+<!-- Do not remove any of the sections below, even if you think they were not applicable. -->
+
+### Related Issue (Optional)
+
+- [ ] This pull request does not relate to any specific issue.
+- [ ] This pull request closes #<issue-number>
+
 ### What's Changed
 
 <!-- Describe the miscellaneous changes and scope. -->

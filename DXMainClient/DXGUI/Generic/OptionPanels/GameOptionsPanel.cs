@@ -3,7 +3,6 @@ using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
-using ClientCore.Enums;
 using ClientGUI.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;

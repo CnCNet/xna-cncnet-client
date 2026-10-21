@@ -17,7 +17,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.IO;
 using ClientCore.I18N;
-using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
 using ClientCore.Display;

@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.Enums;
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;

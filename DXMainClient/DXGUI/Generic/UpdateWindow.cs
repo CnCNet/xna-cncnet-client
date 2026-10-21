@@ -1,14 +1,14 @@
-﻿using System;
-#if WINFORMS
-using System.Runtime.InteropServices;
-#endif
-using ClientCore.Extensions;
-using ClientGUI;
-using ClientUpdater;
+﻿using ClientGUI;
 using DTAClient.Domain;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System;
+#if WINFORMS
+using System.Runtime.InteropServices;
+#endif
+using ClientUpdater;
 
 namespace DTAClient.DXGUI.Generic
 {
