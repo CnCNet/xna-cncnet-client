@@ -24,7 +24,6 @@ public static class ClientTypeExtensions
             "D2K" => ClientType.D2K,
             "TS" => ClientType.TS,
             "YR" => ClientType.YR,
-            "D2K" => ClientType.D2K,
             "Ares" => ClientType.Ares,
             _ => throw new Exception(unknownClientTypeErrorMsg),
         };
