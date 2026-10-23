@@ -1,15 +1,17 @@
-﻿using ClientCore;
-using ClientCore.I18N;
-using ClientCore.Extensions;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using ClientCore;
+using ClientCore.Extensions;
+using ClientCore.I18N;
+
+using Microsoft.Xna.Framework;
+
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI
 {
@@ -219,13 +221,50 @@ namespace ClientGUI
             var children = Children.ToList();
             foreach (var child in children)
             {
+                var childSection = ConfigIni.GetSection(child.Name);
+
+                if (childSection == null)
+                    continue;
+
+                // Handle buttons & checkboxes being able to toggle other controls.
+                if (child is XNAButton || child is XNACheckBox)
+                {
+                    string toggles = childSection.GetStringValue("$VisibilityToggles", null);
+
+                    if (!string.IsNullOrWhiteSpace(toggles))
+                    {
+                        var controlNames = toggles.SplitWithCleanup();
+
+                        foreach (var controlName in controlNames)
+                        {
+                            var toggleControl = FindChild<XNAControl>(controlName, optional: true);
+
+                            if (toggleControl is null)
+                                continue;
+
+                            if (child is XNACheckBox checkBox)
+                            {
+                                checkBox.CheckedChanged += (sender, args) =>
+                                {
+                                    toggleControl.Enabled = !toggleControl.Enabled;
+                                    toggleControl.Visible = !toggleControl.Visible;
+                                };
+                            }
+                            else
+                            {
+                                child.LeftClick += (sender, args) =>
+                                {
+                                    toggleControl.Enabled = !toggleControl.Enabled;
+                                    toggleControl.Visible = !toggleControl.Visible;
+                                };
+                            }
+                        }
+                    }
+                }
+
                 // This logic should also be enabled for other types in the future,
                 // but it requires changes in XNAUI
                 if (!(child is XNATextBox))
-                    continue;
-
-                var childSection = ConfigIni.GetSection(child.Name);
-                if (childSection == null)
                     continue;
 
                 string nextControl = childSection.GetStringValue("NextControl", null);
