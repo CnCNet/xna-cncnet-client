@@ -398,19 +398,22 @@ namespace DTAClient.Domain.Multiplayer
         public List<Point> GetStartingLocationPreviewCoords(Point previewSize)
         {
             if (startingLocations == null)
-            {
-                startingLocations = new List<Point>();
-
-                foreach (string waypoint in waypoints)
-                {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
-                    else
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
-                }
-            }
-
+                startingLocations = CalculateStartingLocationPreviewCoords(previewSize);
             return startingLocations;
+        }
+
+        // Views with different source-image sizes must not replace the shared
+        // original-image coordinate cache (e.g. lobby HD versus game list SD).
+        internal List<Point> CalculateStartingLocationPreviewCoords(Point previewSize)
+        {
+            var result = new List<Point>();
+            foreach (string waypoint in waypoints)
+            {
+                result.Add(MainClientConstants.USE_ISOMETRIC_CELLS
+                    ? GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize)
+                    : GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
+            }
+            return result;
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
@@ -597,6 +600,13 @@ namespace DTAClient.Domain.Multiplayer
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, string.Empty)));
             }
         }
+
+        /// <summary>
+        /// Resolve the original preview source without changing shared map state:
+        /// a nearby PNG if there is one, otherwise the embedded PreviewPack.
+        /// </summary>
+        internal MapPreviewSource ResolveOriginalPreviewSource()
+            => new MapPreviewSource(this, IsImmediatePreviewImageAvailable() ? PreviewPath : null);
 
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
