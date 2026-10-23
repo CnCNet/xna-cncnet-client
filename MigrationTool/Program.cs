@@ -51,13 +51,13 @@ internal sealed class Program
 
                 if (!SafePath.GetDirectory(arg).Exists)
                 {
-                    Console.WriteLine(ERROR_MESSAGE);
+                    Logger.Log($"Unable to find \"{arg}\" folder. Migration halted.");
                     return;
                 }
 
                 if (!SafePath.GetFile(SafePath.CombineFilePath(arg, "Resources", "ClientDefinitions.ini")).Exists)
                 {
-                    Logger.Log("Unable to find Resources/ClientDefinitions.ini. Migration halted.");
+                    Logger.Log($"Unable to find \"{arg}\\Resources\\ClientDefinitions.ini\". Migration halted.");
                     return;
                 }
 
