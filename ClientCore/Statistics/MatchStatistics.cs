@@ -68,6 +68,7 @@ namespace ClientCore.Statistics
             MatchParserBase parser = ClientConfiguration.Instance.ClientGameType switch
             {
                 ClientType.D2K => new Dune2000StatisticsParser(this, isLoadedGame),
+                ClientType.RA => new RedAlertStatisticsParser(this, isLoadedGame),
                 _ => new UniversalStatisticsParser(this, isLoadedGame),
             };
 

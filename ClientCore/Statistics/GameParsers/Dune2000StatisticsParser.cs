@@ -1,21 +1,13 @@
 #nullable enable
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
-
-using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers;
 
-public sealed class Dune2000StatisticsParser : MatchParserBase
+public sealed class Dune2000StatisticsParser : StatisticsDumpParserBase
 {
-    private const string StatisticsFileName = "stats.dmp";
-    private const int MaxPlayerCount = 8;
-
     private sealed class HouseResult
     {
         public string? Name { get; set; }
@@ -32,70 +24,24 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
     private readonly HouseResult[] houseResults = Enumerable.Range(0, MaxPlayerCount).Select(_ => new HouseResult()).ToArray();
 
     private uint? endState;
+    private uint? duration;
     private bool suddenDisconnect;
 
     public Dune2000StatisticsParser(MatchStatistics statistics, bool isLoaded) : base(statistics, isLoaded)
     {
     }
 
-    public override void ParseStats(string gamePath, string fileName) => ParseStatistics(gamePath);
-
-    protected override void ParseStatistics(string gamePath)
+    protected override void ResetResults()
     {
-        FileInfo statisticsFile = SafePath.GetFile(gamePath, StatisticsFileName);
-        if (!statisticsFile.Exists)
-        {
-            Logger.Log("Dune2000StatisticsParser: Failed to read statistics: stats.dmp does not exist.");
-            return;
-        }
+        for (int houseIndex = 0; houseIndex < houseResults.Length; houseIndex++)
+            houseResults[houseIndex] = new HouseResult();
 
-        try
-        {
-            ReadRecords(statisticsFile.FullName);
-            ApplyResults();
-        }
-        catch (Exception ex)
-        {
-            Logger.Log("Dune2000StatisticsParser: Error parsing stats.dmp: " + ex);
-        }
+        endState = null;
+        duration = null;
+        suddenDisconnect = false;
     }
 
-    private void ReadRecords(string filePath)
-    {
-        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var reader = new BinaryReader(stream, Encoding.ASCII, leaveOpen: true);
-
-        byte[] fileHeader = reader.ReadBytes(4);
-        if (fileHeader.Length != 4)
-            throw new InvalidDataException("stats.dmp is shorter than its four-byte header.");
-
-        int declaredLength = BinaryPrimitives.ReadUInt16BigEndian(fileHeader.AsSpan(0, 2));
-        if (declaredLength > stream.Length)
-            throw new InvalidDataException("stats.dmp declares more data than the file contains.");
-
-        while (stream.Position + 8 <= stream.Length)
-        {
-            string id = Encoding.ASCII.GetString(reader.ReadBytes(4));
-            byte[] typeAndLength = reader.ReadBytes(4);
-            if (typeAndLength.Length != 4)
-                throw new EndOfStreamException("stats.dmp ended inside a field header.");
-
-            int length = BinaryPrimitives.ReadUInt16BigEndian(typeAndLength.AsSpan(2, 2));
-            if (length > stream.Length - stream.Position)
-                throw new InvalidDataException($"stats.dmp field {id} exceeds the file length.");
-
-            byte[] data = reader.ReadBytes(length);
-            ReadRecord(id, data);
-
-            long padding = (4 - stream.Position % 4) % 4;
-            if (padding > stream.Length - stream.Position)
-                break;
-
-            stream.Position += padding;
-        }
-    }
-
-    private void ReadRecord(string id, byte[] data)
+    protected override void ReadRecord(string id, byte[] data)
     {
         if (TryGetHouseIndex(id, "PL_", out int houseIndex))
         {
@@ -146,7 +92,7 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
         {
             case "TIME":
                 if (TryReadUInt32(data, out uint seconds))
-                    Statistics.LengthInSeconds = (int)Math.Min(seconds, int.MaxValue);
+                    duration = seconds;
                 break;
             case "ENDS":
                 if (TryReadUInt32(data, out uint parsedEndState))
@@ -158,8 +104,11 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
         }
     }
 
-    private void ApplyResults()
+    protected override void ApplyResults()
     {
+        if (duration.HasValue)
+            Statistics.LengthInSeconds = (int)Math.Min(duration.Value, int.MaxValue);
+
         var unmatchedPlayers = new List<PlayerStatistics>(Statistics.Players);
         bool hasAnyScore = false;
 
@@ -209,33 +158,5 @@ public sealed class Dune2000StatisticsParser : MatchParserBase
             && (!endState.HasValue || endState.Value is 0 or 1 or 2 or 5 or 6);
     }
 
-    private static bool TryGetHouseIndex(string id, string prefix, out int houseIndex)
-    {
-        houseIndex = -1;
-        if (id.Length != 4
-            || !id.StartsWith(prefix, StringComparison.Ordinal)
-            || !char.IsDigit(id[3]))
-        {
-            return false;
-        }
-
-        houseIndex = id[3] - '0';
-
-        return houseIndex < MaxPlayerCount;
-    }
-
-    private static string ReadString(byte[] data) => Encoding.ASCII.GetString(data).TrimEnd('\0');
-
     private static bool TryParseInt(string value, out int result) => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
-
-    private static bool TryReadUInt32(byte[] data, out uint value)
-    {
-        value = 0;
-        if (data.Length < sizeof(uint))
-            return false;
-
-        value = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(0, sizeof(uint)));
-
-        return true;
-    }
 }
