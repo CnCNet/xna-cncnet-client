@@ -30,8 +30,7 @@
   Build on debug mode.
 #>
 
-param
-(
+param (
   [Parameter()]
   [switch]
   $IsDebug,
@@ -47,8 +46,7 @@ param
 )
 
 $Script:ConfigurationSuffix = 'Release'
-if ($IsDebug)
-{
+if ($IsDebug) {
   $Script:ConfigurationSuffix = 'Debug'
 }
 
@@ -67,21 +65,17 @@ $Script:FrameworkBinariesFolderMap = @{
   'net8.0-windows' = 'BinariesNET8'
 }
 
-if (!$NoClean -AND (Test-Path $Script:CompiledRoot))
-{
+if (!$NoClean -AND (Test-Path $Script:CompiledRoot)) {
   Remove-Item -Recurse -Force -LiteralPath $Script:CompiledRoot
 }
 
-if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) 
-{
+if ($null -EQ $IsWindows -AND 'Desktop' -EQ $PSEdition) {
   $Script:IsWindows = $true
 }
 
-function Script:Invoke-BuildProject
-{
+function Script:Invoke-BuildProject {
   [CmdletBinding(DefaultParameterSetName = 'ByGame')]
-  param
-  (
+  param (
     [Parameter(Mandatory, ParameterSetName = 'Detail', Position = 0)]
     [string]
     $Engine,
@@ -90,10 +84,8 @@ function Script:Invoke-BuildProject
     $Framework
   )
   
-  process
-  {
-    if ($Engine)
-    {
+  process {
+    if ($Engine) {
       $Output = Join-Path $CompiledRoot 'Resources' ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
 
       $Private:ArgumentList = [System.Collections.Generic.List[string]]::new(11)
@@ -104,12 +96,10 @@ function Script:Invoke-BuildProject
       $Private:ArgumentList.Add("--framework:$Framework")
       $Private:ArgumentList.Add("--output:$Output")
       $Private:ArgumentList.Add('-property:SatelliteResourceLanguages=en')
-      if ($Log)
-      {
+      if ($Log) {
         $Private:ArgumentList.Add('-verbosity:diagnostic')
       }
-      if ($NoMove)
-      {
+      if ($NoMove) {
         $Private:ArgumentList.Add('-property:NoMove=true')
       }
       # $Private:ArgumentList.Add("-property:AssemblyVersion=$AssemblySemVer")
@@ -125,11 +115,9 @@ function Script:Invoke-BuildProject
         throw "Build failed for ${Engine}$Script:ConfigurationSuffix $Framework (exit code $LASTEXITCODE)"
       }
     }
-    else
-    {
+    else {
       Invoke-BuildProject -Engine 'UniversalGL' -Framework 'net8.0'
-      if ($IsWindows)
-      {
+      if ($IsWindows) {
         @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
           $Private:Engine = $PSItem
   
@@ -144,37 +132,32 @@ function Script:Invoke-BuildProject
   }
 }
 
-function Script:Invoke-BuildMigrationTool
-{
-    ForEach ($Engine in 'net48')
-    {
-        $Private:MTFramework = $Engine
-        $Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
-        $Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
-        $Private:MTOutput = Join-Path $MTCompiledPath 'MigrationTool'
-        $Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
-        $Private:MTArgumentList.Add('publish')
-        $Private:MTArgumentList.Add("$MTProjectPath")
-        $Private:MTArgumentList.Add('--graph')
-        $Private:MTArgumentList.Add("--framework:$MTFramework")
-        $Private:MTArgumentList.Add("--output:$MTOutput")
-        $Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
-        if ($Log)
-        {
-          $Private:ArgumentList.Add('-verbosity:diagnostic')
-        }
-        if ($NoMove)
-        {
-          $Private:ArgumentList.Add('-property:NoMove=true')
-        }
-
-        echo ''
-        & 'dotnet' $MTArgumentList
-        if ($LASTEXITCODE)
-        {
-          throw "Build failed for Migration Tool"
-        }
+function Script:Invoke-BuildMigrationTool {
+  ForEach ($Engine in 'net48') {
+    $Private:MTFramework = $Engine
+    $Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
+    $Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
+    $Private:MTOutput = Join-Path $MTCompiledPath 'MigrationTool'
+    $Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
+    $Private:MTArgumentList.Add('publish')
+    $Private:MTArgumentList.Add("$MTProjectPath")
+    $Private:MTArgumentList.Add('--graph')
+    $Private:MTArgumentList.Add("--framework:$MTFramework")
+    $Private:MTArgumentList.Add("--output:$MTOutput")
+    $Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
+    if ($Log) {
+      $Private:ArgumentList.Add('-verbosity:diagnostic')
     }
+    if ($NoMove) {
+      $Private:ArgumentList.Add('-property:NoMove=true')
+    }
+
+    echo ''
+    & 'dotnet' $MTArgumentList
+    if ($LASTEXITCODE) {
+      throw "Build failed for Migration Tool"
+    }
+  }
 }
 
 # Build client binaries
