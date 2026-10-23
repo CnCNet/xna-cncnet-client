@@ -1,4 +1,4 @@
-﻿namespace ClientCore
+namespace ClientCore
 {
     public enum ClientType
     {

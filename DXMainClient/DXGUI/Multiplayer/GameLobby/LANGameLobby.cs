@@ -233,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 Logger.Log("New client connected from " + ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString());
 
-                if (Players.Count >= MAX_PLAYER_COUNT)
+                if (Players.Count >= MAX_NET_PLAYER_COUNT)
                 {
                     Logger.Log("Dropping client because of player limit.");
                     client.Close();
@@ -310,7 +310,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void AddPlayer(LANPlayerInfo lpInfo)
         {
             if (Players.Find(p => p.Name == lpInfo.Name) != null ||
-                Players.Count >= MAX_PLAYER_COUNT || Locked)
+                Players.Count >= MAX_NET_PLAYER_COUNT || Locked)
                 return;
 
             Players.Add(lpInfo);
@@ -765,7 +765,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
 
-                if (Players.Count < MAX_PLAYER_COUNT)
+                if (Players.Count < MAX_NET_PLAYER_COUNT)
                 {
                     UnlockGame(true);
                 }
