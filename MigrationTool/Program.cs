@@ -15,9 +15,7 @@ internal sealed class Program
         """
         CnCNet Client Migration Tool.
         
-        Execute this file with path to the unmigrated client directory as first argument.
-
-        Make sure that you migrate old YR or TS mod client configs with this tool.
+        Run this tool using the path to the unmigrated client directory as the first argument.
         """;
 
     private static void Main(string[] args)
