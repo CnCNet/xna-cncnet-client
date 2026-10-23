@@ -67,11 +67,15 @@ namespace DTAClient.Domain.Multiplayer
         private int randomizedMapCodesCount;
 
         private string forcedOptionsSection;
+        private string recommendedOptionsSection;
 
         public List<Map> Maps = new List<Map>();
 
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>();
+
+        public List<KeyValuePair<string, bool>> RecommendedCheckBoxValues = new List<KeyValuePair<string, bool>>();
+        public List<KeyValuePair<string, int>> RecommendedDropDownValues = new List<KeyValuePair<string, int>>();
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
@@ -84,6 +88,8 @@ namespace DTAClient.Domain.Multiplayer
             clone.DisallowedComputerPlayerSides = [.. clone.DisallowedComputerPlayerSides];
             clone.ForcedCheckBoxValues = [.. clone.ForcedCheckBoxValues];
             clone.ForcedDropDownValues = [.. clone.ForcedDropDownValues];
+            clone.RecommendedCheckBoxValues = [.. clone.RecommendedCheckBoxValues];
+            clone.RecommendedDropDownValues = [.. clone.RecommendedDropDownValues];
             clone.ForcedSpawnIniOptions = [.. clone.ForcedSpawnIniOptions];
             clone.randomizedMapCodeININames = [.. clone.randomizedMapCodeININames];
 
@@ -106,6 +112,7 @@ namespace DTAClient.Domain.Multiplayer
             MaxPlayersOverride = section.GetIntValueOrNull("MaxPlayersOverride");
 
             forcedOptionsSection = section.GetStringValue("ForcedOptions", string.Empty);
+            recommendedOptionsSection = section.GetStringValue("RecommendedOptions", string.Empty);
             mapCodeININame = section.GetStringValue("MapCodeIniName", section.GetStringValue("MapCodeININame", Name + ".ini"));
             randomizedMapCodeININames = section.GetStringValue("RandomizedMapCodeIniNames", section.GetStringValue("RandomizedMapCodeININames", string.Empty)).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
             randomizedMapCodesCount = section.GetIntValue("RandomizedMapCodesCount", 1);
@@ -115,6 +122,8 @@ namespace DTAClient.Domain.Multiplayer
             DisallowedComputerPlayerSides = section.GetListValue("DisallowedComputerPlayerSides", ',', int.Parse);
 
             ParseForcedOptions(forcedOptionsIni);
+
+            ParseRecommendedOptions(forcedOptionsIni);
 
             ParseSpawnIniOptions(forcedOptionsIni);
         }
@@ -142,6 +151,27 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
                 }
+            }
+        }
+
+        private void ParseRecommendedOptions(IniFile iniFile)
+        {
+            if (string.IsNullOrEmpty(recommendedOptionsSection))
+                return;
+
+            List<string> keys = iniFile.GetSectionKeys(recommendedOptionsSection);
+
+            if (keys == null)
+                return;
+
+            foreach (string key in keys)
+            {
+                string value = iniFile.GetStringValue(recommendedOptionsSection, key, string.Empty);
+
+                if (int.TryParse(value, out int intValue))
+                    RecommendedDropDownValues.Add(new KeyValuePair<string, int>(key, intValue));
+                else
+                    RecommendedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
             }
         }
 
