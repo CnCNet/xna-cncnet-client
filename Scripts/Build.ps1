@@ -29,7 +29,8 @@
   Build.ps1 -IsDebug
   Build on debug mode.
 #>
-param(
+
+param (
   [Parameter()]
   [switch]
   $IsDebug,
@@ -131,4 +132,36 @@ function Script:Invoke-BuildProject {
   }
 }
 
+function Script:Invoke-BuildMigrationTool {
+  ForEach ($Engine in 'net48') {
+    $Private:MTFramework = $Engine
+    $Private:MTCompiledPath = Join-Path $RepoRoot 'Compiled'
+    $Private:MTProjectPath = Join-Path $RepoRoot 'MigrationTool' 'MigrationTool.csproj'
+    $Private:MTOutput = Join-Path $MTCompiledPath 'MigrationTool'
+    $Private:MTArgumentList = [System.Collections.Generic.List[string]]::new(11)
+    $Private:MTArgumentList.Add('publish')
+    $Private:MTArgumentList.Add("$MTProjectPath")
+    $Private:MTArgumentList.Add('--graph')
+    $Private:MTArgumentList.Add("--framework:$MTFramework")
+    $Private:MTArgumentList.Add("--output:$MTOutput")
+    $Private:MTArgumentList.Add('-property:SatelliteResourceLanguages=en')
+    if ($Log) {
+      $Private:ArgumentList.Add('-verbosity:diagnostic')
+    }
+    if ($NoMove) {
+      $Private:ArgumentList.Add('-property:NoMove=true')
+    }
+
+    echo ''
+    & 'dotnet' $MTArgumentList
+    if ($LASTEXITCODE) {
+      throw "Build failed for Migration Tool"
+    }
+  }
+}
+
+# Build client binaries
 Script:Invoke-BuildProject
+
+# Build migration tool binaries
+Script:Invoke-BuildMigrationTool
