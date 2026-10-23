@@ -278,6 +278,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             UserINISettings.Instance.DisplayToggleableExtraTextures.Value =
                 !UserINISettings.Instance.DisplayToggleableExtraTextures;
+            UserINISettings.Instance.SaveSettings();
 
             RefreshExtraTexturesBtn();
         }
