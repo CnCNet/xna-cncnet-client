@@ -210,7 +210,9 @@ namespace ClientCore.Statistics.GameParsers
                 sawCompletion |= player.SawEnd;
             }
 
-            if (duration.HasValue)
+            // Some RA builds leave DURA at zero. Preserve the elapsed time measured
+            // by MatchStatistics when the game does not provide a usable duration.
+            if (duration is > 0)
                 Statistics.LengthInSeconds = ClampCounter(duration.Value);
 
             if (averageFps.HasValue)
