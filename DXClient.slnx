@@ -45,7 +45,4 @@
   <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
   <Project Path="SecondStageUpdater/SecondStageUpdater.csproj" />
   <Project Path="TranslationNotifierGenerator/TranslationNotifierGenerator.csproj" />
-  <Folder Name="/Tests/">
-    <Project Path="Tests/Statistics.Tests/Statistics.Tests.csproj" />
-  </Folder>
 </Solution>
