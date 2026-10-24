@@ -10,7 +10,7 @@ namespace ClientCore.Statistics.GameParsers
     /// <summary>
     /// Reads the Westwood statistics packet written by the CnCNet Red Alert spawner.
     /// </summary>
-    public sealed class RedAlertStatisticsParser : StatisticsDumpParserBase
+    public sealed class RedAlertStatisticsParser : MatchParserBase
     {
         private sealed class HouseResult
         {
@@ -41,7 +41,9 @@ namespace ClientCore.Statistics.GameParsers
         {
         }
 
-        protected override void ResetResults()
+        protected override void ParseStatistics(string gamePath) => ParseStatisticsDump(gamePath, ResetResults, ReadRecord, ApplyResults);
+
+        private void ResetResults()
         {
             for (int i = 0; i < houseResults.Length; i++)
                 houseResults[i] = new HouseResult();
@@ -53,7 +55,7 @@ namespace ClientCore.Statistics.GameParsers
             outOfSync = false;
         }
 
-        protected override void ReadRecord(string id, byte[] data)
+        private void ReadRecord(string id, byte[] data)
         {
             switch (id)
             {
@@ -133,7 +135,7 @@ namespace ClientCore.Statistics.GameParsers
             result.HasData = true;
         }
 
-        protected override void ApplyResults()
+        private void ApplyResults()
         {
             // Validate paired arrays before changing any match or player statistics.
             int[] losses = houseResults.Select(CountLosses).ToArray();

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ClientCore.Statistics.GameParsers;
 
-public sealed class Dune2000StatisticsParser : StatisticsDumpParserBase
+public sealed class Dune2000StatisticsParser : MatchParserBase
 {
     private sealed class HouseResult
     {
@@ -31,7 +31,9 @@ public sealed class Dune2000StatisticsParser : StatisticsDumpParserBase
     {
     }
 
-    protected override void ResetResults()
+    protected override void ParseStatistics(string gamePath) => ParseStatisticsDump(gamePath, ResetResults, ReadRecord, ApplyResults);
+
+    private void ResetResults()
     {
         for (int houseIndex = 0; houseIndex < houseResults.Length; houseIndex++)
             houseResults[houseIndex] = new HouseResult();
@@ -41,7 +43,7 @@ public sealed class Dune2000StatisticsParser : StatisticsDumpParserBase
         suddenDisconnect = false;
     }
 
-    protected override void ReadRecord(string id, byte[] data)
+    private void ReadRecord(string id, byte[] data)
     {
         if (TryGetHouseIndex(id, "PL_", out int houseIndex))
         {
@@ -104,7 +106,7 @@ public sealed class Dune2000StatisticsParser : StatisticsDumpParserBase
         }
     }
 
-    protected override void ApplyResults()
+    private void ApplyResults()
     {
         if (duration.HasValue)
             Statistics.LengthInSeconds = (int)Math.Min(duration.Value, int.MaxValue);
