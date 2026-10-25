@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +11,17 @@ namespace ClientCore.Statistics.GameParsers
     /// </summary>
     public sealed class RedAlertStatisticsParser : MatchParserBase
     {
+        // These are packet category identifiers, not lists of game object types.
+        // The ordered type IDs themselves are loaded from the game's rules files.
+        private static readonly Dictionary<string, string[]> CounterTypeSections = new Dictionary<string, string[]>
+        {
+            { "IN", new[] { "InfantryTypes" } },
+            { "UN", new[] { "VehicleTypes", "UnitTypes" } },
+            { "PL", new[] { "AircraftTypes" } },
+            { "BL", new[] { "BuildingTypes" } },
+            { "VS", new[] { "VesselTypes" } }
+        };
+
         private sealed class HouseResult
         {
             public string? Name { get; set; }
@@ -22,9 +32,9 @@ namespace ClientCore.Statistics.GameParsers
             public bool IsDisconnected { get; set; }
             public uint? Allies { get; set; }
             public uint? Harvested { get; set; }
-            public Dictionary<string, uint[]> Built { get; } = new Dictionary<string, uint[]>();
-            public Dictionary<string, uint[]> Remaining { get; } = new Dictionary<string, uint[]>();
-            public Dictionary<string, uint[]> Killed { get; } = new Dictionary<string, uint[]>();
+            public Dictionary<string, Dictionary<string, uint>> Built { get; } = new Dictionary<string, Dictionary<string, uint>>();
+            public Dictionary<string, Dictionary<string, uint>> Remaining { get; } = new Dictionary<string, Dictionary<string, uint>>();
+            public Dictionary<string, Dictionary<string, uint>> Killed { get; } = new Dictionary<string, Dictionary<string, uint>>();
 
             public bool HasLost => IsDefeated == true || HasResigned == true;
         }
@@ -107,29 +117,29 @@ namespace ClientCore.Statistics.GameParsers
                 case "HRV":
                     result.Harvested = ReadUInt32(data);
                     break;
-                case "INB":
-                case "UNB":
-                case "PLB":
-                case "BLB":
-                case "VSB":
-                    result.Built[prefix.Substring(0, 2)] = ReadCounters(data);
-                    break;
-                case "INL":
-                case "UNL":
-                case "PLL":
-                case "BLL":
-                case "VSL":
-                    result.Remaining[prefix.Substring(0, 2)] = ReadCounters(data);
-                    break;
-                case "INK":
-                case "UNK":
-                case "PLK":
-                case "BLK":
-                case "VSK":
-                    result.Killed[prefix.Substring(0, 2)] = ReadCounters(data);
-                    break;
                 default:
-                    return;
+                    string category = prefix.Substring(0, 2);
+                    char statistic = prefix[2];
+                    if (!CounterTypeSections.TryGetValue(category, out string[]? typeSections)
+                        || statistic is not ('B' or 'L' or 'K'))
+                    {
+                        return;
+                    }
+
+                    Dictionary<string, uint> counters = ReadTypeCounters(data, typeSections);
+                    switch (statistic)
+                    {
+                        case 'B':
+                            result.Built[category] = counters;
+                            break;
+                        case 'L':
+                            result.Remaining[category] = counters;
+                            break;
+                        case 'K':
+                            result.Killed[category] = counters;
+                            break;
+                    }
+                    break;
             }
 
             result.HasData = true;
@@ -201,7 +211,7 @@ namespace ClientCore.Statistics.GameParsers
                 if (result.IsSpectator.HasValue)
                     player.WasSpectator = result.IsSpectator.Value;
 
-                player.Kills = ClampCounter(result.Killed.Values.Sum(counters => counters.Sum(value => (long)value)));
+                player.Kills = ClampCounter(result.Killed.Values.Sum(counters => counters.Values.Sum(value => (long)value)));
                 player.Losses = losses[i];
                 if (result.Harvested.HasValue)
                     player.Economy = ClampCounter(result.Harvested.Value);
@@ -267,16 +277,21 @@ namespace ClientCore.Statistics.GameParsers
         private static int CountLosses(HouseResult result)
         {
             long losses = 0;
-            foreach (KeyValuePair<string, uint[]> category in result.Built)
+            foreach (KeyValuePair<string, Dictionary<string, uint>> category in result.Built)
             {
-                if (!result.Remaining.TryGetValue(category.Key, out uint[]? remaining))
+                if (!result.Remaining.TryGetValue(category.Key, out Dictionary<string, uint>? remaining))
                     continue;
 
-                if (category.Value.Length != remaining.Length)
+                if (category.Value.Count != remaining.Count)
                     throw new InvalidDataException("Red Alert built and remaining counters have different lengths.");
 
-                for (int i = 0; i < remaining.Length; i++)
-                    losses += Math.Max(0L, (long)category.Value[i] - remaining[i]);
+                foreach (KeyValuePair<string, uint> type in category.Value)
+                {
+                    if (!remaining.TryGetValue(type.Key, out uint remainingCount))
+                        throw new InvalidDataException("Red Alert built and remaining counters have different object types.");
+
+                    losses += Math.Max(0L, (long)type.Value - remainingCount);
+                }
             }
 
             // RA has no separate loss counter. Removals include deployments and sales.
@@ -298,18 +313,6 @@ namespace ClientCore.Statistics.GameParsers
                 return data[0] != 0;
 
             return ReadUInt32(data) != 0;
-        }
-
-        private static uint[] ReadCounters(byte[] data)
-        {
-            if (data.Length % sizeof(uint) != 0)
-                throw new InvalidDataException("Invalid Red Alert counter array length.");
-
-            var counters = new uint[data.Length / sizeof(uint)];
-            for (int i = 0; i < counters.Length; i++)
-                counters[i] = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(i * sizeof(uint), sizeof(uint)));
-
-            return counters;
         }
 
         private static int ClampCounter(long value) => (int)Math.Min(value, int.MaxValue);
