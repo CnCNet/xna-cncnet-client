@@ -51,6 +51,7 @@ namespace DTAClient.Online
         {
             gameCollection = gc;
             this.cncNetUserData = cncNetUserData;
+            cncNetUserData.UserFriendToggled += CncNetUserData_UserFriendToggled;
             connection = new Connection(this, random);
 
             this.wm = wm;
@@ -622,6 +623,28 @@ namespace DTAClient.Online
             channel.OnUserJoined(channelUser);
 
             //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
+        }
+
+        /// <summary>
+        /// Updates a user's friend status on all chat channels and re-sorts them,
+        /// since friends are listed before other users.
+        /// </summary>
+        private void CncNetUserData_UserFriendToggled(object sender, UserNameEventArgs e)
+        {
+            bool isFriend = cncNetUserData.IsFriend(e.UserName);
+
+            foreach (Channel channel in channels)
+            {
+                if (!channel.IsChatChannel)
+                    continue;
+
+                ChannelUser user = channel.Users.Find(e.UserName);
+                if (user == null || user.IsFriend == isFriend)
+                    continue;
+
+                user.IsFriend = isFriend;
+                channel.Users.Reinsert(e.UserName);
+            }
         }
 
         private void AddUserToGlobalUserList(IRCUser user)
