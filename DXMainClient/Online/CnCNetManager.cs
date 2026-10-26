@@ -284,6 +284,8 @@ namespace DTAClient.Online
                             if (user == null)
                                 break;
                             user.IsAdmin = addMode;
+                            if (channel.IsChatChannel)
+                                channel.Users.Reinsert(parameter);
                             break;
 
                         // Add/remove voice status on user.
@@ -295,6 +297,8 @@ namespace DTAClient.Online
                             if (vUser == null)
                                 break;
                             vUser.IRCUser.HasVoice = addMode;
+                            if (channel.IsChatChannel)
+                                channel.Users.Reinsert(vParam);
                             break;
                     }
                 }
