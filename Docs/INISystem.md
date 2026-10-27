@@ -1036,6 +1036,8 @@ Spawn.ini writing order for multiplayer:
 3. Game mode specific forced options
 4. Map specific forced options
 
+Later steps override earlier ones. Forced options can also override most keys the client writes itself, such as `FrameSendRate` or `Protocol`, but not the keys that connect players: `Port`, `Host` and `GameID` in `[Settings]`, and the `[Tunnel]` section, are always written after them.
+
 In `GameOptions.ini`:
 ```ini
 [ForcedSpawnIniOptions]

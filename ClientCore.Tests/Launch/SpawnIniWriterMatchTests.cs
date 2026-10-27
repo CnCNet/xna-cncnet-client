@@ -85,6 +85,36 @@ public class SpawnIniWriterMatchTests
     }
 
     [Fact]
+    public void OptionLayersCanTuneTheNetworkButNotTheSession()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "Player",
+            Humans = [new HumanHouse { Name = "Player" }],
+            ColorOrder = colorOrder,
+            Network = new MatchNetwork
+            {
+                FrameSendRate = 7,
+                Protocol = 2,
+                Session = new TunnelMatchSession { GameID = 4, IsHost = true, Port = 48000, Tunnel = new TunnelEndpoint("127.0.0.1", 50000) },
+            },
+            OptionLayers =
+            [
+                MatchScenarios.Layer("GameOptions.ini [ForcedSpawnIniOptions]",
+                    ("FrameSendRate", "3"), ("Port", "1"), ("Host", "False"), ("GameID", "0")),
+            ],
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        Assert.Equal("3", spawnIni.GetStringValue("Settings", "FrameSendRate", string.Empty));
+        Assert.Equal(48000, spawnIni.GetIntValue("Settings", "Port", 0));
+        Assert.True(spawnIni.GetBooleanValue("Settings", "Host", false));
+        Assert.Equal(4, spawnIni.GetIntValue("Settings", "GameID", 0));
+        Assert.Equal(50000, spawnIni.GetIntValue("Tunnel", "Port", 0));
+    }
+
+    [Fact]
     public void RedAlertCoopAlliancesAreShifted()
     {
         IniFile spawnIni = SpawnIniWriter.WriteMatch(MatchScenarios.CoopMapHouses(), redAlert);

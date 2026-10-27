@@ -26,9 +26,10 @@ public static class SpawnIniWriter
         var spawnIni = new IniFile();
 
         WriteMatchSettings(spawnIni, request);
-        WriteMatchNetwork(spawnIni, request.Network);
+        WriteMatchNetworkTuning(spawnIni, request.Network);
         WriteOptionLayers(spawnIni, request.OptionLayers);
         WriteMapSettings(spawnIni, request, dialect);
+        WriteMatchSession(spawnIni, request.Network?.Session);
         WriteOtherPlayers(spawnIni, request);
 
         List<int> humanMultiOrder = GetHumanMultiOrder(request);
@@ -228,7 +229,7 @@ public static class SpawnIniWriter
         spawnIni.AddSection(settings);
     }
 
-    private static void WriteMatchNetwork(IniFile spawnIni, MatchNetwork? network)
+    private static void WriteMatchNetworkTuning(IniFile spawnIni, MatchNetwork? network)
     {
         if (network == null)
             return;
@@ -239,8 +240,11 @@ public static class SpawnIniWriter
             spawnIni.SetIntValue(SETTINGS, "MaxAhead", network.MaxAhead);
 
         spawnIni.SetIntValue(SETTINGS, "Protocol", network.Protocol);
+    }
 
-        switch (network.Session)
+    private static void WriteMatchSession(IniFile spawnIni, MatchSession? session)
+    {
+        switch (session)
         {
             case LanMatchSession lan:
                 spawnIni.SetIntValue(SETTINGS, "Port", lan.Port);
