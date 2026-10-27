@@ -28,22 +28,6 @@ public static class ReplayFileHashes
         return entries;
     }
 
-    public static void Write(IniFile spawnIni)
-    {
-        List<string> entries = CollectEntries();
-
-        if (entries.Count == 0)
-            return;
-
-        var section = new IniSection(SECTION);
-
-        // Use numeric keys because paths can contain '='.
-        for (int index = 0; index < entries.Count; index++)
-            section.SetStringValue(index.ToString(), entries[index]);
-
-        spawnIni.AddSection(section);
-    }
-
     /// <summary>Returns differences between recorded and local game files.</summary>
     public static List<string> FindMismatches(IniFile replaySpawnIni)
     {

@@ -26,4 +26,22 @@ public static class SpawnFiles
         Logger.Log("Writing spawnmap.ini");
         spawnMap.WriteIniFile(SpawnMapFile.FullName);
     }
+
+    /// <summary>
+    /// Replaces spawnmap.ini with a placeholder map, for launches where the game
+    /// loads its map from somewhere else, such as a saved game.
+    /// </summary>
+    public static void WriteStubSpawnMap()
+    {
+        FileInfo spawnMapFile = SpawnMapFile;
+
+        if (spawnMapFile.Exists)
+            spawnMapFile.Delete();
+
+        using var spawnMapStreamWriter = new StreamWriter(spawnMapFile.FullName);
+        spawnMapStreamWriter.WriteLine("[Map]");
+        spawnMapStreamWriter.WriteLine("Size=0,0,50,50");
+        spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");
+        spawnMapStreamWriter.WriteLine();
+    }
 }
