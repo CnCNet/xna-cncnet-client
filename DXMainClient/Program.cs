@@ -281,6 +281,10 @@ namespace DTAClient
             {
                 // Proceed to client startup
                 PreStartup.Initialize(parameters);
+
+                if (unattendedUpdate)
+                    Startup.WaitForSecondStageUpdater();
+
                 return;
             }
 
@@ -318,6 +322,10 @@ namespace DTAClient
                 if (hasHandle)
                     mutex.ReleaseMutex();
             }
+
+            // The second-stage updater waits for the mutex, so it can only run once the mutex is released
+            if (unattendedUpdate)
+                Startup.WaitForSecondStageUpdater();
         }
 
 #if !NETFRAMEWORK

@@ -82,6 +82,12 @@ public static class Updater
     public static bool Unattended { get; set; }
 
     /// <summary>
+    /// The second-stage updater process started by an unattended update, if any.
+    /// The caller waits for it to find out whether the update succeeded.
+    /// </summary>
+    public static Process SecondStageUpdaterProcess { get; private set; }
+
+    /// <summary>
     /// Gets read-only collection of all custom components.
     /// </summary>
     public static ReadOnlyCollection<CustomComponent> CustomComponents => customComponents?.AsReadOnly();
@@ -1453,7 +1459,12 @@ public static class Updater
                         Logger.Log("Updater: FileName = " + secondStageUpdaterStartInfo.FileName);
                         Logger.Log("Updater: Arguments = " + secondStageUpdaterStartInfo.Arguments);
                         Logger.Log("Updater: UseShellExecute = " + secondStageUpdaterStartInfo.UseShellExecute);
-                        using var _ = Process.Start(secondStageUpdaterStartInfo);
+                        Process secondStageUpdaterProcess = Process.Start(secondStageUpdaterStartInfo);
+
+                        if (Unattended)
+                            SecondStageUpdaterProcess = secondStageUpdaterProcess;
+                        else
+                            secondStageUpdaterProcess?.Dispose();
 
                         Restart?.Invoke(null, EventArgs.Empty);
                     }

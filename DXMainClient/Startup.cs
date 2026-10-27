@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.Win32;
@@ -32,6 +33,12 @@ namespace DTAClient
         public const int UNATTENDED_UPDATE_SUCCEEDED = 0;
         public const int UNATTENDED_UPDATE_FAILED = 1;
         public const int UNATTENDED_UPDATE_MANUAL_UPDATE_REQUIRED = 2;
+
+        /// <summary>
+        /// How long to wait for the second-stage updater during an unattended update.
+        /// An older second-stage updater waits for a key press on failure, so it can hang in a hidden console.
+        /// </summary>
+        private static readonly TimeSpan SecondStageUpdaterTimeout = TimeSpan.FromMinutes(10);
 
         /// <summary>
         /// The main method for startup and initialization.
@@ -232,9 +239,42 @@ namespace DTAClient
                 return UNATTENDED_UPDATE_FAILED;
             }
 
-            Logger.Log("Unattended update: The update finished.");
+            if (Updater.SecondStageUpdaterProcess != null)
+                Logger.Log("Unattended update: Files downloaded. The second-stage updater replaces them after the client exits.");
+            else
+                Logger.Log("Unattended update: The update finished.");
 
             return UNATTENDED_UPDATE_SUCCEEDED;
+        }
+
+        /// <summary>
+        /// Waits for the second-stage updater started by an unattended update, if any, and sets the exit code from its result.
+        /// The second-stage updater waits for the client mutex, so this must be called after the mutex is released.
+        /// </summary>
+        public static void WaitForSecondStageUpdater()
+        {
+            using Process process = Updater.SecondStageUpdaterProcess;
+
+            if (process == null)
+                return;
+
+            Logger.Log("Unattended update: Waiting for the second-stage updater to finish.");
+
+            if (!process.WaitForExit((int)SecondStageUpdaterTimeout.TotalMilliseconds))
+            {
+                Logger.Log("Unattended update: Timed out waiting for the second-stage updater.");
+                Environment.ExitCode = UNATTENDED_UPDATE_FAILED;
+                return;
+            }
+
+            if (process.ExitCode != 0)
+            {
+                Logger.Log("Unattended update: The second-stage updater failed with exit code " + process.ExitCode + ". See SecondStageUpdater.log.");
+                Environment.ExitCode = UNATTENDED_UPDATE_FAILED;
+                return;
+            }
+
+            Logger.Log("Unattended update: The update finished.");
         }
 
         [SupportedOSPlatform("windows")]
