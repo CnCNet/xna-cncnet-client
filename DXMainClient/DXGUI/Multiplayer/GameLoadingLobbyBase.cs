@@ -397,7 +397,7 @@ namespace DTAClient.DXGUI.Multiplayer
             savedMapSHA1 = savedMatch.MapSHA1;
             savedBroadcastOptionValues = savedMatch.BroadcastedGameOptionValues;
             lblMapNameValue.Tag = savedMatch.UIMapName;
-            lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{savedMatch.MapID}:Description");
+            lblMapNameValue.Text = ((string)lblMapNameValue.Tag).L10N($"INI:Maps:{savedMatch.MapID}:Description");
             lblGameModeValue.Tag = savedMatch.UIGameMode;
             lblGameModeValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:GameModes:{(string)lblGameModeValue.Tag}:UIName");
 
