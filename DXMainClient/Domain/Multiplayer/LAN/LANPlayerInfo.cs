@@ -207,9 +207,10 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     wm.AddCallback(PlayerPinged, this, EventArgs.Empty);
                 }
-                catch (PingException ex)
+                // Not only PingException: Wine Mono throws a bare SocketException when raw ICMP sockets are not permitted.
+                catch (Exception ex)
                 {
-                    Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.ToString()}");
+                    Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.GetType().Name}: {ex.Message}");
                 }
             }
         }

@@ -296,9 +296,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         ? PingValue.FromMs(Convert.ToInt32(reply.RoundtripTime))
                         : PingValue.Unknown;
                 }
-                catch (PingException ex)
+                // Not only PingException: Wine Mono throws a bare SocketException when raw ICMP sockets are not permitted.
+                // Leave PingInMs unknown instead of failing the ping task.
+                catch (Exception ex)
                 {
-                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.ToString()}");
+                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.GetType().Name}: {ex.Message}");
                     return PingValue.Unknown;
                 }
             }
