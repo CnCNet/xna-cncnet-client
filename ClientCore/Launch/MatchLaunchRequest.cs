@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ClientCore.Launch;
 
@@ -130,6 +131,9 @@ public sealed record MatchNetwork
 }
 
 /// <summary>How the local player's game joins the match.</summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(LanMatchSession), "lan")]
+[JsonDerivedType(typeof(TunnelMatchSession), "tunnel")]
 public abstract record MatchSession
 {
     public int GameID { get; init; }

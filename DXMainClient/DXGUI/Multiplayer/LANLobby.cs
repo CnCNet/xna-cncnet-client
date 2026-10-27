@@ -8,6 +8,7 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 
 using ClientGUI;
 
@@ -589,9 +590,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (hg.IsLoadedGame)
                 {
-                    var spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
-
-                    int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
+                    int loadedGameId = SavedMatchStore.LoadInfo().GetGameIDNumber(-1);
 
                     lanGameLoadingLobby.SetUp(false, hg.EndPoint, client, loadedGameId);
                     lanGameLoadingLobby.Enable();

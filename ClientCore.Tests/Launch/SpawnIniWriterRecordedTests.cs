@@ -45,7 +45,7 @@ public class SpawnIniWriterRecordedTests
             Tunnel = new TunnelEndpoint("127.0.0.1", 51000),
         };
 
-        GoldenIni.AssertMatches("SavedMatchUsesCurrentEndpoints", SpawnIniWriter.WriteSavedMatch(request));
+        GoldenIni.AssertMatches("SavedMatchUsesCurrentEndpoints", SpawnIniWriter.WriteSavedMatch(request, SpawnIniDialect.ForClientType(ClientType.TS)));
         Assert.Equal(recordedBefore, GoldenIni.Render(recorded));
     }
 
@@ -60,7 +60,7 @@ public class SpawnIniWriterRecordedTests
             Players = [new PlayerEndpoint("Alice", string.Empty, 48000), new PlayerEndpoint("Carol", "3.3.3.3", 47998)],
         };
 
-        IniFile spawnIni = SpawnIniWriter.WriteSavedMatch(request);
+        IniFile spawnIni = SpawnIniWriter.WriteSavedMatch(request, SpawnIniDialect.ForClientType(ClientType.TS));
 
         // Only [Other1] is looked at, and Bob isn't in the lobby, so both keep their recorded endpoints.
         Assert.Equal("1.1.1.1", spawnIni.GetStringValue("Other1", "Ip", string.Empty));

@@ -8,13 +8,19 @@ using Rampastring.Tools;
 namespace ClientCore.Launch;
 
 /// <summary>
-/// A request to load a multiplayer saved game. The game is set up from the spawn.ini the
-/// match was started with, updated with the players' current network endpoints.
+/// A request to load a multiplayer saved game. The game is set up the way the match was
+/// started, updated with the players' current network endpoints.
 /// </summary>
 public sealed class SavedMatchLaunchRequest : LaunchRequest
 {
-    /// <summary>The spawn.ini the saved match was started with. It is not modified.</summary>
-    public IniFile RecordedSpawnIni { get; init; } = new();
+    /// <summary>The request the saved match was started with, or null for saves from older clients.</summary>
+    public MatchLaunchRequest? StoredMatch { get; init; }
+
+    /// <summary>
+    /// The spawn.ini the saved match was started with, used when there is no stored request.
+    /// It is not modified.
+    /// </summary>
+    public IniFile? RecordedSpawnIni { get; init; }
 
     /// <summary>The saved game's file name.</summary>
     public string SaveGameName { get; init; } = string.Empty;

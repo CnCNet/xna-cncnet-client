@@ -69,7 +69,7 @@ public sealed class SpawnerGameLauncher : IGameLauncher
                 SpawnFiles.WriteStubSpawnMap();
                 break;
             case SavedMatchLaunchRequest savedMatch:
-                SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteSavedMatch(savedMatch));
+                SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteSavedMatch(savedMatch, dialect));
                 SpawnFiles.WriteStubSpawnMap();
                 break;
             case ReplayLaunchRequest replay:

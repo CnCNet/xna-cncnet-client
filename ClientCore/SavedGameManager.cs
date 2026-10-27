@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using ClientCore.Launch;
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -68,7 +69,9 @@ namespace ClientCore
         /// <summary>
         /// Initializes saved MP games for a match.
         /// </summary>
-        public static bool InitSavedGames()
+        /// <param name="request">The request the match was launched with, stored so that loading
+        /// a save can set the match up again.</param>
+        public static bool InitSavedGames(MatchLaunchRequest request)
         {
             bool success = EraseSavedGames();
 
@@ -80,6 +83,9 @@ namespace ClientCore
                 Logger.Log("Writing spawn.ini for saved game.");
                 SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
                 File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
+
+                // spawnSG.ini is kept next to the request for now, so older clients can still load these saves.
+                SavedMatchStore.Save(request);
             }
             catch (Exception ex)
             {
