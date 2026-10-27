@@ -15,6 +15,7 @@ using System.Text;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using System.Diagnostics;
@@ -1184,14 +1185,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             RefreshForFavoriteMapRemoved();
         }
 
-        protected override void WriteSpawnIniAdditions(IniFile iniFile)
+        protected override MatchNetwork GetMatchNetwork() => new()
         {
-            base.WriteSpawnIniAdditions(iniFile);
-            iniFile.SetIntValue("Settings", "FrameSendRate", FrameSendRate);
-            if (MaxAhead > 0)
-                iniFile.SetIntValue("Settings", "MaxAhead", MaxAhead);
-            iniFile.SetIntValue("Settings", "Protocol", ProtocolVersion);
-        }
+            FrameSendRate = FrameSendRate,
+            MaxAhead = MaxAhead,
+            Protocol = ProtocolVersion,
+            Session = GetMatchSession(),
+        };
+
+        /// <summary>
+        /// Returns how the local player's game joins the match, or null if it can't.
+        /// </summary>
+        protected abstract MatchSession GetMatchSession();
 
         protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {

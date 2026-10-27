@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using System.Net;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -2395,29 +2396,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.StartGame();
         }
 
-        protected override void WriteSpawnIniAdditions(IniFile iniFile)
+        protected override MatchSession GetMatchSession()
         {
-            base.WriteSpawnIniAdditions(iniFile);
-
             PlayerInfo localPlayer = FindLocalPlayer();
             if (localPlayer == null)
-                return;
+                return null;
+
+            TunnelEndpoint tunnel = null;
 
             if (_tunnelMode != TunnelMode.V2Legacy)
             {
                 // Tell the game to connect to our bridge.
-                iniFile.SetStringValue("Tunnel", "Ip", IPAddress.Loopback.ToString());
-                iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.ReservedGamePort ?? localPlayer.Port);
+                tunnel = new TunnelEndpoint(IPAddress.Loopback.ToString(), tunnelHandler.ReservedGamePort ?? localPlayer.Port);
             }
             else if (tunnelHandler.CurrentTunnel != null)
             {
-                iniFile.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
-                iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
+                tunnel = new TunnelEndpoint(tunnelHandler.CurrentTunnel.Address, tunnelHandler.CurrentTunnel.Port);
             }
 
-            iniFile.SetIntValue("Settings", "GameID", UniqueGameID);
-            iniFile.SetBooleanValue("Settings", "Host", IsHost);
-            iniFile.SetIntValue("Settings", "Port", localPlayer.Port);
+            return new TunnelMatchSession
+            {
+                Tunnel = tunnel,
+                GameID = UniqueGameID,
+                IsHost = IsHost,
+                Port = localPlayer.Port,
+            };
         }
         protected override void SendChatMessage(string message) => channel.SendChatMessage(message, chatColor);
 

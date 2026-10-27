@@ -8,6 +8,7 @@ using System.Linq;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 
 using ClientUpdater;
 
@@ -50,6 +51,32 @@ public static class ReplayManager
 
     public static string GetReplayFileRelativePath(string fileName)
         => SafePath.CombineFilePath(DirectoryName, fileName);
+
+    /// <summary>
+    /// Returns the replay recording settings for a launch, or null when replays are not supported.
+    /// Records when the player's setting is on or an option layer enables recording, such as
+    /// [ForcedSpawnIniOptions].
+    /// </summary>
+    public static ReplayRecording? CreateRecording(IEnumerable<SpawnOptionLayer> optionLayers, string mapName)
+    {
+        if (!IsSupported)
+            return null;
+
+        string? layerValue = SpawnOptionLayer.GetMergedValue(optionLayers, "EnableReplayRecording");
+        bool record = UserINISettings.Instance.RecordReplays
+            || Conversions.BooleanFromString(layerValue ?? string.Empty, false);
+
+        if (!record)
+            return new ReplayRecording { Enabled = false };
+
+        return new ReplayRecording
+        {
+            Enabled = true,
+            GamePackageVersion = GamePackageVersion,
+            FileOut = BuildRecordingPath(mapName),
+            FileHashes = ReplayFileHashes.CollectEntries(),
+        };
+    }
 
     /// <summary>
     /// Records when the player's setting is on or spawn.ini already enables recording, such as through

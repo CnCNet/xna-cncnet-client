@@ -180,18 +180,20 @@ public class GameSessionCheckBox : XNAClientCheckBox, IGameSessionSetting
         set => Checked = value != 0;  // 0 = unchecked/off, 1 = checked/on
     }
 
-    public void ApplySpawnIniCode(IniFile spawnIni)
+    public bool TryGetSpawnIniOption(out string key, out string value)
     {
-        if (!AffectsSpawnIni)
-            return;
+        key = spawnIniOption;
+        value = disabledSpawnIniValue;
 
-        string value = disabledSpawnIniValue;
+        if (!AffectsSpawnIni)
+            return false;
+
         if (Checked != reversed)
         {
             value = enabledSpawnIniValue;
         }
 
-        spawnIni.SetStringValue("Settings", spawnIniOption, value);
+        return true;
     }
         
     public void ApplyMapCode(IniFile mapIni, GameMode gameMode)

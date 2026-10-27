@@ -17,6 +17,8 @@ using ClientCore.Sorting;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
+using ClientCore.Launch;
+using ClientCore.Launch.Spawner;
 using TextCopy;
 using System.Diagnostics;
 
@@ -1656,16 +1658,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Writes spawn.ini. Returns the player house info returned from the randomizer.
+        /// Resolves every player's house, randomizing sides, colors and starting
+        /// locations with the given generator.
         /// </summary>
-        private PlayerHouseInfo[] WriteSpawnIni(Random pseudoRandom)
+        private PlayerHouseInfo[] ResolveHouses(List<TeamStartMapping> teamStartMappings, Random pseudoRandom)
         {
-            Logger.Log("Writing spawn.ini");
-
-            FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
-
-            spawnerSettingsFile.Delete();
-
             if (GameModeMap.IsCoop)
             {
                 foreach (PlayerInfo pInfo in Players)
@@ -1681,161 +1678,164 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            var teamStartMappings = new List<TeamStartMapping>(0);
-            if (PlayerExtraOptionsPanel != null)
+            return Randomize(teamStartMappings, pseudoRandom);
+        }
+
+        private List<TeamStartMapping> GetTeamStartMappings()
+        {
+            if (PlayerExtraOptionsPanel == null)
+                return new List<TeamStartMapping>(0);
+
+            return PlayerExtraOptionsPanel.GetTeamStartMappings();
+        }
+
+        /// <summary>
+        /// Resolves the extra houses of a co-op map, picking a side for each house
+        /// whose side is random. Returns null when the map is not a co-op map.
+        /// </summary>
+        private CoopSetup ResolveCoopSetup(Random pseudoRandom)
+        {
+            if (!GameModeMap.IsCoop)
+                return null;
+
+            CoopHouse ResolveHouse(CoopHouseInfo house)
+                => new(house.Side == -1 ? pseudoRandom.Next(0, SideCount) : house.Side, house.Color, house.StartingLocation);
+
+            CoopMapInfo coopInfo = GameModeMap.CoopInfo;
+
+            // Allies are resolved before enemies so that random sides come out the same on every client.
+            List<CoopHouse> allyHouses = coopInfo.AllyHouses.Select(ResolveHouse).ToList();
+            List<CoopHouse> enemyHouses = coopInfo.EnemyHouses.Select(ResolveHouse).ToList();
+
+            return new CoopSetup
             {
-                teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
+                DifficultyLevel = GameModeMap.CoopDifficultyLevel,
+                AllyHouses = allyHouses,
+                EnemyHouses = enemyHouses,
+            };
+        }
+
+        /// <summary>
+        /// Builds the request that launches the game for the current lobby state.
+        /// </summary>
+        private MatchLaunchRequest BuildMatchRequest(PlayerHouseInfo[] houseInfos, List<TeamStartMapping> teamStartMappings,
+            CoopSetup coopSetup, Dictionary<int, int> stackedStartingWaypoints, IniFile spawnMap)
+        {
+            int GetTeamId(PlayerInfo player, PlayerHouseInfo houseInfo)
+            {
+                if (player.TeamId > 0)
+                    return player.TeamId;
+
+                return teamStartMappings.Find(mapping => mapping.StartingWaypoint == houseInfo.StartingWaypoint)?.TeamId ?? 0;
             }
 
-            PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings, pseudoRandom);
+            int? GetStackedStartingWaypoint(int houseIndex)
+                => stackedStartingWaypoints.TryGetValue(houseIndex, out int waypoint) ? waypoint : null;
 
-            IniFile spawnIni = new IniFile(spawnerSettingsFile.FullName);
-
-            IniSection settings = new IniSection("Settings");
-
-            settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
-            settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
-            settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
-            settings.SetStringValue("UIMapName", Map.UntranslatedName);
-
-            // needed for translation in game loading lobbies
-            if (Map.Official)
-                settings.SetStringValue("MapID", Map.BaseFilePath);
-
-            settings.SetIntValue("PlayerCount", Players.Count);
-            int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
-            settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
-            settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
-            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
-            settings.SetIntValue("AIPlayers", AIPlayers.Count);
-            settings.SetIntValue("Seed", RandomSeed);
-            if (GetPvPTeamCount() > 1)
-                settings.SetBooleanValue("CoachMode", true);
-            if (GetGameType() == GameType.Coop)
-                settings.SetBooleanValue("AutoSurrender", false);
-            spawnIni.AddSection(settings);
-            WriteSpawnIniAdditions(spawnIni);
-
-            foreach (GameLobbyCheckBox chkBox in CheckBoxes)
-                chkBox.ApplySpawnIniCode(spawnIni);
-
-            foreach (GameLobbyDropDown dd in DropDowns)
-                dd.ApplySpawnIniCode(spawnIni);
-
-            // Apply forced options from GameOptions.ini
-
-            List<string> forcedKeys = GameOptionsIni.GetSectionKeys("ForcedSpawnIniOptions");
-
-            if (forcedKeys != null)
-            {
-                foreach (string key in forcedKeys)
-                {
-                    spawnIni.SetStringValue("Settings", key,
-                        GameOptionsIni.GetStringValue("ForcedSpawnIniOptions", key, String.Empty));
-                }
-            }
-
-            GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
-            Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
-                AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, pseudoRandom, SideCount); // Forced options from the map
-
-            // Player options
-
-            int otherId = 1;
+            var humans = new List<HumanHouse>(Players.Count);
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
-                PlayerInfo pInfo = Players[pId];
-                PlayerHouseInfo pHouseInfo = houseInfos[pId];
+                PlayerInfo player = Players[pId];
+                PlayerHouseInfo houseInfo = houseInfos[pId];
 
-                if (pInfo.Name == ProgramConstants.PLAYERNAME)
-                    continue;
-
-                string sectionName = "Other" + otherId;
-
-                spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
-                spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.InternalSideIndex);
-                spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);
-                spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
-                spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
-                spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
-
-                otherId++;
-            }
-
-            // The spawner assigns players to SpawnX houses based on their in-game color index
-            List<int> multiCmbIndexes = new List<int>();
-            var sortedColorList = MPColors.OrderBy(mpc => mpc.GameColorIndex).ToList();
-
-            for (int cId = 0; cId < sortedColorList.Count; cId++)
-            {
-                for (int pId = 0; pId < Players.Count; pId++)
+                humans.Add(new HumanHouse
                 {
-                    if (houseInfos[pId].ColorIndex == sortedColorList[cId].GameColorIndex)
-                        multiCmbIndexes.Add(pId);
-                }
+                    Name = player.Name,
+                    InternalSideIndex = houseInfo.InternalSideIndex,
+                    ColorIndex = houseInfo.ColorIndex,
+                    StartingWaypoint = houseInfo.StartingWaypoint,
+                    StackedStartingWaypoint = GetStackedStartingWaypoint(pId),
+                    TeamId = GetTeamId(player, houseInfo),
+                    IsSpectator = houseInfo.IsSpectator,
+                    IpAddress = player.Name == ProgramConstants.PLAYERNAME ? string.Empty : GetIPAddressForPlayer(player),
+                    Port = player.Port,
+                });
             }
 
-            if (AIPlayers.Count > 0)
-            {
-                for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
-                {
-                    int multiId = multiCmbIndexes.Count + aiId + 1;
-
-                    string keyName = "Multi" + multiId;
-
-                    spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].HouseHandicapAILevel);
-                    spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].InternalSideIndex);
-                    spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);
-                }
-            }
-
-            for (int multiId = 0; multiId < multiCmbIndexes.Count; multiId++)
-            {
-                int pIndex = multiCmbIndexes[multiId];
-                if (houseInfos[pIndex].IsSpectator)
-                    spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
-            }
-
-            // Write alliances, the code is pretty big so let's take it to another class
-            AllianceHolder.WriteInfoToSpawnIni(Players, AIPlayers, multiCmbIndexes, houseInfos.ToList(), teamStartMappings, spawnIni);
-
-            for (int pId = 0; pId < Players.Count; pId++)
-            {
-                int startingWaypoint = houseInfos[multiCmbIndexes[pId]].StartingWaypoint;
-
-                // -1 means no starting location at all - let the game itself pick the starting location
-                // using its own logic
-                if (startingWaypoint > -1)
-                {
-                    int multiIndex = pId + 1;
-                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                        startingWaypoint);
-                }
-            }
+            var aiHouses = new List<AIHouse>(AIPlayers.Count);
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
             {
-                int startingWaypoint = houseInfos[Players.Count + aiId].StartingWaypoint;
+                PlayerInfo aiPlayer = AIPlayers[aiId];
+                PlayerHouseInfo houseInfo = houseInfos[Players.Count + aiId];
 
-                if (startingWaypoint > -1)
+                aiHouses.Add(new AIHouse
                 {
-                    int multiIndex = Players.Count + aiId + 1;
-                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                        startingWaypoint);
-                }
+                    InternalSideIndex = houseInfo.InternalSideIndex,
+                    ColorIndex = houseInfo.ColorIndex,
+                    StartingWaypoint = houseInfo.StartingWaypoint,
+                    StackedStartingWaypoint = GetStackedStartingWaypoint(Players.Count + aiId),
+                    TeamId = GetTeamId(aiPlayer, houseInfo),
+                    HandicapLevel = aiPlayer.HouseHandicapAILevel,
+                });
             }
 
-            spawnIni.SetStringValue("Settings", "MapSHA1", Map.SHA1);
-            string packedGameOptionValues = GetPackedGameOptionValuesString();
-            spawnIni.SetStringValue("Settings", "BroadcastedGameOptionValues", packedGameOptionValues);
+            int localIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
+            List<SpawnOptionLayer> optionLayers = GetSpawnOptionLayers();
 
-            ReplayManager.PrepareRecording(spawnIni, Map.UntranslatedName);
+            return new MatchLaunchRequest
+            {
+                SpawnMap = spawnMap,
+                LocalPlayerName = ProgramConstants.PLAYERNAME,
+                Humans = humans,
+                AIs = aiHouses,
+                ColorOrder = MPColors.OrderBy(mpc => mpc.GameColorIndex).Select(mpc => mpc.GameColorIndex).ToList(),
+                Seed = RandomSeed,
+                UIGameMode = GameMode.UntranslatedUIName,
+                UIMapName = Map.UntranslatedName,
+                // needed for translation in game loading lobbies
+                MapID = Map.Official ? Map.BaseFilePath : null,
+                CustomLoadScreen = LoadingScreenController.GetLoadScreenName(houseInfos[localIndex].InternalSideIndex.ToString()),
+                CoachMode = GetPvPTeamCount() > 1,
+                DisableAutoSurrender = GetGameType() == GameType.Coop,
+                Network = GetMatchNetwork(),
+                OptionLayers = optionLayers,
+                MapSettings = new MatchMapSettings
+                {
+                    Credits = Map.Credits != -1 ? Map.Credits : null,
+                    UnitCount = Map.UnitCount != -1 ? Map.UnitCount : null,
+                    NeutralHouseColor = Map.NeutralHouseColor > -1 ? Map.NeutralHouseColor : null,
+                    SpecialHouseColor = Map.SpecialHouseColor > -1 ? Map.SpecialHouseColor : null,
+                    Bases = Map.Bases > -1 ? Convert.ToBoolean(Map.Bases) : null,
+                },
+                Coop = coopSetup,
+                MapSHA1 = Map.SHA1,
+                BroadcastedGameOptionValues = GetPackedGameOptionValuesString(),
+                Recording = ReplayManager.CreateRecording(optionLayers, Map.UntranslatedName),
+            };
+        }
 
-            spawnIni.WriteIniFile();
+        /// <summary>
+        /// Returns the mod-defined spawn.ini settings in the order they are applied:
+        /// the lobby's options, then the options forced globally, by the game mode and by the map.
+        /// </summary>
+        private List<SpawnOptionLayer> GetSpawnOptionLayers()
+        {
+            static List<SpawnOption> ToSpawnOptions(IEnumerable<KeyValuePair<string, string>> options)
+                => options.Select(option => new SpawnOption(option.Key, option.Value)).ToList();
 
-            return houseInfos;
+            var lobbyOptions = new List<SpawnOption>();
+
+            foreach (IGameSessionSetting setting in CheckBoxes.Cast<IGameSessionSetting>().Concat(DropDowns))
+            {
+                if (setting.TryGetSpawnIniOption(out string key, out string value))
+                    lobbyOptions.Add(new SpawnOption(key, value));
+            }
+
+            const string forcedOptionsSection = "ForcedSpawnIniOptions";
+            List<string> forcedKeys = GameOptionsIni.GetSectionKeys(forcedOptionsSection) ?? new List<string>(0);
+            List<SpawnOption> forcedOptions = forcedKeys
+                .Select(key => new SpawnOption(key, GameOptionsIni.GetStringValue(forcedOptionsSection, key, string.Empty)))
+                .ToList();
+
+            return
+            [
+                new SpawnOptionLayer("Game options", lobbyOptions),
+                new SpawnOptionLayer("GameOptions.ini [" + forcedOptionsSection + "]", forcedOptions),
+                new SpawnOptionLayer("Game mode " + GameMode.Name, ToSpawnOptions(GameMode.GetForcedSpawnIniOptions())),
+                new SpawnOptionLayer("Map " + Map.UntranslatedName, ToSpawnOptions(Map.GetForcedSpawnIniOptions())),
+            ];
         }
 
         /// <summary>
@@ -1880,15 +1880,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual string GetIPAddressForPlayer(PlayerInfo player) => "0.0.0.0";
 
         /// <summary>
-        /// Override this in a derived class to write game lobby specific code to
-        /// spawn.ini. For example, CnCNet game lobbies should write tunnel info
-        /// in this method.
+        /// Returns the network settings the game uses, or null for a local game.
         /// </summary>
-        /// <param name="iniFile">The spawn INI file.</param>
-        protected virtual void WriteSpawnIniAdditions(IniFile iniFile)
-        {
-            // Do nothing by default
-        }
+        protected virtual MatchNetwork GetMatchNetwork() => null;
 
         private void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
         {
@@ -1935,16 +1929,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Writes spawnmap.ini.
+        /// Builds the contents of spawnmap.ini and copies the map's supplemental files.
         /// </summary>
-        private void WriteMap(PlayerHouseInfo[] houseInfos, Random pseudoRandom)
+        /// <param name="stackedStartingWaypoints">The waypoints given to houses that share
+        /// a starting location, by house index.</param>
+        private IniFile BuildSpawnMap(PlayerHouseInfo[] houseInfos, Random pseudoRandom, out Dictionary<int, int> stackedStartingWaypoints)
         {
-            FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
-
             DeleteSupplementalMapFiles();
-            spawnMapIniFile.Delete();
-
-            Logger.Log("Writing map.");
 
             Logger.Log("Loading map INI from " + Map.CompleteFilePath);
 
@@ -1983,9 +1974,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopySupplementalMapFiles(mapIni);
 
-            ManipulateStartingLocations(mapIni, houseInfos);
+            stackedStartingWaypoints = ResolveStackedStartingLocations(mapIni, houseInfos);
 
-            mapIni.WriteIniFile(spawnMapIniFile.FullName);
+            return mapIni;
         }
 
         /// <summary>
@@ -2069,17 +2060,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 .Where(f => supplementalMapFileNames.Contains(Path.GetFileName(f)));
         }
 
-        private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
+        /// <summary>
+        /// Makes room on the map for houses that share a starting location.
+        /// Returns the waypoint given to each such house, by house index.
+        /// </summary>
+        private Dictionary<int, int> ResolveStackedStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
         {
+            var stackedStartingWaypoints = new Dictionary<int, int>();
+
             if (RemoveStartingLocations)
             {
                 if (GameModeMap.EnforceMaxPlayers)
-                    return;
+                    return stackedStartingWaypoints;
 
                 // All random starting locations given by the game
                 IniSection waypointSection = mapIni.GetSection("Waypoints");
                 if (waypointSection == null)
-                    return;
+                    return stackedStartingWaypoints;
 
                 // TODO implement IniSection.RemoveKey in Rampastring.Tools, then
                 // remove implementation that depends on internal implementation
@@ -2129,16 +2126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // so that unused starting locations are removed and made to point at used
             // starting locations
             if (!stackedStartingLocations)
-                return;
-
-            // We also need to modify spawn.ini because WriteSpawnIni
-            // doesn't handle stacked positions.
-            // We could move this code there, but then we'd have to process
-            // the stacked locations in two places (here and in WriteSpawnIni)
-            // because we'd need to modify the map anyway.
-            // Not sure whether having it like this or in WriteSpawnIni
-            // is better, but this implementation is quicker to write for now.
-            IniFile spawnIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS));
+                return stackedStartingWaypoints;
 
             // For each player, check if they're sharing the starting location
             // with someone else
@@ -2163,27 +2151,36 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         }
                     }
 
-                    houseInfo.StartingWaypoint = unusedLocation;
                     mapIni.SetIntValue("Waypoints", unusedLocation.ToString(),
                         mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
-                    spawnIni.SetIntValue("SpawnLocations", $"Multi{pId + 1}", unusedLocation);
+                    stackedStartingWaypoints[pId] = unusedLocation;
                 }
             }
 
-            spawnIni.WriteIniFile();
+            return stackedStartingWaypoints;
         }
 
         /// <summary>
-        /// Writes spawn.ini, writes the map file, initializes statistics and
+        /// Builds the launch request, writes the spawn files, initializes statistics and
         /// starts the game process.
         /// </summary>
         protected virtual void StartGame()
         {
+            // Every client draws from this generator in the same order, so the order of the calls below matters.
             Random pseudoRandom = new Random(RandomSeed);
 
-            PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
+            List<TeamStartMapping> teamStartMappings = GetTeamStartMappings();
+            PlayerHouseInfo[] houseInfos = ResolveHouses(teamStartMappings, pseudoRandom);
+            CoopSetup coopSetup = ResolveCoopSetup(pseudoRandom);
             InitializeMatchStatistics(houseInfos);
-            WriteMap(houseInfos, pseudoRandom);
+            IniFile spawnMap = BuildSpawnMap(houseInfos, pseudoRandom, out Dictionary<int, int> stackedStartingWaypoints);
+
+            MatchLaunchRequest request = BuildMatchRequest(houseInfos, teamStartMappings, coopSetup, stackedStartingWaypoints, spawnMap);
+            SpawnIniDialect dialect = SpawnIniDialect.ForClientType(ClientConfiguration.Instance.ClientGameType);
+
+            IniFile spawnIni = SpawnIniWriter.WriteMatch(request, dialect);
+            SpawnFiles.WriteSpawnIni(spawnIni);
+            SpawnFiles.WriteSpawnMap(spawnMap);
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 

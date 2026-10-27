@@ -29,9 +29,11 @@ public interface IGameSessionSetting
     /// </summary>
     int Value { get; set; }
 
-    /// <summary>Applies the associated code to the spawn.ini file.</summary>
-    /// <param name="spawnIni">The spawn.ini file.</param>
-    void ApplySpawnIniCode(IniFile spawnIni);
+    /// <summary>Gets the spawn.ini [Settings] key and value this setting currently writes.</summary>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>False if this setting writes nothing to spawn.ini.</returns>
+    bool TryGetSpawnIniOption(out string key, out string value);
 
     /// <summary>Applies the associated code to the map INI file.</summary>
     /// <param name="mapIni">The map INI file.</param>

@@ -23,6 +23,7 @@
     <File Path="NuGet.config" />
   </Folder>
   <Project Path="ClientCore/ClientCore.csproj" />
+  <Project Path="ClientCore.Tests/ClientCore.Tests.csproj" />
   <Project Path="ClientGUI/ClientGUI.csproj">
     <Platform Solution="WindowsXNADebug|*" Project="x86" />
     <Platform Solution="WindowsXNARelease|*" Project="x86" />

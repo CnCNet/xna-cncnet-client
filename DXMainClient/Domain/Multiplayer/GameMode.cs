@@ -161,11 +161,8 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni)
-        {
-            foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
-                spawnIni.SetStringValue("Settings", key.Key, key.Value);
-        }
+        /// <summary>Returns the spawn.ini [Settings] keys this game mode forces.</summary>
+        public IReadOnlyList<KeyValuePair<string, string>> GetForcedSpawnIniOptions() => ForcedSpawnIniOptions;
 
         public List<IniFile> GetMapRulesIniFiles(Random pseudoRandom)
         {
