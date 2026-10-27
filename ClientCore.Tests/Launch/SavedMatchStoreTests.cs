@@ -33,11 +33,10 @@ public class SavedMatchStoreTests
     {
         MatchLaunchRequest original = MatchScenarios.All[scenario]();
 
-        string json = SavedMatchStore.Serialize(original, "sha1");
-        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(json, out string spawnIniSHA1);
+        string json = SavedMatchStore.Serialize(original);
+        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(json);
 
         Assert.NotNull(restored);
-        Assert.Equal("sha1", spawnIniSHA1);
         Assert.Equal(GoldenIni.Render(SpawnIniWriter.WriteMatch(original, tiberianSun)),
             GoldenIni.Render(SpawnIniWriter.WriteMatch(restored, tiberianSun)));
     }
@@ -90,8 +89,8 @@ public class SavedMatchStoreTests
     [Fact]
     public void SessionTypeSurvivesTheRoundTrip()
     {
-        string json = SavedMatchStore.Serialize(MatchScenarios.CnCNetSpectatorHost(), string.Empty);
-        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(json, out _);
+        string json = SavedMatchStore.Serialize(MatchScenarios.CnCNetSpectatorHost());
+        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(json);
 
         TunnelMatchSession session = Assert.IsType<TunnelMatchSession>(restored?.Network?.Session);
         Assert.Equal(new TunnelEndpoint("127.0.0.1", 50000), session.Tunnel);
@@ -108,7 +107,7 @@ public class SavedMatchStoreTests
             Humans = original.Humans,
         };
 
-        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(SavedMatchStore.Serialize(withMap, string.Empty), out _);
+        MatchLaunchRequest? restored = SavedMatchStore.Deserialize(SavedMatchStore.Serialize(withMap));
 
         Assert.Null(restored?.SpawnMap);
     }
@@ -116,9 +115,9 @@ public class SavedMatchStoreTests
     [Fact]
     public void UnknownSchemaVersionIsIgnored()
     {
-        string json = SavedMatchStore.Serialize(MatchScenarios.SkirmishWithTeams(), string.Empty)
+        string json = SavedMatchStore.Serialize(MatchScenarios.SkirmishWithTeams())
             .Replace("\"SchemaVersion\": 1", "\"SchemaVersion\": 99");
 
-        Assert.Null(SavedMatchStore.Deserialize(json, out _));
+        Assert.Null(SavedMatchStore.Deserialize(json));
     }
 }

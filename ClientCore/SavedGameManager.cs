@@ -69,9 +69,7 @@ namespace ClientCore
         /// <summary>
         /// Initializes saved MP games for a match.
         /// </summary>
-        /// <param name="request">The request the match was launched with, stored so that loading
-        /// a save can set the match up again.</param>
-        public static bool InitSavedGames(MatchLaunchRequest request)
+        public static bool InitSavedGames()
         {
             bool success = EraseSavedGames();
 
@@ -84,8 +82,9 @@ namespace ClientCore
                 SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
                 File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
 
-                // spawnSG.ini is kept next to the request for now, so older clients can still load these saves.
-                SavedMatchStore.Save(request);
+                // The match's launch request is the saved match from now on. spawnSG.ini is still
+                // written for spawners whose saves are managed by the client, for older clients.
+                SavedMatchStore.PromotePending();
             }
             catch (Exception ex)
             {

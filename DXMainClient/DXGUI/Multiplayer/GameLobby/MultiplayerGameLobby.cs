@@ -260,7 +260,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 if (!gameSaved)
                 {
-                    bool success = SavedGameManager.InitSavedGames(GameSessionManager.Current?.Request as MatchLaunchRequest);
+                    bool success = SavedGameManager.InitSavedGames();
 
                     if (!success)
                         return;
