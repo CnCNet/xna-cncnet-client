@@ -14,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using ClientCore.Settings;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -224,7 +225,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameSessionManager.GameExited += SharedUILogic_GameProcessExited;
         }
 
         private void ChatListBox_RightClick(object sender, EventArgs e)

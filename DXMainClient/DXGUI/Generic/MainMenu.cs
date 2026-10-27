@@ -8,6 +8,7 @@ using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -168,7 +169,7 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             topBar.SetSecondarySwitch(cncnetLobby);
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameSessionManager.GameExited += SharedUILogic_GameProcessExited;
 
             Name = nameof(MainMenu);
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu/mainmenubg.png");
@@ -327,8 +328,8 @@ namespace DTAClient.DXGUI.Generic
 
             optionsWindow.OnForceUpdate += (s, e) => ForceUpdate();
 
-            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
+            GameSessionManager.GameStarted += SharedUILogic_GameProcessStarted;
+            GameSessionManager.GameStarting += SharedUILogic_GameProcessStarting;
 
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
 

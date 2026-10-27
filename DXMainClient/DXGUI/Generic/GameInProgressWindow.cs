@@ -6,6 +6,7 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Linq;
@@ -67,8 +68,8 @@ namespace DTAClient.DXGUI
 
             base.Initialize();
 
-            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameSessionManager.GameStarted += SharedUILogic_GameProcessStarted;
+            GameSessionManager.GameExited += SharedUILogic_GameProcessExited;
 
             explanation.CenterOnParent();
 

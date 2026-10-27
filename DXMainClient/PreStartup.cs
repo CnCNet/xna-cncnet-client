@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.I18N;
+using ClientCore.Launch;
 using System.Globalization;
 using System.Security;
 using System.Transactions;
@@ -280,7 +281,7 @@ namespace DTAClient
             // With V3 tunnels, the client relays the game's network traffic on background threads.
             // Exiting the client now would disconnect the player from the match, so wait for the
             // game process to exit before reporting the crash.
-            if (GameProcessLogic.IsGameProcessRunning)
+            if (GameSessionManager.IsGameRunning)
             {
                 Logger.Log("The game is still running; keeping the client alive until it exits before reporting the crash.");
 
@@ -289,7 +290,7 @@ namespace DTAClient
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     DisableProcessWindowsGhosting();
 
-                GameProcessLogic.WaitForGameProcessExit();
+                GameSessionManager.WaitForGameExit();
             }
 
             if (GameClass.IsGraphicsDeviceLostException(ex))

@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -215,7 +216,7 @@ namespace ClientGUI
             else
                 Logger.Log("No keyboard game commands exist!");
 
-            GameProcessLogic.GameProcessExited += GameProcessLogic_GameProcessExited;
+            GameSessionManager.GameExited += GameProcessLogic_GameProcessExited;
 
             base.Initialize();
 

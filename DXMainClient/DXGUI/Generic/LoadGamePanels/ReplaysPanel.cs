@@ -693,36 +693,34 @@ public class ReplaysPanel : XNAPanel
             KeyframeStorageLimitMB = UserINISettings.Instance.ReplayKeyframeStorageLimitMB.Value,
         };
 
-        SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteReplay(request));
-        // Campaign missions can load from game archives without an embedded map.
-        SpawnFiles.WriteRecordedSpawnMap(request.RecordedSpawnMap);
-
-        Logger.Log("Extracted spawn files from replay successfully");
-
         discordHandler.UpdatePresence(replay.GUIName, true);
 
         LaunchRequested?.Invoke(this, EventArgs.Empty);
 
-        bool gameStarted = false;
-        Action onGameStarted = () => gameStarted = true;
-        GameProcessLogic.GameProcessStarted += onGameStarted;
+        LaunchResult result;
 
         try
         {
             PrepareMissionFiles(spawnIni);
-            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
-            GameProcessLogic.StartGameProcess(WindowManager);
+            result = GameSessionManager.Launcher.Launch(request);
         }
-        finally
+        catch
         {
-            GameProcessLogic.GameProcessStarted -= onGameStarted;
+            // Leave no mission files behind when startup throws.
+            CustomMissionHelper.DeleteSupplementalMissionFiles();
+            throw;
+        }
 
-            // Startup can return early without raising GameProcessExited.
-            if (!gameStarted)
-            {
-                GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-                CustomMissionHelper.DeleteSupplementalMissionFiles();
-            }
+        if (result.Succeeded)
+        {
+            result.Session!.WhenEnded(_ => GameProcessExited_Callback());
+        }
+        else
+        {
+            LaunchErrorMessage.Show(WindowManager, result);
+
+            // A game that didn't start is cleaned up as if it had exited.
+            GameProcessExited_Callback();
         }
     }
 
@@ -733,8 +731,6 @@ public class ReplaysPanel : XNAPanel
 
     protected virtual void GameProcessExited()
     {
-        GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-
         CustomMissionHelper.DeleteSupplementalMissionFiles();
 
         discordHandler.UpdatePresence();

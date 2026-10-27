@@ -2176,15 +2176,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniFile spawnMap = BuildSpawnMap(houseInfos, pseudoRandom, out Dictionary<int, int> stackedStartingWaypoints);
 
             MatchLaunchRequest request = BuildMatchRequest(houseInfos, teamStartMappings, coopSetup, stackedStartingWaypoints, spawnMap);
-            SpawnIniDialect dialect = SpawnIniDialect.ForClientType(ClientConfiguration.Instance.ClientGameType);
 
-            IniFile spawnIni = SpawnIniWriter.WriteMatch(request, dialect);
-            SpawnFiles.WriteSpawnIni(spawnIni);
-            SpawnFiles.WriteSpawnMap(spawnMap);
+            LaunchResult result = GameSessionManager.Launcher.Launch(request);
 
-            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
+            if (result.Succeeded)
+            {
+                result.Session.WhenEnded(_ => GameProcessExited_Callback());
+            }
+            else
+            {
+                LaunchErrorMessage.Show(WindowManager, result);
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+                // A game that didn't start is cleaned up as if it had exited.
+                GameProcessExited_Callback();
+            }
+
             UpdateDiscordPresence(true);
         }
 
@@ -2192,8 +2198,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void GameProcessExited()
         {
-            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-
             Logger.Log("GameProcessExited: Parsing statistics.");
 
             matchStatistics?.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame, false);

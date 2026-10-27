@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore;
+using ClientCore.Launch;
 
 using ClientGUI;
 
@@ -61,8 +62,8 @@ namespace DTAClient.Domain
                 ?? renderers.Find(r => r.InternalName == defaultRenderer)
                 ?? throw new ClientConfigurationException("Missing renderer: " + renderer);
 
-            GameProcessLogic.UseQres = selectedRenderer.UseQres;
-            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
+            GameProcessHost.UseQres = selectedRenderer.UseQres;
+            GameProcessHost.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
         }
 
         public void Save(DirectDrawWrapper? newSelectedRenderer)
@@ -81,8 +82,8 @@ namespace DTAClient.Domain
 
             selectedRenderer.Apply();
 
-            GameProcessLogic.UseQres = selectedRenderer.UseQres;
-            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
+            GameProcessHost.UseQres = selectedRenderer.UseQres;
+            GameProcessHost.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
 
             UserINISettings.Instance.Renderer.Value = selectedRenderer.InternalName;
         }
