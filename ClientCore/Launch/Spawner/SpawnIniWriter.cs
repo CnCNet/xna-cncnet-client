@@ -91,8 +91,6 @@ public static class SpawnIniWriter
         settings.AddKey("LoadSaveGame", "Yes");
         settings.AddKey("SidebarHack", SpawnOptionLayer.FormatBoolean(request.SidebarHack));
         settings.AddKey("CustomLoadScreen", request.CustomLoadScreen);
-        // Parity (F5): written for every game, although only Tiberian Sun reads Firestorm.
-        settings.AddKey("Firestorm", "No");
         settings.AddKey("GameSpeed", SpawnOptionLayer.FormatInt(request.GameSpeed));
 
         spawnIni.AddSection(settings);

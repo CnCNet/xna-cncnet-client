@@ -94,8 +94,8 @@ public class SpawnIniWriterMissionTests
     {
         IniFile spawnIni = SpawnIniWriter.WriteSavedMission(new SavedMissionLaunchRequest { SaveGameName = "SAVE0002.SAV", GameSpeed = 1 });
 
-        // Parity (F5): Firestorm=No is written whatever the game.
-        Assert.Equal("No", spawnIni.GetStringValue("Settings", "Firestorm", string.Empty));
+        Assert.False(spawnIni.KeyExists("Settings", "Firestorm"));
+        Assert.False(spawnIni.KeyExists("Settings", "Ra2Mode"));
         Assert.False(spawnIni.KeyExists("Settings", "CustomMissionID"));
         Assert.Single(spawnIni.GetSections());
     }
