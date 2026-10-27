@@ -28,6 +28,20 @@ public static class SpawnFiles
     }
 
     /// <summary>
+    /// Replaces spawnmap.ini with a map recorded byte for byte, or removes it when there is none.
+    /// </summary>
+    public static void WriteRecordedSpawnMap(byte[] spawnMap)
+    {
+        FileInfo spawnMapFile = SpawnMapFile;
+
+        if (spawnMapFile.Exists)
+            spawnMapFile.Delete();
+
+        if (spawnMap.Length > 0)
+            File.WriteAllBytes(spawnMapFile.FullName, spawnMap);
+    }
+
+    /// <summary>
     /// Replaces spawnmap.ini with a placeholder map, for launches where the game
     /// loads its map from somewhere else, such as a saved game.
     /// </summary>

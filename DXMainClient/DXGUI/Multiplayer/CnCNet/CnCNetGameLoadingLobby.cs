@@ -8,6 +8,7 @@ using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -794,27 +795,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             StartV3Game();
         }
 
-        protected override void WriteSpawnIniAdditions(IniFile spawnIni)
+        protected override TunnelEndpoint GetTunnelEndpoint()
         {
+            // Parity (F6): unlike the game lobby, a V2 tunnel that isn't selected falls through
+            // to the local bridge here.
             if (_tunnelMode == TunnelMode.V2Legacy && tunnelHandler.CurrentTunnel != null)
-            {
-                spawnIni.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
-                spawnIni.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
-            }
-            else
-            {
-                PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-                if (localPlayer != null)
-                {
-                    // This is the client's own real, OS-assigned relay socket (see
-                    // TunnelHandler.ReserveLocalGamePort) — distinct from localPlayer.Port,
-                    // which is this player's deterministic in-game id, not a real endpoint.
-                    spawnIni.SetStringValue("Tunnel", "Ip", IPAddress.Loopback.ToString());
-                    spawnIni.SetIntValue("Tunnel", "Port", tunnelHandler.ReservedGamePort ?? localPlayer.Port);
-                }
-            }
+                return new TunnelEndpoint(tunnelHandler.CurrentTunnel.Address, tunnelHandler.CurrentTunnel.Port);
 
-            base.WriteSpawnIniAdditions(spawnIni);
+            PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (localPlayer == null)
+                return null;
+
+            // This is the client's own real, OS-assigned relay socket (see
+            // TunnelHandler.ReserveLocalGamePort) — distinct from localPlayer.Port,
+            // which is this player's deterministic in-game id, not a real endpoint.
+            return new TunnelEndpoint(IPAddress.Loopback.ToString(), tunnelHandler.ReservedGamePort ?? localPlayer.Port);
         }
 
         protected override void HandleGameProcessExited()

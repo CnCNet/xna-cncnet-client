@@ -1,7 +1,10 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
+using ClientCore.PlatformShim;
 
 using Rampastring.Tools;
 
@@ -102,6 +105,84 @@ public static class SpawnIniWriter
         WriteOptionLayers(spawnIni, request.OptionLayers);
 
         return spawnIni;
+    }
+
+    /// <summary>
+    /// Builds spawn.ini for loading a multiplayer saved game from the spawn.ini the match was
+    /// started with, pointing the game at the players' current network endpoints.
+    /// </summary>
+    public static IniFile WriteSavedMatch(SavedMatchLaunchRequest request)
+    {
+        IniFile spawnIni = Copy(request.RecordedSpawnIni);
+
+        spawnIni.SetStringValue(SETTINGS, "SaveGameName", request.SaveGameName);
+        spawnIni.SetBooleanValue(SETTINGS, "LoadSaveGame", true);
+        spawnIni.SetIntValue(SETTINGS, "Port", request.LocalPort);
+
+        for (int i = 1; i < request.Players.Count; i++)
+        {
+            string otherName = spawnIni.GetStringValue("Other" + i, "Name", string.Empty);
+
+            if (string.IsNullOrEmpty(otherName))
+                continue;
+
+            PlayerEndpoint? otherPlayer = request.Players.FirstOrDefault(p => p.Name == otherName);
+
+            if (otherPlayer == null)
+                continue;
+
+            spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IpAddress);
+            spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
+        }
+
+        if (request.Tunnel != null)
+        {
+            spawnIni.SetStringValue("Tunnel", "Ip", request.Tunnel.Address);
+            spawnIni.SetIntValue("Tunnel", "Port", request.Tunnel.Port);
+        }
+
+        return spawnIni;
+    }
+
+    /// <summary>Builds spawn.ini for playing back a replay from the spawn.ini it was recorded with.</summary>
+    public static IniFile WriteReplay(ReplayLaunchRequest request)
+    {
+        IniFile spawnIni = Copy(request.RecordedSpawnIni);
+
+        spawnIni.SetStringValue(SETTINGS, "ReplayFile", request.ReplayFile);
+        spawnIni.SetIntValue(SETTINGS, "ReplayViewPlayer", request.ViewPlayer);
+
+        if (request.CustomLoadScreen != null)
+            spawnIni.SetStringValue(SETTINGS, "CustomLoadScreen", request.CustomLoadScreen);
+
+        spawnIni.SetIntValue(SETTINGS, "ReplayPlaybackSpeed", request.PlaybackSpeed);
+        spawnIni.SetBooleanValue(SETTINGS, "ReplayShroudEnabled", request.ShroudEnabled);
+        spawnIni.SetBooleanValue(SETTINGS, "ReplayFreeCamera", request.FreeCamera);
+        spawnIni.SetBooleanValue(SETTINGS, "ReplayShowSelections", request.ShowSelections);
+        spawnIni.SetBooleanValue(SETTINGS, "ReplaySpectator", request.Spectator);
+        spawnIni.SetBooleanValue(SETTINGS, "ReplayShowChatAndBeacons", request.ShowChatAndBeacons);
+        spawnIni.SetIntValue(SETTINGS, "ReplayKeyframeInterval", request.KeyframeInterval);
+        spawnIni.SetIntValue(SETTINGS, "ReplayKeyframeStorageLimitMB", request.KeyframeStorageLimitMB);
+
+        // A replay being played back is not recorded again.
+        spawnIni.SetBooleanValue(SETTINGS, "EnableReplayRecording", false);
+        spawnIni.RemoveSection(REPLAY_FILE_HASHES);
+
+        return spawnIni;
+    }
+
+    /// <summary>Copies an INI file, so that a request's recorded spawn.ini is never modified.</summary>
+    private static IniFile Copy(IniFile source)
+    {
+        using var stream = new MemoryStream();
+        source.WriteIniStream(stream, EncodingExt.UTF8NoBOM);
+
+        using var copyStream = new MemoryStream(stream.ToArray());
+
+        return new IniFile(copyStream, EncodingExt.UTF8NoBOM, applyBaseIni: false)
+        {
+            Comment = source.Comment,
+        };
     }
 
     private static void WriteMissionSection(IniFile spawnIni, MissionSection? missionSection)

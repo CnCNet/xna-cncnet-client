@@ -8,6 +8,8 @@ using System.Text;
 
 using ClientCore;
 using ClientCore.Extensions;
+using ClientCore.Launch;
+using ClientCore.Launch.Spawner;
 using ClientCore.PlatformShim;
 
 using ClientGUI;
@@ -665,52 +667,35 @@ public class ReplaysPanel : XNAPanel
     private void StartPlayback(YRReplayGame replay, IniFile spawnIni, byte[] spawnMapContent,
         ReplayPlayer? perspective)
     {
-        spawnIni.SetStringValue("Settings", "ReplayFile", ReplayManager.GetReplayFileRelativePath(replay.FileName));
-
-        // ReplayViewPlayer is a spawn.ini player slot.
-        spawnIni.SetIntValue("Settings", "ReplayViewPlayer", perspective?.SpawnIniIndex ?? 0);
-
         // Use the selected player's loading screen when available.
+        string? customLoadScreen = null;
         if (perspective != null && !perspective.IsRecorder && perspective.SideIndex >= 0)
+            customLoadScreen = LoadingScreenController.GetLoadScreenName(perspective.SideIndex.ToString());
+
+        var request = new ReplayLaunchRequest
         {
-            spawnIni.SetStringValue("Settings", "CustomLoadScreen",
-                LoadingScreenController.GetLoadScreenName(perspective.SideIndex.ToString()));
-        }
+            RecordedSpawnIni = spawnIni,
+            RecordedSpawnMap = spawnMapContent,
+            ReplayFile = ReplayManager.GetReplayFileRelativePath(replay.FileName),
+            // ReplayViewPlayer is a spawn.ini player slot.
+            ViewPlayer = perspective?.SpawnIniIndex ?? 0,
+            CustomLoadScreen = customLoadScreen,
+            // Playback speed changes pacing, not the recorded simulation speed.
+            PlaybackSpeed = SelectedPlaybackFPS,
+            ShroudEnabled = chkShroudEnabled.Checked,
+            // The spawner's flag is phrased as freedom, not following, so this is the negation of the checkbox.
+            FreeCamera = !chkFollowRecordedCamera.Checked,
+            ShowSelections = chkShowSelections.Checked,
+            Spectator = IsSpectatorSelected,
+            ShowChatAndBeacons = chkShowChatAndBeacons.Checked,
+            // Keyframes make rewinding faster and are deleted after playback.
+            KeyframeInterval = SelectedKeyframeInterval,
+            KeyframeStorageLimitMB = UserINISettings.Instance.ReplayKeyframeStorageLimitMB.Value,
+        };
 
-        // Playback speed changes pacing, not the recorded simulation speed.
-        spawnIni.SetIntValue("Settings", "ReplayPlaybackSpeed", SelectedPlaybackFPS);
-
-        spawnIni.SetBooleanValue("Settings", "ReplayShroudEnabled", chkShroudEnabled.Checked);
-        // The spawner's flag is phrased as freedom, not following, so this is the negation of the checkbox.
-        spawnIni.SetBooleanValue("Settings", "ReplayFreeCamera", !chkFollowRecordedCamera.Checked);
-        spawnIni.SetBooleanValue("Settings", "ReplayShowSelections", chkShowSelections.Checked);
-        spawnIni.SetBooleanValue("Settings", "ReplaySpectator", IsSpectatorSelected);
-        spawnIni.SetBooleanValue("Settings", "ReplayShowChatAndBeacons", chkShowChatAndBeacons.Checked);
-
-        // Keyframes make rewinding faster and are deleted after playback.
-        spawnIni.SetIntValue("Settings", "ReplayKeyframeInterval", SelectedKeyframeInterval);
-        spawnIni.SetIntValue("Settings", "ReplayKeyframeStorageLimitMB",
-            UserINISettings.Instance.ReplayKeyframeStorageLimitMB.Value);
-
-        spawnIni.SetBooleanValue("Settings", "EnableReplayRecording", false);
-
-        spawnIni.RemoveSection(ReplayFileHashes.SECTION);
-
-        FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
-        if (spawnerSettingsFile.Exists)
-            spawnerSettingsFile.Delete();
-
-        spawnIni.FilePath = spawnerSettingsFile.FullName;
-        spawnIni.Encoding = EncodingExt.UTF8NoBOM;
-        spawnIni.WriteIniFile();
-
-        FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
-        if (spawnMapIniFile.Exists)
-            spawnMapIniFile.Delete();
-
+        SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteReplay(request));
         // Campaign missions can load from game archives without an embedded map.
-        if (spawnMapContent.Length > 0)
-            File.WriteAllBytes(spawnMapIniFile.FullName, spawnMapContent);
+        SpawnFiles.WriteRecordedSpawnMap(request.RecordedSpawnMap);
 
         Logger.Log("Extracted spawn files from replay successfully");
 
