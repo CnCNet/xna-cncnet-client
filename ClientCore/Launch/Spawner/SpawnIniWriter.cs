@@ -28,7 +28,7 @@ public static class SpawnIniWriter
         WriteMatchSettings(spawnIni, request);
         WriteMatchNetwork(spawnIni, request.Network);
         WriteOptionLayers(spawnIni, request.OptionLayers);
-        WriteMapSettings(spawnIni, request);
+        WriteMapSettings(spawnIni, request, dialect);
         WriteOtherPlayers(spawnIni, request);
 
         List<int> humanMultiOrder = GetHumanMultiOrder(request);
@@ -272,7 +272,7 @@ public static class SpawnIniWriter
         }
     }
 
-    private static void WriteMapSettings(IniFile spawnIni, MatchLaunchRequest request)
+    private static void WriteMapSettings(IniFile spawnIni, MatchLaunchRequest request, SpawnIniDialect dialect)
     {
         MatchMapSettings mapSettings = request.MapSettings;
 
@@ -288,7 +288,7 @@ public static class SpawnIniWriter
 
         if (request.Coop != null)
         {
-            WriteCoopHouses(spawnIni, request.Coop, totalPlayerCount, request.AIs.Count);
+            WriteCoopHouses(spawnIni, request.Coop, totalPlayerCount, request.AIs.Count, dialect);
 
             int coopHouseCount = request.Coop.AllyHouses.Count + request.Coop.EnemyHouses.Count;
             neutralHouseIndex += coopHouseCount;
@@ -305,7 +305,8 @@ public static class SpawnIniWriter
             spawnIni.SetBooleanValue(SETTINGS, "Bases", mapSettings.Bases.Value);
     }
 
-    private static void WriteCoopHouses(IniFile spawnIni, CoopSetup coop, int totalPlayerCount, int aiPlayerCount)
+    private static void WriteCoopHouses(IniFile spawnIni, CoopSetup coop, int totalPlayerCount, int aiPlayerCount,
+        SpawnIniDialect dialect)
     {
         IReadOnlyList<CoopHouse> allyHouses = coop.AllyHouses;
         IReadOnlyList<CoopHouse> enemyHouses = coop.EnemyHouses;
@@ -321,8 +322,6 @@ public static class SpawnIniWriter
             multiId++;
         }
 
-        // Parity: unlike lobby alliances, co-op alliances don't use the dialect's house IDs,
-        // so Red Alert's offset is missing here.
         for (int i = 0; i < allyHouses.Count; i++)
         {
             int aMultiId = totalPlayerCount + i + 1;
@@ -337,9 +336,9 @@ public static class SpawnIniWriter
                     continue;
 
                 spawnIni.SetIntValue("Multi" + aMultiId + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], dialect.GetAllianceHouseId(allyMultiIndex + 1));
                 spawnIni.SetIntValue("Multi" + (allyMultiIndex + 1) + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[totalPlayerCount + i - 1], aMultiId - 1);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[totalPlayerCount + i - 1], dialect.GetAllianceHouseId(aMultiId));
                 allyIndex++;
             }
         }
@@ -358,7 +357,7 @@ public static class SpawnIniWriter
                     continue;
 
                 spawnIni.SetIntValue("Multi" + eMultiId + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], dialect.GetAllianceHouseId(allyMultiIndex + 1));
                 allyIndex++;
             }
         }

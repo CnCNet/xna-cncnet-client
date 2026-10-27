@@ -85,6 +85,19 @@ public class SpawnIniWriterMatchTests
     }
 
     [Fact]
+    public void RedAlertCoopAlliancesAreShifted()
+    {
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(MatchScenarios.CoopMapHouses(), redAlert);
+
+        // House IDs are 0-based in the other games and shifted by 12 in Red Alert.
+        Assert.Equal(12, spawnIni.GetIntValue("Multi3_Alliances", "HouseAllyOne", -1));
+        Assert.Equal(13, spawnIni.GetIntValue("Multi3_Alliances", "HouseAllyTwo", -1));
+        Assert.Equal(14, spawnIni.GetIntValue("Multi1_Alliances", "HouseAllyTwo", -1));
+        Assert.Equal(16, spawnIni.GetIntValue("Multi4_Alliances", "HouseAllyOne", -1));
+        Assert.Equal(15, spawnIni.GetIntValue("Multi5_Alliances", "HouseAllyOne", -1));
+    }
+
+    [Fact]
     public void RecordingStates()
     {
         MatchLaunchRequest Request(ReplayRecording? recording) => new()
