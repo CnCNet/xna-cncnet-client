@@ -25,6 +25,46 @@ public class SpawnIniWriterMatchTests
         => GoldenIni.AssertMatches(scenario, SpawnIniWriter.WriteMatch(MatchScenarios.All[scenario](), tiberianSun));
 
     [Fact]
+    public void EveryHumanGetsOneHouseWhenColorsShareAGameColor()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "Player",
+            Humans = [new HumanHouse { Name = "Player", ColorIndex = 1, StartingWaypoint = 0, TeamId = 1 }],
+            AIs = [new AIHouse { InternalSideIndex = 3, ColorIndex = 0, StartingWaypoint = 1, TeamId = 1 }],
+            ColorOrder = [0, 1, 1, 2],
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        // The AI's house is Multi2 in every section.
+        Assert.Equal(3, spawnIni.GetIntValue("HouseCountries", "Multi2", -1));
+        Assert.Equal(1, spawnIni.GetIntValue("SpawnLocations", "Multi2", -1));
+        Assert.Equal(0, spawnIni.GetIntValue("Multi2_Alliances", "HouseAllyOne", -1));
+        Assert.False(spawnIni.KeyExists("HouseCountries", "Multi3"));
+    }
+
+    [Fact]
+    public void HumanWithUnknownColorStillGetsAHouse()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "A",
+            Humans =
+            [
+                new HumanHouse { Name = "A", ColorIndex = 99, StartingWaypoint = 0 },
+                new HumanHouse { Name = "B", ColorIndex = 2, StartingWaypoint = 1 },
+            ],
+            ColorOrder = colorOrder,
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        Assert.Equal(1, spawnIni.GetIntValue("SpawnLocations", "Multi1", -1));
+        Assert.Equal(0, spawnIni.GetIntValue("SpawnLocations", "Multi2", -1));
+    }
+
+    [Fact]
     public void RedAlertAllianceHouseIdsAreShifted()
     {
         var request = new MatchLaunchRequest

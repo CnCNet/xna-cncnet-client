@@ -395,26 +395,24 @@ public static class SpawnIniWriter
     /// </summary>
     private static List<int> GetHumanMultiOrder(MatchLaunchRequest request)
     {
-        var order = new List<int>();
-
-        foreach (int colorIndex in request.ColorOrder)
+        int GetColorPosition(int pId)
         {
-            for (int pId = 0; pId < request.Humans.Count; pId++)
-            {
-                if (request.Humans[pId].ColorIndex == colorIndex)
-                    order.Add(pId);
-            }
+            int position = request.ColorOrder.ToList().IndexOf(request.Humans[pId].ColorIndex);
+
+            return position > -1 ? position : int.MaxValue;
         }
 
-        return order;
+        return Enumerable.Range(0, request.Humans.Count).OrderBy(GetColorPosition).ToList();
     }
+
+    private static int GetAIMultiId(MatchLaunchRequest request, int aiId) => request.Humans.Count + aiId + 1;
 
     private static void WriteAIHouses(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder)
     {
         for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
             AIHouse ai = request.AIs[aiId];
-            string keyName = "Multi" + (humanMultiOrder.Count + aiId + 1);
+            string keyName = "Multi" + GetAIMultiId(request, aiId);
 
             spawnIni.SetIntValue("HouseHandicaps", keyName, ai.HandicapLevel);
             spawnIni.SetIntValue("HouseCountries", keyName, ai.InternalSideIndex);
@@ -444,14 +442,12 @@ public static class SpawnIniWriter
                 teamMultiIds[teamId - 1].Add(humanMultiOrder.FindIndex(c => c == pId) + 1);
         }
 
-        int multiId = humanMultiOrder.Count + 1;
-
-        foreach (AIHouse ai in request.AIs)
+        for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
-            if (ai.TeamId >= 1 && ai.TeamId <= teamMultiIds.Length)
-                teamMultiIds[ai.TeamId - 1].Add(multiId);
+            int teamId = request.AIs[aiId].TeamId;
 
-            multiId++;
+            if (teamId >= 1 && teamId <= teamMultiIds.Length)
+                teamMultiIds[teamId - 1].Add(GetAIMultiId(request, aiId));
         }
 
         foreach (List<int> team in teamMultiIds)
@@ -499,10 +495,8 @@ public static class SpawnIniWriter
         {
             int startingWaypoint = request.AIs[aiId].StartingWaypoint;
 
-            // Parity: AI houses are numbered from the human count here, but from the number of
-            // color-matched humans everywhere else.
             if (startingWaypoint > -1)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + (request.Humans.Count + aiId + 1), startingWaypoint);
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + GetAIMultiId(request, aiId), startingWaypoint);
         }
     }
 
