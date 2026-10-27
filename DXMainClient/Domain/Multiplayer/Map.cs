@@ -211,7 +211,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public List<ExtraMapPreviewTexture> GetExtraMapPreviewTextures() => extraTextures;
 
-        [JsonIgnore]
+        [JsonInclude]
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
 
         /// <summary>
