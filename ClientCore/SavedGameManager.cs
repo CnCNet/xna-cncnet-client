@@ -78,17 +78,15 @@ namespace ClientCore
 
             try
             {
-                Logger.Log("Writing spawn.ini for saved game.");
+                // The previous match's saves are gone, so its saved spawn.ini goes too.
                 SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
 
-                // The match's launch request is the saved match from now on. spawnSG.ini is still
-                // written for spawners whose saves are managed by the client, for older clients.
+                // The match's launch request is the saved match from now on.
                 SavedMatchStore.PromotePending();
             }
             catch (Exception ex)
             {
-                Logger.Log("Writing spawn.ini for saved game failed! Exception message: " + ex.ToString());
+                Logger.Log("Storing the saved match failed! Exception message: " + ex.ToString());
                 return false;
             }
 
