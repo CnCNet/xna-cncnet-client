@@ -72,6 +72,15 @@ public sealed class SavedMatchStoreFileTests : IDisposable
         Assert.Equal("Alice", LoadRequest()?.LocalPlayerName);
     }
 
+    [Theory]
+    [InlineData("SVGM_000.NET", true)]
+    [InlineData("svgm_123.net", true)]
+    [InlineData("SAVEGAME.NET", false)]
+    [InlineData("SVGM_000.NET.tmp", false)]
+    [InlineData("SVGM_ABC.NET", false)]
+    public void RecognizesMultiplayerSaves(string fileName, bool expected)
+        => Assert.Equal(expected, SavedMatchStore.IsMultiplayerSaveFile(fileName));
+
     [Fact]
     public void UnreadableRequestIsIgnored()
     {

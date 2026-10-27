@@ -200,6 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Saved Games"), "*.NET");
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
+                fsw.Renamed += fsw_Created;
                 fsw.EnableRaisingEvents = false;
             }
             else
@@ -256,7 +257,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Logger.Log("FSW Event: " + e.FullPath);
 
-            if (Path.GetFileName(e.FullPath) == "SAVEGAME.NET")
+            string fileName = Path.GetFileName(e.FullPath);
+
+            if (fileName == "SAVEGAME.NET")
             {
                 if (!gameSaved)
                 {
@@ -269,6 +272,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 gameSaved = true;
 
                 SavedGameManager.RenameSavedGame();
+            }
+            else if (SavedMatchStore.IsMultiplayerSaveFile(fileName))
+            {
+                SavedMatchStore.PromotePending();
             }
         }
 

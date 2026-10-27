@@ -38,6 +38,13 @@ public static class SavedMatchStore
     /// <summary>Whether a saved match is stored.</summary>
     public static bool Exists => MatchFile(SavedGamesDirectory).Exists;
 
+    /// <summary>Whether a file name is a numbered multiplayer save, such as SVGM_000.NET.</summary>
+    public static bool IsMultiplayerSaveFile(string fileName)
+        => fileName.Length == 12
+            && fileName.StartsWith("SVGM_", StringComparison.OrdinalIgnoreCase)
+            && fileName.EndsWith(".NET", StringComparison.OrdinalIgnoreCase)
+            && fileName.Substring(5, 3).All(char.IsDigit);
+
     /// <summary>Records the request of a multiplayer match that is about to launch, until it is saved.</summary>
     public static void RecordLaunch(MatchLaunchRequest request) => RecordLaunch(request, SavedGamesDirectory);
 
