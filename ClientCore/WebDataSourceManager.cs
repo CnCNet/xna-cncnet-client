@@ -16,12 +16,12 @@ namespace ClientCore;
 /// Manages shared web data sources (JSON or INI) for XNAClientWebLabel.
 /// Data sources are listed in the [DataSources] section of an INI file.
 /// </summary>
-public class JSONDataSourceManager
+public class WebDataSourceManager
 {
     private readonly Dictionary<string, DataSource> _dataSources = new Dictionary<string, DataSource>();
     private readonly PauseGate _pauseGate = new PauseGate();
 
-    public JSONDataSourceManager() { }
+    public WebDataSourceManager() { }
 
     /// <summary>
     /// Loads data sources from an INI file.
@@ -50,14 +50,14 @@ public class JSONDataSourceManager
             var dataSourceSection = iniFile.GetSection(dataSourceName);
             if (dataSourceSection == null)
             {
-                Logger.Log($"JSONDataSourceManager: Data source '{dataSourceName}' listed but section not found");
+                Logger.Log($"WebDataSourceManager: Data source '{dataSourceName}' listed but section not found");
                 continue;
             }
 
             string url = dataSourceSection.GetStringValue("URL", string.Empty);
             if (string.IsNullOrEmpty(url))
             {
-                Logger.Log($"JSONDataSourceManager: Data source '{dataSourceName}' has no URL");
+                Logger.Log($"WebDataSourceManager: Data source '{dataSourceName}' has no URL");
                 continue;
             }
 
@@ -274,7 +274,7 @@ public class JSONDataSourceManager
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"JSONDataSourceManager: Error fetching '{_id}': {ex.Message}");
+                    Logger.Log($"WebDataSourceManager: Error fetching '{_id}': {ex.Message}");
                     NotifyError();
                 }
 
@@ -309,7 +309,7 @@ public class JSONDataSourceManager
             }
             catch (Exception ex)
             {
-                Logger.Log($"JSONDataSourceManager: Error parsing data for '{_id}': {ex.Message}");
+                Logger.Log($"WebDataSourceManager: Error parsing data for '{_id}': {ex.Message}");
                 NotifyError();
                 return;
             }
@@ -347,7 +347,7 @@ public class JSONDataSourceManager
             }
             catch (Exception ex)
             {
-                Logger.Log($"JSONDataSourceManager: Error notifying subscriber for '{_id}': {ex.Message}");
+                Logger.Log($"WebDataSourceManager: Error notifying subscriber for '{_id}': {ex.Message}");
             }
         }
 
@@ -369,12 +369,12 @@ public class JSONDataSourceManager
             }
             catch (OperationCanceledException) when (!token.IsCancellationRequested)
             {
-                Logger.Log($"JSONDataSourceManager: Timeout for '{_id}' ({url})");
+                Logger.Log($"WebDataSourceManager: Timeout for '{_id}' ({url})");
                 return null;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                Logger.Log($"JSONDataSourceManager: Download error for '{_id}': {ex.Message}");
+                Logger.Log($"WebDataSourceManager: Download error for '{_id}': {ex.Message}");
                 return null;
             }
         }

@@ -26,11 +26,11 @@ public class XNAClientWebLabel : XNAClientLinkLabel
     // colons (e.g. slices like [0:3]), so only a colon outside brackets starts the format.
     private static readonly Regex PlaceholderRegex = new Regex(@"\{((?:\[[^\]]*\]|[^\}\[:])+)(?::([^\}]+))?\}", RegexOptions.Compiled);
 
-    private readonly JSONDataSourceManager _dataSourceManager;
+    private readonly WebDataSourceManager _dataSourceManager;
     private Action<JsonNode, bool> _dataSourceCallback;
     private bool _isSubscribed = false;
 
-    public XNAClientWebLabel(WindowManager windowManager, JSONDataSourceManager dataSourceManager) : base(windowManager)
+    public XNAClientWebLabel(WindowManager windowManager, WebDataSourceManager dataSourceManager) : base(windowManager)
     {
         _dataSourceManager = dataSourceManager;
         FontIndex = 1;

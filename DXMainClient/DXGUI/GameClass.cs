@@ -270,14 +270,14 @@ namespace DTAClient.DXGUI
             buildServiceProviderTask.GetAwaiter().GetResult();
 
             // Load data sources for web labels
-            var jsonDataSourceManager = serviceProvider.GetService<JSONDataSourceManager>();
-            if (jsonDataSourceManager != null)
+            var webDataSourceManager = serviceProvider.GetService<WebDataSourceManager>();
+            if (webDataSourceManager != null)
             {
-                jsonDataSourceManager.LoadFromINI(ClientConfiguration.Instance.ClientDefinitionsIni);
+                webDataSourceManager.LoadFromINI(ClientConfiguration.Instance.ClientDefinitionsIni);
 
                 // Don't poll web data sources while the game is running
-                GameProcessLogic.GameProcessStarted += jsonDataSourceManager.Pause;
-                GameProcessLogic.GameProcessExited += jsonDataSourceManager.Resume;
+                GameProcessLogic.GameProcessStarted += webDataSourceManager.Pause;
+                GameProcessLogic.GameProcessExited += webDataSourceManager.Resume;
             }
 
             Logger.Log("Initializing loading screen.");
@@ -431,7 +431,7 @@ namespace DTAClient.DXGUI
                             .AddSingleton<MapLoader>()
                             .AddSingleton<Random>(GetRandom())
                             .AddSingleton<DirectDrawWrapperManager>()
-                            .AddSingleton<JSONDataSourceManager>();
+                            .AddSingleton<WebDataSourceManager>();
 
                         // singleton xna controls - same instance on each request
                         services
