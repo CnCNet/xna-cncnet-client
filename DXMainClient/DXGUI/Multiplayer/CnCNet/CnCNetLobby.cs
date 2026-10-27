@@ -1406,6 +1406,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.UserQuitIRC -= RefreshPlayerList;
                 currentChatChannel.UserKicked -= RefreshPlayerList;
                 currentChatChannel.UserListReceived -= RefreshPlayerList;
+                currentChatChannel.ChannelModesChanged -= RefreshPlayerList;
                 currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
@@ -1431,6 +1432,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
             currentChatChannel.UserKicked += RefreshPlayerList;
             currentChatChannel.UserListReceived += RefreshPlayerList;
+            currentChatChannel.ChannelModesChanged += RefreshPlayerList;
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
