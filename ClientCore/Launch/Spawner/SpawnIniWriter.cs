@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -109,19 +108,12 @@ public static class SpawnIniWriter
     }
 
     /// <summary>
-    /// Builds spawn.ini for loading a multiplayer saved game from the request or spawn.ini the
-    /// match was started with, pointing the game at the players' current network endpoints.
+    /// Builds spawn.ini for loading a multiplayer saved game from the request the match was
+    /// started with, pointing the game at the players' current network endpoints.
     /// </summary>
     public static IniFile WriteSavedMatch(SavedMatchLaunchRequest request, SpawnIniDialect dialect)
     {
-        IniFile spawnIni;
-
-        if (request.StoredMatch != null)
-            spawnIni = WriteMatch(request.StoredMatch, dialect);
-        else if (request.RecordedSpawnIni != null)
-            spawnIni = Copy(request.RecordedSpawnIni);
-        else
-            throw new ArgumentException("A saved match needs a stored request or a recorded spawn.ini.", nameof(request));
+        IniFile spawnIni = WriteMatch(request.Match, dialect);
 
         spawnIni.SetStringValue(SETTINGS, "SaveGameName", request.SaveGameName);
         spawnIni.SetBooleanValue(SETTINGS, "LoadSaveGame", true);

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 
 using ClientCore.Launch;
-using ClientCore.Launch.Spawner;
 
 using Xunit;
 
@@ -11,7 +10,6 @@ namespace ClientCore.Tests.Launch;
 /// <summary>Tests the saved match files in a temporary saved games directory.</summary>
 public sealed class SavedMatchStoreFileTests : IDisposable
 {
-    private static readonly SpawnIniDialect tiberianSun = SpawnIniDialect.ForClientType(ClientType.TS);
     private static readonly DateTime earlier = new(2026, 1, 1, 12, 0, 0);
     private static readonly DateTime matchStart = new(2026, 1, 2, 12, 0, 0);
 
@@ -32,7 +30,7 @@ public sealed class SavedMatchStoreFileTests : IDisposable
     private void StoreSavedMatch(MatchLaunchRequest request, DateTime lastWriteTime)
         => WriteFile("match.json", SavedMatchStore.Serialize(request), lastWriteTime);
 
-    private MatchLaunchRequest? LoadRequest() => SavedMatchStore.LoadRequest(directory, tiberianSun);
+    private MatchLaunchRequest? LoadRequest() => SavedMatchStore.LoadRequest(directory);
 
     [Fact]
     public void UnsavedMatchKeepsThePreviousSavedMatch()
@@ -71,35 +69,6 @@ public sealed class SavedMatchStoreFileTests : IDisposable
 
         // Ending the match afterwards has nothing left to promote or discard.
         SavedMatchStore.CompletePending(matchStart, directory);
-        Assert.Equal("Alice", LoadRequest()?.LocalPlayerName);
-    }
-
-    [Fact]
-    public void NewerSpawnIniOfTheSameMatchKeepsTheRequest()
-    {
-        MatchLaunchRequest match = MatchScenarios.LanHousesFollowColorOrder();
-        StoreSavedMatch(match, earlier);
-        WriteFile("spawnSG.ini", GoldenIni.Render(SpawnIniWriter.WriteMatch(match, tiberianSun)), matchStart);
-
-        Assert.Equal("Alice", LoadRequest()?.LocalPlayerName);
-    }
-
-    [Fact]
-    public void NewerSpawnIniOfAnotherMatchWins()
-    {
-        // An older client saved another match after this one.
-        StoreSavedMatch(MatchScenarios.LanHousesFollowColorOrder(), earlier);
-        WriteFile("spawnSG.ini", GoldenIni.Render(SpawnIniWriter.WriteMatch(MatchScenarios.CnCNetSpectatorHost(), tiberianSun)), matchStart);
-
-        Assert.Null(LoadRequest());
-    }
-
-    [Fact]
-    public void OlderSpawnIniIsIgnored()
-    {
-        StoreSavedMatch(MatchScenarios.LanHousesFollowColorOrder(), matchStart);
-        WriteFile("spawnSG.ini", GoldenIni.Render(SpawnIniWriter.WriteMatch(MatchScenarios.CnCNetSpectatorHost(), tiberianSun)), earlier);
-
         Assert.Equal("Alice", LoadRequest()?.LocalPlayerName);
     }
 

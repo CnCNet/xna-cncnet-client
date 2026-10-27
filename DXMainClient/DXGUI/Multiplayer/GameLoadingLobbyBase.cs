@@ -290,31 +290,24 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected void LoadGame()
         {
-            string savedSpawnIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini");
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
 
             if (localPlayer == null)
-            {
-                // Parity: the saved spawn.ini replaces spawn.ini even though the game isn't launched.
-                // Saves whose match is stored only as a launch request have no saved spawn.ini.
-                if (File.Exists(savedSpawnIniPath))
-                    File.Copy(savedSpawnIniPath, SpawnFiles.SpawnIniFile.FullName, true);
+                return;
 
+            MatchLaunchRequest savedMatch = SavedMatchStore.LoadRequest();
+
+            if (savedMatch == null)
+            {
+                AddNotice("The saved match can't be read, so it can't be loaded.".L10N("Client:Main:SavedMatchUnreadable"));
                 return;
             }
 
             int sgIndex = (ddSavedGame.Items.Count - 1) - ddSavedGame.SelectedIndex;
 
-            // Saves from older clients only have spawnSG.ini.
-            MatchLaunchRequest storedMatch = SavedMatchStore.LoadRequest();
-
-            if (storedMatch != null)
-                SavedMatchStore.CheckAgainstSavedSpawnIni(storedMatch);
-
             var request = new SavedMatchLaunchRequest
             {
-                StoredMatch = storedMatch,
-                RecordedSpawnIni = storedMatch == null ? new IniFile(savedSpawnIniPath) : null,
+                Match = savedMatch,
                 SaveGameName = string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")),
                 LocalPort = localPlayer.Port,
                 Players = Players.Select(p => new PlayerEndpoint(p.Name,

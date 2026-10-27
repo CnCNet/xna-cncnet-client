@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -19,8 +18,6 @@ namespace ClientCore.Launch;
 /// <remarks>
 /// The request is recorded as pending when a match launches and becomes the saved match once the
 /// match is saved, so launching a match that is never saved doesn't replace the record of older saves.
-/// Saves from older clients and spawners only have a saved spawn.ini (spawnSG.ini), which is
-/// still read when there is no matching request.
 /// </remarks>
 public static class SavedMatchStore
 {
@@ -28,7 +25,6 @@ public static class SavedMatchStore
     private const string SAVED_GAMES_DIRECTORY = "Saved Games";
     private const string MATCH_FILE_NAME = "match.json";
     private const string PENDING_MATCH_FILE_NAME = "match.pending.json";
-    private const string LEGACY_SPAWN_INI_FILE_NAME = "spawnSG.ini";
     private const string MULTIPLAYER_SAVE_PATTERN = "SVGM_*.NET";
 
     private static readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
@@ -39,10 +35,8 @@ public static class SavedMatchStore
 
     private static FileInfo PendingMatchFile(DirectoryInfo directory) => SafePath.GetFile(directory.FullName, PENDING_MATCH_FILE_NAME);
 
-    private static FileInfo LegacySpawnIniFile(DirectoryInfo directory) => SafePath.GetFile(directory.FullName, LEGACY_SPAWN_INI_FILE_NAME);
-
-    /// <summary>Whether a saved match is stored, either as a request or as a saved spawn.ini.</summary>
-    public static bool Exists => MatchFile(SavedGamesDirectory).Exists || LegacySpawnIniFile(SavedGamesDirectory).Exists;
+    /// <summary>Whether a saved match is stored.</summary>
+    public static bool Exists => MatchFile(SavedGamesDirectory).Exists;
 
     /// <summary>Records the request of a multiplayer match that is about to launch, until it is saved.</summary>
     public static void RecordLaunch(MatchLaunchRequest request) => RecordLaunch(request, SavedGamesDirectory);
@@ -135,13 +129,10 @@ public static class SavedMatchStore
         return stored.Request;
     }
 
-    /// <summary>
-    /// Returns the saved match's request, or null when there is none, it can't be read, or a saved
-    /// spawn.ini of a different, newer match exists (for example, after an older client saved a match).
-    /// </summary>
-    public static MatchLaunchRequest? LoadRequest() => LoadRequest(SavedGamesDirectory, CurrentDialect);
+    /// <summary>Returns the saved match's request, or null when there is none or it can't be read.</summary>
+    public static MatchLaunchRequest? LoadRequest() => LoadRequest(SavedGamesDirectory);
 
-    internal static MatchLaunchRequest? LoadRequest(DirectoryInfo directory, SpawnIniDialect dialect)
+    internal static MatchLaunchRequest? LoadRequest(DirectoryInfo directory)
     {
         FileInfo matchFile = MatchFile(directory);
 
@@ -161,91 +152,25 @@ public static class SavedMatchStore
         }
 
         if (request == null)
-        {
             Logger.Log("SavedMatchStore: the saved match's launch request is empty or has an unknown version.");
-            return null;
-        }
-
-        FileInfo legacySpawnIniFile = LegacySpawnIniFile(directory);
-
-        if (legacySpawnIniFile.Exists && legacySpawnIniFile.LastWriteTime > matchFile.LastWriteTime
-            && !IsSameMatch(SpawnIniWriter.WriteMatch(request, dialect), new IniFile(legacySpawnIniFile.FullName)))
-        {
-            Logger.Log("SavedMatchStore: spawnSG.ini belongs to a newer match than match.json; using spawnSG.ini.");
-            return null;
-        }
 
         return request;
     }
 
     /// <summary>
-    /// Returns the saved match's spawn.ini: regenerated from the saved request when there is one,
-    /// otherwise read from spawnSG.ini. Returns an empty INI when no match is stored.
+    /// Returns what the client shows and checks about the saved match. Everything is empty when
+    /// no match is stored.
     /// </summary>
-    public static IniFile LoadSpawnIni()
+    public static SavedMatchInfo LoadInfo()
     {
         MatchLaunchRequest? request = LoadRequest();
 
-        if (request != null)
-            return RegenerateSpawnIni(request);
+        if (request == null)
+            return new SavedMatchInfo(new IniFile());
 
-        return new IniFile(LegacySpawnIniFile(SavedGamesDirectory).FullName);
-    }
+        SpawnIniDialect dialect = SpawnIniDialect.ForClientType(ClientConfiguration.Instance.ClientGameType);
 
-    /// <summary>Returns what the client shows and checks about the saved match.</summary>
-    public static SavedMatchInfo LoadInfo() => new(LoadSpawnIni());
-
-    /// <summary>
-    /// When the game also wrote spawnSG.ini, checks that the spawn.ini regenerated from the saved
-    /// request is the same, and logs the result.
-    /// </summary>
-    [Conditional("DEBUG")]
-    public static void CheckAgainstSavedSpawnIni(MatchLaunchRequest request)
-    {
-        FileInfo legacySpawnIniFile = LegacySpawnIniFile(SavedGamesDirectory);
-
-        if (!legacySpawnIniFile.Exists)
-        {
-            Logger.Log("SAVED MATCH CHECK: no spawnSG.ini to compare with.");
-            return;
-        }
-
-        IniFile regenerated = RegenerateSpawnIni(request);
-        IniFile saved = new IniFile(legacySpawnIniFile.FullName);
-
-        if (Render(regenerated) == Render(saved))
-        {
-            Logger.Log("SAVED MATCH CHECK: OK");
-            return;
-        }
-
-        string regeneratedPath = Path.Combine(legacySpawnIniFile.DirectoryName!, "spawnSG.regenerated.ini");
-        regenerated.WriteIniFile(regeneratedPath);
-        Logger.Log("SAVED MATCH CHECK MISMATCH: the spawn.ini regenerated from match.json differs from spawnSG.ini. " +
-            "Compare " + regeneratedPath + " with " + legacySpawnIniFile.FullName);
-    }
-
-    private static SpawnIniDialect CurrentDialect => SpawnIniDialect.ForClientType(ClientConfiguration.Instance.ClientGameType);
-
-    private static IniFile RegenerateSpawnIni(MatchLaunchRequest request) => SpawnIniWriter.WriteMatch(request, CurrentDialect);
-
-    /// <summary>Whether two spawn.ini files were written for the same match.</summary>
-    internal static bool IsSameMatch(IniFile first, IniFile second)
-    {
-        static string Fingerprint(IniFile spawnIni) => string.Join("|",
-            spawnIni.GetStringValue(SpawnIniWriter.SETTINGS, "GameID", string.Empty),
-            spawnIni.GetStringValue(SpawnIniWriter.SETTINGS, "Seed", string.Empty),
-            spawnIni.GetStringValue(SpawnIniWriter.SETTINGS, "MapSHA1", string.Empty));
-
-        return Fingerprint(first) == Fingerprint(second);
-    }
-
-    private static string Render(IniFile iniFile)
-    {
-        using var stream = new MemoryStream();
-        iniFile.WriteIniStream(stream);
-
-        return Convert.ToBase64String(stream.ToArray());
+        return new SavedMatchInfo(SpawnIniWriter.WriteMatch(request, dialect));
     }
 
     private sealed class StoredMatch

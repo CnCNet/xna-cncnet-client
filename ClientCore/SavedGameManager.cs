@@ -78,10 +78,6 @@ namespace ClientCore
 
             try
             {
-                // The previous match's saves are gone, so its saved spawn.ini goes too.
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
-
-                // The match's launch request is the saved match from now on.
                 SavedMatchStore.PromotePending();
             }
             catch (Exception ex)

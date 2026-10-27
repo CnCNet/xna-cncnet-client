@@ -43,7 +43,7 @@ public class SavedMatchStoreTests
 
     [Theory]
     [MemberData(nameof(Scenarios))]
-    public void InfoFromStoredRequestMatchesInfoFromSavedSpawnIni(string scenario)
+    public void InfoMatchesTheMatchSpawnIni(string scenario)
     {
         var fromRequest = new SavedMatchInfo(SpawnIniWriter.WriteMatch(MatchScenarios.All[scenario](), tiberianSun));
         var fromSpawnIni = new SavedMatchInfo(ReadGolden(scenario));
@@ -62,28 +62,6 @@ public class SavedMatchStoreTests
         Assert.Equal(fromSpawnIni.UIGameMode, fromRequest.UIGameMode);
         Assert.Equal(fromSpawnIni.GetOtherPlayerName(1, "?"), fromRequest.GetOtherPlayerName(1, "?"));
         Assert.Equal(fromSpawnIni.GetOtherPlayerColor(1), fromRequest.GetOtherPlayerColor(1));
-    }
-
-    [Theory]
-    [MemberData(nameof(Scenarios))]
-    public void LoadingFromRequestOrSpawnIniGivesTheSameSpawnIni(string scenario)
-    {
-        MatchLaunchRequest match = MatchScenarios.All[scenario]();
-        PlayerEndpoint[] players = match.Humans.Select(h => new PlayerEndpoint(h.Name, "10.1.1.1", 48001)).ToArray();
-
-        SavedMatchLaunchRequest Request(MatchLaunchRequest? storedMatch, IniFile? recordedSpawnIni) => new()
-        {
-            StoredMatch = storedMatch,
-            RecordedSpawnIni = recordedSpawnIni,
-            SaveGameName = "SVGM_000.NET",
-            LocalPort = 48000,
-            Players = players,
-            Tunnel = new TunnelEndpoint("127.0.0.1", 51000),
-        };
-
-        Assert.Equal(
-            GoldenIni.Render(SpawnIniWriter.WriteSavedMatch(Request(null, ReadGolden(scenario)), tiberianSun)),
-            GoldenIni.Render(SpawnIniWriter.WriteSavedMatch(Request(match, null), tiberianSun)));
     }
 
     [Fact]

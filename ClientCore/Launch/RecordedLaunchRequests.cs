@@ -13,14 +13,8 @@ namespace ClientCore.Launch;
 /// </summary>
 public sealed class SavedMatchLaunchRequest : LaunchRequest
 {
-    /// <summary>The request the saved match was started with, or null for saves from older clients.</summary>
-    public MatchLaunchRequest? StoredMatch { get; init; }
-
-    /// <summary>
-    /// The spawn.ini the saved match was started with, used when there is no stored request.
-    /// It is not modified.
-    /// </summary>
-    public IniFile? RecordedSpawnIni { get; init; }
+    /// <summary>The request the saved match was started with.</summary>
+    public MatchLaunchRequest Match { get; init; } = new();
 
     /// <summary>The saved game's file name.</summary>
     public string SaveGameName { get; init; } = string.Empty;
@@ -33,7 +27,7 @@ public sealed class SavedMatchLaunchRequest : LaunchRequest
     /// </summary>
     public IReadOnlyList<PlayerEndpoint> Players { get; init; } = [];
 
-    /// <summary>Where the game sends its traffic, or null to keep what the recorded spawn.ini says.</summary>
+    /// <summary>Where the game sends its traffic, or null to keep what the saved match says.</summary>
     public TunnelEndpoint? Tunnel { get; init; }
 }
 
