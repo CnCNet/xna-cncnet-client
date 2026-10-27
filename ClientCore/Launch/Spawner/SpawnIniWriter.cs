@@ -1,0 +1,399 @@
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Rampastring.Tools;
+
+namespace ClientCore.Launch.Spawner;
+
+/// <summary>Builds spawn.ini, the file the spawner reads to set up a game, from a launch request.</summary>
+public static class SpawnIniWriter
+{
+    public const string SETTINGS = "Settings";
+    public const string REPLAY_FILE_HASHES = "ReplayFileHashes";
+
+    private static readonly string[] coopHouseAllyKeySuffixes = ["One", "Two", "Three", "Four", "Five", "Six", "Seven"];
+
+    /// <summary>Builds spawn.ini for a new match.</summary>
+    public static IniFile WriteMatch(MatchLaunchRequest request, SpawnIniDialect dialect)
+    {
+        var spawnIni = new IniFile();
+
+        WriteMatchSettings(spawnIni, request);
+        WriteMatchNetwork(spawnIni, request.Network);
+        WriteOptionLayers(spawnIni, request.OptionLayers);
+        WriteMapSettings(spawnIni, request);
+        WriteOtherPlayers(spawnIni, request);
+
+        List<int> humanMultiOrder = GetHumanMultiOrder(request);
+
+        WriteAIHouses(spawnIni, request, humanMultiOrder);
+        WriteSpectators(spawnIni, request, humanMultiOrder);
+        WriteAlliances(spawnIni, request, humanMultiOrder, dialect);
+        WriteSpawnLocations(spawnIni, request, humanMultiOrder);
+
+        spawnIni.SetStringValue(SETTINGS, "MapSHA1", request.MapSHA1);
+        spawnIni.SetStringValue(SETTINGS, "BroadcastedGameOptionValues", request.BroadcastedGameOptionValues);
+
+        WriteRecording(spawnIni, request.Recording);
+        WriteStackedSpawnLocations(spawnIni, request);
+
+        return spawnIni;
+    }
+
+    private static void WriteMatchSettings(IniFile spawnIni, MatchLaunchRequest request)
+    {
+        int localIndex = request.Humans.ToList().FindIndex(h => h.Name == request.LocalPlayerName);
+        HumanHouse localHouse = request.Humans[localIndex];
+
+        var settings = new IniSection(SETTINGS);
+
+        settings.SetStringValue("Name", request.LocalPlayerName);
+        settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
+        settings.SetStringValue("UIGameMode", request.UIGameMode);
+        settings.SetStringValue("UIMapName", request.UIMapName);
+
+        if (request.MapID != null)
+            settings.SetStringValue("MapID", request.MapID);
+
+        settings.SetIntValue("PlayerCount", request.Humans.Count);
+        settings.SetIntValue("Side", localHouse.InternalSideIndex);
+        settings.SetBooleanValue("IsSpectator", localHouse.IsSpectator);
+        settings.SetIntValue("Color", localHouse.ColorIndex);
+        settings.SetStringValue("CustomLoadScreen", request.CustomLoadScreen);
+        settings.SetIntValue("AIPlayers", request.AIs.Count);
+        settings.SetIntValue("Seed", request.Seed);
+
+        if (request.CoachMode)
+            settings.SetBooleanValue("CoachMode", true);
+
+        if (request.DisableAutoSurrender)
+            settings.SetBooleanValue("AutoSurrender", false);
+
+        spawnIni.AddSection(settings);
+    }
+
+    private static void WriteMatchNetwork(IniFile spawnIni, MatchNetwork? network)
+    {
+        if (network == null)
+            return;
+
+        spawnIni.SetIntValue(SETTINGS, "FrameSendRate", network.FrameSendRate);
+
+        if (network.MaxAhead > 0)
+            spawnIni.SetIntValue(SETTINGS, "MaxAhead", network.MaxAhead);
+
+        spawnIni.SetIntValue(SETTINGS, "Protocol", network.Protocol);
+
+        switch (network.Session)
+        {
+            case LanMatchSession lan:
+                spawnIni.SetIntValue(SETTINGS, "Port", lan.Port);
+                spawnIni.SetIntValue(SETTINGS, "GameID", lan.GameID);
+                spawnIni.SetBooleanValue(SETTINGS, "Host", lan.IsHost);
+                break;
+            case TunnelMatchSession tunnelSession:
+                if (tunnelSession.Tunnel != null)
+                {
+                    spawnIni.SetStringValue("Tunnel", "Ip", tunnelSession.Tunnel.Address);
+                    spawnIni.SetIntValue("Tunnel", "Port", tunnelSession.Tunnel.Port);
+                }
+
+                spawnIni.SetIntValue(SETTINGS, "GameID", tunnelSession.GameID);
+                spawnIni.SetBooleanValue(SETTINGS, "Host", tunnelSession.IsHost);
+                spawnIni.SetIntValue(SETTINGS, "Port", tunnelSession.Port);
+                break;
+        }
+    }
+
+    private static void WriteOptionLayers(IniFile spawnIni, IEnumerable<SpawnOptionLayer> layers)
+    {
+        foreach (SpawnOptionLayer layer in layers)
+        {
+            foreach (SpawnOption option in layer.Options)
+                spawnIni.SetStringValue(SETTINGS, option.Key, option.Value);
+        }
+    }
+
+    private static void WriteMapSettings(IniFile spawnIni, MatchLaunchRequest request)
+    {
+        MatchMapSettings mapSettings = request.MapSettings;
+
+        if (mapSettings.Credits != null)
+            spawnIni.SetIntValue(SETTINGS, "Credits", mapSettings.Credits.Value);
+
+        if (mapSettings.UnitCount != null)
+            spawnIni.SetIntValue(SETTINGS, "UnitCount", mapSettings.UnitCount.Value);
+
+        int totalPlayerCount = request.Humans.Count + request.AIs.Count;
+        int neutralHouseIndex = totalPlayerCount + 1;
+        int specialHouseIndex = totalPlayerCount + 2;
+
+        if (request.Coop != null)
+        {
+            WriteCoopHouses(spawnIni, request.Coop, totalPlayerCount, request.AIs.Count);
+
+            int coopHouseCount = request.Coop.AllyHouses.Count + request.Coop.EnemyHouses.Count;
+            neutralHouseIndex += coopHouseCount;
+            specialHouseIndex += coopHouseCount;
+        }
+
+        if (mapSettings.NeutralHouseColor != null)
+            spawnIni.SetIntValue("HouseColors", "Multi" + neutralHouseIndex, mapSettings.NeutralHouseColor.Value);
+
+        if (mapSettings.SpecialHouseColor != null)
+            spawnIni.SetIntValue("HouseColors", "Multi" + specialHouseIndex, mapSettings.SpecialHouseColor.Value);
+
+        if (mapSettings.Bases != null)
+            spawnIni.SetBooleanValue(SETTINGS, "Bases", mapSettings.Bases.Value);
+    }
+
+    private static void WriteCoopHouses(IniFile spawnIni, CoopSetup coop, int totalPlayerCount, int aiPlayerCount)
+    {
+        IReadOnlyList<CoopHouse> allyHouses = coop.AllyHouses;
+        IReadOnlyList<CoopHouse> enemyHouses = coop.EnemyHouses;
+
+        int multiId = totalPlayerCount + 1;
+        foreach (CoopHouse house in allyHouses.Concat(enemyHouses))
+        {
+            spawnIni.SetIntValue("HouseHandicaps", "Multi" + multiId, coop.DifficultyLevel);
+            spawnIni.SetIntValue("HouseCountries", "Multi" + multiId, house.Side);
+            spawnIni.SetIntValue("HouseColors", "Multi" + multiId, house.Color);
+            spawnIni.SetIntValue("SpawnLocations", "Multi" + multiId, house.StartingLocation);
+
+            multiId++;
+        }
+
+        // Parity: unlike lobby alliances, co-op alliances don't use the dialect's house IDs,
+        // so Red Alert's offset is missing here.
+        for (int i = 0; i < allyHouses.Count; i++)
+        {
+            int aMultiId = totalPlayerCount + i + 1;
+
+            int allyIndex = 0;
+
+            for (int pIndex = 0; pIndex < totalPlayerCount + allyHouses.Count; pIndex++)
+            {
+                int allyMultiIndex = pIndex;
+
+                if (pIndex == aMultiId - 1)
+                    continue;
+
+                spawnIni.SetIntValue("Multi" + aMultiId + "_Alliances",
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                spawnIni.SetIntValue("Multi" + (allyMultiIndex + 1) + "_Alliances",
+                    "HouseAlly" + coopHouseAllyKeySuffixes[totalPlayerCount + i - 1], aMultiId - 1);
+                allyIndex++;
+            }
+        }
+
+        for (int i = 0; i < enemyHouses.Count; i++)
+        {
+            int eMultiId = totalPlayerCount + allyHouses.Count + i + 1;
+
+            int allyIndex = 0;
+
+            for (int enemyIndex = 0; enemyIndex < enemyHouses.Count; enemyIndex++)
+            {
+                int allyMultiIndex = totalPlayerCount + allyHouses.Count + enemyIndex;
+
+                if (enemyIndex == i)
+                    continue;
+
+                spawnIni.SetIntValue("Multi" + eMultiId + "_Alliances",
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                allyIndex++;
+            }
+        }
+
+        spawnIni.SetIntValue(SETTINGS, "AIPlayers", aiPlayerCount + allyHouses.Count + enemyHouses.Count);
+    }
+
+    private static void WriteOtherPlayers(IniFile spawnIni, MatchLaunchRequest request)
+    {
+        int otherId = 1;
+
+        foreach (HumanHouse human in request.Humans)
+        {
+            if (human.Name == request.LocalPlayerName)
+                continue;
+
+            string sectionName = "Other" + otherId;
+
+            spawnIni.SetStringValue(sectionName, "Name", human.Name);
+            spawnIni.SetIntValue(sectionName, "Side", human.InternalSideIndex);
+            spawnIni.SetBooleanValue(sectionName, "IsSpectator", human.IsSpectator);
+            spawnIni.SetIntValue(sectionName, "Color", human.ColorIndex);
+            spawnIni.SetStringValue(sectionName, "Ip", human.IpAddress);
+            spawnIni.SetIntValue(sectionName, "Port", human.Port);
+
+            otherId++;
+        }
+    }
+
+    /// <summary>
+    /// Returns human player indices in MultiN order. The spawner assigns human players
+    /// to the SpawnX houses by their color index.
+    /// </summary>
+    private static List<int> GetHumanMultiOrder(MatchLaunchRequest request)
+    {
+        var order = new List<int>();
+
+        foreach (int colorIndex in request.ColorOrder)
+        {
+            for (int pId = 0; pId < request.Humans.Count; pId++)
+            {
+                if (request.Humans[pId].ColorIndex == colorIndex)
+                    order.Add(pId);
+            }
+        }
+
+        return order;
+    }
+
+    private static void WriteAIHouses(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder)
+    {
+        for (int aiId = 0; aiId < request.AIs.Count; aiId++)
+        {
+            AIHouse ai = request.AIs[aiId];
+            string keyName = "Multi" + (humanMultiOrder.Count + aiId + 1);
+
+            spawnIni.SetIntValue("HouseHandicaps", keyName, ai.HandicapLevel);
+            spawnIni.SetIntValue("HouseCountries", keyName, ai.InternalSideIndex);
+            spawnIni.SetIntValue("HouseColors", keyName, ai.ColorIndex);
+        }
+    }
+
+    private static void WriteSpectators(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder)
+    {
+        for (int multiId = 0; multiId < humanMultiOrder.Count; multiId++)
+        {
+            if (request.Humans[humanMultiOrder[multiId]].IsSpectator)
+                spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
+        }
+    }
+
+    private static void WriteAlliances(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder,
+        SpawnIniDialect dialect)
+    {
+        var teamMultiIds = new List<int>[] { new(), new(), new(), new() };
+
+        for (int pId = 0; pId < request.Humans.Count; pId++)
+        {
+            int teamId = request.Humans[pId].TeamId;
+
+            if (teamId >= 1 && teamId <= teamMultiIds.Length)
+                teamMultiIds[teamId - 1].Add(humanMultiOrder.FindIndex(c => c == pId) + 1);
+        }
+
+        int multiId = humanMultiOrder.Count + 1;
+
+        foreach (AIHouse ai in request.AIs)
+        {
+            if (ai.TeamId >= 1 && ai.TeamId <= teamMultiIds.Length)
+                teamMultiIds[ai.TeamId - 1].Add(multiId);
+
+            multiId++;
+        }
+
+        foreach (List<int> team in teamMultiIds)
+            WriteTeamAlliances(spawnIni, team, dialect);
+    }
+
+    private static void WriteTeamAlliances(IniFile spawnIni, List<int> teamMultiIds, SpawnIniDialect dialect)
+    {
+        foreach (int houseId in teamMultiIds)
+        {
+            bool selfFound = false;
+
+            for (int allyId = 0; allyId < teamMultiIds.Count; allyId++)
+            {
+                int allyHouseId = teamMultiIds[allyId];
+
+                if (allyHouseId == houseId)
+                {
+                    selfFound = true;
+                    continue;
+                }
+
+                spawnIni.SetIntValue("Multi" + houseId + "_Alliances",
+                    "HouseAlly" + GetHouseAllyKeySuffix(selfFound ? allyId - 1 : allyId),
+                    dialect.GetAllianceHouseId(allyHouseId));
+            }
+        }
+    }
+
+    private static string GetHouseAllyKeySuffix(int allyIndex)
+        => allyIndex < coopHouseAllyKeySuffixes.Length ? coopHouseAllyKeySuffixes[allyIndex] : "None" + allyIndex;
+
+    private static void WriteSpawnLocations(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder)
+    {
+        for (int pId = 0; pId < request.Humans.Count; pId++)
+        {
+            int startingWaypoint = request.Humans[humanMultiOrder[pId]].StartingWaypoint;
+
+            // -1 lets the game pick the starting location itself
+            if (startingWaypoint > -1)
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + (pId + 1), startingWaypoint);
+        }
+
+        for (int aiId = 0; aiId < request.AIs.Count; aiId++)
+        {
+            int startingWaypoint = request.AIs[aiId].StartingWaypoint;
+
+            // Parity: AI houses are numbered from the human count here, but from the number of
+            // color-matched humans everywhere else.
+            if (startingWaypoint > -1)
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + (request.Humans.Count + aiId + 1), startingWaypoint);
+        }
+    }
+
+    private static void WriteRecording(IniFile spawnIni, ReplayRecording? recording)
+    {
+        if (recording == null)
+            return;
+
+        spawnIni.SetBooleanValue(SETTINGS, "EnableReplayRecording", recording.Enabled);
+
+        if (!recording.Enabled)
+            return;
+
+        spawnIni.SetStringValue(SETTINGS, "GamePackageVersion", recording.GamePackageVersion);
+        spawnIni.SetStringValue(SETTINGS, "ReplayFileOut", recording.FileOut);
+
+        if (recording.FileHashes.Count == 0)
+            return;
+
+        // Numeric keys, because paths can contain '='.
+        var section = new IniSection(REPLAY_FILE_HASHES);
+
+        for (int i = 0; i < recording.FileHashes.Count; i++)
+            section.SetStringValue(SpawnOptionLayer.FormatInt(i), recording.FileHashes[i]);
+
+        spawnIni.AddSection(section);
+    }
+
+    private static void WriteStackedSpawnLocations(IniFile spawnIni, MatchLaunchRequest request)
+    {
+        // Parity: players sharing a starting location are numbered by lobby order here,
+        // although human houses are otherwise numbered by color order.
+        int houseIndex = 0;
+
+        foreach (HumanHouse human in request.Humans)
+        {
+            houseIndex++;
+
+            if (human.StackedStartingWaypoint != null)
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, human.StackedStartingWaypoint.Value);
+        }
+
+        foreach (AIHouse ai in request.AIs)
+        {
+            houseIndex++;
+
+            if (ai.StackedStartingWaypoint != null)
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, ai.StackedStartingWaypoint.Value);
+        }
+    }
+}

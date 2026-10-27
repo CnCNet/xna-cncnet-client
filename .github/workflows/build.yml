@@ -24,6 +24,10 @@ jobs:
       shell: pwsh
       run: ./Scripts/Build.ps1
 
+    - name: Test
+      shell: pwsh
+      run: dotnet test ClientCore.Tests/ClientCore.Tests.csproj --configuration UniversalGLRelease
+
     - uses: actions/upload-artifact@v7
       name: Upload Client Artifacts
       with:

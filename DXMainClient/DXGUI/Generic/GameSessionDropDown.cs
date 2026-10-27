@@ -2,6 +2,7 @@
 
 using ClientCore.Extensions;
 using ClientCore.I18N;
+using ClientCore.Launch;
 
 using ClientGUI;
 
@@ -160,30 +161,35 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
         set => SelectedIndex = value;
     }
 
-    public void ApplySpawnIniCode(IniFile spawnIni)
+    public bool TryGetSpawnIniOption(out string key, out string value)
     {
+        key = spawnIniOption;
+        value = null;
+
         if (!AffectsSpawnIni || SelectedIndex < 0 || SelectedIndex >= Items.Count)
-            return;
+            return false;
 
         if (String.IsNullOrEmpty(spawnIniOption))
         {
             Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
-            return;
+            return false;
         }
 
         switch (dataWriteMode)
         {
             case DropDownDataWriteMode.BOOLEAN:
-                spawnIni.SetBooleanValue("Settings", spawnIniOption, SelectedIndex > 0);
+                value = SpawnOptionLayer.FormatBoolean(SelectedIndex > 0);
                 break;
             case DropDownDataWriteMode.INDEX:
-                spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
+                value = SpawnOptionLayer.FormatInt(SelectedIndex);
                 break;
             default:
             case DropDownDataWriteMode.STRING:
-                spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
+                value = Items[SelectedIndex].Tag.ToString();
                 break;
         }
+
+        return true;
     }
 
     public void ApplyMapCode(IniFile mapIni, GameMode gameMode)

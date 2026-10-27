@@ -8,6 +8,7 @@ using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -1218,14 +1219,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #endregion
 
-        protected override void WriteSpawnIniAdditions(IniFile iniFile)
+        protected override MatchSession GetMatchSession() => new LanMatchSession
         {
-            base.WriteSpawnIniAdditions(iniFile);
-
-            iniFile.SetIntValue("Settings", "Port", ProgramConstants.LAN_INGAME_PORT);
-            iniFile.SetIntValue("Settings", "GameID", UniqueGameID);
-            iniFile.SetBooleanValue("Settings", "Host", IsHost);
-        }
+            Port = ProgramConstants.LAN_INGAME_PORT,
+            GameID = UniqueGameID,
+            IsHost = IsHost,
+        };
     }
 
     public class LobbyNotificationEventArgs : EventArgs

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ClientCore.Extensions;
+using ClientCore.Launch.Spawner;
 
 using DTAClient.Online;
 
@@ -15,28 +16,32 @@ namespace DTAClient.Domain;
 /// <summary>Per-file compatibility hashes stored with a replay.</summary>
 public static class ReplayFileHashes
 {
-    public const string SECTION = "ReplayFileHashes";
+    public const string SECTION = SpawnIniWriter.REPLAY_FILE_HASHES;
+
+    /// <summary>Returns "path|hash" entries for the tracked game files, sorted by path.</summary>
+    public static List<string> CollectEntries()
+    {
+        List<string> entries = Collect().Select(entry => entry.Key + "|" + entry.Value).ToList();
+
+        Logger.Log($"ReplayFileHashes: collected {entries.Count} file hashes");
+
+        return entries;
+    }
 
     public static void Write(IniFile spawnIni)
     {
-        SortedDictionary<string, string> hashes = Collect();
+        List<string> entries = CollectEntries();
 
-        if (hashes.Count == 0)
+        if (entries.Count == 0)
             return;
 
         var section = new IniSection(SECTION);
 
         // Use numeric keys because paths can contain '='.
-        int index = 0;
-        foreach (KeyValuePair<string, string> entry in hashes)
-        {
-            section.SetStringValue(index.ToString(), entry.Key + "|" + entry.Value);
-            index++;
-        }
+        for (int index = 0; index < entries.Count; index++)
+            section.SetStringValue(index.ToString(), entries[index]);
 
         spawnIni.AddSection(section);
-
-        Logger.Log($"ReplayFileHashes: wrote {hashes.Count} file hashes to spawn.ini");
     }
 
     /// <summary>Returns differences between recorded and local game files.</summary>
