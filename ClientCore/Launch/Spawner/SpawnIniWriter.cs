@@ -42,7 +42,6 @@ public static class SpawnIniWriter
         spawnIni.SetStringValue(SETTINGS, "BroadcastedGameOptionValues", request.BroadcastedGameOptionValues);
 
         WriteRecording(spawnIni, request.Recording);
-        WriteStackedSpawnLocations(spawnIni, request);
 
         return spawnIni;
     }
@@ -484,7 +483,8 @@ public static class SpawnIniWriter
     {
         for (int pId = 0; pId < request.Humans.Count; pId++)
         {
-            int startingWaypoint = request.Humans[humanMultiOrder[pId]].StartingWaypoint;
+            HumanHouse human = request.Humans[humanMultiOrder[pId]];
+            int startingWaypoint = human.StackedStartingWaypoint ?? human.StartingWaypoint;
 
             // -1 lets the game pick the starting location itself
             if (startingWaypoint > -1)
@@ -493,7 +493,8 @@ public static class SpawnIniWriter
 
         for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
-            int startingWaypoint = request.AIs[aiId].StartingWaypoint;
+            AIHouse ai = request.AIs[aiId];
+            int startingWaypoint = ai.StackedStartingWaypoint ?? ai.StartingWaypoint;
 
             if (startingWaypoint > -1)
                 spawnIni.SetIntValue("SpawnLocations", "Multi" + GetAIMultiId(request, aiId), startingWaypoint);
@@ -523,28 +524,5 @@ public static class SpawnIniWriter
             section.SetStringValue(SpawnOptionLayer.FormatInt(i), recording.FileHashes[i]);
 
         spawnIni.AddSection(section);
-    }
-
-    private static void WriteStackedSpawnLocations(IniFile spawnIni, MatchLaunchRequest request)
-    {
-        // Parity: players sharing a starting location are numbered by lobby order here,
-        // although human houses are otherwise numbered by color order.
-        int houseIndex = 0;
-
-        foreach (HumanHouse human in request.Humans)
-        {
-            houseIndex++;
-
-            if (human.StackedStartingWaypoint != null)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, human.StackedStartingWaypoint.Value);
-        }
-
-        foreach (AIHouse ai in request.AIs)
-        {
-            houseIndex++;
-
-            if (ai.StackedStartingWaypoint != null)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, ai.StackedStartingWaypoint.Value);
-        }
     }
 }
