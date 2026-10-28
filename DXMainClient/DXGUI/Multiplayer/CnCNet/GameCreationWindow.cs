@@ -2,6 +2,7 @@ using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -261,14 +262,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 selectedTunnel = lbTunnelList.GetSelectedTunnel();
             }
 
-            IniFile spawnSGIni =
-                new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
+            SavedMatchInfo savedMatch = SavedMatchStore.LoadInfo();
 
             string password = Utilities.CalculateSHA1ForString(
-                spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
+                savedMatch.GetGameID(string.Empty)).Substring(0, 10);
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
-                spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
+                savedMatch.GetPlayerCount(2), password,
                 selectedTunnel, ddSkillLevel.SelectedIndex);
             LoadedGameCreated?.Invoke(this, ea);
         }
@@ -381,17 +381,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private bool AllowLoadingGame()
         {
-            FileInfo savedGameSpawnIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI);
-
-            if (!savedGameSpawnIniFile.Exists)
+            if (!SavedMatchStore.Exists)
                 return false;
 
-            IniFile iniFile = new IniFile(savedGameSpawnIniFile.FullName);
+            SavedMatchInfo savedMatch = SavedMatchStore.LoadInfo();
 
-            if (iniFile.GetStringValue("Settings", "Name", string.Empty) != ProgramConstants.PLAYERNAME)
+            if (savedMatch.LocalPlayerName != ProgramConstants.PLAYERNAME)
                 return false;
 
-            if (!iniFile.GetBooleanValue("Settings", "Host", false))
+            if (!savedMatch.IsHost)
                 return false;
 
             return true;

@@ -290,13 +290,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected void LoadGame()
         {
-            string savedSpawnIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini");
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
 
             if (localPlayer == null)
+                return;
+
+            MatchLaunchRequest savedMatch = SavedMatchStore.LoadRequest();
+
+            if (savedMatch == null)
             {
-                // Parity: the saved spawn.ini replaces spawn.ini even though the game isn't launched.
-                File.Copy(savedSpawnIniPath, SpawnFiles.SpawnIniFile.FullName, true);
+                AddNotice("The saved match can't be read, so it can't be loaded.".L10N("Client:Main:SavedMatchUnreadable"));
                 return;
             }
 
@@ -304,7 +307,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var request = new SavedMatchLaunchRequest
             {
-                RecordedSpawnIni = new IniFile(savedSpawnIniPath),
+                Match = savedMatch,
                 SaveGameName = string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")),
                 LocalPort = localPlayer.Port,
                 Players = Players.Select(p => new PlayerEndpoint(p.Name,
@@ -388,35 +391,33 @@ namespace DTAClient.DXGUI.Multiplayer
             ddSavedGame.AllowDropDown = isHost;
             btnLoadGame.Text = isHost ? "Load Game".L10N("Client:Main:ButtonLoadGame") : "I'm Ready".L10N("Client:Main:ButtonGetReady");
 
-            IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
+            SavedMatchInfo savedMatch = SavedMatchStore.LoadInfo();
 
-            loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
-            savedMapSHA1 = spawnSGIni.GetStringValue("Settings", "MapSHA1", string.Empty);
-            savedBroadcastOptionValues = spawnSGIni.GetStringValue("Settings", "BroadcastedGameOptionValues", string.Empty);
-            lblMapNameValue.Tag = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
-            lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{spawnSGIni.GetStringValue("Settings", "MapID", string.Empty)}:Description");
-            lblGameModeValue.Tag = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
+            loadedGameID = savedMatch.GetGameID("0");
+            savedMapSHA1 = savedMatch.MapSHA1;
+            savedBroadcastOptionValues = savedMatch.BroadcastedGameOptionValues;
+            lblMapNameValue.Tag = savedMatch.UIMapName;
+            lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{savedMatch.MapID}:Description");
+            lblGameModeValue.Tag = savedMatch.UIGameMode;
             lblGameModeValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:GameModes:{(string)lblGameModeValue.Tag}:UIName");
 
-            uniqueGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
+            uniqueGameId = savedMatch.GetGameIDNumber(-1);
 
-            int playerCount = spawnSGIni.GetIntValue("Settings", "PlayerCount", 0);
+            int playerCount = savedMatch.GetPlayerCount(0);
 
             SavedGamePlayer localPlayer = new SavedGamePlayer();
             localPlayer.Name = ProgramConstants.PLAYERNAME;
             localPlayer.ColorIndex = MPColors.FindIndex(
-                c => c.GameColorIndex == spawnSGIni.GetIntValue("Settings", "Color", 0));
+                c => c.GameColorIndex == savedMatch.LocalPlayerColor);
 
             SGPlayers.Add(localPlayer);
 
             for (int i = 1; i < playerCount; i++)
             {
-                string sectionName = "Other" + i;
-
                 SavedGamePlayer sgPlayer = new SavedGamePlayer();
-                sgPlayer.Name = spawnSGIni.GetStringValue(sectionName, "Name", "Unknown player".L10N("Client:Main:UnknownPlayer"));
+                sgPlayer.Name = savedMatch.GetOtherPlayerName(i, "Unknown player".L10N("Client:Main:UnknownPlayer"));
                 sgPlayer.ColorIndex = MPColors.FindIndex(
-                    c => c.GameColorIndex == spawnSGIni.GetIntValue(sectionName, "Color", 0));
+                    c => c.GameColorIndex == savedMatch.GetOtherPlayerColor(i));
 
                 SGPlayers.Add(sgPlayer);
             }

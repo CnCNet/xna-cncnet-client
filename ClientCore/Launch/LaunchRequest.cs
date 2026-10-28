@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Text.Json.Serialization;
+
 using Rampastring.Tools;
 
 namespace ClientCore.Launch;
@@ -12,5 +14,7 @@ namespace ClientCore.Launch;
 public abstract class LaunchRequest
 {
     /// <summary>The map the game starts on, or null when this launch provides no map of its own.</summary>
+    /// <remarks>Not stored with saved games, which load their map from the save.</remarks>
+    [JsonIgnore]
     public IniFile? SpawnMap { get; init; }
 }

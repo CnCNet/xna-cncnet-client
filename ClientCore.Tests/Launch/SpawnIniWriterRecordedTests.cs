@@ -19,21 +19,33 @@ public class SpawnIniWriterRecordedTests
         return new IniFile(stream, new UTF8Encoding(false), applyBaseIni: false);
     }
 
-    private static IniFile SavedSpawnIni() => Parse(
-        "[Settings]", "Name=Alice", "Seed=5", "GameID=99", "Port=1234", "Host=True", "",
-        "[Other1]", "Name=Bob", "Ip=1.1.1.1", "Port=1234", "",
-        "[Other2]", "Name=Carol", "Ip=2.2.2.2", "Port=1234", "",
-        "[Tunnel]", "Ip=9.9.9.9", "Port=50000");
+    private static readonly SpawnIniDialect tiberianSun = SpawnIniDialect.ForClientType(ClientType.TS);
+
+    private static MatchLaunchRequest SavedMatch() => new()
+    {
+        LocalPlayerName = "Alice",
+        Humans =
+        [
+            new HumanHouse { Name = "Alice", ColorIndex = 0, Port = 1234 },
+            new HumanHouse { Name = "Bob", ColorIndex = 1, IpAddress = "1.1.1.1", Port = 1234 },
+            new HumanHouse { Name = "Carol", ColorIndex = 2, IpAddress = "2.2.2.2", Port = 1234 },
+        ],
+        ColorOrder = [0, 1, 2, 3],
+        Seed = 5,
+        Network = new MatchNetwork
+        {
+            FrameSendRate = 7,
+            Protocol = 2,
+            Session = new TunnelMatchSession { GameID = 99, IsHost = true, Port = 1234, Tunnel = new TunnelEndpoint("9.9.9.9", 50000) },
+        },
+    };
 
     [Fact]
     public void SavedMatchUsesCurrentEndpoints()
     {
-        IniFile recorded = SavedSpawnIni();
-        string recordedBefore = GoldenIni.Render(recorded);
-
         var request = new SavedMatchLaunchRequest
         {
-            RecordedSpawnIni = recorded,
+            Match = SavedMatch(),
             SaveGameName = "SVGM_002.NET",
             LocalPort = 48000,
             Players =
@@ -45,8 +57,20 @@ public class SpawnIniWriterRecordedTests
             Tunnel = new TunnelEndpoint("127.0.0.1", 51000),
         };
 
-        GoldenIni.AssertMatches("SavedMatchUsesCurrentEndpoints", SpawnIniWriter.WriteSavedMatch(request));
-        Assert.Equal(recordedBefore, GoldenIni.Render(recorded));
+        IniFile spawnIni = SpawnIniWriter.WriteSavedMatch(request, tiberianSun);
+
+        Assert.Equal("SVGM_002.NET", spawnIni.GetStringValue("Settings", "SaveGameName", string.Empty));
+        Assert.True(spawnIni.GetBooleanValue("Settings", "LoadSaveGame", false));
+        Assert.Equal(48000, spawnIni.GetIntValue("Settings", "Port", 0));
+        Assert.Equal(5, spawnIni.GetIntValue("Settings", "Seed", 0));
+        Assert.Equal("Bob", spawnIni.GetStringValue("Other1", "Name", string.Empty));
+        Assert.Equal("4.4.4.4", spawnIni.GetStringValue("Other1", "Ip", string.Empty));
+        Assert.Equal(47999, spawnIni.GetIntValue("Other1", "Port", 0));
+        Assert.Equal("Carol", spawnIni.GetStringValue("Other2", "Name", string.Empty));
+        Assert.Equal("3.3.3.3", spawnIni.GetStringValue("Other2", "Ip", string.Empty));
+        Assert.Equal(47998, spawnIni.GetIntValue("Other2", "Port", 0));
+        Assert.Equal("127.0.0.1", spawnIni.GetStringValue("Tunnel", "Ip", string.Empty));
+        Assert.Equal(51000, spawnIni.GetIntValue("Tunnel", "Port", 0));
     }
 
     [Fact]
@@ -54,15 +78,15 @@ public class SpawnIniWriterRecordedTests
     {
         var request = new SavedMatchLaunchRequest
         {
-            RecordedSpawnIni = SavedSpawnIni(),
+            Match = SavedMatch(),
             SaveGameName = "SVGM_000.NET",
             LocalPort = 48000,
             Players = [new PlayerEndpoint("Alice", string.Empty, 48000), new PlayerEndpoint("Carol", "3.3.3.3", 47998)],
         };
 
-        IniFile spawnIni = SpawnIniWriter.WriteSavedMatch(request);
+        IniFile spawnIni = SpawnIniWriter.WriteSavedMatch(request, tiberianSun);
 
-        // Only [Other1] is looked at, and Bob isn't in the lobby, so both keep their recorded endpoints.
+        // Only [Other1] is looked at, and Bob isn't in the lobby, so both keep their saved endpoints.
         Assert.Equal("1.1.1.1", spawnIni.GetStringValue("Other1", "Ip", string.Empty));
         Assert.Equal("2.2.2.2", spawnIni.GetStringValue("Other2", "Ip", string.Empty));
         Assert.Equal("9.9.9.9", spawnIni.GetStringValue("Tunnel", "Ip", string.Empty));

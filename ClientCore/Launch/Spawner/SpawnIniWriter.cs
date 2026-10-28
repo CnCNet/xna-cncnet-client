@@ -108,12 +108,12 @@ public static class SpawnIniWriter
     }
 
     /// <summary>
-    /// Builds spawn.ini for loading a multiplayer saved game from the spawn.ini the match was
+    /// Builds spawn.ini for loading a multiplayer saved game from the request the match was
     /// started with, pointing the game at the players' current network endpoints.
     /// </summary>
-    public static IniFile WriteSavedMatch(SavedMatchLaunchRequest request)
+    public static IniFile WriteSavedMatch(SavedMatchLaunchRequest request, SpawnIniDialect dialect)
     {
-        IniFile spawnIni = Copy(request.RecordedSpawnIni);
+        IniFile spawnIni = WriteMatch(request.Match, dialect);
 
         spawnIni.SetStringValue(SETTINGS, "SaveGameName", request.SaveGameName);
         spawnIni.SetBooleanValue(SETTINGS, "LoadSaveGame", true);

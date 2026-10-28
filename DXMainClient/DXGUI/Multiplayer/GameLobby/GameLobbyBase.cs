@@ -2177,15 +2177,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MatchLaunchRequest request = BuildMatchRequest(houseInfos, teamStartMappings, coopSetup, stackedStartingWaypoints, spawnMap);
 
+            // Multiplayer matches can be saved, so keep their request until we know whether they were.
+            DateTime launchedAt = DateTime.Now;
+
+            if (isMultiplayer)
+                SavedMatchStore.RecordLaunch(request);
+
             LaunchResult result = GameSessionManager.Launcher.Launch(request);
 
             if (result.Succeeded)
             {
-                result.Session.WhenEnded(_ => GameProcessExited_Callback());
+                result.Session.WhenEnded(_ =>
+                {
+                    if (isMultiplayer)
+                        SavedMatchStore.CompletePending(launchedAt);
+
+                    GameProcessExited_Callback();
+                });
             }
             else
             {
                 LaunchErrorMessage.Show(WindowManager, result);
+
+                if (isMultiplayer)
+                    SavedMatchStore.CompletePending(launchedAt);
 
                 // A game that didn't start is cleaned up as if it had exited.
                 GameProcessExited_Callback();

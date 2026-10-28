@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using ClientCore.Launch;
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -77,13 +78,11 @@ namespace ClientCore
 
             try
             {
-                Logger.Log("Writing spawn.ini for saved game.");
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
+                SavedMatchStore.PromotePending();
             }
             catch (Exception ex)
             {
-                Logger.Log("Writing spawn.ini for saved game failed! Exception message: " + ex.ToString());
+                Logger.Log("Storing the saved match failed! Exception message: " + ex.ToString());
                 return false;
             }
 

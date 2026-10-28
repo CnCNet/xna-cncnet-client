@@ -37,8 +37,8 @@
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
-  <!-- Polyfill on .NET 4.8 (SecondStageUpdater and MigrationTool excluded) -->
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' and '$(MSBuildProjectName)' != 'MigrationTool' and $(TargetFrameworkIdentifier) == '.NETFramework'">
+  <!-- Polyfill on .NET 4.8 (SecondStageUpdater and MigrationTool excluded; ClientCore.Tests sees ClientCore's polyfills through InternalsVisibleTo) -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' and '$(MSBuildProjectName)' != 'MigrationTool' and '$(MSBuildProjectName)' != 'ClientCore.Tests' and $(TargetFrameworkIdentifier) == '.NETFramework'">
     <GlobalPackageReference Include="Polyfill" Version="11.4.4" />
     <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />

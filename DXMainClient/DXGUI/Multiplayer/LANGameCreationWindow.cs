@@ -7,6 +7,7 @@ using ClientCore;
 using System.IO;
 using Rampastring.Tools;
 using ClientCore.Extensions;
+using ClientCore.Launch;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -100,9 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Disable();
 
-            IniFile iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
-
-            LoadGame?.Invoke(this, new GameLoadEventArgs(iniFile.GetIntValue("Settings", "GameID", -1)));
+            LoadGame?.Invoke(this, new GameLoadEventArgs(SavedMatchStore.LoadInfo().GetGameIDNumber(-1)));
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -118,20 +117,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private bool AllowLoadingGame()
         {
-            FileInfo savedGameSpawnIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI);
-
-            if (!savedGameSpawnIniFile.Exists)
+            if (!SavedMatchStore.Exists)
                 return false;
 
-            IniFile iniFile = new IniFile(savedGameSpawnIniFile.FullName);
-            if (iniFile.GetStringValue("Settings", "Name", string.Empty) != ProgramConstants.PLAYERNAME)
+            SavedMatchInfo savedMatch = SavedMatchStore.LoadInfo();
+            if (savedMatch.LocalPlayerName != ProgramConstants.PLAYERNAME)
                 return false;
 
-            if (!iniFile.GetBooleanValue("Settings", "Host", false))
+            if (!savedMatch.IsHost)
                 return false;
 
             // Don't allow loading CnCNet games in LAN mode
-            if (iniFile.SectionExists("Tunnel"))
+            if (savedMatch.UsedTunnel)
                 return false;
 
             return true;

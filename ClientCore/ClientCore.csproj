@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="Ude.NetStandard" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
