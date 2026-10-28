@@ -4,6 +4,8 @@ using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
 using ClientCore.Extensions;
+using ClientCore.Launch;
+using ClientCore.Launch.Spawner;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -11,6 +13,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -287,55 +290,30 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected void LoadGame()
         {
-            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawn.ini");
-
-            spawnFileInfo.Delete();
-
-            File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"), spawnFileInfo.FullName);
-
-            IniFile spawnIni = new IniFile(spawnFileInfo.FullName);
-
-            int sgIndex = (ddSavedGame.Items.Count - 1) - ddSavedGame.SelectedIndex;
-
-            spawnIni.SetStringValue("Settings", "SaveGameName",
-                string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")));
-            spawnIni.SetBooleanValue("Settings", "LoadSaveGame", true);
-
+            string savedSpawnIniPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini");
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
 
             if (localPlayer == null)
+            {
+                // Parity: the saved spawn.ini replaces spawn.ini even though the game isn't launched.
+                File.Copy(savedSpawnIniPath, SpawnFiles.SpawnIniFile.FullName, true);
                 return;
-
-            spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
-
-            for (int i = 1; i < Players.Count; i++)
-            {
-                string otherName = spawnIni.GetStringValue("Other" + i, "Name", string.Empty);
-
-                if (string.IsNullOrEmpty(otherName))
-                    continue;
-
-                PlayerInfo otherPlayer = Players.Find(p => p.Name == otherName);
-
-                if (otherPlayer == null)
-                    continue;
-
-                spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
-                spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
             }
 
-            WriteSpawnIniAdditions(spawnIni);
-            spawnIni.WriteIniFile();
+            int sgIndex = (ddSavedGame.Items.Count - 1) - ddSavedGame.SelectedIndex;
 
-            FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawnmap.ini");
-            spawnMapFileInfo.Delete();
-            using (var spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName))
+            var request = new SavedMatchLaunchRequest
             {
-                spawnMapStreamWriter.WriteLine("[Map]");
-                spawnMapStreamWriter.WriteLine("Size=0,0,50,50");
-                spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");
-                spawnMapStreamWriter.WriteLine();
-            }
+                RecordedSpawnIni = new IniFile(savedSpawnIniPath),
+                SaveGameName = string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")),
+                LocalPort = localPlayer.Port,
+                Players = Players.Select(p => new PlayerEndpoint(p.Name,
+                    p == localPlayer ? string.Empty : p.IPAddress, p.Port)).ToList(),
+                Tunnel = GetTunnelEndpoint(),
+            };
+
+            SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteSavedMatch(request));
+            SpawnFiles.WriteStubSpawnMap();
 
             gameLoadTime = DateTime.Now;
 
@@ -376,10 +354,10 @@ namespace DTAClient.DXGUI.Multiplayer
             UpdateDiscordPresence(true);
         }
 
-        protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
-        {
-            // Do nothing by default
-        }
+        /// <summary>
+        /// Returns where the game sends its traffic, or null to keep what the saved spawn.ini says.
+        /// </summary>
+        protected virtual TunnelEndpoint GetTunnelEndpoint() => null;
 
         protected void AddNotice(string notice) => AddNotice(notice, Color.White);
 
