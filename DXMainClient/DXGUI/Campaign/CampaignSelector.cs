@@ -442,12 +442,6 @@ namespace DTAClient.DXGUI.Campaign
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
 
             MissionLaunchRequest request = BuildMissionRequest(mission);
-            SpawnIniDialect dialect = SpawnIniDialect.ForClientType(ClientConfiguration.Instance.ClientGameType);
-
-            SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteMission(request, dialect));
-
-            if (request.SpawnMap != null)
-                SpawnFiles.WriteSpawnMap(request.SpawnMap);
 
             string difficultyName = DifficultyNames[trbDifficultySelector.Value];
 
@@ -460,9 +454,20 @@ namespace DTAClient.DXGUI.Campaign
                 ToggleControls(false);
 
             discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
-            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+            LaunchResult result = GameSessionManager.Launcher.Launch(request);
+
+            if (result.Succeeded)
+            {
+                result.Session.WhenEnded(_ => GameProcessExited_Callback());
+            }
+            else
+            {
+                LaunchErrorMessage.Show(WindowManager, result);
+
+                // A game that didn't start is cleaned up as if it had exited.
+                GameProcessExited_Callback();
+            }
         }
 
         /// <summary>
@@ -643,8 +648,6 @@ namespace DTAClient.DXGUI.Campaign
 
         protected virtual void GameProcessExited()
         {
-            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-
             CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             ReplayManager.Prune();

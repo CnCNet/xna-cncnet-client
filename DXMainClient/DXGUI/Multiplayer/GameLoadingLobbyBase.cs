@@ -312,16 +312,24 @@ namespace DTAClient.DXGUI.Multiplayer
                 Tunnel = GetTunnelEndpoint(),
             };
 
-            SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteSavedMatch(request));
-            SpawnFiles.WriteStubSpawnMap();
-
             gameLoadTime = DateTime.Now;
 
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            GameProcessLogic.StartGameProcess(WindowManager);
+            LaunchResult result = GameSessionManager.Launcher.Launch(request);
 
-            if (fsw != null)
-                fsw.EnableRaisingEvents = true;
+            if (result.Succeeded)
+            {
+                result.Session.WhenEnded(_ => SharedUILogic_GameProcessExited());
+
+                if (fsw != null)
+                    fsw.EnableRaisingEvents = true;
+            }
+            else
+            {
+                LaunchErrorMessage.Show(WindowManager, result);
+
+                // A game that didn't start is cleaned up as if it had exited.
+                SharedUILogic_GameProcessExited();
+            }
 
             UpdateDiscordPresence(true);
         }
@@ -333,8 +341,6 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (fsw != null)
                 fsw.EnableRaisingEvents = false;
-
-            GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 
             var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
 

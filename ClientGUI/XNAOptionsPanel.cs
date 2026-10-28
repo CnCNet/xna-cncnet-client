@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Launch;
 using ClientGUI.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
@@ -33,7 +34,7 @@ namespace ClientGUI
 
             base.Initialize();
 
-            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
+            GameSessionManager.GameExited += GameProcessExited_Callback;
         }
 
         private void GameProcessExited_Callback()

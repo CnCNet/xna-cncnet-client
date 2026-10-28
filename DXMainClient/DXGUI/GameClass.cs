@@ -27,6 +27,7 @@ using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 using System.Threading.Tasks;
 using ClientCore.Display;
+using ClientCore.Launch;
 
 
 #if WINFORMS
@@ -354,7 +355,7 @@ namespace DTAClient.DXGUI
 
         private void ExitAfterGraphicsDeviceLossWhenNoGameRunning()
         {
-            if (GameProcessLogic.IsGameProcessRunning)
+            if (GameSessionManager.IsGameRunning)
             {
                 graphicsDeviceLostExitTime = DateTime.UtcNow + GRAPHICS_DEVICE_LOST_EXIT_DELAY;
                 return;

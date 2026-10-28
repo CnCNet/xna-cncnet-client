@@ -278,15 +278,23 @@ namespace DTAClient.DXGUI.Generic
                 OptionLayers = [CampaignSelector.GetCampaignForcedOptionLayer(gameOptionsIni)],
             };
 
-            SpawnFiles.WriteSpawnIni(SpawnIniWriter.WriteSavedMission(request));
-            SpawnFiles.WriteStubSpawnMap();
-
             discordHandler.UpdatePresence(sg.GUIName, true);
 
             Disable();
-            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+            LaunchResult result = GameSessionManager.Launcher.Launch(request);
+
+            if (result.Succeeded)
+            {
+                result.Session.WhenEnded(_ => GameProcessExited_Callback());
+            }
+            else
+            {
+                LaunchErrorMessage.Show(WindowManager, result);
+
+                // A game that didn't start is cleaned up as if it had exited.
+                GameProcessExited_Callback();
+            }
         }
 
         private void BtnDelete_LeftClick(object sender, EventArgs e)
@@ -326,8 +334,6 @@ namespace DTAClient.DXGUI.Generic
 
         protected virtual void GameProcessExited()
         {
-            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-
             CustomMissionHelper.DeleteSupplementalMissionFiles();
 
             discordHandler.UpdatePresence();

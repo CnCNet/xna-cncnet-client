@@ -9,4 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClientCore.Tests" />
+  </ItemGroup>
 </Project>

@@ -21,6 +21,7 @@ using System.Threading;
 using ClientCore.Sorting;
 using ClientCore.Extensions;
 using ClientCore.I18N;
+using ClientCore.Launch;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -649,8 +650,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
 
-            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameSessionManager.GameStarted += SharedUILogic_GameProcessStarted;
+            GameSessionManager.GameExited += SharedUILogic_GameProcessExited;
         }
 
         /// <summary>
