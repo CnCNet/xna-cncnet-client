@@ -26,9 +26,10 @@ public static class SpawnIniWriter
         var spawnIni = new IniFile();
 
         WriteMatchSettings(spawnIni, request);
-        WriteMatchNetwork(spawnIni, request.Network);
+        WriteMatchNetworkTuning(spawnIni, request.Network);
         WriteOptionLayers(spawnIni, request.OptionLayers);
-        WriteMapSettings(spawnIni, request);
+        WriteMapSettings(spawnIni, request, dialect);
+        WriteMatchSession(spawnIni, request.Network?.Session);
         WriteOtherPlayers(spawnIni, request);
 
         List<int> humanMultiOrder = GetHumanMultiOrder(request);
@@ -42,7 +43,6 @@ public static class SpawnIniWriter
         spawnIni.SetStringValue(SETTINGS, "BroadcastedGameOptionValues", request.BroadcastedGameOptionValues);
 
         WriteRecording(spawnIni, request.Recording);
-        WriteStackedSpawnLocations(spawnIni, request);
 
         return spawnIni;
     }
@@ -92,8 +92,6 @@ public static class SpawnIniWriter
         settings.AddKey("LoadSaveGame", "Yes");
         settings.AddKey("SidebarHack", SpawnOptionLayer.FormatBoolean(request.SidebarHack));
         settings.AddKey("CustomLoadScreen", request.CustomLoadScreen);
-        // Parity (F5): written for every game, although only Tiberian Sun reads Firestorm.
-        settings.AddKey("Firestorm", "No");
         settings.AddKey("GameSpeed", SpawnOptionLayer.FormatInt(request.GameSpeed));
 
         spawnIni.AddSection(settings);
@@ -231,7 +229,7 @@ public static class SpawnIniWriter
         spawnIni.AddSection(settings);
     }
 
-    private static void WriteMatchNetwork(IniFile spawnIni, MatchNetwork? network)
+    private static void WriteMatchNetworkTuning(IniFile spawnIni, MatchNetwork? network)
     {
         if (network == null)
             return;
@@ -242,8 +240,11 @@ public static class SpawnIniWriter
             spawnIni.SetIntValue(SETTINGS, "MaxAhead", network.MaxAhead);
 
         spawnIni.SetIntValue(SETTINGS, "Protocol", network.Protocol);
+    }
 
-        switch (network.Session)
+    private static void WriteMatchSession(IniFile spawnIni, MatchSession? session)
+    {
+        switch (session)
         {
             case LanMatchSession lan:
                 spawnIni.SetIntValue(SETTINGS, "Port", lan.Port);
@@ -273,7 +274,7 @@ public static class SpawnIniWriter
         }
     }
 
-    private static void WriteMapSettings(IniFile spawnIni, MatchLaunchRequest request)
+    private static void WriteMapSettings(IniFile spawnIni, MatchLaunchRequest request, SpawnIniDialect dialect)
     {
         MatchMapSettings mapSettings = request.MapSettings;
 
@@ -289,7 +290,7 @@ public static class SpawnIniWriter
 
         if (request.Coop != null)
         {
-            WriteCoopHouses(spawnIni, request.Coop, totalPlayerCount, request.AIs.Count);
+            WriteCoopHouses(spawnIni, request.Coop, totalPlayerCount, request.AIs.Count, dialect);
 
             int coopHouseCount = request.Coop.AllyHouses.Count + request.Coop.EnemyHouses.Count;
             neutralHouseIndex += coopHouseCount;
@@ -306,7 +307,8 @@ public static class SpawnIniWriter
             spawnIni.SetBooleanValue(SETTINGS, "Bases", mapSettings.Bases.Value);
     }
 
-    private static void WriteCoopHouses(IniFile spawnIni, CoopSetup coop, int totalPlayerCount, int aiPlayerCount)
+    private static void WriteCoopHouses(IniFile spawnIni, CoopSetup coop, int totalPlayerCount, int aiPlayerCount,
+        SpawnIniDialect dialect)
     {
         IReadOnlyList<CoopHouse> allyHouses = coop.AllyHouses;
         IReadOnlyList<CoopHouse> enemyHouses = coop.EnemyHouses;
@@ -322,8 +324,6 @@ public static class SpawnIniWriter
             multiId++;
         }
 
-        // Parity: unlike lobby alliances, co-op alliances don't use the dialect's house IDs,
-        // so Red Alert's offset is missing here.
         for (int i = 0; i < allyHouses.Count; i++)
         {
             int aMultiId = totalPlayerCount + i + 1;
@@ -338,9 +338,9 @@ public static class SpawnIniWriter
                     continue;
 
                 spawnIni.SetIntValue("Multi" + aMultiId + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], dialect.GetAllianceHouseId(allyMultiIndex + 1));
                 spawnIni.SetIntValue("Multi" + (allyMultiIndex + 1) + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[totalPlayerCount + i - 1], aMultiId - 1);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[totalPlayerCount + i - 1], dialect.GetAllianceHouseId(aMultiId));
                 allyIndex++;
             }
         }
@@ -359,7 +359,7 @@ public static class SpawnIniWriter
                     continue;
 
                 spawnIni.SetIntValue("Multi" + eMultiId + "_Alliances",
-                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], allyMultiIndex);
+                    "HouseAlly" + coopHouseAllyKeySuffixes[allyIndex], dialect.GetAllianceHouseId(allyMultiIndex + 1));
                 allyIndex++;
             }
         }
@@ -395,26 +395,24 @@ public static class SpawnIniWriter
     /// </summary>
     private static List<int> GetHumanMultiOrder(MatchLaunchRequest request)
     {
-        var order = new List<int>();
-
-        foreach (int colorIndex in request.ColorOrder)
+        int GetColorPosition(int pId)
         {
-            for (int pId = 0; pId < request.Humans.Count; pId++)
-            {
-                if (request.Humans[pId].ColorIndex == colorIndex)
-                    order.Add(pId);
-            }
+            int position = request.ColorOrder.ToList().IndexOf(request.Humans[pId].ColorIndex);
+
+            return position > -1 ? position : int.MaxValue;
         }
 
-        return order;
+        return Enumerable.Range(0, request.Humans.Count).OrderBy(GetColorPosition).ToList();
     }
+
+    private static int GetAIMultiId(MatchLaunchRequest request, int aiId) => request.Humans.Count + aiId + 1;
 
     private static void WriteAIHouses(IniFile spawnIni, MatchLaunchRequest request, List<int> humanMultiOrder)
     {
         for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
             AIHouse ai = request.AIs[aiId];
-            string keyName = "Multi" + (humanMultiOrder.Count + aiId + 1);
+            string keyName = "Multi" + GetAIMultiId(request, aiId);
 
             spawnIni.SetIntValue("HouseHandicaps", keyName, ai.HandicapLevel);
             spawnIni.SetIntValue("HouseCountries", keyName, ai.InternalSideIndex);
@@ -444,14 +442,12 @@ public static class SpawnIniWriter
                 teamMultiIds[teamId - 1].Add(humanMultiOrder.FindIndex(c => c == pId) + 1);
         }
 
-        int multiId = humanMultiOrder.Count + 1;
-
-        foreach (AIHouse ai in request.AIs)
+        for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
-            if (ai.TeamId >= 1 && ai.TeamId <= teamMultiIds.Length)
-                teamMultiIds[ai.TeamId - 1].Add(multiId);
+            int teamId = request.AIs[aiId].TeamId;
 
-            multiId++;
+            if (teamId >= 1 && teamId <= teamMultiIds.Length)
+                teamMultiIds[teamId - 1].Add(GetAIMultiId(request, aiId));
         }
 
         foreach (List<int> team in teamMultiIds)
@@ -488,7 +484,8 @@ public static class SpawnIniWriter
     {
         for (int pId = 0; pId < request.Humans.Count; pId++)
         {
-            int startingWaypoint = request.Humans[humanMultiOrder[pId]].StartingWaypoint;
+            HumanHouse human = request.Humans[humanMultiOrder[pId]];
+            int startingWaypoint = human.StackedStartingWaypoint ?? human.StartingWaypoint;
 
             // -1 lets the game pick the starting location itself
             if (startingWaypoint > -1)
@@ -497,12 +494,11 @@ public static class SpawnIniWriter
 
         for (int aiId = 0; aiId < request.AIs.Count; aiId++)
         {
-            int startingWaypoint = request.AIs[aiId].StartingWaypoint;
+            AIHouse ai = request.AIs[aiId];
+            int startingWaypoint = ai.StackedStartingWaypoint ?? ai.StartingWaypoint;
 
-            // Parity: AI houses are numbered from the human count here, but from the number of
-            // color-matched humans everywhere else.
             if (startingWaypoint > -1)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + (request.Humans.Count + aiId + 1), startingWaypoint);
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + GetAIMultiId(request, aiId), startingWaypoint);
         }
     }
 
@@ -529,28 +525,5 @@ public static class SpawnIniWriter
             section.SetStringValue(SpawnOptionLayer.FormatInt(i), recording.FileHashes[i]);
 
         spawnIni.AddSection(section);
-    }
-
-    private static void WriteStackedSpawnLocations(IniFile spawnIni, MatchLaunchRequest request)
-    {
-        // Parity: players sharing a starting location are numbered by lobby order here,
-        // although human houses are otherwise numbered by color order.
-        int houseIndex = 0;
-
-        foreach (HumanHouse human in request.Humans)
-        {
-            houseIndex++;
-
-            if (human.StackedStartingWaypoint != null)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, human.StackedStartingWaypoint.Value);
-        }
-
-        foreach (AIHouse ai in request.AIs)
-        {
-            houseIndex++;
-
-            if (ai.StackedStartingWaypoint != null)
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + houseIndex, ai.StackedStartingWaypoint.Value);
-        }
     }
 }

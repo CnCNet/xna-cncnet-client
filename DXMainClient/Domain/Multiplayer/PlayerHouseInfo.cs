@@ -124,6 +124,7 @@ namespace DTAClient.Domain.Multiplayer
             overrideGameRandomLocations |= ClientConfiguration.Instance.UseClientRandomStartLocations;
             if (IsSpectator)
             {
+                RealStartingWaypoint = -1;
                 StartingWaypoint = 90;
                 return;
             }

@@ -17,7 +17,7 @@ internal static class MatchScenarios
         [nameof(CnCNetSpectatorHost)] = CnCNetSpectatorHost,
         [nameof(CoopMapHouses)] = CoopMapHouses,
         [nameof(LaterLayersOverrideEarlierOnesAndCoreKeys)] = LaterLayersOverrideEarlierOnesAndCoreKeys,
-        [nameof(StackedStartUsesLobbyOrderSlot)] = StackedStartUsesLobbyOrderSlot,
+        [nameof(StackedStartUsesColorOrderSlot)] = StackedStartUsesColorOrderSlot,
     };
 
     public static SpawnOptionLayer Layer(string name, params (string Key, string Value)[] options)
@@ -151,9 +151,9 @@ internal static class MatchScenarios
         },
     };
 
-    // Parity (F1): the stacked player's waypoint lands on the lobby-order slot, which here
-    // belongs to B because houses are otherwise numbered by color.
-    public static MatchLaunchRequest StackedStartUsesLobbyOrderSlot() => new()
+    // A shares a start with another player and gets waypoint 4; A's house is Multi2 because
+    // houses are numbered by color, and B's color comes first.
+    public static MatchLaunchRequest StackedStartUsesColorOrderSlot() => new()
     {
         LocalPlayerName = "A",
         Humans =

@@ -25,6 +25,46 @@ public class SpawnIniWriterMatchTests
         => GoldenIni.AssertMatches(scenario, SpawnIniWriter.WriteMatch(MatchScenarios.All[scenario](), tiberianSun));
 
     [Fact]
+    public void EveryHumanGetsOneHouseWhenColorsShareAGameColor()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "Player",
+            Humans = [new HumanHouse { Name = "Player", ColorIndex = 1, StartingWaypoint = 0, TeamId = 1 }],
+            AIs = [new AIHouse { InternalSideIndex = 3, ColorIndex = 0, StartingWaypoint = 1, TeamId = 1 }],
+            ColorOrder = [0, 1, 1, 2],
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        // The AI's house is Multi2 in every section.
+        Assert.Equal(3, spawnIni.GetIntValue("HouseCountries", "Multi2", -1));
+        Assert.Equal(1, spawnIni.GetIntValue("SpawnLocations", "Multi2", -1));
+        Assert.Equal(0, spawnIni.GetIntValue("Multi2_Alliances", "HouseAllyOne", -1));
+        Assert.False(spawnIni.KeyExists("HouseCountries", "Multi3"));
+    }
+
+    [Fact]
+    public void HumanWithUnknownColorStillGetsAHouse()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "A",
+            Humans =
+            [
+                new HumanHouse { Name = "A", ColorIndex = 99, StartingWaypoint = 0 },
+                new HumanHouse { Name = "B", ColorIndex = 2, StartingWaypoint = 1 },
+            ],
+            ColorOrder = colorOrder,
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        Assert.Equal(1, spawnIni.GetIntValue("SpawnLocations", "Multi1", -1));
+        Assert.Equal(0, spawnIni.GetIntValue("SpawnLocations", "Multi2", -1));
+    }
+
+    [Fact]
     public void RedAlertAllianceHouseIdsAreShifted()
     {
         var request = new MatchLaunchRequest
@@ -42,6 +82,49 @@ public class SpawnIniWriterMatchTests
 
         Assert.Equal(13, spawnIni.GetIntValue("Multi1_Alliances", "HouseAllyOne", 0));
         Assert.Equal(12, spawnIni.GetIntValue("Multi2_Alliances", "HouseAllyOne", 0));
+    }
+
+    [Fact]
+    public void OptionLayersCanTuneTheNetworkButNotTheSession()
+    {
+        var request = new MatchLaunchRequest
+        {
+            LocalPlayerName = "Player",
+            Humans = [new HumanHouse { Name = "Player" }],
+            ColorOrder = colorOrder,
+            Network = new MatchNetwork
+            {
+                FrameSendRate = 7,
+                Protocol = 2,
+                Session = new TunnelMatchSession { GameID = 4, IsHost = true, Port = 48000, Tunnel = new TunnelEndpoint("127.0.0.1", 50000) },
+            },
+            OptionLayers =
+            [
+                MatchScenarios.Layer("GameOptions.ini [ForcedSpawnIniOptions]",
+                    ("FrameSendRate", "3"), ("Port", "1"), ("Host", "False"), ("GameID", "0")),
+            ],
+        };
+
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(request, tiberianSun);
+
+        Assert.Equal("3", spawnIni.GetStringValue("Settings", "FrameSendRate", string.Empty));
+        Assert.Equal(48000, spawnIni.GetIntValue("Settings", "Port", 0));
+        Assert.True(spawnIni.GetBooleanValue("Settings", "Host", false));
+        Assert.Equal(4, spawnIni.GetIntValue("Settings", "GameID", 0));
+        Assert.Equal(50000, spawnIni.GetIntValue("Tunnel", "Port", 0));
+    }
+
+    [Fact]
+    public void RedAlertCoopAlliancesAreShifted()
+    {
+        IniFile spawnIni = SpawnIniWriter.WriteMatch(MatchScenarios.CoopMapHouses(), redAlert);
+
+        // House IDs are 0-based in the other games and shifted by 12 in Red Alert.
+        Assert.Equal(12, spawnIni.GetIntValue("Multi3_Alliances", "HouseAllyOne", -1));
+        Assert.Equal(13, spawnIni.GetIntValue("Multi3_Alliances", "HouseAllyTwo", -1));
+        Assert.Equal(14, spawnIni.GetIntValue("Multi1_Alliances", "HouseAllyTwo", -1));
+        Assert.Equal(16, spawnIni.GetIntValue("Multi4_Alliances", "HouseAllyOne", -1));
+        Assert.Equal(15, spawnIni.GetIntValue("Multi5_Alliances", "HouseAllyOne", -1));
     }
 
     [Fact]

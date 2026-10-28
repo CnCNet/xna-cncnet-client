@@ -2066,7 +2066,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Convert.ToInt32(RemoveStartingLocations)));
             SetRandomStartingLocations(removeStartingLocations);
 
-            RandomSeed = randomSeed;
+            if (parseSuccess)
+                RandomSeed = randomSeed;
 
             if (parts.Length > partIndex + 9)
             {

@@ -797,10 +797,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         protected override TunnelEndpoint GetTunnelEndpoint()
         {
-            // Parity (F6): unlike the game lobby, a V2 tunnel that isn't selected falls through
-            // to the local bridge here.
-            if (_tunnelMode == TunnelMode.V2Legacy && tunnelHandler.CurrentTunnel != null)
-                return new TunnelEndpoint(tunnelHandler.CurrentTunnel.Address, tunnelHandler.CurrentTunnel.Port);
+            if (_tunnelMode == TunnelMode.V2Legacy)
+            {
+                return tunnelHandler.CurrentTunnel == null ? null
+                    : new TunnelEndpoint(tunnelHandler.CurrentTunnel.Address, tunnelHandler.CurrentTunnel.Port);
+            }
 
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (localPlayer == null)
