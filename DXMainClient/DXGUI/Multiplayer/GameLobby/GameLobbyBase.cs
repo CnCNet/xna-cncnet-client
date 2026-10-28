@@ -2568,7 +2568,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameMode.UseDifficultyDropDown == true && ddDifficulty != null && ddDifficulty.SelectedIndex >= 0)
             {
-                lblGameMode.Text += " (" + "Difficulty: ".L10N("Client:Main:DifficultyLabel") + ddDifficulty.SelectedItem.Text + ")";
+                lblGameMode.Text += " (" + "Difficulty:".L10N("Client:Main:DifficultyLabel") + " " + ddDifficulty.SelectedItem.Text + ")";
             }
         }
 
