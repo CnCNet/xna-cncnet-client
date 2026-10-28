@@ -78,28 +78,6 @@ public static class ReplayManager
         };
     }
 
-    /// <summary>
-    /// Records when the player's setting is on or spawn.ini already enables recording, such as through
-    /// [ForcedSpawnIniOptions], and adds the replay metadata when recording.
-    /// </summary>
-    public static void PrepareRecording(IniFile spawnIni, string mapName)
-    {
-        if (!IsSupported)
-            return;
-
-        bool record = UserINISettings.Instance.RecordReplays
-            || spawnIni.GetBooleanValue("Settings", "EnableReplayRecording", false);
-        spawnIni.SetBooleanValue("Settings", "EnableReplayRecording", record);
-
-        if (!record)
-            return;
-
-        spawnIni.SetStringValue("Settings", "GamePackageVersion", GamePackageVersion);
-        spawnIni.SetStringValue("Settings", "ReplayFileOut", BuildRecordingPath(mapName));
-
-        ReplayFileHashes.Write(spawnIni);
-    }
-
     public static string BuildRecordingPath(string mapName)
     {
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss", CultureInfo.InvariantCulture);
