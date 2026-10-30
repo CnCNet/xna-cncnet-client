@@ -104,6 +104,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(TunnelNegotiationCommands.ChangeTunnelServer, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.NegotiationReport, HandleNegotiationReportMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.RenegotiateAll, HandleRenegotiateAll),
+                new StringCommandHandler(TunnelTableExchange.IRC_COMMAND, HandleTunnelTableMessage),
                 new StringCommandHandler("GSETTINGS", ApplyGameLobbySettings)
             };
 
@@ -534,13 +535,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (v3Info?.Tunnel != null && status is null or NegotiationStatus.Succeeded)
             {
-                // NegotiatedPacketLoss is set on both peers (decider measures it, non-decider
-                // receives it in the TunnelChoice packet), so both sides display correct stats.
+                // Live figures from the pair's heartbeats, measured in both directions.
                 string tooltip = "Ping:".L10N("Client:Main:PlayerInfoPing") + " " + pInfo.Ping.ToString() + "\n" +
                                  "Tunnel:".L10N("Client:Main:Tunnel") + " " + v3Info.Tunnel.Name;
 
-                if (v3Info.NegotiatedPacketLoss.HasValue)
-                    tooltip += "\n" + "Packet Loss:".L10N("Client:Main:PacketLoss") + " " + $"{v3Info.NegotiatedPacketLoss.Value:F1}%";
+                if (v3Info.PacketLoss.HasValue)
+                    tooltip += "\n" + "Packet Loss:".L10N("Client:Main:PacketLoss") + " " + $"{v3Info.PacketLoss.Value:F1}%";
 
                 return tooltip;
             }
@@ -1282,6 +1282,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         void IV3NegotiationHost.SendNegotiationReport(string message)
             => channel.SendCTCPMessage(message, QueuedMessageType.GAME_NEGOTIATION_MESSAGE, 10);
 
+        void IV3NegotiationHost.SendTunnelTable(string message)
+            => channel?.SendCTCPMessage(message, QueuedMessageType.SYSTEM_MESSAGE, 10);
+
         void IV3NegotiationHost.AddNotice(string message, Color color) => AddNotice(message, color);
 
         void IV3NegotiationHost.OnNegotiationStateChanged()
@@ -1658,6 +1661,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             _negotiator.HandleNegotiationReportMessage(sender, data);
             CheckAllNegotiationsComplete();
         }
+
+        private void HandleTunnelTableMessage(string sender, string data)
+            => _negotiator.HandleTunnelTableMessage(sender, data);
 
         private void HandleRenegotiateAll(string sender, string data)
         {

@@ -72,6 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new IntCommandHandler(PLAYER_READY_CTCP_COMMAND, HandlePlayerReadyRequest),
                 new StringCommandHandler(TunnelNegotiationCommands.ChangeTunnelServer, HandleTunnelServerChangeMessage),
                 new StringCommandHandler(TunnelNegotiationCommands.NegotiationReport, HandleNegotiationReportMessage),
+                new StringCommandHandler(TunnelTableExchange.IRC_COMMAND, (sender, data) => _negotiator.HandleTunnelTableMessage(sender, data)),
             };
         }
 
@@ -928,6 +929,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         void IV3NegotiationHost.SendNegotiationReport(string message)
             => channel.SendCTCPMessage(message, QueuedMessageType.GAME_NEGOTIATION_MESSAGE, 10);
+
+        void IV3NegotiationHost.SendTunnelTable(string message)
+            => channel?.SendCTCPMessage(message, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
         void IV3NegotiationHost.AddNotice(string message, Color color) => AddNotice(message, color);
 

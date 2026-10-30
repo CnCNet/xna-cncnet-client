@@ -60,8 +60,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
 
             _tunnelCommunicator = new V3TunnelCommunicator();
-            KeepAliveMonitor = new V3KeepAliveMonitor(_tunnelCommunicator, wm);
+            Pinger = new TunnelPinger(_tunnelCommunicator);
+            LinkScheduler = new V3LinkScheduler(() => GameTunnelBridge?.IsRunning == true);
             _p2pEndpointDiscovery = new P2PEndpointDiscovery(_tunnelCommunicator);
+
+            _tunnelCommunicator.ProbeRequestReceived = AnswerProbeRequest;
+            _tunnelCommunicator.ProbeReportReceived = (reporterId, unreachable) => ProbeReportReceived?.Invoke(reporterId, unreachable);
         }
 
         public List<CnCNetTunnel> Tunnels { get; private set; } = [];
@@ -105,12 +109,54 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         private static int PING_RETAINED_FAILURES => ClientConfiguration.Instance.V3RetainedPingFailures;
 
+        /// <summary>Measures relay tunnels with the V3 UDP ping.</summary>
+        public TunnelPinger Pinger { get; }
+
+        /// <summary>Drives every pair link from its own thread.</summary>
+        public V3LinkScheduler LinkScheduler { get; }
+
         /// <summary>
-        /// The keepalive subsystem for negotiated V3 paths: NAT/registration refresh, live
-        /// pair pings, liveness detection and the launch-time connectivity probe. Owned and
-        /// ticked by this handler; consumers subscribe to and configure it directly.
+        /// A peer answered a pre-launch probe: its V3 ID and the V3 IDs of the players it cannot
+        /// currently reach. Raised on the communicator's receive thread.
         /// </summary>
-        public V3KeepAliveMonitor KeepAliveMonitor { get; }
+        public event Action<uint, List<uint>> ProbeReportReceived;
+
+        /// <summary>
+        /// How quiet (ms) a pair's path may be and still count as reachable for the pre-launch check.
+        /// </summary>
+        public const int LAUNCH_CHECK_MAX_SILENCE_MS = 3000;
+
+        // Receive thread. Answered at once from the links' own state: every pair is monitored all
+        // the time, so there is nothing to probe.
+        private void AnswerProbeRequest(uint requesterId, CnCNetTunnel tunnel)
+        {
+            var links = LinkScheduler.Links;
+            var requesterLink = links.FirstOrDefault(l => l.Remote.Id == requesterId && !l.IsDisposed);
+            if (requesterLink == null)
+                return;
+
+            var unreachable = links
+                .Where(l => !l.IsDisposed && l.Local.Id == requesterLink.Local.Id && !l.IsLive(LAUNCH_CHECK_MAX_SILENCE_MS))
+                .Select(l => l.Remote.Id)
+                .ToList();
+
+            var payload = new byte[unreachable.Count * 4];
+            for (int i = 0; i < unreachable.Count; i++)
+                System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(payload.AsSpan(i * 4), unreachable[i]);
+
+            _tunnelCommunicator.SendPacket(tunnel, requesterLink.Local.Id, requesterId, TunnelPacketType.ProbeReport, payload);
+        }
+
+        /// <summary>
+        /// The relay tunnels this client may use for game traffic: every V3 tunnel, subject to the
+        /// user's choice about unofficial tunnels. Matchmaking servers announce themselves as
+        /// version 4 and are excluded by the version check.
+        /// </summary>
+        public List<CnCNetTunnel> GetV3RelayPool()
+            => Tunnels
+                .Where(t => t.Version == 3 &&
+                    (UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended))
+                .ToList();
 
         private void DoTunnelPinged(string address, int port)
         {
@@ -208,15 +254,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            // Group tunnels by IP address and ping each unique address. Matchmaking servers are
-            // skipped: their latency is never ranked against anything.
-            var tunnelsByAddress = Tunnels
-                .Where(t => !t.IsMatchmaking &&
-                    (UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended))
-                .GroupBy(t => t.Address)
+            // The communicator's socket carries the UDP pings, so it must exist first.
+            InitializeTunnelCommunicator();
+            _tunnelCommunicator.AddTunnels(Tunnels);
+
+            var pingable = Tunnels
+                .Where(t => t.IsMatchmaking || UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended)
                 .ToList();
 
-            foreach (var group in tunnelsByAddress)
+            // V3 tunnels and matchmaking servers answer the UDP ping on their own port, which
+            // measures what actually matters. Older V2 tunnels only have ICMP, one probe per
+            // address shared by every tunnel there.
+            _ = PingUdpTunnelsAsync(pingable.Where(t => t.SupportsUdpPing).ToList());
+
+            foreach (var group in pingable.Where(t => !t.SupportsUdpPing).GroupBy(t => t.Address))
             {
                 _ = PingAddressAndUpdateTunnelsAsync(group.Key, group.ToList());
             }
@@ -237,9 +288,38 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     PingCurrentTunnelAsync();
                 }
             }
+        }
 
-            InitializeTunnelCommunicator();
-            _tunnelCommunicator.AddTunnels(Tunnels);
+        /// <summary>
+        /// UDP-pings each tunnel, spacing the sends so a long list is not one burst, and applies
+        /// every result as it arrives.
+        /// </summary>
+        private async Task PingUdpTunnelsAsync(List<CnCNetTunnel> tunnels)
+        {
+            foreach (var tunnel in tunnels)
+            {
+                _ = PingUdpTunnelAsync(tunnel);
+                await Task.Delay(5).ConfigureAwait(false);
+            }
+        }
+
+        private async Task PingUdpTunnelAsync(CnCNetTunnel tunnel)
+        {
+            try
+            {
+                PingValue? ping = await Pinger.PingAsync(tunnel).ConfigureAwait(false);
+
+                // Not sent (budget spent) says nothing about the tunnel, so its last value stands.
+                if (!ping.HasValue)
+                    return;
+
+                tunnel.ApplyPingResult(ping.Value, PING_RETAINED_FAILURES);
+                DoTunnelPinged(tunnel.Address, tunnel.Port);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Pinging {tunnel.Name} failed: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -251,12 +331,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             if (tunnelsWithSameAddress.Count == 0)
                 return Task.CompletedTask;
 
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 // One probe for the whole address; each tunnel then applies it to its own
                 // retention state, since they can have been unreachable for different lengths
                 // of time before being grouped here.
-                PingValue measuredPing = tunnelsWithSameAddress[0].MeasurePing();
+                PingValue measuredPing = await tunnelsWithSameAddress[0].MeasurePingAsync().ConfigureAwait(false);
 
                 foreach (var tunnel in tunnelsWithSameAddress)
                 {
@@ -268,12 +348,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Task PingCurrentTunnelAsync(bool checkTunnelList = false)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var tunnel = CurrentTunnel;
                 if (tunnel == null) return;
 
-                PingValue measuredPing = tunnel.MeasurePing();
+                if (tunnel.SupportsUdpPing)
+                {
+                    PingValue? udpPing = await Pinger.PingAsync(tunnel).ConfigureAwait(false);
+                    if (udpPing.HasValue)
+                        tunnel.ApplyPingResult(udpPing.Value, PING_RETAINED_FAILURES);
+
+                    DoCurrentTunnelPinged();
+                    if (checkTunnelList)
+                        DoTunnelPinged(tunnel.Address, tunnel.Port);
+
+                    return;
+                }
+
+                PingValue measuredPing = await tunnel.MeasurePingAsync().ConfigureAwait(false);
                 tunnel.ApplyPingResult(measuredPing, PING_RETAINED_FAILURES);
                 DoCurrentTunnelPinged();
 
@@ -281,8 +374,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     DoTunnelPinged(tunnel.Address, tunnel.Port);
 
-                    // Update all other tunnels with the same IP address
-                    var otherTunnelsWithSameAddress = Tunnels.Where(t => t.Address == tunnel.Address && t != tunnel).ToList();
+                    // ICMP measures the host, so it stands for every other ICMP-only tunnel there.
+                    var otherTunnelsWithSameAddress = Tunnels.Where(t => t.Address == tunnel.Address && t != tunnel && !t.SupportsUdpPing).ToList();
                     foreach (var otherTunnel in otherTunnelsWithSameAddress)
                     {
                         otherTunnel.ApplyPingResult(measuredPing, PING_RETAINED_FAILURES);
@@ -443,8 +536,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 skipCount++;
             }
 
-            KeepAliveMonitor.Update(GameTunnelBridge != null && GameTunnelBridge.IsRunning);
-
             base.Update(gameTime);
         }
 
@@ -555,6 +646,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public void RegisterV3PacketHandler(uint localId, uint remoteId, PacketHandler handler) => _tunnelCommunicator.RegisterHandler(localId, remoteId, handler);
 
         public void UnregisterV3PacketHandler(uint localId, uint remoteId) => _tunnelCommunicator.UnregisterHandler(localId, remoteId);
+
+        /// <summary>Unregisters the pair's handler only if it is still <paramref name="handler"/>.</summary>
+        public void UnregisterV3PacketHandler(uint localId, uint remoteId, PacketHandler handler) => _tunnelCommunicator.UnregisterHandler(localId, remoteId, handler);
 
         public void SendRegistrationToTunnels(uint localId, List<CnCNetTunnel> tunnels = null) => _tunnelCommunicator.SendRegistrationToTunnels(localId, tunnels);
 

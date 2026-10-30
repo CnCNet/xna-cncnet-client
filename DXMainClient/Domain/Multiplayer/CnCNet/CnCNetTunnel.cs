@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -112,7 +114,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public PingValue Ping { get; set; } = PingValue.Unknown;
 
         /// <summary>
-        /// How many ICMP probes in a row have come back unanswered. Drives how long the last good
+        /// How many probes in a row have come back unanswered. Drives how long the last good
         /// measurement is retained by <see cref="ApplyPingResult"/>.
         /// </summary>
         internal int ConsecutiveUnknownPings { get; private set; }
@@ -129,10 +131,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <remarks>
         /// One probe is sent per master list refresh, so on a lossy link a single lost datagram
         /// used to leave a perfectly good tunnel with no measurement until the next refresh a
-        /// minute later. That is more damaging than it sounds: matchmaking ranks a tunnel nobody
-        /// could measure below every tunnel that was measured, so the best server drops off the
-        /// shortlist entirely and is never even tried. Retaining is deliberately bounded — a
-        /// tunnel that has genuinely gone away stops reporting a stale ping after a few rounds.
+        /// minute later. That is more damaging than it sounds: a tunnel nobody could measure is
+        /// ranked below every tunnel that was measured, so the best server drops out of the ranked
+        /// list entirely and is never even tried. Retaining is deliberately bounded — a tunnel that
+        /// has genuinely gone away stops reporting a stale ping after a few rounds.
         /// </remarks>
         internal void ApplyPingResult(PingValue measuredPing, int maxRetainedFailures)
         {
@@ -180,12 +182,43 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// have not. A <paramref name="failureThreshold"/> of zero or less disables the check.
         /// </summary>
         /// <remarks>
-        /// A server can answer ICMP while its tunnel port is firewalled, in which case it looks
-        /// ideal to a latency ranking and then wastes a candidate slot and the whole connect
-        /// budget. This is the only signal that tells the two apart.
+        /// A server can answer pings while refusing registrations, for example when it is full or
+        /// in maintenance, in which case it looks ideal to a latency ranking and then wastes a
+        /// bring-up slot. This is the only signal that tells the two apart.
         /// </remarks>
         public bool IsHandshakeSuspect(int failureThreshold)
             => failureThreshold > 0 && ConsecutiveHandshakeFailures >= failureThreshold;
+
+        private long _lastSessionUseTicks;
+
+        /// <summary>
+        /// Records that this client just sent the tunnel something under its own V3 ID, which
+        /// creates or refreshes a session there. Pings do not count: they carry no ID.
+        /// </summary>
+        internal void MarkSessionUse() => Volatile.Write(ref _lastSessionUseTicks, Stopwatch.GetTimestamp());
+
+        /// <summary>
+        /// Whether this client has held a session on the tunnel within the last
+        /// <paramref name="seconds"/>.
+        /// </summary>
+        /// <remarks>
+        /// A tunnel pins each session to the endpoint that opened it and rejects the ID from any
+        /// other endpoint until the session has been idle for its timeout (60 seconds on current
+        /// servers). After a NAT rebind every such tunnel is unusable for that long, while a tunnel
+        /// the client has not touched recently works at once, so failover prefers the latter.
+        /// </remarks>
+        internal bool WasSessionUsedWithin(double seconds)
+        {
+            long ticks = Volatile.Read(ref _lastSessionUseTicks);
+            return ticks != 0 && (Stopwatch.GetTimestamp() - ticks) < seconds * Stopwatch.Frequency;
+        }
+
+        /// <summary>
+        /// Whether the tunnel answers the V3 UDP ping on its own port: a 50-byte packet with zero
+        /// sender and receiver IDs, echoed as its first 12 bytes. It needs no registration and
+        /// takes no client slot, and unlike ICMP it proves the tunnel port itself is reachable.
+        /// </summary>
+        public bool SupportsUdpPing => !IsDirect && (Version == 3 || Version == MATCHMAKING_VERSION);
 
         /// <summary>
         /// Whether this is a direct peer-to-peer path rather than a relay tunnel server.
@@ -283,15 +316,21 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         /// <summary>
         /// Sends a single ICMP probe and returns its result without storing it. The caller decides
-        /// what the tunnel's reported ping becomes; see <see cref="ApplyPingResult"/>.
+        /// what the tunnel's reported ping becomes; see <see cref="ApplyPingResult"/>. Only used
+        /// for tunnels without <see cref="SupportsUdpPing"/>: many V3 tunnels drop ICMP while
+        /// relaying fine, and others answer ICMP with a dead tunnel port.
         /// </summary>
-        public PingValue MeasurePing()
+        /// <remarks>
+        /// Asynchronous so a refresh's dozens of probes do not each hold a thread-pool thread for
+        /// up to a second, which starves everything else on the pool, the UDP pings included.
+        /// </remarks>
+        public async Task<PingValue> MeasurePingAsync()
         {
             using (Ping p = new Ping())
             {
                 try
                 {
-                    PingReply reply = p.Send(IPAddress.Parse(Address), PING_TIMEOUT);
+                    PingReply reply = await p.SendPingAsync(IPAddress.Parse(Address), PING_TIMEOUT).ConfigureAwait(false);
                     return reply.Status == IPStatus.Success
                         ? PingValue.FromMs(Convert.ToInt32(reply.RoundtripTime))
                         : PingValue.Unknown;

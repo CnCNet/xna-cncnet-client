@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -19,11 +20,16 @@ using Rampastring.XNAUI;
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
 /// <summary>
-/// Orchestrates V3 dynamic-tunnel negotiation for a lobby: maintains the per-player
-/// negotiation state, drives <see cref="V3PlayerNegotiator"/> instances, exchanges status
-/// over IRC and prepares the data needed to start the game bridge. Shared by
-/// CnCNetGameLobby and CnCNetGameLoadingLobby, which live on separate inheritance trees.
+/// Orchestrates V3 dynamic-tunnel connections for a lobby: keeps one <see cref="V3PairLink"/>
+/// per remote player, reflects their state in the lobby, exchanges status over IRC and prepares
+/// the data needed to start the game bridge. Shared by CnCNetGameLobby and
+/// CnCNetGameLoadingLobby, which live on separate inheritance trees.
 /// </summary>
+/// <remarks>
+/// The links connect, monitor, fail over and retry on their own; this class only starts and stops
+/// them and turns their events into lobby state. Link events arrive on the links' threads and are
+/// marshalled to the game thread before touching anything here.
+/// </remarks>
 public class V3TunnelNegotiationManager
 {
     private readonly IV3NegotiationHost host;
@@ -33,10 +39,11 @@ public class V3TunnelNegotiationManager
     private readonly NegotiationDataManager _negotiationData = new();
     private readonly Dictionary<string, int> _lastReportedPings = new();
 
-    // Pairs whose P2P routes had to be kept when the player left mid-game (the bridge
-    // was still routing to them); cleaned up once the game bridge stops so departed
-    // players' routing entries don't accumulate across a long session.
-    private readonly List<(uint LocalId, uint RemoteId)> _deferredP2PCleanups = new();
+    // Links of players who left while a game route was active: the bridge may still be
+    // forwarding to them (they may only have lost IRC), so they keep running until it stops.
+    private readonly List<V3PairLink> _deferredLinkDisposals = new();
+
+    private volatile ConcurrentDictionary<uint, List<uint>>? _probeReports;
 
     public V3TunnelNegotiationManager(IV3NegotiationHost host, TunnelHandler tunnelHandler, WindowManager windowManager)
     {
@@ -44,12 +51,10 @@ public class V3TunnelNegotiationManager
         this.tunnelHandler = tunnelHandler;
         this.windowManager = windowManager;
 
-        // Fired on the game thread. Both the game lobby's and the loading lobby's managers
-        // subscribe to these; the manager of whichever lobby is not currently in use has an
-        // empty player list, so its lookups fail and the events fall through harmlessly.
-        tunnelHandler.KeepAliveMonitor.PongReceived += OnKeepAlivePongReceived;
-        tunnelHandler.KeepAliveMonitor.TimedOut += OnKeepAliveTimedOut;
-        tunnelHandler.GameBridgeStopped += FlushDeferredP2PCleanups;
+        // Both the game lobby's and the loading lobby's managers subscribe; the one not in use
+        // has no check running, so its handler ignores the reports.
+        tunnelHandler.ProbeReportReceived += OnProbeReportReceived;
+        tunnelHandler.GameBridgeStopped += FlushDeferredLinkDisposals;
     }
 
     public IReadOnlyList<V3PlayerInfo> PlayerInfos => _v3PlayerInfos;
@@ -57,9 +62,8 @@ public class V3TunnelNegotiationManager
     public NegotiationDataManager NegotiationData => _negotiationData;
 
     /// <summary>
-    /// True while any local negotiation with a remote player is still running. Used to
-    /// prevent overlapping renegotiation rounds, whose stale packets and reports would
-    /// land on the fresh round and flip pairs to Failed.
+    /// True while any local connection with a remote player is still being set up. Used to
+    /// prevent overlapping renegotiation rounds.
     /// </summary>
     public bool HasActiveNegotiations => _v3PlayerInfos.Any(p => p.IsNegotiating);
 
@@ -76,36 +80,17 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
-    /// The relay tunnels this client may use for game traffic — the pool the matchmaking phase
-    /// advertises and narrows, not the set anything registers on, so it stays wide. Matchmaking
-    /// servers announce themselves as version 4 and are excluded by the version check.
-    /// </summary>
-    private List<CnCNetTunnel> GetAvailableTunnelsForNegotiation()
-    {
-        return tunnelHandler.Tunnels
-            .Where(t => t.Version == 3 &&
-                (UserINISettings.Instance.PingUnofficialCnCNetTunnels || t.Official || t.Recommended))
-            .ToList();
-    }
-
-    /// <summary>
     /// Synchronises the V3 player list with the lobby's player list, creating entries for
-    /// new players and tearing down negotiations for players who have left.
+    /// new players and tearing down connections to players who have left.
     /// </summary>
     public void RegenerateV3PlayerInfos()
     {
-        // Remove players who are no longer in the game; clean up their negotiations first.
         var playersToRemove = _v3PlayerInfos.Where(v3p => host.Players.All(p => p.Name != v3p.Name)).ToList();
         foreach (var v3p in playersToRemove)
         {
-            DetachNegotiator(v3p);
-            v3p.StopNegotiation();
-            CleanupP2PForRemovedPlayer(v3p);
+            StopLink(v3p, LinkCloseNotice.Goodbye);
             _v3PlayerInfos.Remove(v3p);
         }
-
-        if (playersToRemove.Count > 0)
-            RefreshKeepAliveTargets();
 
         for (int i = 0; i < host.Players.Count; i++)
         {
@@ -127,8 +112,8 @@ public class V3TunnelNegotiationManager
     }
 
     /// <summary>
-    /// Starts negotiating with a single player (by name), if dynamic tunnels are in use and
-    /// the player isn't the local user.
+    /// Starts connecting to a single player (by name), if dynamic tunnels are in use and the
+    /// player isn't the local user.
     /// </summary>
     public void StartNegotiationForPlayerName(string playerName)
     {
@@ -137,27 +122,25 @@ public class V3TunnelNegotiationManager
 
         var v3Player = FindPlayer(playerName);
         if (v3Player != null)
-            StartTunnelNegotiationForPlayer(v3Player);
+            StartLink(v3Player);
     }
 
     /// <summary>
-    /// Starts negotiations with every remote player that hasn't yet negotiated (or isn't
-    /// already negotiating). Used when joining a lobby that already has players.
+    /// Starts connecting to every remote player without a connection yet. Used when joining a
+    /// lobby that already has players.
     /// </summary>
     public void StartPendingNegotiations()
     {
         if (host.TunnelMode != TunnelMode.V3Dynamic || host.Players.Count <= 1)
             return;
 
-        foreach (var v3Player in _v3PlayerInfos
-            .Where(p => p.Name != ProgramConstants.PLAYERNAME && !p.HasNegotiated && !p.IsNegotiating)
-            .ToList())
-            StartTunnelNegotiationForPlayer(v3Player);
+        foreach (var v3Player in _v3PlayerInfos.Where(p => p.Name != ProgramConstants.PLAYERNAME && p.Link == null).ToList())
+            StartLink(v3Player);
     }
 
-    private void StartTunnelNegotiationForPlayer(V3PlayerInfo player)
+    private void StartLink(V3PlayerInfo player)
     {
-        if (host.TunnelMode != TunnelMode.V3Dynamic || player.Name == ProgramConstants.PLAYERNAME)
+        if (host.TunnelMode != TunnelMode.V3Dynamic || player.Name == ProgramConstants.PLAYERNAME || player.Link != null)
             return;
 
         var localV3Player = FindPlayer(ProgramConstants.PLAYERNAME);
@@ -166,8 +149,7 @@ public class V3TunnelNegotiationManager
 
         var pInfo = host.Players.Find(p => p.Name == player.Name);
 
-        var availableTunnels = GetAvailableTunnelsForNegotiation();
-        if (availableTunnels.Count == 0)
+        if (tunnelHandler.GetV3RelayPool().Count == 0)
         {
             host.AddNotice("Cannot negotiate tunnel: no V3 tunnels are available. Wait for the tunnel list to refresh or switch to a different tunnel mode.".L10N("Client:Main:NegotiationNoTunnels"), Color.Yellow);
 
@@ -184,162 +166,215 @@ public class V3TunnelNegotiationManager
             return;
         }
 
+        // The decider chooses the pair's path. Use the ID ordering, but fall back to name
+        // ordering if the IDs collide so exactly one side still decides.
+        bool isDecider = localV3Player.Id != player.Id
+            ? localV3Player.Id < player.Id
+            : string.CompareOrdinal(localV3Player.Name, player.Name) < 0;
+
+        if (localV3Player.Id == player.Id)
+            Logger.Log($"V3TunnelNegotiationManager: WARNING - player ID collision between {localV3Player.Name} and {player.Name}. Falling back to name ordering to pick the decider.");
+
+        var link = new V3PairLink(localV3Player, player, tunnelHandler, isDecider,
+            UserINISettings.Instance.EnableP2P, message => windowManager.AddCallback(new Action<string>(host.SendTunnelTable), message));
+
+        link.StatusChanged += (l, change) => windowManager.AddCallback(new Action<V3PairLink, LinkStatusChange>(HandleLinkStatus), l, change);
+        link.PathChanged += (l, from, to, reason) => windowManager.AddCallback(new Action<V3PairLink, CnCNetTunnel?, CnCNetTunnel, string>(HandleLinkPathChanged), l, from, to, reason);
+        link.PingUpdated += (l, ping) => windowManager.AddCallback(new Action<V3PairLink, int>(HandleLinkPing), l, ping);
+
+        player.Link = link;
+
         _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, player.Name, NegotiationStatus.InProgress);
         BroadcastNegotiationInfo();
 
         if (pInfo != null)
             host.OnLocalNegotiationStatus(pInfo, NegotiationStatus.InProgress, -1);
 
-        // Disable the launch/load button until this negotiation succeeds.
         host.OnNegotiationStateChanged();
 
-        try
-        {
-            var startResult = player.StartNegotiation(
-                localV3Player,
-                tunnelHandler,
-                availableTunnels,
-                p2pEnabled: UserINISettings.Instance.EnableP2P);
-
-            switch (startResult)
-            {
-                case NegotiationStartResult.Started:
-                    AttachNegotiator(player);
-                    break;
-
-                case NegotiationStartResult.AlreadyInProgress:
-                    // A negotiation is already running for this player; leave its state untouched.
-                    break;
-
-                case NegotiationStartResult.Failed:
-                    MarkNegotiationFailed(player.Name, pInfo);
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Log($"Error negotiating with player {player.Name}: {ex.Message}");
-            MarkNegotiationFailed(player.Name, pInfo);
-        }
+        tunnelHandler.LinkScheduler.Register(link);
+        link.Start();
     }
 
-    private void MarkNegotiationFailed(string playerName, PlayerInfo? pInfo)
+    /// <summary>
+    /// Stops a player's link, unless the game bridge may still be routing to them, in which case
+    /// the link keeps running until the bridge stops.
+    /// </summary>
+    private void StopLink(V3PlayerInfo player, LinkCloseNotice notice, bool allowDefer = true)
     {
-        host.AddNotice(string.Format("Could not start tunnel negotiation with {0}.".L10N("Client:Main:NegotiationStartFailed"), playerName), Color.Red);
+        var link = player.Link;
+        if (link == null)
+            return;
 
-        _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, playerName, NegotiationStatus.Failed);
+        if (allowDefer && IsLocalGameRouteActive())
+        {
+            if (!_deferredLinkDisposals.Contains(link))
+                _deferredLinkDisposals.Add(link);
+
+            return;
+        }
+
+        player.Link = null;
+        DisposeLink(link, notice);
+    }
+
+    private void DisposeLink(V3PairLink link, LinkCloseNotice notice)
+    {
+        link.Dispose(notice);
+        tunnelHandler.LinkScheduler.Unregister(link);
+        tunnelHandler.CleanupP2PPair(link.Local.Id, link.Remote.Id);
+    }
+
+    private void FlushDeferredLinkDisposals()
+    {
+        foreach (var link in _deferredLinkDisposals)
+        {
+            // A player who came back is still using it.
+            if (_v3PlayerInfos.Any(p => p.Link == link))
+                continue;
+
+            if (link.Remote.Link == link)
+                link.Remote.Link = null;
+
+            DisposeLink(link, LinkCloseNotice.Goodbye);
+        }
+
+        _deferredLinkDisposals.Clear();
+    }
+
+    private void HandleLinkStatus(V3PairLink link, LinkStatusChange change)
+    {
+        var v3Player = link.Remote;
+        if (v3Player.Link != link || !_v3PlayerInfos.Contains(v3Player))
+            return;
+
+        string localName = ProgramConstants.PLAYERNAME;
+        var playerInfo = host.Players.FirstOrDefault(p => p.Name == v3Player.Name);
+        var previous = _negotiationData.GetNegotiationStatus(localName, v3Player.Name);
+
+        switch (change.Status)
+        {
+            case NegotiationStatus.Succeeded:
+                if (change.Restored)
+                    host.AddNotice(string.Format("Connection with {0} restored.".L10N("Client:Main:ConnectionRestored"), v3Player.Name), Color.LightGreen);
+                else if (previous == NegotiationStatus.Failed)
+                    host.AddNotice(string.Format("Connection with {0} established.".L10N("Client:Main:LinkEstablishedAfterRetry"), v3Player.Name), Color.LightGreen);
+
+                if (link.PingMs >= 0)
+                    _negotiationData.UpdatePing(localName, v3Player.Name, link.PingMs);
+
+                _negotiationData.UpdateStatus(localName, v3Player.Name, NegotiationStatus.Succeeded);
+
+                if (playerInfo != null)
+                    host.OnLocalNegotiationStatus(playerInfo, NegotiationStatus.Succeeded, link.PingMs);
+
+                break;
+
+            case NegotiationStatus.Failed:
+                if (previous != NegotiationStatus.Failed)
+                {
+                    string reason = string.IsNullOrEmpty(change.Reason) ? string.Empty : $" ({change.Reason})";
+                    host.AddNotice(string.Format("Connection with {0} failed{1}. Retrying automatically.".L10N("Client:Main:LinkFailedRetrying"), v3Player.Name, reason), Color.Orange);
+                }
+
+                if (change.SuggestRenegotiate)
+                    host.AddNotice("Use the Renegotiate All button (or type /renegotiate) to retry. If failures persist, consider changing tunnel mode or having the affected players rejoin.".L10N("Client:Main:RenegotiateHint"), Color.Yellow);
+
+                _negotiationData.UpdateStatus(localName, v3Player.Name, NegotiationStatus.Failed);
+
+                if (playerInfo != null)
+                    host.OnLocalNegotiationStatus(playerInfo, NegotiationStatus.Failed, -1);
+
+                break;
+
+            default:
+                _negotiationData.UpdateStatus(localName, v3Player.Name, change.Status);
+
+                if (playerInfo != null)
+                    host.OnLocalNegotiationStatus(playerInfo, change.Status, -1);
+
+                break;
+        }
+
         BroadcastNegotiationInfo();
+        host.OnNegotiationStateChanged();
+    }
 
-        if (pInfo != null)
-            host.OnLocalNegotiationStatus(pInfo, NegotiationStatus.Failed, -1);
+    private void HandleLinkPathChanged(V3PairLink link, CnCNetTunnel? from, CnCNetTunnel to, string reason)
+    {
+        var v3Player = link.Remote;
+        if (v3Player.Link != link || !_v3PlayerInfos.Contains(v3Player))
+            return;
+
+        // Only moves between paths are news; the first connection is reported by its status.
+        // In game nobody can read the lobby, so the log has it.
+        if (from != null && !ProgramConstants.IsInGame)
+        {
+            host.AddNotice(string.Format("Connection with {0} moved from {1} to {2} ({3}).".L10N("Client:Main:LinkPathChanged"),
+                v3Player.Name, from.Name, to.Name, reason), Color.Gray);
+        }
+
+        var playerInfo = host.Players.FirstOrDefault(p => p.Name == v3Player.Name);
+        if (playerInfo != null)
+            host.OnPairPingUpdated(playerInfo, link.PingMs);
+
+        host.OnNegotiationStateChanged();
+    }
+
+    private void HandleLinkPing(V3PairLink link, int rttMs)
+    {
+        if (host.TunnelMode != TunnelMode.V3Dynamic)
+            return;
+
+        var v3Player = link.Remote;
+        if (v3Player.Link != link || !_v3PlayerInfos.Contains(v3Player))
+            return;
+
+        var pInfo = host.Players.Find(p => p.Name == v3Player.Name);
+        if (pInfo == null)
+            return;
+
+        string localName = ProgramConstants.PLAYERNAME;
+        if (_negotiationData.GetReportedStatus(localName, v3Player.Name) != NegotiationStatus.Succeeded)
+            return;
+
+        _negotiationData.UpdatePing(localName, v3Player.Name, rttMs);
+        host.OnPairPingUpdated(pInfo, rttMs);
+
+        // Quiet broadcast: only push the refreshed ping over IRC when it has moved into a
+        // different quality tier by a clear margin from what other players last saw. They only
+        // see it in the status panel, so exact values aren't worth the channel traffic; our
+        // own pairs still update live locally.
+        if (!_lastReportedPings.TryGetValue(v3Player.Name, out int lastReportedMs) ||
+            PingQualityRules.IsMaterialChange(lastReportedMs, rttMs))
+        {
+            BroadcastNegotiationInfo();
+        }
 
         host.OnNegotiationStateChanged();
     }
 
     /// <summary>
-    /// Negotiator events fire on thread-pool tasks, but everything downstream touches UI
-    /// (chat notices, ping indicators, the status panel — whose resize recreates a render
-    /// target and crashes the render thread if done concurrently). Marshal to the game
-    /// thread first, matching how CnCNetManager marshals all IRC events.
+    /// Handles a <see cref="TunnelTableExchange.IRC_COMMAND"/> message: a tunnel table or ranked
+    /// list sent over IRC because the matchmaking servers could not carry it.
     /// </summary>
-    private void OnPlayerNegotiationResult(object? sender, TunnelChosenEventArgs e)
-        => windowManager.AddCallback(new Action<object?, TunnelChosenEventArgs>(HandlePlayerNegotiationResult), sender, e);
-
-    private void OnPlayerNegotiationComplete(object? sender, EventArgs e)
-        => windowManager.AddCallback(new Action<object?, EventArgs>(HandlePlayerNegotiationComplete), sender, e);
-
-    private void HandlePlayerNegotiationResult(object? sender, TunnelChosenEventArgs e)
+    public void HandleTunnelTableMessage(string sender, string data)
     {
-        var v3PlayerInfo = _v3PlayerInfos.FirstOrDefault(p => p.Id == e.PlayerId);
-        if (v3PlayerInfo == null)
+        if (host.TunnelMode != TunnelMode.V3Dynamic)
             return;
 
-        v3PlayerInfo.HasNegotiated = true;
-        v3PlayerInfo.IsNegotiating = false;
-
-        var playerInfo = host.Players.FirstOrDefault(p => p.Name == e.PlayerName);
-
-        if (e.ChosenTunnel != null)
-        {
-            // Success — this fires for the relay choice (round 1) and again if the P2P
-            // upgrade round picks a direct path (round 2).
-            v3PlayerInfo.Tunnel = e.ChosenTunnel;
-
-            if (e.IsRelayFallback)
-                host.AddNotice(string.Format("Direct connection with {0} could not be established; using relay server {1}.".L10N("Client:Main:P2PRelayFallback"), e.PlayerName, e.ChosenTunnel.Name), Color.Orange);
-
-            // Only re-broadcast when the pair's ping/status actually changed, so a P2P
-            // upgrade is propagated to everyone while a round-2 that simply re-confirms
-            // the relay (same values) doesn't add redundant IRC traffic.
-            var prevPing = _negotiationData.GetPing(ProgramConstants.PLAYERNAME, e.PlayerName);
-            var prevStatus = _negotiationData.GetNegotiationStatus(ProgramConstants.PLAYERNAME, e.PlayerName);
-            bool changed = prevStatus != NegotiationStatus.Succeeded
-                || (prevPing?.Milliseconds ?? -1) != e.NegotiationPing;
-
-            if (e.IsLocalDecision)
-                _negotiationData.UpdatePing(ProgramConstants.PLAYERNAME, e.PlayerName, e.NegotiationPing);
-            else
-                _negotiationData.UpdatePing(e.PlayerName, ProgramConstants.PLAYERNAME, e.NegotiationPing);
-
-            _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Succeeded);
-
-            if (playerInfo != null)
-                host.OnLocalNegotiationStatus(playerInfo, NegotiationStatus.Succeeded, e.NegotiationPing);
-
-            host.OnNegotiationStateChanged();
-
-            if (changed)
-                BroadcastNegotiationInfo();
-        }
-        else
-        {
-            // Failure — announce once per pair transition (the peer's own Failed report may
-            // have already produced a notice for this pair).
-            var pairStatusBefore = _negotiationData.GetNegotiationStatus(ProgramConstants.PLAYERNAME, e.PlayerName);
-            if (pairStatusBefore != NegotiationStatus.Failed)
-            {
-                string reason = string.IsNullOrEmpty(e.FailureReason) ? string.Empty : $" ({e.FailureReason})";
-                host.AddNotice(string.Format("Tunnel negotiation with {0} failed{1}.".L10N("Client:Main:NegotiationFailedWith"), e.PlayerName, reason), Color.Red);
-            }
-
-            _negotiationData.UpdateStatus(ProgramConstants.PLAYERNAME, e.PlayerName, NegotiationStatus.Failed);
-
-            if (playerInfo != null)
-                host.OnLocalNegotiationStatus(playerInfo, NegotiationStatus.Failed, -1);
-
-            host.OnNegotiationStateChanged();
-
-            BroadcastNegotiationInfo();
-        }
-    }
-
-    private void HandlePlayerNegotiationComplete(object? sender, EventArgs e)
-    {
-        if (sender is not V3PlayerNegotiator negotiator)
+        if (!TunnelTableExchange.TryParseIrc(data, out uint fromId, out uint toId, out char kind, out uint nonce, out string payload))
             return;
 
-        var player = negotiator.RemotePlayer;
+        var localV3Player = FindPlayer(ProgramConstants.PLAYERNAME);
+        var senderV3Player = FindPlayer(sender);
 
-        if (!player.HasNegotiated)
-        {
-            player.HasNegotiated = true;
-            player.IsNegotiating = false;
-            BroadcastNegotiationInfo();
-        }
+        // Messages go to the whole channel; only the addressed player acts on one, and only if
+        // it really comes from the player it claims to.
+        if (localV3Player == null || senderV3Player == null || toId != localV3Player.Id || fromId != senderV3Player.Id)
+            return;
 
-        negotiator.NegotiationResult -= OnPlayerNegotiationResult;
-        negotiator.NegotiationComplete -= OnPlayerNegotiationComplete;
-
-        if (ReferenceEquals(player.Negotiator, negotiator))
-            player.StopNegotiation();
-
-        // Drop the unused P2P candidate routes from this negotiation, but keep the
-        // chosen path (if direct) alive for the game bridge.
-        CleanupP2PForPlayer(player, keepChosenTunnel: true);
-
-        RefreshKeepAliveTargets();
-
-        host.OnNegotiationStateChanged();
+        senderV3Player.Link?.HandleIrcMessage(kind, nonce, payload);
     }
 
     /// <summary>
@@ -424,7 +459,7 @@ public class V3TunnelNegotiationManager
     private void BroadcastNegotiationInfo()
     {
         string localName = ProgramConstants.PLAYERNAME;
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
 
         _lastReportedPings.Clear();
 
@@ -476,9 +511,14 @@ public class V3TunnelNegotiationManager
     public bool LaunchConnectivityCheckInProgress { get; private set; }
 
     /// <summary>
-    /// Runs the distributed pre-launch connectivity check (briefly, off the game thread):
-    /// pings every remote player over their negotiated tunnel, and over the same UDP
-    /// paths — asks each of them to probe their own peers and report back. Invokes
+    /// How long (ms) the pre-launch check waits for every player's report.
+    /// </summary>
+    private const int LAUNCH_CHECK_TIMEOUT_MS = 3000;
+
+    /// <summary>
+    /// Runs the pre-launch connectivity check: confirms our own pairs are live, then asks every
+    /// player over its current path which of their pairs are live. Every pair is monitored all
+    /// the time, so this takes one round trip rather than a round of probing. Invokes
     /// <paramref name="onVerified"/> on the game thread once every pair has verified and
     /// negotiations are still all successful; otherwise notices the problem and aborts.
     /// </summary>
@@ -487,28 +527,68 @@ public class V3TunnelNegotiationManager
         LaunchConnectivityCheckInProgress = true;
         host.AddNotice("Verifying player connections...".L10N("Client:Main:VerifyingConnections"), Color.White);
 
-        var remoteIdsSnapshot = _v3PlayerInfos
-            .Where(p => p.Name != ProgramConstants.PLAYERNAME)
-            .Select(p => p.Id)
-            .ToList();
+        var remotes = _v3PlayerInfos.Where(p => p.Name != ProgramConstants.PLAYERNAME).ToList();
+        var reports = new ConcurrentDictionary<uint, List<uint>>();
+        _probeReports = reports;
 
         Task.Run(async () =>
         {
-            LaunchProbeResult result;
+            var result = new LaunchProbeResult();
 
             try
             {
-                result = await tunnelHandler.KeepAliveMonitor.ProbeAllPairsAsync().ConfigureAwait(false);
+                foreach (var remote in remotes)
+                {
+                    if (remote.Link == null || !remote.Link.IsLive(TunnelHandler.LAUNCH_CHECK_MAX_SILENCE_MS))
+                        result.LocalUnresponsive.Add(remote.Id);
+                }
+
+                var asked = remotes.Where(r => !result.LocalUnresponsive.Contains(r.Id)).ToList();
+                long start = V3Clock.NowMs;
+                long nextSend = start;
+
+                while (V3Clock.NowMs - start < LAUNCH_CHECK_TIMEOUT_MS && asked.Any(r => !reports.ContainsKey(r.Id)))
+                {
+                    if (V3Clock.NowMs >= nextSend)
+                    {
+                        foreach (var remote in asked.Where(r => !reports.ContainsKey(r.Id)))
+                            remote.Link?.SendProbeRequest();
+
+                        nextSend += 500;
+                    }
+
+                    await Task.Delay(50).ConfigureAwait(false);
+                }
+
+                foreach (var remote in asked)
+                {
+                    if (!reports.TryGetValue(remote.Id, out var unreachable))
+                    {
+                        result.MissingReports.Add(remote.Id);
+                        continue;
+                    }
+
+                    foreach (uint failedId in unreachable)
+                        result.RemoteFailures.Add((remote.Id, failedId));
+                }
             }
             catch (Exception ex)
             {
                 Logger.Log($"Launch connectivity check failed: {ex.Message}");
-                result = new LaunchProbeResult { LocalUnresponsive = remoteIdsSnapshot };
+                result = new LaunchProbeResult { LocalUnresponsive = remotes.Select(r => r.Id).ToList() };
+            }
+            finally
+            {
+                _probeReports = null;
             }
 
             windowManager.AddCallback(new Action<LaunchProbeResult, Action>(FinishLaunchConnectivityCheck), result, onVerified);
         });
     }
+
+    // Receive thread. First report per peer wins; resent duplicates are ignored.
+    private void OnProbeReportReceived(uint reporterId, List<uint> unreachableIds)
+        => _probeReports?.TryAdd(reporterId, unreachableIds);
 
     private void FinishLaunchConnectivityCheck(LaunchProbeResult result, Action onVerified)
     {
@@ -527,8 +607,7 @@ public class V3TunnelNegotiationManager
 
         foreach (uint id in result.MissingReports)
         {
-            // Silence from a player who already failed the direct probe (or who left the
-            // lobby while the check ran) adds nothing worth announcing.
+            // Silence from a player who left the lobby while the check ran adds nothing.
             string? name = _v3PlayerInfos.FirstOrDefault(p => p.Id == id)?.Name;
             if (name == null || host.Players.All(p => p.Name != name) || result.LocalUnresponsive.Contains(id))
                 continue;
@@ -581,7 +660,7 @@ public class V3TunnelNegotiationManager
             v3Player.Tunnel = tunnel;
     }
 
-    /// <summary>Tears down and restarts negotiations with every remote player.</summary>
+    /// <summary>Tears down and restarts connections with every remote player.</summary>
     public void RestartAllNegotiations()
     {
         var allRemote = _v3PlayerInfos.Where(p => p.Name != ProgramConstants.PLAYERNAME).ToList();
@@ -605,18 +684,16 @@ public class V3TunnelNegotiationManager
             ResetAllNegotiators();
             StartPendingNegotiations();
         }
-
-        RefreshKeepAliveTargets();
     }
 
     /// <summary>
-    /// Tears down and restarts negotiations for the given players.
+    /// Tears down and restarts connections with the given players.
     /// </summary>
     public void RestartNegotiations(IEnumerable<V3PlayerInfo> affectedPlayers)
     {
-        // The game bridge routes live traffic through the negotiated paths, so no pair
-        // may be torn down while a game is running — neither when the local game is
-        // running nor for peers who are still in one.
+        // The game bridge routes live traffic through the current paths, so no pair may be torn
+        // down while a game is running — neither when the local game is running nor for peers
+        // who are still in one.
         if (IsLocalGameRouteActive())
         {
             Logger.Log("V3TunnelNegotiationManager: Ignored a negotiation restart because the local game is running.");
@@ -642,11 +719,10 @@ public class V3TunnelNegotiationManager
 
         host.OnNegotiationsRestarted();
 
-        // Clear only the pairs being renegotiated: every pair among the restart
-        // participants (the restarted players plus the local player). Wiping whole
-        // players (ClearPlayer) would also drop their pairs with non-participants —
-        // e.g. an in-game player — whose next one-sided report would then leave those
-        // pairs looking stuck in progress.
+        // Clear only the pairs being renegotiated: every pair among the restart participants
+        // (the restarted players plus the local player). Wiping whole players would also drop
+        // their pairs with non-participants — e.g. an in-game player — whose next one-sided
+        // report would then leave those pairs looking stuck in progress.
         var participantNames = playersToRestart.Select(p => p.Name).ToList();
         if (!participantNames.Contains(ProgramConstants.PLAYERNAME))
             participantNames.Add(ProgramConstants.PLAYERNAME);
@@ -656,73 +732,57 @@ public class V3TunnelNegotiationManager
 
         foreach (var v3Player in playersToRestart)
         {
-            // Detach before disposing, as every other teardown path does. A negotiator cancelled
-            // mid-round can still raise a result as it unwinds (the P2P round's relay fallback
-            // does exactly this), and that stale event would otherwise land on the fresh round and
-            // overwrite its state with the old round's tunnel.
-            DetachNegotiator(v3Player);
-            v3Player.StopNegotiation();
-            CleanupP2PForPlayer(v3Player, keepChosenTunnel: false);
-            v3Player.ResetNegotiator();
+            // Disposed before the replacement starts: both register a handler for the same pair.
+            // The restart notice brings the peer's side round too, even if our request to it was lost.
+            StopLink(v3Player, LinkCloseNotice.Restart, allowDefer: false);
 
             if (v3Player.Name != ProgramConstants.PLAYERNAME)
-                StartTunnelNegotiationForPlayer(v3Player);
+                StartLink(v3Player);
         }
 
-        RefreshKeepAliveTargets();
         host.OnNegotiationStateChanged();
     }
 
     /// <summary>
-    /// Removes a single player's V3 negotiation state (the lobby still owns its own player list).
+    /// Removes a single player's V3 state (the lobby still owns its own player list).
     /// </summary>
     public void RemovePlayer(string playerName)
     {
         var v3Player = FindPlayer(playerName);
         if (v3Player != null)
         {
-            if (host.TunnelMode == TunnelMode.V3Dynamic)
-            {
-                DetachNegotiator(v3Player);
-                v3Player.StopNegotiation();
-            }
-
-            CleanupP2PForRemovedPlayer(v3Player);
+            StopLink(v3Player, LinkCloseNotice.Goodbye);
             _v3PlayerInfos.Remove(v3Player);
         }
 
         _negotiationData.ClearPlayer(playerName);
-        RefreshKeepAliveTargets();
     }
 
     /// <summary>
-    /// Stops every active negotiation without clearing the player list or negotiation data.
+    /// Stops every link without clearing the player list or negotiation data. While a game
+    /// route is active the links keep running until the bridge stops.
     /// </summary>
     public void StopAllNegotiations(bool keepGameRoutes = false)
     {
-        bool gameRouteActive = keepGameRoutes || IsLocalGameRouteActive();
-
         foreach (var v3Player in _v3PlayerInfos)
-        {
-            DetachNegotiator(v3Player);
-            v3Player.StopNegotiation();
-            CleanupP2PForPlayer(v3Player, keepChosenTunnel: gameRouteActive);
-            DeferP2PCleanupIfNeeded(v3Player, gameRouteActive);
-        }
+            StopLink(v3Player, LinkCloseNotice.Goodbye, allowDefer: keepGameRoutes || IsLocalGameRouteActive());
     }
 
-    /// <summary>Resets every player's negotiation state (used when switching to dynamic mode).</summary>
+    /// <summary>Stops every link and forgets their tunnels (used when switching to dynamic mode).</summary>
     public void ResetAllNegotiators()
     {
         foreach (var v3Player in _v3PlayerInfos)
-            v3Player.ResetNegotiator();
+        {
+            StopLink(v3Player, LinkCloseNotice.Goodbye, allowDefer: false);
+            v3Player.Tunnel = null;
+        }
     }
 
     /// <summary>Discards all negotiation status/ping data.</summary>
     public void ClearNegotiationData() => _negotiationData.ClearAll();
 
     /// <summary>
-    /// Stops all negotiations and clears every piece of negotiation state. Used on teardown.
+    /// Stops all links and clears every piece of negotiation state. Used on teardown.
     /// </summary>
     public void ClearAll()
     {
@@ -732,10 +792,8 @@ public class V3TunnelNegotiationManager
         _negotiationData.ClearAll();
         _v3PlayerInfos.Clear();
 
-        tunnelHandler.KeepAliveMonitor.ClearTargets();
-
-        // Re-query STUN in the next lobby: without keepalives running, the NAT mapping
-        // behind the cached external endpoint may expire and get remapped.
+        // Re-query STUN in the next lobby: the NAT mapping behind the cached external endpoint
+        // may expire and get remapped in between.
         tunnelHandler.ClearP2PEndpointCache();
 
         if (!gameRouteActive)
@@ -815,8 +873,8 @@ public class V3TunnelNegotiationManager
                 if (host.TunnelMode == TunnelMode.V3Static)
                     v3PlayerInfo.Tunnel = tunnelHandler.CurrentTunnel;
 
-                // In dynamic mode each client uses its own per-peer negotiated tunnel, so this
-                // address is informational only; it is only consumed by clients in V3 static mode.
+                // In dynamic mode each client uses its own per-peer path, so this address is
+                // informational only; it is only consumed by clients in V3 static mode.
                 address = v3PlayerInfo.Tunnel == null
                     ? IPAddress.Any + ":0"
                     : v3PlayerInfo.Tunnel.Address + ":" + v3PlayerInfo.Tunnel.Port;
@@ -871,204 +929,22 @@ public class V3TunnelNegotiationManager
         return true;
     }
 
-    /// <summary>
-    /// Handles a keepalive round trip completing for a pair involving the local player:
-    /// refreshes the live ping, and — if the pair had been declared lost — restores it.
-    /// Runs on the game thread.
-    /// </summary>
-    private void OnKeepAlivePongReceived(uint remoteId, int rttMs)
-    {
-        if (host.TunnelMode != TunnelMode.V3Dynamic)
-            return;
-
-        var player = _v3PlayerInfos.FirstOrDefault(p => p.Id == remoteId);
-        if (player == null || player.Name == ProgramConstants.PLAYERNAME || player.IsNegotiating)
-            return;
-
-        var pInfo = host.Players.Find(p => p.Name == player.Name);
-        if (pInfo == null)
-            return;
-
-        string localName = ProgramConstants.PLAYERNAME;
-        var reportedStatus = _negotiationData.GetReportedStatus(localName, player.Name);
-
-        if (reportedStatus == NegotiationStatus.Failed)
-        {
-            // The peer answers again (e.g. cable replugged) — the negotiated path works,
-            // so bring the pair back rather than requiring a full renegotiation.
-            host.AddNotice(string.Format("Connection with {0} restored.".L10N("Client:Main:ConnectionRestored"), player.Name), Color.LightGreen);
-            _negotiationData.UpdateStatus(localName, player.Name, NegotiationStatus.Succeeded);
-            _negotiationData.UpdatePing(localName, player.Name, rttMs);
-            BroadcastNegotiationInfo();
-            host.OnLocalNegotiationStatus(pInfo, NegotiationStatus.Succeeded, rttMs);
-            host.OnNegotiationStateChanged();
-            return;
-        }
-
-        if (reportedStatus != NegotiationStatus.Succeeded)
-            return;
-
-        _negotiationData.UpdatePing(localName, player.Name, rttMs);
-        host.OnPairPingUpdated(pInfo, rttMs);
-
-        // Quiet broadcast: only push the refreshed ping over IRC when it has moved into a
-        // different quality tier by a clear margin from what other players last saw. They only
-        // see it in the status panel, so exact values aren't worth the channel traffic; our
-        // own pairs still update live locally.
-        if (!_lastReportedPings.TryGetValue(player.Name, out int lastReportedMs) ||
-            PingQualityRules.IsMaterialChange(lastReportedMs, rttMs))
-        {
-            BroadcastNegotiationInfo();
-        }
-
-        // The local UI (status panel, launch button) is cheap to refresh and early-outs
-        // when the panel is closed, so keep it live on every pong rather than only on
-        // material changes.
-        host.OnNegotiationStateChanged();
-    }
-
-    /// <summary>
-    /// Handles a peer missing several keepalive pings in a row: announce it and mark the
-    /// pair failed, which blocks the host's launch through the existing gate and informs
-    /// everyone else through the existing report broadcast. Runs on the game thread.
-    /// </summary>
-    private void OnKeepAliveTimedOut(uint remoteId)
-    {
-        if (host.TunnelMode != TunnelMode.V3Dynamic)
-            return;
-
-        var player = _v3PlayerInfos.FirstOrDefault(p => p.Id == remoteId);
-        if (player == null || player.Name == ProgramConstants.PLAYERNAME || player.IsNegotiating)
-            return;
-
-        string localName = ProgramConstants.PLAYERNAME;
-        if (_negotiationData.GetReportedStatus(localName, player.Name) != NegotiationStatus.Succeeded)
-            return;
-
-        host.AddNotice(string.Format("Lost connection with {0} — they are not responding to connection checks.".L10N("Client:Main:ConnectionLostKeepAlive"), player.Name), Color.Red);
-
-        _negotiationData.UpdateStatus(localName, player.Name, NegotiationStatus.Failed);
-        BroadcastNegotiationInfo();
-
-        var pInfo = host.Players.Find(p => p.Name == player.Name);
-        if (pInfo != null)
-            host.OnLocalNegotiationStatus(pInfo, NegotiationStatus.Failed, -1);
-
-        host.OnNegotiationStateChanged();
-    }
-
-    /// <summary>
-    /// Rebuilds the tunnel handler's lobby keepalive targets from the currently negotiated
-    /// tunnels, so NAT mappings and tunnel registrations stay alive between negotiation and
-    /// game start. Cleared when not in dynamic mode or when nothing is negotiated.
-    /// </summary>
-    private void RefreshKeepAliveTargets()
-    {
-        var localV3Player = FindPlayer(ProgramConstants.PLAYERNAME);
-        if (localV3Player == null || host.TunnelMode != TunnelMode.V3Dynamic)
-        {
-            tunnelHandler.KeepAliveMonitor.ClearTargets();
-            return;
-        }
-
-        var targets = _v3PlayerInfos
-            .Where(p => p.Name != ProgramConstants.PLAYERNAME && p.Tunnel != null)
-            .Select(p => (p.Id, p.Tunnel!))
-            .ToList();
-
-        if (targets.Count == 0)
-            tunnelHandler.KeepAliveMonitor.ClearTargets();
-        else
-            tunnelHandler.KeepAliveMonitor.SetTargets(localV3Player.Id, targets);
-    }
-
-    /// <summary>
-    /// Removes a pair's P2P routing entries. When <paramref name="keepChosenTunnel"/> is set
-    /// and the player's negotiated tunnel is a direct path, that endpoint survives so the
-    /// game bridge can keep using it; everything else (candidate and auto-learned endpoints
-    /// from the finished negotiation) is dropped so stale entries don't accumulate.
-    /// </summary>
-    private void CleanupP2PForPlayer(V3PlayerInfo player, bool keepChosenTunnel)
-    {
-        var localV3Player = FindPlayer(ProgramConstants.PLAYERNAME);
-        if (localV3Player == null || player.Name == ProgramConstants.PLAYERNAME)
-            return;
-
-        IPEndPoint? keepEndpoint = keepChosenTunnel && player.Tunnel is P2PTunnel p2pTunnel
-            ? p2pTunnel.PeerEndpoint
-            : null;
-
-        tunnelHandler.CleanupP2PPair(localV3Player.Id, player.Id, keepEndpoint);
-    }
-
-    /// <summary>
-    /// Queues a pair's P2P routing entry for cleanup once <see cref="TunnelHandler.GameBridgeStopped"/>
-    /// fires. Call this whenever a chosen P2P path was just kept alive past its normal cleanup
-    /// point (<paramref name="gameRouteActive"/> was true) so it isn't kept forever —
-    /// <see cref="FlushDeferredP2PCleanups"/> skips any pair whose player is still tracked locally,
-    /// so entries added defensively for players who are still around are simply no-ops.
-    /// </summary>
-    private void DeferP2PCleanupIfNeeded(V3PlayerInfo player, bool gameRouteActive)
-    {
-        if (!gameRouteActive || player.Tunnel is not P2PTunnel)
-            return;
-
-        var localV3Player = FindPlayer(ProgramConstants.PLAYERNAME);
-        if (localV3Player == null || player.Name == ProgramConstants.PLAYERNAME)
-            return;
-
-        if (!_deferredP2PCleanups.Contains((localV3Player.Id, player.Id)))
-            _deferredP2PCleanups.Add((localV3Player.Id, player.Id));
-    }
-
-    /// <summary>
-    /// P2P cleanup for a player leaving the lobby. While a game route is active their
-    /// chosen path must survive (the bridge may still be forwarding to them — e.g. they
-    /// only lost IRC, not the game connection), so the full cleanup is deferred until
-    /// <see cref="TunnelHandler.GameBridgeStopped"/> fires.
-    /// </summary>
-    private void CleanupP2PForRemovedPlayer(V3PlayerInfo player)
-    {
-        bool gameRouteActive = IsLocalGameRouteActive();
-        CleanupP2PForPlayer(player, keepChosenTunnel: gameRouteActive);
-        DeferP2PCleanupIfNeeded(player, gameRouteActive);
-    }
-
-    /// <summary>
-    /// Runs the P2P cleanups that were deferred because a game route was still active,
-    /// skipping any pair whose player has since rejoined the lobby.
-    /// </summary>
-    private void FlushDeferredP2PCleanups()
-    {
-        foreach (var (localId, remoteId) in _deferredP2PCleanups)
-        {
-            if (_v3PlayerInfos.Any(p => p.Id == remoteId))
-                continue;
-
-            tunnelHandler.CleanupP2PPair(localId, remoteId);
-        }
-
-        _deferredP2PCleanups.Clear();
-    }
-
     private bool IsLocalGameRouteActive()
         => tunnelHandler.GameTunnelBridge?.IsRunning == true || ProgramConstants.IsInGame;
+}
 
-    private void AttachNegotiator(V3PlayerInfo player)
-    {
-        if (player.Negotiator == null)
-            return;
+/// <summary>
+/// Result of the pre-launch connectivity check
+/// (<see cref="V3TunnelNegotiationManager.BeginLaunchConnectivityCheck"/>).
+/// </summary>
+public sealed class LaunchProbeResult
+{
+    /// <summary>Peers whose connection with us is not live.</summary>
+    public List<uint> LocalUnresponsive = new();
 
-        player.Negotiator.NegotiationResult += OnPlayerNegotiationResult;
-        player.Negotiator.NegotiationComplete += OnPlayerNegotiationComplete;
-    }
+    /// <summary>Peers that never sent a report back.</summary>
+    public List<uint> MissingReports = new();
 
-    private void DetachNegotiator(V3PlayerInfo player)
-    {
-        if (player.Negotiator == null)
-            return;
-
-        player.Negotiator.NegotiationResult -= OnPlayerNegotiationResult;
-        player.Negotiator.NegotiationComplete -= OnPlayerNegotiationComplete;
-    }
+    /// <summary>Peer-reported failures: reporter → the peer it could not reach.</summary>
+    public List<(uint ReporterId, uint FailedId)> RemoteFailures = new();
 }
