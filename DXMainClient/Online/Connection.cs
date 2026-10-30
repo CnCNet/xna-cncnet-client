@@ -464,6 +464,13 @@ namespace DTAClient.Online
 
                             return new Tuple<Server, long>(server, long.MaxValue);
                         }
+                        // Not only PingException: Wine Mono throws a bare SocketException when raw ICMP sockets are not permitted.
+                        catch (Exception ex)
+                        {
+                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.GetType().Name}: {ex.Message}");
+
+                            return new Tuple<Server, long>(server, long.MaxValue);
+                        }
                     }
                 });
 
