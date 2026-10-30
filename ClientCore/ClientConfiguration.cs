@@ -216,6 +216,19 @@ namespace ClientCore
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
+        /// <summary>
+        /// The TelemetryDeck app ID that anonymous usage statistics are sent to.
+        /// Telemetry is disabled when this is empty.
+        /// </summary>
+        public string TelemetryDeckAppID => clientDefinitionsIni.GetStringValue(SETTINGS, "TelemetryDeckAppID", string.Empty);
+
+        /// <summary>
+        /// The TelemetryDeck namespace of the organization that owns the app, if it has one.
+        /// </summary>
+        public string TelemetryDeckNamespace => clientDefinitionsIni.GetStringValue(SETTINGS, "TelemetryDeckNamespace", string.Empty);
+
+        public bool TelemetryAvailable => !string.IsNullOrWhiteSpace(TelemetryDeckAppID);
+
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
 
         public int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
