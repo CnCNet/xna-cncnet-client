@@ -980,8 +980,9 @@ public sealed class V3PairLink
             AbortTrial($"it was not better ({trialScore:F0} against {primaryScore:F0})", now);
 
             // Loss that follows us onto other paths is ours or the peer's, not the path's, and
-            // trialling every relay in turn would not help.
-            if (_trialForLoss && ++_failedLossTrials >= 2)
+            // trialling every relay in turn would not help. A clean trial path that only missed
+            // the margin says nothing of the kind.
+            if (_trialForLoss && (trial.GetLossPercent(now) ?? 0) >= DEGRADE_LOSS_PERCENT && ++_failedLossTrials >= 2)
             {
                 _failedLossTrials = 0;
                 _lossTrialsHeldUntilMs = now + LOSS_TRIAL_HOLD_MS;
