@@ -183,6 +183,12 @@ public static class Updater
 
     private static readonly HttpClient SharedHttpClient = lazySharedHttpClient.Value;
 
+    private static readonly object versionCheckLock = new();
+    private static readonly CancellationTokenSource versionCheckCancellation = new();
+    private static Task versionCheckFileTask = Task.CompletedTask;
+    private static bool versionChecksStopped;
+    private static bool versionCheckStarting;
+
     // Current update / download related.
     private static bool terminateUpdate;
     private static string currentFilename;
@@ -245,10 +251,72 @@ public static class Updater
     public static void CheckForUpdates()
     {
         Logger.Log("Updater: Checking for updates.");
-        if (VersionState is not VersionState.UPDATECHECKINPROGRESS and not VersionState.UPDATEINPROGRESS)
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            DoVersionCheckAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+        lock (versionCheckLock)
+        {
+            if (versionChecksStopped || versionCheckStarting || !versionCheckFileTask.IsCompleted ||
+                VersionState is VersionState.UPDATECHECKINPROGRESS or VersionState.UPDATEINPROGRESS)
+            {
+                return;
+            }
+
+            versionCheckStarting = true;
+            _versionState = VersionState.UPDATECHECKINPROGRESS;
+        }
+
+        // No file work has started yet. A progress subscriber can request
+        // shutdown without waiting for its own notification to return.
+        try
+        {
+            DoOnVersionStateChanged();
+        }
+        catch (Exception exception)
+        {
+            lock (versionCheckLock)
+                versionCheckStarting = false;
+
+            ReportVersionCheckNotificationError(exception);
+            return;
+        }
+
+        TaskCompletionSource<bool> filesReleased;
+
+        lock (versionCheckLock)
+        {
+            versionCheckStarting = false;
+            if (versionChecksStopped)
+            {
+                _versionState = VersionState.UNKNOWN;
+                return;
+            }
+
+            filesReleased = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            versionCheckFileTask = filesReleased.Task;
+        }
+
+        // Synchronous failures can also notify subscribers. Never invoke them
+        // while holding the lifecycle lock needed by UI shutdown.
+        _ = DoVersionCheckAsync(versionCheckCancellation.Token, filesReleased);
+    }
+
+    /// <summary>
+    /// Prevents further version checks and waits for the current check to release
+    /// its files before the client shuts down or starts another instance.
+    /// </summary>
+    public static void StopVersionChecks()
+    {
+        Task pendingCheck;
+
+        lock (versionCheckLock)
+        {
+            versionChecksStopped = true;
+            pendingCheck = versionCheckFileTask;
+        }
+
+        versionCheckCancellation.Cancel();
+        // A completion notification can be waiting on the UI thread. Only wait
+        // for file work here, so shutdown cannot deadlock with that notification.
+        pendingCheck.GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -299,9 +367,21 @@ public static class Updater
     /// <summary>
     /// Starts update process.
     /// </summary>
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-    public static void StartUpdate() => PerformUpdateAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+    public static void StartUpdate()
+    {
+        lock (versionCheckLock)
+        {
+            // A completion notification may already be queued when shutdown starts.
+            if (versionChecksStopped || versionCheckStarting || !versionCheckFileTask.IsCompleted)
+                return;
+
+            _versionState = VersionState.UPDATEINPROGRESS;
+        }
+
+        // Update failures can notify the UI synchronously. Reserve admission
+        // above, but run the update outside the lock needed by shutdown.
+        _ = PerformUpdateAsync();
+    }
 
     /// <summary>
     /// Stops current update process.
@@ -612,17 +692,19 @@ public static class Updater
     /// <summary>
     /// Performs a version file check on update server.
     /// </summary>
-    private static async Task DoVersionCheckAsync()
+    private static async Task DoVersionCheckAsync(CancellationToken cancellationToken, TaskCompletionSource<bool> filesReleased)
     {
-        Logger.Log("Updater: Doing version file check.");
-
-        ServerFileInfos.Clear();
-        FileInfosToDownload.Clear();
-        UpdateSizeInKb = 0;
+        VersionState? completedState = null;
+        bool identifiersUpdated = false;
+        bool componentsOutdated = false;
 
         try
         {
-            VersionState = VersionState.UPDATECHECKINPROGRESS;
+            Logger.Log("Updater: Doing version file check.");
+
+            ServerFileInfos.Clear();
+            FileInfosToDownload.Clear();
+            UpdateSizeInKb = 0;
 
             if (updateMirrors.Count == 0)
             {
@@ -646,11 +728,16 @@ public static class Updater
 
                         using (fileStream)
                         {
-                            Stream stream = await SharedHttpClient.GetStreamAsync(updateMirrors[currentUpdateMirrorIndex].URL + VERSION_FILE).ConfigureAwait(false);
+                            using var response = await SharedHttpClient.GetAsync(updateMirrors[currentUpdateMirrorIndex].URL + VERSION_FILE,
+                                HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                            response.EnsureSuccessStatusCode();
 
-                            using (stream)
+                            // Disposing the response interrupts a pending body read on
+                            // .NET Framework, where the stream can ignore cancellation.
+                            using (cancellationToken.Register(response.Dispose))
+                            using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                             {
-                                await stream.CopyToAsync(fileStream).ConfigureAwait(false);
+                                await stream.CopyToAsync(fileStream, 81920, cancellationToken).ConfigureAwait(false);
                             }
                         }
 
@@ -658,6 +745,7 @@ public static class Updater
                     }
                     catch (Exception e)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         Logger.Log("Updater: Error connecting to update mirror. Error message: " + e.ToString());
                         Logger.Log("Updater: Seeking other mirrors...");
                         currentUpdateMirrorIndex++;
@@ -742,36 +830,84 @@ public static class Updater
 
                 if (versionString == GameVersion)
                 {
-                    VersionState = VersionState.UPTODATE;
+                    completedState = VersionState.UPTODATE;
                     versionFile.Delete();
-                    DoFileIdentifiersUpdatedEvent();
+                    identifiersUpdated = true;
 
                     if (AreCustomComponentsOutdated())
-                        DoCustomComponentsOutdatedEvent();
+                        componentsOutdated = true;
                 }
                 else
                 {
                     if (updaterVersionString != "N/A" && UpdaterVersion != updaterVersionString)
                     {
                         Logger.Log("Updater: Server update system version is set to " + updaterVersionString + " and is different to local update system version " + UpdaterVersion + ". Manual update required.");
-                        VersionState = VersionState.OUTDATED;
+                        completedState = VersionState.OUTDATED;
                         ManualUpdateRequired = true;
                         ManualDownloadURL = manualDownloadURLString;
                         versionFile.Delete();
-                        DoFileIdentifiersUpdatedEvent();
+                        identifiersUpdated = true;
                     }
                     else
                     {
-                        VersionCheckHandle();
+                        VersionCheckHandle(notify: false);
+                        completedState = VersionState.OUTDATED;
+                        identifiersUpdated = true;
                     }
                 }
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            completedState = VersionState.UNKNOWN;
+            Logger.Log("Updater: Version check cancelled for shutdown.");
+        }
         catch (Exception exception)
         {
-            VersionState = VersionState.UNKNOWN;
+            completedState = VersionState.UNKNOWN;
             Logger.Log("Updater: An error occured while performing version check: " + exception.Message);
+            identifiersUpdated = true;
+        }
+        finally
+        {
+            if (completedState.HasValue)
+                _versionState = completedState.Value;
+
+            filesReleased.TrySetResult(true);
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        try
+        {
+            if (completedState.HasValue)
+                DoOnVersionStateChanged();
+
+            if (identifiersUpdated)
+                DoFileIdentifiersUpdatedEvent();
+
+            if (componentsOutdated)
+                DoCustomComponentsOutdatedEvent();
+        }
+        catch (Exception exception)
+        {
+            ReportVersionCheckNotificationError(exception);
+        }
+    }
+
+    private static void ReportVersionCheckNotificationError(Exception exception)
+    {
+        _versionState = VersionState.UNKNOWN;
+        Logger.Log("Updater: Error notifying version check subscribers: " + exception);
+
+        try
+        {
             DoFileIdentifiersUpdatedEvent();
+        }
+        catch (Exception notificationException)
+        {
+            Logger.Log("Updater: Error reporting version check failure: " + notificationException);
         }
     }
 
@@ -1095,7 +1231,7 @@ public static class Updater
     /// <summary>
     /// Handle version check.
     /// </summary>
-    private static void VersionCheckHandle()
+    private static void VersionCheckHandle(bool notify = true)
     {
         Logger.Log("Updater: Gathering list of files to be downloaded. Server file info count: " + ServerFileInfos.Count);
 
@@ -1159,9 +1295,13 @@ public static class Updater
             UpdateSizeInKb += FileInfosToDownload[j].Archived ? FileInfosToDownload[j].ArchiveSize : FileInfosToDownload[j].Size;
         }
 
-        VersionState = VersionState.OUTDATED;
+        if (notify)
+            VersionState = VersionState.OUTDATED;
+
         ManualUpdateRequired = false;
-        DoFileIdentifiersUpdatedEvent();
+
+        if (notify)
+            DoFileIdentifiersUpdatedEvent();
     }
 
     /// <summary>

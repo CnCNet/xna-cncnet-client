@@ -661,6 +661,7 @@ namespace DTAClient.DXGUI.Generic
         private void Clean()
         {
             Updater.FileIdentifiersUpdated -= Updater_FileIdentifiersUpdated;
+            Updater.StopVersionChecks();
 
             if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
             topBar.Clean();
