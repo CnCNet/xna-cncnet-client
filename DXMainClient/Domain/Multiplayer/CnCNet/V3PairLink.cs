@@ -1087,8 +1087,14 @@ public sealed class V3PairLink
         foreach (var endpoint in endpoints.Take(6))
         {
             var tunnel = new P2PTunnel(endpoint, Remote.Name);
-            if (_paths.ContainsKey(tunnel))
+            if (_paths.TryGetValue(tunnel, out var existing))
+            {
+                // Retired before it was heard (a restart); offered again, so punch it again.
+                if (!existing.Active)
+                    ActivatePath(existing.Tunnel, now);
+
                 continue;
+            }
 
             _tunnelHandler.AddP2PTunnel(tunnel, Local.Id, Remote.Id);
             ActivatePath(tunnel, now);
@@ -1271,14 +1277,14 @@ public sealed class V3PairLink
             _lastSwitchMs = now;
 
         // The old primary keeps being accepted for a while; everything else that was only being
-        // tried goes quiet and is left to expire. A confirmed direct path stays warm, since it
-        // costs no tunnel slot.
+        // tried goes quiet and is left to expire. A direct path that has answered, or is still
+        // being punched, stays warm, since it costs no tunnel slot.
         foreach (var other in _paths.Values.ToList())
         {
             if (other == path || !other.Active)
                 continue;
 
-            if (other.IsDirect && other.LastHeardMs != 0)
+            if (other.IsDirect && (other.LastHeardMs != 0 || now - other.CreatedMs <= DIRECT_PUNCH_MS))
                 continue;
 
             other.Active = false;
