@@ -207,6 +207,7 @@ public sealed class V3PairLink
 
     private bool _peerGoodbye;
     private bool _peerInGame;
+    private long _bothInGameSinceMs;
     private bool _inGame;
     private bool _peerP2P;
     private bool _peerHasOurCandidates;
@@ -599,9 +600,14 @@ public sealed class V3PairLink
         var primary = _primary!;
 
         // The tighter in-game thresholds assume both sides heartbeat at the in-game rate. Players
-        // start the game at different moments, so until the peer says it is in game too its
-        // heartbeats are still lobby-paced and would read as silence.
-        bool bothInGame = inGame && _peerInGame;
+        // start the game at different moments, so until the peer says it is in game too, and for
+        // a moment after, its last heartbeats are still lobby-paced and would read as silence.
+        if (!(inGame && _peerInGame))
+            _bothInGameSinceMs = 0;
+        else if (_bothInGameSinceMs == 0)
+            _bothInGameSinceMs = now;
+
+        bool bothInGame = _bothInGameSinceMs != 0 && now - _bothInGameSinceMs >= 3000;
         int suspect = bothInGame ? SUSPECT_GAME_MS : SUSPECT_LOBBY_MS;
         int commit = bothInGame ? COMMIT_GAME_MS : COMMIT_LOBBY_MS;
         long silence = primary.GetSilenceMs(now);
