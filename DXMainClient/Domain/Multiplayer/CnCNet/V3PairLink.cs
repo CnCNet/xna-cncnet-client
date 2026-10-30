@@ -997,11 +997,12 @@ public sealed class V3PairLink
                 DeactivatePath(path.Tunnel, now);
         }
 
-        if (!IsDecider || _trial != null || _primary!.IsDirect)
+        if (!IsDecider || _trial != null || _primary!.IsDirect || (_lastSwitchMs != 0 && now - _lastSwitchMs < SWITCH_COOLDOWN_SECONDS * 1000L))
             return;
 
         var direct = _paths.Values
-            .Where(p => p.Active && p.IsDirect && p.IsConfirmed(now, suspect) && p.RttSamples >= 4)
+            .Where(p => p.Active && p.IsDirect && p.IsConfirmed(now, suspect) && p.RttSamples >= 4 &&
+                !(_deadUntilMs.TryGetValue(p.Tunnel, out long dead) && dead > now))
             .OrderBy(p => p.GetScore(now, PACKET_LOSS_WEIGHT))
             .FirstOrDefault();
 
@@ -1394,10 +1395,11 @@ public sealed class V3PairLink
             if (!path.Active)
                 continue;
 
-            // A warm direct path that is not in use only needs keeping open.
+            // A warm direct path that is not in use needs less, but still enough to stay confirmed
+            // within the suspect window in case it is promoted.
             int pathInterval = _state == LinkState.Connected && path != _primary && path != _trial && !_failover && path.IsDirect &&
                 path.LastHeardMs != 0
-                ? interval * 4
+                ? interval * 2
                 : interval;
 
             if (now - path.LastSentHeartbeatMs >= pathInterval)
@@ -1546,6 +1548,15 @@ public sealed class V3PairLink
 
     private void ProcessHeartbeat(V3LinkPath path, V3Heartbeat heartbeat, long now)
     {
+        // A peer with several direct candidates can reach this one endpoint from more than one of
+        // its paths. A heartbeat from a path that has never heard us, arriving where we already
+        // have a real report, describes that other path; its counts would corrupt this one's.
+        if (heartbeat.HeardYouAgoMs == ushort.MaxValue && heartbeat.EchoTimeMs == 0 && path.PeerHeardMeAgoMs is < 1_000_000)
+        {
+            Logger.Log($"V3PairLink: Ignoring a heartbeat on {path.Tunnel.Name} from another of {Remote.Name}'s paths");
+            return;
+        }
+
         if (heartbeat.EchoTimeMs != 0)
         {
             int rtt = (int)((uint)now - heartbeat.EchoTimeMs) - heartbeat.HoldMs;
