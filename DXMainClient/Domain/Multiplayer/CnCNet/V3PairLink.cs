@@ -888,6 +888,14 @@ public sealed class V3PairLink
         bool severe = false;
         if (loss >= DEGRADE_LOSS_PERCENT)
         {
+            // A trial the candidate cannot win only costs a registration, e.g. a direct path on Wi-Fi
+            // against a distant relay.
+            if (predictedCandidate >= primary.GetScore(now, PACKET_LOSS_WEIGHT))
+            {
+                _degradeEvidence = 0;
+                return;
+            }
+
             reason = $"{loss:F1}% loss";
 
             // Heavy loss is hurting the game now; the trial's measurement is safeguard enough.
