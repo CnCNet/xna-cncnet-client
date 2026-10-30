@@ -918,6 +918,11 @@ public sealed class V3PairLink
                      predictedCandidate + Margin(measured) < measured)
                 reason = $"{primary.Tunnel.Name} measures {measured:F0}ms against a predicted {predictedPrimary}ms";
         }
+        else if (predictedCandidate + Margin(measured) < measured)
+        {
+            // A direct path has no ping sum to predict it, so its measured round trip has to do.
+            reason = $"{primary.Tunnel.Name} measures {measured:F0}ms against {candidate.Name}'s predicted {predictedCandidate}ms";
+        }
 
         _degradeEvidence = reason != null ? _degradeEvidence + 1 : 0;
 
