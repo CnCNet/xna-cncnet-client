@@ -111,6 +111,7 @@ public sealed class V3PairLink
     private static double DEGRADE_MARGIN_FRACTION => ClientConfiguration.Instance.V3DegradeMarginFraction;
     private static int DEGRADE_SUSTAIN_SECONDS => ClientConfiguration.Instance.V3DegradeSustainSeconds;
     private static double DEGRADE_LOSS_PERCENT => ClientConfiguration.Instance.V3DegradeLossPercent;
+    private static double SEVERE_LOSS_PERCENT => Math.Max(8, DEGRADE_LOSS_PERCENT * 4);
     private static int TRIAL_DURATION_MS => ClientConfiguration.Instance.V3TrialDurationMs;
     private static int SWITCH_COOLDOWN_SECONDS => ClientConfiguration.Instance.V3SwitchCooldownSeconds;
     private static int DEGRADE_FREEZE_AFTER => ClientConfiguration.Instance.V3DegradeFreezeAfterSwitches;
@@ -905,7 +906,7 @@ public sealed class V3PairLink
             reason = $"{loss:F1}% loss";
 
             // Heavy loss is hurting the game now; the trial's measurement is safeguard enough.
-            severe = loss >= Math.Max(8, DEGRADE_LOSS_PERCENT * 4);
+            severe = loss >= SEVERE_LOSS_PERCENT;
         }
         else if (!primary.IsDirect)
         {
@@ -1037,10 +1038,11 @@ public sealed class V3PairLink
             return;
 
         // A warm path carries few packets, so its loss can go unmeasured; scored as lossless it
-        // would win against a clean relay while still dropping half its traffic.
+        // would win against a clean relay while still dropping half its traffic. Heavy loss is
+        // what drives a pair off a direct path, so it has to clear before the pair goes back.
         var direct = _paths.Values
             .Where(p => p.Active && p.IsDirect && p.IsConfirmed(now, suspect) && p.RttSamples >= 4 &&
-                p.GetLossPercent(now).HasValue &&
+                p.GetLossPercent(now) < SEVERE_LOSS_PERCENT &&
                 !(_deadUntilMs.TryGetValue(p.Tunnel, out long dead) && dead > now))
             .OrderBy(p => p.GetScore(now, PACKET_LOSS_WEIGHT))
             .FirstOrDefault();
