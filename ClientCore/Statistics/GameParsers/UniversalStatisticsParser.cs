@@ -1,25 +1,27 @@
-﻿using System;
+#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
 {
-    public class LogFileStatisticsParser : GenericMatchParser
+    public class UniversalStatisticsParser : MatchParserBase
     {
-        public LogFileStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
+        public UniversalStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms, isLoadedGame)
         {
-            this.isLoadedGame = isLoadedGame;
         }
 
         private string fileName = "DTA.log";
         private string economyString = "Economy"; // RA2/YR do not have economy stat, but a number of built objects.
-        private bool isLoadedGame;
 
-        public void ParseStats(string gamepath, string fileName)
+        public override void ParseStats(string gamepath, string fileName)
         {
             this.fileName = fileName;
-            if (ClientConfiguration.Instance.UseBuiltStatistic) economyString = "Built";
+            if (ClientConfiguration.Instance.UseBuiltStatistic)
+                economyString = "Built";
+
             ParseStatistics(gamepath);
         }
 
@@ -39,10 +41,10 @@ namespace ClientCore.Statistics.GameParsers
             {
                 using StreamReader reader = new StreamReader(statisticsFileInfo.OpenRead());
 
-                string line;
+                string? line;
 
                 List<PlayerStatistics> takeoverAIs = new List<PlayerStatistics>();
-                PlayerStatistics currentPlayer = null;
+                PlayerStatistics? currentPlayer = null;
 
                 bool sawCompletion = false;
                 int numPlayersFound = 0;
@@ -127,12 +129,15 @@ namespace ClientCore.Statistics.GameParsers
                 {
                     PlayerStatistics ai = takeoverAIs[0];
 
-                    PlayerStatistics ps = Statistics.GetFirstEmptyPlayer();
+                    PlayerStatistics? ps = Statistics.GetFirstEmptyPlayer();
 
-                    ps.Losses = ai.Losses;
-                    ps.Kills = ai.Kills;
-                    ps.Score = ai.Score;
-                    ps.Economy = ai.Economy;
+                    if (ps != null)
+                    {
+                        ps.Losses = ai.Losses;
+                        ps.Kills = ai.Kills;
+                        ps.Score = ai.Score;
+                        ps.Economy = ai.Economy;
+                    }
                 }
                 else if (takeoverAIs.Count > 1)
                 {

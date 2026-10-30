@@ -2262,6 +2262,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Random pseudoRandom = new Random(RandomSeed);
 
+            if (ClientConfiguration.Instance.ClientGameType is ClientType.D2K or ClientType.RA)
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "stats.dmp");
+
             PlayerHouseInfo[] houseInfos = WriteSpawnIni(pseudoRandom);
             InitializeMatchStatistics(houseInfos);
             WriteMap(houseInfos, pseudoRandom);
