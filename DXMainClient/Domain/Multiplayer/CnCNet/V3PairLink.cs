@@ -1439,8 +1439,10 @@ public sealed class V3PairLink
             heartbeat.HoldMs = (ushort)(now - path.LastPeerTimeAtMs);
         }
 
+        // The game bridge stamps LastHeardMs from its own thread, so it can be a moment later than
+        // this tick's clock; a negative difference would wrap to the "never heard" marker.
         long heard = path.LastHeardMs;
-        heartbeat.HeardYouAgoMs = heard == 0 ? ushort.MaxValue : (ushort)Math.Min(ushort.MaxValue - 1, now - heard);
+        heartbeat.HeardYouAgoMs = heard == 0 ? ushort.MaxValue : (ushort)Math.Min(ushort.MaxValue - 1, Math.Max(0, now - heard));
 
         if (path == _primary && _state == LinkState.Connected)
         {
@@ -1554,14 +1556,6 @@ public sealed class V3PairLink
 
     private void ProcessHeartbeat(V3LinkPath path, V3Heartbeat heartbeat, long now)
     {
-        // A peer with several direct candidates can reach this one endpoint from more than one of
-        // its paths. A heartbeat from a path that has never heard us, arriving where we already
-        // have a real report, describes that other path; its counts would corrupt this one's.
-        if (heartbeat.HeardYouAgoMs == ushort.MaxValue && heartbeat.EchoTimeMs == 0 && path.PeerHeardMeAgoMs is < 1_000_000)
-        {
-            Logger.Log($"V3PairLink: Ignoring a heartbeat on {path.Tunnel.Name} from another of {Remote.Name}'s paths");
-            return;
-        }
 
         if (heartbeat.EchoTimeMs != 0)
         {
