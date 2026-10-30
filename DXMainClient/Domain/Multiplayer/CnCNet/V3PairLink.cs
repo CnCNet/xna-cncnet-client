@@ -1031,8 +1031,11 @@ public sealed class V3PairLink
         if (!IsDecider || _trial != null || _primary!.IsDirect || (_lastSwitchMs != 0 && now - _lastSwitchMs < SWITCH_COOLDOWN_SECONDS * 1000L))
             return;
 
+        // A warm path carries few packets, so its loss can go unmeasured; scored as lossless it
+        // would win against a clean relay while still dropping half its traffic.
         var direct = _paths.Values
             .Where(p => p.Active && p.IsDirect && p.IsConfirmed(now, suspect) && p.RttSamples >= 4 &&
+                p.GetLossPercent(now).HasValue &&
                 !(_deadUntilMs.TryGetValue(p.Tunnel, out long dead) && dead > now))
             .OrderBy(p => p.GetScore(now, PACKET_LOSS_WEIGHT))
             .FirstOrDefault();
