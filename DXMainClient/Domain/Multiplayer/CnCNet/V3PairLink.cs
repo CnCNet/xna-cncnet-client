@@ -128,6 +128,9 @@ public sealed class V3PairLink
     /// <summary>Cap on fallbacks brought up in one failover.</summary>
     private const int MAX_FAILOVER_PATHS = 6;
 
+    /// <summary>How long loss trials pause after two in a row found the loss on the trial path too.</summary>
+    private const long LOSS_TRIAL_HOLD_MS = 120_000;
+
     /// <summary>How long (ms) traffic is still accepted on a path after the pair stops using it, covering packets in flight and a peer that has not switched yet.</summary>
     private const int RETIRE_ACCEPT_MS = 10_000;
 
@@ -174,6 +177,9 @@ public sealed class V3PairLink
     private bool _everConnected;
 
     private V3LinkPath? _trial;
+    private bool _trialForLoss;
+    private int _failedLossTrials;
+    private long _lossTrialsHeldUntilMs;
     private long _trialStartMs;
     private long _trialConfirmedMs;
 
@@ -890,7 +896,7 @@ public sealed class V3PairLink
         {
             // A trial the candidate cannot win only costs a registration, e.g. a direct path on Wi-Fi
             // against a distant relay.
-            if (predictedCandidate >= primary.GetScore(now, PACKET_LOSS_WEIGHT))
+            if (predictedCandidate >= primary.GetScore(now, PACKET_LOSS_WEIGHT) || now < _lossTrialsHeldUntilMs)
             {
                 _degradeEvidence = 0;
                 return;
@@ -920,6 +926,7 @@ public sealed class V3PairLink
             _degradeEvidence = 0;
             Logger.Log($"V3PairLink: Trialling {candidate.Name} for {Remote.Name}: {reason}");
             StartTrial(candidate, now);
+            _trialForLoss = loss >= DEGRADE_LOSS_PERCENT;
         }
     }
 
@@ -958,12 +965,22 @@ public sealed class V3PairLink
 
         if (trialScore + Margin(primaryScore) < primaryScore)
         {
+            _failedLossTrials = 0;
             RecordDegradeSwitch(now);
             Promote(trial, $"better route ({trialScore:F0} against {primaryScore:F0})", now);
         }
         else
         {
             AbortTrial($"it was not better ({trialScore:F0} against {primaryScore:F0})", now);
+
+            // Loss that follows us onto other paths is ours or the peer's, not the path's, and
+            // trialling every relay in turn would not help.
+            if (_trialForLoss && ++_failedLossTrials >= 2)
+            {
+                _failedLossTrials = 0;
+                _lossTrialsHeldUntilMs = now + LOSS_TRIAL_HOLD_MS;
+                Logger.Log($"V3PairLink: Loss with {Remote.Name} is on every path tried; no loss trials for {LOSS_TRIAL_HOLD_MS / 1000}s");
+            }
         }
     }
 
