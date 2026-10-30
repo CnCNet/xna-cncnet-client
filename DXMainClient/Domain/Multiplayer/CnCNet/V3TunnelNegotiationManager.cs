@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ClientCore;
@@ -44,6 +45,11 @@ public class V3TunnelNegotiationManager
     private readonly List<V3PairLink> _deferredLinkDisposals = new();
 
     private volatile ConcurrentDictionary<uint, List<uint>>? _probeReports;
+
+    // Link events, queued for the game thread. AddCallback blocks while the game thread runs its
+    // callbacks (hashing files at game start takes seconds), so the links' threads never call it.
+    private readonly ConcurrentQueue<Action> _linkEvents = new();
+    private int _linkEventsDrainPosted;
 
     public V3TunnelNegotiationManager(IV3NegotiationHost host, TunnelHandler tunnelHandler, WindowManager windowManager)
     {
@@ -176,11 +182,11 @@ public class V3TunnelNegotiationManager
             Logger.Log($"V3TunnelNegotiationManager: WARNING - player ID collision between {localV3Player.Name} and {player.Name}. Falling back to name ordering to pick the decider.");
 
         var link = new V3PairLink(localV3Player, player, tunnelHandler, isDecider,
-            UserINISettings.Instance.EnableP2P, message => windowManager.AddCallback(new Action<string>(host.SendTunnelTable), message));
+            UserINISettings.Instance.EnableP2P, message => PostLinkEvent(() => host.SendTunnelTable(message)));
 
-        link.StatusChanged += (l, change) => windowManager.AddCallback(new Action<V3PairLink, LinkStatusChange>(HandleLinkStatus), l, change);
-        link.PathChanged += (l, from, to, reason) => windowManager.AddCallback(new Action<V3PairLink, CnCNetTunnel?, CnCNetTunnel, string>(HandleLinkPathChanged), l, from, to, reason);
-        link.PingUpdated += (l, ping) => windowManager.AddCallback(new Action<V3PairLink, int>(HandleLinkPing), l, ping);
+        link.StatusChanged += (l, change) => PostLinkEvent(() => HandleLinkStatus(l, change));
+        link.PathChanged += (l, from, to, reason) => PostLinkEvent(() => HandleLinkPathChanged(l, from, to, reason));
+        link.PingUpdated += (l, ping) => PostLinkEvent(() => HandleLinkPing(l, ping));
 
         player.Link = link;
 
@@ -240,6 +246,22 @@ public class V3TunnelNegotiationManager
         }
 
         _deferredLinkDisposals.Clear();
+    }
+
+    /// <summary>Queues a link event for the game thread without blocking the caller. In order; one drain pending at a time.</summary>
+    private void PostLinkEvent(Action handler)
+    {
+        _linkEvents.Enqueue(handler);
+        if (Interlocked.Exchange(ref _linkEventsDrainPosted, 1) == 0)
+            Task.Run(() => windowManager.AddCallback(new Action(DrainLinkEvents)));
+    }
+
+    private void DrainLinkEvents()
+    {
+        // Cleared first, so an event queued while this runs posts a new drain.
+        Volatile.Write(ref _linkEventsDrainPosted, 0);
+        while (_linkEvents.TryDequeue(out var handler))
+            handler();
     }
 
     private void HandleLinkStatus(V3PairLink link, LinkStatusChange change)
