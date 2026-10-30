@@ -771,7 +771,10 @@ public sealed class V3PairLink
                 if (now - _failoverBatchStartMs >= 10_000)
                 {
                     foreach (var tunnel in _failoverCandidates)
-                        DeactivatePath(tunnel, now);
+                    {
+                        if (tunnel != _trial?.Tunnel)
+                            DeactivatePath(tunnel, now);
+                    }
 
                     _failoverCandidates.Clear();
                     AddFailoverBatch(now);
@@ -824,9 +827,11 @@ public sealed class V3PairLink
     private void EndFailover(string reason, long now)
     {
         Logger.Log($"V3PairLink: Failover for {Remote.Name} cancelled: {reason}");
+
+        // A candidate that is also being trialled stays up; silencing it would fail the trial.
         foreach (var tunnel in _failoverCandidates)
         {
-            if (!tunnel.IsDirect)
+            if (!tunnel.IsDirect && tunnel != _trial?.Tunnel)
                 DeactivatePath(tunnel, now);
         }
 
