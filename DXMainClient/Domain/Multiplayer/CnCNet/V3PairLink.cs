@@ -1440,10 +1440,11 @@ public sealed class V3PairLink
             if (!path.Active)
                 continue;
 
-            // A warm direct path that is not in use needs less, but still enough to stay confirmed
-            // within the suspect window in case it is promoted.
+            // A spare direct path beside a direct primary needs less, but still enough to stay
+            // confirmed within the suspect window in case it is promoted. Beside a relay it is the
+            // upgrade candidate, and needs the full rate for its loss to be measured.
             int pathInterval = _state == LinkState.Connected && path != _primary && path != _trial && !_failover && path.IsDirect &&
-                path.LastHeardMs != 0
+                path.LastHeardMs != 0 && _primary?.IsDirect == true
                 ? interval * 2
                 : interval;
 
