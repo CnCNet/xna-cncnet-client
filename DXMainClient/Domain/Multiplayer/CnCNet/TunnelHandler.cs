@@ -45,6 +45,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private readonly object _refreshLock = new();
         private bool _refreshInProgress = false;
         private readonly V3TunnelCommunicator _tunnelCommunicator;
+        private bool _shutdownAfterGame;
 
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
@@ -172,22 +173,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ConnectionManager_Connected(object sender, EventArgs e)
         {
+            _shutdownAfterGame = false;
             InitializeTunnelCommunicator();
             Enabled = true;
         }
 
-        private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
-        {
-            Enabled = false;
-            _tunnelCommunicator.Shutdown();
-            _p2pEndpointDiscovery.ClearCache();
-        }
+        private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e) => OnIrcGone();
 
-        private void ConnectionManager_Disconnected(object sender, EventArgs e)
+        private void ConnectionManager_Disconnected(object sender, EventArgs e) => OnIrcGone();
+
+        private void OnIrcGone()
         {
             Enabled = false;
-            _tunnelCommunicator.Shutdown();
             _p2pEndpointDiscovery.ClearCache();
+
+            // A running game's traffic goes through the communicator, so it outlives IRC until the game ends.
+            if (GameTunnelBridge?.IsRunning == true)
+                _shutdownAfterGame = true;
+            else
+                _tunnelCommunicator.Shutdown();
         }
 
         private void RefreshTunnelsAsync()
@@ -599,6 +603,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
 
             GameBridgeStopped?.Invoke();
+
+            if (_shutdownAfterGame)
+            {
+                _shutdownAfterGame = false;
+                _tunnelCommunicator.Shutdown();
+            }
         }
 
         public void InitializeTunnelCommunicator()
