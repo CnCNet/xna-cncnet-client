@@ -132,6 +132,11 @@ public sealed class V3PairLink
     /// <summary>How long loss trials pause after two in a row found the loss on the trial path too.</summary>
     private const long LOSS_TRIAL_HOLD_MS = 120_000;
 
+    /// <summary>Times the primary may go quiet within <see cref="FLAPPING_WINDOW_MS"/> before an answering fallback replaces it.</summary>
+    private const int FLAPPING_QUIETS = 3;
+
+    private const long FLAPPING_WINDOW_MS = 30_000;
+
     /// <summary>How long (ms) traffic is still accepted on a path after the pair stops using it, covering packets in flight and a peer that has not switched yet.</summary>
     private const int RETIRE_ACCEPT_MS = 10_000;
 
@@ -181,6 +186,7 @@ public sealed class V3PairLink
     private bool _trialForLoss;
     private int _failedLossTrials;
     private long _lossTrialsHeldUntilMs;
+    private readonly Queue<long> _quietStartsMs = new();
     private long _trialStartMs;
     private long _trialConfirmedMs;
 
@@ -626,7 +632,8 @@ public sealed class V3PairLink
         }
         else if (primary.IsConfirmed(now, suspect))
         {
-            EndFailover($"{primary.Tunnel.Name} recovered after {(now - _failoverStartMs) / 1000.0:F1}s", now);
+            if (!TryLeaveFlappingPrimary(now, suspect))
+                EndFailover($"{primary.Tunnel.Name} recovered after {(now - _failoverStartMs) / 1000.0:F1}s", now);
         }
         else
         {
@@ -668,6 +675,7 @@ public sealed class V3PairLink
         _localOk = null;
         StartLocalCheck(now);
 
+        _quietStartsMs.Enqueue(now);
         Logger.Log($"V3PairLink: {_primary!.Tunnel.Name} to {Remote.Name} has gone quiet; bringing up fallbacks");
         AddFailoverBatch(now);
     }
@@ -784,6 +792,33 @@ public sealed class V3PairLink
             if (!inGame && silence >= 60_000)
                 Fail("lost the connection", now);
         }
+    }
+
+    /// <summary>
+    /// A primary that keeps going quiet and coming back is too lossy to carry the game, yet never
+    /// stays quiet long enough to fail over, and degradation does not run during a failover. After
+    /// a few rounds of that the decider moves to a fallback that is answering instead of cancelling.
+    /// </summary>
+    private bool TryLeaveFlappingPrimary(long now, int suspect)
+    {
+        while (_quietStartsMs.Count > 0 && now - _quietStartsMs.Peek() > FLAPPING_WINDOW_MS)
+            _quietStartsMs.Dequeue();
+
+        if (!IsDecider || _quietStartsMs.Count < FLAPPING_QUIETS || now < _degradeFrozenUntilMs)
+            return false;
+
+        var answering = _paths.Values
+            .Where(p => p.Active && p != _primary && (_failoverCandidates.Contains(p.Tunnel) || p.IsDirect) && p.IsConfirmed(now, suspect))
+            .ToList();
+
+        if (answering.Count == 0)
+            return false;
+
+        string from = _primary!.Tunnel.Name;
+        _quietStartsMs.Clear();
+        RecordDegradeSwitch(now);
+        Promote(PickBest(answering, now), $"{from} keeps going quiet", now);
+        return true;
     }
 
     private void EndFailover(string reason, long now)
