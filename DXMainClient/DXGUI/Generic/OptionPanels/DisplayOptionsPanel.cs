@@ -152,9 +152,6 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkWindowedMode.Text = "Windowed Mode".L10N("Client:DTAConfig:WindowedMode");
             chkWindowedMode.CheckedChanged += ChkWindowedMode_CheckedChanged;
 
-            // XNACheckBox now knows its height when Text is assigned, so Bottom would
-            // include the text height and shift the following controls down. Use Y to
-            // keep the original vertical spacing.
             chkBorderlessWindowedMode = new XNAClientCheckBox(WindowManager);
             chkBorderlessWindowedMode.Name = nameof(chkBorderlessWindowedMode);
             chkBorderlessWindowedMode.ClientRectangle = new Rectangle(
