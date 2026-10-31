@@ -3,8 +3,6 @@
     <Title>CnCNet.MigrationTool</Title>
     <Description>CnCNet Client Migration Tool</Description>
     <Product>CnCNet.MigrationTool</Product>
-    <!-- A Unix apphost named MigrationTool conflicts with the post-build output directory. -->
-    <UseAppHost Condition="!$([MSBuild]::IsOSPlatform('Windows'))">false</UseAppHost>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Pictures\favActive.png" />
