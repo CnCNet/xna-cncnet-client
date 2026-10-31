@@ -164,25 +164,25 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             chkMainMenuMusic = new XNAClientCheckBox(WindowManager);
             chkMainMenuMusic.Name = nameof(chkMainMenuMusic);
-            chkMainMenuMusic.Text = "Main menu music".L10N("Client:DTAConfig:MainMenuMusic");
             chkMainMenuMusic.ClientRectangle = new Rectangle(
                 lblScoreVolume.X,
                 trbClientVolume.Bottom + PADDING_Y, 0, 0);
+            chkMainMenuMusic.Text = "Main menu music".L10N("Client:DTAConfig:MainMenuMusic");
             chkMainMenuMusic.CheckedChanged += ChkMainMenuMusic_CheckedChanged;
             AddChild(chkMainMenuMusic);
 
             chkStopMusicOnMenu = new XNAClientCheckBox(WindowManager);
             chkStopMusicOnMenu.Name = nameof(chkStopMusicOnMenu);
-            chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies".L10N("Client:DTAConfig:NoLobbiesMusic");
             chkStopMusicOnMenu.ClientRectangle = new Rectangle(
                 lblScoreVolume.X, chkMainMenuMusic.ClientRectangle.Bottom + CHECKBOX_SPACING, 0, 0);
+            chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies".L10N("Client:DTAConfig:NoLobbiesMusic");
             AddChild(chkStopMusicOnMenu);
 
             chkStopGameLobbyMessageAudio = new XNAClientCheckBox(WindowManager);
             chkStopGameLobbyMessageAudio.Name = nameof(chkStopGameLobbyMessageAudio);
-            chkStopGameLobbyMessageAudio.Text = "Don't play lobby message audio when game is running".L10N("Client:DTAConfig:NoGameLobbyMessageAudio");
             chkStopGameLobbyMessageAudio.ClientRectangle = new Rectangle(
                 lblScoreVolume.X, chkStopMusicOnMenu.Bottom + CHECKBOX_SPACING, 0, 0);
+            chkStopGameLobbyMessageAudio.Text = "Don't play lobby message audio when game is running".L10N("Client:DTAConfig:NoGameLobbyMessageAudio");
             AddChild(chkStopGameLobbyMessageAudio);
 
             chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
