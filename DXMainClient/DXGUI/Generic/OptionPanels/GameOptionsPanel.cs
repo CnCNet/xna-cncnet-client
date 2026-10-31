@@ -136,14 +136,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkAltToUndeploy.Name = nameof(chkAltToUndeploy);
                 chkAltToUndeploy.ClientRectangle = new Rectangle(
                     chkScrollCoasting.X,
-                    chkBlackChatBackground.Y + 24, 0, 0);
+                    chkBlackChatBackground.Bottom + 24, 0, 0);
                 chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TSUndeployAltKey");
 
                 AddChild(chkAltToUndeploy);
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkAltToUndeploy.Y + 30, 0, 0);
+                    chkAltToUndeploy.Bottom + 30, 0, 0);
             }
 
             if (ReplayManager.IsSupported)
@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkRecordReplays.Y + 30, 0, 0);
+                    chkRecordReplays.Bottom + 30, 0, 0);
             }
 
             tbPlayerName = new XNATextBox(WindowManager);

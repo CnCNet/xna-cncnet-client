@@ -71,7 +71,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkWriteInstallPathToRegistry.Name = nameof(chkWriteInstallPathToRegistry);
             chkWriteInstallPathToRegistry.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkPingUnofficialTunnels.Y + 12, 0, 0);
+                chkPingUnofficialTunnels.Bottom + 12, 0, 0);
             chkWriteInstallPathToRegistry.Text = ("Write game installation path to Windows\n" +
                 "Registry (makes it possible to join\n" +
                  "other games' game rooms on CnCNet)").L10N("Client:DTAConfig:WriteGameRegistry");
@@ -82,7 +82,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisableMainMenuHotkeys .Name = nameof(chkDisableMainMenuHotkeys);
             chkDisableMainMenuHotkeys .ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkWriteInstallPathToRegistry.Y + 12, 0, 0);
+                chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
             chkDisableMainMenuHotkeys.Text = "Disable main menu hotkeys".L10N("Client:DTAConfig:DisableMainMenuHotkeys");
             chkDisableMainMenuHotkeys.ToolTipText = "With this setting active, main menu buttons can only be clicked and will not respond to keyboard shortcuts to prevent accidental presses.".L10N("Client:DTAConfig:DisableMainMenuHotkeysTooltip");
 
@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkNotifyOnUserListChange.Name = nameof(chkNotifyOnUserListChange);
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkDisableMainMenuHotkeys.Y + 12, 0, 0);
+                chkDisableMainMenuHotkeys.Bottom + 12, 0, 0);
             chkNotifyOnUserListChange.Text = ("Show player join / quit messages\n" +
                 "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit");
 
@@ -102,7 +102,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
-                chkNotifyOnUserListChange.Y + 8, 0, 0);
+                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
             chkDisablePrivateMessagePopup.Text = "Disable popups from private messages".L10N("Client:DTAConfig:DisablePMPopup");
 
             AddChild(chkDisablePrivateMessagePopup);
@@ -125,7 +125,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkPersistentMode.Name = nameof(chkPersistentMode);
             chkPersistentMode.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkSkipLoginWindow.Y + 9, 0, 0);
+                chkSkipLoginWindow.Bottom + 9, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby".L10N("Client:DTAConfig:StayConnect");
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
@@ -135,7 +135,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkConnectOnStartup.Name = nameof(chkConnectOnStartup);
             chkConnectOnStartup.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkPersistentMode.Y + 9, 0, 0);
+                chkPersistentMode.Bottom + 9, 0, 0);
             chkConnectOnStartup.Text = "Connect automatically on client startup".L10N("Client:DTAConfig:ConnectOnStart");
             chkConnectOnStartup.AllowChecking = false;
 
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkDiscordIntegration.Name = nameof(chkDiscordIntegration);
             chkDiscordIntegration.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
-                chkConnectOnStartup.Y + 9, 0, 0);
+                chkConnectOnStartup.Bottom + 9, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
 
             if (ClientConfiguration.Instance.DiscordIntegrationGloballyDisabled)
@@ -164,7 +164,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Name = nameof(chkAllowGameInvitesFromFriendsOnly);
             chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
                 chkDiscordIntegration.X,
-                chkDiscordIntegration.Y + 9, 0, 0);
+                chkDiscordIntegration.Bottom + 9, 0, 0);
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends".L10N("Client:DTAConfig:FriendsOnly");
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkSteamIntegration.Name = nameof(chkSteamIntegration);
             chkSteamIntegration.ClientRectangle = new Rectangle(
                 chkAllowGameInvitesFromFriendsOnly.X,
-                chkAllowGameInvitesFromFriendsOnly.Y + 9, 0, 0);
+                chkAllowGameInvitesFromFriendsOnly.Bottom + 9, 0, 0);
             chkSteamIntegration.Text = "Show the game being played in Steam".L10N("Client:DTAConfig:SteamStatus");
 
             AddChild(chkSteamIntegration);
@@ -184,7 +184,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             lblTunnelMode.Text = "Tunnel mode when hosting:".L10N("Client:DTAConfig:TunnelMode");
             lblTunnelMode.ClientRectangle = new Rectangle(
                 chkSteamIntegration.X,
-                chkSteamIntegration.Y + 12, 165, 0);
+                chkSteamIntegration.Bottom + 12, 165, 0);
 
             AddChild(lblTunnelMode);
 
@@ -249,7 +249,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             lblAllPrivateMessagesFrom.Text = "Allow private messages from:".L10N("Client:DTAConfig:AllowPMFrom");
             lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
                 chkDisablePrivateMessagePopup.X,
-                chkDisablePrivateMessagePopup.Y + 12, 165, 0);
+                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
 
             AddChild(lblAllPrivateMessagesFrom);
 

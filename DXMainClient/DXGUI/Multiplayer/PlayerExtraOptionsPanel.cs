@@ -225,21 +225,21 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxForceRandomColors = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomColors.Name = "chkBoxForceRandomColors";
             chkBoxForceRandomColors.Text = "Force Random Colors".L10N("Client:Main:ForceRandomColors");
-            chkBoxForceRandomColors.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomSides.Y + 4, 0, 0);
+            chkBoxForceRandomColors.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomSides.Bottom + 4, 0, 0);
             chkBoxForceRandomColors.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomColors);
 
             chkBoxForceNoTeams = new XNAClientCheckBox(WindowManager);
             chkBoxForceNoTeams.Name = "chkBoxForceNoTeams";
             chkBoxForceNoTeams.Text = "Force No Teams".L10N("Client:Main:ForceNoTeams");
-            chkBoxForceNoTeams.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomColors.Y + 4, 0, 0);
+            chkBoxForceNoTeams.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomColors.Bottom + 4, 0, 0);
             chkBoxForceNoTeams.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceNoTeams);
 
             chkBoxForceRandomStarts = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomStarts.Name = "chkBoxForceRandomStarts";
             chkBoxForceRandomStarts.Text = "Force Random Starts".L10N("Client:Main:ForceRandomStarts");
-            chkBoxForceRandomStarts.ClientRectangle = new Rectangle(defaultX, chkBoxForceNoTeams.Y + 4, 0, 0);
+            chkBoxForceRandomStarts.ClientRectangle = new Rectangle(defaultX, chkBoxForceNoTeams.Bottom + 4, 0, 0);
             chkBoxForceRandomStarts.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomStarts);
 
@@ -248,7 +248,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
             chkBoxUseTeamStartMappings.Name = "chkBoxUseTeamStartMappings";
             chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("Client:Main:EnableAutoAllying");
-            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Y + 20, 0, 0);
+            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Bottom + 20, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
 
@@ -263,7 +263,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var lblPreset = new XNALabel(WindowManager);
             lblPreset.Name = "lblPreset";
             lblPreset.Text = "Presets:".L10N("Client:Main:Presets");
-            lblPreset.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.X, chkBoxUseTeamStartMappings.Y + 8, 0, 0);
+            lblPreset.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.X, chkBoxUseTeamStartMappings.Bottom + 8, 0, 0);
             AddChild(lblPreset);
 
             ddTeamStartMappingPreset = new XNAClientDropDown(WindowManager);

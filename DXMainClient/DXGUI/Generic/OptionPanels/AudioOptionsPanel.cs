@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             var lblClientVolume = new XNALabel(WindowManager);
             lblClientVolume.Name = nameof(lblClientVolume);
             lblClientVolume.ClientRectangle = new Rectangle(lblScoreVolume.X,
-                chkScoreShuffle.Y + GROUP_SPACING + TRACKBAR_Y_OFFSET, 0, 0);
+                chkScoreShuffle.Bottom + GROUP_SPACING + TRACKBAR_Y_OFFSET, 0, 0);
             lblClientVolume.Text = "Client Volume:".L10N("Client:DTAConfig:ClientVolume");
 
             lblClientVolumeValue = new XNALabel(WindowManager);
@@ -175,20 +175,20 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkStopMusicOnMenu.Name = nameof(chkStopMusicOnMenu);
             chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies".L10N("Client:DTAConfig:NoLobbiesMusic");
             chkStopMusicOnMenu.ClientRectangle = new Rectangle(
-                lblScoreVolume.X, chkMainMenuMusic.Y + CHECKBOX_SPACING, 0, 0);
+                lblScoreVolume.X, chkMainMenuMusic.ClientRectangle.Bottom + CHECKBOX_SPACING, 0, 0);
             AddChild(chkStopMusicOnMenu);
 
             chkStopGameLobbyMessageAudio = new XNAClientCheckBox(WindowManager);
             chkStopGameLobbyMessageAudio.Name = nameof(chkStopGameLobbyMessageAudio);
             chkStopGameLobbyMessageAudio.Text = "Don't play lobby message audio when game is running".L10N("Client:DTAConfig:NoGameLobbyMessageAudio");
             chkStopGameLobbyMessageAudio.ClientRectangle = new Rectangle(
-                lblScoreVolume.X, chkStopMusicOnMenu.Y + CHECKBOX_SPACING, 0, 0);
+                lblScoreVolume.X, chkStopMusicOnMenu.Bottom + CHECKBOX_SPACING, 0, 0);
             AddChild(chkStopGameLobbyMessageAudio);
 
             chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
             chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
             chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
-                lblScoreVolume.X, chkStopGameLobbyMessageAudio.Y + CHECKBOX_SPACING, 0, 0);
+                lblScoreVolume.X, chkStopGameLobbyMessageAudio.Bottom + CHECKBOX_SPACING, 0, 0);
             chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted".L10N("Client:DTAConfig:PlaySoundGameHosted");
 
             AddChild(chkPlaySoundOnGameHosted);
