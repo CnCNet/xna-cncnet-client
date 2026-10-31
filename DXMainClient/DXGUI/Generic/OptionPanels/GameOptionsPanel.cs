@@ -84,12 +84,11 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkTargetLines.Name = nameof(chkTargetLines);
             chkTargetLines.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
-                chkScrollCoasting.Y + 24, 0, 0);
+                chkScrollCoasting.Bottom + 5, 0, 0);
             chkTargetLines.Text = "Target Lines".L10N("Client:DTAConfig:TargetLines");
 
             chkTooltips = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ToolTips");
             chkTooltips.Name = nameof(chkTooltips);
-            chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
 
             var lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = nameof(lblPlayerName);
@@ -99,7 +98,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Y + 24, 0, 0);
+                    chkTargetLines.Bottom + 5, 0, 0);
+                chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
             }
             else
             {
@@ -107,16 +107,17 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkShowHiddenObjects.Name = nameof(chkShowHiddenObjects);
                 chkShowHiddenObjects.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Y + 24, 0, 0);
+                    chkTargetLines.Bottom + 5, 0, 0);
                 chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("Client:DTAConfig:YRShowHidden");
 
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkShowHiddenObjects.Y + 24, 0, 0);
+                    chkShowHiddenObjects.Bottom + 5, 0, 0);
+                chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTooltips.Y + 30, 0, 0);
+                    chkTooltips.Bottom + 11, 0, 0);
 
                 AddChild(chkShowHiddenObjects);
             }
@@ -127,7 +128,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkBlackChatBackground.Name = nameof(chkBlackChatBackground);
                 chkBlackChatBackground.ClientRectangle = new Rectangle(
                     chkScrollCoasting.X,
-                    chkTooltips.Y + 24, 0, 0);
+                    chkTooltips.Bottom + 5, 0, 0);
                 chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("Client:DTAConfig:TSUseBlackBackgroundChat");
 
                 AddChild(chkBlackChatBackground);

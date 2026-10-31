@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkBorderlessWindowedMode.Name = nameof(chkBorderlessWindowedMode);
             chkBorderlessWindowedMode.ClientRectangle = new Rectangle(
                 chkWindowedMode.X + 50,
-                chkWindowedMode.Y + 24, 0, 0);
+                chkWindowedMode.Bottom + 5, 0, 0);
             chkBorderlessWindowedMode.Text = "Borderless Windowed Mode".L10N("Client:DTAConfig:BorderlessWindowedMode");
             chkBorderlessWindowedMode.AllowChecking = false;
 
@@ -164,7 +164,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkBackBufferInVRAM.Name = nameof(chkBackBufferInVRAM);
             chkBackBufferInVRAM.ClientRectangle = new Rectangle(
                 lblDetailLevel.X,
-                chkBorderlessWindowedMode.Y + 28, 0, 0);
+                chkBorderlessWindowedMode.Bottom + 9, 0, 0);
             chkBackBufferInVRAM.Text = ("Back Buffer in Video Memory\n(lower performance, but is\nnecessary on some systems)").L10N("Client:DTAConfig:BackBuffer");
 
             var lblClientResolution = new XNALabel(WindowManager);
