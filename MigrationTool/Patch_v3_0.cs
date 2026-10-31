@@ -18,6 +18,8 @@ internal class Patch_v3_0 : Patch
         base.Apply();
 
         MigrateFontsIniFiles();
+
+        // TODO: migate other v3.0 changes here
     }
 
     private void MigrateFontsIniFiles()
