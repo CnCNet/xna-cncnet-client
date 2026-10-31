@@ -19,7 +19,7 @@ internal class Patch_v3_0 : Patch
 
         MigrateFontsIniFiles();
 
-        // TODO: migate other v3.0 changes here
+        // TODO: migrate other v3.0 changes here
     }
 
     private void MigrateFontsIniFiles()
