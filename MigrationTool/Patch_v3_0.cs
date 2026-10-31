@@ -46,48 +46,34 @@ internal class Patch_v3_0 : Patch
             return;
         }
 
-        List<string> fallbackFontPaths = new List<string>();
-        bool changed = false;
-        int fontIndex = 0;
+        List<string> fontSections = GetFontSections(fontsIni);
+        List<string> sectionsWithFallback = new List<string>();
+        List<List<string>> fallbackChains = new List<List<string>>();
 
-        while (fontsIni.SectionExists($"Font{fontIndex}"))
+        // Collect every chain before removing any Fallback keys. A chain can
+        // point at another font that also has a Fallback key.
+        foreach (string fontSection in fontSections)
         {
-            string fontSection = $"Font{fontIndex}";
+            if (!fontsIni.KeyExists(fontSection, "Fallback"))
+                continue;
 
-            if (fontsIni.KeyExists(fontSection, "Fallback"))
-            {
-                int fallbackIndex = fontsIni.GetIntValue(fontSection, "Fallback", -1);
+            sectionsWithFallback.Add(fontSection);
+            int fallbackIndex = fontsIni.GetIntValue(fontSection, "Fallback", -1);
+            List<string> chain = BuildFallbackChain(fontsIni, fontSection, fallbackIndex);
 
-                if (fallbackIndex < 0 || !fontsIni.SectionExists($"Font{fallbackIndex}"))
-                {
-                    Logger.Log($"{fontsIni.FilePath}: [{fontSection}] has an invalid Fallback value, removing the key.");
-                }
-                else
-                {
-                    string fallbackSection = $"Font{fallbackIndex}";
-                    string fallbackType = fontsIni.GetStringValue(fallbackSection, "Type", "SpriteFont");
-                    string fallbackPath = fontsIni.GetStringValue(fallbackSection, "Path", string.Empty);
-
-                    if (!string.Equals(fallbackType, "TrueType", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Logger.Log($"{fontsIni.FilePath}: [{fontSection}] falls back to [{fallbackSection}] which is not a TrueType font, removing the key.");
-                    }
-                    else if (string.IsNullOrEmpty(fallbackPath))
-                    {
-                        Logger.Log($"{fontsIni.FilePath}: [{fontSection}] falls back to [{fallbackSection}] which has no Path, removing the key.");
-                    }
-                    else if (!fallbackFontPaths.Contains(fallbackPath))
-                    {
-                        fallbackFontPaths.Add(fallbackPath);
-                    }
-                }
-
-                RemoveKeyWithLog(fontsIni, fontSection, "Fallback");
-                changed = true;
-            }
-
-            fontIndex++;
+            if (chain.Count > 0)
+                fallbackChains.Add(chain);
         }
+
+        bool changed = false;
+
+        foreach (string fontSection in sectionsWithFallback)
+        {
+            RemoveKeyWithLog(fontsIni, fontSection, "Fallback");
+            changed = true;
+        }
+
+        List<string> fallbackFontPaths = MergeFallbackChains(fallbackChains, fontsIni.FilePath);
 
         if (fallbackFontPaths.Count > 0)
         {
@@ -108,5 +94,182 @@ internal class Patch_v3_0 : Patch
         {
             Logger.Log($"{fontsIni.FilePath}: No per-font Fallback keys found, nothing to migrate.");
         }
+    }
+
+    private static List<string> GetFontSections(IniFile fontsIni)
+    {
+        List<string> fontSections = new List<string>();
+
+        foreach (string section in fontsIni.GetSections())
+        {
+            if (section.Length <= 4 || !section.StartsWith("Font", StringComparison.Ordinal))
+                continue;
+
+            if (int.TryParse(section.Substring(4), out _))
+                fontSections.Add(section);
+        }
+
+        fontSections.Sort((a, b) => GetFontIndex(a).CompareTo(GetFontIndex(b)));
+        return fontSections;
+    }
+
+    private static int GetFontIndex(string fontSection)
+    {
+        if (!int.TryParse(fontSection.Substring(4), out int index))
+            return -1;
+
+        return index;
+    }
+
+    private static List<string> BuildFallbackChain(IniFile fontsIni, string sourceSection, int fallbackIndex)
+    {
+        List<string> paths = new List<string>();
+        HashSet<int> visited = new HashSet<int>();
+        int sourceIndex = GetFontIndex(sourceSection);
+        int currentIndex = fallbackIndex;
+
+        if (currentIndex < 0)
+        {
+            Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] has an invalid Fallback value, removing the key.");
+            return paths;
+        }
+
+        while (currentIndex >= 0)
+        {
+            string targetSection = $"Font{currentIndex}";
+
+            if (currentIndex == sourceIndex)
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] fallback chain points back to itself, removing the key.");
+                break;
+            }
+
+            if (!fontsIni.SectionExists(targetSection))
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] has an invalid Fallback value, removing the key.");
+                break;
+            }
+
+            if (!visited.Add(currentIndex))
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] fallback chain contains a cycle at [{targetSection}], removing the key.");
+                break;
+            }
+
+            string targetType = fontsIni.GetStringValue(targetSection, "Type", "SpriteFont");
+            string targetPath = fontsIni.GetStringValue(targetSection, "Path", string.Empty);
+
+            if (!string.Equals(targetType, "TrueType", StringComparison.OrdinalIgnoreCase))
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] falls back to [{targetSection}] which is not a TrueType font, removing the key.");
+                break;
+            }
+
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{sourceSection}] falls back to [{targetSection}] which has no Path, removing the key.");
+                break;
+            }
+
+            if (!paths.Contains(targetPath))
+                paths.Add(targetPath);
+
+            if (!fontsIni.KeyExists(targetSection, "Fallback"))
+                break;
+
+            currentIndex = fontsIni.GetIntValue(targetSection, "Fallback", -1);
+
+            if (currentIndex < 0)
+            {
+                Logger.Log($"{fontsIni.FilePath}: [{targetSection}] has an invalid Fallback value, stopping the chain for [{sourceSection}].");
+                break;
+            }
+        }
+
+        return paths;
+    }
+
+    private static List<string> MergeFallbackChains(List<List<string>> chains, string filePath)
+    {
+        List<string> nodes = new List<string>();
+        Dictionary<string, int> nodeIndexes = new Dictionary<string, int>(StringComparer.Ordinal);
+        Dictionary<string, HashSet<string>> edges = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
+        foreach (List<string> chain in chains)
+        {
+            foreach (string path in chain)
+            {
+                if (!nodeIndexes.ContainsKey(path))
+                {
+                    nodeIndexes.Add(path, nodes.Count);
+                    nodes.Add(path);
+                    edges.Add(path, new HashSet<string>(StringComparer.Ordinal));
+                }
+            }
+
+            for (int i = 0; i < chain.Count - 1; i++)
+            {
+                string from = chain[i];
+                string to = chain[i + 1];
+
+                if (!string.Equals(from, to, StringComparison.Ordinal))
+                    edges[from].Add(to);
+            }
+        }
+
+        Dictionary<string, int> inDegree = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (string node in nodes)
+            inDegree[node] = 0;
+
+        foreach (HashSet<string> targets in edges.Values)
+        {
+            foreach (string target in targets)
+                inDegree[target]++;
+        }
+
+        SortedSet<int> available = new SortedSet<int>();
+
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            if (inDegree[nodes[i]] == 0)
+                available.Add(i);
+        }
+
+        List<string> ordered = new List<string>();
+
+        while (available.Count > 0)
+        {
+            int index = available.Min;
+            available.Remove(index);
+            string node = nodes[index];
+            ordered.Add(node);
+
+            foreach (string target in edges[node])
+            {
+                inDegree[target]--;
+
+                if (inDegree[target] == 0)
+                    available.Add(nodeIndexes[target]);
+            }
+        }
+
+        if (ordered.Count != nodes.Count)
+        {
+            List<string> remaining = new List<string>();
+
+            foreach (string node in nodes)
+            {
+                if (!ordered.Contains(node))
+                    remaining.Add(node);
+            }
+
+            // A global fallback list cannot satisfy contradictory per-font
+            // chains. Keep the first-seen order and report the conflict.
+            Logger.Log($"{filePath}: Conflicting font fallback precedence; cannot represent all chains globally. Keeping first-seen order for: {string.Join(", ", remaining)}");
+            ordered.AddRange(remaining);
+        }
+
+        return ordered;
     }
 }
