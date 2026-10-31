@@ -56,7 +56,7 @@ namespace DTAClient.DXGUI.Generic
         private List<SavedGame> savedGames = new List<SavedGame>();
         private bool initialized;
 
-        private bool IsReplayTabSelected => tabControl != null && tabControl.SelectedTab == REPLAYS_TAB_INDEX;
+        private bool IsReplayTabSelected => tabControl != null && tabControl.SelectedTabIndex == REPLAYS_TAB_INDEX;
 
         public override void Initialize()
         {
@@ -232,7 +232,7 @@ namespace DTAClient.DXGUI.Generic
 
             // Switching tabs refreshes the list, which selects the replay.
             if (!IsReplayTabSelected)
-                tabControl.SelectedTab = REPLAYS_TAB_INDEX;
+                tabControl.SelectedTabIndex = REPLAYS_TAB_INDEX;
             else if (Enabled)
                 RefreshSelectedTab();
 

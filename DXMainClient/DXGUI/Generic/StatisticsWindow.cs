@@ -450,7 +450,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabControl.SelectedTab == 1)
+            if (tabControl.SelectedTabIndex == 1)
             {
                 panelGameStatistics.Visible = false;
                 panelGameStatistics.Enabled = false;

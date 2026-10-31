@@ -159,7 +159,7 @@ public class TunnelNegotiationStatusPanel : XNAPanel
 
     private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        if (tabControl.SelectedTab == 0)
+        if (tabControl.SelectedTabIndex == 0)
         {
             lbPairs.Enable();
             matrixPanel.Disable();
