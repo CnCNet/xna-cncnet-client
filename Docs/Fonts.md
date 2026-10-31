@@ -1,11 +1,12 @@
 # Fonts
 
-The client supports two font types:
+The client supports the following font types:
 
 - **TrueType** – TTF/OTF fonts. The client uses FontStashSharp to render these fonts.
 - **SpriteFont** – precompiled XNA/MonoGame bitmap fonts (.xnb files).
+- **SystemFont** – a font family installed in Windows, loaded by name (Windows builds only).
 
-> **Important:** TrueType and SpriteFont fonts cannot be mixed within a fallback chain. Fallback only works between TrueType fonts. A SpriteFont font index cannot fall back to a TrueType font, and vice versa. Each font index is entirely one type or the other.
+> **Important:** Fallback fonts are shared by all TrueType and SystemFont font indexes and are configured in the `[FallbackFonts]` section. SpriteFont indexes do not support fallback, and a font index is entirely one type or the other.
 
 Font configuration is done via `Fonts.ini` placed in your `Resources` directory.
 
@@ -31,43 +32,34 @@ EnableBiDi=true       ; Bidirectional text support (mixed LTR/RTL)
 CacheSize=100         ; Shaped text cache entries.
 
 [Fonts]
-Count=6   ; Total number of defined font indexes, including fallback fonts.
+; Optional. Font indexes are read starting from [Font0] until the first missing [FontN] section.
+Count=6
 
 [Font0]
 Type=TrueType               ; Type: "TrueType" or "SpriteFont"
 Path=MozillaText-Bold.ttf   ; Path relative to the directory containing Fonts.ini
 Size=14                     ; Font height in pixels (TrueType only; ignored for SpriteFont)
-Fallback=4                  ; Optional. Index of the font to try when a character is missing.
-                            ; The fallback font's own Fallback is followed recursively.
 
 [Font1]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=16
-Fallback=4
 
 [Font2]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=18
-Fallback=5
 
 [Font3]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=20
-Fallback=5
 
-; Font indexes used only as fallback targets — not referenced directly by UI controls.
-[Font4]
-Type=TrueType
-Path=NotoSansSC-Regular.ttf
-Size=14
-
-[Font5]
-Type=TrueType
-Path=NotoSansSC-Regular.ttf
-Size=18
+; Fallback fonts are appended to every TrueType and SystemFont font index, in order.
+; Paths are relative to the directory containing Fonts.ini.
+[FallbackFonts]
+Count=1
+Fallback0=NotoSansSC-Regular.ttf
 
 [FontRendering]
 ; Optional section. Advanced FontStashSharp rasterization settings.
@@ -98,10 +90,18 @@ Font paths are relative to the directory containing `Fonts.ini`. Both `/` and `\
 
 | Property | Applies to | Description |
 |----------|-----------|-------------|
-| `Type` | Both | `TrueType` or `SpriteFont` |
-| `Path` | Both | File path relative to `Fonts.ini` directory. For SpriteFont, the `.xnb` extension is optional — it is stripped and re-appended automatically. |
-| `Size` | TrueType | Font height in pixels. This is the em-square height. The actual rendered height of characters may be slightly smaller depending on the font's metrics. Ignored for fallback fonts. |
-| `Fallback` | TrueType | Index of another TrueType font to use when a character is not found. The chain is followed recursively. Circular references are detected and ignored. |
+| `Type` | All | `TrueType`, `SpriteFont`, or `SystemFont` (Windows only) |
+| `Path` | All | File path relative to `Fonts.ini` directory. For SpriteFont, the `.xnb` extension is optional — it is stripped and re-appended automatically. For `SystemFont`, an optional file used when the system font is unavailable. |
+| `Size` | TrueType, SystemFont | Font height in pixels. This is the em-square height. The actual rendered height of characters may be slightly smaller depending on the font's metrics. Ignored for fallback fonts. |
+| `Family` | SystemFont | Installed Windows font family name, e.g. `Segoe UI`. |
+| `Style` | SystemFont | `Regular` (default), `Semibold`, `Bold`, `Italic`, `Semibold, Italic`, or `Bold, Italic`. |
+
+#### `[FallbackFonts]`
+
+| Property | Description |
+|----------|-------------|
+| `Count` | Number of fallback font files. |
+| `Fallback0`, `Fallback1`, ... | Paths to fallback font files, relative to the `Fonts.ini` directory. They are appended to every TrueType and SystemFont font index in the listed order. |
 
 #### `[TextShaping]`
 
@@ -122,19 +122,33 @@ Font paths are relative to the directory containing `Fonts.ini`. Both `/` and `\
 | `TextureHeight` | `1024` | Height of each FontStashSharp atlas page in pixels. |
 | `GlyphRenderResult` | `Premultiplied` | How glyph alpha is encoded: `Premultiplied` (matches a premultiplied-alpha `SpriteBatch`), `NonPremultiplied` (matches `AlphaBlend`), or `NoAntialiasing` (hard 1-bit edges for pixel-art fonts). |
 
+### System fonts (Windows only)
+
+On Windows builds you can use an installed system font instead of shipping a font file:
+
+```ini
+[Font3]
+Type=SystemFont
+Family=Segoe UI
+Style=Regular
+Size=14
+```
+
+`Family` is the installed font family name and `Style` can be `Regular`, `Semibold`, `Bold`, `Italic`, `Semibold, Italic`, or `Bold, Italic`. If the requested family/style cannot be resolved, the optional `Path` file is used as a fallback. System fonts are unavailable on non-Windows builds; there, `Path` is used.
+
 ## Character fallback
 
-Fallback is configured **per font index** via the `Fallback` property. When rendering a character:
+Fallback fonts are configured **globally** in the `[FallbackFonts]` section. Their paths are appended to every TrueType and SystemFont font index, in the listed order. When rendering a character with a TrueType or SystemFont font index:
 
 1. Try the primary font defined in the font index
-2. If not found, follow the `Fallback` chain — load the font file from the referenced index, then that index's fallback, and so on
-3. If still not found after the entire chain, renders as `?`
+2. If the character is not found, try each font listed in `[FallbackFonts]` in order
+3. If still not found after the entire chain, the character renders as `?`
 
-All fonts in a fallback chain render at the size specified in the **originating** font index, not the fallback target's size. The fallback target's `Size` is only used when that font index is itself the primary.
+All fallback fonts render at the size specified in the **originating** font index, not their own `Size`. The `Size` of a fallback font is only used when that font index is itself the primary.
 
-This per-font design allows different font indexes to have different fallback chains. For example, a bold font at size 20 can fall back to a different font than a regular font at size 14.
+The fallback list is shared by all font indexes, so all TrueType and SystemFont font indexes use the same fallback chain. If you need different fallback fonts for different font sizes, define separate font indexes with the desired primary font; per-index fallback chains are no longer supported.
 
-> **Note:** Fallback only works between TrueType fonts. SpriteFont indexes do not support fallback — if a character is missing from a SpriteFont, it renders as the default character (`?`).
+> **Note:** Fallback only works between TrueType and SystemFont fonts. SpriteFont indexes do not support fallback — if a character is missing from a SpriteFont, it renders as the default character (`?`).
 
 ## Font indexes
 
@@ -208,7 +222,7 @@ Size=20
 
 ### Korean translation with Chinese fallback
 
-Korean font as primary, Chinese font as fallback for any characters the Korean font is missing.
+Korean font as primary, Chinese font as a fallback for characters the Korean font is missing. The fallback list is shared by all TrueType and SystemFont font indexes.
 
 ```ini
 [TextShaping]
@@ -217,41 +231,31 @@ EnableBiDi=false
 CacheSize=100
 
 [Fonts]
-Count=6
+Count=4
 
 [Font0]
 Type=TrueType
 Path=NotoSansKR-Medium.ttf
 Size=14
-Fallback=4
 
 [Font1]
 Type=TrueType
 Path=NotoSansKR-Medium.ttf
 Size=16
-Fallback=4
 
 [Font2]
 Type=TrueType
 Path=NotoSansKR-Medium.ttf
 Size=18
-Fallback=5
 
 [Font3]
 Type=TrueType
 Path=NotoSansKR-Medium.ttf
 Size=20
-Fallback=5
 
-[Font4]
-Type=TrueType
-Path=NotoSansSC-Medium.ttf
-Size=14
-
-[Font5]
-Type=TrueType
-Path=NotoSansSC-Medium.ttf
-Size=18
+[FallbackFonts]
+Count=1
+Fallback0=NotoSansSC-Medium.ttf
 ```
 
 ### English with CJK fallback
@@ -265,36 +269,31 @@ EnableBiDi=false
 CacheSize=100
 
 [Fonts]
-Count=5
+Count=4
 
 [Font0]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=14
-Fallback=4
 
 [Font1]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=16
-Fallback=4
 
 [Font2]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=18
-Fallback=4
 
 [Font3]
 Type=TrueType
 Path=MozillaText-Bold.ttf
 Size=20
-Fallback=4
 
-[Font4]
-Type=TrueType
-Path=NotoSansSC-Medium.ttf
-Size=16
+[FallbackFonts]
+Count=1
+Fallback0=NotoSansSC-Medium.ttf
 ```
 
 ### SpriteFont (legacy)
@@ -417,7 +416,7 @@ If you need pixel-perfect CJK rendering, either use a font whose vector outlines
 
 ### SpriteFont has no fallback
 
-SpriteFont indexes cannot use the `Fallback` property. If you need fallback for missing characters, use TrueType fonts for all your font indexes.
+SpriteFont indexes do not use `[FallbackFonts]`. If you need fallback for missing characters, use TrueType or SystemFont fonts for all your font indexes.
 
 ### No support for variable fonts
 
@@ -455,6 +454,6 @@ Definitely not! The preprocessed TTF files are essentially vectorized bitmap fon
 
 **Wrong font used** — remember the primary font is tried first, then the fallback chain in order. Check no other `Fonts.ini` is being loaded from a different location.
 
-**Characters render as `?`** — the character isn't in any font in the fallback chain. Add a font that covers it as a fallback target and set `Fallback` on the font index.
+**Characters render as `?`** — the character isn't in any font in the fallback chain. Add a font that covers it to the `[FallbackFonts]` section.
 
 **Performance issues** — disable `TextShaping` if not needed, reduce fallback chain length, increase `CacheSize` if CPU or GPU usage is high, and decrease `CacheSize` if memory usage is high.

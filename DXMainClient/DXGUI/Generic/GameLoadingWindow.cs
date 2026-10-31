@@ -33,6 +33,7 @@ namespace DTAClient.DXGUI.Generic
         private const int BUTTON_HEIGHT = 23;
         private const int BUTTON_SPACING = 10;
         private const int MARGIN = 12;
+        private const int SAVED_GAMES_TAB_INDEX = 0;
         private const int REPLAYS_TAB_INDEX = 1;
         private const int DATE_COLUMN_WIDTH = 214;
 
@@ -56,7 +57,7 @@ namespace DTAClient.DXGUI.Generic
         private List<SavedGame> savedGames = new List<SavedGame>();
         private bool initialized;
 
-        private bool IsReplayTabSelected => tabControl != null && tabControl.SelectedTab == REPLAYS_TAB_INDEX;
+        private bool IsReplayTabSelected => tabControl != null && tabControl.SelectedTabIndex == REPLAYS_TAB_INDEX;
 
         public override void Initialize()
         {
@@ -144,6 +145,7 @@ namespace DTAClient.DXGUI.Generic
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.AddTab("Saved Games".L10N("Client:Main:TabSavedGames"), UIDesignConstants.BUTTON_WIDTH_133);
             tabControl.AddTab("Replays".L10N("Client:Main:TabReplays"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.SelectedTabIndex = SAVED_GAMES_TAB_INDEX;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             replaysPanel = new ReplaysPanel(WindowManager, discordHandler, campaignTagSelector);
@@ -232,7 +234,7 @@ namespace DTAClient.DXGUI.Generic
 
             // Switching tabs refreshes the list, which selects the replay.
             if (!IsReplayTabSelected)
-                tabControl.SelectedTab = REPLAYS_TAB_INDEX;
+                tabControl.SelectedTabIndex = REPLAYS_TAB_INDEX;
             else if (Enabled)
                 RefreshSelectedTab();
 
