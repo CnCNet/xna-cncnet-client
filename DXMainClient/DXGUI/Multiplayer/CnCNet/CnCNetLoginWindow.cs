@@ -68,14 +68,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             chkPersistentMode = new XNAClientCheckBox(WindowManager);
             chkPersistentMode.Name = "chkPersistentMode";
-            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.Bottom + 30, 0, 0);
+            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.Y + 30, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby".L10N("Client:Main:StayConnect");
             chkPersistentMode.TextPadding = chkRememberMe.TextPadding;
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
             chkAutoConnect = new XNAClientCheckBox(WindowManager);
             chkAutoConnect.Name = "chkAutoConnect";
-            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.Bottom + 30, 0, 0);
+            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.Y + 30, 0, 0);
             chkAutoConnect.Text = "Connect automatically on client startup".L10N("Client:Main:AutoConnect");
             chkAutoConnect.TextPadding = chkRememberMe.TextPadding;
             chkAutoConnect.AllowChecking = false;

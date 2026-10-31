@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkTargetLines.Name = nameof(chkTargetLines);
             chkTargetLines.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
-                chkScrollCoasting.Bottom + 24, 0, 0);
+                chkScrollCoasting.Y + 24, 0, 0);
             chkTargetLines.Text = "Target Lines".L10N("Client:DTAConfig:TargetLines");
 
             chkTooltips = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ToolTips");
@@ -99,7 +99,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Bottom + 24, 0, 0);
+                    chkTargetLines.Y + 24, 0, 0);
             }
             else
             {
@@ -107,16 +107,16 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkShowHiddenObjects.Name = nameof(chkShowHiddenObjects);
                 chkShowHiddenObjects.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Bottom + 24, 0, 0);
+                    chkTargetLines.Y + 24, 0, 0);
                 chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("Client:DTAConfig:YRShowHidden");
 
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkShowHiddenObjects.Bottom + 24, 0, 0);
+                    chkShowHiddenObjects.Y + 24, 0, 0);
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTooltips.Bottom + 30, 0, 0);
+                    chkTooltips.Y + 30, 0, 0);
 
                 AddChild(chkShowHiddenObjects);
             }
@@ -127,7 +127,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkBlackChatBackground.Name = nameof(chkBlackChatBackground);
                 chkBlackChatBackground.ClientRectangle = new Rectangle(
                     chkScrollCoasting.X,
-                    chkTooltips.Bottom + 24, 0, 0);
+                    chkTooltips.Y + 24, 0, 0);
                 chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("Client:DTAConfig:TSUseBlackBackgroundChat");
 
                 AddChild(chkBlackChatBackground);
@@ -136,14 +136,14 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkAltToUndeploy.Name = nameof(chkAltToUndeploy);
                 chkAltToUndeploy.ClientRectangle = new Rectangle(
                     chkScrollCoasting.X,
-                    chkBlackChatBackground.Bottom + 24, 0, 0);
+                    chkBlackChatBackground.Y + 24, 0, 0);
                 chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TSUndeployAltKey");
 
                 AddChild(chkAltToUndeploy);
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkAltToUndeploy.Bottom + 30, 0, 0);
+                    chkAltToUndeploy.Y + 30, 0, 0);
             }
 
             if (ReplayManager.IsSupported)
@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkRecordReplays.Bottom + 30, 0, 0);
+                    chkRecordReplays.Y + 30, 0, 0);
             }
 
             tbPlayerName = new XNATextBox(WindowManager);
