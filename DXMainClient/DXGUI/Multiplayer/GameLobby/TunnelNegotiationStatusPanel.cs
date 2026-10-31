@@ -85,6 +85,7 @@ public class TunnelNegotiationStatusPanel : XNAPanel
         tabControl.ClientRectangle = new Rectangle(PANEL_PADDING, TITLE_HEIGHT + 3, 0, 0);
         tabControl.AddTab("List".L10N("Client:Main:NegStatusTabList"), 92);
         tabControl.AddTab("Matrix".L10N("Client:Main:NegStatusTabMatrix"), 92);
+        tabControl.SelectedTabIndex = 0;
         tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
         lbPairs = new XNAMultiColumnListBox(WindowManager);
