@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Microsoft.VisualBasic.FileIO;
 
 using Rampastring.Tools;
@@ -16,6 +17,15 @@ internal sealed class Program
         CnCNet Client Migration Tool.
         
         Run this tool using the path to the unmigrated client directory as the first argument.
+
+        Usage: 
+           MigrationTool.exe <client-directory>
+           MigrationTool.exe <client-directory> [--version <version>]
+
+        --version. Runs only the patch for the specified XNA CnCNet client version.
+                   Versions may have an optional v prefix (for example, v2.12.6).
+                   This is the patch version, not the game or mod version.
+                   Omit --version to apply all migrations in order.
         """;
 
     private static void Main(string[] args)
@@ -35,16 +45,48 @@ internal sealed class Program
         switch (args.Length)
         {
             case 1:
+            case 3:
                 string arg = args[0].Trim();
 
-                if (arg is "-h"
+                if (args.Length == 1 && arg is ("-h"
                     or "--help"
                     or "-?"
                     or "/?"
-                    or "/h")
+                    or "/h"))
                 {
                     Console.WriteLine(HELP_MESSAGE);
+                    Console.WriteLine("Migration tool support migration for these XNA CnCNet client versions: " + string.Join(", ", Enum.GetNames(typeof(Version)).Select(version => version.Replace('_', '.'))));
                     return;
+                }
+
+                Version? selectedVersion = null;
+                if (args.Length == 3)
+                {
+                    if (args[1] != "--version")
+                    {
+                        Console.WriteLine(ERROR_MESSAGE);
+                        Environment.ExitCode = 1;
+                        return;
+                    }
+
+                    string versionText = args[2].Trim();
+                    foreach (Version version in Enum.GetValues(typeof(Version)))
+                    {
+                        string patchVersion = version.ToString().Replace('_', '.');
+                        if (string.Equals(versionText, patchVersion, StringComparison.OrdinalIgnoreCase)
+                            || (version != Version.Latest && string.Equals("v" + versionText, patchVersion, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            selectedVersion = version;
+                            break;
+                        }
+                    }
+
+                    if (selectedVersion == null)
+                    {
+                        Console.WriteLine($"Unsupported patch version \"{versionText}\". Use -h to see the supported versions.");
+                        Environment.ExitCode = 1;
+                        return;
+                    }
                 }
 
                 if (!SafePath.GetDirectory(arg).Exists)
@@ -77,8 +119,11 @@ internal sealed class Program
                     // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
                     var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
                     var patchNames = Enum.GetValues(typeof(Version));
-                    foreach (var patchName in patchNames)
+                    foreach (Version patchName in patchNames)
                     {
+                        if (selectedVersion != null && patchName != selectedVersion)
+                            continue;
+
                         Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
                         patch = (Patch?)Activator.CreateInstance(type, arg);
                         patch?.Apply();
@@ -98,6 +143,7 @@ internal sealed class Program
             case 0:
             default:
                 Console.WriteLine(ERROR_MESSAGE);
+                Environment.ExitCode = 1;
                 break;
         }
     }

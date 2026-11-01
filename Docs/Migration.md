@@ -5,6 +5,14 @@
 > To use this tool, download the latest nightly build and run `Resources\BinariesNET8\MigrationTool\MigrationTool.exe` with older client path as the first argument. 
 > 
 > Example: `MigrationTool.exe C:\TiberianSunClient`
+>
+> To run only one migration patch, select its client framework version with `--version`:
+> `MigrationTool.exe C:\TiberianSunClient --version 2.12.0`.
+> This applies only the 2.12.0 patch; earlier and later patches (including `Latest`) are skipped.
+> For example, it will not apply the 2.12.6 rule that restores text-only player color dropdowns.
+> Use a patch version listed by `MigrationTool.exe -h`, not a game or mod version (such as CnCNet YR 9.3.5).
+> Versions may have an optional `v` prefix. Use `--version Latest` to run only the unversioned latest patch.
+> Without `--version`, all migrations are applied as before. Selecting a single patch does not apply its prerequisites.
 > 
 > It is recommended that you back up the client configuration before running the migration tool.
 
