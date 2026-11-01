@@ -212,7 +212,9 @@ namespace DTAClient.DXGUI.Generic
 
             lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
-            lblCurrentFile.Text = "Current file:".L10N("Client:Main:CurrentFile") + " " + currFileName;
+            string currentFileText = "Current file:".L10N("Client:Main:CurrentFile") + " " + currFileName;
+            int availableWidth = Math.Max(0, Width - lblCurrentFile.X - 12);
+            lblCurrentFile.Text = Renderer.GetStringWithLimitedWidthTrimMiddle(currentFileText, lblCurrentFile.FontIndex, availableWidth);
             lblUpdaterStatus.Text = "Downloading files".L10N("Client:Main:DownloadingFiles");
 #if WINFORMS
 
