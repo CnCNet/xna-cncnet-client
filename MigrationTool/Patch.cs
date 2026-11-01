@@ -38,6 +38,18 @@ internal abstract class Patch
 
     public Patch AddKeyWithLog(IniFile src, string section, string key, string value)
     {
+        string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
+
+        if (!string.IsNullOrEmpty(baseSectionName))
+        {
+            string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
+            if (!string.IsNullOrEmpty(baseValue))
+            {
+                Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist in base section [{baseSectionName}]->{key}={baseValue}");
+                return this;
+            }
+        }
+
         if (src.KeyExists(section, key))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist");
