@@ -111,7 +111,18 @@ public sealed class V3LinkPath
         _lossSamples.Clear();
     }
 
-    internal void ResetConfirmation() => ConfirmedSinceMs = 0;
+    /// <summary>
+    /// Forgets what the peer reported about the path, for a path being brought up again. The
+    /// report came from the peer's previous connection and would otherwise confirm the new one
+    /// before the peer has heard a single packet of it.
+    /// </summary>
+    internal void ResetConfirmation()
+    {
+        ConfirmedSinceMs = 0;
+        PeerHeardMeAgoMs = null;
+        PeerReportAtMs = 0;
+        RttSamples = 0;
+    }
 
     internal void AddRttSample(int rttMs)
     {

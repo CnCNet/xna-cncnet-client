@@ -190,6 +190,8 @@ public sealed class V3PairLink
     private long _trialStartMs;
     private long _trialConfirmedMs;
 
+    private bool _reconnecting;
+
     private bool _failover;
     private long _failoverStartMs;
     private long _failoverBatchStartMs;
@@ -403,6 +405,24 @@ public sealed class V3PairLink
         _state = LinkState.Exchanging;
         _attempt++;
 
+        // The non-decider follows only an epoch above its own, and a restart can keep this link
+        // object while the decider's is replaced and starts counting from zero again, so it
+        // starts over with the connection. The decider's epoch keeps growing for the life of this
+        // object: it can run several exchanges with one peer exchange (a restart notice, then a
+        // retry), and the peer must see each announcement as newer than the last.
+        if (!IsDecider)
+            _epoch = 0;
+
+        // A connection being made again is in progress again. The lobby shows it, and the other
+        // players get the status change followed by the new success: a peer that cleared the
+        // pair's records when it restarted would otherwise never hear that this side succeeded,
+        // since a connection that stays Succeeded throughout sends no report.
+        if (_status == NegotiationStatus.Succeeded)
+        {
+            _reconnecting = true;
+            SetStatus(NegotiationStatus.InProgress, null);
+        }
+
         _exchange?.Dispose();
         var exchange = new TunnelTableExchange(Local, Remote, GetPool(), _tunnelHandler, _sendIrc, IsDecider, PairSeed);
         _exchange = exchange;
@@ -478,7 +498,9 @@ public sealed class V3PairLink
         if (confirmed.Count > 0 && _firstConfirmMs == 0)
             _firstConfirmMs = now;
 
-        if (IsDecider && _firstConfirmMs != 0)
+        // The first confirmation can be lost again before the settle time is up (a lossy start,
+        // or a tunnel that dropped the session), so the pick waits for a path that is confirmed now.
+        if (IsDecider && _firstConfirmMs != 0 && confirmed.Count > 0)
         {
             bool allMeasured = active.All(p => p.IsConfirmed(now, SUSPECT_LOBBY_MS) && p.RttSamples >= 3);
             if (now - _firstConfirmMs >= BRING_UP_SETTLE_MS || allMeasured)
@@ -1075,8 +1097,11 @@ public sealed class V3PairLink
                 DeactivatePath(path.Tunnel, now);
         }
 
-        if (!IsDecider || _trial != null || _primary!.IsDirect || (_lastSwitchMs != 0 && now - _lastSwitchMs < SWITCH_COOLDOWN_SECONDS * 1000L))
+        if (!IsDecider || _trial != null || _primary!.IsDirect || now < _degradeFrozenUntilMs ||
+            (_lastSwitchMs != 0 && now - _lastSwitchMs < SWITCH_COOLDOWN_SECONDS * 1000L))
+        {
             return;
+        }
 
         // A warm path carries few packets, so its loss can go unmeasured; scored as lossless it
         // would win against a clean relay while still dropping half its traffic. Heavy loss is
@@ -1095,7 +1120,12 @@ public sealed class V3PairLink
         double directScore = direct.GetScore(now, PACKET_LOSS_WEIGHT);
 
         if (directScore + Math.Max(5, primaryScore * 0.1) < primaryScore)
+        {
+            // An intermittent direct path would otherwise bounce the pair between it and the relay
+            // for as long as it keeps coming back; the freeze stops that like any other flapping.
+            RecordDegradeSwitch(now);
             Promote(direct, $"direct connection ({directScore:F0} against {primaryScore:F0})", now);
+        }
     }
 
     private void GatherCandidates()
@@ -1181,7 +1211,7 @@ public sealed class V3PairLink
             CapacityThreshold = CAPACITY_THRESHOLD,
             HandshakeFailureThreshold = HANDSHAKE_FAILURE_THRESHOLD,
             PairSeed = PairSeed,
-            Exclude = primary.IsDirect ? null : [primary.Tunnel],
+            Exclude = GetFallbackExclusions(primary, now),
             DeprioritiseRecentlyUsed = true,
             AvoidNetworkOf = primary.IsDirect ? null : primary.Tunnel.Address,
             GroupSize = FAILOVER_BATCH_SIZE
@@ -1195,6 +1225,19 @@ public sealed class V3PairLink
         Logger.Log($"V3PairLink: Fallbacks for {Remote.Name} now {string.Join(", ", list.Take(4).Select(t => t.Name))}");
     }
 
+    /// <summary>
+    /// The current relay, plus relays found dead recently. Only the decider knows about the latter,
+    /// so leaving them off the shared list keeps both sides' failover batches the same.
+    /// </summary>
+    private List<CnCNetTunnel> GetFallbackExclusions(V3LinkPath primary, long now)
+    {
+        var exclude = _deadUntilMs.Where(kv => kv.Value > now && !kv.Key.IsDirect).Select(kv => kv.Key).ToList();
+        if (!primary.IsDirect)
+            exclude.Add(primary.Tunnel);
+
+        return exclude;
+    }
+
     private void StoreReceivedList(V3Heartbeat.FallbackListSection section)
     {
         if (_receivedLists.Any(l => l.Version == section.Version))
@@ -1202,6 +1245,7 @@ public sealed class V3PairLink
 
         var pool = _tunnelHandler.Tunnels;
         var list = section.Keys
+            .Take(RANKED_LIST_SIZE)
             .Select(k => pool.Find(t => TunnelTable.GetKey(t) == k))
             .Where(t => t != null)
             .Select(t => t!)
@@ -1346,6 +1390,7 @@ public sealed class V3PairLink
         _failover = false;
         _failoverCandidates.Clear();
         _degradeEvidence = 0;
+        _quietStartsMs.Clear();
 
         bool firstConnect = _state == LinkState.BringingUp;
         _state = LinkState.Connected;
@@ -1373,10 +1418,13 @@ public sealed class V3PairLink
 
         if (_status != NegotiationStatus.Succeeded)
         {
-            bool restored = _everConnected;
+            // "Restored" is for a connection that was lost and is back, not one made again on request.
+            bool restored = _everConnected && !_reconnecting;
             _peerLostReported = false;
             SetStatus(NegotiationStatus.Succeeded, null, restored: restored);
         }
+
+        _reconnecting = false;
 
         _everConnected = true;
         UpdateSnapshots(now);
@@ -1649,7 +1697,10 @@ public sealed class V3PairLink
 
         path.LastPeerTimeMs = heartbeat.TimeMs;
         path.LastPeerTimeAtMs = now;
-        path.PeerHeardMeAgoMs = heartbeat.HeardYouAgoMs == ushort.MaxValue ? 1_000_000 : heartbeat.HeardYouAgoMs;
+        // "Never heard you" is not a report of a long silence: the peer's side of the path is new
+        // (a restarted connection, or a path it has only just brought up). It leaves the path
+        // unconfirmed, and its silence counts from when our side of the path was set up.
+        path.PeerHeardMeAgoMs = heartbeat.HeardYouAgoMs == ushort.MaxValue ? null : heartbeat.HeardYouAgoMs;
         path.PeerReportAtMs = now;
         path.AddLossSample(now, heartbeat.SentTotal, heartbeat.EchoSentTotal, heartbeat.ReceivedTotal);
 
