@@ -810,6 +810,61 @@ EnableP2P=false ; whether dynamic V3 tunnels may be upgraded to direct player-to
 
 Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode when hosting:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
 
+### V3 Dynamic Tunnel Settings
+
+In Dynamic (V3) mode each pair of players keeps its own connection: the two sides swap tunnel ping tables, bring up the best few tunnels, and send heartbeats on the one they use. If that tunnel goes quiet, loses packets, or a better one is found, the pair moves to another tunnel, in the lobby and during a game. The timings and thresholds can be tuned in `Resources/NetworkDefinitions.ini` (or a `NetworkDefinitions.local.ini` override). Every key is optional; the values below are the defaults.
+
+```ini
+[V3TunnelNegotiation]
+; Measuring tunnels
+MaxPingsPerTunnelPerMinute=6     ; V3 UDP pings sent to one tunnel per minute; servers answer at most 20 per public IP
+UdpPingTimeoutMs=1500            ; how long to wait for a UDP ping reply
+RetainedPingFailures=2           ; unanswered pings in a row before a tunnel's last good ping is discarded
+CurrentTunnelPingIntervalSeconds=20 ; how often the selected tunnel is pinged in Static (V3) and Legacy (V2) modes
+CyclesPerTunnelListRefresh=3     ; ping cycles between refreshes of the tunnel list
+PacketLossWeight=10              ; ms of penalty per percent of packet loss when comparing paths
+
+; Connecting
+RankedListSize=16                ; tunnels in a pair's ranked list; the head is tried first, the rest are fallbacks
+BringUpBatchSize=4               ; tunnels brought up together when a pair connects
+BringUpBatchTimeoutMs=6000       ; time a batch has to answer before the next is tried
+BringUpSettleMs=2000             ; measuring time after the first tunnel answers before one is chosen
+RetryDelaysSeconds=5,15,60       ; delays between automatic retries of a pair that could not connect; the last repeats
+RetriesBeforeHint=3              ; failed retries before the lobby suggests Renegotiate All
+
+; Monitoring and failover
+HeartbeatIntervalLobbyMs=500     ; heartbeat interval per path in the lobby
+HeartbeatIntervalGameMs=250      ; heartbeat interval per path in game
+SuspectAfterLobbyMs=2000         ; silence in the lobby before fallbacks are brought up
+CommitAfterLobbyMs=5000          ; silence in the lobby before the path is abandoned
+SuspectAfterGameMs=1000          ; silence in game before fallbacks are brought up; roughly how long a dead tunnel stalls the game
+CommitAfterGameMs=3000           ; silence in game before the path is abandoned
+FailoverBatchSize=2              ; fallbacks brought up together when a path goes quiet
+FailoverBatchTimeoutMs=2000      ; time a failover batch has to answer before the next is tried
+FailoverSettleMs=300             ; wait after the first fallback answers before the best one is promoted
+PeerLostSeconds=15               ; silence on every path before the pair is reported as failed
+PingTableIntervalSeconds=30      ; how often the two sides swap fresh ping tables to keep the fallback list current
+LoadProbeIntervalSeconds=120     ; how often a lobby pair sends a short burst at game rate to measure loss under load; 0 disables
+
+; Moving to a better tunnel
+DegradeLossPercent=2.0           ; packet loss over the last 10 s at which a fallback is trialled
+DegradeMarginMs=25               ; smallest improvement a fallback must offer to be adopted
+DegradeMarginFraction=0.2        ; same, as a fraction of the current score; the larger of the two applies
+DegradeSustainSeconds=10         ; how long a fallback must keep predicting better before it is trialled
+TrialDurationMs=5000             ; how long a trialled tunnel carries a copy of the traffic before the decision
+SwitchCooldownSeconds=30         ; minimum time between voluntary path changes of one pair
+DegradeFreezeAfterSwitches=3     ; voluntary switches within five minutes that freeze further ones
+DegradeFreezeSeconds=600         ; how long voluntary switching stays frozen; failure switching is never frozen
+
+[V3Matchmaking]
+Enabled=true                     ; swap ping tables over the matchmaking servers; otherwise, or if none answers, over IRC
+ExchangeTimeoutMs=15000          ; how long to wait for the other side's table or ranked list before retrying later
+RetryIntervalMs=400              ; delay between repeats of the table while waiting
+IrcFallbackDelayMs=3000          ; how long to wait on the matchmaking servers before also sending the table over IRC
+CapacityThreshold=0.85           ; fraction of a tunnel's capacity at which it stops being ranked
+HandshakeFailureThreshold=2      ; bring-ups in a row a tunnel may answer pings but relay nothing before it is ranked last; 0 disables
+```
+
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
 > [!NOTE]
 > _TODO work in progress_
