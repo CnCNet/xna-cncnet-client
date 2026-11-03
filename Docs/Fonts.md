@@ -31,10 +31,6 @@ Enabled=true
 EnableBiDi=true       ; Bidirectional text support (mixed LTR/RTL)
 CacheSize=100         ; Shaped text cache entries.
 
-[Fonts]
-; Optional. Font indexes are read starting from [Font0] until the first missing [FontN] section.
-Count=6
-
 [Font0]
 Type=TrueType               ; Type: "TrueType" or "SpriteFont"
 Path=MozillaText-Bold.ttf   ; Path relative to the directory containing Fonts.ini
@@ -85,6 +81,10 @@ GlyphRenderResult=Premultiplied
 Font paths are relative to the directory containing `Fonts.ini`. Both `/` and `\` are accepted.
 
 ### Properties reference
+
+#### `[Fonts]`
+
+The `[Fonts]` section is optional. The legacy `Count` key is ignored and should be removed; font indexes are read from `Font0` onward until the first missing `FontN` section.
 
 #### `[Font#]` properties
 
@@ -196,9 +196,6 @@ Enabled=false
 EnableBiDi=false
 CacheSize=100
 
-[Fonts]
-Count=4
-
 [Font0]
 Type=TrueType
 Path=MozillaText-Bold.ttf
@@ -229,9 +226,6 @@ Korean font as primary, Chinese font as a fallback for characters the Korean fon
 Enabled=true
 EnableBiDi=false
 CacheSize=100
-
-[Fonts]
-Count=4
 
 [Font0]
 Type=TrueType
@@ -268,9 +262,6 @@ Enabled=false
 EnableBiDi=false
 CacheSize=100
 
-[Fonts]
-Count=4
-
 [Font0]
 Type=TrueType
 Path=MozillaText-Bold.ttf
@@ -299,9 +290,6 @@ Fallback0=NotoSansSC-Medium.ttf
 ### SpriteFont (legacy)
 
 ```ini
-[Fonts]
-Count=4
-
 [Font0]
 Type=SpriteFont
 Path=SpriteFont0

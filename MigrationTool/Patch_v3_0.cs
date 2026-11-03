@@ -40,9 +40,20 @@ internal class Patch_v3_0 : Patch
     {
         IniFile fontsIni = new IniFile(fontsIniFile.FullName);
 
+        bool changed = RemoveObsoleteFontsCount(fontsIni);
+
         if (fontsIni.SectionExists("FallbackFonts"))
         {
-            Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, skipping the Fonts.ini migration.");
+            if (changed)
+            {
+                fontsIni.WriteIniFile();
+                Logger.Log($"{fontsIni.FilePath}: Removed obsolete [Fonts] Count; [FallbackFonts] already exists.");
+            }
+            else
+            {
+                Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, skipping the Fonts.ini migration.");
+            }
+
             return;
         }
 
@@ -64,8 +75,6 @@ internal class Patch_v3_0 : Patch
             if (chain.Count > 0)
                 fallbackChains.Add(chain);
         }
-
-        bool changed = false;
 
         foreach (string fontSection in sectionsWithFallback)
         {
@@ -94,6 +103,22 @@ internal class Patch_v3_0 : Patch
         {
             Logger.Log($"{fontsIni.FilePath}: No per-font Fallback keys found, nothing to migrate.");
         }
+    }
+
+    private bool RemoveObsoleteFontsCount(IniFile fontsIni)
+    {
+        if (!fontsIni.KeyExists("Fonts", "Count"))
+            return false;
+
+        RemoveKeyWithLog(fontsIni, "Fonts", "Count");
+
+        if (fontsIni.GetSectionKeys("Fonts").Count == 0)
+        {
+            fontsIni.RemoveSection("Fonts");
+            Logger.Log($"Update {fontsIni.FilePath}: Remove empty [Fonts] section");
+        }
+
+        return true;
     }
 
     private static List<string> GetFontSections(IniFile fontsIni)
