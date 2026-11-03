@@ -110,6 +110,18 @@ namespace DTAClient.Online
             if (ClientConfiguration.Instance.ClientGameType != ClientType.YR)
                 iniPaths.Add(SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"));
 
+            // Add coop difficulty INIs unless they were already in one of the paths.
+            foreach (var path in ClientConfiguration.Instance.CoopDifficultyINIPaths)
+            {
+                var fullPath = SafePath.CombineFilePath(ProgramConstants.GamePath, path);
+                var dir = SafePath.GetDirectory(Path.GetDirectoryName(fullPath));
+
+                if (iniPaths.Any(x => x.FullName.Equals(dir.FullName)))
+                    continue;
+
+                iniPaths.Add(dir);
+            }
+
             foreach (DirectoryInfo path in iniPaths)
             {
                 if (!path.Exists)
@@ -180,7 +192,6 @@ namespace DTAClient.Online
             }
 
             // Add the hashes for each checked file from the available translations
-
             if (Directory.Exists(ClientConfiguration.Instance.TranslationsFolderPath))
             {
                 DirectoryInfo translationsFolderPath = SafePath.GetDirectory(ClientConfiguration.Instance.TranslationsFolderPath);
