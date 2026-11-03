@@ -82,10 +82,6 @@ Font paths are relative to the directory containing `Fonts.ini`. Both `/` and `\
 
 ### Properties reference
 
-#### `[Fonts]`
-
-The `[Fonts]` section is optional. The legacy `Count` key is ignored and should be removed; font indexes are read from `Font0` onward until the first missing `FontN` section.
-
 #### `[Font#]` properties
 
 | Property | Applies to | Description |
