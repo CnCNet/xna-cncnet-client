@@ -17,7 +17,7 @@ This document lists all the breaking changes and how to address them. Each secti
 
 - The client's font rendering has been updated. Your `Fonts.ini` must be migrated:
   - Per-font `Fallback=N` keys are no longer supported. Move the fallback font files to the new `[FallbackFonts]` section: set `Count` to the number of fallback files and list them as `Fallback0`, `Fallback1`, etc. Paths are relative to the `Fonts.ini` directory, same as `Path`. The fallback list is applied to every TrueType font index. Remove the old `Fallback` keys from the `[FontN]` sections. See [Fonts.md](Fonts.md) for details and examples.
-  - The legacy `[Fonts] Count` key is ignored and should be removed. Font indexes are read starting from `[Font0]` until the first missing `[FontN]` section. The `[Fonts]` section itself is optional; the Migration Tool removes the `Count` key.
+  - The `Count` key in `[Fonts]` section is now ignored and should be removed. Font indexes are read starting from `[Font0]` until the first missing `[FontN]` section.
   - If your mod ships `Fonts.ini` copies in theme or translation folders, migrate every copy following the same steps above.
 - The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
 - Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
