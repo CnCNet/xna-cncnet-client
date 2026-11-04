@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 using SixLabors.ImageSharp;
@@ -1406,6 +1406,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.UserQuitIRC -= RefreshPlayerList;
                 currentChatChannel.UserKicked -= RefreshPlayerList;
                 currentChatChannel.UserListReceived -= RefreshPlayerList;
+                currentChatChannel.ChannelModesChanged -= RefreshPlayerList;
                 currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
@@ -1431,6 +1432,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
             currentChatChannel.UserKicked += RefreshPlayerList;
             currentChatChannel.UserListReceived += RefreshPlayerList;
+            currentChatChannel.ChannelModesChanged += RefreshPlayerList;
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
@@ -1573,7 +1575,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' });
 
-            if (splitMessage.Length != 14)
+            if (splitMessage.Length != 15)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
 
@@ -1704,6 +1706,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
                 }
 
+                int difficulty = int.Parse(splitMessage[14]);
+
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
                 if (cncnetGame == null)
@@ -1722,6 +1726,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.TunnelServer = tunnel;
                 game.SkillLevel = skillLevel;
                 game.BroadcastedGameOptionValues = gameOptionValues;
+                game.Difficulty = difficulty;
 
                 if (isClosed)
                 {
@@ -1803,6 +1808,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void SwitchOff() => Disable();
 
         public string GetSwitchName() => "CnCNet Lobby".L10N("Client:Main:CnCNetLobby");
+
+        /// <summary>Whether the game creation, login or password window is open over the lobby.</summary>
+        public bool HasDialogOpen => ((XNAControl)gameCreationPanel.Tag).Enabled || loginWindow.Enabled || passwordRequestWindow.Enabled;
 
         private bool CanReceiveInvitationMessagesFrom(string username)
         {

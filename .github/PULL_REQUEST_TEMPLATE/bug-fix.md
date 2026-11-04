@@ -3,6 +3,8 @@
 > [!WARNING]
 > A linked bug issue in the same repository is required. Pull requests that do not link an existing bug issue may be closed.
 
+<!-- Do not remove any of the sections below, even if you think they were not applicable. -->
+
 ### Related Issue
 
 Fixes #<issue-number>
@@ -41,4 +43,5 @@ If checked, describe the breaking change:
 
 - [ ] I linked the corresponding bug issue above
 - [ ] This pull request is scoped to one bug fix only
-- [ ] Verifier: I honestly verified the fix by running the client with and without applying this PR. Verifier name: ____. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.
+- [ ] The percentage of human involvement in this PR is ____. If the percentage is below 50%, this PR should be opened as a DRAFT.
+- [ ] Verifier: I honestly verified the fix by running the client with and without applying this PR. Verifier name: ____. The PR proposer should find a verifier. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.

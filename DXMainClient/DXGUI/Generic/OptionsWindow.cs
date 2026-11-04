@@ -1,7 +1,6 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.DXGUI.Generic.OptionPanels;
 using Microsoft.Xna.Framework;
@@ -26,6 +25,14 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public event EventHandler OnForceUpdate;
+
+        private const int DISPLAY_INDEX = 0;
+        private const int AUDIO_INDEX = 1;
+        private const int GAME_INDEX = 2;
+        private const int CNCNET_INDEX = 3;
+        private const int STORAGE_INDEX = 4;
+        private const int UPDATER_INDEX = 5;
+        private const int COMPONENTS_INDEX = 6;
 
         private XNAClientTabControl tabControl;
 
@@ -54,11 +61,11 @@ namespace DTAClient.DXGUI.Generic
             tabControl.AddTab("Audio".L10N("Client:DTAConfig:TabAudio"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Game".L10N("Client:DTAConfig:TabGame"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), UIDesignConstants.BUTTON_WIDTH_92);
 
-            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), UIDesignConstants.BUTTON_WIDTH_92);
-
+            tabControl.SelectedTabIndex = DISPLAY_INDEX;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -85,18 +92,18 @@ namespace DTAClient.DXGUI.Generic
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection, tunnelHandler),
+                new StorageOptionsPanel(WindowManager, UserINISettings.Instance),
                 updaterOptionsPanel,
                 componentsPanel,
-                new StorageOptionsPanel(WindowManager, UserINISettings.Instance),
             };
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {
-                tabControl.MakeUnselectable(4);
-                tabControl.MakeUnselectable(5);
+                tabControl.Tabs[UPDATER_INDEX].Selectable = false;
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
             }
             else if (Updater.CustomComponents == null || Updater.CustomComponents.Count < 1)
-                tabControl.MakeUnselectable(5);
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
 
             foreach (var panel in optionsPanels)
             {
@@ -105,7 +112,7 @@ namespace DTAClient.DXGUI.Generic
                 panel.Disable();
             }
 
-            optionsPanels[0].Enable();
+            optionsPanels[DISPLAY_INDEX].Enable();
 
             AddChild(tabControl);
             AddChild(btnCancel);
@@ -136,8 +143,8 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            optionsPanels[tabControl.SelectedTab].Enable();
-            optionsPanels[tabControl.SelectedTab].RefreshPanel();
+            optionsPanels[tabControl.SelectedTabIndex].Enable();
+            optionsPanels[tabControl.SelectedTabIndex].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -193,6 +200,8 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             bool restartRequired = false;
+            int previousMaxKeptReplays = UserINISettings.Instance.MaxKeptReplays;
+            int previousMaxReplayFolderSizeMB = UserINISettings.Instance.MaxReplayFolderSizeMB;
 
             try
             {
@@ -200,6 +209,12 @@ namespace DTAClient.DXGUI.Generic
                     restartRequired = panel.Save() || restartRequired;
 
                 UserINISettings.Instance.SaveSettings();
+
+                if (previousMaxKeptReplays != UserINISettings.Instance.MaxKeptReplays.Value ||
+                    previousMaxReplayFolderSizeMB != UserINISettings.Instance.MaxReplayFolderSizeMB.Value)
+                {
+                    ReplayManager.Prune();
+                }
             }
             catch (Exception ex)
             {
@@ -288,7 +303,7 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            tabControl.SelectedTab = 5;
+            tabControl.SelectedTabIndex = COMPONENTS_INDEX;
         }
 
         public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);

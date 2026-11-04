@@ -1,8 +1,8 @@
 ﻿using ClientCore;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientGUI;
 using ClientCore.Extensions;
-using ClientCore.Enums;
 using ClientGUI.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -33,6 +33,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
         private XNAClientCheckBox chkShowHiddenObjects;
+        private XNAClientCheckBox chkRecordReplays;
 
         private XNAControl topBar;
 
@@ -83,12 +84,11 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkTargetLines.Name = nameof(chkTargetLines);
             chkTargetLines.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
-                chkScrollCoasting.Bottom + 24, 0, 0);
+                chkScrollCoasting.Bottom + 5, 0, 0);
             chkTargetLines.Text = "Target Lines".L10N("Client:DTAConfig:TargetLines");
 
             chkTooltips = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ToolTips");
             chkTooltips.Name = nameof(chkTooltips);
-            chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
 
             var lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = nameof(lblPlayerName);
@@ -98,7 +98,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Bottom + 24, 0, 0);
+                    chkTargetLines.Bottom + 5, 0, 0);
+                chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
             }
             else
             {
@@ -106,16 +107,17 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkShowHiddenObjects.Name = nameof(chkShowHiddenObjects);
                 chkShowHiddenObjects.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTargetLines.Bottom + 24, 0, 0);
+                    chkTargetLines.Bottom + 5, 0, 0);
                 chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("Client:DTAConfig:YRShowHidden");
 
                 chkTooltips.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkShowHiddenObjects.Bottom + 24, 0, 0);
+                    chkShowHiddenObjects.Bottom + 5, 0, 0);
+                chkTooltips.Text = "Tooltips".L10N("Client:DTAConfig:Tooltips");
 
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
-                    chkTooltips.Bottom + 30, 0, 0);
+                    chkTooltips.Bottom + 11, 0, 0);
 
                 AddChild(chkShowHiddenObjects);
             }
@@ -126,7 +128,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 chkBlackChatBackground.Name = nameof(chkBlackChatBackground);
                 chkBlackChatBackground.ClientRectangle = new Rectangle(
                     chkScrollCoasting.X,
-                    chkTooltips.Bottom + 24, 0, 0);
+                    chkTooltips.Bottom + 5, 0, 0);
                 chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("Client:DTAConfig:TSUseBlackBackgroundChat");
 
                 AddChild(chkBlackChatBackground);
@@ -143,6 +145,22 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 lblPlayerName.ClientRectangle = new Rectangle(
                     lblScrollRate.X,
                     chkAltToUndeploy.Bottom + 30, 0, 0);
+            }
+
+            if (ReplayManager.IsSupported)
+            {
+                chkRecordReplays = new XNAClientCheckBox(WindowManager);
+                chkRecordReplays.Name = nameof(chkRecordReplays);
+                chkRecordReplays.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    lblPlayerName.Y - 6, 0, 0);
+                chkRecordReplays.Text = "Record Replays".L10N("Client:DTAConfig:RecordReplays");
+
+                AddChild(chkRecordReplays);
+
+                lblPlayerName.ClientRectangle = new Rectangle(
+                    lblScrollRate.X,
+                    chkRecordReplays.Bottom + 30, 0, 0);
             }
 
             tbPlayerName = new XNATextBox(WindowManager);
@@ -215,6 +233,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
             tbPlayerName.Text = UserINISettings.Instance.PlayerName;
+
+            if (chkRecordReplays != null)
+                chkRecordReplays.Checked = IniSettings.RecordReplays;
         }
 
         public override bool Save()
@@ -227,6 +248,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
+
+            if (chkRecordReplays != null)
+                IniSettings.RecordReplays.Value = chkRecordReplays.Checked;
 
             return restartRequired;
         }

@@ -3,6 +3,13 @@
 > [!WARNING]
 > This pull request template is for miscellaneous changes that do not fall under the categories of bug fixes or new features. Please ensure that your changes are appropriate for this template.
 
+<!-- Do not remove any of the sections below, even if you think they were not applicable. -->
+
+### Related Issue (Optional)
+
+- [ ] This pull request does not relate to any specific issue.
+- [ ] This pull request closes #<issue-number>
+
 ### What's Changed
 
 <!-- Describe the miscellaneous changes and scope. -->
@@ -29,4 +36,5 @@ If checked, describe the breaking change:
 
 - [ ] This pull request is not a bug fix or a new feature
 - [ ] This pull request is scoped to one miscellaneous change only
-- [ ] Verifier: I honestly verified the implementation by running the client with this PR. Verifier name: ____. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.
+- [ ] The percentage of human involvement in this PR is ____. If the percentage is below 50%, this PR should be opened as a DRAFT.
+- [ ] Verifier: I honestly verified the implementation by running the client with this PR. Verifier name: ____. The PR proposer should find a verifier. The verifier must be a human, not an AI. The verifier can be the same person as the PR proposer.

@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 
 using ClientCore;
-using ClientCore.Enums;
 using ClientCore.Extensions;
 
 using ClientGUI;
@@ -31,8 +30,6 @@ namespace DTAClient.DXGUI.Campaign
         private const int DEFAULT_HEIGHT = 600;
 
         private const string SETTINGS_PATH = "Client/CampaignSettings.ini";
-
-        private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
 
         private static string[] DifficultyIniPaths = new string[]
         {
@@ -482,6 +479,8 @@ namespace DTAClient.DXGUI.Campaign
             spawnIniSettings.AddKey("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
 
             spawnIniSettings.AddKey("IsSinglePlayer", "Yes");
+            // Campaign maps may not contain a display name.
+            spawnIniSettings.AddKey("UIMapName", mission.UntranslatedGUIName);
             spawnIniSettings.AddKey("SidebarHack", ClientConfiguration.Instance.SidebarHack.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("Side", mission.Side.ToString(CultureInfo.InvariantCulture));
             spawnIniSettings.AddKey("BuildOffAlly", mission.BuildOffAlly.ToString(CultureInfo.InvariantCulture));
@@ -508,10 +507,12 @@ namespace DTAClient.DXGUI.Campaign
             // Apply forced options from GameOptions.ini
             ApplyCampaignForcedSpawnIniOptions(spawnIni, gameOptionsIni);
 
+            ReplayManager.PrepareRecording(spawnIni, mission.UntranslatedGUIName);
+
             spawnIni.WriteIniFile();
 
             var difficultyIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, DifficultyIniPaths[trbDifficultySelector.Value]));
-            string difficultyName = DifficultyNames[trbDifficultySelector.Value];
+            string difficultyName = ProgramConstants.DIFFICULTY_NAMES[trbDifficultySelector.Value];
 
             if (copyMapsToSpawnmapINI)
             {
@@ -651,6 +652,8 @@ namespace DTAClient.DXGUI.Campaign
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
             CustomMissionHelper.DeleteSupplementalMissionFiles();
+
+            ReplayManager.Prune();
 
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
             discordHandler.UpdatePresence();

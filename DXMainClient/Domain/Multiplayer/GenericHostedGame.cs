@@ -36,6 +36,8 @@ namespace DTAClient.Domain.Multiplayer
             set => field = ClientConfiguration.Instance.NormalizeSkillLevel(value);
         }
 
+        public int Difficulty { get; set; }
+
         public virtual bool Equals(GenericHostedGame other)
             => string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);
     }

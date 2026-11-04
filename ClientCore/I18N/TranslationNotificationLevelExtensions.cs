@@ -14,7 +14,7 @@ public static class TranslationNotificationLevelExtensions
             if (!Enum.IsDefined(typeof(TranslationNotificationLevel), value))
             {
                 throw new ArgumentOutOfRangeException(nameof(value), string.Format(
-                        "Invalid value for TranslationNotificationLevel: {0}".L10N("Client:ClientCore:InvalidTranslationNotificationLevelValue"), value));
+                        "Invalid value for TranslationStubNotificationLevel: {0}".L10N("Client:ClientCore:InvalidTranslationStubNotificationLevelValue"), value));
             }
 
             return (TranslationNotificationLevel)value;

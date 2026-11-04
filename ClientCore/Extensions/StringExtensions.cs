@@ -86,7 +86,7 @@ public static class StringExtensions
             : Translation.Instance.LookUp(key, defaultValue, notificationLevel);
 
     /// <summary>
-    /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
+    /// Replace special characters with underscores in the filename to avoid conflicts with WIN32API.
     /// </summary>
     /// <param name="defaultValue">The default string value.</param>
     /// <returns>File name without special characters or reserved combinations.</returns>
@@ -95,8 +95,11 @@ public static class StringExtensions
     /// </remarks>
     public static string ToWin32FileName(this string filename)
     {
-        foreach (char ch in "/\\:*?<>|")
+        foreach (char ch in "/\\:*?<>|\"")
             filename = filename.Replace(ch, '_');
+
+        // ASCII control characters (0-31) aren't allowed in file names either.
+        filename = new string(filename.Select(ch => ch < ' ' ? '_' : ch).ToArray());
 
         // If the user is somehow using "con" or any other filename that is
         // reserved by WIN32API, it would be better to rename it.
