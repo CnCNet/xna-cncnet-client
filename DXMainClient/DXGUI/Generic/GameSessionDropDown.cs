@@ -82,8 +82,8 @@ public class GameSessionDropDown : XNAClientDropDown, IGameSessionSetting
     protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
     {
         // shorthand for localization function
-        static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-            => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+        static string Localize(XNAControl control, string attributeName, string defaultValue, TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
+            => Translation.Instance.LookUp(control, attributeName, defaultValue, notificationLevel);
 
         switch (key)
         {

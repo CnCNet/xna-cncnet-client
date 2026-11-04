@@ -28,6 +28,9 @@ namespace DTAClient.DXGUI.Campaign
         public IReadOnlyDictionary<int, Mission> UniqueIDToMissions => CampaignSelector.UniqueIDToMissions;
         public IReadOnlyCollection<Mission> AllMissions => CampaignSelector.AllMissions;
 
+        /// <summary>Whether this window or the campaign selector it opens is showing.</summary>
+        public bool IsOpen => Enabled || CampaignSelector.Enabled;
+
         protected XNAClientButton btnCancel;
         protected XNAClientButton btnShowAllMission;
 

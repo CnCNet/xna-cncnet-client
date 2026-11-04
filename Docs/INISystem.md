@@ -749,7 +749,66 @@ The tag name in `ButtonTag_{TagName}` is matched against mission `Tags` values. 
 
 A `[CampaignForcedSpawnIniOptions]` section in `GameOptions.ini` defines keys that are always written to `spawn.ini` for campaign missions, regardless of UI options. This is separate from the multiplayer `[ForcedSpawnIniOptions]` section. See [GameOptions](#GameOptions).
 
+## KeyboardCommands
+
+The `KeyboardCommands.ini` file defines in-game hotkey commands that the client writes to the game's keyboard INI file, the filename of which is defined as `KeyboardINI` in `[Settings]` section of `ClientDefinitions.ini` file. Each section represents a game command with its default key binding.
+
+The file is located in the `Resources` directory and is read by the Hotkey Configuration window.
+
+In `KeyboardCommands.ini`:
+```ini
+[CommandName]
+UIName=Display name       ; string,  display name for the command in the hotkey configuration UI.
+Category=CategoryName     ; string,  grouping category used in the hotkey configuration UI dropdown.
+Description=Description   ; string,  description text shown in the hotkey configuration UI.
+DefaultKey=0              ; integer, the default TS-encoded key value (low byte = key code, high byte = modifier flags).
+                          ;          Use 0 for commands with no default hotkey.
+DisableModifierKeys=false ; boolean, whether to prevent modifier keys (Ctrl, Shift, Alt) from being combined with this command.
+                          ;          When true, only single keys can be assigned. Defaults to false.
+```
+
+### Command Properties
+
+- **`UIName`** — display name for the command. Supports localization via `INI:Hotkeys:{CommandName}:UIName`.
+- **`Category`** — category used to group commands in the hotkey configuration dropdown. Supports localization via `INI:HotkeyCategories:{Category}`.
+- **`Description`** — description text shown when the command is selected. Supports localization via `INI:Hotkeys:{CommandName}:Description`.
+- **`DefaultKey`** — the default key binding in TS-encoded integer format (`(modifier << 8) + key`). Modifier flags: 0 = None, 1 = Shift, 2 = Ctrl, 4 = Alt. Set to `0` if the command has no default hotkey.
+- **`DisableModifierKeys`** — when `true`, the hotkey configuration window will not allow modifier key combinations for this command. Only a single key (without Ctrl, Shift, or Alt) can be assigned. This is useful for certain commands that do not support modifier-combined hotkeys.
+
+### Example
+
+```ini
+[PlanningMode]
+UIName=Waypoint Mode
+Category=Interface
+Description=Enable waypoint mode.
+DefaultKey=90
+DisableModifierKeys=true
+```
+
 # Global Config Files
+
+## [UserDefaults](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/Settings/UserINISettings.cs)
+> [!NOTE]
+> _TODO work in progress_
+
+The client's user settings file is configured by `SettingsFile` in `ClientDefinitions.ini`. Mod packages can provide initial values for settings that a user has not changed by adding them to `Resources/UserDefaults.ini`.
+
+### Tunnel Settings
+
+The `[MultiPlayer]` section supports these tunnel settings:
+
+```ini
+[MultiPlayer]
+TunnelMode=1   ; 0 = Static (V3), 1 = Dynamic (V3, default), 2 = Legacy (V2)
+EnableP2P=false ; whether dynamic V3 tunnels may be upgraded to direct player-to-player connections
+```
+
+- **Dynamic (V3)** automatically negotiates the best tunnel for each pair of players and does not require the host to select a tunnel manually.
+- **Static (V3)** uses one V3 tunnel that the host selects manually.
+- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions up to, but not including, 2.14.0.
+
+Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode when hosting:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
 
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
 > [!NOTE]
@@ -769,6 +828,20 @@ TrustedDomains=                ; comma-separated list of strings,
 [Settings]
 SaveSkirmishGameOptions=false  ; boolean, whether or not previously used game options in skirmish are saved across client sessions
 SaveCampaignGameOptions=false  ; boolean, whether or not previously used game options in campaign are saved across client sessions
+```
+
+```ini
+[Settings]
+MinimumRenderWidth=1024   ; integer, the minimum internal render width for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MinimumRenderHeight=600   ; integer, the minimum internal render height for the client UI.
+                          ;          If the selected client resolution is smaller, the rendered client is downscaled to fit.
+MaximumRenderWidth=1280   ; integer, the maximum internal render width for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MaximumRenderHeight=720   ; integer, the maximum internal render height for the client UI.
+                          ;          If the selected client resolution is larger, the rendered client is upscaled to fit.
+MinimumClientWidth=800    ; integer, the minimum client resolution width offered in the client resolution selection.
+MinimumClientHeight=600   ; integer, the minimum client resolution height offered in the client resolution selection.
 ```
 
 ```ini
@@ -810,6 +883,46 @@ ShowGameIconInGameList=true ; boolean, whether to show the game icon in the game
 AllowedCustomGameModes=Standard,Custom Map ; comma-separated list of strings,
                                            ; game modes that custom (unofficial) maps are allowed to appear in.
                                            ; Official maps are not affected by this filter.
+```
+
+```ini
+[Settings]
+ReplaySupport=false            ; boolean, enables replay recording and playback for packages with a compatible spawner.
+                               ; The current implementation targets RA2/YR and is off by default.
+ReplaysDirectory=Replays       ; string,  directory, relative to the game directory, that replays are
+                               ; recorded into and listed from.
+ReplayFileExtension=yrrp       ; string,  file extension of replay files, without a leading dot.
+ReleasesURL=                   ; string,  page where players can download other versions of the game package.
+```
+
+```ini
+[ClientLogs]
+MaxKeptLogFiles=20      ; maximum number of timestamped old log files; 0 = unlimited
+MaxLogFolderSizeMB=50   ; maximum combined size of old log files in MB; 0 = unlimited
+```
+
+Game logs are the game's own `debug` folder (Ares, Phobos and spawner logs, and the snapshot folders for crashes and desyncs), pruned at client startup when `ClientGameType` is `Ares`. Each log file or snapshot folder is kept or deleted whole, and the newest is always kept when applying the size limit.
+
+```ini
+[GameLogs]
+MaxGameLogAgeDays=7         ; delete entries not written to for this many days; 0 = never
+MaxGameLogFolderSizeMB=0    ; maximum combined size of the debug folder in MB, oldest deleted first; 0 = unlimited (default)
+```
+
+Packages can provide initial values in `Resources/UserDefaults.ini`; existing user settings take precedence.
+
+```ini
+[SavedGames]
+MaxKeptSavedGames=0           ; maximum number of single-player saved games; 0 = unlimited (default)
+MaxSavedGameFolderSizeMB=0    ; maximum combined size of single-player saved games in MB; 0 = unlimited (default)
+```
+
+```ini
+[Replays]                          ; only used when ReplaySupport=true
+RecordReplays=true                 ; record the player's games to replays
+MaxKeptReplays=50                  ; maximum number of replays; 0 = unlimited
+MaxReplayFolderSizeMB=2048         ; maximum combined size of replays in MB, oldest deleted first; 0 = unlimited
+ReplayKeyframeStorageLimitMB=512   ; maximum size of the seek keyframes written during playback in MB; 0 = unlimited
 ```
 
 ## Game Modes
@@ -864,12 +977,11 @@ The following properties are shared between maps (in `MPMaps.ini` map sections) 
 ```ini
 ; Map section keys:
 [MAP_NAME]
-MinPlayer=                            ; integer,  minimum player count.
-ClientMaxPlayer=                      ; integer,  maximum player count (client-side).
-MaxPlayer=                            ; integer,  maximum player count (game-side).
-EnforceMaxPlayers=                    ; boolean,  whether MaxPlayer is enforced.
-AllowedStartingLocations=             ; comma-separated integers,
-                                      ;           restricts which starting locations can be used.
+ClientMinPlayer=                      ; integer,  minimum player count (client-side). The following alternative key names are also supported: `MinPlayers`, `MinPlayer`.
+ClientMaxPlayer=                      ; integer,  maximum player count (client-side). The following alternative key names are also supported: `MaxPlayers`, `MaxPlayer`.
+EnforceMinPlayers=                    ; boolean,  whether minimum player count is enforced.
+EnforceMaxPlayers=                    ; boolean,  whether maximum player count is enforced.
+AllowedStartingLocations=             ; comma-separated integers, restricts which starting locations can be used. Starts from 0. If not set, all starting locations are allowed.
 IsCoopMission=                        ; boolean,  marks the map as a co-op mission.
 ClientMultiplayerOnly=                ; boolean,  whether the map cannot be played in Skirmish.
 HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
@@ -877,12 +989,13 @@ ForceRandomStartLocations=            ; boolean,  force random starting position
 ForceNoTeams=                         ; boolean,  force no team assignments.
 CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 
-; Game mode section keys (same properties, slightly different names):
+; Game mode section keys:
 [GAME_MODE]
-MinPlayers=                           ; integer,  minimum player count.
-MaxPlayers=                           ; integer,  maximum player count.
-EnforceMaxPlayers=                    ; boolean,  whether MaxPlayers is enforced.
-AllowedStartingLocations=             ; comma-separated integers.
+MinPlayersOverride=                   ; integer,  minimum player count. Has higher priority than Map.ClientMinPlayer.
+MaxPlayersOverride=                   ; integer,  maximum player count. Has higher priority than Map.ClientMaxPlayer.
+EnforceMinPlayers=                    ; boolean,  whether minimum player count is enforced.
+EnforceMaxPlayers=                    ; boolean,  whether maximum player count is enforced.
+AllowedStartingLocations=             ; comma-separated integers, restricts which starting locations can be used. Starts from 0. If not set, all starting locations are allowed.
 IsCoopMission=                        ; boolean,  marks the mode as co-op.
 MultiplayerOnly=                      ; boolean,  whether maps in this mode cannot be played in Skirmish.
 HumanPlayersOnly=                     ; boolean,  whether AI players are forbidden.
@@ -892,8 +1005,8 @@ CoopDifficultyLevel=                  ; integer,  co-op difficulty override.
 ```
 
 Priority resolution for player counts:
-- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.MaxPlayer` > `GameMode.MaxPlayers`
-- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.MinPlayer` > `GameMode.MinPlayers`
+- `MaxPlayers`: `GameMode.MaxPlayersOverride` > `Map.ClientMaxPlayer` > `Map.MaxPlayer`
+- `MinPlayers`: `GameMode.MinPlayersOverride` > `Map.ClientMinPlayer` > `Map.MinPlayer`
 
 ### Map Extra INI
 

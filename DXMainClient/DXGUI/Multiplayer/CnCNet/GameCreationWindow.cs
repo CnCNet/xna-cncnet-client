@@ -37,7 +37,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblPassword;
 
         private XNALabel lblTunnelServer;
+        private XNADropDown ddTunnelMode;
         private TunnelListBox lbTunnelList;
+        private XNAPanel pnlTunnelListDisabledOverlay;
 
         private XNAClientButton btnCreateGame;
         private XNAClientButton btnCancel;
@@ -52,6 +54,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
             lbTunnelList.Name = nameof(lbTunnelList);
+
+            lbTunnelList.TargetVersion = (TunnelMode)UserINISettings.Instance.TunnelMode.Value == TunnelMode.V2Legacy ? 2 : 3;
 
             SkillLevelOptions = ClientConfiguration.Instance.GetSkillLevelOptions();
 
@@ -132,15 +136,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblTunnelServer.Name = nameof(lblTunnelServer);
             lblTunnelServer.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 4, 0, 0);
-            lblTunnelServer.Text = "Tunnel server:".L10N("Client:Main:TunnelServer");
+            lblTunnelServer.Text = "Tunnel mode:".L10N("Client:Main:TunnelModeLabel");
             lblTunnelServer.Enabled = false;
             lblTunnelServer.Visible = false;
 
+            ddTunnelMode = new XNADropDown(WindowManager);
+            ddTunnelMode.Name = nameof(ddTunnelMode);
+            ddTunnelMode.X = lblTunnelServer.X;
+            ddTunnelMode.Y = lblTunnelServer.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
+            ddTunnelMode.Width = 220;
+            ddTunnelMode.Height = UIDesignConstants.BUTTON_HEIGHT;
+            ddTunnelMode.AddItem(new XNADropDownItem { Text = "Dynamic (V3)".L10N("Client:Main:TunnelSelModeDynamic"), Tag = TunnelMode.V3Dynamic });
+            ddTunnelMode.AddItem(new XNADropDownItem { Text = "Static (V3)".L10N("Client:Main:TunnelSelModeStatic"), Tag = TunnelMode.V3Static });
+            ddTunnelMode.AddItem(new XNADropDownItem { Text = "Legacy (V2)".L10N("Client:Main:TunnelSelModeLegacy"), Tag = TunnelMode.V2Legacy });
+            ddTunnelMode.SelectedIndexChanged += DdTunnelMode_SelectedIndexChanged;
+
             lbTunnelList.X = UIDesignConstants.EMPTY_SPACE_SIDES +
                 UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
-            lbTunnelList.Y = lblTunnelServer.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
+            lbTunnelList.Y = ddTunnelMode.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             lbTunnelList.Disable();
             lbTunnelList.ListRefreshed += LbTunnelList_ListRefreshed;
+
+            pnlTunnelListDisabledOverlay = new XNAPanel(WindowManager);
+            pnlTunnelListDisabledOverlay.Name = nameof(pnlTunnelListDisabledOverlay);
+            pnlTunnelListDisabledOverlay.ClientRectangle = lbTunnelList.ClientRectangle;
+            pnlTunnelListDisabledOverlay.DrawBorders = false;
+            pnlTunnelListDisabledOverlay.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            pnlTunnelListDisabledOverlay.Visible = false;
 
             btnCreateGame = new XNAClientButton(WindowManager);
             btnCreateGame.Name = nameof(btnCreateGame);
@@ -175,7 +197,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblPassword);
             AddChild(btnDisplayAdvancedOptions);
             AddChild(lblTunnelServer);
+            AddChild(ddTunnelMode);
             AddChild(lbTunnelList);
+            AddChild(pnlTunnelListDisabledOverlay);
             AddChild(btnCreateGame);
             if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
                 AddChild(btnLoadMPGame);
@@ -229,8 +253,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (!lbTunnelList.IsValidIndexSelected())
-                return;
+            CnCNetTunnel selectedTunnel = null;
+            if ((TunnelMode)UserINISettings.Instance.TunnelMode.Value != TunnelMode.V3Dynamic)
+            {
+                if (!lbTunnelList.IsValidIndexSelected())
+                    return;
+                selectedTunnel = lbTunnelList.GetSelectedTunnel();
+            }
 
             IniFile spawnSGIni =
                 new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
@@ -240,8 +269,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
-                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex], ddSkillLevel.SelectedIndex);
-
+                selectedTunnel, ddSkillLevel.SelectedIndex);
             LoadedGameCreated?.Invoke(this, ea);
         }
 
@@ -257,15 +285,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (!lbTunnelList.IsValidIndexSelected())
+            CnCNetTunnel selectedTunnel = null;
+            if ((TunnelMode)UserINISettings.Instance.TunnelMode.Value != TunnelMode.V3Dynamic)
             {
-                return;
+                if (!lbTunnelList.IsValidIndexSelected())
+                    return;
+                selectedTunnel = lbTunnelList.GetSelectedTunnel();
             }
 
             GameCreated?.Invoke(this,
-                new GameCreationEventArgs(gameName,int.Parse(ddMaxPlayers.SelectedItem.Text),
-                tbPassword.Text,tunnelHandler.Tunnels[lbTunnelList.SelectedIndex],
-                ddSkillLevel.SelectedIndex)
+                new GameCreationEventArgs(gameName, int.Parse(ddMaxPlayers.SelectedItem.Text),
+                    tbPassword.Text, selectedTunnel, ddSkillLevel.SelectedIndex)
             );
         }
 
@@ -286,17 +316,67 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
 
             lblTunnelServer.Enable();
-            lbTunnelList.Enable();
+            ddTunnelMode.Enable();
+            lbTunnelList.Visible = true;
+
             btnDisplayAdvancedOptions.Disable();
 
             SetAttributesFromIni();
+
+            UpdateTunnelListState();
 
             CenterOnParent();
         }
 
         public void Refresh()
         {
+            bool isAdvancedMode = Name == "GameCreationWindow_Advanced";
+
+            lblTunnelServer.Visible = isAdvancedMode;
+            ddTunnelMode.Visible = isAdvancedMode;
+            lbTunnelList.Visible = isAdvancedMode;
+            btnDisplayAdvancedOptions.Visible = !isAdvancedMode;
+
+            var mode = (TunnelMode)UserINISettings.Instance.TunnelMode.Value;
+            int selectedIndex = ddTunnelMode.Items.FindIndex(i => (TunnelMode)i.Tag == mode);
+            if (selectedIndex == -1)
+                selectedIndex = ddTunnelMode.Items.FindIndex(i => (TunnelMode)i.Tag == TunnelMode.V3Static);
+            ddTunnelMode.SelectedIndex = selectedIndex;
+
+            DdTunnelMode_SelectedIndexChanged(this, EventArgs.Empty);
+
             btnLoadMPGame.AllowClick = AllowLoadingGame();
+        }
+
+        private TunnelMode GetSelectedMode() => (TunnelMode)(ddTunnelMode.SelectedItem?.Tag ?? TunnelMode.V3Static);
+
+        /// <summary>
+        /// Applies the tunnel list's enabled state and the "disabled" dimming overlay for the
+        /// currently selected tunnel mode. The overlay is only shown when the tunnel list itself
+        /// is displayed, otherwise it would be drawn over the non-advanced window.
+        /// </summary>
+        private void UpdateTunnelListState()
+        {
+            bool isDynamic = GetSelectedMode() == TunnelMode.V3Dynamic;
+
+            lbTunnelList.Enabled = !isDynamic;
+            pnlTunnelListDisabledOverlay.Visible = isDynamic && lbTunnelList.Visible;
+        }
+
+        private void DdTunnelMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var mode = GetSelectedMode();
+
+            UpdateTunnelListState();
+            lbTunnelList.TargetVersion = mode == TunnelMode.V2Legacy ? 2 : 3;
+
+            if ((TunnelMode)UserINISettings.Instance.TunnelMode.Value != mode)
+            {
+                UserINISettings.Instance.TunnelMode.Value = (int)mode;
+                UserINISettings.Instance.SaveSettings();
+            }
+
+            LbTunnelList_ListRefreshed(this, EventArgs.Empty);
         }
 
         private bool AllowLoadingGame()

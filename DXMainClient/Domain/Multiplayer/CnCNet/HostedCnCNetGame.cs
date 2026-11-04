@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -25,15 +26,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             MapHash = mapHash;
         }
 
-        public string ChannelName { get; set; }
-        public string Revision { get; set; }
+        public string? ChannelName { get; set; }
+        public string? Revision { get; set; }
         public bool Tunneled { get; set; }
         public bool IsLadder { get; set; }
-        public string MatchID { get; set; }
-        public CnCNetTunnel TunnelServer { get; set; }
-        public int[] BroadcastedGameOptionValues { get; set; }
+        public string? MatchID { get; set; }
+        public CnCNetTunnel? TunnelServer { get; set; }
+        public int[]? BroadcastedGameOptionValues { get; set; }
 
-        public override int Ping => TunnelServer.PingInMs;
+        public override PingValue Ping => TunnelServer?.Ping ?? PingValue.Unknown;
 
         public override bool Equals(GenericHostedGame other)
             => other is HostedCnCNetGame hostedCnCNetGame

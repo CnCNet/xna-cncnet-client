@@ -70,7 +70,7 @@ public static class StringExtensions
     /// </summary>
     /// <param name="defaultValue">The default string value as a fallback.</param>
     /// <param name="key">The unique key name.</param>
-    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
+    /// <param name="notificationLevel">The notification level of this key-value pair.</param>
     /// <returns>The translated string value.</returns>
     /// <remarks>
     /// This method is referenced by <c>TranslationNotifierGenerator</c> in order to check if the const
@@ -79,13 +79,14 @@ public static class StringExtensions
     /// of the namespace it's currently defined in. If you do - you have to also edit the generator
     /// source code to match.
     /// </remarks>
-    public static string L10N(this string defaultValue, string key, bool notify = true)
+    public static string L10N(this string defaultValue, string key,
+        TranslationNotificationLevel notificationLevel = TranslationNotificationLevel.Default)
         => string.IsNullOrEmpty(defaultValue)
             ? defaultValue
-            : Translation.Instance.LookUp(key, defaultValue, notify);
+            : Translation.Instance.LookUp(key, defaultValue, notificationLevel);
 
     /// <summary>
-    /// Replace special characters with spaces in the filename to avoid conflicts with WIN32API.
+    /// Replace special characters with underscores in the filename to avoid conflicts with WIN32API.
     /// </summary>
     /// <param name="defaultValue">The default string value.</param>
     /// <returns>File name without special characters or reserved combinations.</returns>
@@ -94,8 +95,11 @@ public static class StringExtensions
     /// </remarks>
     public static string ToWin32FileName(this string filename)
     {
-        foreach (char ch in "/\\:*?<>|")
+        foreach (char ch in "/\\:*?<>|\"")
             filename = filename.Replace(ch, '_');
+
+        // ASCII control characters (0-31) aren't allowed in file names either.
+        filename = new string(filename.Select(ch => ch < ' ' ? '_' : ch).ToArray());
 
         // If the user is somehow using "con" or any other filename that is
         // reserved by WIN32API, it would be better to rename it.

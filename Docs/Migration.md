@@ -1,9 +1,28 @@
 # Migrating from older versions
 
+> [!NOTE]
+> CnCNet has a program called `Migration Tool` that implements all the instructions described down below notices to automate the migration process.
+> To use this tool, download the latest nightly build and run `Resources\BinariesNET8\MigrationTool\MigrationTool.exe` with older client path as the first argument. 
+> 
+> Example: `MigrationTool.exe C:\TiberianSunClient`
+> 
+> It is recommended that you back up the client configuration before running the migration tool.
+
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
+
+## 3.0
+
+- The client's font rendering has been updated. Your `Fonts.ini` must be migrated:
+  - Per-font `Fallback=N` keys are no longer supported. Move the fallback font files to the new `[FallbackFonts]` section: set `Count` to the number of fallback files and list them as `Fallback0`, `Fallback1`, etc. Paths are relative to the `Fonts.ini` directory, same as `Path`. The fallback list is applied to every TrueType font index. Remove the old `Fallback` keys from the `[FontN]` sections. See [Fonts.md](Fonts.md) for details and examples.
+  - The `Count` key in `[Fonts]` section is now ignored and should be removed. Font indexes are read starting from `[Font0]` until the first missing `[FontN]` section.
+  - If your mod ships `Fonts.ini` copies in theme or translation folders, migrate every copy following the same steps above.
+- The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
+- Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
+- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly.
+- Brought by our regular UI library updates, element alignment can differ slightly. Check labels, buttons, list boxes and drop-downs for clipping or misalignment after upgrading.
 
 ## 2.13.0
 
