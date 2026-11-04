@@ -26,7 +26,7 @@ namespace DTAClient.Domain.Multiplayer
         private static bool inGame;
         private static CancellationTokenSource? activeCancellation;
         private static string? activeHash;
-        private static readonly MapPreviewDiskCache Cache = new(CacheDirectory, new ExternalMapPreviewExtractor());
+        private static readonly MapPreviewDiskCache Cache = new(CacheDirectory);
         private static string Root => ProgramConstants.GamePath;
         internal static string CacheDirectory => Path.Combine(Root, "Client", "MapPreviewCache");
         public static event Action<Map, bool, string?>? Completed;
@@ -109,8 +109,8 @@ namespace DTAClient.Domain.Multiplayer
             _ = Task.Run(PruneAsync);
         }
 
-        public static string? CachedImage(Map map) => CachedSource(map)?.ImmediateImagePath;
-        internal static MapPreviewSource? CachedSource(Map map) => Selected ? Cache.Read(map) : null;
+        /// <summary>The cached generated preview to show for the map, or null if none or not selected.</summary>
+        internal static string? CachedImagePath(Map map) => Selected ? Cache.Read(map) : null;
 
         /// <summary>Records the map a view now shows and renders it if needed.
         /// A render that no view shows any more is cancelled, or skipped if still queued.</summary>
@@ -158,7 +158,8 @@ namespace DTAClient.Domain.Multiplayer
                     var options = new MapPreviewRenderOptions(Root, RendererPath,
                         config.MapRendererArguments, config.MapRendererVersion,
                         config.MapRendererWidth, config.MapRendererHeight, config.MapRendererTimeoutSeconds);
-                    changed = await Cache.GenerateAsync(map, options, force,
+                    var extractor = new ExternalMapPreviewExtractor(options, Cache.StagingPath, cancellation.Token);
+                    changed = Cache.Generate(map, options, extractor, force,
                         () => Progress?.Invoke(map, true),
                         publish =>
                         {
@@ -168,7 +169,7 @@ namespace DTAClient.Domain.Multiplayer
                                 publish();
                                 return true;
                             }
-                        }, cancellation.Token).ConfigureAwait(false);
+                        }, cancellation.Token);
                     return changed;
                 }
                 catch (OperationCanceledException) { return false; }

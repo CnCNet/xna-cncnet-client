@@ -474,7 +474,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
             mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map,
-                syncLoadOnCacheMiss: true, preferGenerated: MapPreviewGenerationService.Selected, out var previewSource)
+                syncLoadOnCacheMiss: true, preferGenerated: MapPreviewGenerationService.Selected, out bool isGeneratedPreview)
                 // This null case indicates a "hidden preview", where the map itself intends not to show a preview, so we just show a black box instead of no texture at all.
                 // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
                 ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2))
@@ -517,12 +517,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
-            useNearestNeighbour = !previewSource.IsGenerated && ratio < 1.0;
+            useNearestNeighbour = !isGeneratedPreview && ratio < 1.0;
 
             textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
 
-            List<Point> startingLocations = previewSource.GetStartingLocationPreviewCoords(new Point(mapPreviewTexture.Width, mapPreviewTexture.Height));
+            var previewSize = new Point(mapPreviewTexture.Width, mapPreviewTexture.Height);
+            List<Point> startingLocations = isGeneratedPreview
+                ? GameModeMap.Map.CalculateStartingLocationPreviewCoords(previewSize)
+                : GameModeMap.Map.GetStartingLocationPreviewCoords(previewSize);
 
             // Disable all indicators to be able updated after changing
             // locations when 2 or more of them have same location (RA1 specifics)
@@ -558,7 +561,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // so we don't need to cache the textures manually
                 Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
                 Point location = PreviewTexturePointToControlAreaPoint(
-                    previewSource.MapPointToMapPreviewPoint(mapExtraTexture.Point,
+                    GameModeMap.Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
                     new Point(mapPreviewTexture.Width - (extraTexture.Width / 2),
                               mapPreviewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
                               ratio);

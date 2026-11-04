@@ -6,19 +6,69 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 using Rampastring.Tools;
 
+using SixLabors.ImageSharp;
+
 namespace DTAClient.Domain.Multiplayer;
 
-/// <summary>Runs a configured executable. It has no map registry, UI state or cache policy.</summary>
-internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
+/// <summary>
+/// Renders a map preview by running the mod's configured renderer executable.
+/// Blocks until the renderer exits, so it must not be called on the UI thread.
+/// </summary>
+internal sealed class ExternalMapPreviewExtractor : IMapPreviewExtractor
 {
-    public Task ExtractAsync(MapPreviewRenderOptions options, string mapPath, string outputPath,
-        CancellationToken cancellationToken) => Task.Run(() =>
+    private const int MaxImageDimension = 8192;
+
+    private readonly MapPreviewRenderOptions options;
+    private readonly string stagingDirectory;
+    private readonly CancellationToken cancellationToken;
+
+    /// <param name="stagingDirectory">Folder for per-render work folders, deleted after each render.</param>
+    public ExternalMapPreviewExtractor(MapPreviewRenderOptions options, string stagingDirectory,
+        CancellationToken cancellationToken)
+    {
+        this.options = options;
+        this.stagingDirectory = stagingDirectory;
+        this.cancellationToken = cancellationToken;
+    }
+
+    /// <returns>The rendered image, or null if the renderer exited without writing one.</returns>
+    /// <exception cref="OperationCanceledException">The render was cancelled.</exception>
+    /// <exception cref="IOException">The renderer failed, timed out or wrote an unusable image.</exception>
+    public Image? ExtractMapPreview(string mapFilePath)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Each render works in its own folder, so everything the renderer writes is removed together.
+        string workDirectory = Path.Combine(stagingDirectory, Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(workDirectory);
+        try
+        {
+            string outputPath = Path.Combine(workDirectory, "preview.png");
+            RunRenderer(mapFilePath, outputPath);
+
+            if (!File.Exists(outputPath))
+                return null;
+
+            IImageInfo info = Image.Identify(outputPath)
+                ?? throw new IOException("Map renderer output is not a supported image.");
+            if (info.Width <= 0 || info.Height <= 0 || info.Width > MaxImageDimension || info.Height > MaxImageDimension)
+                throw new IOException($"Map renderer output has unsupported dimensions {info.Width}x{info.Height}.");
+
+            return Image.Load(outputPath);
+        }
+        finally
+        {
+            try { Directory.Delete(workDirectory, true); }
+            catch (IOException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
+            catch (UnauthorizedAccessException e) { Logger.Log("Map preview staging cleanup: " + e.Message); }
+        }
+    }
+
+    private void RunRenderer(string mapPath, string outputPath)
+    {
         // Substitute in one pass so a path containing e.g. "{output}" is not expanded again.
         string arguments = Regex.Replace(options.Arguments, @"\{(game|map|output|width|height)\}", match => match.Groups[1].Value switch
         {
@@ -60,26 +110,22 @@ internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
             process.WaitForExit();
             throw new IOException("Map renderer timed out.");
         }
-        process.WaitForExit(); // Drain redirected output on a worker, never the UI thread.
+        process.WaitForExit(); // Drains the redirected output.
         cancellationToken.ThrowIfCancellationRequested();
         if (process.ExitCode != 0)
             throw new IOException("Map renderer exit code " + process.ExitCode + ": " + messages);
-    }, cancellationToken);
+    }
 
     // The process may exit between the check and the kill, so failures here are expected.
     private static void Kill(Process process)
     {
         try
         {
-            if (process.HasExited) return;
-#if NETFRAMEWORK
-            process.Kill(); // .NET Framework cannot kill the process tree; child processes of the renderer survive.
-#else
-            process.Kill(entireProcessTree: true);
-#endif
+            if (!process.HasExited)
+                process.Kill(entireProcessTree: true); // Polyfill provides this on .NET Framework.
         }
         catch (InvalidOperationException) { }
-        catch (System.ComponentModel.Win32Exception e) { Logger.Log("Map renderer termination: " + e.Message); }
+        catch (Exception e) { Logger.Log("Map renderer termination: " + e.Message); }
     }
 
     // Quote one argument, including trailing backslashes, without invoking a shell.
@@ -95,5 +141,4 @@ internal sealed class ExternalMapPreviewExtractor : IExternalMapPreviewExtractor
         }
         result.Append('\\', slashes * 2); return result.Append('"').ToString();
     }
-
 }

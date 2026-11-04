@@ -826,49 +826,45 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss = false)
-            => GetPreviewTextureFromMap(map, syncLoadOnCacheMiss, false, out _);
-
-        internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss,
-            bool preferGenerated, out MapPreviewSource source)
         {
-            if (map == null)
-            {
-                source = null;
+            if (map?.IsImmediatePreviewImageAvailable() ?? false)
+                return AssetLoader.LoadTextureUncached(map.PreviewPath);
+
+            using var cacheLease = GetCachedPreviewImageFromMap(map, syncLoadOnCacheMiss);
+
+            if (cacheLease != null)
+                return AssetLoader.TextureFromImage(cacheLease.Value);
+            else
                 return null;
-            }
-            source = (preferGenerated ? MapPreviewGenerationService.CachedSource(map) : null)
-                ?? map.ResolveOriginalPreviewSource();
-            try
-            {
-                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
-            }
-            catch (Exception e) when (source.IsGenerated)
-            {
-                Logger.Log("Cannot load generated map preview: " + e.Message);
-                source = map.ResolveOriginalPreviewSource();
-                return LoadPreviewTexture(source, syncLoadOnCacheMiss);
-            }
         }
 
-        private Texture2D LoadPreviewTexture(MapPreviewSource source, bool syncLoadOnCacheMiss)
+        /// <summary>
+        /// Loads the generated preview when <paramref name="preferGenerated"/> is set and one is cached,
+        /// otherwise the original preview.
+        /// </summary>
+        internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss, bool preferGenerated, out bool isGenerated)
         {
-            // Generated PNGs are not assets: AssetLoader names are relative to its search
-            // paths, so load these directly from their absolute cache path.
-            if (source.IsGenerated)
+            isGenerated = false;
+            string generatedPath = map != null && preferGenerated ? MapPreviewGenerationService.CachedImagePath(map) : null;
+
+            if (generatedPath != null)
             {
-                using Image image = Image.Load(source.ImmediateImagePath);
-                return AssetLoader.TextureFromImage(image)
-                    ?? throw new IOException("Cannot create texture from " + source.ImmediateImagePath);
+                try
+                {
+                    // Generated previews live in the cache folder, not in the asset search paths.
+                    using Image image = Image.Load(generatedPath);
+                    Texture2D texture = AssetLoader.TextureFromImage(image)
+                        ?? throw new IOException("Cannot create texture from " + generatedPath);
+                    isGenerated = true;
+                    return texture;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log("Cannot load generated map preview: " + e.Message);
+                }
             }
 
-            // Original nearby PNGs keep the relative-path asset lookup.
-            if (source.ImmediateImagePath != null)
-                return AssetLoader.LoadTextureUncached(source.ImmediateImagePath);
-
-            // Embedded PreviewPack extraction stays under the existing LRU,
-            // background queue, hidden-preview null cache and reference leases.
-            using var cacheLease = GetCachedPreviewImageFromMap(source.Map, syncLoadOnCacheMiss);
-            return cacheLease == null ? null : AssetLoader.TextureFromImage(cacheLease.Value);
+            return GetPreviewTextureFromMap(map, syncLoadOnCacheMiss);
         }
 
         public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)

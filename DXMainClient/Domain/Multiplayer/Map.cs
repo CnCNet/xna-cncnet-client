@@ -402,8 +402,8 @@ namespace DTAClient.Domain.Multiplayer
             return startingLocations;
         }
 
-        // Views with different source-image sizes must not replace the shared
-        // original-image coordinate cache (e.g. lobby HD versus game list SD).
+        // Uncached, for a generated preview whose size differs from the original image.
+        // Caching it would hand HD coordinates to views showing the original preview.
         internal List<Point> CalculateStartingLocationPreviewCoords(Point previewSize)
         {
             var result = new List<Point>();
@@ -600,13 +600,6 @@ namespace DTAClient.Domain.Multiplayer
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, string.Empty)));
             }
         }
-
-        /// <summary>
-        /// Resolve the original preview source without changing shared map state:
-        /// a nearby PNG if there is one, otherwise the embedded PreviewPack.
-        /// </summary>
-        internal MapPreviewSource ResolveOriginalPreviewSource()
-            => new MapPreviewSource(this, IsImmediatePreviewImageAvailable() ? PreviewPath : null);
 
         public bool IsImmediatePreviewImageAvailable() => !string.IsNullOrWhiteSpace(PreviewPath) && SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists;
 
