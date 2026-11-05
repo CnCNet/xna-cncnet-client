@@ -36,20 +36,23 @@ internal abstract class Patch
         Logger.Log($"Applying patch for client version {ClientVersion.ToString().Replace('_', '.')}...");
     }
 
-    public Patch AddKeyWithLog(IniFile src, string section, string key, string value)
+    public Patch AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
-        string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
-
-        while (!string.IsNullOrEmpty(baseSectionName))
+        if (recursive)
         {
-            string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
-            if (!string.IsNullOrEmpty(baseValue))
-            {
-                Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist in base section [{baseSectionName}]->{key}={baseValue}");
-                return this;
-            }
+            string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
 
-            baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
+            while (!string.IsNullOrEmpty(baseSectionName))
+            {
+                string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
+                if (!string.IsNullOrEmpty(baseValue))
+                {
+                    Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist in base section [{baseSectionName}]->{key}={baseValue}");
+                    return this;
+                }
+
+                baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
+            }
         }
 
         if (src.KeyExists(section, key))
@@ -149,7 +152,7 @@ internal abstract class Patch
         desSection ??= srcSection;
 
         srcIni.GetSectionKeys(srcSection)
-            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty)));
+            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty), recursive: false));
 
         return this;
     }
