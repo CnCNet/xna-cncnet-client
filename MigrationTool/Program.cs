@@ -1,8 +1,8 @@
 using System;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 using Microsoft.VisualBasic.FileIO;
 
@@ -12,48 +12,7 @@ namespace MigrationTool;
 
 internal sealed class Program
 {
-    private const string ERROR_MESSAGE = "Unknown arguments detected. Use -h argument to print help information.";
-    private const string HELP_MESSAGE =
-        """
-        CnCNet Client Migration Tool
-        Experimental utility for migrating CnCNet client configuration files.
-
-        Usage:
-            MigrationTool <client-directory>
-            MigrationTool <client-directory> [-p <version>]
-            MigrationTool <client-directory> [--patch <version>]
-            MigrationTool --patch-list
-            MigrationTool -h
-
-        Arguments:
-            <client-directory>     Path to the client directory.
-
-        Options:
-            -p, --patch <version>  Apply only the specified migration patch.
-                                   If omitted, all configured patches are applied
-                                   in sequence.
-
-                                   Dots and underscores are accepted in version names.
-                                   A leading 'v' is optional.
-                                   The specified patch must be included in this build.
-
-            --patch-list           Show list of available client versions to use.
-
-            -h, --help, -?, /?, /h
-                                   Display this help.
-
-        Notes:
-            - MigrationTool.log is written to the current working directory.
-            - Before applying patches, the tool creates <client-directory>_backup.
-            - If that backup directory already exists, it is kept without updating it.
-
-        Examples:
-            MigrationTool.exe "..\Games\Client"
-            MigrationTool.exe "C:\Path\To\Client" -p 2.11.0
-            ./MigrationTool "/home/user/games/clientConfig"
-        """;
-
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
         // Initialize logger
         DirectoryInfo baseDirectory = SafePath.GetDirectory(Directory.GetCurrentDirectory());
@@ -66,81 +25,92 @@ internal sealed class Program
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
-        // Check arguments
-        switch (args.Length)
+        var clientDirectoryArgument = new Argument<string>("client-directory")
         {
-            case 1:
-            case 3:
-                string arg = args[0].Trim();
+            Description = "Path to the client directory. Required unless --patch-list is specified.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+        var patchOption = new Option<string?>("--patch", "-p")
+        {
+            Description = "Apply only the specified migration patch. If omitted, all configured patches are applied in sequence. " +
+                "Dots and underscores are accepted in version names. A leading 'v' is optional. " +
+                "The specified patch must be included in this build.",
+            HelpName = "version"
+        };
+        var patchListOption = new Option<bool>("--patch-list")
+        {
+            Description = "Show list of available client versions to use."
+        };
+        var rootCommand = new RootCommand(
+            """
+            CnCNet Client Migration Tool
+            Experimental utility for migrating CnCNet client configuration files.
 
-                if (arg is "-h"
-                    or "--help"
-                    or "-?"
-                    or "/?"
-                    or "/h")
-                {
-                    Console.WriteLine(HELP_MESSAGE);
-                    return;
-                }
+            Notes:
+                - MigrationTool.log is written to the current working directory.
+                - Before applying patches, the tool creates <client-directory>_backup.
+                - If that backup directory already exists, it is kept without updating it.
 
-                if (arg is "--patch-list")
-                {
-                    StringBuilder sb = new();
-                    var patchNames = Enum.GetValues(typeof(Version));
-                    for (int i = 0; i < patchNames.Length; i++)
-                    {
-                        sb.Append(patchNames.GetValue(i).ToString().Replace('_', '.') + (i == (patchNames.Length - 1) ? " " : ", "));
-                    }
+            Examples:
+                MigrationTool.exe "..\Games\Client"
+                MigrationTool.exe "C:\Path\To\Client" -p 2.11.0
+                ./MigrationTool "/home/user/games/clientConfig"
+            """)
+        {
+            clientDirectoryArgument,
+            patchOption,
+            patchListOption
+        };
 
-                    Console.WriteLine("List of available versions: " + sb.ToString());
+        rootCommand.Validators.Add(result =>
+        {
+            if (!result.GetValue(patchListOption) && result.GetValue(clientDirectoryArgument) == null)
+                result.AddError("A client directory is required unless --patch-list is specified.");
+        });
+        rootCommand.SetAction(result =>
+        {
+            if (result.GetValue(patchListOption))
+            {
+                Console.WriteLine("List of available versions: " + string.Join(", ", Enum.GetNames(typeof(Version)).Select(name => name.Replace('_', '.'))));
 
-                    return;
-                }
+                return;
+            }
 
-                var clientDir = args[0];
+            MigrateClient(result.GetValue(clientDirectoryArgument)!, result.GetValue(patchOption)?.Trim().ToLowerInvariant());
+        });
 
-                if (!SafePath.GetDirectory(clientDir).Exists)
-                {
-                    Logger.Log($"Unable to find \"{clientDir}\" folder. Migration halted.");
-                    return;
-                }
+        // Supply the executable token explicitly to preserve directories named MigrationTool.
+        return rootCommand.Parse(new[] { rootCommand.Name }.Concat(args).ToArray()).Invoke();
+    }
 
-                if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir, "Resources", "ClientDefinitions.ini")).Exists)
-                {
-                    Logger.Log($"Unable to find \"{clientDir}\\Resources\\ClientDefinitions.ini\". Migration halted.");
-                    return;
-                }
+    private static void MigrateClient(string clientDir, string? versionName)
+    {
+        if (!SafePath.GetDirectory(clientDir).Exists)
+        {
+            Logger.Log($"Unable to find \"{clientDir}\" folder. Migration halted.");
 
-                string? versionName = null;
-                if (args.Length == 3 && (args[1] == "--patch" || args[1] == "-p"))
-                {
-                    versionName = args[2].Trim().ToLower();
-                }
-                else if (args.Length > 1)
-                {
-                    Console.WriteLine(HELP_MESSAGE);
-                    return;
-                }
-
-                Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
-                Logger.Log("Press any key to begin migration.");
-                Console.ReadKey();
-
-                if (!Directory.Exists(clientDir + "_backup"))
-                {
-                    Logger.Log($"Creating backup: {clientDir + "_backup"}");
-                    FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
-                    Logger.Log("Backup created.");
-                }
-
-                PatchConfigs(clientDir, versionName);
-
-                break;
-            case 0:
-            default:
-                Console.WriteLine(ERROR_MESSAGE);
-                break;
+            return;
         }
+
+        if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir, "Resources", "ClientDefinitions.ini")).Exists)
+        {
+            Logger.Log($"Unable to find \"{clientDir}\\Resources\\ClientDefinitions.ini\". Migration halted.");
+
+            return;
+        }
+
+        Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
+        Logger.Log("Press any key to begin migration.");
+        Console.ReadKey();
+
+        if (!Directory.Exists(clientDir + "_backup"))
+        {
+            Logger.Log($"Creating backup: {clientDir + "_backup"}");
+            FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
+            Logger.Log("Backup created.");
+        }
+
+        PatchConfigs(clientDir, versionName);
     }
 
     private static void PatchConfigs(string clientDir, string? versionName = null)
