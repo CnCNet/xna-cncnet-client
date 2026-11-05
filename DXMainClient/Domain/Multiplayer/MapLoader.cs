@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -13,13 +10,12 @@ using ClientCore;
 using ClientCore.Caching;
 using ClientCore.Extensions;
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
-using Image = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -43,22 +39,16 @@ namespace DTAClient.Domain.Multiplayer
             .Select(version => SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, GetCustomMapCacheFileName(version)))
             .ToList();
 
-        private const int CurrentMapTileLevelCacheVersion = 1;
-        private static readonly string MAP_TILE_LEVEL_CACHE = SafePath.CombineFilePath(
-            ProgramConstants.ClientUserFilesPath, $"map_tile_levels_v{CurrentMapTileLevelCacheVersion}");
-
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
         private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
         private MapFileWatcher mapFileWatcher;
         private readonly object mapModificationLock = new object();
-        private readonly object tileLevelCacheLock = new object();
         private const int _mapChangeRetryCount = 3;
 
-        private bool _tileLevelSupportLoaded;
-        private IReadOnlyList<AutoMapOverlayDefinition> _autoMapOverlayDefs = Array.Empty<AutoMapOverlayDefinition>();
-        private MapTileLevelCache _mapTileLevelCache;
+        private readonly Lazy<MapTileDataCache> tileDataCache = new(() => MapTileDataCache.Load(
+            AutoMapOverlayDefinition.ParseSection(ClientConfiguration.Instance.GetAutoMapOverlaysSection())));
 
         // Mutable buffer used only during the initial map-loading pass. After
         // LoadMapsInternalAsync publishes the first snapshot, it is set to null
@@ -161,15 +151,14 @@ namespace DTAClient.Domain.Multiplayer
 
             IniFile mpMapsIni = new IniFile(mpMapsPath);
 
-            EnsureTileLevelSupportLoaded();
-
             LoadGameModes(mpMapsIni);
             LoadGameModeAliases(mpMapsIni);
             // LoadMultiMapsAsync and LoadCustomMapsAsync both modify the game mode map collection. We intend to keep the collection non-thread-safe for performance, so the two methods must not be called simultaneously.
-            await LoadMultiMapsAsync(mpMapsIni, _mapTileLevelCache, _autoMapOverlayDefs);
-            await LoadCustomMapsAsync(_mapTileLevelCache, _autoMapOverlayDefs);
+            await LoadMultiMapsAsync(mpMapsIni);
+            await LoadCustomMapsAsync();
 
-            SaveTileLevelCache();
+            tileDataCache.Value.RemoveUnused();
+            tileDataCache.Value.Save();
 
             Logger.Log("MapLoader: Post-processing game mode map collections.");
             PublishSnapshot(_initialGameModes);
@@ -238,8 +227,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (success && map != null)
                 {
-                    ApplyTileLevelDataToMap(map, _mapTileLevelCache, _autoMapOverlayDefs);
-                    SaveTileLevelCache();
+                    tileDataCache.Value.Apply(map);
+                    tileDataCache.Value.Save();
 
                     lock (mapModificationLock)
                     {
@@ -301,8 +290,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (success && newMap != null)
                 {
-                    ApplyTileLevelDataToMap(newMap, _mapTileLevelCache, _autoMapOverlayDefs);
-                    SaveTileLevelCache();
+                    tileDataCache.Value.Apply(newMap);
+                    tileDataCache.Value.Save();
 
                     lock (mapModificationLock)
                     {
@@ -355,7 +344,8 @@ namespace DTAClient.Domain.Multiplayer
                 if (string.IsNullOrEmpty(baseFilePath))
                     return;
 
-                RemoveTileLevelCacheEntry(baseFilePath);
+                tileDataCache.Value.Remove(baseFilePath);
+                tileDataCache.Value.Save();
 
                 lock (mapModificationLock)
                 {
@@ -440,8 +430,7 @@ namespace DTAClient.Domain.Multiplayer
 
         private List<GameMode> CloneGameModeSnapshot() => GameModes.Select(gameMode => gameMode.Clone()).ToList();
 
-        private async Task LoadMultiMapsAsync(IniFile mpMapsIni, MapTileLevelCache tileLevelCache,
-            IReadOnlyList<AutoMapOverlayDefinition> autoOverlayDefs)
+        private async Task LoadMultiMapsAsync(IniFile mpMapsIni)
         {
             List<string> keys = mpMapsIni.GetSectionKeys(MultiMapsSection);
 
@@ -469,7 +458,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (!map.InitializeFromMpMapsINI(mpMapsIni))
                         return null;
 
-                    ApplyTileLevelDataToMap(map, tileLevelCache, autoOverlayDefs);
+                    tileDataCache.Value.Apply(map);
 
                     return map;
                 }
@@ -528,8 +517,7 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        private async Task LoadCustomMapsAsync(MapTileLevelCache tileLevelCache,
-            IReadOnlyList<AutoMapOverlayDefinition> autoOverlayDefs)
+        private async Task LoadCustomMapsAsync()
         {
             DirectoryInfo customMapsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, CUSTOM_MAPS_DIRECTORY);
 
@@ -582,7 +570,7 @@ namespace DTAClient.Domain.Multiplayer
                         customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
                     }
 
-                    ApplyTileLevelDataToMap(map, tileLevelCache, autoOverlayDefs);
+                    tileDataCache.Value.Apply(map);
 
                     return normalizedPath;
                 })).ToArray();
@@ -730,9 +718,8 @@ namespace DTAClient.Domain.Multiplayer
 
             if (map.InitializeFromCustomMap())
             {
-                EnsureTileLevelSupportLoaded();
-                ApplyTileLevelDataToMap(map, _mapTileLevelCache, _autoMapOverlayDefs);
-                SaveTileLevelCache();
+                tileDataCache.Value.Apply(map);
+                tileDataCache.Value.Save();
 
                 lock (mapModificationLock)
                 {
@@ -897,329 +884,5 @@ namespace DTAClient.Domain.Multiplayer
         public Map FindMapByHash(string mapHash) => GameModeMaps?.FindMapByHash(mapHash);
 
         public void Dispose() => mapPreviewCacheManager?.Dispose();
-
-        private void EnsureTileLevelSupportLoaded()
-        {
-            if (_tileLevelSupportLoaded)
-                return;
-
-            lock (tileLevelCacheLock)
-            {
-                if (_tileLevelSupportLoaded)
-                    return;
-
-                _autoMapOverlayDefs = LoadAutoMapOverlayDefinitions();
-
-                _mapTileLevelCache = LoadMapTileLevelCache(_autoMapOverlayDefs);
-                _tileLevelSupportLoaded = true;
-            }
-        }
-
-        private void SaveTileLevelCache()
-        {
-            if (!_tileLevelSupportLoaded || _mapTileLevelCache == null)
-                return;
-
-            lock (tileLevelCacheLock)
-            {
-                SaveMapTileLevelCache(_mapTileLevelCache, _autoMapOverlayDefs);
-            }
-        }
-
-        private void RemoveTileLevelCacheEntry(string baseFilePath)
-        {
-            if (!_tileLevelSupportLoaded || _mapTileLevelCache == null)
-                return;
-
-            string key = NormalizeMapBaseFilePath(baseFilePath);
-            if (_mapTileLevelCache.Items.TryRemove(key, out _))
-                SaveTileLevelCache();
-        }
-
-        /// <summary>
-        /// Loads auto map overlay definitions from the [AutoMapOverlays] section
-        /// of ClientDefinitions.ini.
-        /// Format per entry: BuildingID,ImageFile,OwnerFilter,CellOffsetX,CellOffsetY[,Toggleable]
-        /// </summary>
-        private static IReadOnlyList<AutoMapOverlayDefinition> LoadAutoMapOverlayDefinitions()
-        {
-            IniSection section = ClientConfiguration.Instance.GetAutoMapOverlaysSection();
-            if (section == null)
-                return Array.Empty<AutoMapOverlayDefinition>();
-
-            var defs = new List<AutoMapOverlayDefinition>();
-            foreach (var kvp in section.Keys)
-            {
-                string[] parts = kvp.Value.Split(',');
-                if (parts.Length < 5)
-                {
-                    Logger.Log($"MapLoader: Invalid AutoMapOverlay entry '{kvp.Value}' — expected at least 5 comma-separated fields.");
-                    continue;
-                }
-
-                string buildingId = parts[0].Trim();
-                string textureName = parts[1].Trim();
-                string ownerFilter = parts[2].Trim();
-
-                if (!int.TryParse(parts[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int offsetX) ||
-                    !int.TryParse(parts[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int offsetY))
-                {
-                    Logger.Log($"MapLoader: Invalid cell offsets in AutoMapOverlay entry '{kvp.Value}'.");
-                    continue;
-                }
-
-                bool toggleable = parts.Length > 5 && Conversions.BooleanFromString(parts[5].Trim(), false);
-                defs.Add(new AutoMapOverlayDefinition(buildingId, textureName, ownerFilter, offsetX, offsetY, toggleable));
-            }
-            return defs;
-        }
-
-        /// <summary>
-        /// Computes a short hash of the auto overlay config so the tile level cache can be
-        /// invalidated when the building detection configuration changes.
-        /// </summary>
-        private static string ComputeAutoOverlayConfigHash(IReadOnlyList<AutoMapOverlayDefinition> defs)
-        {
-            if (defs.Count == 0)
-                return "empty";
-
-            string repr = string.Join("|", defs.Select(d =>
-                $"{d.BuildingId},{d.TextureName},{d.OwnerFilter},{d.CellOffsetX},{d.CellOffsetY},{d.Toggleable}"));
-
-            using var sha = SHA256.Create();
-            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(repr));
-            return BitConverter.ToString(hash).Replace("-", string.Empty)[..16];
-        }
-
-        private MapTileLevelCache LoadMapTileLevelCache(IReadOnlyList<AutoMapOverlayDefinition> defs)
-        {
-            var emptyCache = new MapTileLevelCache
-            {
-                Version = CurrentMapTileLevelCacheVersion,
-                ConfigHash = ComputeAutoOverlayConfigHash(defs),
-                Items = []
-            };
-
-            try
-            {
-                if (!File.Exists(MAP_TILE_LEVEL_CACHE))
-                    return emptyCache;
-
-                string json = File.ReadAllText(MAP_TILE_LEVEL_CACHE);
-                var cache = JsonSerializer.Deserialize<MapTileLevelCache>(json, jsonSerializerOptions);
-
-                if (cache == null ||
-                    cache.Version != CurrentMapTileLevelCacheVersion ||
-                    cache.ConfigHash != emptyCache.ConfigHash)
-                {
-                    return emptyCache;
-                }
-
-                return cache;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapLoader: Failed to load tile level cache: {ex.Message}");
-                return emptyCache;
-            }
-        }
-
-        private static string NormalizeMapBaseFilePath(string baseFilePath)
-            => baseFilePath
-                .Replace(Path.DirectorySeparatorChar, '/')
-                .Replace(Path.AltDirectorySeparatorChar, '/');
-
-        private void SaveMapTileLevelCache(MapTileLevelCache cache, IReadOnlyList<AutoMapOverlayDefinition> defs)
-        {
-            try
-            {
-                // Ensure config hash is current before saving
-                cache.ConfigHash = ComputeAutoOverlayConfigHash(defs);
-                string json = JsonSerializer.Serialize(cache, jsonSerializerOptions);
-                File.WriteAllText(MAP_TILE_LEVEL_CACHE, json);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapLoader: Failed to save tile level cache: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Checks the tile level cache for this map. If absent or stale, decodes IsoMapPack5
-        /// from the map file and runs building detection. Applies the result to the map object.
-        /// </summary>
-        private void ApplyTileLevelDataToMap(Map map, MapTileLevelCache tileLevelCache,
-            IReadOnlyList<AutoMapOverlayDefinition> autoOverlayDefs)
-        {
-            if (!MainClientConstants.USE_ISOMETRIC_CELLS)
-                return;
-
-            string key = NormalizeMapBaseFilePath(map.BaseFilePath);
-
-            if (tileLevelCache.Items.TryGetValue(key, out var cached) && !cached.IsOutdated(map.CompleteFilePath))
-            {
-                map.ApplyTileLevelData(cached.WaypointLevels, cached.BuildingOverlays);
-                return;
-            }
-
-            var item = ComputeTileLevelItem(map, autoOverlayDefs);
-            if (item != null)
-            {
-                tileLevelCache.Items[key] = item;
-                map.ApplyTileLevelData(item.WaypointLevels, item.BuildingOverlays);
-            }
-        }
-
-        /// <summary>
-        /// Reads a map file in one pass and returns the raw base64 IsoMapPack5 string and the
-        /// raw value lines from [Structures] (everything after the '=' on each line).
-        /// </summary>
-        private static (string isoBase64, List<string> structureValues) ReadMapSectionsFromFile(string filePath)
-        {
-            var isoSb = new StringBuilder(32 * 1024);
-            var structureValues = new List<string>(128);
-
-            bool inIso = false, inStructures = false;
-
-            using var reader = new StreamReader(filePath,
-                System.Text.Encoding.GetEncoding(1252),
-                detectEncodingFromByteOrderMarks: true,
-                bufferSize: 65536);
-
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                if (line.Length == 0 || line[0] == ';')
-                    continue;
-
-                if (line[0] == '[')
-                {
-                    inIso        = line.Equals("[IsoMapPack5]",  StringComparison.OrdinalIgnoreCase);
-                    inStructures = line.Equals("[Structures]",   StringComparison.OrdinalIgnoreCase);
-                    continue;
-                }
-
-                if (inIso)
-                {
-                    int eq = line.IndexOf('=');
-                    if (eq >= 0) isoSb.Append(line, eq + 1, line.Length - eq - 1);
-                }
-                else if (inStructures)
-                {
-                    int eq = line.IndexOf('=');
-                    if (eq >= 0) structureValues.Add(line.Substring(eq + 1));
-                }
-            }
-
-            return (isoSb.ToString(), structureValues);
-        }
-
-        /// <summary>
-        /// Decodes IsoMapPack5 from the map file and computes tile level data:
-        /// waypoint heights and auto-detected building overlays.
-        /// Returns null on failure.
-        /// </summary>
-        private MapTileLevelCache.Item ComputeTileLevelItem(Map map,
-            IReadOnlyList<AutoMapOverlayDefinition> defs)
-        {
-            try
-            {
-                var (isoBase64, structureValues) = ReadMapSectionsFromFile(map.CompleteFilePath);
-
-                var tileLevels = IsoMapPackDecoder.Decode(isoBase64);
-
-                // Waypoint levels
-                int[] waypointLevels = null;
-                if (map.waypoints.Count > 0)
-                {
-                    waypointLevels = new int[map.waypoints.Count];
-                    for (int i = 0; i < map.waypoints.Count; i++)
-                    {
-                        var (wx, wy) = Map.ParseWaypointCellCoords(map.waypoints[i].Split(',')[0]);
-                        waypointLevels[i] = tileLevels.TryGetValue(IsoMapPackDecoder.TileKey(wx, wy), out byte lv) ? lv : 0;
-                    }
-                }
-
-                // Building overlays
-                var buildingOverlays = DetectBuildingOverlays(structureValues, tileLevels, defs);
-
-                var fi = new FileInfo(map.CompleteFilePath);
-                return new MapTileLevelCache.Item(fi.Length, fi.LastWriteTimeUtc, waypointLevels, buildingOverlays);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MapLoader: Failed to decode tile levels for {map.BaseFilePath}: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Scans the raw [Structures] value lines for buildings matching the auto-overlay definitions
-        /// and returns ExtraMapPreviewTexture entries with the tile height level applied.
-        /// </summary>
-        private static List<ExtraMapPreviewTexture> DetectBuildingOverlays(
-            List<string> structureValues,
-            Dictionary<long, byte> tileLevels,
-            IReadOnlyList<AutoMapOverlayDefinition> defs)
-        {
-            var result = new List<ExtraMapPreviewTexture>();
-            if (structureValues.Count == 0 || defs.Count == 0)
-                return result;
-
-            // Split defs into exact-match dictionary and prefix-wildcard list.
-            // A BuildingId ending with '*' matches any ID starting with that prefix.
-            var exactDefs = new Dictionary<string, AutoMapOverlayDefinition>(StringComparer.OrdinalIgnoreCase);
-            var wildcardDefs = new List<(string Prefix, AutoMapOverlayDefinition Def)>();
-            foreach (var def in defs)
-            {
-                if (def.BuildingId.EndsWith("*"))
-                    wildcardDefs.Add((def.BuildingId.TrimEnd('*'), def));
-                else if (!exactDefs.ContainsKey(def.BuildingId))
-                    exactDefs[def.BuildingId] = def;
-            }
-
-            foreach (string value in structureValues)
-            {
-                // Format: Owner,BuildingTypeID,Health,X,Y,...
-                string[] parts = value.Split(',');
-                if (parts.Length < 5)
-                    continue;
-
-                string owner      = parts[0].Trim();
-                string buildingId = parts[1].Trim();
-
-                AutoMapOverlayDefinition def = null;
-                if (!exactDefs.TryGetValue(buildingId, out def))
-                {
-                    foreach (var (prefix, wildcardDef) in wildcardDefs)
-                    {
-                        if (buildingId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            def = wildcardDef;
-                            break;
-                        }
-                    }
-                }
-
-                if (def == null)
-                    continue;
-
-                if (!string.IsNullOrEmpty(def.OwnerFilter) &&
-                    !string.Equals(owner, def.OwnerFilter, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                if (!int.TryParse(parts[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int x) ||
-                    !int.TryParse(parts[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int y))
-                    continue;
-
-                int cellX = x + def.CellOffsetX;
-                int cellY = y + def.CellOffsetY;
-                byte level = tileLevels.TryGetValue(IsoMapPackDecoder.TileKey(cellX, cellY), out byte lv) ? lv : (byte)0;
-
-                result.Add(new ExtraMapPreviewTexture(def.TextureName, new Point(cellX, cellY), level, def.Toggleable));
-            }
-
-            return result;
-        }
     }
 }

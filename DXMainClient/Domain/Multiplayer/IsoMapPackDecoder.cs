@@ -1,4 +1,6 @@
+#nullable enable
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -42,9 +44,9 @@ namespace DTAClient.Domain.Multiplayer
             int totalOutputSize = 0;
             for (int p = 0; p + 4 <= compressed.Length;)
             {
-                int inSz  = BitConverter.ToUInt16(compressed, p);
-                int outSz = BitConverter.ToUInt16(compressed, p + 2);
-                if (inSz == 0 || outSz == 0) break;
+                int inSz  = BinaryPrimitives.ReadUInt16LittleEndian(compressed.AsSpan(p));
+                int outSz = BinaryPrimitives.ReadUInt16LittleEndian(compressed.AsSpan(p + 2));
+                if (inSz == 0 || outSz == 0 || p + 4 + inSz > compressed.Length) break;
                 totalOutputSize += outSz;
                 p += 4 + inSz;
             }
@@ -59,9 +61,9 @@ namespace DTAClient.Domain.Multiplayer
             // Second pass: decompress each LZO1X block directly into the output buffer.
             for (int p = 0; p + 4 <= compressed.Length;)
             {
-                int inSz  = BitConverter.ToUInt16(compressed, p);
-                int outSz = BitConverter.ToUInt16(compressed, p + 2);
-                if (inSz == 0 || outSz == 0) break;
+                int inSz  = BinaryPrimitives.ReadUInt16LittleEndian(compressed.AsSpan(p));
+                int outSz = BinaryPrimitives.ReadUInt16LittleEndian(compressed.AsSpan(p + 2));
+                if (inSz == 0 || outSz == 0 || p + 4 + inSz > compressed.Length) break;
 
                 using var lzoStream = new LzoStream(
                     new MemoryStream(compressed, p + 4, inSz),
@@ -83,8 +85,8 @@ namespace DTAClient.Domain.Multiplayer
             var tileLevels = new Dictionary<long, byte>(tileCount);
             for (int p = 0; p + TileRecordSize <= writePos; p += TileRecordSize)
             {
-                short x = BitConverter.ToInt16(data, p);
-                short y = BitConverter.ToInt16(data, p + 2);
+                short x = BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(p));
+                short y = BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(p + 2));
                 if (x > 0 && y > 0)
                     tileLevels[TileKey(x, y)] = data[p + 9];
             }

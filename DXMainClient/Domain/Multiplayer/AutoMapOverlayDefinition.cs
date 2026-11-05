@@ -1,3 +1,10 @@
+#nullable enable
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
+using Rampastring.Tools;
+
 namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
@@ -38,6 +45,39 @@ namespace DTAClient.Domain.Multiplayer
             CellOffsetX = cellOffsetX;
             CellOffsetY = cellOffsetY;
             Toggleable = toggleable;
+        }
+
+        /// <summary>
+        /// Parses the entries of the [AutoMapOverlays] section, skipping and logging invalid ones.
+        /// </summary>
+        public static IReadOnlyList<AutoMapOverlayDefinition> ParseSection(IniSection? section)
+        {
+            if (section == null)
+                return Array.Empty<AutoMapOverlayDefinition>();
+
+            var definitions = new List<AutoMapOverlayDefinition>();
+            foreach (var kvp in section.Keys)
+            {
+                string[] parts = kvp.Value.Split(',');
+                if (parts.Length < 5)
+                {
+                    Logger.Log($"AutoMapOverlays: Invalid entry '{kvp.Value}', expected at least 5 comma-separated fields.");
+                    continue;
+                }
+
+                if (!int.TryParse(parts[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int offsetX) ||
+                    !int.TryParse(parts[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int offsetY))
+                {
+                    Logger.Log($"AutoMapOverlays: Invalid cell offsets in entry '{kvp.Value}'.");
+                    continue;
+                }
+
+                bool toggleable = parts.Length > 5 && Conversions.BooleanFromString(parts[5].Trim(), false);
+                definitions.Add(new AutoMapOverlayDefinition(parts[0].Trim(), parts[1].Trim(), parts[2].Trim(),
+                    offsetX, offsetY, toggleable));
+            }
+
+            return definitions;
         }
     }
 }

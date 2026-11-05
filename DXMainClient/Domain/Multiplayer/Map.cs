@@ -13,11 +13,11 @@ using ClientCore.Extensions;
 
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 
-using Microsoft.Xna.Framework;
-
 using Rampastring.Tools;
 
-using Image = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp;
+
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -191,8 +191,8 @@ namespace DTAClient.Domain.Multiplayer
         public List<Point> startingLocations;
 
         /// <summary>
-        /// Per-waypoint tile height levels decoded from IsoMapPack5.
-        /// Index matches the waypoints list. Null until tile level data has been applied.
+        /// Terrain height of each waypoint's cell, from <see cref="MapTileData"/>.
+        /// Index matches the waypoints list. Null until tile data has been applied.
         /// </summary>
         [JsonIgnore]
         public int[] WaypointLevels;
@@ -429,16 +429,16 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Applies decoded tile level data to this map.
-        /// Corrects waypoint positions for cliff height and populates auto-detected building overlays.
+        /// Applies tile data read from the map file: corrects start locations for terrain height
+        /// and adds the detected building icons.
         /// </summary>
-        public void ApplyTileLevelData(int[] wpLevels, IReadOnlyList<ExtraMapPreviewTexture> detectedOverlays)
+        public void ApplyTileData(MapTileData tileData)
         {
-            WaypointLevels = wpLevels;
+            WaypointLevels = tileData.WaypointLevels;
             startingLocations = null; // force recompute with correct levels
 
-            if (detectedOverlays != null && detectedOverlays.Count > 0)
-                extraTextures.AddRange(detectedOverlays);
+            if (tileData.BuildingOverlays != null && tileData.BuildingOverlays.Count > 0)
+                extraTextures.AddRange(tileData.BuildingOverlays);
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
@@ -829,8 +829,8 @@ namespace DTAClient.Domain.Multiplayer
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
         /// <param name="levelOverride">
-        /// When >= 0, overrides the level from the waypoint string (used when tile level data
-        /// has been decoded from IsoMapPack5). Pass -1 to use the level embedded in the waypoint string.
+        /// When >= 0, overrides the level from the waypoint string (used when tile data
+        /// has been read from the map file). Pass -1 to use the level embedded in the waypoint string.
         /// </param>
         /// <returns>The waypoint's location on the map preview as a point.</returns>
         private static Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
