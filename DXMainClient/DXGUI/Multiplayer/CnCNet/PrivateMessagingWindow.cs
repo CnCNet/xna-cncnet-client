@@ -463,7 +463,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             var ircUser = (IRCUser)lbUserList.SelectedItem?.Tag;
 
-            btnBlockUser.Enabled = ircUser != null;
+            btnBlockUser.Enabled = ircUser != null &&
+                (!string.IsNullOrEmpty(ircUser.Ident) || IsPlayerOnline(ircUser.Name));
 
             if (ircUser == null || string.IsNullOrEmpty(ircUser.Ident))
             {
