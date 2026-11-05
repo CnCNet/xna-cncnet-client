@@ -30,7 +30,7 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
-        private const int CurrentCustomMapCacheVersion = 5;
+        private const int CurrentCustomMapCacheVersion = 6;
 
         private static string GetCustomMapCacheFileName(int version) => version == 1 ? "custom_map_cache" : $"custom_map_cache_v{version}";
 

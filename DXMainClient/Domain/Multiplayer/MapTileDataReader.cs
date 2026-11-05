@@ -58,11 +58,7 @@ namespace DTAClient.Domain.Multiplayer
 
             bool inIsoMapPack = false, inStructures = false;
 
-            using var reader = new StreamReader(filePath, Encoding.GetEncoding(1252),
-                detectEncodingFromByteOrderMarks: true, bufferSize: 65536);
-
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            foreach (string line in File.ReadLines(filePath))
             {
                 if (line.Length == 0 || line[0] == ';')
                     continue;
