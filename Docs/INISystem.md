@@ -366,6 +366,15 @@ Some controls are only available under specific circumstances.
 FontIndex=0
 ```
 
+#### MapPreviewBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox]
+CornerButtonLayout=Row          ; Row or Column. How the favorite and extra icons toggle buttons in the top-right corner are arranged.
+```
+
 #### GameLobbyBase Controls
 
 Following controls are only available as children of `GameLobbyBase` and derived controls.
