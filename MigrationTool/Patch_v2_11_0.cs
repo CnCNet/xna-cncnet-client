@@ -92,9 +92,9 @@ internal class Patch_v2_11_0 : Patch
         {
             var clientDefinitionsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "ClientDefinitions.ini"));
 
-            var addParserConstants = (string path) =>
+            var addParserConstants = (string resourcesPath) =>
             {
-                var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(path, "DTACnCNetClient.ini"));
+                var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(resourcesPath, "DTACnCNetClient.ini"));
                 var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
                 addKey("DEFAULT_LBL_HEIGHT", "12");
                 addKey("DEFAULT_CONTROL_HEIGHT", "21");
