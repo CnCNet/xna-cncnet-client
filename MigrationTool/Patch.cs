@@ -36,8 +36,27 @@ internal abstract class Patch
         Logger.Log($"Applying patch for client version {ClientVersion.ToString().Replace('_', '.')}...");
     }
 
-    public Patch AddKeyWithLog(IniFile src, string section, string key, string value)
+    public Patch AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
+        if (recursive)
+        {
+            HashSet<string> visitedSections = [section];
+            string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
+
+            while (!string.IsNullOrEmpty(baseSectionName))
+            {
+                visitedSections.Add(baseSectionName);
+                string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
+                if (!string.IsNullOrEmpty(baseValue))
+                {
+                    Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist in base section [{baseSectionName}]->{key}={baseValue}");
+                    return this;
+                }
+
+                baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
+            }
+        }
+
         if (src.KeyExists(section, key))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist");
@@ -128,16 +147,6 @@ internal abstract class Patch
 
         ini.GetSection(child).AddKey("$X", $"{childX}");
         ini.GetSection(child).AddKey("$Y", $"{childY}");
-    }
-
-    public Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)
-    {
-        desSection ??= srcSection;
-
-        srcIni.GetSectionKeys(srcSection)
-            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty)));
-
-        return this;
     }
 
     public bool TryApply()
