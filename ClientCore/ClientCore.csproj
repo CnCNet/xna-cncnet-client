@@ -3,8 +3,13 @@
     <Description>CnCNet Client Core Library</Description>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="JsonPath.Net" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="Ude.NetStandard" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rampastring.XNAUI\Rampastring.Tools\Rampastring.Tools.csproj" />

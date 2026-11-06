@@ -7,6 +7,8 @@ FontStashSharp.Base.dll
 FontStashSharp.Rasterizers.StbTrueTypeSharp.dll
 FontStashSharp.TextShapers.HarfBuzz.dll
 HarfBuzzSharp.dll
+Json.More.dll
+JsonPath.Net.dll
 lzo.net.dll
 Microsoft.Extensions.Configuration.Abstractions.dll
 Microsoft.Extensions.Configuration.Binder.dll
@@ -45,6 +47,8 @@ SixLabors.ImageSharp.dll
 System.CodeDom.dll
 StbImageSharp.dll
 StbTrueTypeSharp.dll
+System.IO.Pipelines.dll
 System.Net.Http.Formatting.dll
+System.Text.Encodings.Web.dll
 TextCopy.dll
 Ude.NetStandard.dll

@@ -8,6 +8,8 @@ FontStashSharp.Base.dll
 FontStashSharp.Rasterizers.StbTrueTypeSharp.dll
 FontStashSharp.TextShapers.HarfBuzz.dll
 HarfBuzzSharp.dll
+Json.More.dll
+JsonPath.Net.dll
 libHarfBuzzSharp.dylib
 lzo.net.dll
 Microsoft.Bcl.AsyncInterfaces.dll
@@ -50,8 +52,10 @@ StbImageSharp.dll
 StbTrueTypeSharp.dll
 System.Buffers.dll
 System.CodeDom.dll
+System.Collections.Immutable.dll
 System.Diagnostics.DiagnosticSource.dll
 System.IO.FileSystem.AccessControl.dll
+System.IO.Pipelines.dll
 System.Memory.dll
 System.Net.Http.Formatting.dll
 System.Numerics.Vectors.dll
@@ -62,7 +66,6 @@ System.Text.Encoding.CodePages.dll
 System.Text.Encodings.Web.dll
 System.Text.Json.dll
 System.Threading.Tasks.Extensions.dll
-System.ValueTuple.dll
 TextCopy.dll
 Ude.NetStandard.dll
 x64\libHarfBuzzSharp.dll
