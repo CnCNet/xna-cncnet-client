@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+
 using Microsoft.VisualBasic.FileIO;
 
 using Rampastring.Tools;
@@ -13,9 +15,42 @@ internal sealed class Program
     private const string ERROR_MESSAGE = "Unknown arguments detected. Use -h argument to print help information.";
     private const string HELP_MESSAGE =
         """
-        CnCNet Client Migration Tool.
-        
-        Run this tool using the path to the unmigrated client directory as the first argument.
+        CnCNet Client Migration Tool
+        Experimental utility for migrating CnCNet client configuration files.
+
+        Usage:
+            MigrationTool <client-directory>
+            MigrationTool <client-directory> [-p <version>]
+            MigrationTool <client-directory> [--patch <version>]
+            MigrationTool --patch-list
+            MigrationTool -h
+
+        Arguments:
+            <client-directory>     Path to the client directory.
+
+        Options:
+            -p, --patch <version>  Apply only the specified migration patch.
+                                   If omitted, all configured patches are applied
+                                   in sequence.
+
+                                   Dots and underscores are accepted in version names.
+                                   A leading 'v' is optional.
+                                   The specified patch must be included in this build.
+
+            --patch-list           Show list of available client versions to use.
+
+            -h, --help, -?, /?, /h
+                                   Display this help.
+
+        Notes:
+            - MigrationTool.log is written to the current working directory.
+            - Before applying patches, the tool creates <client-directory>_backup.
+            - If that backup directory already exists, it is kept without updating it.
+
+        Examples:
+            MigrationTool.exe "..\Games\Client"
+            MigrationTool.exe "C:\Path\To\Client" -p 2.11.0
+            ./MigrationTool "/home/user/games/clientConfig"
         """;
 
     private static void Main(string[] args)
@@ -35,6 +70,7 @@ internal sealed class Program
         switch (args.Length)
         {
             case 1:
+            case 3:
                 string arg = args[0].Trim();
 
                 if (arg is "-h"
@@ -47,15 +83,42 @@ internal sealed class Program
                     return;
                 }
 
-                if (!SafePath.GetDirectory(arg).Exists)
+                if (arg is "--patch-list")
                 {
-                    Logger.Log($"Unable to find \"{arg}\" folder. Migration halted.");
+                    StringBuilder sb = new();
+                    var patchNames = Enum.GetValues(typeof(Version));
+                    for (int i = 0; i < patchNames.Length; i++)
+                    {
+                        sb.Append(patchNames.GetValue(i).ToString().Replace('_', '.') + (i == (patchNames.Length - 1) ? " " : ", "));
+                    }
+
+                    Console.WriteLine("List of available versions: " + sb.ToString());
+
                     return;
                 }
 
-                if (!SafePath.GetFile(SafePath.CombineFilePath(arg, "Resources", "ClientDefinitions.ini")).Exists)
+                var clientDir = args[0];
+
+                if (!SafePath.GetDirectory(clientDir).Exists)
                 {
-                    Logger.Log($"Unable to find \"{arg}\\Resources\\ClientDefinitions.ini\". Migration halted.");
+                    Logger.Log($"Unable to find \"{clientDir}\" folder. Migration halted.");
+                    return;
+                }
+
+                if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir, "Resources", "ClientDefinitions.ini")).Exists)
+                {
+                    Logger.Log($"Unable to find \"{clientDir}\\Resources\\ClientDefinitions.ini\". Migration halted.");
+                    return;
+                }
+
+                string? versionName = null;
+                if (args.Length == 3 && (args[1] == "--patch" || args[1] == "-p"))
+                {
+                    versionName = args[2].Trim().ToLower();
+                }
+                else if (args.Length > 1)
+                {
+                    Console.WriteLine(HELP_MESSAGE);
                     return;
                 }
 
@@ -63,42 +126,62 @@ internal sealed class Program
                 Logger.Log("Press any key to begin migration.");
                 Console.ReadKey();
 
-                if (!Directory.Exists(arg + "_backup"))
+                if (!Directory.Exists(clientDir + "_backup"))
                 {
-                    Logger.Log($"Creating backup: {arg + "_backup"}");
-                    FileSystem.CopyDirectory(arg, arg + "_backup");
+                    Logger.Log($"Creating backup: {clientDir + "_backup"}");
+                    FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
                     Logger.Log("Backup created.");
                 }
 
-                var assembly = Assembly.GetExecutingAssembly();
-                Patch? patch = null;
-                try
-                {
-                    // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
-                    var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
-                    var patchNames = Enum.GetValues(typeof(Version));
-                    foreach (var patchName in patchNames)
-                    {
-                        Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
-                        patch = (Patch?)Activator.CreateInstance(type, arg);
-                        patch?.Apply();
-                        Console.WriteLine("");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("");
-                    Logger.Log($"Unable to apply migration patch for client version {patch?.ClientVersion.ToString().Replace('_', '.')} due to an internal error. Message: {ex.ToString()}");
-                    Logger.Log("Migration to the latest client version has been failed");
-                }
-
-                Console.WriteLine("Patching has been done.");
+                PatchConfigs(clientDir, versionName);
 
                 break;
             case 0:
             default:
                 Console.WriteLine(ERROR_MESSAGE);
                 break;
+        }
+    }
+
+    private static void PatchConfigs(string clientDir, string? versionName = null)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        Patch? patch = null;
+        try
+        {
+            // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
+            var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
+            var patchNames = Enum.GetValues(typeof(Version));
+
+            if (!string.IsNullOrWhiteSpace(versionName))
+            {
+                versionName = versionName?.Replace('.', '_');
+                versionName = versionName.StartsWith("v") ? versionName : "v" + versionName;
+                Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + versionName).First();
+                patch = (Patch?)Activator.CreateInstance(type, clientDir);
+                patch?.Apply();
+                Console.WriteLine("");
+            }
+            else
+            {
+                foreach (var patchName in patchNames)
+                {
+                    Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
+                    patch = (Patch?)Activator.CreateInstance(type, clientDir);
+                    patch?.Apply();
+                    Console.WriteLine("");
+                }
+            }
+
+            Console.WriteLine("Patching has been done.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log("");
+            Logger.Log(string.Format("Unable to apply migration patch for client version {0} due to an internal error. Message: {1}",
+                patch == null ? versionName : patch?.ClientVersion.ToString().Replace('_', '.'),
+                ex.ToString()));
+            Logger.Log(string.Format("Migration to the {0} client version has been failed", string.IsNullOrWhiteSpace(versionName) ? "latest" : versionName));
         }
     }
 }
