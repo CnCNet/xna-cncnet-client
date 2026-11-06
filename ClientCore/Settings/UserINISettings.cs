@@ -27,6 +27,7 @@ namespace ClientCore
         public const string CLIENT_LOGS = "ClientLogs";
         public const string GAME_LOGS = "GameLogs";
         public const string SAVED_GAMES = "SavedGames";
+        public const string TELEMETRY = "Telemetry";
         private const string FAVORITE_MAPS = "FavoriteMaps";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
@@ -201,6 +202,11 @@ namespace ClientCore
 
             MaxKeptSavedGames = new IntSetting(iniFile, SAVED_GAMES, "MaxKeptSavedGames", 0);
             MaxSavedGameFolderSizeMB = new IntSetting(iniFile, SAVED_GAMES, "MaxSavedGameFolderSizeMB", 0);
+
+            TelemetryEnabled = new BoolSetting(iniFile, TELEMETRY, "Enabled", true);
+            TelemetryNoticeShown = new BoolSetting(iniFile, TELEMETRY, "NoticeShown", false);
+            TelemetryLastActiveDate = new StringSetting(iniFile, TELEMETRY, "LastActiveDate", string.Empty);
+            TelemetryInstallMonth = new StringSetting(iniFile, TELEMETRY, "InstallMonth", string.Empty);
 
             RecordReplays = new BoolSetting(iniFile, REPLAYS, "RecordReplays", true);
             MaxKeptReplays = new IntSetting(iniFile, REPLAYS, "MaxKeptReplays", 50);
@@ -407,6 +413,20 @@ namespace ClientCore
 
         public BoolSetting PrivacyPolicyAccepted { get; private set; }
         public BoolSetting IsFirstRun { get; private set; }
+
+        public BoolSetting TelemetryEnabled { get; private set; }
+        public BoolSetting TelemetryNoticeShown { get; private set; }
+
+        /// <summary>
+        /// The UTC date (yyyy-MM-dd) of the last launch that reported telemetry.
+        /// Used to count active users without an identifier.
+        /// </summary>
+        public StringSetting TelemetryLastActiveDate { get; private set; }
+
+        /// <summary>
+        /// The UTC month (yyyy-MM) the installation first reported telemetry in.
+        /// </summary>
+        public StringSetting TelemetryInstallMonth { get; private set; }
         public BoolSetting CustomComponentsDenied { get; private set; }
 
         public IntSetting Difficulty { get; private set; }
