@@ -31,39 +31,30 @@ public readonly struct ParsedPacket
 /// </summary>
 public enum TunnelPacketType : byte
 {
-    Connected = 0x01,
-    PingRequest = 0x02,
-    PingResponse = 0x03,
-    TunnelChoice = 0x04,
-    TunnelAck = 0x05,
-    NegotiationFailed = 0x06,
+    // Marker values for CreatePacket; neither carries a type byte on the wire.
     Register = 0x07,
     GameData = 0x08,
-    P2PInfo = 0x09,    // payload: 4 bytes IPv4 + 2 bytes port (big-endian) — "I have P2P"
-    P2PDecline = 0x0A, // payload: empty — "I don't use P2P"
-
-    // Lobby keepalive round trip. The ping payload is 8 bytes of the sender's Stopwatch
-    // timestamp; the pong echoes it back so the sender computes RTT statelessly. These are
-    // deliberately distinct from PingRequest/PingResponse: reusing negotiation pings would
-    // set PingRequestReceived on the receiver and weaken the stale-TunnelChoice guard.
-    KeepAlivePing = 0x0B,
-    KeepAlivePong = 0x0C,
 
     // Pre-launch connectivity check. The host sends ProbeRequest to each peer over their
-    // negotiated path; the receiver probes its own keepalive targets and answers with
-    // ProbeReport, whose payload is 4 bytes (little-endian V3 ID) per unresponsive peer
+    // current path; the receiver answers at once from its own path state with ProbeReport,
+    // whose payload is 4 bytes (little-endian V3 ID) per peer it currently cannot reach
     // (empty payload = all reachable).
     ProbeRequest = 0x0D,
     ProbeReport = 0x0E,
 
-    // Matchmaking phase, exchanged over the matchmaking servers before a pair negotiates.
-    // TunnelList advertises every relay tunnel the sender knows, as a chunk of
-    // {4-byte tunnel key, 1-byte ping, 1-byte flags} entries behind a
-    // {format version, chunk index, chunk count} header.
-    // TunnelSet is the decider's answer: the agreed shortlist, as bare 4-byte tunnel keys in
-    // preference order behind a format version byte. See TunnelShortlist for the encoding.
+    // Table exchange, over the matchmaking servers, before a pair has any path. TunnelList
+    // advertises the sender's tunnel ping table in chunks; TunnelSet is the decider's answer,
+    // the pair's ranked list. See TunnelTable for the encodings.
     TunnelList = 0x0F,
-    TunnelSet = 0x10
+    TunnelSet = 0x10,
+
+    // Per-path liveness, latency, loss and pair state, sent on every active path of a pair.
+    // See V3Heartbeat for the layout.
+    Heartbeat = 0x11,
+
+    // Padding sent at game packet rate during a lobby load probe. Counted towards a path's
+    // loss figures and otherwise ignored.
+    Filler = 0x12
 }
 
 /// <summary>
@@ -97,6 +88,12 @@ public class V3TunnelCommunicator
     private readonly ConcurrentDictionary<CnCNetTunnel, IPEndPoint> _tunnelToEndpoint = new();
     private readonly ConcurrentDictionary<(uint localId, uint remoteId), PacketHandler> _handlers = new();
     private readonly ConcurrentDictionary<IPEndPoint, TaskCompletionSource<byte[]>> _pendingStunQueries = new();
+
+    /// <summary>Size of a V3 UDP ping request; servers ignore any other size.</summary>
+    private const int UDP_PING_SIZE = 50;
+
+    /// <summary>Size of a V3 UDP ping reply: the request's first 12 bytes.</summary>
+    private const int UDP_PING_REPLY_SIZE = 12;
     private readonly ConcurrentDictionary<(uint localId, uint remoteId), string> _p2pPeerNames = new();
     // Every P2P endpoint (advertised and auto-learned) registered for a pair, so
     // CleanupP2PPair can remove a pair's routing entries at the right lifecycle points.
@@ -216,6 +213,17 @@ public class V3TunnelCommunicator
     /// </summary>
     /// <param name="localId">The local player V3PlayerInfo ID.</param>
     /// <param name="remoteId">The remote player V3PlayerInfo ID.</param>
+    public void UnregisterHandler(uint localId, uint remoteId, PacketHandler handler)
+    {
+        // Only if it is still ours: a replacement registered for the same pair must survive the
+        // old owner's late teardown.
+        if (((ICollection<KeyValuePair<(uint, uint), PacketHandler>>)_handlers).Remove(
+                new KeyValuePair<(uint, uint), PacketHandler>((localId, remoteId), handler)))
+        {
+            Logger.Log($"V3TunnelCommunicator: Unregistered handler for {localId} <-> {remoteId}");
+        }
+    }
+
     public void UnregisterHandler(uint localId, uint remoteId)
     {
         if (_handlers.TryRemove((localId, remoteId), out _))
@@ -336,6 +344,7 @@ public class V3TunnelCommunicator
             try
             {
                 _udpClient!.Send(packet, packet.Length, endpoint);
+                tunnel.MarkSessionUse();
                 if (!quiet)
                     Logger.Log($"V3TunnelCommunicator: Registration sent to {tunnel.Name}");
             }
@@ -373,6 +382,9 @@ public class V3TunnelCommunicator
         {
             var packet = CreatePacket(senderId, receiverId, packetType, payload);
             _udpClient!.Send(packet, packet.Length, endpoint);
+
+            if (!tunnel.IsDirect)
+                tunnel.MarkSessionUse();
         }
         catch (Exception ex)
         {
@@ -404,6 +416,33 @@ public class V3TunnelCommunicator
         catch (Exception ex)
         {
             Logger.Log($"V3TunnelCommunicator: Failed to send packet to {tunnel.Name}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Sends a V3 UDP ping to a relay tunnel. The reply arrives through
+    /// <see cref="UdpPingReplyReceived"/> carrying the same <paramref name="tag"/>. Returns false
+    /// if the ping could not be sent.
+    /// </summary>
+    public bool SendUdpPing(CnCNetTunnel tunnel, uint tag)
+    {
+        if (!IsInitialized || tunnel.IsDirect || !_tunnelToEndpoint.TryGetValue(tunnel, out IPEndPoint? endpoint))
+            return false;
+
+        // Sender and receiver stay zero, which is what marks a ping. The tag sits inside the 12
+        // bytes the server echoes.
+        var packet = new byte[UDP_PING_SIZE];
+        BinaryPrimitives.WriteUInt32LittleEndian(packet.AsSpan(8), tag);
+
+        try
+        {
+            _udpClient!.Client.SendTo(packet, SocketFlags.None, endpoint);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"V3TunnelCommunicator: Failed to send UDP ping to {tunnel.Name}: {ex.Message}");
+            return false;
         }
     }
 
@@ -528,14 +567,14 @@ public class V3TunnelCommunicator
     /// <param name="receivedTime">Timestamp when the packet was received.</param>
     /// <param name="tunnel">The tunnel that the packet arrived from.</param>
     /// <summary>
-    /// Invoked on the receive thread when a keepalive pong arrives, with the sender's
-    /// V3 ID and the measured round-trip time in milliseconds.
+    /// Invoked on the receive thread when a V3 UDP ping reply arrives: the ping's tag, the
+    /// tunnel that answered and the Stopwatch timestamp of arrival.
     /// </summary>
-    public Action<uint, int>? KeepAlivePongReceived { get; set; }
+    public Action<uint, CnCNetTunnel, long>? UdpPingReplyReceived { get; set; }
 
     /// <summary>
-    /// Invoked on the receive thread when a peer asks us to probe our own negotiated
-    /// paths (pre-launch connectivity check): the requester's V3 ID and the tunnel the
+    /// Invoked on the receive thread when a peer asks which of our pairs are currently
+    /// unreachable (pre-launch connectivity check): the requester's V3 ID and the tunnel the
     /// request arrived from (used to send the report back).
     /// </summary>
     public Action<uint, CnCNetTunnel>? ProbeRequestReceived { get; set; }
@@ -550,38 +589,20 @@ public class V3TunnelCommunicator
     {
         try
         {
+            // A ping reply is the only relay packet with both IDs zero.
+            if (data.Length == UDP_PING_REPLY_SIZE && !tunnel.IsDirect &&
+                BinaryPrimitives.ReadUInt64LittleEndian(data.Span) == 0)
+            {
+                UdpPingReplyReceived?.Invoke(BinaryPrimitives.ReadUInt32LittleEndian(data.Span[8..]), tunnel, receivedTime);
+                return;
+            }
+
             var parsed = ParsePacket(data);
             if (parsed.Payload.Length == 0 && !parsed.NegotiationType.HasValue)
                 return;
 
-            // Keepalives are handled at this layer, unconditionally: no per-pair handler is
-            // needed, so pings get answered in the lobby, during renegotiation and in-game
-            // alike, and they never touch negotiator state.
-            if (parsed.NegotiationType == TunnelPacketType.KeepAlivePing)
-            {
-                SendPacket(tunnel, parsed.ReceiverId, parsed.SenderId,
-                    TunnelPacketType.KeepAlivePong, parsed.Payload.ToArray());
-                return;
-            }
-
-            if (parsed.NegotiationType == TunnelPacketType.KeepAlivePong)
-            {
-                if (parsed.Payload.Length >= 8)
-                {
-                    long sentTicks = BinaryPrimitives.ReadInt64LittleEndian(parsed.Payload.Span);
-                    double rttMs = (receivedTime - sentTicks) * 1000.0 / Stopwatch.Frequency;
-
-                    // The timestamp is our own Stopwatch value echoed back, so anything
-                    // negative or absurd means a corrupt/forged payload — drop it.
-                    if (rttMs >= 0 && rttMs <= 120000)
-                        KeepAlivePongReceived?.Invoke(parsed.SenderId, (int)Math.Round(rttMs));
-                }
-
-                return;
-            }
-
-            // Connectivity probes are handled at this layer for the same reason as
-            // keepalives: no per-pair handler, no negotiator state.
+            // Connectivity probes are handled at this layer: they concern every pair at once, not
+            // the one whose handler would otherwise receive them.
             if (parsed.NegotiationType == TunnelPacketType.ProbeRequest)
             {
                 ProbeRequestReceived?.Invoke(parsed.SenderId, tunnel);
