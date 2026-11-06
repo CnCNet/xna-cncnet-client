@@ -92,9 +92,9 @@ internal class Patch_v2_11_0 : Patch
         {
             var clientDefinitionsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "ClientDefinitions.ini"));
 
-            var addParserConstants = (string path) =>
+            var addParserConstants = (string resourcesPath) =>
             {
-                var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, path, "DTACnCNetClient.ini"));
+                var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(resourcesPath, "DTACnCNetClient.ini"));
                 var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
                 addKey("DEFAULT_LBL_HEIGHT", "12");
                 addKey("DEFAULT_CONTROL_HEIGHT", "21");
@@ -122,7 +122,7 @@ internal class Patch_v2_11_0 : Patch
             foreach (var themeKey in clientDefinitionsIni.GetSectionKeys("Themes"))
             {
                 var themePath = clientDefinitionsIni.GetStringValue("Themes", themeKey, string.Empty).Split(',')[1];
-                addParserConstants(themePath);
+                addParserConstants(SafePath.CombineDirectoryPath(ResouresDir.FullName, themePath));
             }
         }
 
@@ -426,8 +426,8 @@ internal class Patch_v2_11_0 : Patch
                 gameOptionsIni.RemoveSection($"{MultiplayerGameLobby}");
                 SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{SkirmishLobby}.ini"));
                 SafePath.DeleteFileIfExists(SafePath.CombineFilePath(ResouresDir.FullName, $"{MultiplayerGameLobby}.ini"));
-                skirmishLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, skirmishLobbyIni_old.FilePath));
-                multiplayerGameLobbyIni.WriteIniFile(SafePath.CombineFilePath(ResouresDir.FullName, multiplayerGameLobbyIni_old.FilePath));
+                skirmishLobbyIni.WriteIniFile(skirmishLobbyIni_old.FilePath);
+                multiplayerGameLobbyIni.WriteIniFile(multiplayerGameLobbyIni_old.FilePath);
 
                 gameOptionsIni.WriteIniFile();
                 gameLobbyBaseIni.WriteIniFile();
