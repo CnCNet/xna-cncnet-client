@@ -149,16 +149,6 @@ internal abstract class Patch
         ini.GetSection(child).AddKey("$Y", $"{childY}");
     }
 
-    public Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)
-    {
-        desSection ??= srcSection;
-
-        srcIni.GetSectionKeys(srcSection)
-            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty), recursive: false));
-
-        return this;
-    }
-
     public bool TryApply()
     {
         try
