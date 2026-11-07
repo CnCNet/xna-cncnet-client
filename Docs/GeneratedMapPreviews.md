@@ -53,6 +53,8 @@ Like the Favorite button (`favActive.png` / `favActive_c.png`), the HD/SD button
 
 An idle PNG replaces the text and sets the button to its native pixel dimensions; 18x18 or 32x18 is recommended. Hover PNGs should match the corresponding idle size. Without a hover PNG, the idle image remains visible. Without an idle PNG, that state falls back to HD/SD text on a transparent background. Restart the client after changing these assets.
 
+The button sits next to the Favorite and extra icons buttons, and follows the map preview box's `CornerButtonLayout` (see `Docs/INISystem.md`).
+
 ## Integration with existing image caching
 
 `Map` retains its original immediate-PNG and non-immediate custom PreviewPack APIs. `Map` knows nothing about generation; `MapLoader` picks the generated PNG when HD is selected and loads it directly from the cache, since it is not a theme asset. Missing/corrupt generated images fall back to the original there, rather than in the control.

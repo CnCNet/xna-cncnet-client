@@ -41,7 +41,8 @@ internal sealed class MapPreviewModeButton : XNAClientButton
     private static Texture2D? LoadPreviewButtonImage(string name)
         => AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
-    public void Refresh(int buttonX)
+    /// <summary>Updates the artwork, size and tooltip; the map preview box positions the button.</summary>
+    public void Refresh()
     {
         bool showOriginal = MapPreviewGenerationService.Selected;
         Texture2D? idle = showOriginal ? previewSDButtonImage : previewHDButtonImage;
@@ -51,7 +52,7 @@ internal sealed class MapPreviewModeButton : XNAClientButton
         HoverTexture = idle == null ? previewTextButtonImage : (hover ?? idle);
         int width = idle?.Width ?? 32;
         int height = idle?.Height ?? 18;
-        ClientRectangle = new Rectangle(buttonX - 28 - width, 4, width, height);
+        ClientRectangle = new Rectangle(X, Y, width, height);
         ToolTipText = showOriginal
             ? "Show original map preview".L10N("Client:Main:ShowOriginalPreview")
             : "Show generated HD map preview".L10N("Client:Main:ShowGeneratedPreview");
