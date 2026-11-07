@@ -43,9 +43,8 @@ internal abstract class Patch
             HashSet<string> visitedSections = [section];
             string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
 
-            while (!string.IsNullOrEmpty(baseSectionName))
+            while (!string.IsNullOrEmpty(baseSectionName) && visitedSections.Add(baseSectionName))
             {
-                visitedSections.Add(baseSectionName);
                 string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
                 if (!string.IsNullOrEmpty(baseValue))
                 {
