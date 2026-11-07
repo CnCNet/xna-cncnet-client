@@ -406,26 +406,30 @@ namespace DTAClient.Domain.Multiplayer
         public List<Point> GetStartingLocationPreviewCoords(Point previewSize)
         {
             if (startingLocations == null)
-            {
-                startingLocations = new List<Point>();
+                startingLocations = CalculateStartingLocationPreviewCoords(previewSize);
+            return startingLocations;
+        }
 
-                for (int i = 0; i < waypoints.Count; i++)
+        // Uncached, for a generated preview whose size differs from the original image.
+        // Caching it would hand HD coordinates to views showing the original preview.
+        internal List<Point> CalculateStartingLocationPreviewCoords(Point previewSize)
+        {
+            var result = new List<Point>();
+            for (int i = 0; i < waypoints.Count; i++)
+            {
+                if (MainClientConstants.USE_ISOMETRIC_CELLS)
                 {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                    {
-                        int levelOverride = WaypointLevels != null && i < WaypointLevels.Length
-                            ? WaypointLevels[i]
-                            : -1;
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoints[i], actualSize, localSize, previewSize, levelOverride));
-                    }
-                    else
-                    {
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoints[i], x, y, width, height, previewSize));
-                    }
+                    int levelOverride = WaypointLevels != null && i < WaypointLevels.Length
+                        ? WaypointLevels[i]
+                        : -1;
+                    result.Add(GetIsometricWaypointCoords(waypoints[i], actualSize, localSize, previewSize, levelOverride));
+                }
+                else
+                {
+                    result.Add(GetTDRAWaypointCoords(waypoints[i], x, y, width, height, previewSize));
                 }
             }
-
-            return startingLocations;
+            return result;
         }
 
         /// <summary>
