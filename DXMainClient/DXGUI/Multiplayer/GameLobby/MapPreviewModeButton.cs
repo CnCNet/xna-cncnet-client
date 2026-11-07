@@ -16,19 +16,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby;
 /// <summary>Owns preview-mode interaction and its theme artwork, not image generation.</summary>
 internal sealed class MapPreviewModeButton : XNAClientButton
 {
-    private readonly Texture2D? previewHDButtonImage, previewHDButtonHoverImage;
-    private readonly Texture2D? previewSDButtonImage, previewSDButtonHoverImage;
-    private readonly Texture2D previewTextButtonImage;
+    private readonly Texture2D previewHDButtonImage, previewSDButtonImage;
+    private readonly Texture2D? previewHDButtonHoverImage, previewSDButtonHoverImage;
 
     public MapPreviewModeButton(WindowManager windowManager) : base(windowManager)
     {
         Name = "btnToggleRenderedPreview";
-        FontIndex = 1;
-        previewHDButtonImage = LoadPreviewButtonImage("previewHD.png");
-        previewHDButtonHoverImage = LoadPreviewButtonImage("previewHD_c.png");
-        previewSDButtonImage = LoadPreviewButtonImage("previewSD.png");
-        previewSDButtonHoverImage = LoadPreviewButtonImage("previewSD_c.png");
-        previewTextButtonImage = AssetLoader.CreateTexture(Color.Transparent, 32, 18);
+        previewHDButtonImage = AssetLoader.LoadTexture("previewHD.png");
+        previewHDButtonHoverImage = LoadOptionalImage("previewHD_c.png");
+        previewSDButtonImage = AssetLoader.LoadTexture("previewSD.png");
+        previewSDButtonHoverImage = LoadOptionalImage("previewSD_c.png");
         LeftClick += (sender, args) =>
         {
             if (!MapPreviewGenerationService.Enabled) return;
@@ -38,25 +35,20 @@ internal sealed class MapPreviewModeButton : XNAClientButton
         };
     }
 
-    private static Texture2D? LoadPreviewButtonImage(string name)
+    private static Texture2D? LoadOptionalImage(string name)
         => AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
     /// <summary>Updates the artwork, size and tooltip; the map preview box positions the button.</summary>
     public void Refresh()
     {
         bool showOriginal = MapPreviewGenerationService.Selected;
-        Texture2D? idle = showOriginal ? previewSDButtonImage : previewHDButtonImage;
-        Texture2D? hover = showOriginal ? previewSDButtonHoverImage : previewHDButtonHoverImage;
-        Text = idle == null ? (showOriginal ? "SD" : "HD") : string.Empty;
-        IdleTexture = idle ?? previewTextButtonImage;
-        HoverTexture = idle == null ? previewTextButtonImage : (hover ?? idle);
-        int width = idle?.Width ?? 32;
-        int height = idle?.Height ?? 18;
-        ClientRectangle = new Rectangle(X, Y, width, height);
+        Texture2D idle = showOriginal ? previewSDButtonImage : previewHDButtonImage;
+        IdleTexture = idle;
+        HoverTexture = (showOriginal ? previewSDButtonHoverImage : previewHDButtonHoverImage) ?? idle;
+        ClientRectangle = new Rectangle(X, Y, idle.Width, idle.Height);
         ToolTipText = showOriginal
             ? "Show original map preview".L10N("Client:Main:ShowOriginalPreview")
             : "Show generated HD map preview".L10N("Client:Main:ShowGeneratedPreview");
         if (MapPreviewGenerationService.Enabled) Enable(); else Disable();
     }
-
 }

@@ -30,7 +30,7 @@ RenderMapPreviews=yes
 ShowGeneratedMapPreviews=no
 ```
 
-The first setting is the **Allow generated map previews** checkbox in Display options. The checkbox, the HD/SD button and the **Regenerate HD Preview** menu item are hidden when no renderer is configured. The second is saved by the map's HD/SD button. Disabling the checkbox uses the original preview and cancels any active renderer. Selecting Original also cancels active rendering. Small HD/SD button labels describe the mode to switch to; tooltips describe both actions. UI refreshes occur on the UI thread. Rendering, process waiting, validation and cache pruning run on tasks.
+The first setting is the **Allow generated map previews** checkbox in Display options. The checkbox, the HD/SD button and the **Regenerate HD Preview** menu item are hidden when no renderer is configured. The second is saved by the map's HD/SD button. Disabling the checkbox uses the original preview and cancels any active renderer. Selecting Original also cancels active rendering. The HD/SD button image shows the mode to switch to; tooltips describe both actions. UI refreshes occur on the UI thread. Rendering, process waiting, validation and cache pruning run on tasks.
 
 ## Cache and lifetime
 
@@ -44,14 +44,14 @@ The renderer produces a plain image and nothing else. It must show the same area
 
 ## Theme button images
 
-Like the Favorite button (`favActive.png` / `favActive_c.png`), the HD/SD button uses optional theme assets with fixed names:
+Like the Favorite button (`favActive.png` / `favInactive.png`), the HD/SD button uses theme images with fixed names. A mod that configures a renderer must provide the idle images; the hover images are optional:
 
 | Asset | Shown |
 | --- | --- |
 | `previewHD.png` / `previewHD_c.png` | Idle / hover, while the original preview is shown (clicking switches to HD) |
 | `previewSD.png` / `previewSD_c.png` | Idle / hover, while the generated preview is shown (clicking switches to Original) |
 
-An idle PNG replaces the text and sets the button to its native pixel dimensions; 18x18 or 32x18 is recommended. Hover PNGs should match the corresponding idle size. Without a hover PNG, the idle image remains visible. Without an idle PNG, that state falls back to HD/SD text on a transparent background. Restart the client after changing these assets.
+The button takes the size of its idle image; 18x18 matches the Favorite button. Hover PNGs should match the corresponding idle size. Without a hover PNG, the idle image remains visible. Restart the client after changing these assets.
 
 The button sits next to the Favorite and extra icons buttons, and follows the map preview box's `CornerButtonLayout` (see `Docs/INISystem.md`).
 
