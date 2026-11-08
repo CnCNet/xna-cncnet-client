@@ -38,6 +38,12 @@ internal abstract class Patch
 
     public Patch AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
+        if (src.KeyExists(section, key))
+        {
+            Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists");
+            return this;
+        }
+
         if (recursive)
         {
             HashSet<string> visitedSections = [section];
@@ -45,10 +51,10 @@ internal abstract class Patch
 
             while (!string.IsNullOrEmpty(baseSectionName) && visitedSections.Add(baseSectionName))
             {
-                string baseValue = src.GetStringValue(baseSectionName, key, string.Empty).Trim();
-                if (!string.IsNullOrEmpty(baseValue))
+                if (src.KeyExists(baseSectionName, key))
                 {
-                    Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist in base section [{baseSectionName}]->{key}={baseValue}");
+                    string baseValue = src.GetStringValue(baseSectionName, key, string.Empty);
+                    Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
                     return this;
                 }
 
@@ -56,19 +62,12 @@ internal abstract class Patch
             }
         }
 
-        if (src.KeyExists(section, key))
-        {
-            Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exist");
-        }
-        else
-        {
-            Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
-            
-            if (!src.SectionExists(section))
-                src.AddSection(section);
-            
-            src.GetSection(section).AddKey(key, value);
-        }
+        Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
+
+        if (!src.SectionExists(section))
+            src.AddSection(section);
+
+        src.GetSection(section).AddKey(key, value);
 
         return this;
     }
