@@ -30,7 +30,7 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
-        private const int CurrentCustomMapCacheVersion = 5;
+        private const int CurrentCustomMapCacheVersion = 6;
 
         private static string GetCustomMapCacheFileName(int version) => version == 1 ? "custom_map_cache" : $"custom_map_cache_v{version}";
 
@@ -46,6 +46,9 @@ namespace DTAClient.Domain.Multiplayer
         private MapFileWatcher mapFileWatcher;
         private readonly object mapModificationLock = new object();
         private const int _mapChangeRetryCount = 3;
+
+        private readonly Lazy<MapTileDataCache> tileDataCache = new(() => MapTileDataCache.Load(
+            AutoMapOverlayDefinition.ParseSection(ClientConfiguration.Instance.GetAutoMapOverlaysSection())));
 
         // Mutable buffer used only during the initial map-loading pass. After
         // LoadMapsInternalAsync publishes the first snapshot, it is set to null
@@ -154,6 +157,9 @@ namespace DTAClient.Domain.Multiplayer
             await LoadMultiMapsAsync(mpMapsIni);
             await LoadCustomMapsAsync();
 
+            tileDataCache.Value.RemoveUnused();
+            tileDataCache.Value.Save();
+
             Logger.Log("MapLoader: Post-processing game mode map collections.");
             PublishSnapshot(_initialGameModes);
             _initialGameModes = null;
@@ -221,6 +227,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (success && map != null)
                 {
+                    tileDataCache.Value.Apply(map);
+                    tileDataCache.Value.Save();
+
                     lock (mapModificationLock)
                     {
                         List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
@@ -281,6 +290,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (success && newMap != null)
                 {
+                    tileDataCache.Value.Apply(newMap);
+                    tileDataCache.Value.Save();
+
                     lock (mapModificationLock)
                     {
                         List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();
@@ -331,6 +343,9 @@ namespace DTAClient.Domain.Multiplayer
                 string baseFilePath = GetBaseFilePathFromFullPath(filePath);
                 if (string.IsNullOrEmpty(baseFilePath))
                     return;
+
+                tileDataCache.Value.Remove(baseFilePath);
+                tileDataCache.Value.Save();
 
                 lock (mapModificationLock)
                 {
@@ -443,6 +458,8 @@ namespace DTAClient.Domain.Multiplayer
                     if (!map.InitializeFromMpMapsINI(mpMapsIni))
                         return null;
 
+                    tileDataCache.Value.Apply(map);
+
                     return map;
                 }
                 catch (Exception ex)
@@ -539,16 +556,21 @@ namespace DTAClient.Domain.Multiplayer
                         .Replace(Path.DirectorySeparatorChar, '/')
                         .Replace(Path.AltDirectorySeparatorChar, '/');
 
+                    Map map;
                     if (customMapCache.Items.TryGetValue(normalizedPath, out var cachedItem) && !cachedItem.IsOutdated())
                     {
-                        // Use cached map
-                        return normalizedPath;
+                        map = cachedItem.Map;
+                    }
+                    else
+                    {
+                        // Not in cache or outdated
+                        map = new Map(normalizedPath, true);
+                        if (!map.InitializeFromCustomMap())
+                            return normalizedPath;
+                        customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
                     }
 
-                    // Not in cache or outdated
-                    var map = new Map(normalizedPath, true);
-                    if (map.InitializeFromCustomMap())
-                        customMapCache.Items[normalizedPath] = new CustomMapCache.Item(map);
+                    tileDataCache.Value.Apply(map);
 
                     return normalizedPath;
                 })).ToArray();
@@ -696,6 +718,9 @@ namespace DTAClient.Domain.Multiplayer
 
             if (map.InitializeFromCustomMap())
             {
+                tileDataCache.Value.Apply(map);
+                tileDataCache.Value.Save();
+
                 lock (mapModificationLock)
                 {
                     List<GameMode> gameModeSnapshot = CloneGameModeSnapshot();

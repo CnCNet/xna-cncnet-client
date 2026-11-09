@@ -97,6 +97,11 @@ namespace ClientCore
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
         }
 
+        /// <summary>
+        /// Returns the [AutoMapOverlays] section from ClientDefinitions.ini, or null if absent.
+        /// </summary>
+        public IniSection GetAutoMapOverlaysSection() => clientDefinitionsIni.GetSection("AutoMapOverlays");
+
         #region Client settings
 
         private string _mainMenuMusicName = null;

@@ -15,12 +15,6 @@ internal class Patch_v2_12_6 : Patch
     {
         base.Apply();
 
-        // Add GameLobbyBase.ini->[ddPlayerColorX]->ItemsDrawMode
-        IniFile gmLobbyBaseIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini"));
-        string ddPlayerColor = nameof(ddPlayerColor);
-        Enumerable.Range(0, 8).ToList().ForEach(i => AddKeyWithLog(gmLobbyBaseIni, ddPlayerColor + i, "ItemsDrawMode", "Text"));
-        gmLobbyBaseIni.WriteIniFile();
-
         // Remove GenericWindow.ini->{ GameCreationWindow; GameCreationWindow_Advanced }->Size
         IniFile genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
         RemoveKeyWithLog(genericWindowIni, "GameCreationWindow", "Size");
