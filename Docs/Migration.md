@@ -21,7 +21,7 @@ This document lists all the breaking changes and how to address them. Each secti
   - If your mod ships `Fonts.ini` copies in theme or translation folders, migrate every copy following the same steps above.
 - The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
 - Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
-- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly. The migration tool widens an explicitly configured `[OptionsWindow]` and shifts detected right-aligned and second-column controls; review any remaining layout manually.
+- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly.
 - Brought by our regular UI library updates, element alignment can differ slightly. Check labels, buttons, list boxes and drop-downs for clipping or misalignment after upgrading.
 
 ## 2.13.0
