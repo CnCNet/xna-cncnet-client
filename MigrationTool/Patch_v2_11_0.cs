@@ -343,6 +343,7 @@ internal class Patch_v2_11_0 : Patch
 
                     // Add multiplayer lobby only controls from GameOptions.ini
                     addControls.ForEach(control =>
+                    {
                         AddKeyWithLog(
                             multiplayerGameLobbyIni,
                             "GameOptionsPanel",
@@ -353,9 +354,10 @@ internal class Patch_v2_11_0 : Patch
                                 "cmb" => "GameLobbyDropDown",
                                 "lbl" => "XNALabel",
                                 _ => throw new Exception($"GameOptions.ini contains unknown type of contol with name {control}")
-                            })
-                        .TransferKeys(gameOptionsIni, control, multiplayerGameLobbyIni)
-                        .CalculatePositions(multiplayerGameLobbyIni, "GameOptionsPanel", control));
+                            });
+                        TransferKeys(gameOptionsIni, control, multiplayerGameLobbyIni);
+                        CalculatePositions(multiplayerGameLobbyIni, "GameOptionsPanel", control);
+                    });
 
                     // Add other elements in MultiplayerGameLobby.ini->[MultiplayerGameLobby]
                     {
@@ -460,5 +462,15 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
+    }
+
+    private Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)
+    {
+        desSection ??= srcSection;
+
+        srcIni.GetSectionKeys(srcSection)
+            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty), recursive: false));
+
+        return this;
     }
 }
