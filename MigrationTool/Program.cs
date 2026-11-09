@@ -27,21 +27,24 @@ internal sealed class Program
 
         var clientDirectoryArgument = new Argument<string>("client-directory")
         {
-            Description = "Path to the client directory. Required unless --patch-list is specified.",
-            Arity = ArgumentArity.ZeroOrOne
+            Description = "Path to the client directory.",
+            Arity = ArgumentArity.ZeroOrOne,
         };
-        var patchOption = new Option<string?>("--patch", "-p")
+
+        var optPatch = new Option<string?>("--patch", "-p")
         {
             Description = "Apply only the specified migration patch. If omitted, all configured patches are applied in sequence. " +
                 "Dots and underscores are accepted in version names. A leading 'v' is optional. " +
                 "The specified patch must be included in this build.",
             HelpName = "version"
         };
-        var patchListOption = new Option<bool>("--patch-list")
+
+        var optPatchList = new Option<bool>("--patch-list")
         {
             Description = "Show list of available client versions to use."
         };
-        var rootCommand = new RootCommand(
+
+        var root = new RootCommand(
             """
             CnCNet Client Migration Tool
             Experimental utility for migrating CnCNet client configuration files.
@@ -58,29 +61,29 @@ internal sealed class Program
             """)
         {
             clientDirectoryArgument,
-            patchOption,
-            patchListOption
+            optPatch,
+            optPatchList
         };
 
-        rootCommand.Validators.Add(result =>
+        root.Validators.Add(result =>
         {
-            if (!result.GetValue(patchListOption) && result.GetValue(clientDirectoryArgument) == null)
+            if (!result.GetValue(optPatchList) && result.GetValue(clientDirectoryArgument) == null)
                 result.AddError("A client directory is required unless --patch-list is specified.");
         });
-        rootCommand.SetAction(result =>
+
+        root.SetAction(result =>
         {
-            if (result.GetValue(patchListOption))
+            if (result.GetValue(optPatchList))
             {
                 Console.WriteLine("List of available versions: " + string.Join(", ", Enum.GetNames(typeof(Version)).Select(name => name.Replace('_', '.'))));
-
                 return;
             }
 
-            MigrateClient(result.GetValue(clientDirectoryArgument)!, result.GetValue(patchOption)?.Trim().ToLowerInvariant());
+            MigrateClient(result.GetValue(clientDirectoryArgument)!, result.GetValue(optPatch)?.Trim().ToLowerInvariant());
         });
 
         // Supply the executable token explicitly to preserve directories named MigrationTool.
-        return rootCommand.Parse(new[] { rootCommand.Name }.Concat(args).ToArray()).Invoke();
+        return root.Parse(new[] { root.Name }.Concat(args).ToArray()).Invoke();
     }
 
     private static void MigrateClient(string clientDir, string? versionName)
