@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 using Rampastring.Tools;
 
@@ -8,6 +9,11 @@ namespace MigrationTool;
 
 internal class Patch_v3_0 : Patch
 {
+    private const int OLD_OPTIONS_WINDOW_WIDTH = 576;
+    private const int OPTIONS_WINDOW_WIDTH_DELTA = 92;
+    private const int NEW_OPTIONS_WINDOW_WIDTH = OLD_OPTIONS_WINDOW_WIDTH + OPTIONS_WINDOW_WIDTH_DELTA;
+    private const int OPTIONS_WINDOW_SECOND_COLUMN_X = 276;
+
     public Patch_v3_0(string clientPath) : base(clientPath)
     {
         ClientVersion = Version.v3_0;
@@ -18,8 +24,233 @@ internal class Patch_v3_0 : Patch
         base.Apply();
 
         MigrateFontsIniFiles();
+        CopyTunnelNegotiationImages();
+        MigrateOptionsWindowIni();
+    }
 
-        // TODO: migrate other v3.0 changes here
+    private void CopyTunnelNegotiationImages()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+
+        CopyEmbeddedResource(assembly, "negotiating.png");
+        CopyEmbeddedResource(assembly, "negotiation-failed.png");
+    }
+
+    private void CopyEmbeddedResource(Assembly assembly, string fileName)
+    {
+        string resourceName = $"{nameof(MigrationTool)}.Pictures.{fileName}";
+        using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
+
+        if (resourceStream == null)
+        {
+            Logger.Log($"Unable to find embedded resource {resourceName}, skipping copying {fileName}.");
+            return;
+        }
+
+        string destinationPath = SafePath.CombineFilePath(ResouresDir.FullName, fileName);
+
+        if (File.Exists(destinationPath))
+        {
+            Logger.Log($"Skip copying {fileName} to {ResouresDir.FullName}, reason: already exists");
+            return;
+        }
+
+        using FileStream fileStream = new FileStream(destinationPath, FileMode.CreateNew);
+        resourceStream.CopyTo(fileStream);
+        Logger.Log($"Copy {fileName} to {ResouresDir.FullName}");
+    }
+
+    private void MigrateOptionsWindowIni()
+    {
+        string optionsWindowPath = SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini");
+
+        if (!File.Exists(optionsWindowPath))
+        {
+            Logger.Log("No OptionsWindow.ini found, skipping the OptionsWindow.ini migration.");
+            return;
+        }
+
+        // Only migrate sections that are actually defined in this file. The INI
+        // system inherits from GenericWindow.ini, and writing inherited sections
+        // back would duplicate the whole base configuration into OptionsWindow.ini.
+        IniFile optionsWindowIni = new IniFile(optionsWindowPath, applyBaseIni: false);
+
+        bool hasExplicitWidth = TryGetOptionsWindowWidth(optionsWindowIni, out int optionsWindowWidth);
+        bool layoutWasBasedOnOldWidth = hasExplicitWidth && optionsWindowWidth == OLD_OPTIONS_WINDOW_WIDTH;
+        bool layoutIsAlreadyMigrated = hasExplicitWidth && optionsWindowWidth == NEW_OPTIONS_WINDOW_WIDTH;
+
+        bool changed = UpdateOptionsWindowWidth(optionsWindowIni);
+
+        // When the INI specifies the old window width, it also describes a layout
+        // that was designed for that width, so shift its second column as well.
+        // Otherwise only shift controls that clearly ended at the right edge.
+        changed |= ShiftControls(optionsWindowIni, layoutWasBasedOnOldWidth, layoutIsAlreadyMigrated);
+
+        if (changed)
+            optionsWindowIni.WriteIniFile();
+
+        Logger.Log("OptionsWindow.ini: Check labels, buttons, list boxes and drop-downs for clipping or misalignment after upgrading.");
+    }
+
+    private static bool TryGetOptionsWindowWidth(IniFile optionsWindowIni, out int width)
+    {
+        if (optionsWindowIni.KeyExists("OptionsWindow", "Width"))
+            return int.TryParse(optionsWindowIni.GetStringValue("OptionsWindow", "Width", string.Empty), out width);
+
+        if (!optionsWindowIni.KeyExists("OptionsWindow", "Size"))
+        {
+            width = 0;
+            return false;
+        }
+
+        string[] size = optionsWindowIni.GetStringValue("OptionsWindow", "Size", string.Empty).Split(',');
+
+        if (size.Length < 1)
+        {
+            width = 0;
+            return false;
+        }
+
+        return int.TryParse(size[0].Trim(), out width);
+    }
+
+    private bool UpdateOptionsWindowWidth(IniFile optionsWindowIni)
+    {
+        bool changed = false;
+
+        if (optionsWindowIni.KeyExists("OptionsWindow", "Width"))
+        {
+            int width = optionsWindowIni.GetIntValue("OptionsWindow", "Width", 0);
+
+            if (width == OLD_OPTIONS_WINDOW_WIDTH)
+            {
+                optionsWindowIni.SetIntValue("OptionsWindow", "Width", NEW_OPTIONS_WINDOW_WIDTH);
+                Logger.Log($"Update {optionsWindowIni.FilePath}: [OptionsWindow]->Width={OLD_OPTIONS_WINDOW_WIDTH} to {NEW_OPTIONS_WINDOW_WIDTH}");
+                changed = true;
+            }
+            else if (width != NEW_OPTIONS_WINDOW_WIDTH)
+            {
+                Logger.Log($"Update {optionsWindowIni.FilePath}: Skip changing [OptionsWindow]->Width, reason: custom value {width}");
+            }
+        }
+
+        if (optionsWindowIni.KeyExists("OptionsWindow", "Size"))
+        {
+            string[] size = optionsWindowIni.GetStringValue("OptionsWindow", "Size", string.Empty).Split(',');
+
+            if (size.Length >= 1 && int.TryParse(size[0].Trim(), out int width))
+            {
+                if (width == OLD_OPTIONS_WINDOW_WIDTH)
+                {
+                    size[0] = NEW_OPTIONS_WINDOW_WIDTH.ToString();
+                    optionsWindowIni.SetStringValue("OptionsWindow", "Size", string.Join(",", size));
+                    Logger.Log($"Update {optionsWindowIni.FilePath}: [OptionsWindow]->Size width from {OLD_OPTIONS_WINDOW_WIDTH} to {NEW_OPTIONS_WINDOW_WIDTH}");
+                    changed = true;
+                }
+                else if (width != NEW_OPTIONS_WINDOW_WIDTH)
+                {
+                    Logger.Log($"Update {optionsWindowIni.FilePath}: Skip changing [OptionsWindow]->Size, reason: custom width {width}");
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    private bool ShiftControls(IniFile optionsWindowIni, bool shiftSecondColumn, bool layoutIsAlreadyMigrated)
+    {
+        if (layoutIsAlreadyMigrated)
+            return false;
+
+        int shiftedControls = 0;
+
+        foreach (string section in optionsWindowIni.GetSections())
+        {
+            if (section == "INISystem" || section == "OptionsWindow")
+                continue;
+
+            if (!TryGetControlX(optionsWindowIni, section, out int x))
+                continue;
+
+            bool hasWidth = TryGetControlWidth(optionsWindowIni, section, out int width);
+            int right = hasWidth ? x + width : x;
+
+            bool isAtRightEdge = right >= OLD_OPTIONS_WINDOW_WIDTH - OPTIONS_WINDOW_WIDTH_DELTA &&
+                right < OLD_OPTIONS_WINDOW_WIDTH;
+            bool isInSecondColumn = shiftSecondColumn &&
+                x >= OPTIONS_WINDOW_SECOND_COLUMN_X &&
+                x < OLD_OPTIONS_WINDOW_WIDTH;
+
+            if (!isAtRightEdge && !isInSecondColumn)
+                continue;
+
+            int newX = x + OPTIONS_WINDOW_WIDTH_DELTA;
+            SetControlX(optionsWindowIni, section, newX);
+            Logger.Log($"Update {optionsWindowIni.FilePath}: Shift control [{section}] from X={x} to X={newX}");
+            shiftedControls++;
+        }
+
+        if (shiftedControls > 0)
+            Logger.Log($"Update {optionsWindowIni.FilePath}: Shifted {shiftedControls} control(s) for the new Options window width.");
+
+        return shiftedControls > 0;
+    }
+
+    private static bool TryGetControlX(IniFile iniFile, string section, out int x)
+    {
+        if (iniFile.KeyExists(section, "X"))
+            return int.TryParse(iniFile.GetStringValue(section, "X", string.Empty), out x);
+
+        if (!iniFile.KeyExists(section, "Location"))
+        {
+            x = 0;
+            return false;
+        }
+
+        string[] location = iniFile.GetStringValue(section, "Location", string.Empty).Split(',');
+
+        if (location.Length < 1)
+        {
+            x = 0;
+            return false;
+        }
+
+        return int.TryParse(location[0].Trim(), out x);
+    }
+
+    private static bool TryGetControlWidth(IniFile iniFile, string section, out int width)
+    {
+        if (iniFile.KeyExists(section, "Width"))
+            return int.TryParse(iniFile.GetStringValue(section, "Width", string.Empty), out width);
+
+        if (!iniFile.KeyExists(section, "Size"))
+        {
+            width = 0;
+            return false;
+        }
+
+        string[] size = iniFile.GetStringValue(section, "Size", string.Empty).Split(',');
+
+        if (size.Length < 1)
+        {
+            width = 0;
+            return false;
+        }
+
+        return int.TryParse(size[0].Trim(), out width);
+    }
+
+    private static void SetControlX(IniFile iniFile, string section, int x)
+    {
+        if (iniFile.KeyExists(section, "X"))
+        {
+            iniFile.SetIntValue(section, "X", x);
+            return;
+        }
+
+        string[] location = iniFile.GetStringValue(section, "Location", string.Empty).Split(',');
+        location[0] = x.ToString();
+        iniFile.SetStringValue(section, "Location", string.Join(",", location));
     }
 
     private void MigrateFontsIniFiles()
