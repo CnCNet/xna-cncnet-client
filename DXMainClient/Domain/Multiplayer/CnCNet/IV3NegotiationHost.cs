@@ -30,6 +30,12 @@ public interface IV3NegotiationHost
     /// </summary>
     void SendNegotiationReport(string message);
 
+    /// <summary>
+    /// Sends a tunnel table message (<see cref="TunnelTableExchange.IRC_COMMAND"/>) to the channel.
+    /// Not coalesced: several can be queued at once, one per pair.
+    /// </summary>
+    void SendTunnelTable(string message);
+
     /// <summary>Adds a notice to the lobby chat.</summary>
     void AddNotice(string message, Color color);
 
@@ -58,8 +64,8 @@ public interface IV3NegotiationHost
     void OnNegotiationsRestarted();
 
     /// <summary>
-    /// Raised when a keepalive round trip refreshes the measured ping for a negotiated
-    /// pair involving the local player, so the lobby can keep its ping display live.
+    /// Raised when the measured ping for a pair involving the local player changes, so the lobby
+    /// can keep its ping display live.
     /// </summary>
     void OnPairPingUpdated(PlayerInfo player, int ping);
 }

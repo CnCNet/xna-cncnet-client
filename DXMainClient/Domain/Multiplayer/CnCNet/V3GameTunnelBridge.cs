@@ -16,21 +16,37 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 /// Bridges UDP traffic between the local game and remote players
 /// using V3 tunnels
 /// </summary>
+/// <remarks>
+/// <para>Each remote player's traffic goes out on whatever paths its <see cref="V3PairLink"/>
+/// currently lists. Normally that is one, but during a failover or a trial it is two or three,
+/// so the game keeps running while a pair changes tunnel.</para>
+///
+/// <para>To make those copies safe for any game, every datagram sent through a tunnel carries a
+/// 2-byte sequence number after the game's payload, and the receiving bridge drops any sequence
+/// number it has already delivered before stripping the trailer and passing the datagram on. The
+/// game never sees the trailer or the duplicates.</para>
+/// </remarks>
 public class V3GameTunnelBridge
 {
     /// <summary>Sender and receiver IDs prefixed to every packet sent through a tunnel.</summary>
     private const int HEADER_SIZE = 8;
 
+    /// <summary>The per-recipient sequence number appended to every packet.</summary>
+    private const int TRAILER_SIZE = 2;
+
     private const int MAX_DATAGRAM_SIZE = 65507;
 
     /// <summary>
     /// Holds the outgoing packet: the 8-byte header followed by the game's datagram, received
-    /// directly into place. Only touched by the bridge thread.
+    /// directly into place, then the trailer. Only touched by the bridge thread.
     /// </summary>
     private readonly byte[] _sendBuffer = new byte[MAX_DATAGRAM_SIZE];
 
     private readonly uint _localId;
     private readonly List<V3PlayerInfo> _otherPlayers;
+    private readonly ushort[] _nextSequence;
+    private readonly DuplicateFilter[] _duplicateFilters;
+    private readonly bool[] _loggedNoPath;
     private readonly TunnelHandler _tunnelHandler;
     private readonly Thread _bridgeThread;
     private readonly UdpClient _localGameClient;
@@ -49,6 +65,9 @@ public class V3GameTunnelBridge
         _tunnelHandler = tunnelHandler;
         _localGameClient = localGameClient;
         _otherPlayers = allPlayers.Where(p => p.Id != _localId).ToList();
+        _nextSequence = new ushort[_otherPlayers.Count];
+        _duplicateFilters = new DuplicateFilter[_otherPlayers.Count];
+        _loggedNoPath = new bool[_otherPlayers.Count];
 
         int localPort = ((IPEndPoint)_localGameClient.Client.LocalEndPoint!).Port;
         Logger.Log($"V3GameTunnelBridge: Local ID={_localId}, Local Port={localPort}");
@@ -59,6 +78,56 @@ public class V3GameTunnelBridge
             Name = "CnCNetV3GameTunnelBridge",
             IsBackground = true
         };
+    }
+
+    /// <summary>
+    /// Drops datagrams already delivered, by sequence number: a 64-wide window behind the newest
+    /// one seen. Only used on the communicator's receive thread.
+    /// </summary>
+    private struct DuplicateFilter
+    {
+        private bool _started;
+        private ushort _newest;
+        private ulong _seen;
+
+        public bool Accept(ushort sequence)
+        {
+            if (!_started)
+            {
+                _started = true;
+                _newest = sequence;
+                _seen = 1;
+                return true;
+            }
+
+            int ahead = (short)(ushort)(sequence - _newest);
+            if (ahead > 0)
+            {
+                _seen = ahead >= 64 ? 1 : (_seen << ahead) | 1;
+                _newest = sequence;
+                return true;
+            }
+
+            int behind = -ahead;
+
+            // Far behind the window is a sender that restarted its count, not a duplicate.
+            if (behind >= 1024)
+            {
+                _newest = sequence;
+                _seen = 1;
+                return true;
+            }
+
+            if (behind >= 64)
+                return false;
+
+            ulong bit = 1UL << behind;
+            if ((_seen & bit) != 0)
+                return false;
+
+            _seen |= bit;
+            return true;
+        }
     }
 
     /// <summary>
@@ -109,23 +178,18 @@ public class V3GameTunnelBridge
         if (Thread.CurrentThread != _bridgeThread)
             _bridgeThread.Join(1000);
 
-        CleanupP2PRoutes();
-
         Logger.Log("V3GameTunnelBridge: Stopped");
     }
 
-    private void CleanupP2PRoutes()
+    private int IndexOfPlayer(uint id)
     {
-        foreach (var player in _otherPlayers)
+        for (int i = 0; i < _otherPlayers.Count; i++)
         {
-            // Drop only the endpoints auto-learned during the game. The chosen path must
-            // survive the bridge: peers still in the lobby keep exchanging keepalives over
-            // it, and wiping it strands the pair (pings become unsendable) until a full
-            // renegotiation. Players who left the lobby mid-game get their kept endpoint
-            // dropped on lobby teardown (ClearAll).
-            if (player.Tunnel is P2PTunnel p2pTunnel)
-                _tunnelHandler.CleanupP2PPair(_localId, player.Id, p2pTunnel.PeerEndpoint);
+            if (_otherPlayers[i].Id == id)
+                return i;
         }
+
+        return -1;
     }
 
     /// <summary>
@@ -141,8 +205,22 @@ public class V3GameTunnelBridge
     private void OnTunnelPacketReceived(uint senderId, uint receiverId,
         TunnelPacketType packetType, ReadOnlyMemory<byte> payload, long receivedTime, CnCNetTunnel tunnel)
     {
-        var player = _otherPlayers.FirstOrDefault(p => p.Id == senderId && p.Tunnel == tunnel);
-        if (player == null)
+        int index = IndexOfPlayer(senderId);
+        if (index < 0)
+            return;
+
+        var path = _otherPlayers[index].Link?.FindAcceptingPath(tunnel);
+        if (path == null)
+            return;
+
+        // Game data is proof of life too, so it counts towards the path's liveness and loss.
+        path.CountReceived(V3Clock.NowMs);
+
+        if (payload.Length <= TRAILER_SIZE)
+            return;
+
+        ushort sequence = BinaryPrimitives.ReadUInt16LittleEndian(payload.Span[^TRAILER_SIZE..]);
+        if (!_duplicateFilters[index].Accept(sequence))
             return;
 
         var gameEndpoint = _gameEndpoint;
@@ -158,10 +236,11 @@ public class V3GameTunnelBridge
         try
         {
             // Forward straight from the received buffer to avoid copying every game packet.
-            if (MemoryMarshal.TryGetArray(payload, out ArraySegment<byte> segment))
+            var datagram = payload[..^TRAILER_SIZE];
+            if (MemoryMarshal.TryGetArray(datagram, out ArraySegment<byte> segment))
                 gameSocket.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, gameEndpoint);
             else
-                gameSocket.SendTo(payload.ToArray(), SocketFlags.None, gameEndpoint);
+                gameSocket.SendTo(datagram.ToArray(), SocketFlags.None, gameEndpoint);
         }
         catch (ObjectDisposedException)
         {
@@ -212,7 +291,7 @@ public class V3GameTunnelBridge
                         // Received straight into the send buffer past the header, so the packet
                         // sent onward is the same memory with the IDs written in front of it.
                         int received = gameSocket.ReceiveFrom(
-                            _sendBuffer, HEADER_SIZE, _sendBuffer.Length - HEADER_SIZE,
+                            _sendBuffer, HEADER_SIZE, _sendBuffer.Length - HEADER_SIZE - TRAILER_SIZE,
                             SocketFlags.None, ref remoteEndPoint);
 
                         CaptureGameEndpoint(remoteEndPoint);
@@ -225,25 +304,15 @@ public class V3GameTunnelBridge
 
                         ushort receiverId = BinaryPrimitives.ReadUInt16BigEndian(
                             _sendBuffer.AsSpan(HEADER_SIZE + 2));
-                        var recipient = _otherPlayers.FirstOrDefault(p => p.PlayerGameId == receiverId);
 
-                        if (recipient != null)
-                        {
-                            if (recipient.Tunnel == null)
-                            {
-                                Logger.Log($"V3GameTunnelBridge: Cannot send to {recipient.Name} - no tunnel assigned");
-                                continue;
-                            }
-
-                            BinaryPrimitives.WriteUInt32LittleEndian(_sendBuffer, _localId);
-                            BinaryPrimitives.WriteUInt32LittleEndian(_sendBuffer.AsSpan(4), recipient.Id);
-
-                            _tunnelHandler.SendRawPacket(recipient.Tunnel, _sendBuffer, HEADER_SIZE + received);
-                        }
-                        else
+                        int index = _otherPlayers.FindIndex(p => p.PlayerGameId == receiverId);
+                        if (index < 0)
                         {
                             Logger.Log($"V3GameTunnelBridge: No matching recipient found for receiverId={receiverId}");
+                            continue;
                         }
+
+                        SendToPlayer(index, received);
                     }
                 }
                 catch (ObjectDisposedException)
@@ -284,5 +353,39 @@ public class V3GameTunnelBridge
         }
 
         Logger.Log("V3GameTunnelBridge: Bridge worker thread stopped");
+    }
+
+    /// <summary>
+    /// Frames the game datagram sitting in the send buffer and sends it on every path the
+    /// recipient's link currently lists.
+    /// </summary>
+    private void SendToPlayer(int index, int received)
+    {
+        var recipient = _otherPlayers[index];
+        var paths = recipient.Link?.SendPaths;
+
+        if (paths == null || paths.Length == 0)
+        {
+            if (!_loggedNoPath[index])
+            {
+                _loggedNoPath[index] = true;
+                Logger.Log($"V3GameTunnelBridge: Cannot send to {recipient.Name} - no path assigned");
+            }
+
+            return;
+        }
+
+        _loggedNoPath[index] = false;
+
+        BinaryPrimitives.WriteUInt32LittleEndian(_sendBuffer, _localId);
+        BinaryPrimitives.WriteUInt32LittleEndian(_sendBuffer.AsSpan(4), recipient.Id);
+        BinaryPrimitives.WriteUInt16LittleEndian(_sendBuffer.AsSpan(HEADER_SIZE + received), _nextSequence[index]++);
+
+        int length = HEADER_SIZE + received + TRAILER_SIZE;
+        foreach (var path in paths)
+        {
+            _tunnelHandler.SendRawPacket(path.Tunnel, _sendBuffer, length);
+            path.CountSent();
+        }
     }
 }
