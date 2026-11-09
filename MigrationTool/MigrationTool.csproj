@@ -28,7 +28,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <!-- Microsoft.VisualBasic is part of the .NET shared framework on net8.0, 
+      but must be referenced explicitly on .NET Framework. -->
     <Reference Include="Microsoft.VisualBasic" />
   </ItemGroup>
 </Project>
