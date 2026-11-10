@@ -89,7 +89,7 @@ internal class Patch_v2_13_0 : Patch
             if (key == "$BaseSection")
                 continue;
 
-            ReplaceKeyWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, key, TEAMS_SECTION, key);
+            MoveKeyWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, key, TEAMS_SECTION, key);
         }
 
         gameLobbyBaseIni.RemoveSection(LEGACY_TEAMS_SECTION);

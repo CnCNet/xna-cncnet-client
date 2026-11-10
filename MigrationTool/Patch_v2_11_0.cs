@@ -488,9 +488,9 @@ internal class Patch_v2_11_0 : Patch
 
                 foreach (string section in ini.GetSections())
                 {
-                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxX",
+                    changed |= MoveKeyWithLog(ini, section, "PlayerReadyBoxX",
                         section, "PlayerStatusIndicatorX");
-                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxY",
+                    changed |= MoveKeyWithLog(ini, section, "PlayerReadyBoxY",
                         section, "PlayerStatusIndicatorY");
                 }
 

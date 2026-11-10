@@ -58,7 +58,7 @@ internal class Patch_v2_12_0 : Patch
                         if (key == "$BaseSection")
                             continue;
 
-                        ReplaceKeyWithLog(ini, "trbClientVolume", key, "trbScrollRate", key);
+                        MoveKeyWithLog(ini, "trbClientVolume", key, "trbScrollRate", key);
                     }
 
                     ini.RemoveSection("trbClientVolume");
