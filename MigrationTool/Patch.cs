@@ -44,22 +44,10 @@ internal abstract class Patch
             return this;
         }
 
-        if (recursive)
+        if (recursive && TryGetBaseSectionKey(src, section, key, out string baseSectionName, out string baseValue))
         {
-            HashSet<string> visitedSections = [section];
-            string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
-
-            while (!string.IsNullOrEmpty(baseSectionName) && visitedSections.Add(baseSectionName))
-            {
-                if (src.KeyExists(baseSectionName, key))
-                {
-                    string baseValue = src.GetStringValue(baseSectionName, key, string.Empty);
-                    Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
-                    return this;
-                }
-
-                baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
-            }
+            Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
+            return this;
         }
 
         Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
@@ -120,12 +108,12 @@ internal abstract class Patch
         {
             replacementValue = src.GetStringValue(sourceSection, sourceKey, string.Empty);
         }
-        else if (TryGetInheritedKeyValue(src, targetSection, targetKey, out _))
+        else if (TryGetBaseSectionKey(src, targetSection, targetKey, out string targetBaseSectionName, out _))
         {
-            Logger.Log($"Update {src.FilePath}: Skip replacing [{sourceSection}]->{sourceKey} with [{targetSection}]->{targetKey}, reason: target already exists in a base section");
+            Logger.Log($"Update {src.FilePath}: Skip replacing [{sourceSection}]->{sourceKey} with [{targetSection}]->{targetKey}, reason: target already exists in base section [{targetBaseSectionName}]");
             return false;
         }
-        else if (TryGetInheritedKeyValue(src, sourceSection, sourceKey, out string inheritedValue))
+        else if (TryGetBaseSectionKey(src, sourceSection, sourceKey, out _, out string inheritedValue))
         {
             replacementValue = inheritedValue;
         }
@@ -143,22 +131,25 @@ internal abstract class Patch
         return true;
     }
 
-    private static bool TryGetInheritedKeyValue(IniFile src, string section, string key, out string value)
+    private static bool TryGetBaseSectionKey(IniFile src, string section, string key,
+        out string baseSectionName, out string value)
     {
         HashSet<string> visitedSections = [section];
-        string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
+        string currentSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
 
-        while (!string.IsNullOrEmpty(baseSectionName) && visitedSections.Add(baseSectionName))
+        while (!string.IsNullOrEmpty(currentSectionName) && visitedSections.Add(currentSectionName))
         {
-            if (src.KeyExists(baseSectionName, key))
+            if (src.KeyExists(currentSectionName, key))
             {
-                value = src.GetStringValue(baseSectionName, key, string.Empty);
+                baseSectionName = currentSectionName;
+                value = src.GetStringValue(currentSectionName, key, string.Empty);
                 return true;
             }
 
-            baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
+            currentSectionName = src.GetStringValue(currentSectionName, "$BaseSection", string.Empty).Trim();
         }
 
+        baseSectionName = string.Empty;
         value = string.Empty;
         return false;
     }
