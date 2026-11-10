@@ -815,7 +815,7 @@ EnableP2P=false ; whether dynamic V3 tunnels may be upgraded to direct player-to
 
 - **Dynamic (V3)** automatically negotiates the best tunnel for each pair of players and does not require the host to select a tunnel manually.
 - **Static (V3)** uses one V3 tunnel that the host selects manually.
-- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions up to, but not including, 2.14.0.
+- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions before 3.0.
 
 Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode when hosting:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
 
