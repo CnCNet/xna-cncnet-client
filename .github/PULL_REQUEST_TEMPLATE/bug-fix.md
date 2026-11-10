@@ -3,6 +3,8 @@
 > [!WARNING]
 > A linked bug issue in the same repository is required. Pull requests that do not link an existing bug issue may be closed.
 
+<!-- Do not remove any of the sections below, even if you think they were not applicable. -->
+
 ### Related Issue
 
 Fixes #<issue-number>

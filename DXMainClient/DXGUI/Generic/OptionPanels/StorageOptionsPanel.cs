@@ -199,7 +199,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblGameLogRetentionHint = new XNALabel(WindowManager);
         lblGameLogRetentionHint.Name = nameof(lblGameLogRetentionHint);
         lblGameLogRetentionHint.ClientRectangle = new Rectangle(12, lblGameLogFolderSize.Y + ROW_SPACING, 0, 0);
-        lblGameLogRetentionHint.Text = ("The debug folder: crash snapshots and sync files.").L10N("Client:DTAConfig:StorageGameLogRetentionHint");
+        lblGameLogRetentionHint.Text = ("Cleans up the debug folder, including game logs, crash reports, and sync files.").L10N("Client:DTAConfig:StorageGameLogRetentionHint");
 
         AddContent(lblGameLogsHeader, lblGameLogAge, tbMaxGameLogAge, lblGameLogAgeSuffix,
             lblGameLogFolderSize, tbMaxGameLogFolderSize, lblGameLogFolderSizeSuffix, lblGameLogRetentionHint);
@@ -252,7 +252,7 @@ class StorageOptionsPanel : XNAOptionsPanel
         var lblSavedGameRetentionHint = new XNALabel(WindowManager);
         lblSavedGameRetentionHint.Name = nameof(lblSavedGameRetentionHint);
         lblSavedGameRetentionHint.ClientRectangle = new Rectangle(12, lblSavedGameFolderSize.Y + ROW_SPACING, 0, 0);
-        lblSavedGameRetentionHint.Text = "Oldest saves are permanently deleted.".L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
+        lblSavedGameRetentionHint.Text = "When limits are reached, the oldest saves are permanently deleted and cannot be recovered.".L10N("Client:DTAConfig:StorageSavedGameRetentionHint");
 
         AddContent(lblSavedGamesHeader, lblKeptSavedGames, tbMaxKeptSavedGames, lblKeptSavedGamesSuffix,
             lblSavedGameFolderSize, tbMaxSavedGameFolderSize, lblSavedGameFolderSizeSuffix, lblSavedGameRetentionHint);

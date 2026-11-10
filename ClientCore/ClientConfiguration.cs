@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using ClientCore.Display;
-using ClientCore.Enums;
 using ClientCore.Extensions;
 using ClientCore.I18N;
 
@@ -97,6 +96,11 @@ namespace ClientCore
         {
             DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
         }
+
+        /// <summary>
+        /// Returns the [AutoMapOverlays] section from ClientDefinitions.ini, or null if absent.
+        /// </summary>
+        public IniSection GetAutoMapOverlaysSection() => clientDefinitionsIni.GetSection("AutoMapOverlays");
 
         #region Client settings
 
@@ -318,6 +322,30 @@ namespace ClientCore
             return null;
         }
 
+        private string[] GetCoopDifficultyINIPaths()
+        {
+            List<string> paths = new List<string>();
+            var pathString = clientDefinitionsIni.GetStringValue(SETTINGS, nameof(CoopDifficultyINIPaths), string.Empty);
+
+            if (string.IsNullOrEmpty(pathString))
+            {
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Easy.ini"));
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Medium.ini"));
+                paths.Add(SafePath.CombineFilePath("INI", "Map Code", "Coop Difficulty Hard.ini"));
+            }
+            else
+            {
+                var pathStrings = pathString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var path in pathStrings)
+                {
+                    paths.Add(SafePath.CombineFilePath(path));
+                }
+            }
+            
+            return paths.ToArray();
+        }
+
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
         public string TranslationIniName => clientDefinitionsIni.GetStringValue(TRANSLATIONS, nameof(TranslationIniName), "Translation.ini");
@@ -378,6 +406,8 @@ namespace ClientCore
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
         public string MPMapsIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", SafePath.CombineFilePath("INI", "MPMaps.ini")));
+
+        public string[] CoopDifficultyINIPaths => GetCoopDifficultyINIPaths();
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 

@@ -19,7 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     /// </summary>
     class TunnelListBox : XNAMultiColumnListBox
     {
-        private static readonly Dictionary<string, int> CountryCodeFlagOffsets = ParseCountryCodeFlagOffsets();
+        private static readonly Dictionary<string, Point> CountryCodeFlagPositions = ParseCountryCodeFlagPositions();
         private const int FLAG_WIDTH = 16;
         private const int FLAG_HEIGHT = 16;
 
@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
             using Stream flagsStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("DTAClient.Icons.flags16.png");
-            var flagsPNG = SixLabors.ImageSharp.Image.Load(flagsStream);
+            using var flagsPNG = SixLabors.ImageSharp.Image.Load(flagsStream);
             flagsSpriteSheet = AssetLoader.TextureFromImage(flagsPNG);
 
             var flagListBox = new FlagListBox(windowManager, tunnelHandler, flagsSpriteSheet);
@@ -253,72 +253,73 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private static Dictionary<string, int> ParseCountryCodeFlagOffsets()
+        private static Dictionary<string, Point> ParseCountryCodeFlagPositions()
         {
             // 16px version from
             // https://github.com/lafeber/world-flags-sprite
-            // Offsets are located in the css files.
-            return new Dictionary<string, int>
+            // The original vertical strip (offsets in its css files) is repacked
+            // into a 16x16 grid, as XNA cannot load textures larger than 2048px.
+            return new Dictionary<string, Point>
             {
-                ["ad"] = 352,  ["ae"] = 368,  ["af"] = 384,  ["ag"] = 400,
-                ["ai"] = 416,  ["al"] = 432,  ["am"] = 448,  ["ao"] = 464,
-                ["aq"] = 480,  ["ar"] = 496,  ["as"] = 512,  ["at"] = 528,
-                ["au"] = 544,  ["aw"] = 560,  ["ax"] = 576,  ["az"] = 592,
-                ["ba"] = 608,  ["bb"] = 624,  ["bd"] = 640,  ["be"] = 656,
-                ["bf"] = 672,  ["bg"] = 688,  ["bh"] = 704,  ["bi"] = 720,
-                ["bj"] = 736,  ["bl"] = 1424, ["bm"] = 752,  ["bn"] = 768,
-                ["bo"] = 784,  ["bq"] = 2752, ["br"] = 800,  ["bs"] = 816,
-                ["bt"] = 832,  ["bv"] = 2768, ["bw"] = 848,  ["by"] = 864,
-                ["bz"] = 880,  ["ca"] = 896,  ["cd"] = 912,  ["cf"] = 928,
-                ["cg"] = 944,  ["ch"] = 960,  ["ci"] = 976,  ["ck"] = 992,
-                ["cl"] = 1008, ["cm"] = 1024, ["cn"] = 1040, ["co"] = 1056,
-                ["cp"] = 1424, ["cr"] = 1072, ["cu"] = 1088, ["cv"] = 1104,
-                ["cw"] = 3920, ["cy"] = 1120, ["cz"] = 1136, ["de"] = 1152,
-                ["dj"] = 1168, ["dk"] = 1184, ["dm"] = 1200, ["do"] = 1216,
-                ["dz"] = 1232, ["ec"] = 1248, ["ee"] = 1264, ["eg"] = 1280,
-                ["eh"] = 1296, ["er"] = 1312, ["es"] = 1328, ["et"] = 1344,
-                ["fi"] = 1360, ["fj"] = 1376, ["fm"] = 1392, ["fo"] = 1408,
-                ["fr"] = 1424, ["ga"] = 1440, ["gb"] = 1456, ["gd"] = 1472,
-                ["ge"] = 1488, ["gg"] = 1504, ["gh"] = 1520, ["gi"] = 1536,
-                ["gl"] = 1552, ["gm"] = 1568, ["gn"] = 1584, ["gp"] = 1600,
-                ["gq"] = 1616, ["gr"] = 1632, ["gt"] = 1648, ["gu"] = 1664,
-                ["gw"] = 1680, ["gy"] = 1696, ["hk"] = 1712, ["hn"] = 1728,
-                ["hr"] = 1744, ["ht"] = 1760, ["hu"] = 1776, ["id"] = 1792,
-                ["ie"] = 1808, ["il"] = 1824, ["im"] = 1840, ["in"] = 1856,
-                ["iq"] = 1872, ["ir"] = 1888, ["is"] = 1904, ["it"] = 1920,
-                ["je"] = 1936, ["jm"] = 1952, ["jo"] = 1968, ["jp"] = 1984,
-                ["ke"] = 2000, ["kg"] = 2016, ["kh"] = 2032, ["ki"] = 2048,
-                ["km"] = 2064, ["kn"] = 2080, ["kp"] = 2096, ["kr"] = 2112,
-                ["kw"] = 2128, ["ky"] = 2144, ["kz"] = 2160, ["la"] = 2176,
-                ["lb"] = 2192, ["lc"] = 2208, ["li"] = 2224, ["lk"] = 2240,
-                ["lr"] = 2256, ["ls"] = 2272, ["lt"] = 2288, ["lu"] = 2304,
-                ["lv"] = 2320, ["ly"] = 2336, ["ma"] = 2352, ["mc"] = 1792,
-                ["md"] = 2368, ["me"] = 2384, ["mf"] = 1424, ["mg"] = 2400,
-                ["mh"] = 2416, ["mk"] = 2432, ["ml"] = 2448, ["mm"] = 2464,
-                ["mn"] = 2480, ["mo"] = 2496, ["mq"] = 2512, ["mr"] = 2528,
-                ["ms"] = 2544, ["mt"] = 2560, ["mu"] = 2576, ["mv"] = 2592,
-                ["mw"] = 2608, ["mx"] = 2624, ["my"] = 2640, ["mz"] = 2656,
-                ["na"] = 2672, ["nc"] = 2688, ["ne"] = 2704, ["ng"] = 2720,
-                ["ni"] = 2736, ["nl"] = 2752, ["no"] = 2768, ["np"] = 2784,
-                ["nq"] = 2768, ["nr"] = 2800, ["nu"] = 3952, ["nz"] = 2816,
-                ["om"] = 2832, ["pa"] = 2848, ["pe"] = 2864, ["pf"] = 2880,
-                ["pg"] = 2896, ["ph"] = 2912, ["pk"] = 2928, ["pl"] = 2944,
-                ["pr"] = 2960, ["ps"] = 2976, ["pt"] = 2992, ["pw"] = 3008,
-                ["py"] = 3024, ["qa"] = 3040, ["re"] = 3056, ["ro"] = 3072,
-                ["rs"] = 3088, ["ru"] = 3104, ["rw"] = 3120, ["sa"] = 3136,
-                ["sb"] = 3152, ["sc"] = 3168, ["sd"] = 3184, ["se"] = 3200,
-                ["sg"] = 3216, ["sh"] = 1456, ["si"] = 3232, ["sj"] = 2768,
-                ["sk"] = 3248, ["sl"] = 3264, ["sm"] = 3280, ["sn"] = 3296,
-                ["so"] = 3312, ["sr"] = 3328, ["ss"] = 3936, ["st"] = 3344,
-                ["sv"] = 3360, ["sx"] = 3904, ["sy"] = 3376, ["sz"] = 3392,
-                ["tc"] = 3408, ["td"] = 3424, ["tg"] = 3440, ["th"] = 3456,
-                ["tj"] = 3472, ["tl"] = 3488, ["tm"] = 3504, ["tn"] = 3520,
-                ["to"] = 3536, ["tr"] = 3552, ["tt"] = 3568, ["tv"] = 3584,
-                ["tw"] = 3600, ["tz"] = 3616, ["ua"] = 3632, ["ug"] = 3648,
-                ["us"] = 3664, ["uy"] = 3680, ["uz"] = 3696, ["va"] = 3712,
-                ["vc"] = 3728, ["ve"] = 3744, ["vg"] = 3760, ["vi"] = 3776,
-                ["vn"] = 3792, ["vu"] = 3808, ["ws"] = 3824, ["ye"] = 3840,
-                ["yt"] = 1424, ["za"] = 3856, ["zm"] = 3872, ["zw"] = 3888
+                ["ad"] = new(96, 16),    ["ae"] = new(112, 16),   ["af"] = new(128, 16),   ["ag"] = new(144, 16),
+                ["ai"] = new(160, 16),   ["al"] = new(176, 16),   ["am"] = new(192, 16),   ["ao"] = new(208, 16),
+                ["aq"] = new(224, 16),   ["ar"] = new(240, 16),   ["as"] = new(0, 32),     ["at"] = new(16, 32),
+                ["au"] = new(32, 32),    ["aw"] = new(48, 32),    ["ax"] = new(64, 32),    ["az"] = new(80, 32),
+                ["ba"] = new(96, 32),    ["bb"] = new(112, 32),   ["bd"] = new(128, 32),   ["be"] = new(144, 32),
+                ["bf"] = new(160, 32),   ["bg"] = new(176, 32),   ["bh"] = new(192, 32),   ["bi"] = new(208, 32),
+                ["bj"] = new(224, 32),   ["bl"] = new(144, 80),   ["bm"] = new(240, 32),   ["bn"] = new(0, 48),
+                ["bo"] = new(16, 48),    ["bq"] = new(192, 160),  ["br"] = new(32, 48),    ["bs"] = new(48, 48),
+                ["bt"] = new(64, 48),    ["bv"] = new(208, 160),  ["bw"] = new(80, 48),    ["by"] = new(96, 48),
+                ["bz"] = new(112, 48),   ["ca"] = new(128, 48),   ["cd"] = new(144, 48),   ["cf"] = new(160, 48),
+                ["cg"] = new(176, 48),   ["ch"] = new(192, 48),   ["ci"] = new(208, 48),   ["ck"] = new(224, 48),
+                ["cl"] = new(240, 48),   ["cm"] = new(0, 64),     ["cn"] = new(16, 64),    ["co"] = new(32, 64),
+                ["cp"] = new(144, 80),   ["cr"] = new(48, 64),    ["cu"] = new(64, 64),    ["cv"] = new(80, 64),
+                ["cw"] = new(80, 240),   ["cy"] = new(96, 64),    ["cz"] = new(112, 64),   ["de"] = new(128, 64),
+                ["dj"] = new(144, 64),   ["dk"] = new(160, 64),   ["dm"] = new(176, 64),   ["do"] = new(192, 64),
+                ["dz"] = new(208, 64),   ["ec"] = new(224, 64),   ["ee"] = new(240, 64),   ["eg"] = new(0, 80),
+                ["eh"] = new(16, 80),    ["er"] = new(32, 80),    ["es"] = new(48, 80),    ["et"] = new(64, 80),
+                ["fi"] = new(80, 80),    ["fj"] = new(96, 80),    ["fm"] = new(112, 80),   ["fo"] = new(128, 80),
+                ["fr"] = new(144, 80),   ["ga"] = new(160, 80),   ["gb"] = new(176, 80),   ["gd"] = new(192, 80),
+                ["ge"] = new(208, 80),   ["gg"] = new(224, 80),   ["gh"] = new(240, 80),   ["gi"] = new(0, 96),
+                ["gl"] = new(16, 96),    ["gm"] = new(32, 96),    ["gn"] = new(48, 96),    ["gp"] = new(64, 96),
+                ["gq"] = new(80, 96),    ["gr"] = new(96, 96),    ["gt"] = new(112, 96),   ["gu"] = new(128, 96),
+                ["gw"] = new(144, 96),   ["gy"] = new(160, 96),   ["hk"] = new(176, 96),   ["hn"] = new(192, 96),
+                ["hr"] = new(208, 96),   ["ht"] = new(224, 96),   ["hu"] = new(240, 96),   ["id"] = new(0, 112),
+                ["ie"] = new(16, 112),   ["il"] = new(32, 112),   ["im"] = new(48, 112),   ["in"] = new(64, 112),
+                ["iq"] = new(80, 112),   ["ir"] = new(96, 112),   ["is"] = new(112, 112),  ["it"] = new(128, 112),
+                ["je"] = new(144, 112),  ["jm"] = new(160, 112),  ["jo"] = new(176, 112),  ["jp"] = new(192, 112),
+                ["ke"] = new(208, 112),  ["kg"] = new(224, 112),  ["kh"] = new(240, 112),  ["ki"] = new(0, 128),
+                ["km"] = new(16, 128),   ["kn"] = new(32, 128),   ["kp"] = new(48, 128),   ["kr"] = new(64, 128),
+                ["kw"] = new(80, 128),   ["ky"] = new(96, 128),   ["kz"] = new(112, 128),  ["la"] = new(128, 128),
+                ["lb"] = new(144, 128),  ["lc"] = new(160, 128),  ["li"] = new(176, 128),  ["lk"] = new(192, 128),
+                ["lr"] = new(208, 128),  ["ls"] = new(224, 128),  ["lt"] = new(240, 128),  ["lu"] = new(0, 144),
+                ["lv"] = new(16, 144),   ["ly"] = new(32, 144),   ["ma"] = new(48, 144),   ["mc"] = new(0, 112),
+                ["md"] = new(64, 144),   ["me"] = new(80, 144),   ["mf"] = new(144, 80),   ["mg"] = new(96, 144),
+                ["mh"] = new(112, 144),  ["mk"] = new(128, 144),  ["ml"] = new(144, 144),  ["mm"] = new(160, 144),
+                ["mn"] = new(176, 144),  ["mo"] = new(192, 144),  ["mq"] = new(208, 144),  ["mr"] = new(224, 144),
+                ["ms"] = new(240, 144),  ["mt"] = new(0, 160),    ["mu"] = new(16, 160),   ["mv"] = new(32, 160),
+                ["mw"] = new(48, 160),   ["mx"] = new(64, 160),   ["my"] = new(80, 160),   ["mz"] = new(96, 160),
+                ["na"] = new(112, 160),  ["nc"] = new(128, 160),  ["ne"] = new(144, 160),  ["ng"] = new(160, 160),
+                ["ni"] = new(176, 160),  ["nl"] = new(192, 160),  ["no"] = new(208, 160),  ["np"] = new(224, 160),
+                ["nq"] = new(208, 160),  ["nr"] = new(240, 160),  ["nu"] = new(112, 240),  ["nz"] = new(0, 176),
+                ["om"] = new(16, 176),   ["pa"] = new(32, 176),   ["pe"] = new(48, 176),   ["pf"] = new(64, 176),
+                ["pg"] = new(80, 176),   ["ph"] = new(96, 176),   ["pk"] = new(112, 176),  ["pl"] = new(128, 176),
+                ["pr"] = new(144, 176),  ["ps"] = new(160, 176),  ["pt"] = new(176, 176),  ["pw"] = new(192, 176),
+                ["py"] = new(208, 176),  ["qa"] = new(224, 176),  ["re"] = new(240, 176),  ["ro"] = new(0, 192),
+                ["rs"] = new(16, 192),   ["ru"] = new(32, 192),   ["rw"] = new(48, 192),   ["sa"] = new(64, 192),
+                ["sb"] = new(80, 192),   ["sc"] = new(96, 192),   ["sd"] = new(112, 192),  ["se"] = new(128, 192),
+                ["sg"] = new(144, 192),  ["sh"] = new(176, 80),   ["si"] = new(160, 192),  ["sj"] = new(208, 160),
+                ["sk"] = new(176, 192),  ["sl"] = new(192, 192),  ["sm"] = new(208, 192),  ["sn"] = new(224, 192),
+                ["so"] = new(240, 192),  ["sr"] = new(0, 208),    ["ss"] = new(96, 240),   ["st"] = new(16, 208),
+                ["sv"] = new(32, 208),   ["sx"] = new(64, 240),   ["sy"] = new(48, 208),   ["sz"] = new(64, 208),
+                ["tc"] = new(80, 208),   ["td"] = new(96, 208),   ["tg"] = new(112, 208),  ["th"] = new(128, 208),
+                ["tj"] = new(144, 208),  ["tl"] = new(160, 208),  ["tm"] = new(176, 208),  ["tn"] = new(192, 208),
+                ["to"] = new(208, 208),  ["tr"] = new(224, 208),  ["tt"] = new(240, 208),  ["tv"] = new(0, 224),
+                ["tw"] = new(16, 224),   ["tz"] = new(32, 224),   ["ua"] = new(48, 224),   ["ug"] = new(64, 224),
+                ["us"] = new(80, 224),   ["uy"] = new(96, 224),   ["uz"] = new(112, 224),  ["va"] = new(128, 224),
+                ["vc"] = new(144, 224),  ["ve"] = new(160, 224),  ["vg"] = new(176, 224),  ["vi"] = new(192, 224),
+                ["vn"] = new(208, 224),  ["vu"] = new(224, 224),  ["ws"] = new(240, 224),  ["ye"] = new(0, 240),
+                ["yt"] = new(144, 80),   ["za"] = new(16, 240),   ["zm"] = new(32, 240),   ["zw"] = new(48, 240)
             };
         }
 
@@ -328,9 +329,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return null;
 
             string code = countryCode.ToLowerInvariant();
-            if (CountryCodeFlagOffsets.TryGetValue(code, out int yOffset))
+            if (CountryCodeFlagPositions.TryGetValue(code, out Point position))
             {
-                return new Rectangle(0, yOffset, FLAG_WIDTH, FLAG_HEIGHT);
+                return new Rectangle(position.X, position.Y, FLAG_WIDTH, FLAG_HEIGHT);
             }
 
             return null;
@@ -364,7 +365,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     Rectangle? flagRect = Items[i].Tag as Rectangle?;
 
-                    if (flagRect.HasValue)
+                    if (flagRect.HasValue && flagsSpriteSheet != null)
                     {
                         int x = (Width - FLAG_WIDTH) / 2;
                         DrawTexture(flagsSpriteSheet,

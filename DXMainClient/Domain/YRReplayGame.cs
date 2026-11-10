@@ -4,6 +4,7 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 
 using ClientCore.Extensions;
 using ClientCore.PlatformShim;
@@ -25,8 +26,8 @@ public enum ReplayStatus
 
 /// <summary>
 /// Reads the replay format used by the CnCNet YR spawner.
-/// Listing only reads the header and the embedded spawn.ini; the spawn files
-/// themselves are re-read on demand.
+/// Listing only reads the header and the embedded spawn.ini, which is inflated on the spot; the
+/// spawn files themselves are re-read on demand.
 /// </summary>
 // Written for a CnCNet YR-compatible spawner only. When other games are added, extract an
 // IReplayGame interface for the game-specific bits (header layout, speed/FPS tables) and
@@ -48,7 +49,7 @@ public class YRReplayGame
     private const int STABLE_PREFIX_SIZE = 12;
 
     /// <summary>Size of the replay header: sizeof(ReplayHeader) in the spawner's ReplayFormat.h.</summary>
-    private const int KNOWN_HEADER_SIZE = 1084;
+    private const int KNOWN_HEADER_SIZE = 1096;
 
     private const uint MAX_HEADER_SIZE = 64 * 1024;
 
@@ -61,6 +62,8 @@ public class YRReplayGame
     private const int OFFSET_RECORDED_UNIX_TIME = 1044;
     private const int OFFSET_TOTAL_FRAMES = 1052;
     private const int OFFSET_FLAGS = 1056;
+    private const int OFFSET_SPAWN_INI_RAW_SIZE = 1084;
+    private const int OFFSET_SPAWN_MAP_RAW_SIZE = 1088;
 
     private const uint HEADER_FLAG_CLEAN_SHUTDOWN = 1;
 
@@ -106,8 +109,11 @@ public class YRReplayGame
 
     public int FramesPerSecond { get; private set; }
 
+    // The embedded spawn.ini and spawnmap.ini are each raw deflate: their sizes on disk, then inflated.
     private uint spawnIniSize;
     private uint spawnMapSize;
+    private uint spawnIniRawSize;
+    private uint spawnMapRawSize;
 
     /// <summary>Header size declared by the replay file.</summary>
     private uint headerSize;
@@ -174,6 +180,8 @@ public class YRReplayGame
 
             spawnIniSize = ReadUInt32(header, OFFSET_SPAWN_INI_SIZE);
             spawnMapSize = ReadUInt32(header, OFFSET_SPAWN_MAP_SIZE);
+            spawnIniRawSize = ReadUInt32(header, OFFSET_SPAWN_INI_RAW_SIZE);
+            spawnMapRawSize = ReadUInt32(header, OFFSET_SPAWN_MAP_RAW_SIZE);
 
             if (!AreEmbeddedSizesValid(stream.Length))
             {
@@ -197,7 +205,7 @@ public class YRReplayGame
             // Use the declared size so additive header fields are skipped.
             stream.Seek(headerSize, SeekOrigin.Begin);
 
-            string? spawnIniContent = ReadText(stream, spawnIniSize);
+            string? spawnIniContent = ReadDeflatedText(stream, spawnIniSize, spawnIniRawSize);
 
             if (spawnIniContent == null)
             {
@@ -234,8 +242,8 @@ public class YRReplayGame
             using FileStream stream = ReplayManager.GetReplayFile(FileName).Open(FileMode.Open, FileAccess.Read);
             stream.Seek(headerSize, SeekOrigin.Begin);
 
-            string? readSpawnIni = ReadText(stream, spawnIniSize);
-            byte[]? readSpawnMap = ReadBytes(stream, spawnMapSize);
+            string? readSpawnIni = ReadDeflatedText(stream, spawnIniSize, spawnIniRawSize);
+            byte[]? readSpawnMap = ReadDeflated(stream, spawnMapSize, spawnMapRawSize);
 
             if (readSpawnIni == null || readSpawnMap == null)
             {
@@ -325,7 +333,12 @@ public class YRReplayGame
 
     private bool AreEmbeddedSizesValid(long fileLength)
     {
-        if (spawnIniSize > MAX_EMBEDDED_FILE_SIZE || spawnMapSize > MAX_EMBEDDED_FILE_SIZE)
+        if (spawnIniSize > MAX_EMBEDDED_FILE_SIZE || spawnMapSize > MAX_EMBEDDED_FILE_SIZE
+            || spawnIniRawSize > MAX_EMBEDDED_FILE_SIZE || spawnMapRawSize > MAX_EMBEDDED_FILE_SIZE)
+            return false;
+
+        // A file is either absent from both sizes or present in both.
+        if ((spawnIniSize == 0) != (spawnIniRawSize == 0) || (spawnMapSize == 0) != (spawnMapRawSize == 0))
             return false;
 
         return headerSize + (long)spawnIniSize + spawnMapSize <= fileLength;
@@ -339,10 +352,39 @@ public class YRReplayGame
         return TryReadExactly(stream, buffer, (int)size) ? buffer : null;
     }
 
-    /// <summary>Returns null when the file ends before <paramref name="size"/> bytes are read.</summary>
-    private static string? ReadText(Stream stream, uint size)
+    /// <summary>
+    /// Reads <paramref name="storedSize"/> bytes of raw deflate and inflates them to exactly
+    /// <paramref name="rawSize"/> bytes. Returns null when the file ends early or the data does not
+    /// inflate to that size.
+    /// </summary>
+    private static byte[]? ReadDeflated(Stream stream, uint storedSize, uint rawSize)
     {
-        byte[]? buffer = ReadBytes(stream, size);
+        byte[]? stored = ReadBytes(stream, storedSize);
+        if (stored == null)
+            return null;
+
+        if (storedSize == 0)
+            return Array.Empty<byte>();
+
+        byte[] raw = new byte[rawSize];
+        try
+        {
+            using var inflate = new DeflateStream(new MemoryStream(stored), CompressionMode.Decompress);
+            if (!TryReadExactly(inflate, raw, (int)rawSize))
+                return null;
+
+            // Anything past the declared size means the header and the data disagree.
+            return inflate.ReadByte() < 0 ? raw : null;
+        }
+        catch (InvalidDataException)
+        {
+            return null;
+        }
+    }
+
+    private static string? ReadDeflatedText(Stream stream, uint storedSize, uint rawSize)
+    {
+        byte[]? buffer = ReadDeflated(stream, storedSize, rawSize);
 
         return buffer == null ? null : EncodingExt.UTF8NoBOM.GetString(buffer);
     }

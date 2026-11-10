@@ -1,5 +1,4 @@
 using ClientCore;
-using ClientCore.Enums;
 using ClientCore.I18N;
 using ClientGUI;
 using DTAClient.Domain;

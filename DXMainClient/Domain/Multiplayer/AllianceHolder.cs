@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.Enums;
 
 using Rampastring.Tools;
 using System.Collections.Generic;

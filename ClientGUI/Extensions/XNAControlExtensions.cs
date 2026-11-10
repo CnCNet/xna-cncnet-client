@@ -53,7 +53,7 @@ public static class XNAControlExtensions
         {
             XNAControl? result = null;
 
-            AnyChildMatches(new List<XNAControl>() { thisControl }, control =>
+            AnyChildMatches(thisControl.Children, control =>
             {
                 if (!childName.Equals(control.Name, comparisonType))
                     return false;
@@ -80,7 +80,7 @@ public static class XNAControlExtensions
         {
             List<T> result = new List<T>();
 
-            AnyChildMatches(new List<XNAControl>() { thisControl }, control =>
+            AnyChildMatches(thisControl.Children, control =>
             {
                 if (string.IsNullOrEmpty(prefix) ||
                     !string.IsNullOrEmpty(control.Name) && control.Name.StartsWith(prefix, comparisonType))

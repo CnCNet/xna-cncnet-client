@@ -1,7 +1,6 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.DXGUI.Generic.OptionPanels;
 using Microsoft.Xna.Framework;
@@ -66,6 +65,7 @@ namespace DTAClient.DXGUI.Generic
             tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), UIDesignConstants.BUTTON_WIDTH_92);
 
+            tabControl.SelectedTabIndex = DISPLAY_INDEX;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -99,11 +99,11 @@ namespace DTAClient.DXGUI.Generic
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {
-                tabControl.MakeUnselectable(UPDATER_INDEX);
-                tabControl.MakeUnselectable(COMPONENTS_INDEX);
+                tabControl.Tabs[UPDATER_INDEX].Selectable = false;
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
             }
             else if (Updater.CustomComponents == null || Updater.CustomComponents.Count < 1)
-                tabControl.MakeUnselectable(COMPONENTS_INDEX);
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
 
             foreach (var panel in optionsPanels)
             {
@@ -143,8 +143,8 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            optionsPanels[tabControl.SelectedTab].Enable();
-            optionsPanels[tabControl.SelectedTab].RefreshPanel();
+            optionsPanels[tabControl.SelectedTabIndex].Enable();
+            optionsPanels[tabControl.SelectedTabIndex].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -303,7 +303,7 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            tabControl.SelectedTab = COMPONENTS_INDEX;
+            tabControl.SelectedTabIndex = COMPONENTS_INDEX;
         }
 
         public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);
