@@ -15,8 +15,6 @@ namespace MigrationTool;
 /// </summary>
 internal abstract class Patch
 {
-    private const string BASE_SECTION_KEY = "$BaseSection";
-
     public Version ClientVersion { get; protected set; }
     public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
@@ -166,7 +164,7 @@ internal abstract class Patch
 
         foreach (string key in src.GetSectionKeys(legacySection))
         {
-            if (key == BASE_SECTION_KEY)
+            if (key == "$BaseSection")
                 continue;
 
             ReplaceKeyWithLog(src, legacySection, key, currentSection, key);
@@ -189,7 +187,7 @@ internal abstract class Patch
 
         foreach (string key in sourceIni.GetSectionKeys(sourceSection))
         {
-            if (key == BASE_SECTION_KEY)
+            if (key == "$BaseSection")
                 continue;
 
             AddKeyWithLog(targetIni, targetSection, key,
@@ -201,7 +199,7 @@ internal abstract class Patch
         out string baseSectionName, out string value)
     {
         HashSet<string> visitedSections = [section];
-        string currentSectionName = src.GetStringValue(section, BASE_SECTION_KEY, string.Empty).Trim();
+        string currentSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
 
         while (!string.IsNullOrEmpty(currentSectionName) && visitedSections.Add(currentSectionName))
         {
@@ -212,7 +210,7 @@ internal abstract class Patch
                 return true;
             }
 
-            currentSectionName = src.GetStringValue(currentSectionName, BASE_SECTION_KEY, string.Empty).Trim();
+            currentSectionName = src.GetStringValue(currentSectionName, "$BaseSection", string.Empty).Trim();
         }
 
         baseSectionName = string.Empty;
