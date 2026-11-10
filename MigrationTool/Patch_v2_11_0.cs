@@ -126,7 +126,10 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
-        // Add PlayerExtraOptionsPanel.ini
+        // Add PlayerExtraOptionsPanel.ini when performing the pre-2.11 lobby rework.
+        // Clients that already have GameLobbyBase.ini have either migrated away from
+        // this file already or should not have it introduced from scratch.
+        if (!File.Exists(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini")))
         {
             IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
             var addKey = (string section, string key, string value) => AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
@@ -442,6 +445,9 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
+        // Rename legacy player ready indicators to player status indicators
+        MigratePlayerReadyBoxTags();
+
         // Add new texture files
         var assembly = Assembly.GetExecutingAssembly();
         foreach (var resourceName in assembly.GetManifestResourceNames())
@@ -462,6 +468,42 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
+    }
+
+    private void MigratePlayerReadyBoxTags()
+    {
+        foreach (string fileName in new[]
+        {
+            "GameLobbyBase.ini",
+            "MultiplayerGameLobby.ini",
+            "SkirmishLobby.ini",
+            "LANGameLobby.ini",
+            "CnCNetGameLobby.ini",
+        })
+        {
+            foreach (FileInfo iniFileInfo in ResouresDir.GetFiles(fileName, SearchOption.AllDirectories))
+            {
+                IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
+                bool changed = false;
+
+                foreach (string section in ini.GetSections())
+                {
+                    foreach (string key in ini.GetSectionKeys(section).ToList())
+                    {
+                        if (!key.StartsWith("PlayerReadyBox", StringComparison.Ordinal))
+                            continue;
+
+                        string newKey = "PlayerStatusIndicator" + key.Substring("PlayerReadyBox".Length);
+                        AddKeyWithLog(ini, section, newKey, ini.GetStringValue(section, key, string.Empty));
+                        RemoveKeyWithLog(ini, section, key);
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                    ini.WriteIniFile();
+            }
+        }
     }
 
     private Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)

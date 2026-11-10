@@ -7,6 +7,7 @@ public enum Version
     v2_11_2,
     v2_12_0,
     v2_12_6,
+    v2_13_0,
     v3_0,
     Latest,
 }

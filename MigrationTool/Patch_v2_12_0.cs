@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,5 +24,47 @@ internal class Patch_v2_12_0 : Patch
         AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", Game.ToString());
         clientDefsIni.WriteIniFile();
 
+        RenameScrollRateTrackbar();
+    }
+
+    private void RenameScrollRateTrackbar()
+    {
+        foreach (string fileName in new[]
+        {
+            "GameLobbyBase.ini",
+            "MultiplayerGameLobby.ini",
+            "SkirmishLobby.ini",
+            "LANGameLobby.ini",
+            "CnCNetGameLobby.ini",
+            "GameOptionsPanel.ini",
+        })
+        {
+            foreach (FileInfo iniFileInfo in ResouresDir.GetFiles(fileName, SearchOption.AllDirectories))
+            {
+                IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
+
+                if (!ini.SectionExists("trbClientVolume"))
+                    continue;
+
+                if (!ini.SectionExists("trbScrollRate"))
+                {
+                    ini.GetSection("trbClientVolume").SectionName = "trbScrollRate";
+                    Logger.Log($"Update {ini.FilePath}: Rename [trbClientVolume] to [trbScrollRate]");
+                }
+                else
+                {
+                    foreach (string key in ini.GetSectionKeys("trbClientVolume"))
+                    {
+                        AddKeyWithLog(ini, "trbScrollRate", key,
+                            ini.GetStringValue("trbClientVolume", key, string.Empty));
+                    }
+
+                    ini.RemoveSection("trbClientVolume");
+                    Logger.Log($"Update {ini.FilePath}: Merge [trbClientVolume] into [trbScrollRate]");
+                }
+
+                ini.WriteIniFile();
+            }
+        }
     }
 }
