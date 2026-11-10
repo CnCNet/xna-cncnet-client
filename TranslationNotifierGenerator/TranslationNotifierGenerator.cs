@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -112,6 +113,15 @@ namespace TranslationNotifierGenerator
                         context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
                             "CNCNET0004", "Trimmable translation value",
                             $"The value of key {keyName} should not have leading or trailing whitespace.",
+                            "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
+                    }
+
+                    // Avoid literal strings containing semicolons
+                    if (valueText.Contains(';'))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                            "CNCNET0005", "Semicolon in translation value",
+                            $"The value of key {keyName} should not contain semicolons.",
                             "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
                     }
 
