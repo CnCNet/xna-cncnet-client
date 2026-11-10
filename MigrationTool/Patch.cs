@@ -8,6 +8,8 @@ namespace MigrationTool;
 
 internal abstract class Patch
 {
+    private const string BASE_SECTION_KEY = "$BaseSection";
+
     public Version ClientVersion { get; protected set; }
     public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
@@ -137,11 +139,62 @@ internal abstract class Patch
         return true;
     }
 
+    /// <summary>
+    /// Renames a section, or merges its keys into the current section when both exist.
+    /// The current section wins for keys it already defines. Structural inheritance keys
+    /// are not moved between sections.
+    /// </summary>
+    /// <returns><see langword="true"/> if the file was changed.</returns>
+    public bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
+    {
+        if (legacySection == currentSection || !src.SectionExists(legacySection))
+            return false;
+
+        if (!src.SectionExists(currentSection))
+        {
+            src.GetSection(legacySection).SectionName = currentSection;
+            Logger.Log($"Update {src.FilePath}: Rename [{legacySection}] to [{currentSection}]");
+            return true;
+        }
+
+        foreach (string key in src.GetSectionKeys(legacySection))
+        {
+            if (key == BASE_SECTION_KEY)
+                continue;
+
+            ReplaceKeyWithLog(src, legacySection, key, currentSection, key);
+        }
+
+        src.RemoveSection(legacySection);
+        Logger.Log($"Update {src.FilePath}: Merge [{legacySection}] into [{currentSection}]");
+        return true;
+    }
+
+    /// <summary>
+    /// Copies the keys of a section into another section in the target INI file.
+    /// Existing local target keys win; structural inheritance keys are not copied.
+    /// </summary>
+    public void CopySectionWithLog(IniFile sourceIni, string sourceSection,
+        IniFile targetIni, string targetSection)
+    {
+        if (!sourceIni.SectionExists(sourceSection))
+            return;
+
+        foreach (string key in sourceIni.GetSectionKeys(sourceSection))
+        {
+            if (key == BASE_SECTION_KEY)
+                continue;
+
+            AddKeyWithLog(targetIni, targetSection, key,
+                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
+        }
+    }
+
     private static bool TryGetBaseSectionKey(IniFile src, string section, string key,
         out string baseSectionName, out string value)
     {
         HashSet<string> visitedSections = [section];
-        string currentSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
+        string currentSectionName = src.GetStringValue(section, BASE_SECTION_KEY, string.Empty).Trim();
 
         while (!string.IsNullOrEmpty(currentSectionName) && visitedSections.Add(currentSectionName))
         {
@@ -152,7 +205,7 @@ internal abstract class Patch
                 return true;
             }
 
-            currentSectionName = src.GetStringValue(currentSectionName, "$BaseSection", string.Empty).Trim();
+            currentSectionName = src.GetStringValue(currentSectionName, BASE_SECTION_KEY, string.Empty).Trim();
         }
 
         baseSectionName = string.Empty;

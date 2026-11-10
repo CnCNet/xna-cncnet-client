@@ -43,29 +43,8 @@ internal class Patch_v2_12_0 : Patch
             {
                 IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
 
-                if (!ini.SectionExists("trbClientVolume"))
-                    continue;
-
-                if (!ini.SectionExists("trbScrollRate"))
-                {
-                    ini.GetSection("trbClientVolume").SectionName = "trbScrollRate";
-                    Logger.Log($"Update {ini.FilePath}: Rename [trbClientVolume] to [trbScrollRate]");
-                }
-                else
-                {
-                    foreach (string key in ini.GetSectionKeys("trbClientVolume"))
-                    {
-                        if (key == "$BaseSection")
-                            continue;
-
-                        ReplaceKeyWithLog(ini, "trbClientVolume", key, "trbScrollRate", key);
-                    }
-
-                    ini.RemoveSection("trbClientVolume");
-                    Logger.Log($"Update {ini.FilePath}: Merge [trbClientVolume] into [trbScrollRate]");
-                }
-
-                ini.WriteIniFile();
+                if (MoveSectionWithLog(ini, "trbClientVolume", "trbScrollRate"))
+                    ini.WriteIniFile();
             }
         }
     }

@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Generic;
 using System.IO;
 
 using Rampastring.Tools;
@@ -55,14 +54,7 @@ internal class Patch_v2_13_0 : Patch
 
             string targetSection = section == LEGACY_TEAMS_SECTION ? TEAMS_SECTION : section;
 
-            foreach (string key in playerExtraOptionsPanelIni.GetSectionKeys(section))
-            {
-                if (key == "$BaseSection")
-                    continue;
-
-                string value = playerExtraOptionsPanelIni.GetStringValue(section, key, string.Empty);
-                AddKeyWithLog(gameLobbyBaseIni, targetSection, key, value, recursive: false);
-            }
+            CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
         }
 
         gameLobbyBaseIni.WriteIniFile();
@@ -71,29 +63,5 @@ internal class Patch_v2_13_0 : Patch
     }
 
     private bool RenameLegacyTeamsSection(IniFile gameLobbyBaseIni)
-    {
-        if (!gameLobbyBaseIni.SectionExists(LEGACY_TEAMS_SECTION))
-            return false;
-
-        if (!gameLobbyBaseIni.SectionExists(TEAMS_SECTION))
-        {
-            gameLobbyBaseIni.GetSection(LEGACY_TEAMS_SECTION).SectionName = TEAMS_SECTION;
-            Logger.Log($"Update {gameLobbyBaseIni.FilePath}: Rename [{LEGACY_TEAMS_SECTION}] to [{TEAMS_SECTION}]");
-            return true;
-        }
-
-        List<string> keys = gameLobbyBaseIni.GetSectionKeys(LEGACY_TEAMS_SECTION);
-
-        foreach (string key in keys)
-        {
-            if (key == "$BaseSection")
-                continue;
-
-            ReplaceKeyWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, key, TEAMS_SECTION, key);
-        }
-
-        gameLobbyBaseIni.RemoveSection(LEGACY_TEAMS_SECTION);
-        Logger.Log($"Update {gameLobbyBaseIni.FilePath}: Merge [{LEGACY_TEAMS_SECTION}] into [{TEAMS_SECTION}]");
-        return true;
-    }
+        => MoveSectionWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, TEAMS_SECTION);
 }
