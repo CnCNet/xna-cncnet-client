@@ -6,6 +6,13 @@ using Rampastring.Tools;
 using ClientCore;
 namespace MigrationTool;
 
+/// <summary>
+/// Base class for a client migration patch.
+/// A patch must only implement changes introduced in its own client version.
+/// It must not rely on patches for later versions or implement their behavior:
+/// patches are applied in version order for a full migration, but each patch
+/// must remain valid when applied on its own.
+/// </summary>
 internal abstract class Patch
 {
     private const string BASE_SECTION_KEY = "$BaseSection";
