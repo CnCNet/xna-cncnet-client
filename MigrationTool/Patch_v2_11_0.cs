@@ -126,12 +126,17 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
-        // Add PlayerExtraOptionsPanel.ini when performing the pre-2.11 lobby rework.
-        // Clients that already have GameLobbyBase.ini have either migrated away from
-        // this file already or should not have it introduced from scratch.
-        if (!File.Exists(SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini")))
+        // PlayerExtraOptionsPanel.ini predates GameLobbyBase.ini. In 2.11 its
+        // [PlayerExtraOptionsPanel] section moved to GameLobbyBase.ini and the file
+        // became the child-control configuration. Create it for the pre-2.11 lobby
+        // rework, and fill in missing child defaults for existing files as well.
+        // 2.13 later appends it to GameLobbyBase.ini and removes it.
+        string gameLobbyBasePath = SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini");
+        string playerExtraOptionsPanelPath = SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini");
+
+        if (!File.Exists(gameLobbyBasePath) || File.Exists(playerExtraOptionsPanelPath))
         {
-            IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
+            IniFile playerExtraOptionsPanelIni = new IniFile(playerExtraOptionsPanelPath);
             var addKey = (string section, string key, string value) => AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
             addKey("btnClose", "Location", "220,0");
             addKey("btnClose", "Size", "18,18");
