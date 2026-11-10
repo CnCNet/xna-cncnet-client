@@ -33,7 +33,7 @@ internal class Patch_v2_12_0 : Patch
         {
             IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
 
-            // trbClientVolume still configures AudioOptionsPanel, so copy its settings to trbScrollRate.
+            // [trbClientVolume] is still used by AudioOptionsPanel, so copy its values into the new [trbScrollRate] section.
             if (!ini.SectionExists("trbClientVolume") || ini.SectionExists("trbScrollRate"))
                 continue;
 
