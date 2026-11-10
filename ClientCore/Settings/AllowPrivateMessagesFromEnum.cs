@@ -1,4 +1,4 @@
-﻿namespace ClientCore.Enums
+﻿namespace ClientCore.Settings
 {
     public enum AllowPrivateMessagesFromEnum
     {

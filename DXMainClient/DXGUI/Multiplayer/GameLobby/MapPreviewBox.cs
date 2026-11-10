@@ -129,6 +129,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public int FontIndex { get; set; }
 
         /// <summary>
+        /// How the buttons in the top-right corner (favorite, extra icons toggle) are arranged.
+        /// </summary>
+        public CornerButtonLayout ButtonLayout { get; set; } = CornerButtonLayout.Row;
+
+        private const int CornerButtonMargin = 4;
+        private const int CornerButtonSize = 18;
+
+        public enum CornerButtonLayout
+        {
+            /// <summary>Along the top edge.</summary>
+            Row,
+
+            /// <summary>Down the right edge.</summary>
+            Column
+        }
+
+        /// <summary>
         /// Controls whether the context menu is enabled for this map preview box.
         /// Skirmish games and online games where the local player is the host should
         /// set have this set to true.
@@ -215,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
             showInFolderItem = new XNAContextMenuItem()
             {
-                Text = "Show in folder".L10N("Client:Main:ShowInFolder"),
+                Text = "Show in Folder".L10N("Client:Main:ShowInFolder"),
                 SelectAction = ShowInFolder,
                 SelectableChecker = () => GameModeMap != null
             };
@@ -226,11 +243,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapContextMenu.AddItem(showInFolderItem);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
+            btnToggleFavoriteMap.ClientRectangle = new Rectangle(0, 0, CornerButtonSize, CornerButtonSize);
             btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
             btnToggleFavoriteMap.LeftClick += (sender, args) => ToggleFavorite?.Invoke(sender, args);
             btnToggleFavoriteMap.ToolTipText = "Toggle Favorite Map".L10N("Client:Main:ToggleFavoriteMap");
 
             btnToggleExtraTextures = new XNAClientButton(WindowManager);
+            btnToggleExtraTextures.ClientRectangle = new Rectangle(0, 0, CornerButtonSize, CornerButtonSize);
             btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture("pvTexturesActive.png");
             btnToggleExtraTextures.LeftClick += (sender, args) => ToggleExtraTextures();
             btnToggleExtraTextures.ToolTipText = "Toggle Extra Icons".L10N("Client:Main:ToggleExtraIcons");
@@ -257,6 +276,48 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnToggleExtraTextures);
         }
 
+        /// <summary>
+        /// Places the visible buttons from the top-right corner, leftwards for a row or downwards for a column.
+        /// </summary>
+        private void LayoutCornerButtons(params XNAControl[] buttons)
+        {
+            int x = Width - CornerButtonMargin;
+            int y = CornerButtonMargin;
+
+            foreach (XNAControl button in buttons)
+            {
+                if (!button.Visible)
+                    continue;
+
+                if (ButtonLayout == CornerButtonLayout.Column)
+                {
+                    button.ClientRectangle = new Rectangle(x - button.Width, y, button.Width, button.Height);
+                    y += button.Height + CornerButtonMargin;
+                }
+                else
+                {
+                    x -= button.Width;
+                    button.ClientRectangle = new Rectangle(x, y, button.Width, button.Height);
+                    x -= CornerButtonMargin;
+                }
+            }
+        }
+
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
+        {
+            switch (key)
+            {
+                case "CornerButtonLayout":
+                    if (Enum.TryParse(value, true, out CornerButtonLayout layout))
+                        ButtonLayout = layout;
+                    else
+                        Logger.Log($"MapPreviewBox: Unknown CornerButtonLayout '{value}', expected Row or Column.");
+                    return;
+            }
+
+            base.ParseControlINIAttribute(iniFile, key, value);
+        }
+
         private void MapPreviewBox_RightClick(object sender, EventArgs e)
         {
             if (GameModeMap == null)
@@ -278,6 +339,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             UserINISettings.Instance.DisplayToggleableExtraTextures.Value =
                 !UserINISettings.Instance.DisplayToggleableExtraTextures;
+            UserINISettings.Instance.SaveSettings();
 
             RefreshExtraTexturesBtn();
         }
@@ -528,20 +590,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 extraTextures.Add(new MapPreviewBoxExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
             }
 
-            int buttonX = Width;
-
             if (extraTextures.Any(x => x.Toggleable))
-            {
-                btnToggleExtraTextures.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
                 btnToggleExtraTextures.Enable();
-                buttonX = btnToggleExtraTextures.X;
-            }
             else
-            {
                 btnToggleExtraTextures.Disable();
-            }
 
-            btnToggleFavoriteMap.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
+            // A row keeps the original order, with the extra icons toggle in the corner.
+            // A column keeps the favorite button in the corner, so it does not move when the toggle appears.
+            if (ButtonLayout == CornerButtonLayout.Column)
+                LayoutCornerButtons(btnToggleFavoriteMap, btnToggleExtraTextures);
+            else
+                LayoutCornerButtons(btnToggleExtraTextures, btnToggleFavoriteMap);
 
             RefreshExtraTexturesBtn();
             RefreshFavoriteBtn();
@@ -666,13 +725,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
 
                 if (previewFileInfo.Exists)
-                {
-                    try
-                    {
-                        ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
-                    }
-                    catch { }
-                }
+                    ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
             }
 
             base.OnLeftClick(inputEventArgs);

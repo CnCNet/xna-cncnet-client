@@ -10,7 +10,7 @@ It is **highly recommended** to make a complete backup of your game/mod before s
 
 Since v2.12, the client has unified different builds among game types. The game type must be defined in `ClientDefinitions.ini` now.
 
-- Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TS, YR, Ares)
+- Add `[Settings]->ClientGameType=YR` (defines client behaviour by game. Allowed options: TD, RA, D2K, TS, YR, Ares)
 
 The way the client is launched on Unix systems has changed.
 
@@ -724,7 +724,7 @@ DrawBorders=true
 Size=1230,750
 ```
 
-## Edit `GlobalThemeSettings.ini`
+## Edit `DTACnCNetClient.ini`
 
 This file now also contains the `ParserConstants` section, which lists user-defined constants used for positioning controls within panels and windows. **Without this section, the client will crash with new `GameLobbyBase.ini` layout**.
 
@@ -806,6 +806,8 @@ Location=470,137
 Location=0,200
 
 [btnForceUpdate]
+Location=407,213
+Size=133,23
 ```
 
 2. **OPTIONAL** Add sections:

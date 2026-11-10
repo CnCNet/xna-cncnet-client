@@ -38,7 +38,7 @@ namespace DTAClient.Domain.Multiplayer
         public virtual Image ExtractMapPreview(string mapFilePath)
         {
             IniFile mapIni = new IniFile(mapFilePath);
-            string baseFilename = mapIni.FileName.Replace(ProgramConstants.GamePath, "");
+            string baseFilename = mapIni.FilePath.Replace(ProgramConstants.GamePath, "");
 
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 

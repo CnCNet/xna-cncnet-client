@@ -17,9 +17,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.IO;
 using ClientCore.I18N;
-using ClientCore.Enums;
 using System.Diagnostics;
 using System.Linq;
+using ClientCore.Display;
 
 namespace DTAClient.DXGUI.Generic.OptionPanels
 {
@@ -80,15 +80,15 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add in-game resolutions
             {
-                var maximumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MaximumIngameWidth, ClientConfiguration.Instance.MaximumIngameHeight);
+                ScreenResolution maximumIngameResolution = ClientConfiguration.Instance.MaximumIngameResolution;
 
-                SortedSet<ScreenResolution> resolutions = ScreenResolution.GetFullScreenResolutions(
-                    ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight,
-                    maximumIngameResolution.Width, maximumIngameResolution.Height);
+                SortedSet<ScreenResolution> resolutions = XNAScreenResolutionManager.GetFullScreenResolutions(
+                    minResolution: ClientConfiguration.Instance.MinimumIngameResolution,
+                    maxResolution: maximumIngameResolution);
 
                 // Add custom in-game resolutions
-                var minimumIngameResolution = new ScreenResolution(ClientConfiguration.Instance.MinimumIngameWidth, ClientConfiguration.Instance.MinimumIngameHeight);
-                var customIngameResolutions = ScreenResolution.GetCustomIngameResolutions();
+                ScreenResolution minimumIngameResolution = ClientConfiguration.Instance.MinimumIngameResolution;
+                var customIngameResolutions = XNAScreenResolutionManager.GetCustomIngameResolutions();
                 foreach (var customRes in customIngameResolutions)
                 {
                     // Throw on too small or too large in-game resolutions
@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkBorderlessWindowedMode.Name = nameof(chkBorderlessWindowedMode);
             chkBorderlessWindowedMode.ClientRectangle = new Rectangle(
                 chkWindowedMode.X + 50,
-                chkWindowedMode.Bottom + 24, 0, 0);
+                chkWindowedMode.Bottom + 5, 0, 0);
             chkBorderlessWindowedMode.Text = "Borderless Windowed Mode".L10N("Client:DTAConfig:BorderlessWindowedMode");
             chkBorderlessWindowedMode.AllowChecking = false;
 
@@ -164,7 +164,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkBackBufferInVRAM.Name = nameof(chkBackBufferInVRAM);
             chkBackBufferInVRAM.ClientRectangle = new Rectangle(
                 lblDetailLevel.X,
-                chkBorderlessWindowedMode.Bottom + 28, 0, 0);
+                chkBorderlessWindowedMode.Bottom + 9, 0, 0);
             chkBackBufferInVRAM.Text = ("Back Buffer in Video Memory\n(lower performance, but is\nnecessary on some systems)").L10N("Client:DTAConfig:BackBuffer");
 
             var lblClientResolution = new XNALabel(WindowManager);
@@ -185,14 +185,20 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             // Add client resolutions
             {
-                SortedSet<ScreenResolution> scaledRecommendedResolutions = ScreenResolution.GetRecommendedResolutions();
+                ScreenResolution minimumClientResolution = ClientConfiguration.Instance.MinimumClientResolution;
+
+                XNAScreenResolutionManager.RequireDesktopResolutionFitsMinimumResolution(minimumClientResolution);
+
+                SortedSet<ScreenResolution> scaledRecommendedResolutions = XNAScreenResolutionManager.GetRecommendedResolutions();
 
                 SortedSet<ScreenResolution> resolutions = [
-                    .. ScreenResolution.GetFullScreenResolutions(minWidth: 800, minHeight: 600),
-                    .. ScreenResolution.GetWindowedResolutions(minWidth: 800, minHeight: 600),
+                    .. XNAScreenResolutionManager.GetFullScreenResolutions(minResolution: minimumClientResolution),
+                    .. XNAScreenResolutionManager.GetWindowedResolutions(minResolution: minimumClientResolution),
                     .. scaledRecommendedResolutions,
                 ];
                 List<ScreenResolution> resolutionList = resolutions.ToList();
+
+                Debug.Assert(resolutionList.Count > 0, "No client resolutions available. This should be impossible.");
 
                 foreach (ScreenResolution res in resolutionList)
                 {
@@ -359,23 +365,23 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
-            if (regKey == null)
-                return;
-
-            object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
-            string tsCompatFixString = (string)tsCompatFixValue;
-
-            if (tsCompatFixString == "Yes")
+            if (regKey != null)
             {
-                GameCompatFixInstalled = true;
-            }
+                object tsCompatFixValue = regKey.GetValue("TSCompatFixInstalled", "No");
+                string tsCompatFixString = (string)tsCompatFixValue;
 
-            object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
-            string fsCompatFixString = (string)fsCompatFixValue;
+                if (tsCompatFixString == "Yes")
+                {
+                    GameCompatFixInstalled = true;
+                }
 
-            if (fsCompatFixString == "Yes")
-            {
-                FinalSunCompatFixInstalled = true;
+                object fsCompatFixValue = regKey.GetValue("FSCompatFixInstalled", "No");
+                string fsCompatFixString = (string)fsCompatFixValue;
+
+                if (fsCompatFixString == "Yes")
+                {
+                    FinalSunCompatFixInstalled = true;
+                }
             }
 
             // These compatibility fixes from 2015 are no longer necessary on modern systems.
@@ -490,7 +496,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             {
                 ddClientResolution.AllowDropDown = false;
 
-                string nativeRes = ScreenResolution.SafeFullScreenResolution;
+                string nativeRes = XNAScreenResolutionManager.SafeFullScreenResolution;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)

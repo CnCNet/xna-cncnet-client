@@ -13,16 +13,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 using System.Linq;
-using ClientCore.Enums;
+using ClientCore.Sorting;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
-
-using DTAClient.DXGUI.Generic;
-
 using TextCopy;
 using System.Diagnostics;
-
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -183,6 +179,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected ToolTip mapListTooltip;
         protected XNAClientDropDown ddGameModeMapFilter;
         protected XNALabel lblGameModeSelect;
+        protected XNAClientDropDown ddDifficulty;
+        protected XNALabel lblDifficulty;
         protected XNAContextMenu mapContextMenu;
         private XNAContextMenuItem toggleFavoriteItem;
 
@@ -214,6 +212,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int UniqueGameID { get; set; }
         protected int SideCount { get; private set; }
         protected int RandomSelectorCount { get; private set; } = 1;
+        protected int PreviousSelectedDifficulty { get; set; }
 
         /// <summary>
         /// The maximum number of players allowed in this lobby.
@@ -242,6 +241,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private XNAContextMenu loadSaveGameOptionsMenu { get; set; }
 
         private LoadOrSaveGameOptionPresetWindow loadOrSaveGameOptionPresetWindow;
+
+        /// <summary>Whether the game option preset window is open over the lobby.</summary>
+        public bool HasDialogOpen => loadOrSaveGameOptionPresetWindow?.Enabled == true;
 
         public override void Initialize()
         {
@@ -315,14 +317,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             toggleFavoriteItem = mapContextMenu.Items.First();
 
             mapContextMenu.AddItem("Copy Map Name".L10N("Client:Main:CopyMapName"),
-                selectAction: () => ClipboardService.SetText(Map?.Name));
+                selectAction: CopyMapNameToClipboard);
             mapContextMenu.AddItem("Copy Original Name".L10N("Client:Main:CopyOriginalMapName"),
-                selectAction: () => ClipboardService.SetText(Map?.UntranslatedName),
+                selectAction: CopyOriginalMapNameToClipboard,
                 visibilityChecker: () => Map?.UntranslatedName != Map?.Name);
             mapContextMenu.AddItem("Delete Map".L10N("Client:Main:DeleteMap"),
                 selectAction: DeleteMapConfirmation,
                 visibilityChecker: CanDeleteMap);
-            mapContextMenu.AddItem("Show in folder".L10N("Client:Main:ShowInFolder"),
+            mapContextMenu.AddItem("Show in Folder".L10N("Client:Main:ShowInFolder"),
                 selectAction: ShowInFolder);
 
             AddChild(mapContextMenu);
@@ -346,6 +348,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
 
             lblGameModeSelect = FindChild<XNALabel>(nameof(lblGameModeSelect));
+
+            ddDifficulty = FindChild<XNAClientDropDown>(nameof(ddDifficulty), optional: true);
+            lblDifficulty = FindChild<XNALabel>(nameof(lblDifficulty), optional: true);
+
+            if (ddDifficulty != null)
+            {
+                // Hardcode difficulty items just in case someone tries something stupid.
+                ddDifficulty.Items.Clear();
+
+                foreach (string difficultyName in ProgramConstants.DIFFICULTY_NAMES)
+                    ddDifficulty.AddItem(difficultyName);
+
+                ddDifficulty.SelectedIndex = -1;
+                ddDifficulty.SelectedIndexChanged += DdDifficulty_SelectedIndexChanged;
+            }
 
             InitBtnMapSort();
 
@@ -415,7 +432,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void InitializeGameOptionPresetUI()
         {
-            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), true);
+            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), optional: true);
 
             if (btnSaveLoadGameOptions != null)
             {
@@ -655,9 +672,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ListMaps();
 
             if (lbGameModeMapList.SelectedIndex == -1)
+            {
                 lbGameModeMapList.SelectedIndex = 0; // Select default GameModeMap
+                UpdateDifficultyDropdown();
+            }
             else
+            {
                 ChangeMap(GameModeMap);
+            }
+        }
+
+        protected void DdDifficulty_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ddDifficulty.SelectedIndex >= 0)
+                PreviousSelectedDifficulty = ddDifficulty.SelectedIndex;
+
+            OnGameOptionChanged();
+            SetMapLabels();
         }
 
         protected void BtnPlayerExtraOptions_LeftClick(object sender, EventArgs e)
@@ -781,7 +812,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     // Note: StatisticsManager.Statistics must be initialized to call `HasBeatCoOpMap()`. This means StatisticsWindow must be initialized before any lobbies extending GameLobbyBase.
                     if (StatisticsManager.Instance.HasBeatCoOpMap(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName))
-                        rankItem.Texture = RankTextures[Math.Abs(2 - gameModeMap.CoopDifficultyLevel) + 1];
+                        rankItem.Texture = RankTextures[Math.Abs(2 - GetCurrentCoopDifficultyLevel()) + 1];
                     else
                         rankItem.Texture = RankTextures[0];
                 }
@@ -834,6 +865,38 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 LbGameModeMapList_SelectedIndexChanged();
         }
 
+        protected int GetCurrentCoopDifficultyLevel()
+        {
+            var gameMode = GameModeMap?.GameMode;
+
+            if (gameMode?.UseDifficultyDropDown != true || ddDifficulty == null || ddDifficulty.SelectedIndex < 0)
+            {
+                return GameModeMap?.CoopDifficultyLevel ?? 0;
+            }
+
+            return ddDifficulty.Items.Count - ddDifficulty.SelectedIndex - 1;
+        }
+
+        protected virtual void UpdateDifficultyDropdown()
+        {
+            bool enabled = GameModeMap?.GameMode?.UseDifficultyDropDown == true;
+
+            if (ddDifficulty != null)
+            {
+                ddDifficulty.AllowDropDown = enabled;
+
+                if (enabled && ddDifficulty.SelectedIndex < 0)
+                    ddDifficulty.SelectedIndex = PreviousSelectedDifficulty;
+                else if (!enabled)
+                    ddDifficulty.SelectedIndex = -1;
+            }
+
+            if (lblDifficulty != null)
+            {
+                lblDifficulty.TextColor = enabled ? UISettings.ActiveSettings.TextColor : UISettings.ActiveSettings.DisabledItemColor;
+            }
+        }
+
         protected abstract int GetDefaultMapRankIndex(GameModeMap gameModeMap);
 
         private void LbGameModeMapList_RightClick(object sender, EventArgs e)
@@ -867,6 +930,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void ShowInFolder() => Map?.OpenContainingFolder();
+
+        private void CopyMapNameToClipboard()
+        {
+            try
+            {
+                ClipboardService.SetText(Map?.Name);
+            }
+            catch (Exception)
+            {
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy map name to clipboard.".L10N("Client:Main:ClipboardCopyMapNameFailed"));
+            }
+        }
+
+        private void CopyOriginalMapNameToClipboard()
+        {
+            try
+            {
+                ClipboardService.SetText(Map?.UntranslatedName);
+            }
+            catch (Exception)
+            {
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy map name to clipboard.".L10N("Client:Main:ClipboardCopyMapNameFailed"));
+            }
+        }
 
         private void MapPreviewBox_ToggleFavorite(object sender, EventArgs e) =>
             ToggleFavoriteMap();
@@ -1183,7 +1270,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblStart);
             ReadINIForControl(lblTeam);
 
-            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), true);
+            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), optional: true);
 
             if (btnPlayerExtraOptionsOpen != null)
             {
@@ -1664,10 +1751,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
             }
 
+
             PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings, pseudoRandom);
-
             IniFile spawnIni = new IniFile(spawnerSettingsFile.FullName);
-
             IniSection settings = new IniSection("Settings");
 
             settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
@@ -1691,6 +1777,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 settings.SetBooleanValue("CoachMode", true);
             if (GetGameType() == GameType.Coop)
                 settings.SetBooleanValue("AutoSurrender", false);
+            settings.SetIntValue("CoopDifficultyLevel", GetCurrentCoopDifficultyLevel()); // Used to display difficulty in game loading lobby.
             spawnIni.AddSection(settings);
             WriteSpawnIniAdditions(spawnIni);
 
@@ -1715,7 +1802,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
             Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
-                AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GameModeMap.CoopDifficultyLevel, pseudoRandom, SideCount); // Forced options from the map
+                AIPlayers.Count, GameModeMap.IsCoop, GameModeMap.CoopInfo, GetCurrentCoopDifficultyLevel(), pseudoRandom, SideCount); // Forced options from the map
 
             // Player options
 
@@ -1807,6 +1894,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.SetStringValue("Settings", "MapSHA1", Map.SHA1);
             string packedGameOptionValues = GetPackedGameOptionValuesString();
             spawnIni.SetStringValue("Settings", "BroadcastedGameOptionValues", packedGameOptionValues);
+
+            ReplayManager.PrepareRecording(spawnIni, Map.UntranslatedName);
 
             spawnIni.WriteIniFile();
 
@@ -1944,8 +2033,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Theoretically it can be useful for some singleplayer campaign tracking
                 // But it isn't currently used by any CnCNet game or mod
                 // The code below only applies to the single player case
-                string mapIniFileName = Path.GetFileName(mapIni.FileName);
+                string mapIniFileName = Path.GetFileName(mapIni.FilePath);
                 mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
+            }
+
+            if (GameMode.UseDifficultyDropDown == true && ddDifficulty != null && ddDifficulty.SelectedIndex >= 0)
+            { 
+                var filePath = string.Empty;
+
+                try
+                {
+                    filePath = ClientConfiguration.Instance.CoopDifficultyINIPaths[ddDifficulty.SelectedIndex];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Logger.Log($"CoopDifficultyINIPaths does not contain file path for difficulty index {ddDifficulty.SelectedIndex}");
+                }
+
+                IniFile difficultyIni = new IniFile(filePath);
+                MapCodeHelper.ApplyMapCode(mapIni, difficultyIni);
             }
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
@@ -1973,7 +2079,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapIni"></param>
         private void CopySupplementalMapFiles(IniFile mapIni)
         {
-            var mapFileInfo = new FileInfo(mapIni.FileName);
+            var mapFileInfo = new FileInfo(mapIni.FilePath);
             string mapFileBaseName = Path.GetFileNameWithoutExtension(mapFileInfo.Name);
 
             IEnumerable<string> supplementalMapFiles = GetSupplementalMapFiles(mapFileInfo.DirectoryName, mapFileBaseName).ToList();
@@ -2185,6 +2291,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             UpdateDiscordPresence(true);
+
+            ReplayManager.Prune();
         }
 
         /// <summary>
@@ -2457,6 +2565,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblMapAuthor.Text = "By".L10N("Client:Main:AuthorBy") + " " + Renderer.GetSafeString(Map.Author, lblMapAuthor.FontIndex);
             lblGameMode.Text = "Game mode:".L10N("Client:Main:GameModeLabel") + " " + GameMode.UIName;
             lblMapSize.Text = "Size:".L10N("Client:Main:MapSize") + " " + Map.GetSizeString();
+
+            if (GameMode.UseDifficultyDropDown == true && ddDifficulty != null && ddDifficulty.SelectedIndex >= 0)
+            {
+                lblGameMode.Text += " (" + "Difficulty:".L10N("Client:Main:DifficultyLabel") + " " + ddDifficulty.SelectedItem.Text + ")";
+            }
         }
 
         /// <summary>
@@ -2475,6 +2588,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 MapPreviewBox.GameModeMap = null;
                 OnGameOptionChanged();
+                UpdateDifficultyDropdown();
                 return;
             }
 
@@ -2486,6 +2600,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (var checkBox in CheckBoxes)
                 checkBox.AllowChecking = true;
+
+            UpdateDifficultyDropdown();
 
             // We could either pass the CheckBoxes and DropDowns of this class
             // to the Map and GameMode instances and let them apply their forced
@@ -2679,13 +2795,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
-                if (checkBox.AllowScoring)
+                if (!checkBox.AllowScoring)
                     return Rank.None;
             }
-            
+
             foreach (GameLobbyDropDown dropDown in DropDowns)
             {
-                if (dropDown.AllowScoring)
+                if (!dropDown.AllowScoring)
                     return Rank.None;
             }
 

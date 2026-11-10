@@ -13,7 +13,7 @@ You should do this if you have introduced any new NuGet dependencies.
 
 1. Launch Powershell (`pwsh`, not `PowerShell`) and switch to this folder. 
 
-2. `.\build.ps1 -NoMove`
+2. `.\Build.ps1 -NoMove`
 
 3. `.\Get-CommonAssemblyList.ps1 -Net8 > ..\CommonAssemblies.txt`
 

@@ -58,6 +58,14 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MigrationTool'">
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <RuntimeIdentifiers Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">win-x86</RuntimeIdentifiers>
+    <Platforms>AnyCPU</Platforms>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+    
   <!-- For Constants -->
   <PropertyGroup>
     <!-- Is Debug -->
@@ -108,4 +116,18 @@
       <HintPath>$(XNAUIRoot)\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <!-- Microsoft.CodeAnalysis.BannedApiAnalyzers -->
+  <PropertyGroup>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030</WarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <!-- Promote CA1806 "Do not ignore method results" as error -->
+  <PropertyGroup>
+    <WarningsAsErrors>$(WarningsAsErrors);CA1806</WarningsAsErrors>
+  </PropertyGroup>
+
 </Project>

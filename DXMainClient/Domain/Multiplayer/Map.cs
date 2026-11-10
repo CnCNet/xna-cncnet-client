@@ -185,9 +185,17 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
+        /// Always recomputed from waypoints so that WaypointLevels are applied correctly.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public List<Point> startingLocations;
+
+        /// <summary>
+        /// Terrain height of each waypoint's cell, from <see cref="MapTileData"/>.
+        /// Index matches the waypoints list. Null until tile data has been applied.
+        /// </summary>
+        [JsonIgnore]
+        public int[] WaypointLevels;
 
         [JsonInclude]
         public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
@@ -401,16 +409,36 @@ namespace DTAClient.Domain.Multiplayer
             {
                 startingLocations = new List<Point>();
 
-                foreach (string waypoint in waypoints)
+                for (int i = 0; i < waypoints.Count; i++)
                 {
                     if (MainClientConstants.USE_ISOMETRIC_CELLS)
-                        startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
+                    {
+                        int levelOverride = WaypointLevels != null && i < WaypointLevels.Length
+                            ? WaypointLevels[i]
+                            : -1;
+                        startingLocations.Add(GetIsometricWaypointCoords(waypoints[i], actualSize, localSize, previewSize, levelOverride));
+                    }
                     else
-                        startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
+                    {
+                        startingLocations.Add(GetTDRAWaypointCoords(waypoints[i], x, y, width, height, previewSize));
+                    }
                 }
             }
 
             return startingLocations;
+        }
+
+        /// <summary>
+        /// Applies tile data read from the map file: corrects start locations for terrain height
+        /// and adds the detected building icons.
+        /// </summary>
+        public void ApplyTileData(MapTileData tileData)
+        {
+            WaypointLevels = tileData.WaypointLevels;
+            startingLocations = null; // force recompute with correct levels
+
+            if (tileData.BuildingOverlays != null && tileData.BuildingOverlays.Count > 0)
+                extraTextures.AddRange(tileData.BuildingOverlays);
         }
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
@@ -424,7 +452,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>Returns the loaded INI file of a custom map.</summary>
         private IniFile GetCustomMapIniFile(bool loadPreviewTextureSection = true)
         {
-            var customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
+            var customMapIni = new IniFile { FilePath = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
@@ -507,9 +535,6 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
                 }
-
-                localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
-                actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
                 if (MainClientConstants.USE_ISOMETRIC_CELLS)
                 {
@@ -785,23 +810,38 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
+        /// Extracts isometric cell (x, y) from the numeric part of a waypoint string (e.g. "102063").
+        /// Last 3 digits are X, the remainder is Y.
+        /// Returns (0, 0) if the string is too short or cannot be parsed.
+        /// </summary>
+        internal static (int x, int y) ParseWaypointCellCoords(string waypointNumStr)
+        {
+            if (waypointNumStr.Length < 4)
+                return (0, 0);
+            int xIdx = waypointNumStr.Length - 3;
+            int y = 0;
+            bool ok = int.TryParse(waypointNumStr.Substring(xIdx), NumberStyles.Integer, CultureInfo.InvariantCulture, out int x) &&
+                      int.TryParse(waypointNumStr.Substring(0, xIdx), NumberStyles.Integer, CultureInfo.InvariantCulture, out y);
+            return ok ? (x, y) : (0, 0);
+        }
+
+        /// <summary>
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
+        /// <param name="levelOverride">
+        /// When >= 0, overrides the level from the waypoint string (used when tile data
+        /// has been read from the map file). Pass -1 to use the level embedded in the waypoint string.
+        /// </param>
         /// <returns>The waypoint's location on the map preview as a point.</returns>
         private static Point GetIsometricWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
-            Point previewSizePoint)
+            Point previewSizePoint, int levelOverride = -1)
         {
             string[] parts = waypoint.Split(',');
+            var (isoTileX, isoTileY) = ParseWaypointCellCoords(parts[0]);
 
-            int xCoordIndex = parts[0].Length - 3;
-
-            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex), CultureInfo.InvariantCulture);
-            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex), CultureInfo.InvariantCulture);
-
-            int level = 0;
-
-            if (parts.Length > 1)
-                level = Conversions.IntFromString(parts[1], 0);
+            int level = levelOverride >= 0
+                ? levelOverride
+                : (parts.Length > 1 ? Conversions.IntFromString(parts[1], 0) : 0);
 
             return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint, level);
         }
