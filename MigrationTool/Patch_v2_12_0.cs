@@ -24,28 +24,26 @@ internal class Patch_v2_12_0 : Patch
         AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", Game.ToString());
         clientDefsIni.WriteIniFile();
 
-        RenameScrollRateTrackbar();
+        MigrateScrollRateTrackbar();
     }
 
-    private void RenameScrollRateTrackbar()
+    private void MigrateScrollRateTrackbar()
     {
-        foreach (string fileName in new[]
+        foreach (FileInfo iniFileInfo in ResouresDir.GetFiles("OptionsWindow.ini", SearchOption.AllDirectories))
         {
-            "GameLobbyBase.ini",
-            "MultiplayerGameLobby.ini",
-            "SkirmishLobby.ini",
-            "LANGameLobby.ini",
-            "CnCNetGameLobby.ini",
-            "GameOptionsPanel.ini",
-        })
-        {
-            foreach (FileInfo iniFileInfo in ResouresDir.GetFiles(fileName, SearchOption.AllDirectories))
-            {
-                IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
+            IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
 
-                if (MoveSectionWithLog(ini, "trbClientVolume", "trbScrollRate"))
-                    ini.WriteIniFile();
-            }
+            // trbClientVolume is also the AudioOptionsPanel volume trackbar section.
+            // Before the rename, GameOptionsPanel's scroll rate trackbar used the
+            // same section name, so copy its settings to trbScrollRate instead of
+            // moving or removing trbClientVolume. If trbScrollRate already exists,
+            // both sections are already present and must be left untouched.
+            if (!ini.SectionExists("trbClientVolume") || ini.SectionExists("trbScrollRate"))
+                continue;
+
+            Logger.Log($"Update {ini.FilePath}: Copy [trbClientVolume] to [trbScrollRate]");
+            CopySectionWithLog(ini, "trbClientVolume", ini, "trbScrollRate");
+            ini.WriteIniFile();
         }
     }
 }
