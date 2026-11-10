@@ -175,6 +175,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (_tunnelMode != TunnelMode.V3Dynamic || Players.Count <= 1)
                     return false;
 
+                // A negotiation that has reported a result keeps running until its
+                // completion is handled, and the connection check that precedes
+                // the launch only covers players whose negotiation has completed.
+                if (_negotiator.PlayerInfos.Any(p => p.Negotiator != null))
+                    return true;
+
                 // Only negotiations that are still running are waited for.
                 // Failed ones are left to the launch attempt, which tells
                 // the host about them and offers to renegotiate.
@@ -1324,6 +1330,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             UpdateNegotiationUI();
             UpdateLaunchGameButtonStatus();
+
+            // The negotiation of the local player can be the last one to complete,
+            // in which case no report from another player follows it.
+            CheckAutoStartGame();
         }
 
         void IV3NegotiationHost.OnLocalNegotiationStatus(PlayerInfo player, NegotiationStatus status, int ping)
