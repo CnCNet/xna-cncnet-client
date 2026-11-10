@@ -126,7 +126,7 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
-        // Add PlayerExtraOptionsPanel.ini when performing the pre-2.11 lobby rework.
+        // Add PlayerExtraOptionsPanel.ini
         string gameLobbyBasePath = SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini");
 
         if (!File.Exists(gameLobbyBasePath))
