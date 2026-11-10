@@ -453,9 +453,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private int GamePlayerCount => Players.Count(p => !IsPlayerSpectator(p)) + AIPlayers.Count;
 
         /// <summary>
+        /// Whether the selected map refuses to launch with more players than
+        /// its maximum player count.
+        /// </summary>
+        private bool IsMapPlayerLimitEnforced
+            => GameModeMap != null && GameModeMap.EnforceMaxPlayers && GameModeMap.MaxPlayers > 0;
+
+        /// <summary>
         /// The number of players that has to be reached for auto-launch to start
         /// the game: the player limit of the game room, or the maximum player
-        /// count of the selected map if the map takes in fewer players.
+        /// count of the selected map if the map enforces it and it is lower.
         /// </summary>
         private int AutoLaunchPlayerTarget
         {
@@ -463,7 +470,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 int target = MaxPlayerCount;
 
-                if (GameModeMap != null && GameModeMap.MaxPlayers > 0 && GameModeMap.MaxPlayers < target)
+                if (IsMapPlayerLimitEnforced && GameModeMap.MaxPlayers < target)
                     target = GameModeMap.MaxPlayers;
 
                 return target;
@@ -497,9 +504,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            // The selected map takes in fewer players than there are in the room.
+            // The selected map enforces a maximum player count that is lower than
+            // the number of players in the room, so the launch would be refused.
             // Keep waiting for the host to select a map that fits.
-            if (GamePlayerCount > AutoLaunchPlayerTarget)
+            if (IsMapPlayerLimitEnforced && GamePlayerCount > GameModeMap.MaxPlayers)
                 return;
 
             if (Players.Exists(p => p.Name != ProgramConstants.PLAYERNAME && !p.Ready))
