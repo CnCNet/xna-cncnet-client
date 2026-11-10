@@ -33,11 +33,7 @@ internal class Patch_v2_12_0 : Patch
         {
             IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
 
-            // trbClientVolume is also the AudioOptionsPanel volume trackbar section.
-            // Before the rename, GameOptionsPanel's scroll rate trackbar used the
-            // same section name, so copy its settings to trbScrollRate instead of
-            // moving or removing trbClientVolume. If trbScrollRate already exists,
-            // both sections are already present and must be left untouched.
+            // trbClientVolume still configures AudioOptionsPanel, so copy its settings to trbScrollRate.
             if (!ini.SectionExists("trbClientVolume") || ini.SectionExists("trbScrollRate"))
                 continue;
 
