@@ -480,9 +480,10 @@ public class V3TunnelNegotiationManager
     /// pings every remote player over their negotiated tunnel, and over the same UDP
     /// paths — asks each of them to probe their own peers and report back. Invokes
     /// <paramref name="onVerified"/> on the game thread once every pair has verified and
-    /// negotiations are still all successful; otherwise notices the problem and aborts.
+    /// negotiations are still all successful; otherwise notices the problem, aborts and
+    /// invokes <paramref name="onAborted"/> on the game thread.
     /// </summary>
-    public void BeginLaunchConnectivityCheck(Action onVerified)
+    public void BeginLaunchConnectivityCheck(Action onVerified, Action? onAborted = null)
     {
         LaunchConnectivityCheckInProgress = true;
         host.AddNotice("Verifying player connections...".L10N("Client:Main:VerifyingConnections"), Color.White);
@@ -506,16 +507,19 @@ public class V3TunnelNegotiationManager
                 result = new LaunchProbeResult { LocalUnresponsive = remoteIdsSnapshot };
             }
 
-            windowManager.AddCallback(new Action<LaunchProbeResult, Action>(FinishLaunchConnectivityCheck), result, onVerified);
+            windowManager.AddCallback(new Action<LaunchProbeResult, Action, Action?>(FinishLaunchConnectivityCheck), result, onVerified, onAborted);
         });
     }
 
-    private void FinishLaunchConnectivityCheck(LaunchProbeResult result, Action onVerified)
+    private void FinishLaunchConnectivityCheck(LaunchProbeResult result, Action onVerified, Action? onAborted)
     {
         LaunchConnectivityCheckInProgress = false;
 
         if (!host.IsHost || host.TunnelMode != TunnelMode.V3Dynamic || host.Players.Count <= 1)
+        {
+            onAborted?.Invoke();
             return;
+        }
 
         bool failed = false;
 
@@ -553,6 +557,7 @@ public class V3TunnelNegotiationManager
         if (failed)
         {
             host.AddNotice("Launch aborted.".L10N("Client:Main:LaunchCheckAborted"), Color.Red);
+            onAborted?.Invoke();
             return;
         }
 
@@ -560,6 +565,7 @@ public class V3TunnelNegotiationManager
         if (!AreAllNegotiationsSuccessful())
         {
             host.AddNotice("Player connections changed during the check; launch cancelled.".L10N("Client:Main:LaunchCheckStateChanged"), Color.Yellow);
+            onAborted?.Invoke();
             return;
         }
 

@@ -1249,7 +1249,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // IRC — IRC can take minutes to notice a dead connection, and a start
                     // command sent to a player who never receives it strands the rest at the
                     // loading screen. Launch continues from FinishV3DynamicLaunch.
-                    _negotiator.BeginLaunchConnectivityCheck(FinishV3DynamicLaunch);
+                    _negotiator.BeginLaunchConnectivityCheck(FinishV3DynamicLaunch, OnLaunchPreparationAborted);
                     return;
                 }
                 else if (tunnelHandler.CurrentTunnel?.Version == 3)

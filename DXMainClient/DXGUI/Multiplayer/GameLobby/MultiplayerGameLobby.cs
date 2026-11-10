@@ -67,6 +67,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool autoLaunchBlockedNoticeShown;
         private bool autoLaunchStartedGame;
+        private bool autoLaunchAttemptPending;
 
         private Random random;
 
@@ -425,6 +426,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void ChkAutoLaunch_CheckedChanged(object sender, EventArgs e)
         {
             autoLaunchBlockedNoticeShown = false;
+            autoLaunchAttemptPending = false;
 
             OnAutoLaunchArmedChanged();
             CheckAutoStartGame();
@@ -524,12 +526,39 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             BtnLaunchGame_LeftClick(this, EventArgs.Empty);
 
-            if (!autoLaunchStartedGame && !IsLaunchPreparationInProgress)
+            if (autoLaunchStartedGame)
+                return;
+
+            // The launch attempt carries on once the preparations are done.
+            // The host is notified from OnLaunchPreparationAborted if they fail.
+            if (IsLaunchPreparationInProgress)
             {
-                AddNotice("Auto Launch could not start the game and has been turned off."
-                    .L10N("Client:Main:AutoLaunchFailed"), Color.Yellow);
-                AlertHostOfAutoLaunchProblem();
+                autoLaunchAttemptPending = true;
+                return;
             }
+
+            NotifyAutoLaunchFailed();
+        }
+
+        /// <summary>
+        /// Called when the work that a launch attempt was waiting for has ended
+        /// without the game being launched.
+        /// </summary>
+        protected void OnLaunchPreparationAborted()
+        {
+            if (!autoLaunchAttemptPending)
+                return;
+
+            autoLaunchAttemptPending = false;
+
+            NotifyAutoLaunchFailed();
+        }
+
+        private void NotifyAutoLaunchFailed()
+        {
+            AddNotice("Auto Launch could not start the game and has been turned off."
+                .L10N("Client:Main:AutoLaunchFailed"), Color.Yellow);
+            AlertHostOfAutoLaunchProblem();
         }
 
         /// <summary>
@@ -594,6 +623,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chkAutoLaunch.CheckedChanged += ChkAutoLaunch_CheckedChanged;
 
             autoLaunchBlockedNoticeShown = false;
+            autoLaunchAttemptPending = false;
         }
 
         protected void ResetAutoReadyCheckbox()
