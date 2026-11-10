@@ -76,60 +76,63 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Moves a legacy key to its new section and name.
-    /// This is not an unconditional overwrite: if the target key already exists
-    /// locally, the target wins and only the local source key is removed.
-    /// A locally overridden source key takes precedence over an inherited target key,
-    /// in which case the target key is written locally so that its value is preserved.
-    /// Inherited source keys cannot be removed; they are copied to a local target key
-    /// instead and are ignored by the migrated client.
+    /// Replaces a legacy key with its current section and name.
+    /// The current key is authoritative: if it already exists locally, it wins and
+    /// only the local legacy key is removed. If the legacy key is locally overridden
+    /// while the current key is only inherited, the legacy value is written locally
+    /// so the override is not lost. Inherited legacy keys cannot be removed; their
+    /// value is copied to a local current key instead and the legacy key is then
+    /// ignored by the migrated client.
     /// </summary>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public bool MoveKeyWithLog(IniFile src, string sourceSection, string sourceKey,
-        string targetSection, string targetKey)
+    public bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey,
+        string currentSection, string currentKey)
     {
-        if (sourceSection == targetSection && sourceKey == targetKey)
+        if (legacySection == currentSection && legacyKey == currentKey)
             return false;
 
-        bool sourceIsLocal = src.KeyExists(sourceSection, sourceKey);
+        bool legacyIsLocal = src.KeyExists(legacySection, legacyKey);
 
-        if (src.KeyExists(targetSection, targetKey))
+        if (src.KeyExists(currentSection, currentKey))
         {
-            if (sourceIsLocal)
+            if (legacyIsLocal)
             {
-                Logger.Log($"Update {src.FilePath}: Skip moving [{sourceSection}]->{sourceKey} to [{targetSection}]->{targetKey}, reason: target already exists");
-                RemoveKeyWithLog(src, sourceSection, sourceKey);
+                Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists");
+                RemoveKeyWithLog(src, legacySection, legacyKey);
                 return true;
             }
 
             return false;
         }
 
-        string? movedValue = null;
+        string? legacyValue = null;
 
-        if (sourceIsLocal)
+        if (legacyIsLocal)
         {
-            movedValue = src.GetStringValue(sourceSection, sourceKey, string.Empty);
+            legacyValue = src.GetStringValue(legacySection, legacyKey, string.Empty);
         }
-        else if (TryGetBaseSectionKey(src, targetSection, targetKey, out string targetBaseSectionName, out _))
+        else if (TryGetBaseSectionKey(src, currentSection, currentKey, out string currentBaseSectionName, out _))
         {
-            Logger.Log($"Update {src.FilePath}: Skip moving [{sourceSection}]->{sourceKey} to [{targetSection}]->{targetKey}, reason: target already exists in base section [{targetBaseSectionName}]");
+            Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists in base section [{currentBaseSectionName}]");
             return false;
         }
-        else if (TryGetBaseSectionKey(src, sourceSection, sourceKey, out _, out string inheritedValue))
+        else if (TryGetBaseSectionKey(src, legacySection, legacyKey, out _, out string inheritedValue))
         {
-            movedValue = inheritedValue;
+            legacyValue = inheritedValue;
         }
 
-        if (movedValue == null)
+        if (legacyValue == null)
             return false;
 
-        AddKeyWithLog(src, targetSection, targetKey, movedValue, recursive: false);
+        // The current key is absent locally, so this only writes the replacement
+        // locally; recursive lookup would incorrectly skip it when the current key
+        // is inherited from a base section.
+        AddKeyWithLog(src, currentSection, currentKey, legacyValue, recursive: false);
 
-        if (sourceIsLocal)
-            RemoveKeyWithLog(src, sourceSection, sourceKey);
+        if (legacyIsLocal)
+            RemoveKeyWithLog(src, legacySection, legacyKey);
         else
-            Logger.Log($"Update {src.FilePath}: Added [{targetSection}]->{targetKey} from inherited [{sourceSection}]->{sourceKey}; the inherited source key cannot be removed");
+            Logger.Log($"Update {src.FilePath}: Added [{currentSection}]->{currentKey} from inherited [{legacySection}]->{legacyKey}; the inherited legacy key cannot be removed");
 
         return true;
     }
