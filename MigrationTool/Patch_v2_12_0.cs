@@ -55,8 +55,10 @@ internal class Patch_v2_12_0 : Patch
                 {
                     foreach (string key in ini.GetSectionKeys("trbClientVolume"))
                     {
-                        AddKeyWithLog(ini, "trbScrollRate", key,
-                            ini.GetStringValue("trbClientVolume", key, string.Empty));
+                        if (key == "$BaseSection")
+                            continue;
+
+                        ReplaceKeyWithLog(ini, "trbClientVolume", key, "trbScrollRate", key);
                     }
 
                     ini.RemoveSection("trbClientVolume");

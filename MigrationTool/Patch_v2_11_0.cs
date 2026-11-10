@@ -488,16 +488,10 @@ internal class Patch_v2_11_0 : Patch
 
                 foreach (string section in ini.GetSections())
                 {
-                    foreach (string key in ini.GetSectionKeys(section).ToList())
-                    {
-                        if (!key.StartsWith("PlayerReadyBox", StringComparison.Ordinal))
-                            continue;
-
-                        string newKey = "PlayerStatusIndicator" + key.Substring("PlayerReadyBox".Length);
-                        AddKeyWithLog(ini, section, newKey, ini.GetStringValue(section, key, string.Empty));
-                        RemoveKeyWithLog(ini, section, key);
-                        changed = true;
-                    }
+                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxX",
+                        section, "PlayerStatusIndicatorX");
+                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxY",
+                        section, "PlayerStatusIndicatorY");
                 }
 
                 if (changed)

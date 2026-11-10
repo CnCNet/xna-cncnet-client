@@ -57,8 +57,11 @@ internal class Patch_v2_13_0 : Patch
 
             foreach (string key in playerExtraOptionsPanelIni.GetSectionKeys(section))
             {
+                if (key == "$BaseSection")
+                    continue;
+
                 string value = playerExtraOptionsPanelIni.GetStringValue(section, key, string.Empty);
-                AddKeyWithLog(gameLobbyBaseIni, targetSection, key, value);
+                AddKeyWithLog(gameLobbyBaseIni, targetSection, key, value, recursive: false);
             }
         }
 
@@ -83,8 +86,10 @@ internal class Patch_v2_13_0 : Patch
 
         foreach (string key in keys)
         {
-            AddKeyWithLog(gameLobbyBaseIni, TEAMS_SECTION, key,
-                gameLobbyBaseIni.GetStringValue(LEGACY_TEAMS_SECTION, key, string.Empty));
+            if (key == "$BaseSection")
+                continue;
+
+            ReplaceKeyWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, key, TEAMS_SECTION, key);
         }
 
         gameLobbyBaseIni.RemoveSection(LEGACY_TEAMS_SECTION);

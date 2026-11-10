@@ -87,6 +87,82 @@ internal abstract class Patch
         return this;
     }
 
+    /// <summary>
+    /// Replaces a key while keeping the operation local to the file.
+    /// Unlike <see cref="AddKeyWithLog"/>, an inherited target key must not suppress
+    /// the value of a locally overridden source key. The target key is therefore
+    /// always written locally, and the source key is removed only from the local file.
+    /// </summary>
+    /// <returns><see langword="true"/> if the file was changed.</returns>
+    public bool ReplaceKeyWithLog(IniFile src, string sourceSection, string sourceKey,
+        string targetSection, string targetKey)
+    {
+        if (sourceSection == targetSection && sourceKey == targetKey)
+            return false;
+
+        bool sourceIsLocal = src.KeyExists(sourceSection, sourceKey);
+
+        if (src.KeyExists(targetSection, targetKey))
+        {
+            if (sourceIsLocal)
+            {
+                Logger.Log($"Update {src.FilePath}: Skip replacing [{sourceSection}]->{sourceKey} with [{targetSection}]->{targetKey}, reason: target already exists");
+                RemoveKeyWithLog(src, sourceSection, sourceKey);
+                return true;
+            }
+
+            return false;
+        }
+
+        string? replacementValue = null;
+
+        if (sourceIsLocal)
+        {
+            replacementValue = src.GetStringValue(sourceSection, sourceKey, string.Empty);
+        }
+        else if (TryGetInheritedKeyValue(src, targetSection, targetKey, out _))
+        {
+            Logger.Log($"Update {src.FilePath}: Skip replacing [{sourceSection}]->{sourceKey} with [{targetSection}]->{targetKey}, reason: target already exists in a base section");
+            return false;
+        }
+        else if (TryGetInheritedKeyValue(src, sourceSection, sourceKey, out string inheritedValue))
+        {
+            replacementValue = inheritedValue;
+        }
+
+        if (replacementValue == null)
+            return false;
+
+        AddKeyWithLog(src, targetSection, targetKey, replacementValue, recursive: false);
+
+        if (sourceIsLocal)
+            RemoveKeyWithLog(src, sourceSection, sourceKey);
+        else
+            Logger.Log($"Update {src.FilePath}: Added [{targetSection}]->{targetKey} from inherited [{sourceSection}]->{sourceKey}; the inherited source key cannot be removed");
+
+        return true;
+    }
+
+    private static bool TryGetInheritedKeyValue(IniFile src, string section, string key, out string value)
+    {
+        HashSet<string> visitedSections = [section];
+        string baseSectionName = src.GetStringValue(section, "$BaseSection", string.Empty).Trim();
+
+        while (!string.IsNullOrEmpty(baseSectionName) && visitedSections.Add(baseSectionName))
+        {
+            if (src.KeyExists(baseSectionName, key))
+            {
+                value = src.GetStringValue(baseSectionName, key, string.Empty);
+                return true;
+            }
+
+            baseSectionName = src.GetStringValue(baseSectionName, "$BaseSection", string.Empty).Trim();
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
     public void CalculatePositions(IniFile ini, string parent, string child)
     {
         int parentX, parentY, childX, childY;
