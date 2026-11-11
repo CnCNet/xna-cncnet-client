@@ -15,7 +15,6 @@ internal class Patch_v2_11_0 : Patch
         "favActive.png",
         "favActive_c.png",
         "favInactive.png",
-        "noMapPreview.png",
         "sortAlphaActive.png",
         "sortAlphaAsc.png",
         "sortAlphaDesc.png",

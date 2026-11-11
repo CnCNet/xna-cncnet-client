@@ -9,6 +9,9 @@
     <EmbeddedResource Include="Pictures\favActive_c.png" />
     <EmbeddedResource Include="Pictures\favInactive.png" />
     <EmbeddedResource Include="Pictures\noMapPreview.png" />
+    <EmbeddedResource Include="Pictures\skillLevel1.png" />
+    <EmbeddedResource Include="Pictures\skillLevel2.png" />
+    <EmbeddedResource Include="Pictures\skillLevel3.png" />
     <EmbeddedResource Include="Pictures\sortAlphaActive.png" />
     <EmbeddedResource Include="Pictures\sortAlphaAsc.png" />
     <EmbeddedResource Include="Pictures\sortAlphaDesc.png" />
