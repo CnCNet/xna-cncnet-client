@@ -266,7 +266,7 @@ public class V3TunnelNegotiationManager
             v3PlayerInfo.Tunnel = e.ChosenTunnel;
 
             if (e.IsRelayFallback)
-                host.AddNotice(string.Format("Direct connection with {0} could not be established; using relay server {1}.".L10N("Client:Main:P2PRelayFallback"), e.PlayerName, e.ChosenTunnel.Name), Color.Orange);
+                host.AddNotice(string.Format("Direct connection with {0} could not be established. Using relay server {1}.".L10N("Client:Main:P2PRelayFallback"), e.PlayerName, e.ChosenTunnel.Name), Color.Orange);
 
             // Only re-broadcast when the pair's ping/status actually changed, so a P2P
             // upgrade is propagated to everyone while a round-2 that simply re-confirms
@@ -564,7 +564,7 @@ public class V3TunnelNegotiationManager
         // The lobby can change while the check runs (join/leave, renegotiation).
         if (!AreAllNegotiationsSuccessful())
         {
-            host.AddNotice("Player connections changed during the check; launch cancelled.".L10N("Client:Main:LaunchCheckStateChanged"), Color.Yellow);
+            host.AddNotice("Player connections changed during the check. Launch cancelled.".L10N("Client:Main:LaunchCheckStateChanged"), Color.Yellow);
             onAborted?.Invoke();
             return;
         }

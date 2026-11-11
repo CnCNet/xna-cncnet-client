@@ -2418,7 +2418,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void NotifyStartFailed()
         {
             AddNotice(("Failed to process the game start message from the host. The game was started " +
-                "without you; the host's player list may be out of sync with yours. Try rejoining the game.").L10N("Client:Main:StartMessageInvalid"),
+                "without you. The host's player list may be out of sync with yours. Try rejoining the game.").L10N("Client:Main:StartMessageInvalid"),
                 ERROR_MESSAGE_COLOR);
         }
 
@@ -2666,7 +2666,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 else
                     AddNotice(string.Format(
-                        "Cannot unlock game; the player limit ({0}) has been reached.".L10N("Client:Main:RoomCantUnlockAsLimit"), playerLimit));
+                        "Cannot unlock game. The player limit ({0}) has been reached.".L10N("Client:Main:RoomCantUnlockAsLimit"), playerLimit));
             }
         }
 
