@@ -4,7 +4,7 @@ This document describes optional, non-breaking changes. While not mandatory, ado
 
 Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
-## 3.0
+## 3.0.0
 
 - The client now supports V3 dynamic tunnels. The default host tunnel mode is Dynamic (V3), and the new "Tunnel mode" selector in both the game creation window and the Options window offers 3 options: Dynamic (V3), Static (V3), and Legacy (V2). See [Tunnel Settings section of INISystem.md](INISystem.md#tunnel-settings) for setup details.
 

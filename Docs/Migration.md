@@ -13,7 +13,7 @@ This document lists all the breaking changes and how to address them. Each secti
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
-## 3.0
+## 3.0.0
 
 - The client's font rendering has been updated. Your `Fonts.ini` must be migrated:
   - Per-font `Fallback=N` keys are no longer supported. Move the fallback font files to the new `[FallbackFonts]` section: set `Count` to the number of fallback files and list them as `Fallback0`, `Fallback1`, etc. Paths are relative to the `Fonts.ini` directory, same as `Path`. The fallback list is applied to every TrueType font index. Remove the old `Fallback` keys from the `[FontN]` sections. See [Fonts.md](Fonts.md) for details and examples.
