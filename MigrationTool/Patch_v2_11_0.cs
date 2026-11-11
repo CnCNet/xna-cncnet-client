@@ -340,8 +340,10 @@ internal class Patch_v2_11_0 : Patch
 
                     // Disable skirmish lobby only controls from GameOptions.ini
                     excludeControls.ForEach(x =>
-                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false")
-                        .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
+                    {
+                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false");
+                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false");
+                    });
 
                     // Add multiplayer lobby only controls from GameOptions.ini
                     addControls.ForEach(control =>

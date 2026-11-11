@@ -46,18 +46,18 @@ internal abstract class Patch
         CopyVersionPicturesWithLog();
     }
 
-    public Patch AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
+    public static void AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
         if (src.KeyExists(section, key))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists");
-            return this;
+            return;
         }
 
         if (recursive && TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
-            return this;
+            return;
         }
 
         Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
@@ -66,11 +66,9 @@ internal abstract class Patch
             src.AddSection(section);
 
         src.GetSection(section).AddKey(key, value);
-
-        return this;
     }
 
-    public Patch RemoveKeyWithLog(IniFile src, string section, string key)
+    public static void RemoveKeyWithLog(IniFile src, string section, string key)
     {
         if (!src.KeyExists(section, key))
         {
@@ -81,8 +79,6 @@ internal abstract class Patch
             Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
             src.GetSection(section).RemoveKey(key);
         }
-
-        return this;
     }
 
     private void CopyVersionPicturesWithLog()
@@ -96,11 +92,11 @@ internal abstract class Patch
                 continue;
 
             string fileName = resourceName.Substring(resourcePrefix.Length);
-            CopyEmbeddedResourceWithLog(assembly, resourceName, fileName);
+            CopyEmbeddedResourceWithLog(assembly, resourceName, fileName, ResouresDir);
         }
     }
 
-    private void CopyEmbeddedResourceWithLog(Assembly assembly, string resourceName, string fileName)
+    private static void CopyEmbeddedResourceWithLog(Assembly assembly, string resourceName, string fileName, DirectoryInfo destinationDir)
     {
         using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
 
@@ -110,17 +106,17 @@ internal abstract class Patch
             return;
         }
 
-        string destinationPath = SafePath.CombineFilePath(ResouresDir.FullName, fileName);
+        string destinationPath = SafePath.CombineFilePath(destinationDir.FullName, fileName);
 
         if (File.Exists(destinationPath))
         {
-            Logger.Log($"Skip copying {fileName} to {ResouresDir.FullName}, reason: already exists");
+            Logger.Log($"Skip copying {fileName} to {destinationDir.FullName}, reason: already exists");
             return;
         }
 
         using FileStream fileStream = new FileStream(destinationPath, FileMode.CreateNew);
         resourceStream.CopyTo(fileStream);
-        Logger.Log($"Copy {fileName} to {ResouresDir.FullName}");
+        Logger.Log($"Copy {fileName} to {destinationDir.FullName}");
     }
 
     /// <summary>
@@ -133,7 +129,7 @@ internal abstract class Patch
     /// unchanged.
     /// </summary>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection, string currentKey)
+    public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection, string currentKey)
     {
         if (legacySection == currentSection && legacyKey == currentKey)
             return false;
@@ -190,7 +186,7 @@ internal abstract class Patch
     /// are not moved between sections.
     /// </summary>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
+    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
             return false;
@@ -219,7 +215,7 @@ internal abstract class Patch
     /// Copies the keys of a section into another section in the target INI file.
     /// Existing local target keys win. Structural inheritance keys are not copied.
     /// </summary>
-    public void CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni, string targetSection)
+    public static void CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni, string targetSection)
     {
         if (!sourceIni.SectionExists(sourceSection))
             return;
@@ -256,7 +252,7 @@ internal abstract class Patch
         return false;
     }
 
-    public void CalculatePositions(IniFile ini, string parent, string child)
+    public static void CalculatePositions(IniFile ini, string parent, string child)
     {
         int parentX, parentY, childX, childY;
         parentX = parentY = childX = childY = 0;
