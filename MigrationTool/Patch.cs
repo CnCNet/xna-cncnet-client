@@ -128,9 +128,9 @@ internal abstract class Patch
     /// The current key is authoritative: if it already exists locally, it wins and
     /// only the local legacy key is removed. If the legacy key is locally overridden
     /// while the current key is only inherited, the legacy value is written locally
-    /// so the override is not lost. Inherited legacy keys cannot be removed; their
-    /// value is copied to a local current key instead and the legacy key is then
-    /// ignored by the migrated client.
+    /// so the override is not lost. Inherited legacy keys are not modified; their
+    /// value is copied to a local current key instead and the base section is left
+    /// unchanged.
     /// </summary>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection, string currentKey)
@@ -179,7 +179,7 @@ internal abstract class Patch
         if (legacyKeyExists)
             RemoveKeyWithLog(src, legacySection, legacyKey);
         else
-            Logger.Log($"Update {src.FilePath}: Added [{currentSection}]->{currentKey} from inherited [{legacySection}]->{legacyKey}; the inherited legacy key cannot be removed");
+            Logger.Log($"Update {src.FilePath}: Added local [{currentSection}]->{currentKey} from inherited [{legacySection}]->{legacyKey}; base section remains unchanged");
 
         return true;
     }
