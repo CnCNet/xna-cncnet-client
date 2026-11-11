@@ -7,16 +7,16 @@ using Rampastring.Tools;
 
 namespace MigrationTool;
 
-internal class Patch_v3_0 : Patch
+internal class Patch_v3_0_0 : Patch
 {
     private const int OLD_OPTIONS_WINDOW_WIDTH = 576;
     private const int OPTIONS_WINDOW_WIDTH_DELTA = 92;
     private const int NEW_OPTIONS_WINDOW_WIDTH = OLD_OPTIONS_WINDOW_WIDTH + OPTIONS_WINDOW_WIDTH_DELTA;
     private const int OPTIONS_WINDOW_SECOND_COLUMN_X = 276;
 
-    public Patch_v3_0(string clientPath) : base(clientPath)
+    public Patch_v3_0_0(string clientPath) : base(clientPath)
     {
-        ClientVersion = Version.v3_0;
+        ClientVersion = Version.v3_0_0;
     }
 
     public override void Apply()
