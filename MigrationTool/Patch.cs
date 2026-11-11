@@ -179,7 +179,7 @@ internal abstract class Patch
         if (legacyKeyExists)
             RemoveKeyWithLog(src, legacySection, legacyKey);
         else
-            Logger.Log($"Update {src.FilePath}: Added local [{currentSection}]->{currentKey} from inherited [{legacySection}]->{legacyKey}; base section remains unchanged");
+            Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section; copied its value to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
 
         return true;
     }
