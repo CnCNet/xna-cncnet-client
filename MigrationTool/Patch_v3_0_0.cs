@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 
 using Rampastring.Tools;
 
@@ -30,34 +29,8 @@ internal class Patch_v3_0_0 : Patch
 
     private void CopyTunnelNegotiationImages()
     {
-        Assembly assembly = Assembly.GetExecutingAssembly();
-
-        CopyEmbeddedResource(assembly, "negotiating.png");
-        CopyEmbeddedResource(assembly, "negotiation-failed.png");
-    }
-
-    private void CopyEmbeddedResource(Assembly assembly, string fileName)
-    {
-        string resourceName = $"{nameof(MigrationTool)}.Pictures.{fileName}";
-        using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
-
-        if (resourceStream == null)
-        {
-            Logger.Log($"Unable to find embedded resource {resourceName}, skipping copying {fileName}.");
-            return;
-        }
-
-        string destinationPath = SafePath.CombineFilePath(ResouresDir.FullName, fileName);
-
-        if (File.Exists(destinationPath))
-        {
-            Logger.Log($"Skip copying {fileName} to {ResouresDir.FullName}, reason: already exists");
-            return;
-        }
-
-        using FileStream fileStream = new FileStream(destinationPath, FileMode.CreateNew);
-        resourceStream.CopyTo(fileStream);
-        Logger.Log($"Copy {fileName} to {ResouresDir.FullName}");
+        CopyEmbeddedResourceWithLog($"{nameof(MigrationTool)}.Pictures.negotiating.png");
+        CopyEmbeddedResourceWithLog($"{nameof(MigrationTool)}.Pictures.negotiation-failed.png");
     }
 
     private void MigrateOptionsWindowIni()

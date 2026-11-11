@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
 
 using Rampastring.Tools;
@@ -80,6 +81,31 @@ internal abstract class Patch
         }
 
         return this;
+    }
+
+    protected void CopyEmbeddedResourceWithLog(string resourceName)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
+        string fileName = resourceName.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
+
+        if (resourceStream == null)
+        {
+            Logger.Log($"Unable to find embedded resource {resourceName}, skipping copying {fileName}.");
+            return;
+        }
+
+        string destinationPath = SafePath.CombineFilePath(ResouresDir.FullName, fileName);
+
+        if (File.Exists(destinationPath))
+        {
+            Logger.Log($"Skip copying {fileName} to {ResouresDir.FullName}, reason: already exists");
+            return;
+        }
+
+        using FileStream fileStream = new FileStream(destinationPath, FileMode.CreateNew);
+        resourceStream.CopyTo(fileStream);
+        Logger.Log($"Copy {fileName} to {ResouresDir.FullName}");
     }
 
     /// <summary>
