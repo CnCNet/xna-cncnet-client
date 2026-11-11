@@ -216,7 +216,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkEnableP2P.ClientRectangle = new Rectangle(
                 ddTunnelMode.X,
                 ddTunnelMode.Bottom + 9, 0, 0);
-            chkEnableP2P.Text = "Allow P2P connections".L10N("Client:DTAConfig:EnableP2P");
+            chkEnableP2P.Text = "Allow P2P connections".L10N("Client:DTAConfig:AllowP2P");
             chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
             AddChild(chkEnableP2P);
         }
