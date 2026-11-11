@@ -54,7 +54,7 @@ internal abstract class Patch
             return this;
         }
 
-        if (recursive && TryGetBaseSectionKey(src, section, key, out string baseSectionName, out string baseValue))
+        if (recursive && TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
             return this;
@@ -133,17 +133,16 @@ internal abstract class Patch
     /// ignored by the migrated client.
     /// </summary>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey,
-        string currentSection, string currentKey)
+    public bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection, string currentKey)
     {
         if (legacySection == currentSection && legacyKey == currentKey)
             return false;
 
-        bool legacyIsLocal = src.KeyExists(legacySection, legacyKey);
+        bool legacyKeyExists = src.KeyExists(legacySection, legacyKey);
 
         if (src.KeyExists(currentSection, currentKey))
         {
-            if (legacyIsLocal)
+            if (legacyKeyExists)
             {
                 Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists");
                 RemoveKeyWithLog(src, legacySection, legacyKey);
@@ -153,23 +152,23 @@ internal abstract class Patch
             return false;
         }
 
-        string? legacyValue = null;
+        string legacyValue = string.Empty;
 
-        if (legacyIsLocal)
+        if (legacyKeyExists)
         {
             legacyValue = src.GetStringValue(legacySection, legacyKey, string.Empty);
         }
-        else if (TryGetBaseSectionKey(src, currentSection, currentKey, out string currentBaseSectionName, out _))
+        else if (TryGetKeyFromBaseSection(src, currentSection, currentKey, out string baseSectionName, out _))
         {
-            Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists in base section [{currentBaseSectionName}]");
+            Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists in base section [{baseSectionName}]");
             return false;
         }
-        else if (TryGetBaseSectionKey(src, legacySection, legacyKey, out _, out string inheritedValue))
+        else if (TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
         {
             legacyValue = inheritedValue;
         }
 
-        if (legacyValue == null)
+        if (legacyValue == string.Empty)
             return false;
 
         // The current key is absent locally, so this only writes the replacement
@@ -177,7 +176,7 @@ internal abstract class Patch
         // is inherited from a base section.
         AddKeyWithLog(src, currentSection, currentKey, legacyValue, recursive: false);
 
-        if (legacyIsLocal)
+        if (legacyKeyExists)
             RemoveKeyWithLog(src, legacySection, legacyKey);
         else
             Logger.Log($"Update {src.FilePath}: Added [{currentSection}]->{currentKey} from inherited [{legacySection}]->{legacyKey}; the inherited legacy key cannot be removed");
@@ -220,8 +219,7 @@ internal abstract class Patch
     /// Copies the keys of a section into another section in the target INI file.
     /// Existing local target keys win; structural inheritance keys are not copied.
     /// </summary>
-    public void CopySectionWithLog(IniFile sourceIni, string sourceSection,
-        IniFile targetIni, string targetSection)
+    public void CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni, string targetSection)
     {
         if (!sourceIni.SectionExists(sourceSection))
             return;
@@ -231,12 +229,11 @@ internal abstract class Patch
             if (key == "$BaseSection")
                 continue;
 
-            AddKeyWithLog(targetIni, targetSection, key,
-                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
+            AddKeyWithLog(targetIni, targetSection, key, sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
         }
     }
 
-    private static bool TryGetBaseSectionKey(IniFile src, string section, string key,
+    private static bool TryGetKeyFromBaseSection(IniFile src, string section, string key,
         out string baseSectionName, out string value)
     {
         HashSet<string> visitedSections = [section];
