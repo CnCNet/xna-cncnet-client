@@ -128,7 +128,7 @@ internal abstract class Patch
     /// The current key is authoritative: if it already exists locally, it wins and
     /// only the local legacy key is removed. If the legacy key is locally overridden
     /// while the current key is only inherited, the legacy value is written locally
-    /// so the override is not lost. Inherited legacy keys are not modified; their
+    /// so the override is not lost. Inherited legacy keys are not modified. Their
     /// value is copied to a local current key instead and the base section is left
     /// unchanged.
     /// </summary>
@@ -172,14 +172,14 @@ internal abstract class Patch
             return false;
 
         // The current key is absent locally, so this only writes the replacement
-        // locally; recursive lookup would incorrectly skip it when the current key
+        // locally. Recursive lookup would incorrectly skip it when the current key
         // is inherited from a base section.
         AddKeyWithLog(src, currentSection, currentKey, legacyValue, recursive: false);
 
         if (legacyKeyExists)
             RemoveKeyWithLog(src, legacySection, legacyKey);
         else
-            Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section; copied its value to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
+            Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section. Its value was copied to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
 
         return true;
     }
@@ -217,7 +217,7 @@ internal abstract class Patch
 
     /// <summary>
     /// Copies the keys of a section into another section in the target INI file.
-    /// Existing local target keys win; structural inheritance keys are not copied.
+    /// Existing local target keys win. Structural inheritance keys are not copied.
     /// </summary>
     public void CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni, string targetSection)
     {

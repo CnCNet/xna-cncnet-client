@@ -244,7 +244,7 @@ internal class Patch_v3_0_0 : Patch
             if (changed)
             {
                 fontsIni.WriteIniFile();
-                Logger.Log($"{fontsIni.FilePath}: Removed obsolete [Fonts] Count; [FallbackFonts] already exists.");
+                Logger.Log($"{fontsIni.FilePath}: Removed obsolete [Fonts] Count. [FallbackFonts] already exists.");
             }
             else
             {
@@ -488,7 +488,7 @@ internal class Patch_v3_0_0 : Patch
 
             // A global fallback list cannot satisfy contradictory per-font
             // chains. Keep the first-seen order and report the conflict.
-            Logger.Log($"{filePath}: Conflicting font fallback precedence; cannot represent all chains globally. Keeping first-seen order for: {string.Join(", ", remaining)}");
+            Logger.Log($"{filePath}: Conflicting font fallback precedence. Cannot represent all chains globally. Keeping first-seen order for: {string.Join(", ", remaining)}");
             ordered.AddRange(remaining);
         }
 
