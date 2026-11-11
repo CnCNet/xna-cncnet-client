@@ -7,11 +7,4 @@ internal class Patch_v2_11_7 : Patch
     {
         ClientVersion = Version.v2_11_7;
     }
-
-    public override void Apply()
-    {
-        base.Apply();
-
-        CopyEmbeddedResourceWithLog("noMapPreview.png");
-    }
 }

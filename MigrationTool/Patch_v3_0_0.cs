@@ -23,14 +23,7 @@ internal class Patch_v3_0_0 : Patch
         base.Apply();
 
         MigrateFontsIniFiles();
-        CopyTunnelNegotiationImages();
         MigrateOptionsWindowIni();
-    }
-
-    private void CopyTunnelNegotiationImages()
-    {
-        CopyEmbeddedResourceWithLog("negotiating.png");
-        CopyEmbeddedResourceWithLog("negotiation-failed.png");
     }
 
     private void MigrateOptionsWindowIni()

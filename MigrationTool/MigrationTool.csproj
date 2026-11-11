@@ -5,28 +5,7 @@
     <Product>CnCNet.MigrationTool</Product>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Pictures\favActive.png" />
-    <EmbeddedResource Include="Pictures\favActive_c.png" />
-    <EmbeddedResource Include="Pictures\favInactive.png" />
-    <EmbeddedResource Include="Pictures\noMapPreview.png" />
-    <EmbeddedResource Include="Pictures\skillLevel1.png" />
-    <EmbeddedResource Include="Pictures\skillLevel2.png" />
-    <EmbeddedResource Include="Pictures\skillLevel3.png" />
-    <EmbeddedResource Include="Pictures\sortAlphaActive.png" />
-    <EmbeddedResource Include="Pictures\sortAlphaAsc.png" />
-    <EmbeddedResource Include="Pictures\sortAlphaDesc.png" />
-    <EmbeddedResource Include="Pictures\sortAlphaInactive.png" />
-    <EmbeddedResource Include="Pictures\sortAlphaNone.png" />
-    <EmbeddedResource Include="Pictures\statusAI.png" />
-    <EmbeddedResource Include="Pictures\statusClear.png" />
-    <EmbeddedResource Include="Pictures\statusEmpty.png" />
-    <EmbeddedResource Include="Pictures\statusError.png" />
-    <EmbeddedResource Include="Pictures\statusInProgress.png" />
-    <EmbeddedResource Include="Pictures\statusOk.png" />
-    <EmbeddedResource Include="Pictures\statusUnavailable.png" />
-    <EmbeddedResource Include="Pictures\statusWarning.png" />
-    <EmbeddedResource Include="Pictures\negotiating.png" />
-    <EmbeddedResource Include="Pictures\negotiation-failed.png" />
+    <EmbeddedResource Include="Pictures\**\*.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />

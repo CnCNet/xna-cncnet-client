@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -42,6 +43,7 @@ internal abstract class Patch
     public virtual void Apply()
     {
         Logger.Log($"Applying patch for client version {ClientVersion.ToString().Replace('_', '.')}...");
+        CopyVersionPicturesWithLog();
     }
 
     public Patch AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
@@ -83,10 +85,23 @@ internal abstract class Patch
         return this;
     }
 
-    protected void CopyEmbeddedResourceWithLog(string fileName)
+    private void CopyVersionPicturesWithLog()
     {
-        string resourceName = $"{nameof(MigrationTool)}.Pictures.{fileName}";
+        string resourcePrefix = $"{nameof(MigrationTool)}.Pictures.{ClientVersion}.";
         Assembly assembly = Assembly.GetExecutingAssembly();
+
+        foreach (string resourceName in assembly.GetManifestResourceNames())
+        {
+            if (!resourceName.StartsWith(resourcePrefix, StringComparison.Ordinal))
+                continue;
+
+            string fileName = resourceName.Substring(resourcePrefix.Length);
+            CopyEmbeddedResourceWithLog(assembly, resourceName, fileName);
+        }
+    }
+
+    private void CopyEmbeddedResourceWithLog(Assembly assembly, string resourceName, string fileName)
+    {
         using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
 
         if (resourceStream == null)
