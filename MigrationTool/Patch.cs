@@ -83,11 +83,11 @@ internal abstract class Patch
         return this;
     }
 
-    protected void CopyEmbeddedResourceWithLog(string resourceName)
+    protected void CopyEmbeddedResourceWithLog(string fileName)
     {
+        string resourceName = $"{nameof(MigrationTool)}.Pictures.{fileName}";
         Assembly assembly = Assembly.GetExecutingAssembly();
         using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
-        string fileName = resourceName.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
 
         if (resourceStream == null)
         {

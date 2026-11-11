@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 using Rampastring.Tools;
@@ -11,6 +10,27 @@ namespace MigrationTool;
 
 internal class Patch_v2_11_0 : Patch
 {
+    private static readonly string[] textureFileNames =
+    [
+        "favActive.png",
+        "favActive_c.png",
+        "favInactive.png",
+        "noMapPreview.png",
+        "sortAlphaActive.png",
+        "sortAlphaAsc.png",
+        "sortAlphaDesc.png",
+        "sortAlphaInactive.png",
+        "sortAlphaNone.png",
+        "statusAI.png",
+        "statusClear.png",
+        "statusEmpty.png",
+        "statusError.png",
+        "statusInProgress.png",
+        "statusOk.png",
+        "statusUnavailable.png",
+        "statusWarning.png",
+    ];
+
     public Patch_v2_11_0(string clientPath) : base(clientPath)
     {
         ClientVersion = Version.v2_11_0;
@@ -449,9 +469,8 @@ internal class Patch_v2_11_0 : Patch
         MigratePlayerReadyBoxTags();
 
         // Add new texture files
-        var assembly = Assembly.GetExecutingAssembly();
-        foreach (var resourceName in assembly.GetManifestResourceNames())
-            CopyEmbeddedResourceWithLog(resourceName);
+        foreach (string fileName in textureFileNames)
+            CopyEmbeddedResourceWithLog(fileName);
 
     }
 

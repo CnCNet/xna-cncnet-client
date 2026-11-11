@@ -29,8 +29,8 @@ internal class Patch_v3_0_0 : Patch
 
     private void CopyTunnelNegotiationImages()
     {
-        CopyEmbeddedResourceWithLog($"{nameof(MigrationTool)}.Pictures.negotiating.png");
-        CopyEmbeddedResourceWithLog($"{nameof(MigrationTool)}.Pictures.negotiation-failed.png");
+        CopyEmbeddedResourceWithLog("negotiating.png");
+        CopyEmbeddedResourceWithLog("negotiation-failed.png");
     }
 
     private void MigrateOptionsWindowIni()
