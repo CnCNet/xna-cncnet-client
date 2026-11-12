@@ -650,7 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void NotifyStartFailed()
         {
             AddNotice(("Failed to process the game start message from the host. The game was started " +
-                "without you; the host's player list may be out of sync with yours. Try rejoining the game.").L10N("Client:Main:StartMessageInvalid"),
+                "without you. The host's player list may be out of sync with yours. Try rejoining the game.").L10N("Client:Main:StartMessageInvalid"),
                 Color.Yellow);
         }
 
