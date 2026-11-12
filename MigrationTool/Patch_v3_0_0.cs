@@ -271,6 +271,8 @@ internal class Patch_v3_0_0 : Patch
 
         if (hasFallbackFontsSection)
         {
+            changed |= UpdateFallbackFontsCount(fontsIni);
+
             if (changed)
             {
                 fontsIni.WriteIniFile();
@@ -305,6 +307,32 @@ internal class Patch_v3_0_0 : Patch
         {
             Logger.Log($"{fontsIni.FilePath}: No per-font Fallback keys found, nothing to migrate.");
         }
+    }
+
+    private static bool UpdateFallbackFontsCount(IniFile fontsIni)
+    {
+        int maxFallbackIndex = -1;
+
+        foreach (string key in fontsIni.GetSectionKeys("FallbackFonts"))
+        {
+            if (!key.StartsWith("Fallback", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (!int.TryParse(key.Substring("Fallback".Length), out int index) || index < 0)
+                continue;
+
+            maxFallbackIndex = Math.Max(maxFallbackIndex, index);
+        }
+
+        int expectedCount = maxFallbackIndex + 1;
+        int currentCount = fontsIni.GetIntValue("FallbackFonts", "Count", -1);
+
+        if (currentCount == expectedCount)
+            return false;
+
+        fontsIni.SetIntValue("FallbackFonts", "Count", expectedCount);
+        Logger.Log($"Update {fontsIni.FilePath}: [FallbackFonts]->Count={currentCount} to {expectedCount}");
+        return true;
     }
 
     private bool RemoveObsoleteFontsCount(IniFile fontsIni)
