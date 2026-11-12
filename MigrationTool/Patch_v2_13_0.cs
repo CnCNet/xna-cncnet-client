@@ -34,11 +34,11 @@ internal class Patch_v2_13_0 : Patch
         }
 
         IniFile gameLobbyBaseIni = new IniFile(gameLobbyBasePath, applyBaseIni: false);
-        bool changed = RenameLegacyTeamsSection(gameLobbyBaseIni);
+        bool gameLobbyChanged = RenameLegacyTeamsSection(gameLobbyBaseIni);
 
         if (!File.Exists(playerExtraOptionsPanelPath))
         {
-            if (changed)
+            if (gameLobbyChanged)
                 gameLobbyBaseIni.WriteIniFile();
 
             Logger.Log("No PlayerExtraOptionsPanel.ini found, nothing to append to GameLobbyBase.ini.");
@@ -46,6 +46,7 @@ internal class Patch_v2_13_0 : Patch
         }
 
         IniFile playerExtraOptionsPanelIni = new IniFile(playerExtraOptionsPanelPath, applyBaseIni: false);
+        bool panelChanged = false;
 
         foreach (string section in playerExtraOptionsPanelIni.GetSections())
         {
@@ -54,12 +55,18 @@ internal class Patch_v2_13_0 : Patch
 
             string targetSection = section == LEGACY_TEAMS_SECTION ? TEAMS_SECTION : section;
 
-            CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
+            panelChanged |= CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
         }
 
-        gameLobbyBaseIni.WriteIniFile();
+        if (gameLobbyChanged || panelChanged)
+            gameLobbyBaseIni.WriteIniFile();
+
         SafePath.DeleteFileIfExists(playerExtraOptionsPanelPath);
-        Logger.Log($"Update {gameLobbyBasePath}: Appended PlayerExtraOptionsPanel.ini and removed the obsolete file.");
+
+        if (panelChanged)
+            Logger.Log($"Update {gameLobbyBasePath}: Appended PlayerExtraOptionsPanel.ini and removed the obsolete file.");
+        else
+            Logger.Log($"Update {gameLobbyBasePath}: Removed obsolete PlayerExtraOptionsPanel.ini, nothing to append.");
     }
 
     private bool RenameLegacyTeamsSection(IniFile gameLobbyBaseIni)

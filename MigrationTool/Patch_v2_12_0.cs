@@ -21,8 +21,8 @@ internal class Patch_v2_12_0 : Patch
 
         // And add ClientDefinitions.ini->[Settings]->ClientGameType
         IniFile clientDefsIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "ClientDefinitions.ini"));
-        AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", Game.ToString());
-        clientDefsIni.WriteIniFile();
+        if (AddKeyWithLog(clientDefsIni, "Settings", "ClientGameType", Game.ToString()))
+            clientDefsIni.WriteIniFile();
 
         MigrateScrollRateTrackbar();
     }
@@ -37,8 +37,10 @@ internal class Patch_v2_12_0 : Patch
             if (!ini.SectionExists("trbClientVolume") || ini.SectionExists("trbScrollRate"))
                 continue;
 
+            if (!CopySectionWithLog(ini, "trbClientVolume", ini, "trbScrollRate"))
+                continue;
+
             Logger.Log($"Update {ini.FilePath}: Copy [trbClientVolume] to [trbScrollRate]");
-            CopySectionWithLog(ini, "trbClientVolume", ini, "trbScrollRate");
             ini.WriteIniFile();
         }
     }

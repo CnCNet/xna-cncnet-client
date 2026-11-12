@@ -37,16 +37,24 @@ internal class Patch_v2_11_0 : Patch
         // and rename [ExtraControls] => [$ExtraControls]
         {
             var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-            AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+            bool genericWindowChanged = AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+
             if (genericWindowIni.SectionExists("ExtraControls"))
+            {
                 genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
-            genericWindowIni.WriteIniFile();
+                genericWindowChanged = true;
+            }
+
+            if (genericWindowChanged)
+                genericWindowIni.WriteIniFile();
         }
 
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         {
             Logger.Log("Renaming CustomSettingFileCheckBox to FileSettingCheckBox and CustomSettingFileDropDown to FileSettingDropDown");
             IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
+            bool optionsWindowChanged = false;
+
             foreach (var section in optionsWindowIni.GetSections())
             {
                 foreach (var key in optionsWindowIni.GetSectionKeys(section))
@@ -56,12 +64,14 @@ internal class Patch_v2_11_0 : Patch
                     if (value.Contains(":CustomSettingFileCheckBox"))
                     {
                         optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox"));
+                        optionsWindowChanged = true;
                         continue;
                     }
 
                     if (value.Contains(":CustomSettingFileDropDown"))
                     {
                         optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown"));
+                        optionsWindowChanged = true;
                         continue;
                     }
                 }
@@ -69,7 +79,7 @@ internal class Patch_v2_11_0 : Patch
 
             // Add new sections into OptionsWindow.ini
             {
-                var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
+                var addKey = (string section, string key, string value) => optionsWindowChanged |= AddKeyWithLog(optionsWindowIni, section, key, value);
                 addKey("lblPlayerName", "Location", "12,195");
                 addKey("tbPlayerName", "Location", "113,193");
                 addKey("lblNotice", "Location", "12,220");
@@ -84,7 +94,8 @@ internal class Patch_v2_11_0 : Patch
                 addKey("btnForceUpdate", "Location", "407,213");
                 addKey("btnForceUpdate", "Size", "133,23");
             }
-            optionsWindowIni.WriteIniFile();
+            if (optionsWindowChanged)
+                optionsWindowIni.WriteIniFile();
         }
 
         // Add parser constants to DTACnCNetClient.ini in each theme directory and Resources
@@ -94,7 +105,8 @@ internal class Patch_v2_11_0 : Patch
             var addParserConstants = (string resourcesPath) =>
             {
                 var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(resourcesPath, "DTACnCNetClient.ini"));
-                var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
+                bool changed = false;
+                var addKey = (string key, string value) => changed |= AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
                 addKey("DEFAULT_LBL_HEIGHT", "12");
                 addKey("DEFAULT_CONTROL_HEIGHT", "21");
                 addKey("DEFAULT_BUTTON_HEIGHT", "23");
@@ -113,7 +125,9 @@ internal class Patch_v2_11_0 : Patch
                 addKey("GAME_OPTION_ROW_SPACING", "6");
                 addKey("GAME_OPTION_DD_WIDTH", "132");
                 addKey("GAME_OPTION_DD_HEIGHT", "22");
-                dtaCnCNetClientIni.WriteIniFile();
+
+                if (changed)
+                    dtaCnCNetClientIni.WriteIniFile();
             };
 
             addParserConstants(ResouresDir.FullName);
@@ -131,7 +145,8 @@ internal class Patch_v2_11_0 : Patch
         if (!File.Exists(gameLobbyBasePath))
         {
             IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
-            var addKey = (string section, string key, string value) => AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
+            bool playerExtraOptionsPanelChanged = false;
+            var addKey = (string section, string key, string value) => playerExtraOptionsPanelChanged |= AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
             addKey("btnClose", "Location", "220,0");
             addKey("btnClose", "Size", "18,18");
             addKey("lblHeader", "Location", "12,6");
@@ -145,7 +160,9 @@ internal class Patch_v2_11_0 : Patch
             addKey("ddTeamStartMappingPreset", "Location", "65,154");
             addKey("ddTeamStartMappingPreset", "Size", "157,21");
             addKey("teamStartMappingsPanel", "Location", "12,189");
-            playerExtraOptionsPanelIni.WriteIniFile();
+
+            if (playerExtraOptionsPanelChanged)
+                playerExtraOptionsPanelIni.WriteIniFile();
         }
 
         string GameLobbyBase = nameof(GameLobbyBase);
