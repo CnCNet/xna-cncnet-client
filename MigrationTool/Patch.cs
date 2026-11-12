@@ -220,7 +220,7 @@ internal abstract class Patch
     /// The current section wins for keys it already defines. Structural inheritance keys
     /// are not moved between sections.
     /// </remarks>
-    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
+    public static bool MoveSectionRecursiveWithLog(IniFile src, string legacySection, string currentSection)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
             return false;
@@ -257,7 +257,7 @@ internal abstract class Patch
     /// Existing local target keys win. Inherited target keys do not block the copy.
     /// Structural inheritance keys are not copied.
     /// </remarks>
-    public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
+    public static bool CopySectionNonRecursiveWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
         string targetSection)
     {
         if (!sourceIni.SectionExists(sourceSection))
