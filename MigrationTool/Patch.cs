@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Generic;
 
 using Rampastring.Tools;
 using ClientCore;
@@ -163,8 +163,8 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Moves a legacy key to <paramref name="currentSection"/> and renames the legacy key
-    /// to <paramref name="currentKey"/>.
+    /// Replaces a legacy key with the key named by <paramref name="currentSection"/> and
+    /// <paramref name="currentKey"/>.
     /// </summary>
     /// <param name="src">The INI file to modify.</param>
     /// <param name="legacySection">The section that contains the legacy key.</param>
