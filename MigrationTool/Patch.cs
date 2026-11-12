@@ -165,8 +165,9 @@ internal abstract class Patch
     /// <param name="legacyKey">The legacy key to replace.</param>
     /// <param name="currentSection">The section that contains the current key.</param>
     /// <param name="currentKey">The current key to write.</param>
-    /// <param name="recursive">
-    /// Whether the <c>$BaseSection</c> chain is searched for both keys.
+    /// <param name="useInheritedLegacyValue">
+    /// Whether an inherited legacy value may be used when the legacy key is not defined
+    /// locally. When false, only local keys are considered.
     /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     /// <remarks>
@@ -175,7 +176,7 @@ internal abstract class Patch
     /// are copied to a local current key and are not removed from their base section.
     /// </remarks>
     public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection,
-        string currentKey, bool recursive = true)
+        string currentKey, bool useInheritedLegacyValue = true)
     {
         if (legacySection == currentSection && legacyKey == currentKey)
             return false;
@@ -199,12 +200,12 @@ internal abstract class Patch
         {
             legacyValue = src.GetStringValue(legacySection, legacyKey, string.Empty);
         }
-        else if (recursive && TryGetKeyFromBaseSection(src, currentSection, currentKey, out string baseSectionName, out _))
+        else if (useInheritedLegacyValue && TryGetKeyFromBaseSection(src, currentSection, currentKey, out string baseSectionName, out _))
         {
             Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists in base section [{baseSectionName}]");
             return false;
         }
-        else if (recursive && TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
+        else if (useInheritedLegacyValue && TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
         {
             legacyValue = inheritedValue;
             legacyIsFromBaseSection = true;
