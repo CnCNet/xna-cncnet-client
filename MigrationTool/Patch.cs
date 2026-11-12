@@ -17,8 +17,8 @@ namespace MigrationTool;
 /// </summary>
 internal abstract class Patch
 {
-    // TODO: AddKeyWithLog, RemoveKeyWithLog, ReplaceKeyWithLog, RenameSectionWithLog and
-    // CopySectionWithLog only resolve $BaseSection inheritance. INISystem/BasedOn file inheritance is not supported.
+    // TODO: The Patch helpers operate on one already-loaded IniFile. Files referenced by
+    // INISystem/BasedOn are not loaded by the Patch helpers.
 
     public Version ClientVersion { get; protected set; }
     public ClientType Game { get; protected set; }
