@@ -261,22 +261,16 @@ internal abstract class Patch
     /// <param name="targetIni">The INI file that contains the target section.</param>
     /// <param name="targetSection">The section that receives the keys.</param>
     /// <param name="overwriteExistingKeys">
-    /// Whether source local keys overwrite target local keys. When false, target local keys win.
-    /// </param>
-    /// <param name="copyBaseSection">
-    /// Whether to copy the source section's <c>$BaseSection</c> key when it exists.
-    /// </param>
-    /// <param name="overwriteBaseSection">
-    /// Whether to overwrite an existing target <c>$BaseSection</c> with the source value.
-    /// Ignored when <paramref name="copyBaseSection"/> is false.
+    /// Whether source local keys and <c>$BaseSection</c> overwrite existing target local
+    /// values. When false, target local values win.
     /// </param>
     /// <returns><see langword="true"/> if the target file was changed.</returns>
     /// <remarks>
-    /// Inherited target keys do not block the copy. Source inherited keys are not expanded.
+    /// A missing target <c>$BaseSection</c> is created from the source. Inherited target
+    /// keys do not block the copy. Source inherited keys are not expanded.
     /// </remarks>
     public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
-        string targetSection, bool overwriteExistingKeys = false, bool copyBaseSection = true,
-        bool overwriteBaseSection = false)
+        string targetSection, bool overwriteExistingKeys = false)
     {
         if (!sourceIni.SectionExists(sourceSection))
             return false;
@@ -304,11 +298,11 @@ internal abstract class Patch
             changed |= AddKeyWithLog(targetIni, targetSection, key, value, skipIfInherited: false);
         }
 
-        if (copyBaseSection && sourceIni.KeyExists(sourceSection, "$BaseSection"))
+        if (sourceIni.KeyExists(sourceSection, "$BaseSection"))
         {
             string sourceBaseSection = sourceIni.GetStringValue(sourceSection, "$BaseSection", string.Empty);
 
-            if (!targetIni.KeyExists(targetSection, "$BaseSection") || overwriteBaseSection)
+            if (!targetIni.KeyExists(targetSection, "$BaseSection") || overwriteExistingKeys)
             {
                 targetIni.SetStringValue(targetSection, "$BaseSection", sourceBaseSection);
                 Logger.Log($"Update {targetIni.FilePath}: Set [{targetSection}]->$BaseSection={sourceBaseSection}");
