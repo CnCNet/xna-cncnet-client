@@ -15,7 +15,9 @@ internal class Patch_Latest : Patch
     {
         base.Apply();
 
-        // Add the latest migration steps to Patch_Latest.Apply.
+        // Write migration steps for the next release in Patch_Latest.Apply, especially
+        // when the next version number is not decided yet. Patch_Latest.Apply must be
+        // empty before an official release.
     }
 }
 
