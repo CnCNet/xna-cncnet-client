@@ -54,7 +54,7 @@ internal class Patch_v2_13_0 : Patch
 
             string targetSection = section == LEGACY_TEAMS_SECTION ? TEAMS_SECTION : section;
 
-            CopySectionNonRecursiveWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
+            CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
         }
 
         gameLobbyBaseIni.WriteIniFile();
@@ -63,5 +63,5 @@ internal class Patch_v2_13_0 : Patch
     }
 
     private bool RenameLegacyTeamsSection(IniFile gameLobbyBaseIni)
-        => MoveSectionRecursiveWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, TEAMS_SECTION);
+        => MoveSectionWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, TEAMS_SECTION);
 }
