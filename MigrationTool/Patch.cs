@@ -322,6 +322,7 @@ internal abstract class Patch
         return changed;
     }
 
+    // TODO: These helpers only resolve $BaseSection inheritance. INISystem/BasedOn file inheritance is not supported.
     private static bool TryGetKeyFromBaseSection(IniFile src, string section, string key,
         out string baseSectionName, out string value)
     {
