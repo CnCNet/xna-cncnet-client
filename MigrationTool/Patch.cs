@@ -46,18 +46,27 @@ internal abstract class Patch
         CopyVersionPicturesWithLog();
     }
 
-    public static void AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
+    /// <summary>
+    /// Adds a key to a section.
+    /// </summary>
+    /// <param name="recursive">
+    /// Whether the <c>$BaseSection</c> chain takes part in deciding whether the key
+    /// already exists. <see langword="true"/> skips the addition when the value is
+    /// already inherited. <see langword="false"/> writes the key locally regardless.
+    /// </param>
+    /// <returns><see langword="true"/> if the file was changed.</returns>
+    public static bool AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
         if (src.KeyExists(section, key))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists");
-            return;
+            return false;
         }
 
         if (recursive && TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
-            return;
+            return false;
         }
 
         Logger.Log($"Update {src.FilePath}: Add [{section}]->{key}={value}");
@@ -66,19 +75,27 @@ internal abstract class Patch
             src.AddSection(section);
 
         src.GetSection(section).AddKey(key, value);
+
+        return true;
     }
 
-    public static void RemoveKeyWithLog(IniFile src, string section, string key)
+    /// <summary>
+    /// Removes a key from a section. Only local keys are removed, inherited keys are
+    /// left in their base section.
+    /// </summary>
+    /// <returns><see langword="true"/> if the file was changed.</returns>
+    public static bool RemoveKeyWithLog(IniFile src, string section, string key)
     {
         if (!src.KeyExists(section, key))
         {
             Logger.Log($"Update {src.FilePath}: Skip removing [{section}]->{key}, reason: doesn't exist");
+            return false;
         }
-        else
-        {
-            Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
-            src.GetSection(section).RemoveKey(key);
-        }
+
+        Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
+        src.GetSection(section).RemoveKey(key);
+
+        return true;
     }
 
     private void CopyVersionPicturesWithLog()
@@ -128,8 +145,13 @@ internal abstract class Patch
     /// value is copied to a local current key instead and the base section is left
     /// unchanged.
     /// </summary>
+    /// <param name="recursive">
+    /// Whether the <c>$BaseSection</c> chain takes part in deciding whether the keys
+    /// already exist. <see langword="false"/> only considers local keys.
+    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection, string currentKey)
+    public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection,
+        string currentKey, bool recursive = true)
     {
         if (legacySection == currentSection && legacyKey == currentKey)
             return false;
@@ -154,12 +176,12 @@ internal abstract class Patch
         {
             legacyValue = src.GetStringValue(legacySection, legacyKey, string.Empty);
         }
-        else if (TryGetKeyFromBaseSection(src, currentSection, currentKey, out string baseSectionName, out _))
+        else if (recursive && TryGetKeyFromBaseSection(src, currentSection, currentKey, out string baseSectionName, out _))
         {
             Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists in base section [{baseSectionName}]");
             return false;
         }
-        else if (TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
+        else if (recursive && TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
         {
             legacyValue = inheritedValue;
         }
@@ -185,8 +207,11 @@ internal abstract class Patch
     /// The current section wins for keys it already defines. Structural inheritance keys
     /// are not moved between sections.
     /// </summary>
+    /// <param name="recursive">
+    /// Passed to <see cref="ReplaceKeyWithLog"/> when the current section already exists.
+    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
+    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection, bool recursive = true)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
             return false;
@@ -203,7 +228,7 @@ internal abstract class Patch
             if (key == "$BaseSection")
                 continue;
 
-            ReplaceKeyWithLog(src, legacySection, key, currentSection, key);
+            ReplaceKeyWithLog(src, legacySection, key, currentSection, key, recursive);
         }
 
         src.RemoveSection(legacySection);
@@ -215,18 +240,29 @@ internal abstract class Patch
     /// Copies the keys of a section into another section in the target INI file.
     /// Existing local target keys win. Structural inheritance keys are not copied.
     /// </summary>
-    public static void CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni, string targetSection)
+    /// <param name="recursive">
+    /// Passed to <see cref="AddKeyWithLog"/>. <see langword="false"/> copies local keys
+    /// even when the target section already inherits them from a base section.
+    /// </param>
+    /// <returns><see langword="true"/> if the target file was changed.</returns>
+    public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
+        string targetSection, bool recursive = true)
     {
         if (!sourceIni.SectionExists(sourceSection))
-            return;
+            return false;
+
+        bool changed = false;
 
         foreach (string key in sourceIni.GetSectionKeys(sourceSection))
         {
             if (key == "$BaseSection")
                 continue;
 
-            AddKeyWithLog(targetIni, targetSection, key, sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
+            changed |= AddKeyWithLog(targetIni, targetSection, key,
+                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive);
         }
+
+        return changed;
     }
 
     private static bool TryGetKeyFromBaseSection(IniFile src, string section, string key,
