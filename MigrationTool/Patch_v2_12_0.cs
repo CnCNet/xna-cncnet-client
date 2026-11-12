@@ -38,7 +38,7 @@ internal class Patch_v2_12_0 : Patch
                 continue;
 
             Logger.Log($"Update {ini.FilePath}: Copy [trbClientVolume] to [trbScrollRate]");
-            CopySectionWithLog(ini, "trbClientVolume", ini, "trbScrollRate", recursive: false);
+            CopySectionWithLog(ini, "trbClientVolume", ini, "trbScrollRate");
             ini.WriteIniFile();
         }
     }

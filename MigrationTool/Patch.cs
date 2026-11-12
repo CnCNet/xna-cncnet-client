@@ -47,13 +47,9 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Adds a key to a section.
+    /// Adds a key to a section. When <paramref name="recursive"/> is true, a key
+    /// inherited through the <c>$BaseSection</c> chain is treated as already present.
     /// </summary>
-    /// <param name="recursive">
-    /// Whether the <c>$BaseSection</c> chain takes part in deciding whether the key
-    /// already exists. <see langword="true"/> skips the addition when the value is
-    /// already inherited. <see langword="false"/> writes the key locally regardless.
-    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public static bool AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
@@ -137,18 +133,15 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Replaces a legacy key with its current section and name.
-    /// The current key is authoritative: if it already exists locally, it wins and
-    /// only the local legacy key is removed. If the legacy key is locally overridden
-    /// while the current key is only inherited, the legacy value is written locally
-    /// so the override is not lost. Inherited legacy keys are not modified. Their
-    /// value is copied to a local current key instead and the base section is left
-    /// unchanged.
+    /// Replaces a legacy key with its current section and name. When
+    /// <paramref name="recursive"/> is true, the <c>$BaseSection</c> chain is also
+    /// searched for both keys. The current key is authoritative: if it already exists
+    /// locally, it wins and only the local legacy key is removed. If the legacy key is
+    /// locally overridden while the current key is only inherited, the legacy value is
+    /// written locally so the override is not lost. Inherited legacy keys are not
+    /// modified. Their value is copied to a local current key instead and the base
+    /// section is left unchanged.
     /// </summary>
-    /// <param name="recursive">
-    /// Whether the <c>$BaseSection</c> chain takes part in deciding whether the keys
-    /// already exist. <see langword="false"/> only considers local keys.
-    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection,
         string currentKey, bool recursive = true)
@@ -207,11 +200,8 @@ internal abstract class Patch
     /// The current section wins for keys it already defines. Structural inheritance keys
     /// are not moved between sections.
     /// </summary>
-    /// <param name="recursive">
-    /// Passed to <see cref="ReplaceKeyWithLog"/> when the current section already exists.
-    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection, bool recursive = true)
+    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
             return false;
@@ -228,7 +218,7 @@ internal abstract class Patch
             if (key == "$BaseSection")
                 continue;
 
-            ReplaceKeyWithLog(src, legacySection, key, currentSection, key, recursive);
+            ReplaceKeyWithLog(src, legacySection, key, currentSection, key);
         }
 
         src.RemoveSection(legacySection);
@@ -238,15 +228,12 @@ internal abstract class Patch
 
     /// <summary>
     /// Copies the keys of a section into another section in the target INI file.
-    /// Existing local target keys win. Structural inheritance keys are not copied.
+    /// Existing local target keys win. Inherited target keys do not block the copy.
+    /// Structural inheritance keys are not copied.
     /// </summary>
-    /// <param name="recursive">
-    /// Passed to <see cref="AddKeyWithLog"/>. <see langword="false"/> copies local keys
-    /// even when the target section already inherits them from a base section.
-    /// </param>
     /// <returns><see langword="true"/> if the target file was changed.</returns>
     public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
-        string targetSection, bool recursive = true)
+        string targetSection)
     {
         if (!sourceIni.SectionExists(sourceSection))
             return false;
@@ -259,7 +246,7 @@ internal abstract class Patch
                 continue;
 
             changed |= AddKeyWithLog(targetIni, targetSection, key,
-                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive);
+                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
         }
 
         return changed;

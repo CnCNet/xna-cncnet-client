@@ -54,7 +54,7 @@ internal class Patch_v2_13_0 : Patch
 
             string targetSection = section == LEGACY_TEAMS_SECTION ? TEAMS_SECTION : section;
 
-            CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection, recursive: false);
+            CopySectionWithLog(playerExtraOptionsPanelIni, section, gameLobbyBaseIni, targetSection);
         }
 
         gameLobbyBaseIni.WriteIniFile();
