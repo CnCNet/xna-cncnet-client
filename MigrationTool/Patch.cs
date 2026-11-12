@@ -305,11 +305,11 @@ internal abstract class Patch
         {
             string sourceBaseSection = sourceIni.GetStringValue(sourceSection, "$BaseSection", string.Empty);
 
-            if (!targetIni.SectionExists(sourceBaseSection))
-                Logger.Log($"Update {targetIni.FilePath}: Base section [{sourceBaseSection}] does not exist in target, copying $BaseSection to [{targetSection}] anyway");
-
             if (!targetIni.KeyExists(targetSection, "$BaseSection") || overwriteExistingKeys)
             {
+                if (!targetIni.SectionExists(sourceBaseSection))
+                    Logger.Log($"Update {targetIni.FilePath}: Base section [{sourceBaseSection}] does not exist in target, copying $BaseSection to [{targetSection}] anyway");
+
                 targetIni.SetStringValue(targetSection, "$BaseSection", sourceBaseSection);
                 Logger.Log($"Update {targetIni.FilePath}: Set [{targetSection}]->$BaseSection={sourceBaseSection}");
                 changed = true;
