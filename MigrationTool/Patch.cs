@@ -180,11 +180,9 @@ internal abstract class Patch
         if (legacySection == currentSection && legacyKey == currentKey)
             return false;
 
-        bool legacyKeyExists = src.KeyExists(legacySection, legacyKey);
-
         if (src.KeyExists(currentSection, currentKey))
         {
-            if (legacyKeyExists)
+            if (src.KeyExists(legacySection, legacyKey))
             {
                 Logger.Log($"Update {src.FilePath}: Skip replacing [{legacySection}]->{legacyKey} with [{currentSection}]->{currentKey}, reason: current key already exists");
                 RemoveKeyWithLog(src, legacySection, legacyKey);
@@ -194,9 +192,10 @@ internal abstract class Patch
             return false;
         }
 
-        string legacyValue = string.Empty;
+        string? legacyValue = null;
+        bool legacyIsFromBaseSection = false;
 
-        if (legacyKeyExists)
+        if (src.KeyExists(legacySection, legacyKey))
         {
             legacyValue = src.GetStringValue(legacySection, legacyKey, string.Empty);
         }
@@ -208,9 +207,10 @@ internal abstract class Patch
         else if (recursive && TryGetKeyFromBaseSection(src, legacySection, legacyKey, out _, out string inheritedValue))
         {
             legacyValue = inheritedValue;
+            legacyIsFromBaseSection = true;
         }
 
-        if (legacyValue == string.Empty)
+        if (legacyValue == null)
             return false;
 
         // The current key is absent locally, so this only writes the replacement
@@ -218,10 +218,10 @@ internal abstract class Patch
         // is inherited from a base section.
         AddKeyWithLog(src, currentSection, currentKey, legacyValue, skipIfInherited: false);
 
-        if (legacyKeyExists)
-            RemoveKeyWithLog(src, legacySection, legacyKey);
-        else
+        if (legacyIsFromBaseSection)
             Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section. Its value was copied to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
+        else
+            RemoveKeyWithLog(src, legacySection, legacyKey);
 
         return true;
     }
