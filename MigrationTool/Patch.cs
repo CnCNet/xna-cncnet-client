@@ -266,8 +266,10 @@ internal abstract class Patch
     /// </param>
     /// <returns><see langword="true"/> if the target file was changed.</returns>
     /// <remarks>
-    /// A missing target <c>$BaseSection</c> is created from the source. Inherited target
-    /// keys do not block the copy. Source inherited keys are not expanded.
+    /// A missing target <c>$BaseSection</c> is created from the source. If the target
+    /// does not contain the referenced base section, a warning is logged and the
+    /// reference is copied anyway. Inherited target keys do not block the copy. Source
+    /// inherited keys are not expanded.
     /// </remarks>
     public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
         string targetSection, bool overwriteExistingKeys = false)
@@ -301,6 +303,9 @@ internal abstract class Patch
         if (sourceIni.KeyExists(sourceSection, "$BaseSection"))
         {
             string sourceBaseSection = sourceIni.GetStringValue(sourceSection, "$BaseSection", string.Empty);
+
+            if (!targetIni.SectionExists(sourceBaseSection))
+                Logger.Log($"Update {targetIni.FilePath}: Base section [{sourceBaseSection}] does not exist in target, copying $BaseSection to [{targetSection}] anyway");
 
             if (!targetIni.KeyExists(targetSection, "$BaseSection") || overwriteExistingKeys)
             {
