@@ -35,11 +35,17 @@ internal sealed class Program
     private static ConsoleColor defaultColor;
     private static bool hasHandle;
     private static Mutex clientMutex;
+    private static bool unattended;
 
     // e.g. args = ["clientogl.dll", "\"C:\\Game\\\""];
+    // An optional "-unattended" flag, before or after the other arguments, skips restarting the client and waiting for a key press on failure.
     private static void Main(string[] args)
     {
         defaultColor = Console.ForegroundColor;
+
+        const string unattendedFlag = "-unattended";
+        unattended = args.Contains(unattendedFlag, StringComparer.OrdinalIgnoreCase);
+        args = args.Where(arg => !arg.Equals(unattendedFlag, StringComparison.OrdinalIgnoreCase)).ToArray();
 
         try
         {
@@ -49,7 +55,7 @@ internal sealed class Program
             if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]))
             {
                 Write("Invalid arguments given!", true, ConsoleColor.Red);
-                Write("Usage: <client_executable_name> <base_directory>");
+                Write("Usage: <client_executable_name> <base_directory> [-unattended]");
                 Write(string.Empty);
                 Exit(false);
             }
@@ -187,6 +193,14 @@ internal sealed class Program
                     versionFile.CopyTo(destinationFile.FullName, true);
                 }
 
+                if (unattended)
+                {
+                    Write("Files successfully updated. Unattended update, not starting the launcher.", true, ConsoleColor.Green);
+                    Exit(true);
+
+                    return;
+                }
+
                 Write("Files successfully updated. Starting launcher..", true, ConsoleColor.Green);
                 string launcherExe = string.Empty;
 
@@ -256,8 +270,12 @@ internal sealed class Program
 
         if (!success)
         {
-            Write("Press any key to exit.");
-            Console.ReadKey();
+            if (!unattended)
+            {
+                Write("Press any key to exit.");
+                Console.ReadKey();
+            }
+
             Environment.Exit(1);
         }
     }

@@ -25,6 +25,11 @@ namespace DTAClient.Domain
         // TODO: remove this variable after `Logger.Initialized` property is implemented by upstream
         public static bool LoggerInitialized { get; set; } = false;
 
+        /// <summary>
+        /// Whether the client runs an unattended update. Errors are then only logged instead of shown.
+        /// </summary>
+        public static bool UnattendedUpdate { get; set; }
+
         private static Action<string, string, bool> displayErrorAction = null;
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
@@ -50,6 +55,15 @@ namespace DTAClient.Domain
 
             if (LoggerInitialized)
                 Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
+            // Nobody is there to close a message box during an unattended update
+            if (UnattendedUpdate)
+            {
+                if (exit)
+                    Environment.Exit(1);
+
+                return;
+            }
 
 #if WINFORMS
             MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
