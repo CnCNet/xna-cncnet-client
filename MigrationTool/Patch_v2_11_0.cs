@@ -431,7 +431,8 @@ internal class Patch_v2_11_0 : Patch
                     }
                 }
 
-                // Replace old configs with new one, delete placeholders, delete redundant sections
+                // Replace the old lobby configuration files with the generated lobby files,
+                // delete placeholders, and delete redundant sections
                 var sb = new StringBuilder();
                 gameOptionsIniControlKeys
                     .ForEach(x => sb.Append(gameOptionsIni.GetStringValue($"{SkirmishLobby}", x, string.Empty)).Append(','));
