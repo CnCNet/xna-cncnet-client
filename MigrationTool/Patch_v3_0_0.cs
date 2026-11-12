@@ -238,21 +238,7 @@ internal class Patch_v3_0_0 : Patch
         IniFile fontsIni = new IniFile(fontsIniFile.FullName);
 
         bool changed = RemoveObsoleteFontsCount(fontsIni);
-
-        if (fontsIni.SectionExists("FallbackFonts"))
-        {
-            if (changed)
-            {
-                fontsIni.WriteIniFile();
-                Logger.Log($"{fontsIni.FilePath}: Removed obsolete [Fonts] Count. [FallbackFonts] already exists.");
-            }
-            else
-            {
-                Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, skipping the Fonts.ini migration.");
-            }
-
-            return;
-        }
+        bool hasFallbackFontsSection = fontsIni.SectionExists("FallbackFonts");
 
         List<string> fontSections = GetFontSections(fontsIni);
         List<string> sectionsWithFallback = new List<string>();
@@ -266,6 +252,10 @@ internal class Patch_v3_0_0 : Patch
                 continue;
 
             sectionsWithFallback.Add(fontSection);
+
+            if (hasFallbackFontsSection)
+                continue;
+
             int fallbackIndex = fontsIni.GetIntValue(fontSection, "Fallback", -1);
             List<string> chain = BuildFallbackChain(fontsIni, fontSection, fallbackIndex);
 
@@ -277,6 +267,21 @@ internal class Patch_v3_0_0 : Patch
         {
             RemoveKeyWithLog(fontsIni, fontSection, "Fallback");
             changed = true;
+        }
+
+        if (hasFallbackFontsSection)
+        {
+            if (changed)
+            {
+                fontsIni.WriteIniFile();
+                Logger.Log($"{fontsIni.FilePath}: Fonts.ini migration completed.");
+            }
+            else
+            {
+                Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, nothing to migrate.");
+            }
+
+            return;
         }
 
         List<string> fallbackFontPaths = MergeFallbackChains(fallbackChains, fontsIni.FilePath);
