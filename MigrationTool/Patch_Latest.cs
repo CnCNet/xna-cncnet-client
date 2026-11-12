@@ -15,7 +15,7 @@ internal class Patch_Latest : Patch
     {
         base.Apply();
 
-        // Write latest patch there
+        // Add the latest migration steps to Patch_Latest.Apply.
     }
 }
 

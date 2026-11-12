@@ -10,13 +10,15 @@ namespace MigrationTool;
 
 /// <summary>
 /// Base class for a client migration patch.
-/// A patch must only implement changes introduced in its own client version.
-/// It must not rely on patches for later versions or implement their behavior:
-/// patches are applied in version order for a full migration, but each patch
-/// must remain valid when applied on its own.
+/// A patch must only implement changes introduced in the patch's client version.
+/// A patch must not rely on later-version patches or implement later-version behavior.
+/// Patches are applied in version order for a full migration, but each patch must
+/// remain valid when applied alone.
 /// </summary>
 internal abstract class Patch
 {
+    // TODO: The key and section helpers only resolve $BaseSection inheritance. INISystem/BasedOn file inheritance is not supported.
+
     public Version ClientVersion { get; protected set; }
     public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
@@ -89,7 +91,8 @@ internal abstract class Patch
     /// <param name="key">The key to remove.</param>
     /// <param name="removeInherited">
     /// Whether to also remove the key from every base section in the <c>$BaseSection</c>
-    /// chain. This also affects other sections that inherit from those base sections.
+    /// chain. Removing the key from a base section also affects other sections that
+    /// inherit from the base section.
     /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public static bool RemoveKeyWithLog(IniFile src, string section, string key, bool removeInherited = false)
@@ -158,7 +161,7 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Replaces a legacy key with its current section and name.
+    /// Replaces a legacy key with the current section and key name.
     /// </summary>
     /// <param name="src">The INI file to modify.</param>
     /// <param name="legacySection">The section that contains the legacy key.</param>
@@ -171,9 +174,10 @@ internal abstract class Patch
     /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     /// <remarks>
-    /// The current key wins when it exists locally. A local legacy override is copied
-    /// to the current key even when the current key is inherited. Inherited legacy keys
-    /// are copied to a local current key and are not removed from their base section.
+    /// The current key wins when the current key exists locally. A local legacy override
+    /// is copied to the current key even when the current key is inherited. Inherited
+    /// legacy keys are copied to a local current key and are not removed from the base
+    /// section.
     /// </remarks>
     public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection,
         string currentKey, bool useInheritedLegacyValue = true)
@@ -214,13 +218,12 @@ internal abstract class Patch
         if (legacyValue == null)
             return false;
 
-        // The current key is absent locally, so this only writes the replacement
-        // locally. Recursive lookup would incorrectly skip it when the current key
-        // is inherited from a base section.
+        // Write the current key locally without checking base sections. A base-section
+        // lookup would incorrectly skip the write when the current key is inherited.
         AddKeyWithLog(src, currentSection, currentKey, legacyValue, skipIfInherited: false);
 
         if (legacyIsFromBaseSection)
-            Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section. Its value was copied to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
+            Logger.Log($"Update {src.FilePath}: Old key [{legacySection}]->{legacyKey} comes from a base section. The old key value was copied to new local key [{currentSection}]->{currentKey}. The base section was left untouched.");
         else
             RemoveKeyWithLog(src, legacySection, legacyKey);
 
@@ -235,7 +238,7 @@ internal abstract class Patch
     /// <param name="currentSection">The new section name.</param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     /// <remarks>
-    /// The section is renamed in place, preserving all of its keys including
+    /// The section is renamed in place, preserving all keys including
     /// <c>$BaseSection</c>. If the target section already exists, the rename is skipped.
     /// </remarks>
     public static bool RenameSectionWithLog(IniFile src, string legacySection, string currentSection)
@@ -316,14 +319,13 @@ internal abstract class Patch
             }
             else
             {
-                Logger.Log($"Update {targetIni.FilePath}: Skip copying $BaseSection to [{targetSection}], reason: target already defines it");
+                Logger.Log($"Update {targetIni.FilePath}: Skip copying $BaseSection to [{targetSection}], reason: target already defines $BaseSection");
             }
         }
 
         return changed;
     }
 
-    // TODO: These helpers only resolve $BaseSection inheritance. INISystem/BasedOn file inheritance is not supported.
     private static bool TryGetKeyFromBaseSection(IniFile src, string section, string key,
         out string baseSectionName, out string value)
     {

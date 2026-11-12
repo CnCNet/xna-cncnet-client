@@ -36,7 +36,7 @@ internal class Patch_v3_0_0 : Patch
             return;
         }
 
-        // Only migrate sections that are actually defined in this file. The INI
+        // Only migrate sections that are actually defined in OptionsWindow.ini. The INI
         // system inherits from GenericWindow.ini, and writing inherited sections
         // back would duplicate the whole base configuration into OptionsWindow.ini.
         IniFile optionsWindowIni = new IniFile(optionsWindowPath, applyBaseIni: false);
@@ -47,9 +47,9 @@ internal class Patch_v3_0_0 : Patch
 
         bool changed = UpdateOptionsWindowWidth(optionsWindowIni);
 
-        // When the INI specifies the old window width, it also describes a layout
-        // that was designed for that width, so shift its second column as well.
-        // Otherwise only shift controls that clearly ended at the right edge.
+        // When OptionsWindow.ini specifies the old window width, the layout was designed
+        // for that width, so shift second-column controls as well. Otherwise only shift
+        // controls that clearly ended at the right edge.
         changed |= ShiftControls(optionsWindowIni, layoutWasBasedOnOldWidth, layoutIsAlreadyMigrated);
 
         if (changed)
