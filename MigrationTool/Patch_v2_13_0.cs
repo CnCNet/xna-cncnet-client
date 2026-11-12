@@ -63,5 +63,5 @@ internal class Patch_v2_13_0 : Patch
     }
 
     private bool RenameLegacyTeamsSection(IniFile gameLobbyBaseIni)
-        => MoveSectionWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, TEAMS_SECTION);
+        => RenameSectionWithLog(gameLobbyBaseIni, LEGACY_TEAMS_SECTION, TEAMS_SECTION);
 }

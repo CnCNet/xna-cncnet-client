@@ -53,11 +53,11 @@ internal abstract class Patch
     /// <param name="section">The target section.</param>
     /// <param name="key">The key to add.</param>
     /// <param name="value">The value to assign to the key.</param>
-    /// <param name="recursive">
+    /// <param name="skipIfInherited">
     /// Whether a key inherited through the <c>$BaseSection</c> chain counts as existing.
     /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public static bool AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
+    public static bool AddKeyWithLog(IniFile src, string section, string key, string value, bool skipIfInherited = true)
     {
         if (src.KeyExists(section, key))
         {
@@ -65,7 +65,7 @@ internal abstract class Patch
             return false;
         }
 
-        if (recursive && TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
+        if (skipIfInherited && TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
         {
             Logger.Log($"Update {src.FilePath}: Skip adding [{section}]->{key}, reason: already exists in base section [{baseSectionName}]->{key}={baseValue}");
             return false;
@@ -82,24 +82,41 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Removes a local key from a section. Inherited keys are left in their base section.
+    /// Removes a key from a section. By default only local keys are removed.
     /// </summary>
     /// <param name="src">The INI file to modify.</param>
     /// <param name="section">The section that contains the key.</param>
-    /// <param name="key">The local key to remove.</param>
+    /// <param name="key">The key to remove.</param>
+    /// <param name="removeInherited">
+    /// Whether to also remove the key from every base section in the <c>$BaseSection</c>
+    /// chain. This also affects other sections that inherit from those base sections.
+    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
-    public static bool RemoveKeyWithLog(IniFile src, string section, string key)
+    public static bool RemoveKeyWithLog(IniFile src, string section, string key, bool removeInherited = false)
     {
-        if (!src.KeyExists(section, key))
+        bool removed = false;
+
+        if (src.KeyExists(section, key))
         {
-            Logger.Log($"Update {src.FilePath}: Skip removing [{section}]->{key}, reason: doesn't exist");
-            return false;
+            Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
+            src.GetSection(section).RemoveKey(key);
+            removed = true;
         }
 
-        Logger.Log($"Update {src.FilePath}: Remove [{section}]->{key}={src.GetSection(section).Keys.First(kvp => kvp.Key == key).Value}");
-        src.GetSection(section).RemoveKey(key);
+        if (removeInherited)
+        {
+            while (TryGetKeyFromBaseSection(src, section, key, out string baseSectionName, out string baseValue))
+            {
+                Logger.Log($"Update {src.FilePath}: Remove [{baseSectionName}]->{key}={baseValue}");
+                src.GetSection(baseSectionName).RemoveKey(key);
+                removed = true;
+            }
+        }
 
-        return true;
+        if (!removed)
+            Logger.Log($"Update {src.FilePath}: Skip removing [{section}]->{key}, reason: doesn't exist");
+
+        return removed;
     }
 
     private void CopyVersionPicturesWithLog()
@@ -199,7 +216,7 @@ internal abstract class Patch
         // The current key is absent locally, so this only writes the replacement
         // locally. Recursive lookup would incorrectly skip it when the current key
         // is inherited from a base section.
-        AddKeyWithLog(src, currentSection, currentKey, legacyValue, recursive: false);
+        AddKeyWithLog(src, currentSection, currentKey, legacyValue, skipIfInherited: false);
 
         if (legacyKeyExists)
             RemoveKeyWithLog(src, legacySection, legacyKey);
@@ -210,55 +227,56 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Renames a section, or merges its keys into the current section when both exist.
+    /// Renames a section.
     /// </summary>
     /// <param name="src">The INI file to modify.</param>
-    /// <param name="legacySection">The section to rename or merge.</param>
-    /// <param name="currentSection">The destination section name.</param>
+    /// <param name="legacySection">The section to rename.</param>
+    /// <param name="currentSection">The new section name.</param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     /// <remarks>
-    /// The current section wins for keys it already defines. Structural inheritance keys
-    /// are not moved between sections.
+    /// The section is renamed in place, preserving all of its keys including
+    /// <c>$BaseSection</c>. If the target section already exists, the rename is skipped.
     /// </remarks>
-    public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
+    public static bool RenameSectionWithLog(IniFile src, string legacySection, string currentSection)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
             return false;
 
-        if (!src.SectionExists(currentSection))
+        if (src.SectionExists(currentSection))
         {
-            src.GetSection(legacySection).SectionName = currentSection;
-            Logger.Log($"Update {src.FilePath}: Rename [{legacySection}] to [{currentSection}]");
-            return true;
+            Logger.Log($"Update {src.FilePath}: Skip renaming [{legacySection}] to [{currentSection}], reason: target section already exists");
+            return false;
         }
 
-        foreach (string key in src.GetSectionKeys(legacySection))
-        {
-            if (key == "$BaseSection")
-                continue;
-
-            ReplaceKeyWithLog(src, legacySection, key, currentSection, key);
-        }
-
-        src.RemoveSection(legacySection);
-        Logger.Log($"Update {src.FilePath}: Merge [{legacySection}] into [{currentSection}]");
+        src.GetSection(legacySection).SectionName = currentSection;
+        Logger.Log($"Update {src.FilePath}: Rename [{legacySection}] to [{currentSection}]");
         return true;
     }
 
     /// <summary>
-    /// Copies the keys of a section into another section in the target INI file.
+    /// Copies the local keys of a section into another section.
     /// </summary>
     /// <param name="sourceIni">The INI file that contains the source section.</param>
     /// <param name="sourceSection">The section whose keys are copied.</param>
     /// <param name="targetIni">The INI file that contains the target section.</param>
     /// <param name="targetSection">The section that receives the keys.</param>
+    /// <param name="overwriteExistingKeys">
+    /// Whether source local keys overwrite target local keys. When false, target local keys win.
+    /// </param>
+    /// <param name="copyBaseSection">
+    /// Whether to copy the source section's <c>$BaseSection</c> key when it exists.
+    /// </param>
+    /// <param name="overwriteBaseSection">
+    /// Whether to overwrite an existing target <c>$BaseSection</c> with the source value.
+    /// Ignored when <paramref name="copyBaseSection"/> is false.
+    /// </param>
     /// <returns><see langword="true"/> if the target file was changed.</returns>
     /// <remarks>
-    /// Existing local target keys win. Inherited target keys do not block the copy.
-    /// Structural inheritance keys are not copied.
+    /// Inherited target keys do not block the copy. Source inherited keys are not expanded.
     /// </remarks>
     public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
-        string targetSection)
+        string targetSection, bool overwriteExistingKeys = false, bool copyBaseSection = true,
+        bool overwriteBaseSection = false)
     {
         if (!sourceIni.SectionExists(sourceSection))
             return false;
@@ -270,8 +288,36 @@ internal abstract class Patch
             if (key == "$BaseSection")
                 continue;
 
-            changed |= AddKeyWithLog(targetIni, targetSection, key,
-                sourceIni.GetStringValue(sourceSection, key, string.Empty), recursive: false);
+            string value = sourceIni.GetStringValue(sourceSection, key, string.Empty);
+
+            if (targetIni.KeyExists(targetSection, key))
+            {
+                if (!overwriteExistingKeys)
+                    continue;
+
+                targetIni.SetStringValue(targetSection, key, value);
+                Logger.Log($"Update {targetIni.FilePath}: Set [{targetSection}]->{key}={value}");
+                changed = true;
+                continue;
+            }
+
+            changed |= AddKeyWithLog(targetIni, targetSection, key, value, skipIfInherited: false);
+        }
+
+        if (copyBaseSection && sourceIni.KeyExists(sourceSection, "$BaseSection"))
+        {
+            string sourceBaseSection = sourceIni.GetStringValue(sourceSection, "$BaseSection", string.Empty);
+
+            if (!targetIni.KeyExists(targetSection, "$BaseSection") || overwriteBaseSection)
+            {
+                targetIni.SetStringValue(targetSection, "$BaseSection", sourceBaseSection);
+                Logger.Log($"Update {targetIni.FilePath}: Set [{targetSection}]->$BaseSection={sourceBaseSection}");
+                changed = true;
+            }
+            else
+            {
+                Logger.Log($"Update {targetIni.FilePath}: Skip copying $BaseSection to [{targetSection}], reason: target already defines it");
+            }
         }
 
         return changed;
@@ -298,66 +344,6 @@ internal abstract class Patch
         baseSectionName = string.Empty;
         value = string.Empty;
         return false;
-    }
-
-    public static void CalculatePositions(IniFile ini, string parent, string child)
-    {
-        int parentX, parentY, childX, childY;
-        parentX = parentY = childX = childY = 0;
-
-        var parentKeys = ini.GetSectionKeys(parent);
-        var childKeys = ini.GetSectionKeys(child);
-
-        var positionKeys = new List<string>() { "$X", "$Y", "X", "Y", "Location" };
-
-        Logger.Log($"Update {ini.FilePath}: Fix position for {child} control in {parent}");
-
-        foreach (var control in new List<List<string>>() { parentKeys, childKeys })
-        {
-            int tmpX, tmpY;
-            tmpX = tmpY = 0;
-
-            foreach (var key in control.Where(key => positionKeys.Contains(key)))
-            {
-                switch (key)
-                {
-                    case ("$X"):
-                    case ("X"):
-                        tmpX = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpX);
-                        continue;
-                    case ("$Y"):
-                    case ("Y"):
-                        tmpY = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpY);
-                        continue;
-                    case ("Location"):
-                        var value = ini.GetStringValue(control == parentKeys ? parent : child, key, string.Empty).Split(',');
-                        tmpX = Conversions.IntFromString(value[0], tmpX);
-                        tmpY = Conversions.IntFromString(value[1], tmpY);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if (control == parentKeys)
-            {
-                parentX = tmpX;
-                parentY = tmpY;
-            }
-            else
-            {
-                childX = tmpX;
-                childY = tmpY;
-            }
-        }
-
-        positionKeys.ForEach(key => ini.RemoveKey(child, key));
-
-        childX = childX - parentX;
-        childY = childY - parentY;
-
-        ini.GetSection(child).AddKey("$X", $"{childX}");
-        ini.GetSection(child).AddKey("$Y", $"{childY}");
     }
 
     public bool TryApply()
