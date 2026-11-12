@@ -47,9 +47,15 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Adds a key to a section. When <paramref name="recursive"/> is true, a key
-    /// inherited through the <c>$BaseSection</c> chain is treated as already present.
+    /// Adds a key to a section.
     /// </summary>
+    /// <param name="src">The INI file to modify.</param>
+    /// <param name="section">The target section.</param>
+    /// <param name="key">The key to add.</param>
+    /// <param name="value">The value to assign to the key.</param>
+    /// <param name="recursive">
+    /// Whether a key inherited through the <c>$BaseSection</c> chain counts as existing.
+    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public static bool AddKeyWithLog(IniFile src, string section, string key, string value, bool recursive = true)
     {
@@ -76,9 +82,11 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Removes a key from a section. Only local keys are removed, inherited keys are
-    /// left in their base section.
+    /// Removes a local key from a section. Inherited keys are left in their base section.
     /// </summary>
+    /// <param name="src">The INI file to modify.</param>
+    /// <param name="section">The section that contains the key.</param>
+    /// <param name="key">The local key to remove.</param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
     public static bool RemoveKeyWithLog(IniFile src, string section, string key)
     {
@@ -133,16 +141,22 @@ internal abstract class Patch
     }
 
     /// <summary>
-    /// Replaces a legacy key with its current section and name. When
-    /// <paramref name="recursive"/> is true, the <c>$BaseSection</c> chain is also
-    /// searched for both keys. The current key is authoritative: if it already exists
-    /// locally, it wins and only the local legacy key is removed. If the legacy key is
-    /// locally overridden while the current key is only inherited, the legacy value is
-    /// written locally so the override is not lost. Inherited legacy keys are not
-    /// modified. Their value is copied to a local current key instead and the base
-    /// section is left unchanged.
+    /// Replaces a legacy key with its current section and name.
     /// </summary>
+    /// <param name="src">The INI file to modify.</param>
+    /// <param name="legacySection">The section that contains the legacy key.</param>
+    /// <param name="legacyKey">The legacy key to replace.</param>
+    /// <param name="currentSection">The section that contains the current key.</param>
+    /// <param name="currentKey">The current key to write.</param>
+    /// <param name="recursive">
+    /// Whether the <c>$BaseSection</c> chain is searched for both keys.
+    /// </param>
     /// <returns><see langword="true"/> if the file was changed.</returns>
+    /// <remarks>
+    /// The current key wins when it exists locally. A local legacy override is copied
+    /// to the current key even when the current key is inherited. Inherited legacy keys
+    /// are copied to a local current key and are not removed from their base section.
+    /// </remarks>
     public static bool ReplaceKeyWithLog(IniFile src, string legacySection, string legacyKey, string currentSection,
         string currentKey, bool recursive = true)
     {
@@ -197,10 +211,15 @@ internal abstract class Patch
 
     /// <summary>
     /// Renames a section, or merges its keys into the current section when both exist.
+    /// </summary>
+    /// <param name="src">The INI file to modify.</param>
+    /// <param name="legacySection">The section to rename or merge.</param>
+    /// <param name="currentSection">The destination section name.</param>
+    /// <returns><see langword="true"/> if the file was changed.</returns>
+    /// <remarks>
     /// The current section wins for keys it already defines. Structural inheritance keys
     /// are not moved between sections.
-    /// </summary>
-    /// <returns><see langword="true"/> if the file was changed.</returns>
+    /// </remarks>
     public static bool MoveSectionWithLog(IniFile src, string legacySection, string currentSection)
     {
         if (legacySection == currentSection || !src.SectionExists(legacySection))
@@ -228,10 +247,16 @@ internal abstract class Patch
 
     /// <summary>
     /// Copies the keys of a section into another section in the target INI file.
+    /// </summary>
+    /// <param name="sourceIni">The INI file that contains the source section.</param>
+    /// <param name="sourceSection">The section whose keys are copied.</param>
+    /// <param name="targetIni">The INI file that contains the target section.</param>
+    /// <param name="targetSection">The section that receives the keys.</param>
+    /// <returns><see langword="true"/> if the target file was changed.</returns>
+    /// <remarks>
     /// Existing local target keys win. Inherited target keys do not block the copy.
     /// Structural inheritance keys are not copied.
-    /// </summary>
-    /// <returns><see langword="true"/> if the target file was changed.</returns>
+    /// </remarks>
     public static bool CopySectionWithLog(IniFile sourceIni, string sourceSection, IniFile targetIni,
         string targetSection)
     {
