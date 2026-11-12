@@ -1,6 +1,6 @@
 ﻿namespace MigrationTool;
 
-public enum Version
+public enum Version : int
 {
     v2_11_0,
     v2_11_1,
@@ -11,5 +11,6 @@ public enum Version
     v2_12_6,
     v2_13_0,
     v3_0_0,
-    Latest,
+
+    Latest = int.MaxValue,
 }
