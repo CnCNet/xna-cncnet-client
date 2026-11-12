@@ -23,7 +23,7 @@
     <EmbeddedResource Include="Pictures\statusUnavailable.png" />
     <EmbeddedResource Include="Pictures\statusWarning.png" />
     <EmbeddedResource Include="Pictures\negotiating.png" />
-    <EmbeddedResource Include="Pictures\negotiation-failed.png" />
+    <EmbeddedResource Include="Pictures\negotiationFailed.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
