@@ -30,8 +30,8 @@ internal class Patch_v2_11_2 : Patch
         }
 
         // Add ClientDefinitions.ini->[Settings]->ShowDevelopmentBuildWarnings
-        AddKeyWithLog(clientDefsIni, "Settings", "ShowDevelopmentBuildWarnings", "true");
-        clientDefsIni.WriteIniFile();
+        if (AddKeyWithLog(clientDefsIni, "Settings", "ShowDevelopmentBuildWarnings", "true"))
+            clientDefsIni.WriteIniFile();
 
     }
 }

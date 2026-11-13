@@ -62,8 +62,6 @@
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">win-x86</RuntimeIdentifiers>
     <Platforms>AnyCPU</Platforms>
-    <Nullable>enable</Nullable>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
     
   <!-- For Constants -->
