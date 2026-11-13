@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             XNALabel lblTunnelMode = new XNALabel(WindowManager);
             lblTunnelMode.Name = nameof(lblTunnelMode);
-            lblTunnelMode.Text = "Tunnel mode when hosting:".L10N("Client:DTAConfig:TunnelMode");
+            lblTunnelMode.Text = "Tunnel mode for games you host:".L10N("Client:DTAConfig:TunnelMode");
             lblTunnelMode.ClientRectangle = new Rectangle(
                 chkSteamIntegration.X,
                 chkSteamIntegration.Bottom + 12, 165, 0);
