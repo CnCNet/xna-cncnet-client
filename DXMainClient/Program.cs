@@ -184,6 +184,7 @@ namespace DTAClient
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr AddDllDirectory(string lpPathName);
+#endif
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetModuleHandleW", ExactSpelling = true, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -193,12 +194,14 @@ namespace DTAClient
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr GetProcAddress([In] IntPtr hModule, [In][MarshalAs(UnmanagedType.LPStr)] string lpProcName);
 
-        private static bool IsRunningUnderWine()
+        /// <summary>
+        /// Whether the client runs under Wine. Must only be called on Windows.
+        /// </summary>
+        internal static bool IsRunningUnderWine()
         {
             IntPtr ntdllModuleHandle = GetModuleHandle("ntdll");
             return ntdllModuleHandle != IntPtr.Zero && GetProcAddress(ntdllModuleHandle, "wine_get_version") != IntPtr.Zero;
         }
-#endif
 
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;
