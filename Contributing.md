@@ -187,6 +187,9 @@ var something = 6;
 
 The project has mixed usages of nullability annotations. 
 
+For `MigrationTool` project, the `<Nullable>enable</Nullable>` is set in the project file, so all code in that project is null-safe and you do not need to write `#nullable enable` at the top of the file.
+
+For other projects, please follow the rules below:
 - When you are adding new `.cs` files, you must write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe.
 - When you are modifying existing `.cs` files, if you have made significant changes to the file (> 75%), you should write `#nullable enable` at the top of the file and make sure that all code in that file is null-safe. If you are only making minor or medium changes to an existing `.cs` file (≤ 75%) that does not start with `#nullable enable`, you should write code without nullability annotations to keep the style of the file consistent.
 
