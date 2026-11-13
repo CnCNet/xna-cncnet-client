@@ -49,21 +49,23 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576 + UIDesignConstants.BUTTON_WIDTH_92, 475);
+            ClientRectangle = new Rectangle(0, 0, 576, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
+
+            const int tabWidth = UIDesignConstants.BUTTON_WIDTH_78;
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.AddTab("Display".L10N("Client:DTAConfig:TabDisplay"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Audio".L10N("Client:DTAConfig:TabAudio"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Game".L10N("Client:DTAConfig:TabGame"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Display".L10N("Client:DTAConfig:TabDisplay"), tabWidth);
+            tabControl.AddTab("Audio".L10N("Client:DTAConfig:TabAudio"), tabWidth);
+            tabControl.AddTab("Game".L10N("Client:DTAConfig:TabGame"), tabWidth);
+            tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), tabWidth);
+            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), tabWidth);
+            tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), tabWidth);
+            tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), tabWidth);
 
             tabControl.SelectedTabIndex = DISPLAY_INDEX;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;

@@ -13,15 +13,15 @@ This document lists all the breaking changes and how to address them. Each secti
 > [!NOTE]
 > You should always delete the `Binaries` and `BinariesNET8` folders when updating. See [How to update to latest client version](HowToUpdate.md) guide for a step-by-step process of updating the client binaries in your mod/game package.
 
-## 3.0
+## 3.0.0
 
 - The client's font rendering has been updated. Your `Fonts.ini` must be migrated:
   - Per-font `Fallback=N` keys are no longer supported. Move the fallback font files to the new `[FallbackFonts]` section: set `Count` to the number of fallback files and list them as `Fallback0`, `Fallback1`, etc. Paths are relative to the `Fonts.ini` directory, same as `Path`. The fallback list is applied to every TrueType font index. Remove the old `Fallback` keys from the `[FontN]` sections. See [Fonts.md](Fonts.md) for details and examples.
   - The `Count` key in `[Fonts]` section is now ignored and should be removed. Font indexes are read starting from `[Font0]` until the first missing `[FontN]` section.
   - If your mod ships `Fonts.ini` copies in theme or translation folders, migrate every copy following the same steps above.
 - The client now defaults to Dynamic (V3) tunnel mode. If you need the old V2 behavior, set `TunnelMode=2` in `[MultiPlayer]` of `Resources/UserDefaults.ini`.
-- Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiation-failed.png](/DXMainClient/Resources/DTA/negotiation-failed.png) into your client's `Resources` folder.
-- `OptionsWindow` is now wider to fit the new "Storage" tab, growing from `576` to `576 + UIDesignConstants.BUTTON_WIDTH_92` (668) pixels. If your `OptionsWindow.ini` positions any controls relative to the window's right edge or in a second column, you will need to adjust their `ClientRectangle`/`Size` accordingly.
+- Copy [negotiating.png](/DXMainClient/Resources/DTA/negotiating.png) and [negotiationFailed.png](/DXMainClient/Resources/DTA/negotiationFailed.png) into your client's `Resources` folder.
+- `OptionsWindow` has a new "Storage" tab. To fit seven tabs in the existing `576` pixel wide window, the tabs now use 78 pixel wide art. Copy [78pxtab.png](/DXMainClient/Resources/DTA/Default%20Theme/78pxtab.png) and [78pxtab_c.png](/DXMainClient/Resources/DTA/Default%20Theme/78pxtab_c.png) into your client's `Resources` folder, or provide your own `78pxtab.png`/`78pxtab_c.png` (or `78pxbtn.png`/`78pxbtn_c.png`).
 - Brought by our regular UI library updates, element alignment can differ slightly. Check labels, buttons, list boxes and drop-downs for clipping or misalignment after upgrading.
 
 ## 2.13.0
