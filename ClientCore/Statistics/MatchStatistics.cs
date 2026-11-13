@@ -65,7 +65,13 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            var parser = new LogFileStatisticsParser(this, isLoadedGame);
+            MatchParserBase parser = ClientConfiguration.Instance.ClientGameType switch
+            {
+                ClientType.D2K => new Dune2000StatisticsParser(this, isLoadedGame),
+                ClientType.RA => new RedAlertStatisticsParser(this, isLoadedGame),
+                _ => new UniversalStatisticsParser(this, isLoadedGame),
+            };
+
             parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
         }
 
