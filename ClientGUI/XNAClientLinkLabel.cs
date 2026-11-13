@@ -76,6 +76,18 @@ namespace ClientGUI
                 case "ClickSoundEffect":
                     ClickSoundEffect = new EnhancedSoundEffect(value);
                     return;
+                // XNALinkLabel parses this into its own HoverColor, which ours hides
+                case "HoverColor":
+                    HoverColor = AssetLoader.GetColorFromString(value);
+                    return;
+                // XNALabel draws with TextColor but XNALinkLabel's IdleColor only sets RemapColor,
+                // so set both. RemapColor/TextColor also set the idle colour so hovering keeps them.
+                case "IdleColor":
+                case "RemapColor":
+                case "TextColor":
+                    IdleColor = AssetLoader.GetColorFromString(value);
+                    TextColor = IdleColor;
+                    return;
             }
 
             base.ParseControlINIAttribute(iniFile, key, value);
@@ -83,7 +95,15 @@ namespace ClientGUI
 
         public override void OnMouseEnter()
         {
-            base.OnMouseLeave();
+            base.OnMouseEnter();
+
+            // Without a URL clicking does nothing, so don't look clickable
+            if (string.IsNullOrEmpty(GetActiveURL()))
+            {
+                RemapColor = IdleColor;
+                TextColor = IdleColor;
+                return;
+            }
 
             HoverSoundEffect?.Play();
 
@@ -105,14 +125,19 @@ namespace ClientGUI
             
             ClickSoundEffect?.Play();
 
-            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
-            if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
-                ProcessLauncher.StartShellProcess(UnixURL);
-            else if (!string.IsNullOrEmpty(URL))
-                ProcessLauncher.StartShellProcess(URL);
+            string url = GetActiveURL();
+            if (!string.IsNullOrEmpty(url))
+                ProcessLauncher.StartShellProcess(url);
 
             base.OnLeftClick(inputEventArgs);
+        }
+
+        private string GetActiveURL()
+        {
+            if (ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
+                return UnixURL;
+
+            return URL;
         }
     }
 }
