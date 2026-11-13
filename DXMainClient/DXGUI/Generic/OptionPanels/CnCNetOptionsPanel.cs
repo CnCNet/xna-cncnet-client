@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             XNALabel lblTunnelMode = new XNALabel(WindowManager);
             lblTunnelMode.Name = nameof(lblTunnelMode);
-            lblTunnelMode.Text = "Tunnel mode when hosting:".L10N("Client:DTAConfig:TunnelMode");
+            lblTunnelMode.Text = "Tunnel mode for games you host:".L10N("Client:DTAConfig:TunnelMode");
             lblTunnelMode.ClientRectangle = new Rectangle(
                 chkSteamIntegration.X,
                 chkSteamIntegration.Bottom + 12, 165, 0);
@@ -216,7 +216,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkEnableP2P.ClientRectangle = new Rectangle(
                 ddTunnelMode.X,
                 ddTunnelMode.Bottom + 9, 0, 0);
-            chkEnableP2P.Text = "Enable direct P2P connections".L10N("Client:DTAConfig:EnableP2P");
+            chkEnableP2P.Text = "Allow P2P connections".L10N("Client:DTAConfig:AllowP2P");
+            chkEnableP2P.ToolTipText = "Some tunnel modes may allow you to connect directly to other players for improved latency, at the cost of exposing your real IP.".L10N("Client:DTAConfig:AllowP2PTooltip");
             chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
             AddChild(chkEnableP2P);
         }
