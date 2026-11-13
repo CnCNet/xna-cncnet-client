@@ -217,7 +217,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
                 ddTunnelMode.X,
                 ddTunnelMode.Bottom + 9, 0, 0);
             chkEnableP2P.Text = "Allow P2P connections".L10N("Client:DTAConfig:AllowP2P");
-            chkEnableP2P.ToolTipText = "Some tunnel modes may allow you to connect directly if all players agree, exposing your IP.".L10N("Client:DTAConfig:AllowP2PTooltip");
+            chkEnableP2P.ToolTipText = "Some tunnel modes may allow you to connect directly for improved latency, at the cost of exposing your real IP.".L10N("Client:DTAConfig:AllowP2PTooltip");
             chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
             AddChild(chkEnableP2P);
         }
