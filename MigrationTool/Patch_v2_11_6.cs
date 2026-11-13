@@ -1,4 +1,3 @@
-#nullable enable
 namespace MigrationTool;
 
 internal class Patch_v2_11_6 : Patch
