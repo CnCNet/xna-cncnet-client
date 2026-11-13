@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Title>CnCNet.MigrationTool</Title>
     <Description>CnCNet Client Migration Tool</Description>
     <Product>CnCNet.MigrationTool</Product>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
+    <!-- Project uses English only. Reduces number of libraries that System.CommandLine includes in build -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Pictures\**\*.png" />
@@ -16,5 +18,8 @@
     <!-- Microsoft.VisualBasic is part of the .NET shared framework on net8.0, 
       but must be referenced explicitly on .NET Framework. -->
     <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 </Project>
