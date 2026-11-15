@@ -8,7 +8,7 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - The client now supports V3 dynamic tunnels. The default host tunnel mode is Dynamic (V3), and the new "Tunnel mode" selector in both the game creation window and the Options window offers 3 options: Dynamic (V3), Static (V3), and Legacy (V2). See [Tunnel Settings section of INISystem.md](INISystem.md#tunnel-settings) for setup details.
 
-- A new "Enable direct P2P connections" checkbox is added to the CnCNet tab in the Options window. When enabled, the client will attempt to establish direct P2P connections with other players. This can improve latency and reduce server load, but may not work in all network environments.
+- A new "Allow P2P connections" checkbox is added to the CnCNet tab in the Options window. When enabled, the client will attempt to establish direct P2P connections with other players. This can improve latency and reduce server load, but may not work in all network environments.
 
 - The client now supports the Tiberian Dawn and Dune 2000 game type. Specify `[Settings]->ClientGameType=TD` or `[Settings]->ClientGameType=D2K` in `ClientDefinitions.ini` to use the corresponding game type.
 
