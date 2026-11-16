@@ -1,23 +1,31 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
+#nullable enable
+
 using Rampastring.Tools;
-using System;
-using ClientCore;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using ClientCore.Extensions;
 
 namespace ClientGUI
 {
+    /// <summary>
+    /// A drop-down control with tooltip support.
+    /// </summary>
     public class XNAClientDropDown : XNADropDown, IToolTipContainer
     {
-        public ToolTip ToolTip { get; private set; }
+        /// <summary>The tooltip control attached to this drop-down.</summary>
+        public ToolTip ToolTip { get; private set; } = null!;
 
-        private string _initialToolTipText;
+        private string _initialToolTipText = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the tooltip text displayed when the mouse hovers over the control.
+        /// </summary>
         public string ToolTipText
         {
-            get => Initialized ? ToolTip?.Text : _initialToolTipText;
+            get => Initialized && ToolTip != null ? ToolTip.Text : _initialToolTipText;
             set
             {
-                if (Initialized)
+                if (Initialized && ToolTip != null)
                     ToolTip.Text = value;
                 else
                     _initialToolTipText = value;
@@ -26,10 +34,12 @@ namespace ClientGUI
 
         public XNAClientDropDown(WindowManager windowManager) : base(windowManager) { }
 
+        /// <summary>
+        /// Initializes the drop-down with a click sound effect and a tooltip.
+        /// </summary>
         public override void Initialize()
         {
             ClickSoundEffect = new EnhancedSoundEffect("dropdown.wav");
-
             base.Initialize();
 
             ToolTip = new ToolTip(WindowManager, this) { Text = _initialToolTipText };
@@ -46,10 +56,13 @@ namespace ClientGUI
             base.ParseControlINIAttribute(iniFile, key, value);
         }
 
+        /// <summary>
+        /// Opens the dropdown and updates the tooltip's blocked state.
+        /// </summary>
         public override void OnMouseLeftDown(InputEventArgs inputEventArgs)
         {
-            // no need to set Handled to true since we're not "consuming" the event here, just augmenting
             base.OnMouseLeftDown(inputEventArgs);
+
             UpdateToolTipBlock();
         }
 
@@ -61,10 +74,9 @@ namespace ClientGUI
 
         protected void UpdateToolTipBlock()
         {
-            if (DropDownState == DropDownState.CLOSED)
-                ToolTip.Blocked = false;
-            else
-                ToolTip.Blocked = true;
+            if (ToolTip == null)
+                return;
+            ToolTip.Blocked = DropDownState != DropDownState.CLOSED;
         }
     }
 }

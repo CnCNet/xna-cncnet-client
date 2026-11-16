@@ -265,6 +265,12 @@ DropDownTexture=                ; string,  loads a texture with the specific fil
 DropDownOpenTexture=            ; string,  loads a texture with the specific file name with suffix as 
                                 ;          texture when dropdown opened.
 ItemHeight=17                   ; integer, the height of each dropdown item in pixels.
+MaxVisibleItems=0               ; integer, the maximum number of items shown at once in the open
+                                ;          list. When the item count exceeds this value, the list
+                                ;          becomes scrollable (scroll bar; mouse wheel and thumb
+                                ;          dragging are supported as well). If omitted or 0, the
+                                ;          full list is shown without a scroll bar (vanilla
+                                ;          behavior).
 ClickSoundEffect=               ; string,  loads a sound with the specific file name with suffix as 
                                 ;          dropdown click sound.
 FontIndex=0                     ; integer, the index of font loaded from font list.
