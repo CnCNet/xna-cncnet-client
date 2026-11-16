@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             NegotiationTextures = new Texture2D[2]
             {
                 AssetLoader.LoadTexture("negotiating.png"),
-                AssetLoader.LoadTexture("negotiation-failed.png")
+                AssetLoader.LoadTexture("negotiationFailed.png")
             };
 
             InitPlayerOptionDropdowns();
@@ -1126,7 +1126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texture = negotiationStatus.Value switch
                 {
                     NegotiationStatus.InProgress => NegotiationTextures[0], // negotiating.png
-                    NegotiationStatus.Failed => NegotiationTextures[1],     // negotiation-failed.png
+                    NegotiationStatus.Failed => NegotiationTextures[1],     // negotiationFailed.png
                     NegotiationStatus.Succeeded => GetTextureForPing(pInfo.Ping), // Show ping icon on success
                     _ => GetTextureForPing(pInfo.Ping) // NotStarted or unknown
                 };

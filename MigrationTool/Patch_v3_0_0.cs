@@ -6,11 +6,11 @@ using Rampastring.Tools;
 
 namespace MigrationTool;
 
-internal class Patch_v3_0 : Patch
+internal class Patch_v3_0_0 : Patch
 {
-    public Patch_v3_0(string clientPath) : base(clientPath)
+    public Patch_v3_0_0(string clientPath) : base(clientPath)
     {
-        ClientVersion = Version.v3_0;
+        ClientVersion = Version.v3_0_0;
     }
 
     public override void Apply()
@@ -18,8 +18,6 @@ internal class Patch_v3_0 : Patch
         base.Apply();
 
         MigrateFontsIniFiles();
-
-        // TODO: migrate other v3.0 changes here
     }
 
     private void MigrateFontsIniFiles()
@@ -41,21 +39,7 @@ internal class Patch_v3_0 : Patch
         IniFile fontsIni = new IniFile(fontsIniFile.FullName);
 
         bool changed = RemoveObsoleteFontsCount(fontsIni);
-
-        if (fontsIni.SectionExists("FallbackFonts"))
-        {
-            if (changed)
-            {
-                fontsIni.WriteIniFile();
-                Logger.Log($"{fontsIni.FilePath}: Removed obsolete [Fonts] Count; [FallbackFonts] already exists.");
-            }
-            else
-            {
-                Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, skipping the Fonts.ini migration.");
-            }
-
-            return;
-        }
+        bool hasFallbackFontsSection = fontsIni.SectionExists("FallbackFonts");
 
         List<string> fontSections = GetFontSections(fontsIni);
         List<string> sectionsWithFallback = new List<string>();
@@ -69,6 +53,10 @@ internal class Patch_v3_0 : Patch
                 continue;
 
             sectionsWithFallback.Add(fontSection);
+
+            if (hasFallbackFontsSection)
+                continue;
+
             int fallbackIndex = fontsIni.GetIntValue(fontSection, "Fallback", -1);
             List<string> chain = BuildFallbackChain(fontsIni, fontSection, fallbackIndex);
 
@@ -80,6 +68,23 @@ internal class Patch_v3_0 : Patch
         {
             RemoveKeyWithLog(fontsIni, fontSection, "Fallback");
             changed = true;
+        }
+
+        if (hasFallbackFontsSection)
+        {
+            changed |= UpdateFallbackFontsCount(fontsIni);
+
+            if (changed)
+            {
+                fontsIni.WriteIniFile();
+                Logger.Log($"{fontsIni.FilePath}: Fonts.ini migration completed.");
+            }
+            else
+            {
+                Logger.Log($"{fontsIni.FilePath}: [FallbackFonts] already exists, nothing to migrate.");
+            }
+
+            return;
         }
 
         List<string> fallbackFontPaths = MergeFallbackChains(fallbackChains, fontsIni.FilePath);
@@ -103,6 +108,32 @@ internal class Patch_v3_0 : Patch
         {
             Logger.Log($"{fontsIni.FilePath}: No per-font Fallback keys found, nothing to migrate.");
         }
+    }
+
+    private static bool UpdateFallbackFontsCount(IniFile fontsIni)
+    {
+        int maxFallbackIndex = -1;
+
+        foreach (string key in fontsIni.GetSectionKeys("FallbackFonts"))
+        {
+            if (!key.StartsWith("Fallback", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (!int.TryParse(key.Substring("Fallback".Length), out int index) || index < 0)
+                continue;
+
+            maxFallbackIndex = Math.Max(maxFallbackIndex, index);
+        }
+
+        int expectedCount = maxFallbackIndex + 1;
+        int currentCount = fontsIni.GetIntValue("FallbackFonts", "Count", -1);
+
+        if (currentCount == expectedCount)
+            return false;
+
+        fontsIni.SetIntValue("FallbackFonts", "Count", expectedCount);
+        Logger.Log($"Update {fontsIni.FilePath}: [FallbackFonts]->Count={currentCount} to {expectedCount}");
+        return true;
     }
 
     private bool RemoveObsoleteFontsCount(IniFile fontsIni)
@@ -291,7 +322,7 @@ internal class Patch_v3_0 : Patch
 
             // A global fallback list cannot satisfy contradictory per-font
             // chains. Keep the first-seen order and report the conflict.
-            Logger.Log($"{filePath}: Conflicting font fallback precedence; cannot represent all chains globally. Keeping first-seen order for: {string.Join(", ", remaining)}");
+            Logger.Log($"{filePath}: Conflicting font fallback precedence. Cannot represent all chains globally. Keeping first-seen order for: {string.Join(", ", remaining)}");
             ordered.AddRange(remaining);
         }
 

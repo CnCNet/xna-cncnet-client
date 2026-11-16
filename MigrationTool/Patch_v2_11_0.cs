@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 using Rampastring.Tools;
@@ -38,16 +37,24 @@ internal class Patch_v2_11_0 : Patch
         // and rename [ExtraControls] => [$ExtraControls]
         {
             var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-            AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+            bool genericWindowChanged = AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+
             if (genericWindowIni.SectionExists("ExtraControls"))
+            {
                 genericWindowIni.GetSection("ExtraControls").SectionName = "$ExtraControls";
-            genericWindowIni.WriteIniFile();
+                genericWindowChanged = true;
+            }
+
+            if (genericWindowChanged)
+                genericWindowIni.WriteIniFile();
         }
 
         // Rename OptionsWindow.ini->[*]->{CustomSettingFileCheckBox -- > FileSettingCheckBox & CustomSettingFileDropDown --> FileSettingDropDown}
         {
             Logger.Log("Renaming CustomSettingFileCheckBox to FileSettingCheckBox and CustomSettingFileDropDown to FileSettingDropDown");
             IniFile optionsWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "OptionsWindow.ini"));
+            bool optionsWindowChanged = false;
+
             foreach (var section in optionsWindowIni.GetSections())
             {
                 foreach (var key in optionsWindowIni.GetSectionKeys(section))
@@ -57,12 +64,14 @@ internal class Patch_v2_11_0 : Patch
                     if (value.Contains(":CustomSettingFileCheckBox"))
                     {
                         optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileCheckBox", ":FileSettingCheckBox"));
+                        optionsWindowChanged = true;
                         continue;
                     }
 
                     if (value.Contains(":CustomSettingFileDropDown"))
                     {
                         optionsWindowIni.SetStringValue(section, key, value.Replace(":CustomSettingFileDropDown", ":FileSettingDropDown"));
+                        optionsWindowChanged = true;
                         continue;
                     }
                 }
@@ -70,7 +79,7 @@ internal class Patch_v2_11_0 : Patch
 
             // Add new sections into OptionsWindow.ini
             {
-                var addKey = (string section, string key, string value) => AddKeyWithLog(optionsWindowIni, section, key, value);
+                var addKey = (string section, string key, string value) => optionsWindowChanged |= AddKeyWithLog(optionsWindowIni, section, key, value);
                 addKey("lblPlayerName", "Location", "12,195");
                 addKey("tbPlayerName", "Location", "113,193");
                 addKey("lblNotice", "Location", "12,220");
@@ -85,7 +94,8 @@ internal class Patch_v2_11_0 : Patch
                 addKey("btnForceUpdate", "Location", "407,213");
                 addKey("btnForceUpdate", "Size", "133,23");
             }
-            optionsWindowIni.WriteIniFile();
+            if (optionsWindowChanged)
+                optionsWindowIni.WriteIniFile();
         }
 
         // Add parser constants to DTACnCNetClient.ini in each theme directory and Resources
@@ -95,7 +105,8 @@ internal class Patch_v2_11_0 : Patch
             var addParserConstants = (string resourcesPath) =>
             {
                 var dtaCnCNetClientIni = new IniFile(SafePath.CombineFilePath(resourcesPath, "DTACnCNetClient.ini"));
-                var addKey = (string key, string value) => AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
+                bool changed = false;
+                var addKey = (string key, string value) => changed |= AddKeyWithLog(dtaCnCNetClientIni, "ParserConstants", key, value);
                 addKey("DEFAULT_LBL_HEIGHT", "12");
                 addKey("DEFAULT_CONTROL_HEIGHT", "21");
                 addKey("DEFAULT_BUTTON_HEIGHT", "23");
@@ -114,7 +125,9 @@ internal class Patch_v2_11_0 : Patch
                 addKey("GAME_OPTION_ROW_SPACING", "6");
                 addKey("GAME_OPTION_DD_WIDTH", "132");
                 addKey("GAME_OPTION_DD_HEIGHT", "22");
-                dtaCnCNetClientIni.WriteIniFile();
+
+                if (changed)
+                    dtaCnCNetClientIni.WriteIniFile();
             };
 
             addParserConstants(ResouresDir.FullName);
@@ -127,9 +140,13 @@ internal class Patch_v2_11_0 : Patch
         }
 
         // Add PlayerExtraOptionsPanel.ini
+        string gameLobbyBasePath = SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini");
+
+        if (!File.Exists(gameLobbyBasePath))
         {
             IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
-            var addKey = (string section, string key, string value) => AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
+            bool playerExtraOptionsPanelChanged = false;
+            var addKey = (string section, string key, string value) => playerExtraOptionsPanelChanged |= AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
             addKey("btnClose", "Location", "220,0");
             addKey("btnClose", "Size", "18,18");
             addKey("lblHeader", "Location", "12,6");
@@ -143,7 +160,9 @@ internal class Patch_v2_11_0 : Patch
             addKey("ddTeamStartMappingPreset", "Location", "65,154");
             addKey("ddTeamStartMappingPreset", "Size", "157,21");
             addKey("teamStartMappingsPanel", "Location", "12,189");
-            playerExtraOptionsPanelIni.WriteIniFile();
+
+            if (playerExtraOptionsPanelChanged)
+                playerExtraOptionsPanelIni.WriteIniFile();
         }
 
         string GameLobbyBase = nameof(GameLobbyBase);
@@ -338,8 +357,10 @@ internal class Patch_v2_11_0 : Patch
 
                     // Disable skirmish lobby only controls from GameOptions.ini
                     excludeControls.ForEach(x =>
-                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false")
-                        .AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false"));
+                    {
+                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Visible", "false");
+                        AddKeyWithLog(multiplayerGameLobbyIni, x, "Enabled", "false");
+                    });
 
                     // Add multiplayer lobby only controls from GameOptions.ini
                     addControls.ForEach(control =>
@@ -410,7 +431,8 @@ internal class Patch_v2_11_0 : Patch
                     }
                 }
 
-                // Replace old configs with new one, delete placeholders, delete redundant sections
+                // Replace the old lobby configuration files with the generated lobby files,
+                // delete placeholders, and delete redundant sections
                 var sb = new StringBuilder();
                 gameOptionsIniControlKeys
                     .ForEach(x => sb.Append(gameOptionsIni.GetStringValue($"{SkirmishLobby}", x, string.Empty)).Append(','));
@@ -442,26 +464,99 @@ internal class Patch_v2_11_0 : Patch
             }
         }
 
-        // Add new texture files
-        var assembly = Assembly.GetExecutingAssembly();
-        foreach (var resourceName in assembly.GetManifestResourceNames())
-        {
-            using (Stream? resourceStream = assembly.GetManifestResourceStream(resourceName))
-            {
-                var filename = resourceName.Replace($"{nameof(MigrationTool)}.Pictures.", string.Empty);
-                var filepath = SafePath.CombineFilePath(ResouresDir.FullName, filename);
+        // Rename legacy player ready indicators to player status indicators
+        MigratePlayerReadyBoxTags();
 
-                if (!File.Exists(filepath))
+    }
+
+    private void MigratePlayerReadyBoxTags()
+    {
+        foreach (string fileName in new[]
+        {
+            "GameLobbyBase.ini",
+            "MultiplayerGameLobby.ini",
+            "SkirmishLobby.ini",
+            "LANGameLobby.ini",
+            "CnCNetGameLobby.ini",
+        })
+        {
+            foreach (FileInfo iniFileInfo in ResouresDir.GetFiles(fileName, SearchOption.AllDirectories))
+            {
+                IniFile ini = new IniFile(iniFileInfo.FullName, applyBaseIni: false);
+                bool changed = false;
+
+                foreach (string section in ini.GetSections())
                 {
-                    using (FileStream fileStream = new(filepath, FileMode.CreateNew))
-                    {
-                        Logger.Log($"Copy {filename} to the {ResouresDir.FullName}");
-                        resourceStream?.CopyTo(fileStream);
-                    }
+                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxX",
+                        section, "PlayerStatusIndicatorX");
+                    changed |= ReplaceKeyWithLog(ini, section, "PlayerReadyBoxY",
+                        section, "PlayerStatusIndicatorY");
                 }
+
+                if (changed)
+                    ini.WriteIniFile();
+            }
+        }
+    }
+
+    private static void CalculatePositions(IniFile ini, string parent, string child)
+    {
+        int parentX, parentY, childX, childY;
+        parentX = parentY = childX = childY = 0;
+
+        var parentKeys = ini.GetSectionKeys(parent);
+        var childKeys = ini.GetSectionKeys(child);
+
+        var positionKeys = new List<string>() { "$X", "$Y", "X", "Y", "Location" };
+
+        Logger.Log($"Update {ini.FilePath}: Fix position for {child} control in {parent}");
+
+        foreach (var control in new List<List<string>>() { parentKeys, childKeys })
+        {
+            int tmpX, tmpY;
+            tmpX = tmpY = 0;
+
+            foreach (var key in control.Where(key => positionKeys.Contains(key)))
+            {
+                switch (key)
+                {
+                    case ("$X"):
+                    case ("X"):
+                        tmpX = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpX);
+                        continue;
+                    case ("$Y"):
+                    case ("Y"):
+                        tmpY = ini.GetIntValue(control == parentKeys ? parent : child, key, tmpY);
+                        continue;
+                    case ("Location"):
+                        var value = ini.GetStringValue(control == parentKeys ? parent : child, key, string.Empty).Split(',');
+                        tmpX = Conversions.IntFromString(value[0], tmpX);
+                        tmpY = Conversions.IntFromString(value[1], tmpY);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (control == parentKeys)
+            {
+                parentX = tmpX;
+                parentY = tmpY;
+            }
+            else
+            {
+                childX = tmpX;
+                childY = tmpY;
             }
         }
 
+        positionKeys.ForEach(key => ini.RemoveKey(child, key));
+
+        childX = childX - parentX;
+        childY = childY - parentY;
+
+        ini.GetSection(child).AddKey("$X", $"{childX}");
+        ini.GetSection(child).AddKey("$Y", $"{childY}");
     }
 
     private Patch TransferKeys(IniFile srcIni, string srcSection, IniFile desIni, string? desSection = null)
@@ -469,7 +564,7 @@ internal class Patch_v2_11_0 : Patch
         desSection ??= srcSection;
 
         srcIni.GetSectionKeys(srcSection)
-            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty), recursive: false));
+            .ForEach(key => AddKeyWithLog(desIni, desSection, key, srcIni.GetStringValue(srcSection, key, string.Empty), skipIfInherited: false));
 
         return this;
     }
