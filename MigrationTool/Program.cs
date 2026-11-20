@@ -34,17 +34,26 @@ internal sealed class Program
         var optPatch = new Option<string?>("--patch", "-p")
         {
             Description = "Apply only the specified migration patch. "
-                + "If neither --patch nor --patch-from-version is specified, all configured patches are applied in sequence. "
+                + "If neither --patch nor --from is specified, all configured patches are applied in sequence. "
                 + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
                 + "The specified patch must be included in this build.",
             HelpName = "version"
         };
 
-        var optPatchFromVersion = new Option<string?>("--patch-from-version")
+        var optFrom = new Option<string?>("--from")
         {
-            Description = "Apply the specified migration patch and all subsequent patches in sequence, including Latest. " +
-                "Dots and underscores are accepted in version names. A leading 'v' is optional. " +
-                "The specified patch must be included in this build.",
+            Description = "Apply patches starting with the specified version (inclusive). "
+                + "If --to is omitted, apply all subsequent patches, including Latest. "
+                + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
+                + "The specified patch must be included in this build.",
+            HelpName = "version"
+        };
+
+        var optTo = new Option<string?>("--to")
+        {
+            Description = "Apply patches through the specified version (inclusive). Requires --from. "
+                + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
+                + "The specified patch must be included in this build.",
             HelpName = "version"
         };
 
@@ -66,13 +75,15 @@ internal sealed class Program
             Examples:
                 MigrationTool.exe "..\Games\Client"
                 MigrationTool.exe "C:\Path\To\Client" -p 2.11.0
-                MigrationTool.exe "C:\Path\To\Client" --patch-from-version 2.12.0
+                MigrationTool.exe "C:\Path\To\Client" --from 2.12.0
+                MigrationTool.exe "C:\Path\To\Client" --from 2.12.0 --to 2.13.0
                 ./MigrationTool "/home/user/games/clientConfig"
             """)
         {
             argClientDir,
             optPatch,
-            optPatchFromVersion,
+            optFrom,
+            optTo,
             optPatchList
         };
 
@@ -81,12 +92,19 @@ internal sealed class Program
             if (!result.GetValue(optPatchList) && result.GetValue(argClientDir) == null)
                 result.AddError("A client directory is required unless --patch-list is specified.");
 
-            var patchFromVersionResult = result.GetResult(optPatchFromVersion);
+            var fromResult = result.GetResult(optFrom);
+            var toResult = result.GetResult(optTo);
 
-            if (result.GetResult(optPatch) != null && patchFromVersionResult != null)
-                result.AddError("--patch and --patch-from-version cannot be used together.");
+            if (result.GetResult(optPatch) != null && (fromResult != null || toResult != null))
+                result.AddError("--patch cannot be combined with --from or --to.");
 
-            foreach (var option in new[] { optPatch, optPatchFromVersion })
+            if (toResult != null && fromResult == null)
+                result.AddError("--to requires --from.");
+
+            var versions = Enum.GetValues(typeof(Version)).Cast<Version>()
+                .ToDictionary(version => NormalizeVersionName(version.ToString()));
+
+            foreach (var option in new[] { optPatch, optFrom, optTo })
             {
                 var optionResult = result.GetResult(option);
                 if (optionResult?.Tokens.Count != 1)
@@ -94,10 +112,18 @@ internal sealed class Program
 
                 string versionName = NormalizeVersionName(optionResult.Tokens[0].Value);
 
-                if (!Enum.GetNames(typeof(Version)).Any(name => NormalizeVersionName(name) == versionName))
+                if (!versions.ContainsKey(versionName))
                 {
                     optionResult.AddError("Unknown patch version. Use --patch-list to see the available versions.");
                 }
+            }
+
+            if (fromResult?.Tokens.Count == 1 && toResult?.Tokens.Count == 1
+                && versions.TryGetValue(NormalizeVersionName(fromResult.Tokens[0].Value), out Version fromVersion)
+                && versions.TryGetValue(NormalizeVersionName(toResult.Tokens[0].Value), out Version toVersion)
+                && fromVersion > toVersion)
+            {
+                result.AddError("--from must not be later than --to.");
             }
         });
 
@@ -109,7 +135,7 @@ internal sealed class Program
                 return;
             }
 
-            Version[] patchVersions = GetPatchVersions(result.GetValue(optPatch), result.GetValue(optPatchFromVersion));
+            Version[] patchVersions = GetPatchVersions(result.GetValue(optPatch), result.GetValue(optFrom), result.GetValue(optTo));
 
             MigrateClient(result.GetValue(argClientDir)!, patchVersions);
         });
@@ -120,17 +146,27 @@ internal sealed class Program
 
     private static string NormalizeVersionName(string name) => name.Trim().Replace('.', '_').TrimStart('v', 'V');
 
-    private static Version[] GetPatchVersions(string? versionName, string? patchFromVersion)
+    private static Version[] GetPatchVersions(string? versionName, string? fromVersionName, string? toVersionName)
     {
         var versions = Enum.GetValues(typeof(Version)).Cast<Version>().ToArray();
-        string? firstVersionName = versionName ?? patchFromVersion;
+        string? firstVersionName = versionName ?? fromVersionName;
 
         if (firstVersionName == null)
             return versions;
 
         firstVersionName = NormalizeVersionName(firstVersionName);
         Version firstVersion = versions.First(version => NormalizeVersionName(version.ToString()) == firstVersionName);
-        Version lastVersion = versionName == null ? versions[versions.Length - 1] : firstVersion;
+        Version lastVersion = versions[versions.Length - 1];
+
+        if (versionName != null)
+        {
+            lastVersion = firstVersion;
+        }
+        else if (toVersionName != null)
+        {
+            toVersionName = NormalizeVersionName(toVersionName);
+            lastVersion = versions.First(version => NormalizeVersionName(version.ToString()) == toVersionName);
+        }
 
         return versions.Where(version => version >= firstVersion && version <= lastVersion).ToArray();
     }
