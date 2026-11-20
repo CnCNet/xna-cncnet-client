@@ -6,7 +6,12 @@
 > 
 > Example: `MigrationTool.exe C:\TiberianSunClient`
 >
-> To apply patches starting with a specific version (inclusive) through `Latest`, use `--patch-from-version` flag, e.g. `MigrationTool.exe C:\TiberianSunClient --patch-from-version 2.12.0`. Dots and underscores are accepted, and the leading `v` is optional. Use `--patch-list` to list available versions. `--patch-from-version` cannot be combined with `--patch`.
+> - To apply only the patch for version `2.13.0`, run `MigrationTool.exe C:\TiberianSunClient --patch 2.13.0`.
+> - To apply all patches from `2.12.0` through `Latest`, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0`.
+> - To apply a custom range, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0 --to 3.0.0`. Both endpoint patches are included.
+>
+> Use `--patch` without range options. `--to` requires `--from`, and the starting version must be at or before the ending version.
+> Run `MigrationTool.exe --patch-list` to see the available patch versions. Version numbers accept dots or underscores and an optional `v` prefix.
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
