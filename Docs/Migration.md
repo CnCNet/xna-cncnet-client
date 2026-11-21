@@ -5,8 +5,13 @@
 > To use this tool, download the latest nightly build and run `Resources\BinariesNET8\MigrationTool\MigrationTool.exe` with older client path as the first argument. 
 > 
 > Example: `MigrationTool.exe C:\TiberianSunClient`
-> 
-> It is recommended that you back up the client configuration before running the migration tool.
+>
+> - To apply only the patch for version `2.13.0`, run `MigrationTool.exe C:\TiberianSunClient --patch 2.13.0`.
+> - To apply all patches from `2.12.0` through `Latest`, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0`.
+> - To apply a custom range, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0 --to 3.0.0`. Both endpoint patches are included.
+>
+> Use `--patch` without range options. `--to` requires `--from`, and the starting version must be at or before the ending version.
+> Run `MigrationTool.exe --patch-list` to see the available patch versions. Version numbers accept dots or underscores and an optional `v` prefix.
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
