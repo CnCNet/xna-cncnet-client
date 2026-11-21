@@ -366,6 +366,15 @@ Some controls are only available under specific circumstances.
 FontIndex=0
 ```
 
+#### MapPreviewBox
+
+```ini
+; GameLobbyBase.ini
+
+[MapPreviewBox]
+CornerButtonLayout=Row          ; Row or Column. How the favorite and extra icons toggle buttons in the top-right corner are arranged.
+```
+
 #### GameLobbyBase Controls
 
 Following controls are only available as children of `GameLobbyBase` and derived controls.
@@ -806,9 +815,9 @@ EnableP2P=false ; whether dynamic V3 tunnels may be upgraded to direct player-to
 
 - **Dynamic (V3)** automatically negotiates the best tunnel for each pair of players and does not require the host to select a tunnel manually.
 - **Static (V3)** uses one V3 tunnel that the host selects manually.
-- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions up to, but not including, 2.14.0.
+- **Legacy (V2)** preserves the previous manual V2 tunnel selection behavior, which was the only behavior in versions before 3.0.0.
 
-Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode when hosting:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
+Users can select a mode for an individual game from the "Tunnel mode:" dropdown in the game creation window, or change their default with "Tunnel mode for games you host:" in the CnCNet options tab in the Options window. Enabling direct P2P connections shares each player's IP address with the other players in the game session, so the client displays a warning when this option is enabled.
 
 ## [ClientDefinition](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientCore/ClientConfiguration.cs)
 > [!NOTE]
@@ -1016,6 +1025,38 @@ Maps can specify an extra INI file to consolidate into the map's INI at game lau
 ; In a map section of MPMaps.ini
 ExtraIniName=MyExtraCode.ini  ; filename in `INI/Map Code/` to consolidate into the map INI
 ```
+
+### Map Preview Overlays
+
+Map previews support both manually placed overlay icons and automatically detected building overlays.
+
+Manual overlays are defined per map in `MPMaps.ini`:
+
+```ini
+[MAP_NAME]
+ExtraTexture0=oilderrick.png,200,150
+ExtraTexture1=techairport.png,260,180,2,true
+```
+
+`ExtraTextureN` format:
+- `ImageFile,X,Y[,Level][,Toggleable]`
+- `Level` is optional and defaults to `0`. For isometric maps, set this when the icon belongs on raised terrain so the preview position remains correct.
+- `Toggleable` is optional and defaults to `false`. Toggleable icons respect the user's `DisplayToggleableExtraTextures` setting.
+
+Automatic building overlays are configured globally in `ClientDefinitions.ini`:
+
+```ini
+[AutoMapOverlays]
+0=CAOILD,oilderrick.png,Neutral,0,0,true
+1=TECH*,techbuilding.png,,0,0
+```
+
+`[AutoMapOverlays]` entry format:
+- `BuildingID,ImageFile,OwnerFilter,CellOffsetX,CellOffsetY[,Toggleable]`
+- `BuildingID` may end with `*` to match any building ID with that prefix.
+- `OwnerFilter` can be left empty to match any owner.
+- `CellOffsetX` and `CellOffsetY` shift the detected building cell before placing the preview icon, which is useful for better centering of overlays.
+- `Toggleable` is optional and defaults to `false`.
 
 ## GameOptions
 

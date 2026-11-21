@@ -49,22 +49,25 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576 + UIDesignConstants.BUTTON_WIDTH_92, 475);
+            ClientRectangle = new Rectangle(0, 0, 576, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
+
+            const int tabWidth = UIDesignConstants.BUTTON_WIDTH_78;
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.AddTab("Display".L10N("Client:DTAConfig:TabDisplay"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Audio".L10N("Client:DTAConfig:TabAudio"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Game".L10N("Client:DTAConfig:TabGame"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Display".L10N("Client:DTAConfig:TabDisplay"), tabWidth);
+            tabControl.AddTab("Audio".L10N("Client:DTAConfig:TabAudio"), tabWidth);
+            tabControl.AddTab("Game".L10N("Client:DTAConfig:TabGame"), tabWidth);
+            tabControl.AddTab("CnCNet".L10N("Client:DTAConfig:TabCnCNet"), tabWidth);
+            tabControl.AddTab("Storage".L10N("Client:DTAConfig:TabStorage"), tabWidth);
+            tabControl.AddTab("Updater".L10N("Client:DTAConfig:TabUpdater"), tabWidth);
+            tabControl.AddTab("Components".L10N("Client:DTAConfig:TabComponents"), tabWidth);
 
+            tabControl.SelectedTabIndex = DISPLAY_INDEX;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -98,11 +101,11 @@ namespace DTAClient.DXGUI.Generic
 
             if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {
-                tabControl.MakeUnselectable(UPDATER_INDEX);
-                tabControl.MakeUnselectable(COMPONENTS_INDEX);
+                tabControl.Tabs[UPDATER_INDEX].Selectable = false;
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
             }
             else if (Updater.CustomComponents == null || Updater.CustomComponents.Count < 1)
-                tabControl.MakeUnselectable(COMPONENTS_INDEX);
+                tabControl.Tabs[COMPONENTS_INDEX].Selectable = false;
 
             foreach (var panel in optionsPanels)
             {
@@ -142,8 +145,8 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            optionsPanels[tabControl.SelectedTab].Enable();
-            optionsPanels[tabControl.SelectedTab].RefreshPanel();
+            optionsPanels[tabControl.SelectedTabIndex].Enable();
+            optionsPanels[tabControl.SelectedTabIndex].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -302,7 +305,7 @@ namespace DTAClient.DXGUI.Generic
             foreach (var panel in optionsPanels)
                 panel.Disable();
 
-            tabControl.SelectedTab = COMPONENTS_INDEX;
+            tabControl.SelectedTabIndex = COMPONENTS_INDEX;
         }
 
         public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);

@@ -3,9 +3,11 @@
 > [!WARNING]
 > A linked feature issue in the same repository is required. Pull requests that do not link an existing feature issue—or link an issue that has not been approved by the maintainers—may be closed.
 
+<!-- Do not remove any of the sections below, even if you think they were not applicable. -->
+
 ### Related Issue
 
-Implements #<issue-number>
+Closes #<issue-number>
 
 ### What's Changed
 

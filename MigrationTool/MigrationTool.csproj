@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Title>CnCNet.MigrationTool</Title>
+    <Description>CnCNet Client Migration Tool</Description>
+    <Product>CnCNet.MigrationTool</Product>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Pictures\**\*.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <!-- Microsoft.VisualBasic is part of the .NET shared framework on net8.0, 
+      but must be referenced explicitly on .NET Framework. -->
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+</Project>

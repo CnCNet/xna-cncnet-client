@@ -131,6 +131,13 @@ namespace DTAClient
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
 
+            if (UserINISettings.Instance.ThemeFolderPath == null)
+            {
+                string defaultTheme = ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name;
+                Logger.Log($"Theme '{UserINISettings.Instance.ClientTheme.Value}' not found, falling back to '{defaultTheme}'.");
+                UserINISettings.Instance.ClientTheme.Value = defaultTheme;
+            }
+
             // Try to load translation
             try
             {

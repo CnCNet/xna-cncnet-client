@@ -42,6 +42,7 @@
     <BuildType Solution="WindowsXNADebug|*" Project="Debug" />
     <BuildType Solution="WindowsXNARelease|*" Project="Release" />
   </Project>
+  <Project Path="MigrationTool/MigrationTool.csproj" />
   <Project Path="Rampastring.XNAUI/Rampastring.XNAUI.csproj" />
   <Project Path="SecondStageUpdater/SecondStageUpdater.csproj" />
   <Project Path="TranslationNotifierGenerator/TranslationNotifierGenerator.csproj" />

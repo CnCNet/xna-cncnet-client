@@ -211,7 +211,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CenterOnParent();
 
-            tabControl.SelectedTab = MESSAGES_INDEX;
+            tabControl.SelectedTabIndex = MESSAGES_INDEX;
 
             privateMessageHandler.PrivateMessageReceived += PrivateMessageHandler_PrivateMessageReceived;
             connectionManager.UserAdded += ConnectionManager_UserAdded;
@@ -243,7 +243,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void UserList_LeftDoubleClick(object sender, EventArgs e)
         {
             if (lbUserList.SelectedItem != null)
-                tabControl.SelectedTab = MESSAGES_INDEX;
+                tabControl.SelectedTabIndex = MESSAGES_INDEX;
         }
 
         private void RecentPlayersList_RightClick(object sender, RecentPlayerTableRightClickEventArgs e)
@@ -269,7 +269,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser.Messages.Add(leaveMessage);
             }
 
-            if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
+            if (tabControl.SelectedTabIndex == ALL_PLAYERS_VIEW_INDEX)
             {
                 if (e.UserIndex >= lbUserList.Items.Count || e.UserIndex < 0)
                     return;
@@ -318,11 +318,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser.Messages.Add(joinMessage);
             }
 
-            if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
+            if (tabControl.SelectedTabIndex == ALL_PLAYERS_VIEW_INDEX)
             {
                 RefreshAllUsers();
             }
-            else // if (tabControl.SelectedTab == 0 or 1)
+            else // if (tabControl.SelectedTabIndex == 0 or 1)
             {
                 XNAListBoxItem lbItem = FindItemForName(e.User.Name);
 
@@ -407,7 +407,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PlayerContextMenu_JoinUser(object sender, JoinUserEventArgs args)
         {
-            if (tabControl.SelectedTab == RECENT_PLAYERS_VIEW_INDEX)
+            if (tabControl.SelectedTabIndex == RECENT_PLAYERS_VIEW_INDEX)
                 JoinUserAction(args.IrcUser, new RecentPlayerMessageView(WindowManager));
             else
                 JoinUserAction(args.IrcUser, lbMessages);
@@ -439,7 +439,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser = new PrivateMessageUser(e.ircUser);
                 privateMessageUsers.Add(pmUser);
 
-                if (tabControl.SelectedTab == MESSAGES_INDEX)
+                if (tabControl.SelectedTabIndex == MESSAGES_INDEX)
                 {
                     string selecterUserName = string.Empty;
 
@@ -561,9 +561,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lastConversationPartner = userName;
 
-            if (tabControl.SelectedTab != MESSAGES_INDEX)
+            if (tabControl.SelectedTabIndex != MESSAGES_INDEX)
             {
-                tabControl.SelectedTab = MESSAGES_INDEX;
+                tabControl.SelectedTabIndex = MESSAGES_INDEX;
                 lbUserList.SelectedIndex = FindItemIndexForName(userName);
             }
 
@@ -693,7 +693,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.TopIndex = 0;
             tbMessageInput.Text = string.Empty;
 
-            switch (tabControl.SelectedTab)
+            switch (tabControl.SelectedTabIndex)
             {
                 case MESSAGES_INDEX:
                     MessagesTabSelected();
@@ -747,7 +747,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUserIndex > -1)
             {
-                tabControl.SelectedTab = MESSAGES_INDEX;
+                tabControl.SelectedTabIndex = MESSAGES_INDEX;
                 lbUserList.SelectedIndex = FindItemIndexForName(name);
                 WindowManager.SelectedControl = tbMessageInput;
                 return;
@@ -757,13 +757,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 // If we haven't talked with the user, check if they are a friend and if so,
                 // let's enter the friend list and talk to them there
-                tabControl.SelectedTab = FRIEND_LIST_VIEW_INDEX;
+                tabControl.SelectedTabIndex = FRIEND_LIST_VIEW_INDEX;
             }
             else
             {
                 // If the user isn't a friend, switch to the "all players" view and
                 // open the conversation there
-                tabControl.SelectedTab = ALL_PLAYERS_VIEW_INDEX;
+                tabControl.SelectedTabIndex = ALL_PLAYERS_VIEW_INDEX;
             }
 
             lbUserList.SelectedIndex = FindItemIndexForName(name);
@@ -781,7 +781,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void SwitchOn()
         {
-            tabControl.SelectedTab = MESSAGES_INDEX;
+            tabControl.SelectedTabIndex = MESSAGES_INDEX;
             notificationBox.Hide();
 
             WindowManager.SelectedControl = null;

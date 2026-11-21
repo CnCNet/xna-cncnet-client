@@ -97,40 +97,40 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxFriendsOnly = new XNAClientCheckBox(WindowManager);
             chkBoxFriendsOnly.Name = nameof(chkBoxFriendsOnly);
-            chkBoxFriendsOnly.Text = "Show Friend Games Only".L10N("Client:Main:FriendGameOnly");
             chkBoxFriendsOnly.ClientRectangle = new Rectangle(
                 GAP, lblTitle.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
                 0, 0
             );
+            chkBoxFriendsOnly.Text = "Show Friend Games Only".L10N("Client:Main:FriendGameOnly");
 
             chkBoxHideLockedGames = new XNAClientCheckBox(WindowManager);
             chkBoxHideLockedGames.Name = nameof(chkBoxHideLockedGames);
-            chkBoxHideLockedGames.Text = "Hide Locked Games".L10N("Client:Main:HideLockedGame");
             chkBoxHideLockedGames.ClientRectangle = new Rectangle(
-                GAP, chkBoxFriendsOnly.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
+                GAP, chkBoxFriendsOnly.Bottom + GAP,
                 0, 0
             );
+            chkBoxHideLockedGames.Text = "Hide Locked Games".L10N("Client:Main:HideLockedGame");
 
             chkBoxHidePasswordedGames = new XNAClientCheckBox(WindowManager);
             chkBoxHidePasswordedGames.Name = nameof(chkBoxHidePasswordedGames);
-            chkBoxHidePasswordedGames.Text = "Hide Passworded Games".L10N("Client:Main:HidePasswordGame");
             chkBoxHidePasswordedGames.ClientRectangle = new Rectangle(
-                GAP, chkBoxHideLockedGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
+                GAP, chkBoxHideLockedGames.Bottom + GAP,
                 0, 0
             );
+            chkBoxHidePasswordedGames.Text = "Hide Passworded Games".L10N("Client:Main:HidePasswordGame");
 
             chkBoxHideIncompatibleGames = new XNAClientCheckBox(WindowManager);
             chkBoxHideIncompatibleGames.Name = nameof(chkBoxHideIncompatibleGames);
-            chkBoxHideIncompatibleGames.Text = "Hide Incompatible Games".L10N("Client:Main:HideIncompatibleGame");
             chkBoxHideIncompatibleGames.ClientRectangle = new Rectangle(
-                GAP, chkBoxHidePasswordedGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
+                GAP, chkBoxHidePasswordedGames.Bottom + GAP,
                 0, 0
             );
+            chkBoxHideIncompatibleGames.Text = "Hide Incompatible Games".L10N("Client:Main:HideIncompatibleGame");
 
             ddMaxPlayerCount = new XNAClientDropDown(WindowManager);
             ddMaxPlayerCount.Name = nameof(ddMaxPlayerCount);
             ddMaxPlayerCount.ClientRectangle = new Rectangle(
-                GAP, chkBoxHideIncompatibleGames.Y + UIDesignConstants.BUTTON_HEIGHT + GAP,
+                GAP, chkBoxHideIncompatibleGames.Bottom + GAP,
                 40, UIDesignConstants.BUTTON_HEIGHT
             );
             for (int i = minPlayerCount; i <= maxPlayerCount; i++)

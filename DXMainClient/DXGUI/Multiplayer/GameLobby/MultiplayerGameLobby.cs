@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             NegotiationTextures = new Texture2D[2]
             {
                 AssetLoader.LoadTexture("negotiating.png"),
-                AssetLoader.LoadTexture("negotiation-failed.png")
+                AssetLoader.LoadTexture("negotiationFailed.png")
             };
 
             InitPlayerOptionDropdowns();
@@ -715,6 +715,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
 
+            if (ddDifficulty != null)
+                ddDifficulty.Disable();
+            if (lblDifficulty != null)
+                lblDifficulty.Disable();
+
             SetMapLabels();
         }
 
@@ -744,6 +749,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
             ReadINIForControl(btnMapSortAlphabetically);
+
+            if (ddDifficulty != null)
+                ddDifficulty.Enable();
+            if (lblDifficulty != null)
+                lblDifficulty.Enable();
 
             SetMapLabels();
         }
@@ -1072,6 +1082,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected override void UpdateDifficultyDropdown()
+        {
+            base.UpdateDifficultyDropdown();
+
+            if (!IsHost && ddDifficulty != null)
+                ddDifficulty.AllowDropDown = false;
+        }
+
         protected virtual void ClearPingIndicators()
         {
             foreach (XNAClientDropDown dd in ddPlayerNames)
@@ -1108,7 +1126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texture = negotiationStatus.Value switch
                 {
                     NegotiationStatus.InProgress => NegotiationTextures[0], // negotiating.png
-                    NegotiationStatus.Failed => NegotiationTextures[1],     // negotiation-failed.png
+                    NegotiationStatus.Failed => NegotiationTextures[1],     // negotiationFailed.png
                     NegotiationStatus.Succeeded => GetTextureForPing(pInfo.Ping), // Show ping icon on success
                     _ => GetTextureForPing(pInfo.Ping) // NotStarted or unknown
                 };
