@@ -90,7 +90,7 @@ internal sealed class Program
         root.Validators.Add(result =>
         {
             if (!result.GetValue(optPatchList) && result.GetValue(argClientDir) == null)
-                result.AddError("A client directory is required unless --patch-list is specified.");
+                result.AddError("A client directory is required.");
 
             var fromResult = result.GetResult(optFrom);
             var toResult = result.GetResult(optTo);
