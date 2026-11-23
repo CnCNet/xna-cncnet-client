@@ -296,6 +296,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (parts.Length is < 3 or > 5)
                     {
                         Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
+                        i++;
                         continue;
                     }
 
