@@ -308,7 +308,34 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
+            string title = "KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle");
+
+#if WINFORMS
+            if (crashLogCopied)
+            {
+                Logger.Log(title + Environment.NewLine + Environment.NewLine + error);
+
+                string question = "Would you like to open the crash log folder so you can share the crash log?".L10N("Client:Main:FatalErrorOpenCrashLogFolder");
+
+                if (MessageBox.Show(error + Environment.NewLine + Environment.NewLine + question, title,
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                {
+                    try
+                    {
+                        // Open the folder with the new crash log selected.
+                        Process.Start("explorer.exe", $"/select,\"{errorLogPath}\"");
+                    }
+                    catch (Exception openEx)
+                    {
+                        Logger.Log("Failed to open the crash log folder: " + openEx.Message);
+                    }
+                }
+
+                Environment.Exit(1);
+            }
+#endif
+
+            MainClientConstants.DisplayErrorAction(title, error, true);
         }
 
         [DllImport("user32.dll")]
