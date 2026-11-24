@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -836,24 +835,8 @@ namespace DTAClient.Domain.Multiplayer
         public void OpenContainingFolder()
         {
             FileInfo mapFileInfo = SafePath.GetFile(CompleteFilePath);
-            if (!mapFileInfo.Exists)
-                return;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
-                ProcessLauncher.StartShellProcess("explorer.exe", $"/select,\"{mapFileInfo.FullName}\"");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                // https://stackoverflow.com/questions/39214539/opening-finder-from-terminal-with-file-selected
-                ProcessLauncher.StartShellProcess("open", $"-R \"{mapFileInfo.FullName}\"");
-            }
-            else
-            {
-                // Linux: no standard way to select a file, just open the folder
-                ProcessLauncher.StartShellProcess(mapFileInfo.Directory?.FullName);
-            }
+            if (mapFileInfo.Exists)
+                ProcessLauncher.OpenContainingFolder(mapFileInfo.FullName);
         }
 
         public override bool Equals(object other)

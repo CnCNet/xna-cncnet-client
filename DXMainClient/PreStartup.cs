@@ -320,19 +320,15 @@ namespace DTAClient
                 if (MessageBox.Show(error + Environment.NewLine + Environment.NewLine + question, title,
                     MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                 {
-                    try
-                    {
-                        // Open the folder with the new crash log selected.
-                        Process.Start("explorer.exe", $"/select,\"{errorLogPath}\"");
-                    }
-                    catch (Exception openEx)
-                    {
-                        Logger.Log("Failed to open the crash log folder: " + openEx.Message);
-                    }
+                    ProcessLauncher.OpenContainingFolder(errorLogPath);
                 }
 
                 Environment.Exit(1);
             }
+#else
+            // Without WinForms there is no dialog to ask with, so open the crash log folder directly.
+            if (crashLogCopied)
+                ProcessLauncher.OpenContainingFolder(errorLogPath);
 #endif
 
             MainClientConstants.DisplayErrorAction(title, error, true);
