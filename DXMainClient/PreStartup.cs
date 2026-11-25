@@ -308,30 +308,8 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            string title = "KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle");
-
-#if WINFORMS
-            if (crashLogCopied)
-            {
-                Logger.Log(title + Environment.NewLine + Environment.NewLine + error);
-
-                string question = "Would you like to open the crash log folder so you can share the crash log?".L10N("Client:Main:FatalErrorOpenCrashLogFolder");
-
-                if (MessageBox.Show(error + Environment.NewLine + Environment.NewLine + question, title,
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                {
-                    ProcessLauncher.OpenContainingFolder(errorLogPath);
-                }
-
-                Environment.Exit(1);
-            }
-#else
-            // Without WinForms there is no dialog to ask with, so open the crash log folder directly.
-            if (crashLogCopied)
-                ProcessLauncher.OpenContainingFolder(errorLogPath);
-#endif
-
-            MainClientConstants.DisplayErrorAction(title, error, true);
+            MainClientConstants.DefaultDisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true,
+                crashLogCopied ? errorLogPath : null);
         }
 
         [DllImport("user32.dll")]
