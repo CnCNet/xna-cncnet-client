@@ -44,17 +44,6 @@ namespace DTAClient.Domain
         /// <param name="error">The error.</param>
         /// <param name="exit">Whether the client exits.</param>
         public static void DefaultDisplayErrorAction(string title, string error, bool exit)
-            => DefaultDisplayErrorAction(title, error, exit, crashLogPath: null);
-
-        /// <summary>
-        /// Show an error in console as well as a Win32 MessageBox. For non-Windows platforms, this launches a text file in a GUI editor.
-        /// This action handles errors when XNA windows are not initialized yet.
-        /// </summary>
-        /// <param name="title">The title.</param>
-        /// <param name="error">The error.</param>
-        /// <param name="exit">Whether the client exits.</param>
-        /// <param name="crashLogPath">The path to a saved crash log. If set, the user can open the folder that contains the crash log.</param>
-        public static void DefaultDisplayErrorAction(string title, string error, bool exit, string crashLogPath)
         {
             Console.WriteLine(title);
             Console.WriteLine();
@@ -64,27 +53,27 @@ namespace DTAClient.Domain
                 Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 
 #if WINFORMS
-            if (crashLogPath is null)
+            if (!LoggerInitialized)
             {
                 MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                string question = "Would you like to open the crash log folder so you can share the crash log?".L10N("Client:Main:FatalErrorOpenCrashLogFolder");
+                string question = "Would you like to open the log folder so you can share the log?".L10N("Client:Main:ErrorOpenLogFolder");
 
                 if (MessageBox.Show(error + Environment.NewLine + Environment.NewLine + question, title,
                     MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                 {
-                    ProcessLauncher.OpenContainingFolder(crashLogPath);
+                    ProcessLauncher.OpenContainingFolder(ProgramConstants.LogFileName);
                 }
             }
 #else
-            // Without WinForms there is no dialog to ask with, so open the crash log folder directly.
-            if (crashLogPath is not null)
-                ProcessLauncher.OpenContainingFolder(crashLogPath);
-
             if (LoggerInitialized)
+            {
+                // Without WinForms there is no dialog to ask with, so open the log folder directly.
+                ProcessLauncher.OpenContainingFolder(ProgramConstants.LogFileName);
                 ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+            }
             else
             {
                 string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.log");

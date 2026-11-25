@@ -308,8 +308,7 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            MainClientConstants.DefaultDisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true,
-                crashLogCopied ? errorLogPath : null);
+            MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
         [DllImport("user32.dll")]
