@@ -1,8 +1,6 @@
 ﻿#nullable enable
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace ClientCore.Display;
 
@@ -30,9 +28,11 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
 
     public ScreenResolution(string resolution)
     {
-        List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
-        Width = resolutionList[0];
-        Height = resolutionList[1];
+        if (!TryParseWidthHeight(resolution, out int width, out int height))
+            throw new FormatException($"Invalid screen resolution \"{resolution}\". Expected a resolution in the format WIDTHxHEIGHT, for example 1280x720.");
+
+        Width = width;
+        Height = height;
     }
 
     /// <summary>
@@ -45,21 +45,29 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
     {
         resolution = null;
 
-        if (string.IsNullOrWhiteSpace(value))
+        if (!TryParseWidthHeight(value, out int width, out int height))
             return false;
-
-        string[] parts = value.Trim().Split('x');
-
-        if (parts.Length < 2
-            || !int.TryParse(parts[0], out int width)
-            || !int.TryParse(parts[1], out int height))
-        {
-            return false;
-        }
 
         resolution = new ScreenResolution(width, height);
 
         return true;
+    }
+
+    private static bool TryParseWidthHeight(string? value, out int width, out int height)
+    {
+        width = 0;
+        height = 0;
+
+        if (value == null || string.IsNullOrWhiteSpace(value))
+            return false;
+
+        string[] parts = value.Trim().Split('x');
+
+        if (parts.Length < 2)
+            return false;
+
+        return int.TryParse(parts[0], out width)
+            && int.TryParse(parts[1], out height);
     }
 
     public static implicit operator ScreenResolution(string resolution) => new(resolution);
