@@ -12,6 +12,8 @@ Breaking changes are not covered here; see [Migration.md](Migration.md) instead.
 
 - The client now supports the Tiberian Dawn and Dune 2000 game type. Specify `[Settings]->ClientGameType=TD` or `[Settings]->ClientGameType=D2K` in `ClientDefinitions.ini` to use the corresponding game type.
 
+- An optional, host-only "Auto Launch" checkbox is available for the CnCNet game lobby, letting the game start automatically once the room is full and all players are ready. See `chkAutoLaunch` under `MultiplayerGameLobby Controls` in [INISystem.md](INISystem.md).
+
 - Replay recording and playback are now available to packages with a compatible spawner. Opt-in through `ReplaySupport=true` in `ClientDefinitions.ini`. Players turn recording on or off in the Game tab of the Options window. See [INISystem.md](INISystem.md) for the replay settings.
 
 - Windows builds that use WinForms support an optional `Resources/ingameicon.ico`. When present, the client uses it as its window icon while a launched game is running, then restores `Resources/clienticon.ico` when the game exits. If the optional icon is missing or cannot be loaded, the client keeps its current icon.
