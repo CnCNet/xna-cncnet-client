@@ -31,8 +31,7 @@ internal readonly record struct ClientVersion(int Major, int Minor, int Patch) :
     /// All patches of this build, sorted by version.
     /// </summary>
     /// <remarks>
-    /// The source code of All must stay below the version fields it reads. This is because the static initializers of a type run in
-    /// textual order, so reading a field declared later would yield its default value, which is not what we want.
+    /// The source code of <see cref="All"/> must stay below the source code of the version fields <see cref="V2_11_0"/>, <see cref="V2_13_0"/>, and so on. This is because the static initializers of a type run in textual order, so reading a field declared later would yield its default value, which is not what we want.
     /// </remarks>
     public static IReadOnlyList<ClientVersion> All { get; } =
         new[]
