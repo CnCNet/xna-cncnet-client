@@ -251,6 +251,10 @@ internal sealed class Program
             Logger.Log("Warning: A backup directory already exists, so no new backup will be created. "
                 + "The existing backup may not reflect the current state of the client folder.");
         }
+        else
+        {
+            Logger.Log($"A backup will be created at {clientDir + "_backup"}.");
+        }
 
         Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
 
