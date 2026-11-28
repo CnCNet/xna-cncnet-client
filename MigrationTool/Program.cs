@@ -222,6 +222,9 @@ internal sealed class Program
         }
 
         Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
+
+        Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
+
         Logger.Log("Press any key to begin migration.");
         Console.ReadKey();
 
