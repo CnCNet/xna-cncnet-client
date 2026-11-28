@@ -43,16 +43,15 @@ namespace ClientGUI
 
         public override void OpenDropDown()
         {
-            if (PreferredItemIndexes.Count > 0)
-            {
-                PreferredItemIndexes.ForEach(i => Items[i].Text += " " + PreferredItemLabel);
-                base.OpenDropDown();
-                PreferredItemIndexes.ForEach(i => Items[i].Text = Items[i].Text.Substring(0, Items[i].Text.Length - PreferredItemLabel.Length - 1));
-            }
-            else
-            {
-                base.OpenDropDown();
-            }
+            bool labelPreferredItems = PreferredItemIndexes.Count > 0;
+
+            if (labelPreferredItems)
+                AppendPreferredItemLabels();
+
+            base.OpenDropDown();
+
+            if (labelPreferredItems)
+                RemovePreferredItemLabels();
         }
 
         /// <summary>
@@ -60,26 +59,25 @@ namespace ClientGUI
         /// </summary>
         public override void Draw(GameTime gameTime)
         {
-            if (PreferredItemIndexes.Count > 0)
-            {
-                PreferredItemIndexes.ForEach(i =>
-                {
-                    XNADropDownItem preferredItem = Items[i];
-                    preferredItem.Text += " " + PreferredItemLabel;
-                });
+            bool labelPreferredItems = PreferredItemIndexes.Count > 0;
 
-                base.Draw(gameTime);
+            if (labelPreferredItems)
+                AppendPreferredItemLabels();
 
-                PreferredItemIndexes.ForEach(i =>
-                {
-                    XNADropDownItem preferredItem = Items[i];
-                    preferredItem.Text = preferredItem.Text.Substring(0, preferredItem.Text.Length - PreferredItemLabel.Length - 1);
-                });
-            }
-            else
-            {
-                base.Draw(gameTime);
-            }
+            base.Draw(gameTime);
+
+            if (labelPreferredItems)
+                RemovePreferredItemLabels();
+        }
+
+        private void AppendPreferredItemLabels()
+        {
+            PreferredItemIndexes.ForEach(i => Items[i].Text += " " + PreferredItemLabel);
+        }
+
+        private void RemovePreferredItemLabels()
+        {
+            PreferredItemIndexes.ForEach(i => Items[i].Text = Items[i].Text.Substring(0, Items[i].Text.Length - PreferredItemLabel.Length - 1));
         }
     }
 }

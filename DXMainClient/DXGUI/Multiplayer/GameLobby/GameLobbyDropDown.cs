@@ -52,14 +52,11 @@ public class GameLobbyDropDown : GameSessionDropDown
 
     public override void OnLeftClick(InputEventArgs inputEventArgs)
     {
-        // FIXME there's a discrepancy with how base XNAUI handles this
-        // it doesn't set handled if changing the setting is not allowed
-        inputEventArgs.Handled = true;
-
-        if (!AllowDropDown)
-            return;
-
+        // GameSessionDropDown.OnLeftClick already marks the input as handled
+        // and ignores the click when the drop-down cannot be opened.
         base.OnLeftClick(inputEventArgs);
-        UserSelectedIndex = SelectedIndex;
+
+        if (AllowDropDown)
+            UserSelectedIndex = SelectedIndex;
     }
 }
