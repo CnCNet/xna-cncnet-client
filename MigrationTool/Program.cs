@@ -248,8 +248,8 @@ internal sealed class Program
         }
         else if (backupExists)
         {
-            Logger.Log("Warning: A backup directory already exists, so no new backup will be created. "
-                + "The existing backup may not reflect the current state of the client folder.");
+            Logger.Log("Warning: No new backup will be created. A backup directory already exists "
+                + "and may not reflect the current state of the client folder.");
         }
         else
         {
