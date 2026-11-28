@@ -244,7 +244,7 @@ internal sealed class Program
 
         if (noBackup)
         {
-            Logger.Log("Warning: The client folder will not be backed up because --no-backup is specified.");
+            Logger.Log("Skipping the backup because --no-backup is specified.");
         }
         else if (backupExists)
         {
