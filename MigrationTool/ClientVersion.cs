@@ -5,13 +5,6 @@ using System.Linq;
 
 namespace MigrationTool;
 
-/// <summary>
-/// A client version. <see cref="Latest"/> sorts after every numbered version.
-/// </summary>
-/// <remarks>
-/// Every migration patch of this build is registered here, so <see cref="All"/> is the single
-/// list of the client versions that can be migrated to.
-/// </remarks>
 internal readonly record struct ClientVersion(int Major, int Minor, int Patch) : IComparable<ClientVersion>
 {
     public static readonly ClientVersion Latest = new(int.MaxValue, int.MaxValue, int.MaxValue);
@@ -38,8 +31,8 @@ internal readonly record struct ClientVersion(int Major, int Minor, int Patch) :
     /// All patches of this build, sorted by version.
     /// </summary>
     /// <remarks>
-    /// Must stay below the version fields it reads: the static initializers of a type run in
-    /// textual order, so reading a field declared later would yield its default value.
+    /// The source code of All must stay below the version fields it reads. This is because the static initializers of a type run in
+    /// textual order, so reading a field declared later would yield its default value, which is not what we want.
     /// </remarks>
     public static IReadOnlyList<ClientVersion> All { get; } =
         new[]
