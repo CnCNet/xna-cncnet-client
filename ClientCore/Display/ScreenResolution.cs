@@ -29,7 +29,7 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
     public ScreenResolution(string resolution)
     {
         if (!TryParseWidthHeight(resolution, out int width, out int height))
-            throw new FormatException($"Invalid screen resolution \"{resolution}\". Expected a resolution in the format WIDTHxHEIGHT, for example 1280x720.");
+            throw new FormatException($"Invalid screen resolution \"{resolution}\".");
 
         Width = width;
         Height = height;
@@ -63,7 +63,7 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
 
         string[] parts = value.Trim().Split('x');
 
-        if (parts.Length < 2)
+        if (parts.Length != 2)
             return false;
 
         return int.TryParse(parts[0], out width)
