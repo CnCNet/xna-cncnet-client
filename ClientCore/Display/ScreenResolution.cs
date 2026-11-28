@@ -58,7 +58,7 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
         width = 0;
         height = 0;
 
-        if (value == null || string.IsNullOrWhiteSpace(value))
+        if (value == null)
             return false;
 
         string[] parts = value.Trim().Split('x');
