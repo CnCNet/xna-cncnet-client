@@ -67,6 +67,11 @@ internal sealed class Program
             Description = "Run without waiting for user input, for example from a script."
         };
 
+        var optNoBackup = new Option<bool>("--no-backup")
+        {
+            Description = "Do not back up the client folder before patching."
+        };
+
         var root = new RootCommand(
             """
             CnCNet Client Migration Tool
@@ -78,7 +83,8 @@ internal sealed class Program
             optFrom,
             optTo,
             optPatchList,
-            optNonInteractive
+            optNonInteractive,
+            optNoBackup
         };
 
         root.Validators.Add(result =>
@@ -175,7 +181,8 @@ internal sealed class Program
                 clientDir: result.GetValue(argClientDir)!,
                 patchVersions: patchVersions,
                 appliesEveryPatch: appliesEveryPatch,
-                nonInteractive: result.GetValue(optNonInteractive));
+                nonInteractive: result.GetValue(optNonInteractive),
+                noBackup: result.GetValue(optNoBackup));
 
             return migrated ? SuccessExitCode : FailureExitCode;
         });
@@ -213,7 +220,7 @@ internal sealed class Program
         return selection.ToArray();
     }
 
-    private static bool MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch, bool nonInteractive)
+    private static bool MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch, bool nonInteractive, bool noBackup)
     {
         if (!SafePath.GetDirectory(clientDir).Exists)
         {
@@ -233,8 +240,6 @@ internal sealed class Program
                 + "pass --from <version> to apply only the patches released after it.");
         }
 
-        Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
-
         Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
 
         if (!nonInteractive)
@@ -250,8 +255,17 @@ internal sealed class Program
             Console.ReadKey();
         }
 
-        if (!Directory.Exists(clientDir + "_backup"))
+        if (noBackup)
         {
+            Logger.Log("Skipping the backup because --no-backup is specified.");
+        }
+        else if (Directory.Exists(clientDir + "_backup"))
+        {
+            Logger.Log($"Backup already exists: \"{clientDir}_backup\". No new backup was created.");
+        }
+        else
+        {
+            Logger.Log("Warning: Running the migration tool will back up your folder.");
             Logger.Log($"Creating backup: {clientDir + "_backup"}");
             FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
             Logger.Log("Backup created.");
