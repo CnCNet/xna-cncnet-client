@@ -20,7 +20,7 @@ internal abstract class Patch
     // TODO: The Patch helpers operate on one already-loaded IniFile. Files referenced by
     // INISystem/BasedOn are not loaded by the Patch helpers.
 
-    public ClientVersion PatchVersion { get; protected set; }
+    public abstract ClientVersion PatchVersion { get; }
     public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
     public DirectoryInfo ResouresDir { get; protected set; }

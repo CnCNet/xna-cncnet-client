@@ -13,8 +13,9 @@ internal class Patch_v2_12_0 : Patch
 {
     public Patch_v2_12_0(string clientPath) : base(clientPath)
     {
-        PatchVersion = ClientVersion.V2_12_0;
     }
+
+    public override ClientVersion PatchVersion => ClientVersion.V2_12_0;
     public override void Apply()
     {
         base.Apply();

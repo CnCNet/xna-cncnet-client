@@ -8,8 +8,9 @@ internal class Patch_Latest : Patch
 {
     public Patch_Latest(string clientPath) : base(clientPath)
     {
-        PatchVersion = ClientVersion.Latest;
     }
+
+    public override ClientVersion PatchVersion => ClientVersion.Latest;
 
     public override void Apply()
     {
