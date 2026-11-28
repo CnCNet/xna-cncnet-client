@@ -146,10 +146,18 @@ class StorageOptionsPanel : XNAOptionsPanel
         lblLogFolderSizeSuffix.ClientRectangle = new Rectangle(
             tbMaxLogFolderSize.Right + 8, lblLogFolderSize.Y, 0, 0);
 
-        AddContent(lblLogsHeader, lblKeptLogFiles, tbMaxKeptLogFiles, lblKeptLogFilesSuffix,
-            lblLogFolderSize, tbMaxLogFolderSize, lblLogFolderSizeSuffix);
+        var btnBrowseClientLogs = new XNAClientButton(WindowManager);
+        btnBrowseClientLogs.Name = nameof(btnBrowseClientLogs);
+        btnBrowseClientLogs.ClientRectangle = new Rectangle(
+            12, tbMaxLogFolderSize.Bottom + 8, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+        btnBrowseClientLogs.Text = "Browse Client Logs".L10N("Client:DTAConfig:StorageBrowseClientLogs");
+        btnBrowseClientLogs.LeftClick += (_, _) => ProcessLauncher.OpenContainingFolder(
+            SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "client.log"));
 
-        return tbMaxLogFolderSize.Bottom + SECTION_SPACING;
+        AddContent(lblLogsHeader, lblKeptLogFiles, tbMaxKeptLogFiles, lblKeptLogFilesSuffix,
+            lblLogFolderSize, tbMaxLogFolderSize, lblLogFolderSizeSuffix, btnBrowseClientLogs);
+
+        return btnBrowseClientLogs.Bottom + SECTION_SPACING;
     }
 
     private int InitializeGameLogSection(int y)
