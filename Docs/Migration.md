@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > CnCNet has a program called `Migration Tool` that implements all the instructions described down below notices to automate the migration process.
-> To use this tool, download the migration tool from the latest nightly build and run `MigrationTool.exe` with the path of the older client as the first argument.
+> To use this tool, download the migration tool from the latest release and run `MigrationTool.exe` with the path of the older client as the first argument.
 > 
 > Example: `MigrationTool.exe C:\TiberianSunClient --from 2.12.0`
 >
