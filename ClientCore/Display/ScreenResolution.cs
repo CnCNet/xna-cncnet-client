@@ -41,9 +41,6 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
     /// <param name="value">The resolution string to parse.</param>
     /// <param name="resolution">The parsed resolution when successful.</param>
     /// <returns><see langword="true"/> if <paramref name="value"/> was parsed successfully.</returns>
-    /// <remarks>
-    /// Matches the string constructor: only the first two components are used.
-    /// </remarks>
     public static bool TryParse(string? value, [NotNullWhen(true)] out ScreenResolution? resolution)
     {
         resolution = null;
