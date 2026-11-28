@@ -122,9 +122,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             set
             {
                 _gameModeMap = value;
+                if (previewGenerationStatus != null) previewGenerationStatus.Text = "";
                 UpdateMap();
+                previewRequestNeeded = true;
             }
         }
+
+        // Set when the shown map or preview mode changes; the request is made from Update,
+        // which does not run while this preview's lobby is hidden.
+        private bool previewRequestNeeded;
 
         public int FontIndex { get; set; }
 
@@ -168,6 +174,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private XNAContextMenu mainContextMenu;
         private XNAContextMenu contextMenu;
+        private XNALabel previewGenerationStatus;
+        private MapPreviewModeButton btnToggleRenderedPreview;
         private Point lastContextMenuPoint;
 
         private XNAContextMenu mapContextMenu;
@@ -237,10 +245,40 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 SelectableChecker = () => GameModeMap != null
             };
             mapContextMenu = new XNAContextMenu(WindowManager);
-            mapContextMenu.ClientRectangle = new Rectangle(0, 0, 120, 2);
+            var regeneratePreviewItem = new XNAContextMenuItem
+            {
+                Text = "Regenerate HD Preview".L10N("Client:Main:RegenerateMapPreview"),
+                SelectAction = () => { _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map, true); },
+                SelectableChecker = () => GameModeMap != null && MapPreviewGenerationService.Selected,
+                VisibilityChecker = () => MapPreviewGenerationService.Configured
+            };
+            int mapContextMenuWidth = MapPreviewGenerationService.Configured
+                ? Math.Max(120, (int)Renderer.GetTextDimensions(regeneratePreviewItem.Text, mapContextMenu.FontIndex).X + 8)
+                : 120;
+            mapContextMenu.ClientRectangle = new Rectangle(0, 0, mapContextMenuWidth, 2);
             mapContextMenu.AddItem(toggleFavoriteMapItem);
             mapContextMenu.AddItem(toggleExtraTexturesItem);
             mapContextMenu.AddItem(showInFolderItem);
+            mapContextMenu.AddItem(regeneratePreviewItem);
+            previewGenerationStatus = new XNALabel(WindowManager) { Name = "lblRenderedPreviewStatus", Text = "", ClientRectangle = new Rectangle(4, 4, 0, 0), DrawOrder = 500 };
+            AddChild(previewGenerationStatus);
+            MapPreviewGenerationService.Progress += (map, generating) => WindowManager.AddCallback(new Action(() => {
+                if (GameModeMap?.Map.SHA1 == map.SHA1 && MapPreviewGenerationService.Selected)
+                    previewGenerationStatus.Text = generating ? "Generating hi-res map preview…".L10N("Client:Main:GeneratingMapPreview") : "";
+            }), null);
+            MapPreviewGenerationService.Completed += (map, changed, error) => WindowManager.AddCallback(new Action(() => {
+                if (GameModeMap?.Map.SHA1 != map.SHA1 || !MapPreviewGenerationService.Selected) return;
+                if (changed) UpdateMap();
+                if (error != null) previewGenerationStatus.Text = "Preview unavailable; keeping original image".L10N("Client:Main:MapPreviewFailed");
+            }), null);
+            btnToggleRenderedPreview = new MapPreviewModeButton(WindowManager);
+            btnToggleRenderedPreview.Refresh();
+            AddChild(btnToggleRenderedPreview);
+            MapPreviewGenerationService.ModeChanged += () => WindowManager.AddCallback(new Action(() => {
+                previewGenerationStatus.Text = "";
+                UpdateMap();
+                previewRequestNeeded = true;
+            }), null);
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
             btnToggleFavoriteMap.ClientRectangle = new Rectangle(0, 0, CornerButtonSize, CornerButtonSize);
@@ -497,13 +535,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Debug.Assert(!mapPreviewTextureNeedsDispose, "previous texture must be disposed before loading a new texture");
 
-            mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map, syncLoadOnCacheMiss: true)
+            mapPreviewTexture = (mapLoader.GetPreviewTextureFromMap(GameModeMap.Map,
+                syncLoadOnCacheMiss: true, preferGenerated: MapPreviewGenerationService.Selected, out bool isGeneratedPreview)
                 // This null case indicates a "hidden preview", where the map itself intends not to show a preview, so we just show a black box instead of no texture at all.
                 // Use the same `- 2` to let xRatio and yRatio get calculated as 1.
                 ?? AssetLoader.CreateTexture(Color.Black, Width - 2, Height - 2))
                 // `mapPreviewTexture` may be null if the engine fails to load the texture.
                 ?? throw new Exception($"Failed to load map preview texture. Map: {GameModeMap.Map.PreviewPath}.");
-
             mapPreviewTextureNeedsDispose = true;
 
             if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
@@ -541,12 +579,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
-            useNearestNeighbour = ratio < 1.0;
+            useNearestNeighbour = !isGeneratedPreview && ratio < 1.0;
 
             textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
 
-            List<Point> startingLocations = GameModeMap.Map.GetStartingLocationPreviewCoords(new Point(mapPreviewTexture.Width, mapPreviewTexture.Height));
+            var previewSize = new Point(mapPreviewTexture.Width, mapPreviewTexture.Height);
+            List<Point> startingLocations = isGeneratedPreview
+                ? GameModeMap.Map.CalculateStartingLocationPreviewCoords(previewSize)
+                : GameModeMap.Map.GetStartingLocationPreviewCoords(previewSize);
 
             // Disable all indicators to be able updated after changing
             // locations when 2 or more of them have same location (RA1 specifics)
@@ -595,12 +636,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 btnToggleExtraTextures.Disable();
 
+            btnToggleRenderedPreview.Refresh();
+
             // A row keeps the original order, with the extra icons toggle in the corner.
             // A column keeps the favorite button in the corner, so it does not move when the toggle appears.
             if (ButtonLayout == CornerButtonLayout.Column)
-                LayoutCornerButtons(btnToggleFavoriteMap, btnToggleExtraTextures);
+                LayoutCornerButtons(btnToggleFavoriteMap, btnToggleExtraTextures, btnToggleRenderedPreview);
             else
-                LayoutCornerButtons(btnToggleExtraTextures, btnToggleFavoriteMap);
+                LayoutCornerButtons(btnToggleExtraTextures, btnToggleFavoriteMap, btnToggleRenderedPreview);
 
             RefreshExtraTexturesBtn();
             RefreshFavoriteBtn();
@@ -729,6 +772,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             base.OnLeftClick(inputEventArgs);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (previewRequestNeeded)
+            {
+                previewRequestNeeded = false;
+                _ = MapPreviewGenerationService.Request(this, GameModeMap?.Map);
+            }
+
+            base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)

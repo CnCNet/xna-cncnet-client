@@ -426,6 +426,7 @@ namespace DTAClient.Domain.Multiplayer
                 gameModes.RemoveAll(g => g.Maps.Count < 1);
 
             _snapshot = new Snapshot(gameModes, new GameModeMapCollection(gameModes));
+            MapPreviewGenerationService.Register(GameModeMaps.Select(item => item.Map));
         }
 
         private List<GameMode> CloneGameModeSnapshot() => GameModes.Select(gameMode => gameMode.Clone()).ToList();
@@ -754,6 +755,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
+            MapPreviewGenerationService.Remove(gameModeMap.Map);
 
             lock (mapModificationLock)
             {
@@ -859,6 +861,35 @@ namespace DTAClient.Domain.Multiplayer
                 return AssetLoader.TextureFromImage(cacheLease.Value);
             else
                 return null;
+        }
+
+        /// <summary>
+        /// Loads the generated preview when <paramref name="preferGenerated"/> is set and one is cached,
+        /// otherwise the original preview.
+        /// </summary>
+        internal Texture2D GetPreviewTextureFromMap(Map map, bool syncLoadOnCacheMiss, bool preferGenerated, out bool isGenerated)
+        {
+            isGenerated = false;
+            string generatedPath = map != null && preferGenerated ? MapPreviewGenerationService.CachedImagePath(map) : null;
+
+            if (generatedPath != null)
+            {
+                try
+                {
+                    // Generated previews live in the cache folder, not in the asset search paths.
+                    using Image image = Image.Load(generatedPath);
+                    Texture2D texture = AssetLoader.TextureFromImage(image)
+                        ?? throw new IOException("Cannot create texture from " + generatedPath);
+                    isGenerated = true;
+                    return texture;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log("Cannot load generated map preview: " + e.Message);
+                }
+            }
+
+            return GetPreviewTextureFromMap(map, syncLoadOnCacheMiss);
         }
 
         public CacheLease<Image> GetCachedPreviewImageFromMap(Map map, bool syncLoadOnCacheMiss = false)
