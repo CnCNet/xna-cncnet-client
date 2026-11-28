@@ -10,7 +10,7 @@ internal class Patch_v3_0_0 : Patch
 {
     public Patch_v3_0_0(string clientPath) : base(clientPath)
     {
-        ClientVersion = Version.v3_0_0;
+        PatchVersion = ClientVersion.V3_0_0;
     }
 
     public override void Apply()
