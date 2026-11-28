@@ -168,12 +168,17 @@ internal sealed class Program
                 return;
             }
 
+            ClientVersion? patchVersion = GetOptionVersion(result, optPatch);
+            ClientVersion? fromVersion = GetOptionVersion(result, optFrom);
+
             ClientVersion[] patchVersions = SelectPatchVersions(
-                GetOptionVersion(result, optPatch),
-                GetOptionVersion(result, optFrom),
+                patchVersion,
+                fromVersion,
                 GetOptionVersion(result, optTo));
 
-            MigrateClient(result.GetValue(argClientDir)!, patchVersions);
+            bool appliesEveryPatch = patchVersion == null && fromVersion == null;
+
+            MigrateClient(result.GetValue(argClientDir)!, patchVersions, appliesEveryPatch);
         });
 
         // Supply the executable token explicitly to preserve directories named MigrationTool.
@@ -209,7 +214,7 @@ internal sealed class Program
         return selection.ToArray();
     }
 
-    private static void MigrateClient(string clientDir, ClientVersion[] patchVersions)
+    private static void MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch)
     {
         if (!SafePath.GetDirectory(clientDir).Exists)
         {
@@ -223,7 +228,7 @@ internal sealed class Program
             return;
         }
 
-        if (patchVersions.Length == ClientVersion.All.Count)
+        if (appliesEveryPatch)
         {
             Logger.Log("Warning: All migration patches will be applied. If the client already runs a released version, "
                 + "pass --from <version> to apply only the patches released after it.");
