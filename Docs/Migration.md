@@ -4,14 +4,9 @@
 > CnCNet has a program called `Migration Tool` that implements all the instructions described down below notices to automate the migration process.
 > To use this tool, download the latest nightly build and run `Resources\BinariesNET8\MigrationTool\MigrationTool.exe` with older client path as the first argument. 
 > 
-> Example: `MigrationTool.exe C:\TiberianSunClient`
+> Example: `MigrationTool.exe C:\TiberianSunClient --from 2.12.0`
 >
-> - To apply only the patch for version `2.13.0`, run `MigrationTool.exe C:\TiberianSunClient --patch 2.13.0`.
-> - To apply the patches released after the version your client currently runs, pass that version to `--from`. If the client runs `2.12.0`, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0` to apply every later patch, up to and including `Latest`. The `--from` version itself is not patched.
-> - To apply a custom range, run `MigrationTool.exe C:\TiberianSunClient --from 2.12.0 --to 3.0.0`. The `--to` version is included, while the `--from` version is not.
->
-> Use `--patch` without range options. `--to` requires `--from`, and the `--from` version must be earlier than the `--to` version.
-> Run `MigrationTool.exe --patch-list` to see the versions that `--patch` accepts. `--from` and `--to` additionally accept versions that have no patch of their own, such as `2.12.12`: `--from` starts at the first patch released after the given version, and `--to` ends at the last patch released at or before it. Version numbers accept dots or underscores and an optional `v` prefix.
+> Pass the client version your folder currently runs to `--from`. The tool applies only the patches released after that version, so `2.12.0` itself is not patched again.
 
 This document lists all the breaking changes and how to address them. Each section corresponds to the migration steps that are required to upgrade to the selected version. If you're skipping multiple versions in the upgrade process - you have to apply all corresponding migration steps.
 
