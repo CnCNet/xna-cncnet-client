@@ -62,6 +62,11 @@ internal sealed class Program
             Description = "Show list of available client version patches to use."
         };
 
+        var optNonInteractive = new Option<bool>("--non-interactive")
+        {
+            Description = "Do not wait for a key press before starting the migration."
+        };
+
         var root = new RootCommand(
             """
             CnCNet Client Migration Tool
@@ -72,7 +77,8 @@ internal sealed class Program
             optPatch,
             optFrom,
             optTo,
-            optPatchList
+            optPatchList,
+            optNonInteractive
         };
 
         root.Validators.Add(result =>
@@ -165,7 +171,11 @@ internal sealed class Program
 
             bool appliesEveryPatch = patchVersion == null && fromVersion == null;
 
-            bool migrated = MigrateClient(result.GetValue(argClientDir)!, patchVersions, appliesEveryPatch);
+            bool migrated = MigrateClient(
+                clientDir: result.GetValue(argClientDir)!,
+                patchVersions: patchVersions,
+                appliesEveryPatch: appliesEveryPatch,
+                nonInteractive: result.GetValue(optNonInteractive));
 
             return migrated ? SuccessExitCode : FailureExitCode;
         });
@@ -203,7 +213,7 @@ internal sealed class Program
         return selection.ToArray();
     }
 
-    private static bool MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch)
+    private static bool MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch, bool nonInteractive)
     {
         if (!SafePath.GetDirectory(clientDir).Exists)
         {
@@ -227,8 +237,21 @@ internal sealed class Program
 
         Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
 
-        Logger.Log("Press any key to begin migration.");
-        Console.ReadKey();
+        if (!nonInteractive)
+        {
+            Logger.Log("Press any key to begin migration.");
+
+            try
+            {
+                Console.ReadKey();
+            }
+            catch (InvalidOperationException)
+            {
+                Logger.Log("Unable to read a key press because the console input is not interactive. "
+                    + "Pass --non-interactive to run without waiting for a key press.");
+                return false;
+            }
+        }
 
         if (!Directory.Exists(clientDir + "_backup"))
         {
