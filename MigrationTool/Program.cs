@@ -223,6 +223,12 @@ internal sealed class Program
             return;
         }
 
+        if (patchVersions.Length == ClientVersion.All.Count)
+        {
+            Logger.Log("Warning: All migration patches will be applied. If the client already runs a released version, "
+                + "pass --from <version> to apply only the patches released after it.");
+        }
+
         Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
         Logger.Log("Press any key to begin migration.");
         Console.ReadKey();

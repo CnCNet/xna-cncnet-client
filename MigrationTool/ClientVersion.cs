@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace MigrationTool;
 
@@ -34,21 +35,24 @@ internal readonly record struct ClientVersion(int Major, int Minor, int Patch) :
     public static ClientVersion V3_0_0 { get; } = new(3, 0, 0);
 
     /// <summary>
-    /// All patches of this build in the order they are applied.
+    /// All patches of this build, sorted by version.
     /// </summary>
     public static IReadOnlyList<ClientVersion> All { get; } =
-    [
-        V2_11_0,
-        V2_11_1,
-        V2_11_2,
-        V2_11_6,
-        V2_11_7,
-        V2_12_0,
-        V2_12_6,
-        V2_13_0,
-        V3_0_0,
-        Latest
-    ];
+        new[]
+        {
+            V2_11_0,
+            V2_11_1,
+            V2_11_2,
+            V2_11_6,
+            V2_11_7,
+            V2_12_0,
+            V2_12_6,
+            V2_13_0,
+            V3_0_0,
+            Latest
+        }
+        .OrderBy(version => version)
+        .ToArray();
 
     /// <summary>
     /// Name that identifies the patch class and the embedded pictures of the version,
