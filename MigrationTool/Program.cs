@@ -64,7 +64,7 @@ internal sealed class Program
 
         var optNonInteractive = new Option<bool>("--non-interactive")
         {
-            Description = "Do not wait for a key press before starting the migration."
+            Description = "Run without waiting for user input, for example from a script."
         };
 
         var root = new RootCommand(
@@ -239,18 +239,15 @@ internal sealed class Program
 
         if (!nonInteractive)
         {
-            Logger.Log("Press any key to begin migration.");
-
-            try
+            if (Console.IsInputRedirected)
             {
-                Console.ReadKey();
-            }
-            catch (InvalidOperationException)
-            {
-                Logger.Log("Unable to read a key press because the console input is not interactive. "
-                    + "Pass --non-interactive to run without waiting for a key press.");
+                Logger.Log("Cannot prompt for input because the console input is redirected. "
+                    + "Pass --non-interactive to run unattended.");
                 return false;
             }
+
+            Logger.Log("Press any key to begin migration.");
+            Console.ReadKey();
         }
 
         if (!Directory.Exists(clientDir + "_backup"))
