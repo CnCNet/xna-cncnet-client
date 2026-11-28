@@ -13,6 +13,9 @@ namespace MigrationTool;
 
 internal sealed class Program
 {
+    private const int SuccessExitCode = 0;
+    private const int FailureExitCode = 1;
+
     private static int Main(string[] args)
     {
         // Initialize logger
@@ -59,6 +62,11 @@ internal sealed class Program
             Description = "Show list of available client version patches to use."
         };
 
+        var optNonInteractive = new Option<bool>("--non-interactive")
+        {
+            Description = "Run without waiting for user input, for example from a script."
+        };
+
         var root = new RootCommand(
             """
             CnCNet Client Migration Tool
@@ -69,7 +77,8 @@ internal sealed class Program
             optPatch,
             optFrom,
             optTo,
-            optPatchList
+            optPatchList,
+            optNonInteractive
         };
 
         root.Validators.Add(result =>
@@ -149,7 +158,7 @@ internal sealed class Program
             if (result.GetValue(optPatchList))
             {
                 Console.WriteLine("List of available versions: " + string.Join(", ", ClientVersion.All.Select(version => version.DisplayName)));
-                return;
+                return SuccessExitCode;
             }
 
             ClientVersion? patchVersion = GetOptionVersion(result, optPatch);
@@ -162,7 +171,13 @@ internal sealed class Program
 
             bool appliesEveryPatch = patchVersion == null && fromVersion == null;
 
-            MigrateClient(result.GetValue(argClientDir)!, patchVersions, appliesEveryPatch);
+            bool migrated = MigrateClient(
+                clientDir: result.GetValue(argClientDir)!,
+                patchVersions: patchVersions,
+                appliesEveryPatch: appliesEveryPatch,
+                nonInteractive: result.GetValue(optNonInteractive));
+
+            return migrated ? SuccessExitCode : FailureExitCode;
         });
 
         // Supply the executable token explicitly to preserve directories named MigrationTool.
@@ -198,18 +213,18 @@ internal sealed class Program
         return selection.ToArray();
     }
 
-    private static void MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch)
+    private static bool MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch, bool nonInteractive)
     {
         if (!SafePath.GetDirectory(clientDir).Exists)
         {
             Logger.Log($"Unable to find \"{clientDir}\" folder. Migration halted.");
-            return;
+            return false;
         }
 
         if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir, "Resources", "ClientDefinitions.ini")).Exists)
         {
             Logger.Log($"Unable to find \"{clientDir}\\Resources\\ClientDefinitions.ini\". Migration halted.");
-            return;
+            return false;
         }
 
         if (appliesEveryPatch)
@@ -222,8 +237,18 @@ internal sealed class Program
 
         Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
 
-        Logger.Log("Press any key to begin migration.");
-        Console.ReadKey();
+        if (!nonInteractive)
+        {
+            if (Console.IsInputRedirected)
+            {
+                Logger.Log("Cannot prompt for input because the console input is redirected. "
+                    + "Pass --non-interactive to run unattended.");
+                return false;
+            }
+
+            Logger.Log("Press any key to begin migration.");
+            Console.ReadKey();
+        }
 
         if (!Directory.Exists(clientDir + "_backup"))
         {
@@ -232,10 +257,10 @@ internal sealed class Program
             Logger.Log("Backup created.");
         }
 
-        PatchConfigs(clientDir, patchVersions);
+        return PatchConfigs(clientDir, patchVersions);
     }
 
-    private static void PatchConfigs(string clientDir, ClientVersion[] patchVersions)
+    private static bool PatchConfigs(string clientDir, ClientVersion[] patchVersions)
     {
         var assembly = Assembly.GetExecutingAssembly();
         ClientVersion? currentVersion = null;
@@ -254,6 +279,8 @@ internal sealed class Program
             }
 
             Console.WriteLine("Patching has been done.");
+
+            return true;
         }
         catch (Exception ex)
         {
@@ -262,6 +289,8 @@ internal sealed class Program
                 currentVersion?.ToString(),
                 ex.ToString()));
             Logger.Log(string.Format("Migration to the {0} client version has been failed", patchVersions.Last()));
+
+            return false;
         }
     }
 }
