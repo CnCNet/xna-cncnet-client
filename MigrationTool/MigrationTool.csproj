@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Title>CnCNet.MigrationTool</Title>
     <Description>CnCNet Client Migration Tool</Description>
