@@ -6,7 +6,7 @@
 > 
 > Example: `MigrationTool.exe C:\TiberianSunClient --from 2.12.0`
 >
-> Pass the client version your folder currently runs to `--from`. The tool applies only the patches released after that version, so `2.12.0` itself is not patched again.
+> Pass the client version your folder currently runs to `--from`.
 >
 > It is recommended that you back up the client configuration before running the migration tool.
 
