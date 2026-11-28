@@ -14,29 +14,33 @@ namespace MigrationTool;
 /// </remarks>
 internal readonly record struct ClientVersion(int Major, int Minor, int Patch) : IComparable<ClientVersion>
 {
-    public static ClientVersion Latest { get; } = new(int.MaxValue, int.MaxValue, int.MaxValue);
+    public static readonly ClientVersion Latest = new(int.MaxValue, int.MaxValue, int.MaxValue);
 
-    public static ClientVersion V2_11_0 { get; } = new(2, 11, 0);
+    public static readonly ClientVersion V2_11_0 = new(2, 11, 0);
 
-    public static ClientVersion V2_11_1 { get; } = new(2, 11, 1);
+    public static readonly ClientVersion V2_11_1 = new(2, 11, 1);
 
-    public static ClientVersion V2_11_2 { get; } = new(2, 11, 2);
+    public static readonly ClientVersion V2_11_2 = new(2, 11, 2);
 
-    public static ClientVersion V2_11_6 { get; } = new(2, 11, 6);
+    public static readonly ClientVersion V2_11_6 = new(2, 11, 6);
 
-    public static ClientVersion V2_11_7 { get; } = new(2, 11, 7);
+    public static readonly ClientVersion V2_11_7 = new(2, 11, 7);
 
-    public static ClientVersion V2_12_0 { get; } = new(2, 12, 0);
+    public static readonly ClientVersion V2_12_0 = new(2, 12, 0);
 
-    public static ClientVersion V2_12_6 { get; } = new(2, 12, 6);
+    public static readonly ClientVersion V2_12_6 = new(2, 12, 6);
 
-    public static ClientVersion V2_13_0 { get; } = new(2, 13, 0);
+    public static readonly ClientVersion V2_13_0 = new(2, 13, 0);
 
-    public static ClientVersion V3_0_0 { get; } = new(3, 0, 0);
+    public static readonly ClientVersion V3_0_0 = new(3, 0, 0);
 
     /// <summary>
     /// All patches of this build, sorted by version.
     /// </summary>
+    /// <remarks>
+    /// Must stay below the version fields it reads: the static initializers of a type run in
+    /// textual order, so reading a field declared later would yield its default value.
+    /// </remarks>
     public static IReadOnlyList<ClientVersion> All { get; } =
         new[]
         {
