@@ -59,11 +59,18 @@ public static class StringExtensions
     /// <returns>Regular string.</returns>
     public static string FromIniString(this string iniString)
     {
-        return iniString
-            .Replace(ESCAPED_INI_NEWLINE_PATTERN, ProgramConstants.INI_NEWLINE_PATTERN)
-            .Replace(ESCAPED_SEMICOLON, ";")
-            .Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
+        // Single pass, so an escaped newline pattern isn't turned back into a newline
+        // by a later replacement.
+        return iniStringTokenRE.Replace(iniString, match => match.Value switch
+        {
+            ESCAPED_INI_NEWLINE_PATTERN => ProgramConstants.INI_NEWLINE_PATTERN,
+            ESCAPED_SEMICOLON => ";",
+            _ => Environment.NewLine,
+        });
     }
+
+    private static readonly Regex iniStringTokenRE = new Regex(
+        $"{Regex.Escape(ESCAPED_INI_NEWLINE_PATTERN)}|{Regex.Escape(ESCAPED_SEMICOLON)}|{Regex.Escape(ProgramConstants.INI_NEWLINE_PATTERN)}");
 
     /// <summary>
     /// Looks up a translated string for the specified key.

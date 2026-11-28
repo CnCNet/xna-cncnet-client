@@ -269,6 +269,17 @@ namespace DTAClient.DXGUI
 
             buildServiceProviderTask.GetAwaiter().GetResult();
 
+            // Load data sources for web labels
+            var webDataSourceManager = serviceProvider.GetService<WebDataSourceManager>();
+            if (webDataSourceManager != null)
+            {
+                webDataSourceManager.LoadFromINI(ClientConfiguration.Instance.ClientDefinitionsIni);
+
+                // Don't poll web data sources while the game is running
+                GameProcessLogic.GameProcessStarted += webDataSourceManager.Pause;
+                GameProcessLogic.GameProcessExited += webDataSourceManager.Resume;
+            }
+
             Logger.Log("Initializing loading screen.");
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
@@ -419,7 +430,8 @@ namespace DTAClient.DXGUI
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
                             .AddSingleton<Random>(GetRandom())
-                            .AddSingleton<DirectDrawWrapperManager>();
+                            .AddSingleton<DirectDrawWrapperManager>()
+                            .AddSingleton<WebDataSourceManager>();
 
                         // singleton xna controls - same instance on each request
                         services
@@ -461,6 +473,7 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNALabel>()
                             .AddTransientXnaControl<XNALinkLabel>()
                             .AddTransientXnaControl<XNAClientLinkLabel>()
+                            .AddTransientXnaControl<XNAClientWebLabel>()
                             .AddTransientXnaControl<XNAListBox>()
                             .AddTransientXnaControl<XNAMultiColumnListBox>()
                             .AddTransientXnaControl<XNAPanel>()
