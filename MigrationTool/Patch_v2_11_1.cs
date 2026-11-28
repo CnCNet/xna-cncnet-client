@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using Rampastring.Tools;
+using ClientCore.Display;
 
 namespace MigrationTool;
 
@@ -59,39 +61,39 @@ internal class Patch_v2_11_1 : Patch
         if (!clientDefsIni.KeyExists(section, key))
             return false;
 
-        int minWidth = clientDefsIni.GetIntValue(section, "MinimumRenderWidth", 1280);
-        int minHeight = clientDefsIni.GetIntValue(section, "MinimumRenderHeight", 768);
-        int maxWidth = clientDefsIni.GetIntValue(section, "MaximumRenderWidth", 1280);
-        int maxHeight = clientDefsIni.GetIntValue(section, "MaximumRenderHeight", 800);
+        ScreenResolution minimumRenderResolution = (
+            clientDefsIni.GetIntValue(section, "MinimumRenderWidth", 1280),
+            clientDefsIni.GetIntValue(section, "MinimumRenderHeight", 768));
+        ScreenResolution maximumRenderResolution = (
+            clientDefsIni.GetIntValue(section, "MaximumRenderWidth", 1280),
+            clientDefsIni.GetIntValue(section, "MaximumRenderHeight", 800));
 
         string value = clientDefsIni.GetStringValue(section, key, string.Empty);
-        List<string> keptResolutions = new();
+        List<ScreenResolution> keptResolutions = new();
 
         foreach (string entry in value.Split(','))
         {
-            string trimmed = entry.Trim();
+            string trimmedEntry = entry.Trim();
 
-            if (trimmed.Length == 0)
+            if (trimmedEntry.Length == 0)
                 continue;
 
-            string[] parts = trimmed.Split('x');
-
-            if (parts.Length != 2
-                || !int.TryParse(parts[0], out int width)
-                || !int.TryParse(parts[1], out int height))
+            if (!TryParseResolution(trimmedEntry, out ScreenResolution? resolution))
             {
-                Logger.Log($"Update {clientDefsIni.FilePath}: Drop [{section}]->{key} entry \"{trimmed}\", reason: not a WxH resolution");
+                Logger.Log($"Update {clientDefsIni.FilePath}: Drop [{section}]->{key} entry \"{trimmedEntry}\", reason: not a WxH resolution");
                 continue;
             }
 
-            if (width < minWidth || height < minHeight || width > maxWidth || height > maxHeight)
+            // Fits() checks that the resolution is not smaller than its argument.
+            bool isWithinRenderRange = resolution.Fits(minimumRenderResolution)
+                && maximumRenderResolution.Fits(resolution);
+
+            if (!isWithinRenderRange)
             {
-                Logger.Log($"Update {clientDefsIni.FilePath}: Drop [{section}]->{key} entry \"{trimmed}\", "
-                    + $"reason: outside the render range {minWidth}x{minHeight}..{maxWidth}x{maxHeight}");
+                Logger.Log($"Update {clientDefsIni.FilePath}: Drop [{section}]->{key} entry \"{trimmedEntry}\", "
+                    + $"reason: outside the render range {minimumRenderResolution}..{maximumRenderResolution}");
                 continue;
             }
-
-            string resolution = $"{width}x{height}";
 
             if (!keptResolutions.Contains(resolution))
                 keptResolutions.Add(resolution);
@@ -105,6 +107,24 @@ internal class Patch_v2_11_1 : Patch
         Logger.Log($"Update {clientDefsIni.FilePath}: Set [{section}]->{key}={filteredValue}");
 
         clientDefsIni.SetStringValue(section, key, filteredValue);
+
+        return true;
+    }
+
+    private static bool TryParseResolution(string value, [NotNullWhen(true)] out ScreenResolution? resolution)
+    {
+        resolution = null;
+
+        string[] parts = value.Split('x');
+
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out int width)
+            || !int.TryParse(parts[1], out int height))
+        {
+            return false;
+        }
+
+        resolution = (width, height);
 
         return true;
     }
