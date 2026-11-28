@@ -34,11 +34,10 @@ internal class Patch_v2_11_0 : Patch
             SafePath.DeleteFileIfExists(file);
         }
 
-        // Add GenericWindow.ini->[GenericWindow]->DrawBorders=false
-        // and rename [ExtraControls] => [$ExtraControls]
+        // Rename [ExtraControls] => [$ExtraControls]
         {
             var genericWindowIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "GenericWindow.ini"));
-            bool genericWindowChanged = AddKeyWithLog(genericWindowIni, "GenericWindow", "DrawBorders", "false");
+            bool genericWindowChanged = false;
 
             if (genericWindowIni.SectionExists("ExtraControls"))
             {
@@ -78,23 +77,6 @@ internal class Patch_v2_11_0 : Patch
                 }
             }
 
-            // Add new sections into OptionsWindow.ini
-            {
-                var addKey = (string section, string key, string value) => optionsWindowChanged |= AddKeyWithLog(optionsWindowIni, section, key, value);
-                addKey("lblPlayerName", "Location", "12,195");
-                addKey("tbPlayerName", "Location", "113,193");
-                addKey("lblNotice", "Location", "12,220");
-                addKey("btnConfigureHotkeys", "Location", "12,290");
-                addKey("chkDisablePrivateMessagePopup", "Location", "12,138");
-                addKey("chkDisablePrivateMessagePopup", "Text", "Disable private message pop-ups");
-                addKey("chkAllowGameInvitesFromFriendsOnly", "Location", "276,68");
-                addKey("chkAllowGameInvitesFromFriendsOnly", "Text", "Only receive game invitations@from friends");
-                addKey("lblAllPrivateMessagesFrom", "Location", "276,138");
-                addKey("ddAllowPrivateMessagesFrom", "Location", "470,137");
-                addKey("gameListPanel", "Location", "0,200");
-                addKey("btnForceUpdate", "Location", "407,213");
-                addKey("btnForceUpdate", "Size", "133,23");
-            }
             if (optionsWindowChanged)
                 optionsWindowIni.WriteIniFile();
         }
@@ -138,32 +120,6 @@ internal class Patch_v2_11_0 : Patch
                 var themePath = clientDefinitionsIni.GetStringValue("Themes", themeKey, string.Empty).Split(',')[1];
                 addParserConstants(SafePath.CombineDirectoryPath(ResouresDir.FullName, themePath));
             }
-        }
-
-        // Add PlayerExtraOptionsPanel.ini
-        string gameLobbyBasePath = SafePath.CombineFilePath(ResouresDir.FullName, "GameLobbyBase.ini");
-
-        if (!File.Exists(gameLobbyBasePath))
-        {
-            IniFile playerExtraOptionsPanelIni = new IniFile(SafePath.CombineFilePath(ResouresDir.FullName, "PlayerExtraOptionsPanel.ini"));
-            bool playerExtraOptionsPanelChanged = false;
-            var addKey = (string section, string key, string value) => playerExtraOptionsPanelChanged |= AddKeyWithLog(playerExtraOptionsPanelIni, section, key, value);
-            addKey("btnClose", "Location", "220,0");
-            addKey("btnClose", "Size", "18,18");
-            addKey("lblHeader", "Location", "12,6");
-            addKey("chkBoxForceRandomSides", "Location", "12,28");
-            addKey("chkBoxForceRandomColors", "Location", "12,50");
-            addKey("chkBoxForceRandomTeams", "Location", "12,72");
-            addKey("chkBoxForceRandomStarts", "Location", "12,94");
-            addKey("chkBoxUseTeamStartMappings", "Location", "12,130");
-            addKey("btnHelp", "Location", "160,130");
-            addKey("lblPreset", "Location", "12,156");
-            addKey("ddTeamStartMappingPreset", "Location", "65,154");
-            addKey("ddTeamStartMappingPreset", "Size", "157,21");
-            addKey("teamStartMappingsPanel", "Location", "12,189");
-
-            if (playerExtraOptionsPanelChanged)
-                playerExtraOptionsPanelIni.WriteIniFile();
         }
 
         string GameLobbyBase = nameof(GameLobbyBase);

@@ -771,7 +771,7 @@ Location=176,110
 
 ## Edit `OptionsWindow.ini`
 
-New checkboxes have been added in the options window.
+New checkboxes have been added in the options window. The client positions these controls itself, so the coordinates below are examples from one mod's layout. Only add the sections if your layout needs explicit positions.
 
 1. Add sections:
 
@@ -865,7 +865,7 @@ SettingKey=ShowBuildingPlacementPreview
 
 ## Create new `PlayerExtraOptionsPanel.ini`
 
-A new panel that allows for convenient match setup has been added in the game lobby.
+A new panel that allows for convenient match setup has been added in the game lobby. This file is optional: the client creates the panel and positions its controls itself, so only create it to customize the panel's layout. The coordinates below are examples.
 
 ```ini
 [btnClose]
