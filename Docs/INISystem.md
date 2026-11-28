@@ -623,6 +623,33 @@ $Height=100
 $Height=MY_HEIGHT_CONSTANT
 ```
 
+### Conditional Visibility
+
+Can ONLY be used in controls inside a window that inherits the `INItializableWindow` class.
+
+```ini
+VisibleWhen=     ; comma-separated conditions, all must hold for the control to be shown. Prefix with ! to negate.
+                 ;          chkName  - the check box is checked
+                 ;          ddName=2 - item 2 of the dropdown is selected
+                 ;          lbName   - any other control is shown
+```
+
+### Conditional Visibility Examples
+
+```ini
+[pnlRA2Background]
+VisibleWhen=chkRA2Mode
+BackgroundTexture=ra2background.png
+DrawOrder=-1                ; behind the other controls
+UpdateOrder=-1              ; does not take mouse input from the controls in front of it
+
+[pnlAftermathLogo]
+VisibleWhen=ddGameVersion=2,!chkShortGame
+
+[lblRA2LogoGuest]
+VisibleWhen=chkRA2Mode,!lbMapList   ; the multiplayer lobby hides the map list for non-hosts
+```
+
 ## Window Properties
 
 Children of [XNAWindow](https://github.com/CnCNet/xna-cncnet-client/blob/develop/ClientGUI/XNAWindow.cs) that define their own properties.

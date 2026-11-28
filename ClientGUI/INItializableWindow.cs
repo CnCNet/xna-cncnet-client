@@ -94,6 +94,9 @@ namespace ClientGUI
 
             ParseExtraControls();
 
+            // After all controls exist, as the conditions name other controls.
+            VisibleWhenRule.ApplyToChildren(this, ConfigIni);
+
             base.Initialize();
 
             _initialized = true;
