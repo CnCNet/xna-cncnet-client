@@ -240,6 +240,18 @@ internal sealed class Program
                 + "pass --from <version> to apply only the patches released after it.");
         }
 
+        bool backupExists = Directory.Exists(clientDir + "_backup");
+
+        if (noBackup)
+        {
+            Logger.Log("Warning: The client folder will not be backed up because --no-backup is specified.");
+        }
+        else if (backupExists)
+        {
+            Logger.Log("Warning: A backup directory already exists, so no new backup will be created. "
+                + "The existing backup may not reflect the current state of the client folder.");
+        }
+
         Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
 
         if (!nonInteractive)
@@ -255,17 +267,8 @@ internal sealed class Program
             Console.ReadKey();
         }
 
-        if (noBackup)
+        if (!noBackup && !backupExists)
         {
-            Logger.Log("Skipping the backup because --no-backup is specified.");
-        }
-        else if (Directory.Exists(clientDir + "_backup"))
-        {
-            Logger.Log($"Backup already exists: \"{clientDir}_backup\". No new backup was created.");
-        }
-        else
-        {
-            Logger.Log("Warning: Running the migration tool will back up your folder.");
             Logger.Log($"Creating backup: {clientDir + "_backup"}");
             FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
             Logger.Log("Backup created.");
