@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +14,9 @@ namespace MigrationTool;
 
 internal sealed class Program
 {
+    private static readonly Version[] allPatchVersions =
+        Enum.GetValues<Version>().OrderBy(ToClientVersion).ToArray();
+
     private static int Main(string[] args)
     {
         // Initialize logger
@@ -33,27 +38,26 @@ internal sealed class Program
 
         var optPatch = new Option<string?>("--patch", "-p")
         {
-            Description = "Apply only the specified migration patch. "
-                + "If neither --patch nor --from is specified, all configured patches are applied in sequence. "
-                + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
-                + "The specified patch must be included in this build.",
+            Description = "Apply only the patch for the specified client version. "
+                + "The version must be one of the versions listed by --patch-list. "
+                + "If neither --patch nor --from is specified, all patches are applied in version order.",
             HelpName = "version"
         };
 
         var optFrom = new Option<string?>("--from")
         {
-            Description = "Apply patches starting with the specified version (inclusive). "
-                + "If --to is omitted, apply all subsequent patches, including Latest. "
-                + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
-                + "The specified patch must be included in this build.",
+            Description = "Apply the patches released after the specified client version. "
+                + "Pass the version the client folder currently runs; that version itself is not patched. "
+                + "The version does not have to be listed by --patch-list. "
+                + "If --to is omitted, all later patches are applied, including the latest one.",
             HelpName = "version"
         };
 
         var optTo = new Option<string?>("--to")
         {
-            Description = "Apply patches through the specified version (inclusive). Requires --from. "
-                + "Dots and underscores are accepted in version names. A leading 'v' is optional. "
-                + "The specified patch must be included in this build.",
+            Description = "Apply patches up to and including the specified client version. Requires --from. "
+                + "The version does not have to be listed by --patch-list; "
+                + "the newest patch released at or before it is applied last.",
             HelpName = "version"
         };
 
@@ -71,6 +75,7 @@ internal sealed class Program
                 - MigrationTool.log is written to the current working directory.
                 - Before applying patches, the tool creates <client-directory>_backup.
                 - If that backup directory already exists, it is kept without updating it.
+                - Version names accept dots or underscores, and an optional leading 'v'.
 
             Examples:
                 MigrationTool.exe "..\Games\Client"
@@ -92,38 +97,70 @@ internal sealed class Program
             if (!result.GetValue(optPatchList) && result.GetValue(argClientDir) == null)
                 result.AddError("A client directory is required.");
 
+            var patchResult = result.GetResult(optPatch);
             var fromResult = result.GetResult(optFrom);
             var toResult = result.GetResult(optTo);
 
-            if (result.GetResult(optPatch) != null && (fromResult != null || toResult != null))
+            if (patchResult != null && (fromResult != null || toResult != null))
                 result.AddError("--patch cannot be combined with --from or --to.");
 
             if (toResult != null && fromResult == null)
                 result.AddError("--to requires --from.");
 
-            var versions = Enum.GetValues(typeof(Version)).Cast<Version>()
-                .ToDictionary(version => NormalizeVersionName(version.ToString()));
-
-            foreach (var option in new[] { optPatch, optFrom, optTo })
+            if (patchResult?.Tokens.Count == 1)
             {
-                var optionResult = result.GetResult(option);
-                if (optionResult?.Tokens.Count != 1)
-                    continue;
-
-                string versionName = NormalizeVersionName(optionResult.Tokens[0].Value);
-
-                if (!versions.ContainsKey(versionName))
+                if (!TryParseVersion(patchResult.Tokens[0].Value, out ClientVersion patchVersion)
+                    || !allPatchVersions.Any(version => ToClientVersion(version) == patchVersion))
                 {
-                    optionResult.AddError("Unknown patch version. Use --patch-list to see the available versions.");
+                    patchResult.AddError($"There is no patch for client version \"{patchResult.Tokens[0].Value}\". "
+                        + "Use --patch-list to see the available patch versions.");
                 }
             }
 
-            if (fromResult?.Tokens.Count == 1 && toResult?.Tokens.Count == 1
-                && versions.TryGetValue(NormalizeVersionName(fromResult.Tokens[0].Value), out Version fromVersion)
-                && versions.TryGetValue(NormalizeVersionName(toResult.Tokens[0].Value), out Version toVersion)
-                && fromVersion > toVersion)
+            ClientVersion? fromVersion = null;
+            ClientVersion? toVersion = null;
+
+            if (fromResult?.Tokens.Count == 1)
             {
-                result.AddError("--from must not be later than --to.");
+                if (!TryParseVersion(fromResult.Tokens[0].Value, out ClientVersion parsedFromVersion))
+                {
+                    fromResult.AddError($"Invalid client version \"{fromResult.Tokens[0].Value}\". "
+                        + "Expected a version such as 2.12.0, 2_12_0 or v2.12.0.");
+                }
+                else if (parsedFromVersion == ClientVersion.Latest)
+                {
+                    fromResult.AddError("--from cannot be the latest version because there are no patches after it.");
+                }
+                else
+                {
+                    fromVersion = parsedFromVersion;
+                }
+            }
+
+            if (toResult?.Tokens.Count == 1)
+            {
+                if (!TryParseVersion(toResult.Tokens[0].Value, out ClientVersion parsedToVersion))
+                {
+                    toResult.AddError($"Invalid client version \"{toResult.Tokens[0].Value}\". "
+                        + "Expected a version such as 2.12.0, 2_12_0 or v2.12.0.");
+                }
+                else
+                {
+                    toVersion = parsedToVersion;
+                }
+            }
+
+            if (fromVersion != null && toVersion != null)
+            {
+                if (toVersion.Value.CompareTo(fromVersion.Value) <= 0)
+                {
+                    result.AddError("--to must be later than --from.");
+                }
+                else if (SelectPatchVersions(null, fromVersion, toVersion).Length == 0)
+                {
+                    result.AddError($"The range from \"{fromVersion.Value}\" to \"{toVersion.Value}\" "
+                        + "does not contain any patches. Use --patch-list to see the available patch versions.");
+                }
             }
         });
 
@@ -131,11 +168,14 @@ internal sealed class Program
         {
             if (result.GetValue(optPatchList))
             {
-                Console.WriteLine("List of available versions: " + string.Join(", ", Enum.GetNames(typeof(Version)).Select(name => name.Replace('_', '.'))));
+                Console.WriteLine("List of available versions: " + string.Join(", ", Enum.GetNames<Version>().Select(name => name.Replace('_', '.'))));
                 return;
             }
 
-            Version[] patchVersions = GetPatchVersions(result.GetValue(optPatch), result.GetValue(optFrom), result.GetValue(optTo));
+            Version[] patchVersions = SelectPatchVersions(
+                GetOptionVersion(result, optPatch),
+                GetOptionVersion(result, optFrom),
+                GetOptionVersion(result, optTo));
 
             MigrateClient(result.GetValue(argClientDir)!, patchVersions);
         });
@@ -144,31 +184,67 @@ internal sealed class Program
         return root.Parse(new[] { root.Name }.Concat(args).ToArray()).Invoke();
     }
 
-    private static string NormalizeVersionName(string name) => name.Trim().Replace('.', '_').TrimStart('v', 'V');
-
-    private static Version[] GetPatchVersions(string? versionName, string? fromVersionName, string? toVersionName)
+    private static ClientVersion? GetOptionVersion(ParseResult parseResult, Option<string?> option)
     {
-        var versions = Enum.GetValues(typeof(Version)).Cast<Version>().ToArray();
-        string? firstVersionName = versionName ?? fromVersionName;
+        var optionResult = parseResult.GetResult(option);
 
-        if (firstVersionName == null)
-            return versions;
+        if (optionResult?.Tokens.Count != 1)
+            return null;
 
-        firstVersionName = NormalizeVersionName(firstVersionName);
-        Version firstVersion = versions.First(version => NormalizeVersionName(version.ToString()) == firstVersionName);
-        Version lastVersion = versions[versions.Length - 1];
+        return TryParseVersion(optionResult.Tokens[0].Value, out ClientVersion version) ? version : null;
+    }
 
-        if (versionName != null)
+    /// <summary>
+    /// Parses a client version such as <c>2.12.0</c>, <c>2_12_0</c> or <c>v2.12.0</c>.
+    /// </summary>
+    private static bool TryParseVersion(string value, out ClientVersion version)
+    {
+        string trimmedValue = value.Trim();
+        trimmedValue = trimmedValue.TrimStart('v', 'V');
+
+        if (trimmedValue.Equals(nameof(Version.Latest), StringComparison.OrdinalIgnoreCase))
         {
-            lastVersion = firstVersion;
-        }
-        else if (toVersionName != null)
-        {
-            toVersionName = NormalizeVersionName(toVersionName);
-            lastVersion = versions.First(version => NormalizeVersionName(version.ToString()) == toVersionName);
+            version = ClientVersion.Latest;
+            return true;
         }
 
-        return versions.Where(version => version >= firstVersion && version <= lastVersion).ToArray();
+        string[] parts = trimmedValue.Replace('_', '.').Split('.');
+
+        if (parts.Length != 3
+            || !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out int major)
+            || !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out int minor)
+            || !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out int patch))
+        {
+            version = default;
+            return false;
+        }
+
+        version = new ClientVersion(major, minor, patch);
+        return true;
+    }
+
+    private static ClientVersion ToClientVersion(Version patchVersion) =>
+        TryParseVersion(patchVersion.ToString(), out ClientVersion clientVersion)
+            ? clientVersion
+            : throw new InvalidOperationException($"Unrecognized patch version: {patchVersion}.");
+
+    /// <summary>
+    /// Selects the patches to apply. <paramref name="from"/> is exclusive, <paramref name="to"/> is inclusive.
+    /// </summary>
+    private static Version[] SelectPatchVersions(ClientVersion? exact, ClientVersion? from, ClientVersion? to)
+    {
+        IEnumerable<Version> selection = allPatchVersions;
+
+        if (exact != null)
+            selection = selection.Where(version => ToClientVersion(version) == exact.Value);
+
+        if (from != null)
+            selection = selection.Where(version => ToClientVersion(version) > from.Value);
+
+        if (to != null)
+            selection = selection.Where(version => ToClientVersion(version) <= to.Value);
+
+        return selection.ToArray();
     }
 
     private static void MigrateClient(string clientDir, Version[] patchVersions)
@@ -227,5 +303,37 @@ internal sealed class Program
                 ex.ToString()));
             Logger.Log(string.Format("Migration to the {0} client version has been failed", patchVersions.Last().ToString().Replace('_', '.')));
         }
+    }
+
+    /// <summary>
+    /// A client version that can be compared with other client versions.
+    /// <see cref="Latest"/> sorts after every numbered version.
+    /// </summary>
+    private readonly record struct ClientVersion(int Major, int Minor, int Patch) : IComparable<ClientVersion>
+    {
+        public static ClientVersion Latest { get; } = new(int.MaxValue, int.MaxValue, int.MaxValue);
+
+        public int CompareTo(ClientVersion other)
+        {
+            int comparison = Major.CompareTo(other.Major);
+
+            if (comparison != 0)
+                return comparison;
+
+            comparison = Minor.CompareTo(other.Minor);
+
+            return comparison != 0 ? comparison : Patch.CompareTo(other.Patch);
+        }
+
+        public static bool operator >(ClientVersion left, ClientVersion right) => left.CompareTo(right) > 0;
+
+        public static bool operator <(ClientVersion left, ClientVersion right) => left.CompareTo(right) < 0;
+
+        public static bool operator >=(ClientVersion left, ClientVersion right) => left.CompareTo(right) >= 0;
+
+        public static bool operator <=(ClientVersion left, ClientVersion right) => left.CompareTo(right) <= 0;
+
+        public override string ToString() =>
+            this == Latest ? nameof(Version.Latest) : $"{Major}.{Minor}.{Patch}";
     }
 }
