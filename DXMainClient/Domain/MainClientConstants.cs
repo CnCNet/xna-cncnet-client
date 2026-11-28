@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 #endif
 using ClientCore;
+using ClientCore.Extensions;
 
 using Rampastring.Tools;
 
@@ -52,10 +53,27 @@ namespace DTAClient.Domain
                 Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 
 #if WINFORMS
-            MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!LoggerInitialized)
+            {
+                MessageBox.Show(error, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                string question = "Would you like to open the log folder so you can share the log?".L10N("Client:Main:ErrorOpenLogFolder");
+
+                if (MessageBox.Show(error + Environment.NewLine + Environment.NewLine + question, title,
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                {
+                    ProcessLauncher.OpenContainingFolder(ProgramConstants.LogFileName);
+                }
+            }
 #else
             if (LoggerInitialized)
+            {
+                // Without WinForms there is no dialog to ask with, so open the log folder directly.
+                ProcessLauncher.OpenContainingFolder(ProgramConstants.LogFileName);
                 ProcessLauncher.StartShellProcess(ProgramConstants.LogFileName);
+            }
             else
             {
                 string tempfile = SafePath.CombineFilePath(Path.GetTempPath(), "xna-cncnet-client-error.log");
