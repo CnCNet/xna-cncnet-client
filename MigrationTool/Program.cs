@@ -66,19 +66,6 @@ internal sealed class Program
             """
             CnCNet Client Migration Tool
             Experimental utility for migrating CnCNet client configuration.
-
-            Notes:
-                - MigrationTool.log is written to the current working directory.
-                - Before applying patches, the tool creates <client-directory>_backup.
-                - If that backup directory already exists, it is kept without updating it.
-                - Version names accept dots or underscores, and an optional leading 'v'.
-
-            Examples:
-                MigrationTool.exe "..\Games\Client"
-                MigrationTool.exe "C:\Path\To\Client" -p 2.11.0
-                MigrationTool.exe "C:\Path\To\Client" --from 2.12.0
-                MigrationTool.exe "C:\Path\To\Client" --from 2.12.0 --to 2.13.0
-                ./MigrationTool "/home/user/games/clientConfig"
             """)
         {
             argClientDir,
