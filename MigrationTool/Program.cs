@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Microsoft.VisualBasic.FileIO;
 
 using Rampastring.Tools;
@@ -10,15 +13,7 @@ namespace MigrationTool;
 
 internal sealed class Program
 {
-    private const string ERROR_MESSAGE = "Unknown arguments detected. Use -h argument to print help information.";
-    private const string HELP_MESSAGE =
-        """
-        CnCNet Client Migration Tool.
-        
-        Run this tool using the path to the unmigrated client directory as the first argument.
-        """;
-
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
         // Initialize logger
         DirectoryInfo baseDirectory = SafePath.GetDirectory(Directory.GetCurrentDirectory());
@@ -27,78 +22,246 @@ internal sealed class Program
         Logger.WriteLogFile = true;
         Logger.WriteToConsole = false;
         Logger.Log("CnCNet Client Migration Tool");
-        Logger.Log("Warning: Migration Tool is an experimental application.");
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
-        // Check arguments
-        switch (args.Length)
+        var argClientDir = new Argument<string>("client-directory")
         {
-            case 1:
-                string arg = args[0].Trim();
+            Description = "Path to the client directory.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
 
-                if (arg is "-h"
-                    or "--help"
-                    or "-?"
-                    or "/?"
-                    or "/h")
+        var optPatch = new Option<string?>("--patch", "-p")
+        {
+            Description = "Apply only the patch for the specified client version. "
+                + "The version must be one of the versions listed by --patch-list.",
+            HelpName = "version"
+        };
+
+        var optFrom = new Option<string?>("--from")
+        {
+            Description = "Apply the patches released after the specified client version. "
+                + "Please pass the version the client folder currently runs. "
+                + "The version does not have to be listed by --patch-list and can be any client version. "
+                + "If --to is omitted, all later patches are applied, including the latest one.",
+            HelpName = "version"
+        };
+
+        var optTo = new Option<string?>("--to")
+        {
+            Description = "Apply patches up to and including the specified client version. Requires --from. "
+                + "The version does not have to be listed by --patch-list and can be any client version.",
+            HelpName = "version"
+        };
+
+        var optPatchList = new Option<bool>("--patch-list")
+        {
+            Description = "Show list of available client version patches to use."
+        };
+
+        var root = new RootCommand(
+            """
+            CnCNet Client Migration Tool
+            Experimental utility for migrating CnCNet client configuration.
+            """)
+        {
+            argClientDir,
+            optPatch,
+            optFrom,
+            optTo,
+            optPatchList
+        };
+
+        root.Validators.Add(result =>
+        {
+            if (!result.GetValue(optPatchList) && result.GetValue(argClientDir) == null)
+                result.AddError("A client directory is required.");
+
+            var patchResult = result.GetResult(optPatch);
+            var fromResult = result.GetResult(optFrom);
+            var toResult = result.GetResult(optTo);
+
+            if (patchResult != null && (fromResult != null || toResult != null))
+                result.AddError("--patch cannot be combined with --from or --to.");
+
+            if (toResult != null && fromResult == null)
+                result.AddError("--to requires --from.");
+
+            if (patchResult?.Tokens.Count == 1)
+            {
+                if (!ClientVersion.TryParse(patchResult.Tokens[0].Value, out ClientVersion patchVersion)
+                    || !ClientVersion.All.Contains(patchVersion))
                 {
-                    Console.WriteLine(HELP_MESSAGE);
-                    return;
+                    patchResult.AddError($"There is no patch for client version \"{patchResult.Tokens[0].Value}\". "
+                        + "Use --patch-list to see the available patch versions.");
                 }
+            }
 
-                if (!SafePath.GetDirectory(arg).Exists)
+            ClientVersion? fromVersion = null;
+            ClientVersion? toVersion = null;
+
+            if (fromResult?.Tokens.Count == 1)
+            {
+                if (!ClientVersion.TryParse(fromResult.Tokens[0].Value, out ClientVersion parsedFromVersion))
                 {
-                    Logger.Log($"Unable to find \"{arg}\" folder. Migration halted.");
-                    return;
+                    fromResult.AddError($"Invalid client version \"{fromResult.Tokens[0].Value}\". "
+                        + "Expected a version such as 2.12.0, 2_12_0 or v2.12.0.");
                 }
-
-                if (!SafePath.GetFile(SafePath.CombineFilePath(arg, "Resources", "ClientDefinitions.ini")).Exists)
+                else if (parsedFromVersion == ClientVersion.Latest)
                 {
-                    Logger.Log($"Unable to find \"{arg}\\Resources\\ClientDefinitions.ini\". Migration halted.");
-                    return;
+                    fromResult.AddError("--from cannot be the latest version because there are no patches after it.");
                 }
-
-                Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
-                Logger.Log("Press any key to begin migration.");
-                Console.ReadKey();
-
-                if (!Directory.Exists(arg + "_backup"))
+                else
                 {
-                    Logger.Log($"Creating backup: {arg + "_backup"}");
-                    FileSystem.CopyDirectory(arg, arg + "_backup");
-                    Logger.Log("Backup created.");
+                    fromVersion = parsedFromVersion;
                 }
+            }
 
-                var assembly = Assembly.GetExecutingAssembly();
-                Patch? patch = null;
-                try
+            if (toResult?.Tokens.Count == 1)
+            {
+                if (!ClientVersion.TryParse(toResult.Tokens[0].Value, out ClientVersion parsedToVersion))
                 {
-                    // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
-                    var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
-                    var patchNames = Enum.GetValues(typeof(Version));
-                    foreach (var patchName in patchNames)
-                    {
-                        Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchName.ToString()).First();
-                        patch = (Patch?)Activator.CreateInstance(type, arg);
-                        patch?.Apply();
-                        Console.WriteLine("");
-                    }
+                    toResult.AddError($"Invalid client version \"{toResult.Tokens[0].Value}\". "
+                        + "Expected a version such as 2.12.0, 2_12_0 or v2.12.0.");
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.Log("");
-                    Logger.Log($"Unable to apply migration patch for client version {patch?.ClientVersion.ToString().Replace('_', '.')} due to an internal error. Message: {ex.ToString()}");
-                    Logger.Log("Migration to the latest client version has been failed");
+                    toVersion = parsedToVersion;
                 }
+            }
 
-                Console.WriteLine("Patching has been done.");
+            if (fromVersion != null && toVersion != null)
+            {
+                if (toVersion.Value.CompareTo(fromVersion.Value) <= 0)
+                {
+                    result.AddError("--to must be later than --from.");
+                }
+                else if (SelectPatchVersions(null, fromVersion, toVersion).Length == 0)
+                {
+                    result.AddError($"The range from \"{fromVersion.Value}\" to \"{toVersion.Value}\" "
+                        + "does not contain any patches. Use --patch-list to see the available patch versions.");
+                }
+            }
+        });
 
-                break;
-            case 0:
-            default:
-                Console.WriteLine(ERROR_MESSAGE);
-                break;
+        root.SetAction(result =>
+        {
+            if (result.GetValue(optPatchList))
+            {
+                Console.WriteLine("List of available versions: " + string.Join(", ", ClientVersion.All.Select(version => version.DisplayName)));
+                return;
+            }
+
+            ClientVersion? patchVersion = GetOptionVersion(result, optPatch);
+            ClientVersion? fromVersion = GetOptionVersion(result, optFrom);
+
+            ClientVersion[] patchVersions = SelectPatchVersions(
+                patchVersion,
+                fromVersion,
+                GetOptionVersion(result, optTo));
+
+            bool appliesEveryPatch = patchVersion == null && fromVersion == null;
+
+            MigrateClient(result.GetValue(argClientDir)!, patchVersions, appliesEveryPatch);
+        });
+
+        // Supply the executable token explicitly to preserve directories named MigrationTool.
+        return root.Parse(new[] { root.Name }.Concat(args).ToArray()).Invoke();
+    }
+
+    private static ClientVersion? GetOptionVersion(ParseResult parseResult, Option<string?> option)
+    {
+        var optionResult = parseResult.GetResult(option);
+
+        if (optionResult?.Tokens.Count != 1)
+            return null;
+
+        return ClientVersion.TryParse(optionResult.Tokens[0].Value, out ClientVersion version) ? version : null;
+    }
+
+    /// <summary>
+    /// Selects the patches to apply. <paramref name="from"/> is exclusive, <paramref name="to"/> is inclusive.
+    /// </summary>
+    private static ClientVersion[] SelectPatchVersions(ClientVersion? exact, ClientVersion? from, ClientVersion? to)
+    {
+        IEnumerable<ClientVersion> selection = ClientVersion.All;
+
+        if (exact != null)
+            selection = selection.Where(version => version == exact.Value);
+
+        if (from != null)
+            selection = selection.Where(version => version > from.Value);
+
+        if (to != null)
+            selection = selection.Where(version => version <= to.Value);
+
+        return selection.ToArray();
+    }
+
+    private static void MigrateClient(string clientDir, ClientVersion[] patchVersions, bool appliesEveryPatch)
+    {
+        if (!SafePath.GetDirectory(clientDir).Exists)
+        {
+            Logger.Log($"Unable to find \"{clientDir}\" folder. Migration halted.");
+            return;
+        }
+
+        if (!SafePath.GetFile(SafePath.CombineFilePath(clientDir, "Resources", "ClientDefinitions.ini")).Exists)
+        {
+            Logger.Log($"Unable to find \"{clientDir}\\Resources\\ClientDefinitions.ini\". Migration halted.");
+            return;
+        }
+
+        if (appliesEveryPatch)
+        {
+            Logger.Log("Warning: All migration patches will be applied. If the client already runs a released version, "
+                + "pass --from <version> to apply only the patches released after it.");
+        }
+
+        Logger.Log("Warning: Running the migration tool will back up your folder. However, if a backup already exists, a new one will not be created.");
+
+        Logger.Log("Warning: This is an experimental tool. Use it at your own risk.");
+
+        Logger.Log("Press any key to begin migration.");
+        Console.ReadKey();
+
+        if (!Directory.Exists(clientDir + "_backup"))
+        {
+            Logger.Log($"Creating backup: {clientDir + "_backup"}");
+            FileSystem.CopyDirectory(clientDir, clientDir + "_backup");
+            Logger.Log("Backup created.");
+        }
+
+        PatchConfigs(clientDir, patchVersions);
+    }
+
+    private static void PatchConfigs(string clientDir, ClientVersion[] patchVersions)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        ClientVersion? currentVersion = null;
+        try
+        {
+            // https://stackoverflow.com/questions/16038819/how-to-find-all-direct-subclasses-of-a-class-with-net-reflection
+            var patches = assembly.GetTypes().Where(type => type.BaseType == typeof(Patch)).ToList();
+
+            foreach (ClientVersion patchVersion in patchVersions)
+            {
+                currentVersion = patchVersion;
+                Type type = patches.Where(t => t.FullName == "MigrationTool.Patch_" + patchVersion.Name).First();
+                var patch = (Patch?)Activator.CreateInstance(type, clientDir);
+                patch?.Apply();
+                Console.WriteLine("");
+            }
+
+            Console.WriteLine("Patching has been done.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log("");
+            Logger.Log(string.Format("Unable to apply migration patch for client version {0} due to an internal error. Message: {1}",
+                currentVersion?.ToString(),
+                ex.ToString()));
+            Logger.Log(string.Format("Migration to the {0} client version has been failed", patchVersions.Last()));
         }
     }
 }

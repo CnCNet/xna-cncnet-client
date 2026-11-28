@@ -20,7 +20,7 @@ internal abstract class Patch
     // TODO: The Patch helpers operate on one already-loaded IniFile. Files referenced by
     // INISystem/BasedOn are not loaded by the Patch helpers.
 
-    public Version ClientVersion { get; protected set; }
+    public abstract ClientVersion PatchVersion { get; }
     public ClientType Game { get; protected set; }
     public DirectoryInfo ClientDir { get; protected set; }
     public DirectoryInfo ResouresDir { get; protected set; }
@@ -45,7 +45,7 @@ internal abstract class Patch
 
     public virtual void Apply()
     {
-        Logger.Log($"Applying patch for client version {ClientVersion.ToString().Replace('_', '.')}...");
+        Logger.Log($"Applying patch for client version {PatchVersion}...");
         CopyVersionPicturesWithLog();
     }
 
@@ -126,7 +126,7 @@ internal abstract class Patch
 
     private void CopyVersionPicturesWithLog()
     {
-        string resourcePrefix = $"{nameof(MigrationTool)}.Pictures.{ClientVersion}.";
+        string resourcePrefix = $"{nameof(MigrationTool)}.Pictures.{PatchVersion.Name}.";
         Assembly assembly = Assembly.GetExecutingAssembly();
 
         foreach (string resourceName in assembly.GetManifestResourceNames())

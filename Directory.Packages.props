@@ -18,6 +18,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="OpenMcdf" Version="3.1.4" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.13" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.14" />
     <PackageVersion Include="System.DirectoryServices" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Management" Version="$(DotnetLibrariesVersion)" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
@@ -34,8 +35,8 @@
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'ClientCore' Or '$(MSBuildProjectName)' == 'ClientGUI' Or '$(MSBuildProjectName)' == 'DTAConfig' Or '$(MSBuildProjectName)' == 'DXMainClient' Or '$(MSBuildProjectName)' == 'ClientUpdater'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
-  <!-- Polyfill on .NET 4.8 (SecondStageUpdater and MigrationTool excluded) -->
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' and '$(MSBuildProjectName)' != 'MigrationTool' and $(TargetFrameworkIdentifier) == '.NETFramework'">
+  <!-- Polyfill on .NET 4.8 (SecondStageUpdater excluded) -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'SecondStageUpdater' and $(TargetFrameworkIdentifier) == '.NETFramework'">
     <GlobalPackageReference Include="Polyfill" Version="11.4.4" />
     <PackageReference Include="System.ValueTuple" Condition="$(TargetFramework.StartsWith('net46'))" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
