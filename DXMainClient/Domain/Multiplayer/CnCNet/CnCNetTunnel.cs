@@ -56,6 +56,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string[] detailedAddress = address.Split(new char[] { ':' });
 
                 tunnel.Address = detailedAddress[0];
+
+                if (!IPAddress.TryParse(tunnel.Address, out _))
+                    throw new FormatException($"Invalid tunnel address '{tunnel.Address}'");
+
                 tunnel.Port = int.Parse(detailedAddress[1]);
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
