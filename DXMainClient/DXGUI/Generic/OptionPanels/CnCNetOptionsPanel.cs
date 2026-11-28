@@ -1,6 +1,7 @@
 ﻿using ClientCore.Extensions;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Telemetry;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using ClientGUI;
 using Microsoft.Xna.Framework;
@@ -41,6 +42,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         XNAClientDropDown ddTunnelMode;
         XNAClientCheckBox chkEnableP2P;
+        XNAClientCheckBox chkTelemetry;
 
         GameCollection gameCollection;
         TunnelHandler tunnelHandler;
@@ -220,6 +222,19 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkEnableP2P.ToolTipText = "Some tunnel modes may allow you to connect directly to other players for improved latency, at the cost of exposing your real IP.".L10N("Client:DTAConfig:AllowP2PTooltip");
             chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
             AddChild(chkEnableP2P);
+
+            if (TelemetryService.IsAvailable)
+            {
+                chkTelemetry = new XNAClientCheckBox(WindowManager);
+                chkTelemetry.Name = nameof(chkTelemetry);
+                chkTelemetry.ClientRectangle = new Rectangle(
+                    chkEnableP2P.X,
+                    chkEnableP2P.Bottom + 9, 0, 0);
+                chkTelemetry.Text = "Send anonymous usage statistics".L10N("Client:DTAConfig:SendTelemetry");
+                chkTelemetry.ToolTipText = "Sends anonymous information such as hardware, settings and client version to help improve the client and the game. No personal data or identifiers are sent.".L10N("Client:DTAConfig:SendTelemetryTooltip");
+
+                AddChild(chkTelemetry);
+            }
         }
 
         private void ChkEnableP2P_CheckedChanged(object sender, EventArgs e)
@@ -289,7 +304,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
         private void InitGameListPanel()
         {
-            const int gameListPanelHeight = 185;
+            const int gameListPanelHeight = 175;
             XNAPanel gameListPanel = new XNAPanel(WindowManager);
             gameListPanel.DrawBorders = false;
             gameListPanel.Name = nameof(gameListPanel);
@@ -414,6 +429,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
 
             chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
 
+            if (chkTelemetry != null)
+                chkTelemetry.Checked = IniSettings.TelemetryEnabled;
+
             string localGame = ClientConfiguration.Instance.LocalGame.ToUpperInvariant();
 
             foreach (var chkBox in followedGameChks)
@@ -455,6 +473,9 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             }
 
             IniSettings.AllowGameInvitesFromFriendsOnly.Value = chkAllowGameInvitesFromFriendsOnly.Checked;
+
+            if (chkTelemetry != null)
+                IniSettings.TelemetryEnabled.Value = chkTelemetry.Checked;
 
             foreach (var chkBox in followedGameChks)
             {

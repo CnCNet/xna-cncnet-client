@@ -9,6 +9,7 @@ using ClientCore.Extensions;
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Telemetry;
 using DTAClient.Online;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
@@ -111,6 +112,8 @@ namespace DTAClient.DXGUI.Generic
             ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
+            TelemetryService.ReportClientStarted();
+
             MainMenu mainMenu = serviceProvider.GetService<MainMenu>();
 
             WindowManager.AddAndInitializeControl(mainMenu);
@@ -122,7 +125,8 @@ namespace DTAClient.DXGUI.Generic
                 cncnetManager.Connect();
             }
 
-            if (!UserINISettings.Instance.PrivacyPolicyAccepted)
+            if (!UserINISettings.Instance.PrivacyPolicyAccepted
+                || (TelemetryService.IsAvailable && !UserINISettings.Instance.TelemetryNoticeShown))
             {
                 WindowManager.AddAndInitializeControl(new PrivacyNotification(WindowManager));
             }

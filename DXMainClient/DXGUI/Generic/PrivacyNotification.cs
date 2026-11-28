@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientGUI;
 using ClientCore.Extensions;
+using DTAClient.Domain.Telemetry;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -8,7 +9,8 @@ using Rampastring.XNAUI.XNAControls;
 namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
-    /// A notification that asks the user to accept the CnCNet privacy policy.
+    /// A notification that asks the user to accept the CnCNet privacy policy
+    /// and tells them about anonymous usage statistics.
     /// </summary>
     class PrivacyNotification : XNAWindow
     {
@@ -54,10 +56,25 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblPrivacyPolicy.Text);
             AddChild(lblPrivacyPolicy);
 
+            XNAControl lastInformationControl = lblMoreInformation;
+
+            if (TelemetryService.IsAvailable)
+            {
+                var lblTelemetry = new XNALabel(WindowManager);
+                lblTelemetry.Name = nameof(lblTelemetry);
+                lblTelemetry.X = lblDescription.X;
+                lblTelemetry.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
+                lblTelemetry.Text = Renderer.FixText(
+                    "This application sends anonymous usage statistics, such as hardware, settings and client version, to help improve it. No personal data or identifiers are sent. You can turn this off in the CnCNet tab of the options.".L10N("Client:Main:TelemetryText"),
+                    lblTelemetry.FontIndex, WindowManager.RenderResolutionX - (UIDesignConstants.EMPTY_SPACE_SIDES * 2)).Text;
+                AddChild(lblTelemetry);
+                lastInformationControl = lblTelemetry;
+            }
+
             var lblExplanation = new XNALabel(WindowManager);
             lblExplanation.Name = nameof(lblExplanation);
             lblExplanation.X = UIDesignConstants.EMPTY_SPACE_SIDES;
-            lblExplanation.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
+            lblExplanation.Y = lastInformationControl.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
             lblExplanation.Text = "By using this application you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client settings.".L10N("Client:Main:TOSExplanation");
             lblExplanation.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblExplanation);
@@ -72,6 +89,8 @@ namespace DTAClient.DXGUI.Generic
             btnOK.LeftClick += (s, e) => 
             {
                 UserINISettings.Instance.PrivacyPolicyAccepted.Value = true;
+                if (TelemetryService.IsAvailable)
+                    UserINISettings.Instance.TelemetryNoticeShown.Value = true;
                 UserINISettings.Instance.SaveSettings();
                 // AlphaRate = -0.2f;
                 Disable(); 
