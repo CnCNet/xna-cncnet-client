@@ -34,16 +34,15 @@ internal sealed class Program
         var optPatch = new Option<string?>("--patch", "-p")
         {
             Description = "Apply only the patch for the specified client version. "
-                + "The version must be one of the versions listed by --patch-list. "
-                + "If neither --patch nor --from is specified, all patches are applied in version order.",
+                + "The version must be one of the versions listed by --patch-list.",
             HelpName = "version"
         };
 
         var optFrom = new Option<string?>("--from")
         {
             Description = "Apply the patches released after the specified client version. "
-                + "Pass the version the client folder currently runs; that version itself is not patched. "
-                + "The version does not have to be listed by --patch-list. "
+                + "Please pass the version the client folder currently runs. "
+                + "The version does not have to be listed by --patch-list and can be any client version. "
                 + "If --to is omitted, all later patches are applied, including the latest one.",
             HelpName = "version"
         };
@@ -51,8 +50,7 @@ internal sealed class Program
         var optTo = new Option<string?>("--to")
         {
             Description = "Apply patches up to and including the specified client version. Requires --from. "
-                + "The version does not have to be listed by --patch-list; "
-                + "the newest patch released at or before it is applied last.",
+                + "The version does not have to be listed by --patch-list and can be any client version.",
             HelpName = "version"
         };
 
