@@ -22,7 +22,6 @@ internal sealed class Program
         Logger.WriteLogFile = true;
         Logger.WriteToConsole = false;
         Logger.Log("CnCNet Client Migration Tool");
-        Logger.Log("Warning: Migration Tool is an experimental application.");
         Logger.Log("Version: " + GitVersionInformation.AssemblySemVer);
         Logger.WriteToConsole = true;
 
