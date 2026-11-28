@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ClientCore.Display;
@@ -32,6 +33,36 @@ public sealed record ScreenResolution : IComparable<ScreenResolution>
         List<int> resolutionList = resolution.Trim().Split('x').Take(2).Select(int.Parse).ToList();
         Width = resolutionList[0];
         Height = resolutionList[1];
+    }
+
+    /// <summary>
+    /// Tries to parse a resolution string, such as <c>1280x720</c>.
+    /// </summary>
+    /// <param name="value">The resolution string to parse.</param>
+    /// <param name="resolution">The parsed resolution when successful.</param>
+    /// <returns><see langword="true"/> if <paramref name="value"/> was parsed successfully.</returns>
+    /// <remarks>
+    /// Matches the string constructor: only the first two components are used.
+    /// </remarks>
+    public static bool TryParse(string? value, [NotNullWhen(true)] out ScreenResolution? resolution)
+    {
+        resolution = null;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        string[] parts = value.Trim().Split('x');
+
+        if (parts.Length < 2
+            || !int.TryParse(parts[0], out int width)
+            || !int.TryParse(parts[1], out int height))
+        {
+            return false;
+        }
+
+        resolution = new ScreenResolution(width, height);
+
+        return true;
     }
 
     public static implicit operator ScreenResolution(string resolution) => new(resolution);

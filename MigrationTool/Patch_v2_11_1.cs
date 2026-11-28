@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 using Rampastring.Tools;
 using ClientCore.Display;
@@ -78,7 +77,7 @@ internal class Patch_v2_11_1 : Patch
             if (trimmedEntry.Length == 0)
                 continue;
 
-            if (!TryParseResolution(trimmedEntry, out ScreenResolution? resolution))
+            if (!ScreenResolution.TryParse(trimmedEntry, out ScreenResolution? resolution))
             {
                 Logger.Log($"Update {clientDefsIni.FilePath}: Drop [{section}]->{key} entry \"{trimmedEntry}\", reason: not a WxH resolution");
                 continue;
@@ -107,24 +106,6 @@ internal class Patch_v2_11_1 : Patch
         Logger.Log($"Update {clientDefsIni.FilePath}: Set [{section}]->{key}={filteredValue}");
 
         clientDefsIni.SetStringValue(section, key, filteredValue);
-
-        return true;
-    }
-
-    private static bool TryParseResolution(string value, [NotNullWhen(true)] out ScreenResolution? resolution)
-    {
-        resolution = null;
-
-        string[] parts = value.Split('x');
-
-        if (parts.Length != 2
-            || !int.TryParse(parts[0], out int width)
-            || !int.TryParse(parts[1], out int height))
-        {
-            return false;
-        }
-
-        resolution = (width, height);
 
         return true;
     }
